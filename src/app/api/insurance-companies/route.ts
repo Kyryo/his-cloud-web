@@ -1,0 +1,87 @@
+import { INSURANCE_API_PATHS } from "@/constants/insurance-api";
+import type {
+  CreateOrganizationPayerPayload,
+  OrganizationPayer,
+} from "@/features/settings/types/settings.types";
+import { bffError, bffSuccess } from "@/lib/server/bff-response";
+import { hmisApiRequest, hmisApiRequestWithMeta } from "@/lib/server/hmis-api";
+import { requireTenantAdmin } from "@/lib/server/require-tenant-admin";
+
+const FORWARDED_QUERY_KEYS = ["page", "page_size", "search", "ordering"] as const;
+
+function buildUpstreamQuery(request: Request): string {
+  const incoming = new URL(request.url).searchParams;
+  const params = new URLSearchParams();
+
+  for (const key of FORWARDED_QUERY_KEYS) {
+    const value = incoming.get(key);
+    if (value) {
+      params.set(key, value);
+    }
+  }
+
+  if (!params.has("page_size")) {
+    params.set("page_size", "100");
+  }
+
+  const query = params.toString();
+  return query ? `?${query}` : "";
+}
+
+export async function GET(request: Request) {
+  try {
+    const admin = await requireTenantAdmin();
+    if ("error" in admin) {
+      return admin.error;
+    }
+
+    const query = buildUpstreamQuery(request);
+    const { data, meta } = await hmisApiRequestWithMeta<OrganizationPayer[]>(
+      `${INSURANCE_API_PATHS.companies}${query}`,
+      { token: admin.accessToken },
+    );
+
+    return bffSuccess({
+      results: data,
+      pagination: meta.pagination ?? null,
+    });
+  } catch (error) {
+    return bffError(error);
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const admin = await requireTenantAdmin();
+    if ("error" in admin) {
+      return admin.error;
+    }
+
+    const body = (await request.json()) as CreateOrganizationPayerPayload;
+
+    if (!body.name?.trim() || !body.code?.trim()) {
+      return bffSuccess({ message: "Name and code are required." }, 400);
+    }
+
+    const payer = await hmisApiRequest<OrganizationPayer>(
+      INSURANCE_API_PATHS.companies,
+      {
+        method: "POST",
+        token: admin.accessToken,
+        body: {
+          name: body.name.trim(),
+          code: body.code.trim(),
+          description: body.description?.trim() || "",
+          phone_number: body.phone_number?.trim() || "",
+          email: body.email?.trim() || "",
+          address: body.address?.trim() || "",
+          is_active: body.is_active ?? true,
+        },
+      },
+    );
+
+    return bffSuccess(payer, 201);
+  } catch (error) {
+    return bffError(error);
+  }
+}

@@ -1,0 +1,206 @@
+[
+  {
+    "Description":"GP CONSULTATION IN ROOMS ADULTS\/CHILDREN ",
+    "Masm":3001,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":" GP-SUBSEQUENT CONSULTATIONS AT ROOMS ",
+    "Masm":3002,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":" INITIAL COSULTATION BY NEUROLOGIST",
+    "Masm":13001,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":" SUBSEQUENT CONSULTATION BY NEUROLOGIST",
+    "Masm":13002,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":" INITIAL PSYCHOLOGICAL CONSULTATION ",
+    "Masm":19001,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":" SUBSEQUENT PSYCHOLOGICAL CONSULTATION ",
+    "Masm":19002,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":" OBSTETRIC AND CONSULTATION - INITIAL",
+    "Masm":31001,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":" OBSTETRIC AND CONSULTATION - SUBSEQUENT",
+    "Masm":31002,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":"GYNAE CONSULTATION - INITIAL",
+    "Masm":31007,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":"GYNAE CONSULTATION - SUBSEQUENT",
+    "Masm":31008,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":" INITIAL CONSULTATION ENT ",
+    "Masm":35001,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":"  SUBSEQUENT CONSULTATION BY ENT SPECIALIST",
+    "Masm":35002,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":" CONSULTATION AT ROOMS (PAEDIATRICS) ",
+    "Masm":14001,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":" SUBSQUENT  CONSULTATION- PAEDRIATRICS",
+    "Masm":14002,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":" INITIAL  CONSULTATION  BY PHYSICIANS",
+    "Masm":16001,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":"  SUBSQUENT VISIT BY PHYSICIANS",
+    "Masm":16002,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":" INITIAL PYCHIATRIC CONSULTATION",
+    "Masm":18001,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":" SUBSEQUENT  PSYCHIATRIC  CONSULTATION",
+    "Masm":18002,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":" INITIAL CONSULTAION ONCOLOGIST",
+    "Masm":32000,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":" SUBSQUENT CONSULTATION ONCOLOGIST",
+    "Masm":32001,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":" VISITING SPECIALIST CONSULTATION",
+    "Masm":34103,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":" VISITING SPECIALIST FOLLOW UP CONSULTATION",
+    "Masm":34104,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":" ANTENATAL CONSULTATION",
+    "Masm":31003,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":" ANTENATAL SUBSEQUENT",
+    "Masm":31004,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":"SURGEON CONSULTATION (INITIAL)",
+    "Masm":20101,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":"SURGEON CONSULTATION (FOLLOW UP)",
+    "Masm":20102,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":"ORTHOPAEDIC CONSULTATION - INITIAL",
+    "Masm":33101,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":"ORTHOPAEDIC CONSULTATION - FOLLOW UP",
+    "Masm":33102,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":"HEMATOLOGIST - INITIAL VISIT",
+    "Masm":36001,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":"HEMATOLOGIST - FOLLOW UP ",
+    "Masm":36002,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":"AUDIOLOGIST - CONSULTATION FEE - INITIAL",
+    "Masm":35700,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":"AUDIOLOGIST - CONSULTATION FEE - FOLLOW UP",
+    "Masm":35701,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":"DERMATOLOGIST - CONSULTATION - INITIAL",
+    "Masm":10101,
+    "Liberty":0,
+    "Medhealth":0
+  },
+  {
+    "Description":"DERMATOLOGIST CONSULTATION - FOLLOW UP",
+    "Masm":10102,
+    "Liberty":0,
+    "Medhealth":0
+  }
+]

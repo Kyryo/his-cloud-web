@@ -1,0 +1,266 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #1e2d40;
+  --color-card: #ffffff;
+  --color-card-foreground: #1e2d40;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #1e2d40;
+  --color-primary: #1565d8;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #e8f1fd;
+  --color-secondary-foreground: #1e2d40;
+  --color-muted: #e8f1fd;
+  --color-muted-foreground: #6b7e93;
+  --color-accent: #e8f1fd;
+  --color-accent-foreground: #1e2d40;
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #dde4ed;
+  --color-input: #dde4ed;
+  --color-ring: #1565d8;
+  --color-brand-navy: #1e2d40;
+  --color-brand-primary: #1565d8;
+  --color-brand-sky: #2196f3;
+  --color-brand-tint: #e8f1fd;
+  --color-brand-slate: #3d5166;
+  --color-brand-muted: #6b7e93;
+  --color-brand-border: #dde4ed;
+  --color-sidebar: #fafbfc;
+  --color-sidebar-foreground: #1e2d40;
+  --color-sidebar-primary: #1565d8;
+  --color-sidebar-primary-foreground: #ffffff;
+  --color-sidebar-accent: #f1f4f8;
+  --color-sidebar-accent-foreground: #1e2d40;
+  --color-sidebar-border: #dde4ed;
+  --color-sidebar-ring: #1565d8;
+  --radius-lg: 0.5rem;
+  --radius-md: calc(0.5rem - 2px);
+  --radius-sm: calc(0.5rem - 4px);
+  --font-display: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  :root {
+    --sidebar-background: 210 20% 98%;
+    --sidebar-foreground: 210 35% 19%;
+    --sidebar-primary: 212 82% 47%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 214 20% 96%;
+    --sidebar-accent-foreground: 210 35% 19%;
+    --sidebar-border: 214 24% 89%;
+    --sidebar-ring: 212 82% 47%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+  }
+
+  a[href],
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  [aria-disabled="true"] {
+    cursor: not-allowed;
+  }
+}
+
+@layer components {
+  [data-brand-page] .brand-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.03em;
+    line-height: 1.05;
+  }
+
+  [data-brand-page] .brand-display-relaxed {
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .hero-fade-up {
+    animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes otp-shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+
+    20%,
+    60% {
+      transform: translateX(-4px);
+    }
+
+    40%,
+    80% {
+      transform: translateX(4px);
+    }
+  }
+
+  .animate-otp-shake {
+    animation: otp-shake 0.45s ease-in-out;
+  }
+
+  @keyframes dialog-overlay-show {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes dialog-overlay-hide {
+    from {
+      opacity: 1;
+    }
+
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes dialog-content-show {
+    from {
+      opacity: 0;
+      transform: translate(-50%, calc(-50% + 0.75rem)) scale(0.97);
+    }
+
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+  }
+
+  @keyframes dialog-content-hide {
+    from {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    to {
+      opacity: 0;
+      transform: translate(-50%, calc(-50% + 0.5rem)) scale(0.98);
+    }
+  }
+
+  .dialog-overlay[data-state="open"] {
+    animation: dialog-overlay-show 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .dialog-overlay[data-state="closed"] {
+    animation: dialog-overlay-hide 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .dialog-content[data-state="open"] {
+    animation: dialog-content-show 320ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .dialog-content[data-state="closed"] {
+    animation: dialog-content-hide 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .customer-phone-input .react-international-phone-input-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    border: 0;
+    background: transparent;
+  }
+
+  .customer-phone-input .react-international-phone-country-selector-button {
+    margin: 0 !important;
+    border: 0 !important;
+    border-right: 1px solid var(--color-input) !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .customer-phone-input .react-international-phone-input {
+    margin: 0 !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .country-select-field .country-select-field-button {
+    display: flex !important;
+    height: 2.5rem !important;
+    width: 100% !important;
+    align-items: center !important;
+    border: 1px solid var(--color-input) !important;
+    border-radius: 0.375rem !important;
+    background: var(--color-background) !important;
+    padding-inline: 0.75rem !important;
+    font-size: 0.875rem !important;
+    line-height: 1.25rem !important;
+    color: var(--color-foreground) !important;
+    transition:
+      border-color 150ms ease,
+      box-shadow 150ms ease;
+  }
+
+  .country-select-field .country-select-field-button:focus,
+  .country-select-field .country-select-field-button:focus-visible {
+    border-color: var(--color-ring) !important;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-ring) 25%, transparent) !important;
+    outline: none !important;
+  }
+
+  .country-select-field.has-error .country-select-field-button {
+    border-color: var(--color-destructive) !important;
+  }
+
+  .country-select-field.has-error .country-select-field-button:focus,
+  .country-select-field.has-error .country-select-field-button:focus-visible {
+    border-color: var(--color-destructive) !important;
+    box-shadow: 0 0 0 2px
+      color-mix(in srgb, var(--color-destructive) 20%, transparent) !important;
+  }
+
+  .brand-calendar .rdp-selected .rdp-day_button {
+    background-color: var(--color-brand-primary);
+    border-color: var(--color-brand-primary);
+    color: white;
+  }
+
+  .brand-calendar .rdp-day_button:focus-visible {
+    outline: 2px solid color-mix(in srgb, var(--color-brand-primary) 35%, transparent);
+    outline-offset: 2px;
+  }
+
+  .brand-calendar .rdp-chevron {
+    fill: var(--color-brand-primary);
+  }
+
+  .brand-calendar .rdp-today:not(.rdp-selected) .rdp-day_button {
+    color: var(--color-brand-primary);
+    font-weight: 600;
+  }
+}

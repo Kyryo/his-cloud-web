@@ -1,0 +1,16 @@
+{
+  "insurance_companies": [
+    {
+      "name": "Masm",
+      "schemes": ["VVIP", "VIP", "ECONO", "EXE"]
+    },
+    {
+      "name": "Liberty",
+      "schemes": ["L1", "L2"]
+    },
+    {
+      "name": "Medhealth",
+      "schemes": ["M1", "M2"]
+    }
+  ]
+}
