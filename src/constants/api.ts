@@ -21,7 +21,23 @@ export const BFF_CUSTOMERS_ROUTES = {
   insuranceDetail: (customerUuid: string, insuranceUuid: string) =>
     `/api/customers/${customerUuid}/insurance/${insuranceUuid}`,
   billing: (uuid: string) => `/api/customers/${uuid}/billing`,
-  visits: (uuid: string) => `/api/customers/${uuid}/visits`,
+  visits: (uuid: string, query?: { limit?: number }) => {
+    const params = new URLSearchParams();
+    if (query?.limit) {
+      params.set("limit", String(query.limit));
+    }
+    const suffix = params.toString();
+    return suffix
+      ? `/api/customers/${uuid}/visits?${suffix}`
+      : `/api/customers/${uuid}/visits`;
+  },
+} as const;
+
+/** Browser-facing BFF visit routes (same origin). */
+export const BFF_VISITS_ROUTES = {
+  create: "/api/visits",
+  end: (uuid: string) => `/api/visits/${uuid}/end`,
+  visitTypesCatalog: "/api/visit-types/catalog",
 } as const;
 
 /** Browser-facing BFF insurance catalog routes (same origin). */
@@ -58,4 +74,18 @@ export const BFF_SETTINGS_ROUTES = {
   visitTypeDetail: (uuid: string) => `/api/visit-types/${uuid}`,
   insuranceCompanies: "/api/insurance-companies",
   insuranceSchemes: "/api/insurance-schemes",
+  branding: "/api/tenants/current/branding",
+  currency: "/api/tenants/current/currency",
+  users: "/api/user-management",
+  userDetail: (id: number) => `/api/user-management/${id}`,
+  groups: "/api/groups",
+  groupDetail: (id: number) => `/api/groups/${id}`,
+  groupAddUser: "/api/groups/add-user",
+  groupRemoveUser: "/api/groups/remove-user",
+  userClinics: "/api/user-clinics",
+  userClinicDetail: (id: number) => `/api/user-clinics/${id}`,
+  userClinicSetPrimary: (id: number) => `/api/user-clinics/${id}/set-primary`,
+  userLocations: "/api/user-locations",
+  userLocationDetail: (id: number) => `/api/user-locations/${id}`,
+  userLocationSetPrimary: (id: number) => `/api/user-locations/${id}/set-primary`,
 } as const;

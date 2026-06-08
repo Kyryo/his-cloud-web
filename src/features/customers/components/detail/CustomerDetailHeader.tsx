@@ -1,6 +1,7 @@
 "use client";
 
 import { Calendar } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { ClientAvatar } from "@/components/client-avatar";
 import { Badge } from "@/components/ui/badge";
@@ -15,15 +16,20 @@ import {
 
 type CustomerDetailHeaderProps = {
   customer: Customer;
+  actions?: ReactNode;
 };
 
-export function CustomerDetailHeader({ customer }: CustomerDetailHeaderProps) {
+export function CustomerDetailHeader({
+  customer,
+  actions,
+}: CustomerDetailHeaderProps) {
   const fullName = formatCustomerName(customer);
   const ageDisplay = formatAdaptiveAge(customer.dob);
 
   return (
     <DetailPageHeaderSection>
-      <div className="flex min-w-0 items-start gap-3 sm:gap-4">
+      <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
+      <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-4">
         <ClientAvatar name={fullName} className="size-10 text-sm sm:size-12" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -56,6 +62,8 @@ export function CustomerDetailHeader({ customer }: CustomerDetailHeaderProps) {
             <span>{formatErpSyncStatus(customer.has_synced_to_odoo)}</span>
           </div>
         </div>
+      </div>
+      {actions ? <div className="shrink-0">{actions}</div> : null}
       </div>
     </DetailPageHeaderSection>
   );

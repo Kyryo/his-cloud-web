@@ -8,7 +8,7 @@ type RouteContext = {
   params: Promise<{ uuid: string }>;
 };
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: Request, context: RouteContext) {
   try {
     const auth = await requireAccessToken();
     if ("error" in auth) {
@@ -16,8 +16,13 @@ export async function GET(_request: Request, context: RouteContext) {
     }
 
     const { uuid } = await context.params;
+    const incoming = new URL(request.url).searchParams;
+    const limitParam = incoming.get("limit");
+    const limit = limitParam ? Number.parseInt(limitParam, 10) : undefined;
     const visits = await hmisApiRequest<CustomerVisit[]>(
-      CUSTOMERS_API_PATHS.visits(uuid),
+      CUSTOMERS_API_PATHS.visits(uuid, {
+        limit: Number.isFinite(limit) ? limit : undefined,
+      }),
       { token: auth.accessToken },
     );
 

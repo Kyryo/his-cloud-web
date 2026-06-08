@@ -70,7 +70,7 @@ export function UpdateServiceDialog({
       );
       toast({
         variant: "success",
-        title: "Service updated",
+        title: "Consultation service updated",
         description: `${updatedService.name} was saved successfully.`,
       });
       onUpdated(updatedService);
@@ -87,7 +87,7 @@ export function UpdateServiceDialog({
         }
         toast({
           variant: "error",
-          title: "Could not update service",
+          title: "Could not update consultation service",
           description: formatBffErrorMessage(error.message, error.errors),
         });
         return;
@@ -95,7 +95,7 @@ export function UpdateServiceDialog({
 
       toast({
         variant: "error",
-        title: "Could not update service",
+        title: "Could not update consultation service",
         description:
           error instanceof Error ? error.message : "Something went wrong.",
       });
@@ -111,9 +111,9 @@ export function UpdateServiceDialog({
         data-testid="update-service-dialog"
       >
         <DialogHeader>
-          <DialogTitle>Update service</DialogTitle>
+          <DialogTitle>Update consultation service</DialogTitle>
           <DialogDescription>
-            Edit this visit type used when registering patient visits.
+            Edit this consultation service used when registering patient visits.
           </DialogDescription>
         </DialogHeader>
 

@@ -98,7 +98,7 @@ export function OrganizationPayerSchemesTab({
     <>
       <OrganizationTabSection
         title="Payer schemes"
-        description="Insurance schemes offered by your organization's payers."
+        description="Insurance schemes offered by payers."
         showHeader={!isEmpty}
         actions={
           schemes.length > 0 && canAddScheme ? (

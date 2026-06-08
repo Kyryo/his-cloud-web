@@ -68,7 +68,7 @@ export function AddServiceDialog({
       );
       toast({
         variant: "success",
-        title: "Service added",
+        title: "Consultation service added",
         description: `${service.name} was created successfully.`,
       });
       form.reset(createOrganizationServiceDefaultValues);
@@ -86,7 +86,7 @@ export function AddServiceDialog({
         }
         toast({
           variant: "error",
-          title: "Could not add service",
+          title: "Could not add consultation service",
           description: formatBffErrorMessage(error.message, error.errors),
         });
         return;
@@ -94,7 +94,7 @@ export function AddServiceDialog({
 
       toast({
         variant: "error",
-        title: "Could not add service",
+        title: "Could not add consultation service",
         description:
           error instanceof Error ? error.message : "Something went wrong.",
       });
@@ -110,9 +110,9 @@ export function AddServiceDialog({
         data-testid="add-service-dialog"
       >
         <DialogHeader>
-          <DialogTitle>Add service</DialogTitle>
+          <DialogTitle>Add consultation service</DialogTitle>
           <DialogDescription>
-            Create a visit type that staff can use when registering patient visits.
+            Create a consultation service staff can use when registering patient visits.
           </DialogDescription>
         </DialogHeader>
 

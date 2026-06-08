@@ -97,7 +97,7 @@ export function OrganizationClinicsTab({ isActive }: OrganizationClinicsTabProps
     <>
       <OrganizationTabSection
         title="Clinics"
-        description="Configure the healthcare facilities that belong to your organization."
+        description="Configure the clinics within your organization."
         showHeader={!isEmpty}
       >
         {isLoading ? (

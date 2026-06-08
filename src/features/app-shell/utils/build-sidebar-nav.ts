@@ -76,6 +76,21 @@ export function buildSidebarNavItems(
             url: ROUTES.settingsOrganization,
             isActive: isNavItemActive(pathname, ROUTES.settingsOrganization),
           },
+          {
+            title: "Visit Management",
+            url: ROUTES.settingsVisitManagement,
+            isActive: isNavItemActive(pathname, ROUTES.settingsVisitManagement),
+          },
+          {
+            title: "Finance & Operations",
+            url: ROUTES.settingsFinanceOperations,
+            isActive: isNavItemActive(pathname, ROUTES.settingsFinanceOperations),
+          },
+          {
+            title: "User management",
+            url: ROUTES.settingsUserManagement,
+            isActive: isNavItemActive(pathname, ROUTES.settingsUserManagement),
+          },
         ]
       : []),
   ];

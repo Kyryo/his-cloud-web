@@ -110,7 +110,7 @@ export function CustomerDetailSummaryTab({
 
       try {
         const [visits, billingResult, encountersResponse] = await Promise.all([
-          fetchCustomerVisits(customer.uuid),
+          fetchCustomerVisits(customer.uuid, { limit: 100 }),
           fetchCustomerBillingSummary(customer.uuid).catch(() => null),
           fetchCustomerEncounters({
             customerId: customer.id,

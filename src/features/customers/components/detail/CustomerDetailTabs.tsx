@@ -15,6 +15,7 @@ import { CustomerDetailAddressesTab } from "@/features/customers/components/deta
 import { CustomerDetailInsuranceTab } from "@/features/customers/components/detail/CustomerDetailInsuranceTab";
 import { CustomerDetailNotesTab } from "@/features/customers/components/detail/CustomerDetailNotesTab";
 import { CustomerDetailSummaryTab } from "@/features/customers/components/detail/CustomerDetailSummaryTab";
+import { CustomerDetailVisitsTab } from "@/features/customers/components/detail/CustomerDetailVisitsTab";
 import { CustomerSummaryPanel } from "@/features/customers/components/detail/CustomerSummaryPanel";
 import type { Customer } from "@/features/customers/types/customer.types";
 import { cn } from "@/lib/utils";
@@ -22,6 +23,7 @@ import { cn } from "@/lib/utils";
 type CustomerDetailTabsProps = {
   customer: Customer;
   onUpdateClick: () => void;
+  visitsRefreshKey?: number;
 };
 
 type DetailTabId =
@@ -65,6 +67,7 @@ function TabPlaceholder({ label }: { label: string }) {
 export function CustomerDetailTabs({
   customer,
   onUpdateClick,
+  visitsRefreshKey = 0,
 }: CustomerDetailTabsProps) {
   const [activeTab, setActiveTab] = useState<DetailTabId>("summary");
   const [showSummaryPanel, setShowSummaryPanel] = useState(false);
@@ -98,9 +101,11 @@ export function CustomerDetailTabs({
           {activeTab === "payments" ? (
             <TabPlaceholder label="Payments" />
           ) : null}
-          {activeTab === "visits" ? (
-            <TabPlaceholder label="Visits" />
-          ) : null}
+          <CustomerDetailVisitsTab
+            customer={customer}
+            isActive={activeTab === "visits"}
+            refreshKey={visitsRefreshKey}
+          />
           <CustomerDetailInsuranceTab
             customer={customer}
             isActive={activeTab === "insurance"}

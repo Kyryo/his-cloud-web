@@ -62,6 +62,16 @@ describe("buildSidebarNavItems", () => {
         url: ROUTES.settingsOrganization,
         isActive: true,
       }),
+      expect.objectContaining({
+        title: "Visit Management",
+        url: ROUTES.settingsVisitManagement,
+        isActive: false,
+      }),
+      expect.objectContaining({
+        title: "Finance & Operations",
+        url: ROUTES.settingsFinanceOperations,
+        isActive: false,
+      }),
     ]);
   });
 });

@@ -15,6 +15,9 @@ export const ROUTES = {
   settings: "/settings",
   settingsAccount: "/settings/account",
   settingsOrganization: "/settings/organization",
+  settingsVisitManagement: "/settings/visit-management",
+  settingsFinanceOperations: "/settings/finance-operations",
+  settingsUserManagement: "/settings/user-management",
 } as const;
 
 /** Paths served by web-new through the deploy gateway. */

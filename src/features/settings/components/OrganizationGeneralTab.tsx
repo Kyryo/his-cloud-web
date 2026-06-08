@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { OrganizationContactForm } from "@/features/settings/components/OrganizationContactForm";
+import { OrganizationCurrencySection } from "@/features/settings/components/OrganizationCurrencySection";
 import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
 import { SettingsDetailGrid } from "@/features/settings/components/SettingsPageLayout";
 import type { TenantDetail } from "@/features/settings/types/settings.types";
@@ -47,6 +48,10 @@ export function OrganizationGeneralTab({
               value: formatStatus(tenant.status, tenant.is_active),
             },
             { label: "Country", value: formatValue(tenant.country) },
+            {
+              label: "Currency",
+              value: <OrganizationCurrencySection />,
+            },
             { label: "Description", value: formatValue(tenant.description) },
             { label: "Clinics", value: tenant.clinic_count },
             { label: "Locations", value: tenant.location_count },
@@ -56,7 +61,7 @@ export function OrganizationGeneralTab({
 
       <OrganizationTabSection
         title="Contact & address"
-        description="Update how patients and partners can reach your organization."
+        description="These details will appear on invoices, receipts, and other official documents."
         className="pt-8"
       >
         <OrganizationContactForm tenant={tenant} onUpdated={onTenantUpdated} />

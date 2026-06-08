@@ -17,7 +17,7 @@ type OrganizationServicesTabProps = {
 };
 
 const columns = [
-  { key: "name", label: "Service" },
+  { key: "name", label: "Consultation service" },
   { key: "code", label: "Code" },
   { key: "type", label: "Type" },
   { key: "status", label: "Status" },
@@ -76,7 +76,7 @@ export function OrganizationServicesTab({ isActive }: OrganizationServicesTabPro
           setError(
             loadError instanceof Error
               ? loadError.message
-              : "Unable to load services.",
+              : "Unable to load consultation services.",
           );
         }
       } finally {
@@ -114,12 +114,14 @@ export function OrganizationServicesTab({ isActive }: OrganizationServicesTabPro
   return (
     <>
       <OrganizationTabSection
-        title="Services"
-        description="Define the services available at your clinic, such as GP Consultations."
+        title="Consultation Services"
+        description="Define the consultation services available at your clinic, such as GP consultations."
         showHeader={!isEmpty}
         actions={
           services.length > 0 ? (
-            <Button onClick={() => setAddDialogOpen(true)}>Add service</Button>
+            <Button onClick={() => setAddDialogOpen(true)}>
+              Add service
+            </Button>
           ) : null
         }
       >
@@ -131,8 +133,8 @@ export function OrganizationServicesTab({ isActive }: OrganizationServicesTabPro
           <p className="py-8 text-sm text-brand-muted">{error}</p>
         ) : services.length === 0 ? (
           <OrganizationEmptyState
-            message="No services have been configured for this organization yet."
-            actionLabel="Add service"
+            message="No consultation services have been configured for this organization yet."
+            actionLabel="Add consultation service"
             onAction={() => setAddDialogOpen(true)}
           />
         ) : (

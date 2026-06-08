@@ -45,6 +45,18 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
       return [{ label: "Settings" }, { label: "Organization" }];
     }
 
+    if (pathname === ROUTES.settingsVisitManagement) {
+      return [{ label: "Settings" }, { label: "Visit Management" }];
+    }
+
+    if (pathname === ROUTES.settingsFinanceOperations) {
+      return [{ label: "Settings" }, { label: "Finance & Operations" }];
+    }
+
+    if (pathname === ROUTES.settingsUserManagement) {
+      return [{ label: "Settings" }, { label: "User Management" }];
+    }
+
     return [{ label: "Settings" }];
   }
 

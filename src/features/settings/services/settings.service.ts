@@ -11,12 +11,16 @@ import type {
   OrganizationPayer,
   OrganizationPayerScheme,
   OrganizationService,
+  TenantBranding,
+  TenantCurrency,
   TenantDetail,
   UpdateOrganizationClinicPayload,
   UpdateOrganizationContactPayload,
   UpdateOrganizationLocationPayload,
   UpdateOrganizationServicePayload,
   UpdateProfilePayload,
+  UpdateTenantBrandingPayload,
+  UpdateTenantCurrencyPayload,
 } from "@/features/settings/types/settings.types";
 import { joinDisplayName } from "@/features/settings/utils/user-name";
 import { bffRequest } from "@/lib/bff-client";
@@ -168,4 +172,48 @@ export async function createOrganizationPayerScheme(
     method: "POST",
     body: payload,
   });
+}
+
+export async function fetchOrganizationBranding(): Promise<TenantBranding> {
+  const data = await bffRequest<{ branding: TenantBranding }>(
+    BFF_SETTINGS_ROUTES.branding,
+  );
+
+  return data.branding;
+}
+
+export async function updateOrganizationBranding(
+  payload: UpdateTenantBrandingPayload,
+): Promise<TenantBranding> {
+  const data = await bffRequest<{ branding: TenantBranding }>(
+    BFF_SETTINGS_ROUTES.branding,
+    {
+      method: "PATCH",
+      body: payload,
+    },
+  );
+
+  return data.branding;
+}
+
+export async function fetchOrganizationCurrency(): Promise<TenantCurrency> {
+  const data = await bffRequest<{ currency: TenantCurrency }>(
+    BFF_SETTINGS_ROUTES.currency,
+  );
+
+  return data.currency;
+}
+
+export async function updateOrganizationCurrency(
+  payload: UpdateTenantCurrencyPayload,
+): Promise<TenantCurrency> {
+  const data = await bffRequest<{ currency: TenantCurrency }>(
+    BFF_SETTINGS_ROUTES.currency,
+    {
+      method: "PATCH",
+      body: payload,
+    },
+  );
+
+  return data.currency;
 }

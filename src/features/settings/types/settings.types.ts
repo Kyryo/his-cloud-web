@@ -172,10 +172,167 @@ export type CreateOrganizationPayerSchemePayload = {
   is_active?: boolean;
 };
 
-export type OrganizationTabId =
-  | "general"
-  | "clinics"
-  | "locations"
-  | "services"
-  | "payers"
-  | "schemes";
+export type TenantBranding = {
+  branding_logo_url: string;
+  branding_primary_color: string;
+  branding_secondary_color: string;
+  branding_accent_color: string;
+};
+
+export type UpdateTenantBrandingPayload = Partial<TenantBranding>;
+
+export type OdooCurrency = {
+  id: number;
+  name: string;
+  symbol: string;
+  full_name: string;
+  active: boolean;
+};
+
+export type TenantCurrency = {
+  company_id: number;
+  company_name: string;
+  currency: OdooCurrency;
+  available_currencies: OdooCurrency[];
+};
+
+export type UpdateTenantCurrencyPayload = {
+  currency_id: number;
+};
+
+export type OrganizationTabId = "general" | "branding" | "clinics" | "locations";
+
+export type UserManagementTabId = "users" | "groups";
+
+export type OrganizationUserRole =
+  | ""
+  | "nurse"
+  | "physician"
+  | "pharmacist"
+  | "billing"
+  | "housekeeping"
+  | "admin"
+  | "other";
+
+export type AssociationRole = "admin" | "manager" | "staff" | "viewer";
+
+export type OrganizationUser = {
+  id: number;
+  name: string;
+  email: string;
+  is_admin: boolean;
+  is_active: boolean;
+  user_role?: OrganizationUserRole;
+  groups: string[];
+  primary_clinic: {
+    id: number;
+    name: string;
+    code: string;
+  } | null;
+};
+
+export type OrganizationUserDetail = OrganizationUser & {
+  user_role: OrganizationUserRole;
+};
+
+export type UserClinicAssociation = {
+  id: number;
+  user: number;
+  user_name: string;
+  user_email: string;
+  clinic: {
+    id: number;
+    name: string;
+    code: string;
+    tenant_name?: string;
+  };
+  role: AssociationRole;
+  is_primary: boolean;
+  is_active: boolean;
+};
+
+export type UserLocationAssociation = {
+  id: number;
+  user: number;
+  user_name: string;
+  user_email: string;
+  location: {
+    id: number;
+    name: string;
+    code: string;
+    clinic_name?: string;
+  };
+  clinic_name: string;
+  role: AssociationRole;
+  is_primary: boolean;
+  is_active: boolean;
+};
+
+export type OrganizationGroup = {
+  id: number;
+  name: string;
+};
+
+export type OrganizationGroupMember = {
+  id: number;
+  name: string;
+  email: string;
+  is_active: boolean;
+  is_admin: boolean;
+};
+
+export type OrganizationGroupDetail = OrganizationGroup & {
+  users: OrganizationGroupMember[];
+};
+
+export type CreateOrganizationUserPayload = {
+  name: string;
+  email: string;
+  password: string;
+};
+
+export type UpdateOrganizationUserPayload = {
+  name?: string;
+  email?: string;
+  password?: string;
+  user_role?: OrganizationUserRole;
+};
+
+export type CreateUserClinicAssociationPayload = {
+  user: number;
+  clinic_id: number;
+  role?: AssociationRole;
+  is_primary?: boolean;
+};
+
+export type UpdateUserClinicAssociationPayload = {
+  role?: AssociationRole;
+  is_primary?: boolean;
+};
+
+export type CreateUserLocationAssociationPayload = {
+  user: number;
+  location_id: number;
+  role?: AssociationRole;
+  is_primary?: boolean;
+};
+
+export type UpdateUserLocationAssociationPayload = {
+  role?: AssociationRole;
+  is_primary?: boolean;
+};
+
+export type CreateOrganizationGroupPayload = {
+  name: string;
+};
+
+export type UpdateOrganizationGroupPayload = {
+  name: string;
+};
+
+export type GroupMembershipPayload = {
+  user_id: number;
+  group_id: number;
+};
+
+export type FinanceOperationsTabId = "payers" | "schemes";

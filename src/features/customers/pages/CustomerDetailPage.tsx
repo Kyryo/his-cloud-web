@@ -6,9 +6,12 @@ import {
   PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS,
   PageLoader,
 } from "@/components/page-loader";
+import { PrimaryButton } from "@/components/ui/app-buttons";
 import { CustomerDetailHeader } from "@/features/customers/components/detail/CustomerDetailHeader";
 import { CustomerDetailTabs } from "@/features/customers/components/detail/CustomerDetailTabs";
+import { StartVisitDialog } from "@/features/customers/components/detail/StartVisitDialog";
 import { UpdateCustomerDialog } from "@/features/customers/components/UpdateCustomerDialog";
+import type { CustomerVisit } from "@/features/customers/types/customer-visit.types";
 import { fetchCustomer } from "@/features/customers/services/customers.service";
 import type { Customer } from "@/features/customers/types/customer.types";
 import { formatCustomerName } from "@/features/customers/utils/format-customer";
@@ -24,6 +27,8 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [startVisitOpen, setStartVisitOpen] = useState(false);
+  const [visitsRefreshKey, setVisitsRefreshKey] = useState(0);
 
   useAppBreadcrumb(customer ? formatCustomerName(customer) : null);
 
@@ -48,6 +53,10 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
     setCustomer(updatedCustomer);
   }, []);
 
+  const handleVisitChanged = useCallback((_visit: CustomerVisit) => {
+    setVisitsRefreshKey((current) => current + 1);
+  }, []);
+
   if (isLoading) {
     return (
       <PageLoader
@@ -70,10 +79,28 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
 
   return (
     <DetailPageLayout data-testid="customer-detail-page">
-      <CustomerDetailHeader customer={customer} />
+      <CustomerDetailHeader
+        customer={customer}
+        actions={
+          <PrimaryButton
+            type="button"
+            onClick={() => setStartVisitOpen(true)}
+            data-testid="customer-start-visit-button"
+          >
+            Start visit
+          </PrimaryButton>
+        }
+      />
       <CustomerDetailTabs
         customer={customer}
         onUpdateClick={() => setUpdateDialogOpen(true)}
+        visitsRefreshKey={visitsRefreshKey}
+      />
+      <StartVisitDialog
+        customer={customer}
+        open={startVisitOpen}
+        onOpenChange={setStartVisitOpen}
+        onVisitChanged={handleVisitChanged}
       />
       <UpdateCustomerDialog
         customer={customer}

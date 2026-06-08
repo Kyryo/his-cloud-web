@@ -7,13 +7,17 @@ import {
   createOrganizationPayerScheme,
   createOrganizationService,
   fetchOrganization,
+  fetchOrganizationBranding,
+  fetchOrganizationCurrency,
   fetchOrganizationClinics,
   fetchOrganizationLocations,
   fetchOrganizationPayers,
   fetchOrganizationPayerSchemes,
   fetchOrganizationServices,
+  updateOrganizationBranding,
   updateOrganizationClinic,
   updateOrganizationContact,
+  updateOrganizationCurrency,
   updateOrganizationLocation,
   updateOrganizationService,
 } from "@/features/settings/services/settings.service";
@@ -274,5 +278,89 @@ describe("settings.service organization", () => {
       },
     });
     expect(scheme.name).toBe("Premium Plan");
+  });
+
+  it("fetches organization branding", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      branding: {
+        branding_logo_url: "https://example.com/logo.png",
+        branding_primary_color: "#111111",
+        branding_secondary_color: "#222222",
+        branding_accent_color: "#333333",
+      },
+    });
+
+    const branding = await fetchOrganizationBranding();
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.branding);
+    expect(branding.branding_primary_color).toBe("#111111");
+  });
+
+  it("updates organization branding", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      branding: {
+        branding_logo_url: "",
+        branding_primary_color: "#abcdef",
+        branding_secondary_color: "",
+        branding_accent_color: "",
+      },
+    });
+
+    const branding = await updateOrganizationBranding({
+      branding_primary_color: "#abcdef",
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.branding, {
+      method: "PATCH",
+      body: { branding_primary_color: "#abcdef" },
+    });
+    expect(branding.branding_primary_color).toBe("#abcdef");
+  });
+
+  it("fetches organization currency", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      currency: {
+        company_id: 1,
+        company_name: "Acme Health",
+        currency: {
+          id: 1,
+          name: "KES",
+          symbol: "KSh",
+          full_name: "Kenyan Shilling",
+          active: true,
+        },
+        available_currencies: [],
+      },
+    });
+
+    const currency = await fetchOrganizationCurrency();
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.currency);
+    expect(currency.currency.name).toBe("KES");
+  });
+
+  it("updates organization currency", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      currency: {
+        company_id: 1,
+        company_name: "Acme Health",
+        currency: {
+          id: 2,
+          name: "USD",
+          symbol: "$",
+          full_name: "US Dollar",
+          active: true,
+        },
+        available_currencies: [],
+      },
+    });
+
+    const currency = await updateOrganizationCurrency({ currency_id: 2 });
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.currency, {
+      method: "PATCH",
+      body: { currency_id: 2 },
+    });
+    expect(currency.currency.name).toBe("USD");
   });
 });

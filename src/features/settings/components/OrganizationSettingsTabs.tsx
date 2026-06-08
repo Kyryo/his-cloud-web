@@ -6,12 +6,10 @@ import {
   DetailPageTabNavItem,
   DetailPageTabsNavSection,
 } from "@/features/app-shell/components/page-layout";
+import { OrganizationBrandingTab } from "@/features/settings/components/OrganizationBrandingTab";
 import { OrganizationClinicsTab } from "@/features/settings/components/OrganizationClinicsTab";
 import { OrganizationGeneralTab } from "@/features/settings/components/OrganizationGeneralTab";
 import { OrganizationLocationsTab } from "@/features/settings/components/OrganizationLocationsTab";
-import { OrganizationPayerSchemesTab } from "@/features/settings/components/OrganizationPayerSchemesTab";
-import { OrganizationPayersTab } from "@/features/settings/components/OrganizationPayersTab";
-import { OrganizationServicesTab } from "@/features/settings/components/OrganizationServicesTab";
 import type {
   OrganizationTabId,
   TenantDetail,
@@ -19,11 +17,9 @@ import type {
 
 const tabs: Array<{ id: OrganizationTabId; label: string }> = [
   { id: "general", label: "General" },
+  { id: "branding", label: "Branding" },
   { id: "clinics", label: "Clinics" },
   { id: "locations", label: "Locations" },
-  { id: "services", label: "Services" },
-  { id: "payers", label: "Payers" },
-  { id: "schemes", label: "Payer schemes" },
 ];
 
 type OrganizationSettingsTabsProps = {
@@ -55,11 +51,9 @@ export function OrganizationSettingsTabs({
         {activeTab === "general" ? (
           <OrganizationGeneralTab tenant={tenant} onTenantUpdated={onTenantUpdated} />
         ) : null}
+        <OrganizationBrandingTab isActive={activeTab === "branding"} />
         <OrganizationClinicsTab isActive={activeTab === "clinics"} />
         <OrganizationLocationsTab isActive={activeTab === "locations"} />
-        <OrganizationServicesTab isActive={activeTab === "services"} />
-        <OrganizationPayersTab isActive={activeTab === "payers"} />
-        <OrganizationPayerSchemesTab isActive={activeTab === "schemes"} />
       </div>
     </div>
   );
