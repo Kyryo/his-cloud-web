@@ -12,7 +12,10 @@ import {
   fetchOrganizationPayers,
   fetchOrganizationPayerSchemes,
   fetchOrganizationServices,
+  updateOrganizationClinic,
   updateOrganizationContact,
+  updateOrganizationLocation,
+  updateOrganizationService,
 } from "@/features/settings/services/settings.service";
 import { bffRequest } from "@/lib/bff-client";
 
@@ -180,6 +183,72 @@ describe("settings.service organization", () => {
     expect(response.results).toHaveLength(1);
   });
 
+  it("updates an organization clinic", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      uuid: "clinic-1",
+      name: "Renamed Clinic",
+    });
+
+    const clinic = await updateOrganizationClinic("clinic-1", {
+      name: "Renamed Clinic",
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_SETTINGS_ROUTES.clinicDetail("clinic-1"),
+      {
+        method: "PATCH",
+        body: { name: "Renamed Clinic" },
+      },
+    );
+    expect(clinic.name).toBe("Renamed Clinic");
+  });
+
+  it("updates an organization location", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      uuid: "location-1",
+      name: "Updated Desk",
+    });
+
+    const location = await updateOrganizationLocation("location-1", {
+      name: "Updated Desk",
+      code: "FD-02",
+      clinic: 1,
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_SETTINGS_ROUTES.locationDetail("location-1"),
+      {
+        method: "PATCH",
+        body: {
+          name: "Updated Desk",
+          code: "FD-02",
+          clinic: 1,
+        },
+      },
+    );
+    expect(location.name).toBe("Updated Desk");
+  });
+
+  it("updates an organization service", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      uuid: "service-1",
+      name: "Follow-up",
+    });
+
+    const service = await updateOrganizationService("service-1", {
+      name: "Follow-up",
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_SETTINGS_ROUTES.visitTypeDetail("service-1"),
+      {
+        method: "PATCH",
+        body: { name: "Follow-up" },
+      },
+    );
+    expect(service.name).toBe("Follow-up");
+  });
+
   it("creates an organization payer scheme", async () => {
     vi.mocked(bffRequest).mockResolvedValueOnce({
       uuid: "scheme-1",
@@ -190,6 +259,8 @@ describe("settings.service organization", () => {
       insurance_company: 1,
       name: "Premium Plan",
       code: "PP01",
+      create_corresponding_pricelist: true,
+      is_active: true,
     });
 
     expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.insuranceSchemes, {
@@ -198,6 +269,8 @@ describe("settings.service organization", () => {
         insurance_company: 1,
         name: "Premium Plan",
         code: "PP01",
+        create_corresponding_pricelist: true,
+        is_active: true,
       },
     });
     expect(scheme.name).toBe("Premium Plan");

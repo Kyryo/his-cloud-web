@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AddServiceDialog } from "@/features/settings/components/AddServiceDialog";
 import { OrganizationEmptyState } from "@/features/settings/components/OrganizationEmptyState";
-import { OrganizationTabToolbar } from "@/features/settings/components/OrganizationTabToolbar";
+import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
+import { UpdateServiceDialog } from "@/features/settings/components/UpdateServiceDialog";
 import { fetchOrganizationServices } from "@/features/settings/services/settings.service";
 import type { OrganizationService } from "@/features/settings/types/settings.types";
 
@@ -20,6 +21,7 @@ const columns = [
   { key: "code", label: "Code" },
   { key: "type", label: "Type" },
   { key: "status", label: "Status" },
+  { key: "actions", label: "" },
 ] as const;
 
 function formatServiceType(service: OrganizationService) {
@@ -50,6 +52,7 @@ export function OrganizationServicesTab({ isActive }: OrganizationServicesTabPro
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [editingService, setEditingService] = useState<OrganizationService | null>(null);
 
   useEffect(() => {
     if (!isActive) {
@@ -98,72 +101,111 @@ export function OrganizationServicesTab({ isActive }: OrganizationServicesTabPro
     setReloadToken((current) => current + 1);
   }
 
+  function handleUpdated(updatedService: OrganizationService) {
+    setServices((current) =>
+      current.map((service) =>
+        service.uuid === updatedService.uuid ? updatedService : service,
+      ),
+    );
+  }
+
+  const isEmpty = !isLoading && !error && services.length === 0;
+
   return (
     <>
-      {services.length > 0 ? (
-        <OrganizationTabToolbar>
-          <Button onClick={() => setAddDialogOpen(true)}>Add service</Button>
-        </OrganizationTabToolbar>
-      ) : null}
-
-      {isLoading ? (
-        <div className="py-16">
-          <PageLoader />
-        </div>
-      ) : error ? (
-        <p className="py-8 text-sm text-brand-muted">{error}</p>
-      ) : services.length === 0 ? (
-        <OrganizationEmptyState
-          message="No services have been configured for this organization yet."
-          actionLabel="Add service"
-          onAction={() => setAddDialogOpen(true)}
-        />
-      ) : (
-        <div className="-mx-6 overflow-x-auto">
-          <table className="min-w-full">
-            <thead>
-              <tr className="border-y border-brand-border bg-slate-50/60">
-                {columns.map((column) => (
-                  <th
-                    key={column.key}
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-brand-muted"
-                  >
-                    {column.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-brand-border">
-              {services.map((service) => (
-                <tr key={service.uuid}>
-                  <td className="px-6 py-3.5">
-                    <div className="text-sm font-medium text-brand-navy">{service.name}</div>
-                    {service.description ? (
-                      <div className="text-xs text-brand-muted">{service.description}</div>
-                    ) : null}
-                  </td>
-                  <td className="px-6 py-3.5 text-sm text-brand-navy">
-                    {service.code || "—"}
-                  </td>
-                  <td className="px-6 py-3.5">{formatServiceType(service)}</td>
-                  <td className="px-6 py-3.5">
-                    <Badge variant={service.is_active ? "default" : "outline"}>
-                      {service.is_active ? "Active" : "Inactive"}
-                    </Badge>
-                  </td>
+      <OrganizationTabSection
+        title="Services"
+        description="Define the services available at your clinic, such as GP Consultations."
+        showHeader={!isEmpty}
+        actions={
+          services.length > 0 ? (
+            <Button onClick={() => setAddDialogOpen(true)}>Add service</Button>
+          ) : null
+        }
+      >
+        {isLoading ? (
+          <div className="py-16">
+            <PageLoader />
+          </div>
+        ) : error ? (
+          <p className="py-8 text-sm text-brand-muted">{error}</p>
+        ) : services.length === 0 ? (
+          <OrganizationEmptyState
+            message="No services have been configured for this organization yet."
+            actionLabel="Add service"
+            onAction={() => setAddDialogOpen(true)}
+          />
+        ) : (
+          <div className="-mx-6 overflow-x-auto">
+            <table className="min-w-full">
+              <thead>
+                <tr className="border-y border-brand-border bg-slate-50/60">
+                  {columns.map((column) => (
+                    <th
+                      key={column.key}
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-brand-muted"
+                    >
+                      {column.label}
+                    </th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+              </thead>
+              <tbody className="divide-y divide-brand-border">
+                {services.map((service) => (
+                  <tr key={service.uuid}>
+                    <td className="px-6 py-3.5">
+                      <div className="text-sm font-medium text-brand-navy">{service.name}</div>
+                      {service.description ? (
+                        <div className="text-xs text-brand-muted">{service.description}</div>
+                      ) : null}
+                    </td>
+                    <td className="px-6 py-3.5 text-sm text-brand-navy">
+                      {service.code || "—"}
+                    </td>
+                    <td className="px-6 py-3.5">{formatServiceType(service)}</td>
+                    <td className="px-6 py-3.5">
+                      <Badge variant={service.is_active ? "default" : "outline"}>
+                        {service.is_active ? "Active" : "Inactive"}
+                      </Badge>
+                    </td>
+                    <td className="px-6 py-3.5 text-right">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 text-brand-muted hover:text-brand-navy"
+                        onClick={() => setEditingService(service)}
+                      >
+                        Update
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </OrganizationTabSection>
 
       <AddServiceDialog
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
         onCreated={handleCreated}
       />
+
+      {editingService ? (
+        <UpdateServiceDialog
+          service={editingService}
+          open={Boolean(editingService)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditingService(null);
+            }
+          }}
+          onUpdated={handleUpdated}
+        />
+      ) : null}
     </>
   );
 }

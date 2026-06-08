@@ -5,46 +5,40 @@ import { useEffect, useState } from "react";
 import { PageLoader } from "@/components/page-loader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AddPayerDialog } from "@/features/settings/components/AddPayerDialog";
+import { AddPayerSchemeDialog } from "@/features/settings/components/AddPayerSchemeDialog";
 import { OrganizationEmptyState } from "@/features/settings/components/OrganizationEmptyState";
 import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
-import { fetchOrganizationPayers } from "@/features/settings/services/settings.service";
-import type { OrganizationPayer } from "@/features/settings/types/settings.types";
+import {
+  fetchOrganizationPayerSchemes,
+  fetchOrganizationPayers,
+} from "@/features/settings/services/settings.service";
+import type {
+  OrganizationPayer,
+  OrganizationPayerScheme,
+} from "@/features/settings/types/settings.types";
 
-type OrganizationPayersTabProps = {
+type OrganizationPayerSchemesTabProps = {
   isActive: boolean;
 };
 
-const payerColumns = [
-  { key: "name", label: "Payer" },
+const schemeColumns = [
+  { key: "name", label: "Scheme" },
+  { key: "payer", label: "Payer" },
   { key: "code", label: "Code" },
-  { key: "contact", label: "Contact" },
   { key: "status", label: "Status" },
 ] as const;
 
-function formatContact(payer: OrganizationPayer) {
-  if (!payer.email && !payer.phone_number) {
-    return "—";
-  }
-
-  return (
-    <div className="space-y-0.5">
-      {payer.email ? (
-        <div className="text-sm text-brand-navy">{payer.email}</div>
-      ) : null}
-      {payer.phone_number ? (
-        <div className="text-xs text-brand-muted">{payer.phone_number}</div>
-      ) : null}
-    </div>
-  );
-}
-
-export function OrganizationPayersTab({ isActive }: OrganizationPayersTabProps) {
+export function OrganizationPayerSchemesTab({
+  isActive,
+}: OrganizationPayerSchemesTabProps) {
   const [payers, setPayers] = useState<OrganizationPayer[]>([]);
+  const [schemes, setSchemes] = useState<OrganizationPayerScheme[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
-  const [addPayerDialogOpen, setAddPayerDialogOpen] = useState(false);
+  const [addSchemeDialogOpen, setAddSchemeDialogOpen] = useState(false);
+
+  const canAddScheme = payers.length > 0;
 
   useEffect(() => {
     if (!isActive) {
@@ -53,22 +47,27 @@ export function OrganizationPayersTab({ isActive }: OrganizationPayersTabProps) 
 
     let active = true;
 
-    async function loadPayers() {
+    async function loadSchemesData() {
       setIsLoading(true);
       setError(null);
 
       try {
-        const payersResponse = await fetchOrganizationPayers();
+        const [payersResponse, schemesResponse] = await Promise.all([
+          fetchOrganizationPayers(),
+          fetchOrganizationPayerSchemes(),
+        ]);
         if (active) {
           setPayers(payersResponse.results);
+          setSchemes(schemesResponse.results);
         }
       } catch (loadError) {
         if (active) {
           setPayers([]);
+          setSchemes([]);
           setError(
             loadError instanceof Error
               ? loadError.message
-              : "Unable to load payers.",
+              : "Unable to load payer schemes.",
           );
         }
       } finally {
@@ -78,7 +77,7 @@ export function OrganizationPayersTab({ isActive }: OrganizationPayersTabProps) 
       }
     }
 
-    void loadPayers();
+    void loadSchemesData();
 
     return () => {
       active = false;
@@ -93,17 +92,17 @@ export function OrganizationPayersTab({ isActive }: OrganizationPayersTabProps) 
     setReloadToken((current) => current + 1);
   }
 
-  const isEmpty = !isLoading && !error && payers.length === 0;
+  const isEmpty = !isLoading && !error && schemes.length === 0;
 
   return (
     <>
       <OrganizationTabSection
-        title="Payers"
-        description="Configure the insurance companies and funding partners that your organization works with."
+        title="Payer schemes"
+        description="Insurance schemes offered by your organization's payers."
         showHeader={!isEmpty}
         actions={
-          payers.length > 0 ? (
-            <Button onClick={() => setAddPayerDialogOpen(true)}>Add payer</Button>
+          schemes.length > 0 && canAddScheme ? (
+            <Button onClick={() => setAddSchemeDialogOpen(true)}>Add scheme</Button>
           ) : null
         }
       >
@@ -113,18 +112,23 @@ export function OrganizationPayersTab({ isActive }: OrganizationPayersTabProps) 
           </div>
         ) : error ? (
           <p className="py-8 text-sm text-brand-muted">{error}</p>
-        ) : payers.length === 0 ? (
+        ) : schemes.length === 0 ? (
           <OrganizationEmptyState
-            message="No payers have been configured for this organization yet."
-            actionLabel="Add payer"
-            onAction={() => setAddPayerDialogOpen(true)}
+            message={
+              canAddScheme
+                ? "No payer schemes have been configured for this organization yet."
+                : "Add a payer before creating payer schemes."
+            }
+            actionLabel="Add scheme"
+            actionDisabled={!canAddScheme}
+            onAction={() => setAddSchemeDialogOpen(true)}
           />
         ) : (
           <div className="-mx-6 overflow-x-auto">
             <table className="min-w-full">
               <thead>
                 <tr className="border-y border-brand-border bg-slate-50/60">
-                  {payerColumns.map((column) => (
+                  {schemeColumns.map((column) => (
                     <th
                       key={column.key}
                       scope="col"
@@ -136,19 +140,21 @@ export function OrganizationPayersTab({ isActive }: OrganizationPayersTabProps) 
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-border">
-                {payers.map((payer) => (
-                  <tr key={payer.uuid}>
+                {schemes.map((scheme) => (
+                  <tr key={scheme.uuid}>
                     <td className="px-6 py-3.5">
-                      <div className="text-sm font-medium text-brand-navy">{payer.name}</div>
-                      {payer.description ? (
-                        <div className="text-xs text-brand-muted">{payer.description}</div>
+                      <div className="text-sm font-medium text-brand-navy">{scheme.name}</div>
+                      {scheme.description ? (
+                        <div className="text-xs text-brand-muted">{scheme.description}</div>
                       ) : null}
                     </td>
-                    <td className="px-6 py-3.5 text-sm text-brand-navy">{payer.code || "—"}</td>
-                    <td className="px-6 py-3.5">{formatContact(payer)}</td>
+                    <td className="px-6 py-3.5 text-sm text-brand-navy">
+                      {scheme.insurance_company_name}
+                    </td>
+                    <td className="px-6 py-3.5 text-sm text-brand-navy">{scheme.code || "—"}</td>
                     <td className="px-6 py-3.5">
-                      <Badge variant={payer.is_active ? "default" : "outline"}>
-                        {payer.is_active ? "Active" : "Inactive"}
+                      <Badge variant={scheme.is_active ? "default" : "outline"}>
+                        {scheme.is_active ? "Active" : "Inactive"}
                       </Badge>
                     </td>
                   </tr>
@@ -159,9 +165,10 @@ export function OrganizationPayersTab({ isActive }: OrganizationPayersTabProps) 
         )}
       </OrganizationTabSection>
 
-      <AddPayerDialog
-        open={addPayerDialogOpen}
-        onOpenChange={setAddPayerDialogOpen}
+      <AddPayerSchemeDialog
+        open={addSchemeDialogOpen}
+        onOpenChange={setAddSchemeDialogOpen}
+        payers={payers}
         onCreated={handleReload}
       />
     </>

@@ -35,3 +35,35 @@ export function toCreateOrganizationServicePayload(
     is_walk_in_visit: values.is_walk_in_visit ?? false,
   };
 }
+
+export const updateOrganizationServiceSchema = createOrganizationServiceSchema;
+
+export type UpdateOrganizationServiceFormValues = CreateOrganizationServiceFormValues;
+
+export function toUpdateOrganizationServiceFormValues(
+  service: OrganizationServiceLike,
+): UpdateOrganizationServiceFormValues {
+  return {
+    name: service.name,
+    code: service.code ?? "",
+    description: service.description ?? "",
+    is_consultation_visit: service.is_consultation_visit,
+    is_dentist_visit: service.is_dentist_visit,
+    is_walk_in_visit: service.is_walk_in_visit,
+  };
+}
+
+export function toUpdateOrganizationServicePayload(
+  values: UpdateOrganizationServiceFormValues,
+) {
+  return toCreateOrganizationServicePayload(values);
+}
+
+type OrganizationServiceLike = {
+  name: string;
+  code: string;
+  description: string;
+  is_consultation_visit: boolean;
+  is_dentist_visit: boolean;
+  is_walk_in_visit: boolean;
+};

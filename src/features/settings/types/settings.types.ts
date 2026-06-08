@@ -54,6 +54,7 @@ export type OrganizationLocation = {
   uuid: string;
   name: string;
   code: string;
+  description?: string | null;
   clinic: number;
   clinic_name: string;
   clinic_code: string;
@@ -108,6 +109,26 @@ export type CreateOrganizationLocationPayload = {
   is_active?: boolean;
 };
 
+export type UpdateOrganizationClinicPayload = {
+  name: string;
+};
+
+export type UpdateOrganizationLocationPayload = {
+  name: string;
+  code: string;
+  clinic: number;
+  description?: string;
+};
+
+export type UpdateOrganizationServicePayload = {
+  name: string;
+  code?: string;
+  description?: string;
+  is_dentist_visit?: boolean;
+  is_walk_in_visit?: boolean;
+  is_consultation_visit?: boolean;
+};
+
 export type CreateOrganizationServicePayload = {
   name: string;
   code?: string;
@@ -147,6 +168,7 @@ export type CreateOrganizationPayerSchemePayload = {
   code: string;
   description?: string;
   pricelist_id?: number | null;
+  create_corresponding_pricelist?: boolean;
   is_active?: boolean;
 };
 
@@ -155,4 +177,5 @@ export type OrganizationTabId =
   | "clinics"
   | "locations"
   | "services"
-  | "payers";
+  | "payers"
+  | "schemes";

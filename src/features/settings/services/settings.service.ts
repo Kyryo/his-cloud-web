@@ -12,7 +12,10 @@ import type {
   OrganizationPayerScheme,
   OrganizationService,
   TenantDetail,
+  UpdateOrganizationClinicPayload,
   UpdateOrganizationContactPayload,
+  UpdateOrganizationLocationPayload,
+  UpdateOrganizationServicePayload,
   UpdateProfilePayload,
 } from "@/features/settings/types/settings.types";
 import { joinDisplayName } from "@/features/settings/utils/user-name";
@@ -63,6 +66,16 @@ export async function fetchOrganizationClinics(): Promise<
   );
 }
 
+export async function updateOrganizationClinic(
+  uuid: string,
+  payload: UpdateOrganizationClinicPayload,
+): Promise<OrganizationClinic> {
+  return bffRequest<OrganizationClinic>(BFF_SETTINGS_ROUTES.clinicDetail(uuid), {
+    method: "PATCH",
+    body: payload,
+  });
+}
+
 export async function fetchOrganizationLocations(): Promise<
   OrganizationListResponse<OrganizationLocation>
 > {
@@ -80,6 +93,19 @@ export async function createOrganizationLocation(
   });
 }
 
+export async function updateOrganizationLocation(
+  uuid: string,
+  payload: UpdateOrganizationLocationPayload,
+): Promise<OrganizationLocation> {
+  return bffRequest<OrganizationLocation>(
+    BFF_SETTINGS_ROUTES.locationDetail(uuid),
+    {
+      method: "PATCH",
+      body: payload,
+    },
+  );
+}
+
 export async function fetchOrganizationServices(): Promise<
   OrganizationListResponse<OrganizationService>
 > {
@@ -95,6 +121,19 @@ export async function createOrganizationService(
     method: "POST",
     body: payload,
   });
+}
+
+export async function updateOrganizationService(
+  uuid: string,
+  payload: UpdateOrganizationServicePayload,
+): Promise<OrganizationService> {
+  return bffRequest<OrganizationService>(
+    BFF_SETTINGS_ROUTES.visitTypeDetail(uuid),
+    {
+      method: "PATCH",
+      body: payload,
+    },
+  );
 }
 
 export async function fetchOrganizationPayers(): Promise<

@@ -51,8 +51,11 @@ export const BFF_SETTINGS_ROUTES = {
   updateProfile: "/api/auth/me",
   organization: "/api/tenants/current",
   clinics: "/api/clinics",
+  clinicDetail: (uuid: string) => `/api/clinics/${uuid}`,
   locations: "/api/locations",
+  locationDetail: (uuid: string) => `/api/locations/${uuid}`,
   visitTypes: "/api/visit-types",
+  visitTypeDetail: (uuid: string) => `/api/visit-types/${uuid}`,
   insuranceCompanies: "/api/insurance-companies",
   insuranceSchemes: "/api/insurance-schemes",
 } as const;

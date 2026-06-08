@@ -2,34 +2,14 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { TabbedDialog } from "@/components/ui/tabbed-dialog";
+import { AddPayerSchemeGeneralFields } from "@/features/settings/components/AddPayerSchemeGeneralFields";
+import { AddPayerSchemePricelistFields } from "@/features/settings/components/AddPayerSchemePricelistFields";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Form } from "@/components/ui/form";
 import {
   createOrganizationPayerSchemeDefaultValues,
   createOrganizationPayerSchemeSchema,
@@ -44,7 +24,6 @@ import type {
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
-import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
 type AddPayerSchemeDialogProps = {
@@ -54,6 +33,15 @@ type AddPayerSchemeDialogProps = {
   onCreated: (scheme: OrganizationPayerScheme) => void;
 };
 
+type AddPayerSchemeTab = "general" | "pricelist";
+
+const generalFieldNames = [
+  "insurance_company",
+  "name",
+  "code",
+  "description",
+] as const;
+
 export function AddPayerSchemeDialog({
   open,
   onOpenChange,
@@ -61,22 +49,38 @@ export function AddPayerSchemeDialog({
   onCreated,
 }: AddPayerSchemeDialogProps) {
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState<AddPayerSchemeTab>("general");
 
   const form = useForm<CreateOrganizationPayerSchemeFormValues>({
     resolver: zodResolver(createOrganizationPayerSchemeSchema),
     defaultValues: createOrganizationPayerSchemeDefaultValues,
   });
 
+  const isSubmitting = form.formState.isSubmitting;
+
+  const resetDialogState = useCallback(() => {
+    setActiveTab("general");
+    form.reset(createOrganizationPayerSchemeDefaultValues);
+  }, [form]);
+
   useEffect(() => {
     if (!open) {
-      form.reset(createOrganizationPayerSchemeDefaultValues);
+      resetDialogState();
       return;
     }
 
     if (payers.length === 1) {
       form.setValue("insurance_company", String(payers[0].id));
     }
-  }, [form, open, payers]);
+  }, [form, open, payers, resetDialogState]);
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (!nextOpen) {
+      resetDialogState();
+    }
+
+    onOpenChange(nextOpen);
+  }
 
   async function handleSubmit(values: CreateOrganizationPayerSchemeFormValues) {
     try {
@@ -86,9 +90,11 @@ export function AddPayerSchemeDialog({
       toast({
         variant: "success",
         title: "Payer scheme added",
-        description: `${scheme.name} was created successfully.`,
+        description: values.create_corresponding_pricelist
+          ? `${scheme.name} was created with a linked ERP pricelist.`
+          : `${scheme.name} was created. Attach a pricelist later to activate billing.`,
       });
-      form.reset(createOrganizationPayerSchemeDefaultValues);
+      resetDialogState();
       onCreated(scheme);
       onOpenChange(false);
     } catch (error) {
@@ -101,6 +107,12 @@ export function AddPayerSchemeDialog({
             });
           }
         }
+
+        const hasGeneralError = generalFieldNames.some((field) => field in fieldErrors);
+        if (hasGeneralError) {
+          setActiveTab("general");
+        }
+
         toast({
           variant: "error",
           title: "Could not add payer scheme",
@@ -118,126 +130,106 @@ export function AddPayerSchemeDialog({
     }
   }
 
-  const isSubmitting = form.formState.isSubmitting;
+  async function handleContinueToPricelist() {
+    const isValid = await form.trigger([...generalFieldNames]);
+    if (isValid) {
+      setActiveTab("pricelist");
+    }
+  }
+
+  const tabs = [
+    { id: "general", label: "General" },
+    { id: "pricelist", label: "Pricelist" },
+  ];
+
+  function renderFooter() {
+    if (activeTab === "general") {
+      return (
+        <>
+          <SecondaryButton
+            type="button"
+            disabled={isSubmitting}
+            onClick={() => handleOpenChange(false)}
+          >
+            Cancel
+          </SecondaryButton>
+          <PrimaryButton
+            type="button"
+            disabled={isSubmitting || payers.length === 0}
+            onClick={() => void handleContinueToPricelist()}
+            data-testid="add-payer-scheme-continue"
+          >
+            Continue
+          </PrimaryButton>
+        </>
+      );
+    }
+
+    return (
+      <>
+        <SecondaryButton
+          type="button"
+          disabled={isSubmitting}
+          onClick={() => setActiveTab("general")}
+        >
+          Back
+        </SecondaryButton>
+        <PrimaryButton
+          type="submit"
+          form="add-payer-scheme-form"
+          disabled={isSubmitting || payers.length === 0}
+          data-testid="add-payer-scheme-submit"
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              Saving...
+            </>
+          ) : (
+            "Add scheme"
+          )}
+        </PrimaryButton>
+      </>
+    );
+  }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className={cn("max-h-[90vh] overflow-y-auto sm:max-w-lg", appFont.className)}
-        data-testid="add-payer-scheme-dialog"
-      >
-        <DialogHeader>
-          <DialogTitle>Add payer scheme</DialogTitle>
-          <DialogDescription>
-            Create an insurance scheme under one of your payers.
-          </DialogDescription>
-        </DialogHeader>
+    <TabbedDialog
+      open={open}
+      onOpenChange={handleOpenChange}
+      title="Add payer scheme"
+      description="Create an insurance scheme, then confirm whether to provision a linked ERP pricelist."
+      tabs={tabs}
+      activeTab={activeTab}
+      onTabChange={(tabId) => {
+        if (tabId === "general" || tabId === "pricelist") {
+          setActiveTab(tabId);
+        }
+      }}
+      className={appFont.className}
+      data-testid="add-payer-scheme-dialog"
+      footer={renderFooter()}
+    >
+      <Form {...form}>
+        <form
+          id="add-payer-scheme-form"
+          className="space-y-4"
+          onSubmit={form.handleSubmit(handleSubmit, (errors) => {
+            const hasGeneralError = generalFieldNames.some((field) => errors[field]);
+            if (hasGeneralError) {
+              setActiveTab("general");
+            }
+          })}
+        >
+          {activeTab === "general" ? (
+            <AddPayerSchemeGeneralFields form={form} payers={payers} />
+          ) : null}
 
-        <Form {...form}>
-          <form className="space-y-4" onSubmit={form.handleSubmit(handleSubmit)}>
-            <FormField
-              control={form.control}
-              name="insurance_company"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Payer</FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    disabled={payers.length === 0}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder={
-                            payers.length === 0
-                              ? "Add a payer first"
-                              : "Select a payer"
-                          }
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {payers.map((payer) => (
-                        <SelectItem key={payer.uuid} value={String(payer.id)}>
-                          {payer.name} ({payer.code})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Scheme name</FormLabel>
-                  <FormControl>
-                    <Input {...field} autoComplete="off" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Code</FormLabel>
-                    <FormControl>
-                      <Input {...field} autoComplete="off" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Description</FormLabel>
-                    <FormControl>
-                      <Input {...field} autoComplete="off" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <DialogFooter>
-              <SecondaryButton
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </SecondaryButton>
-              <PrimaryButton
-                type="submit"
-                disabled={isSubmitting || payers.length === 0}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                    Saving...
-                  </>
-                ) : (
-                  "Add scheme"
-                )}
-              </PrimaryButton>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+          {activeTab === "pricelist" ? (
+            <AddPayerSchemePricelistFields form={form} />
+          ) : null}
+        </form>
+      </Form>
+    </TabbedDialog>
   );
 }

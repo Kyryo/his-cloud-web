@@ -1,9 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { OrganizationContactForm } from "@/features/settings/components/OrganizationContactForm";
-import {
-  SettingsDetailGrid,
-  SettingsPanelSection,
-} from "@/features/settings/components/SettingsPageLayout";
+import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
+import { SettingsDetailGrid } from "@/features/settings/components/SettingsPageLayout";
 import type { TenantDetail } from "@/features/settings/types/settings.types";
 
 type OrganizationGeneralTabProps = {
@@ -34,7 +32,7 @@ export function OrganizationGeneralTab({
 }: OrganizationGeneralTabProps) {
   return (
     <div className="divide-y divide-brand-border">
-      <SettingsPanelSection
+      <OrganizationTabSection
         title="Organization profile"
         description="Core details for your healthcare organization."
         className="pb-8"
@@ -54,15 +52,15 @@ export function OrganizationGeneralTab({
             { label: "Locations", value: tenant.location_count },
           ]}
         />
-      </SettingsPanelSection>
+      </OrganizationTabSection>
 
-      <SettingsPanelSection
+      <OrganizationTabSection
         title="Contact & address"
         description="Update how patients and partners can reach your organization."
         className="pt-8"
       >
         <OrganizationContactForm tenant={tenant} onUpdated={onTenantUpdated} />
-      </SettingsPanelSection>
+      </OrganizationTabSection>
     </div>
   );
 }

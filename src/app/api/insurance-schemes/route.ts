@@ -88,6 +88,8 @@ export async function POST(request: Request) {
       );
     }
 
+    const createPricelist = body.create_corresponding_pricelist ?? false;
+
     const scheme = await hmisApiRequest<OrganizationPayerScheme>(
       INSURANCE_API_PATHS.schemes,
       {
@@ -98,8 +100,9 @@ export async function POST(request: Request) {
           name: body.name.trim(),
           code: body.code.trim(),
           description: body.description?.trim() || "",
+          create_corresponding_pricelist: createPricelist,
           pricelist_id: body.pricelist_id ?? null,
-          is_active: body.is_active ?? true,
+          is_active: createPricelist ? (body.is_active ?? true) : false,
         },
       },
     );

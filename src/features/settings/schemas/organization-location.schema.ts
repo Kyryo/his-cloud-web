@@ -29,3 +29,29 @@ export function toCreateOrganizationLocationPayload(
     description: values.description?.trim() || "",
   };
 }
+
+export const updateOrganizationLocationSchema = createOrganizationLocationSchema;
+
+export type UpdateOrganizationLocationFormValues = CreateOrganizationLocationFormValues;
+
+export function toUpdateOrganizationLocationFormValues(
+  location: {
+    name: string;
+    code: string;
+    clinic: number;
+    description?: string | null;
+  },
+): UpdateOrganizationLocationFormValues {
+  return {
+    name: location.name,
+    code: location.code,
+    clinic: String(location.clinic),
+    description: location.description ?? "",
+  };
+}
+
+export function toUpdateOrganizationLocationPayload(
+  values: UpdateOrganizationLocationFormValues,
+) {
+  return toCreateOrganizationLocationPayload(values);
+}
