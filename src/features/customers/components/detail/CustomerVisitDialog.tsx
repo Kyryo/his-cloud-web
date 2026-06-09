@@ -5,8 +5,11 @@ import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
-import { Button } from "@/components/ui/button";
+import {
+  DestructiveButton,
+  PrimaryButton,
+  SecondaryButton,
+} from "@/components/ui/app-buttons";
 import {
   Dialog,
   DialogContent,
@@ -32,6 +35,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   createStartVisitDefaultValues,
   startVisitSchema,
   toCreateVisitPayload,
@@ -49,30 +57,41 @@ import type { CustomerInsurance } from "@/features/customers/types/customer-insu
 import type { CustomerVisit } from "@/features/customers/types/customer-visit.types";
 import type { VisitTypeCatalogItem } from "@/features/customers/types/customer-visit.types";
 import type { Customer } from "@/features/customers/types/customer.types";
+import {
+  canCloseCustomerVisit,
+  getCloseCustomerVisitTooltip,
+} from "@/features/customers/utils/can-close-customer-visit";
 import { formatCustomerName, formatDisplayDateTime } from "@/features/customers/utils/format-customer";
+import { formatVisitStartedBy } from "@/features/customers/utils/format-visit-started-by";
+import { fetchOrganizationClinics } from "@/features/settings/services/settings.service";
+import { useUser } from "@/providers/user-provider";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
-type StartVisitDialogProps = {
+type CustomerVisitDialogProps = {
   customer: Customer;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onVisitChanged: (visit: CustomerVisit) => void;
 };
 
-export function StartVisitDialog({
+export function CustomerVisitDialog({
   customer,
   open,
   onOpenChange,
   onVisitChanged,
-}: StartVisitDialogProps) {
+}: CustomerVisitDialogProps) {
   const { toast } = useToast();
+  const { userData } = useUser();
   const [visitTypes, setVisitTypes] = useState<VisitTypeCatalogItem[]>([]);
   const [insuranceSchemes, setInsuranceSchemes] = useState<CustomerInsurance[]>([]);
   const [activeVisit, setActiveVisit] = useState<CustomerVisit | null>(null);
+  const [clinicIdByUuid, setClinicIdByUuid] = useState<Map<string, number>>(
+    new Map(),
+  );
   const [isLoadingContext, setIsLoadingContext] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [closeError, setCloseError] = useState<string | null>(null);
@@ -95,20 +114,36 @@ export function StartVisitDialog({
     [visitTypeSearch, visitTypes],
   );
 
+  const canClose = useMemo(
+    () => canCloseCustomerVisit(userData, activeVisit, clinicIdByUuid),
+    [activeVisit, clinicIdByUuid, userData],
+  );
+
+  const closeTooltip = useMemo(
+    () => getCloseCustomerVisitTooltip(userData, activeVisit, clinicIdByUuid),
+    [activeVisit, clinicIdByUuid, userData],
+  );
+
   const loadDialogContext = useCallback(async () => {
     setIsLoadingContext(true);
     setCloseError(null);
 
     try {
-      const [types, visits, insurance] = await Promise.all([
+      const [types, visits, insurance, clinicsResponse] = await Promise.all([
         fetchVisitTypeCatalog(),
         fetchCustomerVisits(customer.uuid, { limit: 100 }),
         fetchCustomerInsurance(customer.uuid).catch(() => [] as CustomerInsurance[]),
+        fetchOrganizationClinics(),
       ]);
 
       setVisitTypes(types);
       setInsuranceSchemes(insurance);
       setActiveVisit(findActiveCustomerVisit(visits));
+      setClinicIdByUuid(
+        new Map(
+          clinicsResponse.results.map((clinic) => [clinic.uuid, clinic.id]),
+        ),
+      );
     } catch (error) {
       toast({
         variant: "error",
@@ -158,7 +193,7 @@ export function StartVisitDialog({
       toast({
         variant: "success",
         title: "Visit started",
-        description: `${customerName} now has an active visit.`,
+        description: `Successfully started visit for ${customerName}.`,
       });
     } catch (error) {
       if (error instanceof BffError) {
@@ -202,7 +237,7 @@ export function StartVisitDialog({
       toast({
         variant: "success",
         title: "Visit closed",
-        description: "The active visit has been completed.",
+        description: `Successfully closed visit for ${customerName}.`,
       });
     } catch (error) {
       const message =
@@ -237,52 +272,64 @@ export function StartVisitDialog({
             Loading visit details...
           </div>
         ) : activeVisit ? (
-          <>
-            <DialogHeader className="border-b border-brand-border px-6 py-4">
+          <div className="flex min-h-0 flex-1 flex-col">
+            <DialogHeader className="border-b border-brand-border px-6 py-5">
               <DialogTitle>Close active visit</DialogTitle>
               <DialogDescription>
                 End the current visit for {customerName}.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-4 overflow-y-auto px-6 py-4">
-              <div className="rounded-xl border border-brand-border bg-slate-50/60 p-4 text-sm">
-                <dl className="space-y-2">
-                  <div className="flex justify-between gap-4">
+            <div className="flex-1 space-y-4 overflow-y-auto px-6 py-6">
+              <div className="rounded-xl border border-brand-border bg-slate-50/60 p-5 text-sm">
+                <dl className="space-y-3">
+                  <div className="flex items-start justify-between gap-4">
                     <dt className="text-brand-muted">Visit type</dt>
-                    <dd className="font-medium text-brand-navy">
+                    <dd className="text-right font-medium text-brand-navy">
                       {activeVisit.visit_type_name}
                     </dd>
                   </div>
-                  <div className="flex justify-between gap-4">
+                  <div className="flex items-start justify-between gap-4">
                     <dt className="text-brand-muted">Date & time</dt>
-                    <dd className="font-medium text-brand-navy">
+                    <dd className="text-right font-medium text-brand-navy">
                       {formatDisplayDateTime(activeVisit.visit_date)}
                     </dd>
                   </div>
-                  <div className="flex justify-between gap-4">
+                  <div className="flex items-start justify-between gap-4">
                     <dt className="text-brand-muted">Payment</dt>
-                    <dd className="font-medium capitalize text-brand-navy">
+                    <dd className="text-right font-medium capitalize text-brand-navy">
                       {activeVisit.mode_of_payment}
                     </dd>
                   </div>
                   {activeVisit.clinic_name ? (
-                    <div className="flex justify-between gap-4">
+                    <div className="flex items-start justify-between gap-4">
                       <dt className="text-brand-muted">Clinic</dt>
-                      <dd className="font-medium text-brand-navy">
+                      <dd className="text-right font-medium text-brand-navy">
                         {activeVisit.clinic_name}
                       </dd>
                     </div>
                   ) : null}
+                  <div className="flex items-start justify-between gap-4">
+                    <dt className="text-brand-muted">Started by</dt>
+                    <dd className="text-right font-medium text-brand-navy">
+                      {formatVisitStartedBy(activeVisit)}
+                    </dd>
+                  </div>
                 </dl>
               </div>
+
+              {!canClose && closeTooltip ? (
+                <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                  {closeTooltip}
+                </p>
+              ) : null}
 
               {closeError ? (
                 <p className="text-sm text-red-600">{closeError}</p>
               ) : null}
             </div>
 
-            <DialogFooter className="border-t border-brand-border px-6 py-4">
+            <DialogFooter className="mt-0 border-t border-brand-border px-6 py-5">
               <SecondaryButton
                 type="button"
                 onClick={() => onOpenChange(false)}
@@ -290,37 +337,49 @@ export function StartVisitDialog({
               >
                 Cancel
               </SecondaryButton>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={() => void handleCloseVisit()}
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                    Closing...
-                  </>
-                ) : (
-                  "Close visit"
-                )}
-              </Button>
+              {!canClose && closeTooltip ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex">
+                      <DestructiveButton type="button" disabled>
+                        Close visit
+                      </DestructiveButton>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">{closeTooltip}</TooltipContent>
+                </Tooltip>
+              ) : (
+                <DestructiveButton
+                  type="button"
+                  onClick={() => void handleCloseVisit()}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                      Closing...
+                    </>
+                  ) : (
+                    "Close visit"
+                  )}
+                </DestructiveButton>
+              )}
             </DialogFooter>
-          </>
+          </div>
         ) : (
           <Form {...form}>
             <form
               onSubmit={(event) => void handleStartVisit(event)}
               className="flex min-h-0 flex-1 flex-col"
             >
-              <DialogHeader className="border-b border-brand-border px-6 py-4">
+              <DialogHeader className="border-b border-brand-border px-6 py-5">
                 <DialogTitle>Start visit</DialogTitle>
                 <DialogDescription>
                   Start a new visit for {customerName}.
                 </DialogDescription>
               </DialogHeader>
 
-              <div className="space-y-4 overflow-y-auto px-6 py-4">
+              <div className="flex-1 space-y-4 overflow-y-auto px-6 py-6">
                 <FormField
                   control={form.control}
                   name="visit_type"
@@ -506,7 +565,7 @@ export function StartVisitDialog({
                 ) : null}
               </div>
 
-              <DialogFooter className="border-t border-brand-border px-6 py-4">
+              <DialogFooter className="mt-0 border-t border-brand-border px-6 py-5">
                 <SecondaryButton
                   type="button"
                   onClick={() => onOpenChange(false)}

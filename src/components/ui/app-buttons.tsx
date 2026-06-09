@@ -26,6 +26,16 @@ export function SecondaryButton({ className, ...props }: AppButtonProps) {
   );
 }
 
+export function DestructiveButton({ className, ...props }: AppButtonProps) {
+  return (
+    <Button
+      variant="destructive"
+      className={cn("rounded-full px-5", className)}
+      {...props}
+    />
+  );
+}
+
 type AddActionButtonProps = AppButtonProps & {
   label?: string;
   showIcon?: boolean;

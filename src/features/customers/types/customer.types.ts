@@ -1,3 +1,5 @@
+import type { CustomerVisitStatus } from "@/features/customers/types/customer-visit-status.types";
+
 export type CustomerGender = "Male" | "Female" | "Other";
 
 export type Customer = {
@@ -19,10 +21,13 @@ export type Customer = {
   has_synced_to_openmrs: boolean;
   has_synced_to_odoo: boolean;
   is_active: boolean;
+  visit_status: CustomerVisitStatus;
   created_at: string;
   updated_at: string;
   created_by: number | null;
 };
+
+export type { CustomerVisitStatus };
 
 export type CustomersPagination = {
   count: number;

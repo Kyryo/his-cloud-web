@@ -29,6 +29,7 @@ function createCustomer(overrides: Partial<Customer> = {}): Customer {
     has_synced_to_openmrs: false,
     has_synced_to_odoo: false,
     is_active: true,
+    visit_status: "not_started",
     created_at: "2024-01-01",
     updated_at: "2024-01-01",
     created_by: null,

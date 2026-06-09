@@ -17,6 +17,9 @@ export type CustomerVisit = {
   is_active: boolean;
   clinic: string | null;
   clinic_name: string | null;
+  created_by: number | null;
+  created_by_name: string | null;
+  created_by_email?: string | null;
   created_at: string;
   updated_at: string;
 };

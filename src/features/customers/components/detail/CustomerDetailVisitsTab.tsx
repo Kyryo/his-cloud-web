@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Stethoscope } from "lucide-react";
 
 import { StatsCard1, StatsCard1Grid } from "@/components/stats-card1";
-import { Badge } from "@/components/ui/badge";
+import { CustomerVisitStatusBadge } from "@/features/customers/components/CustomerVisitStatusBadge";
 import {
   CustomerDetailRecordList,
   CustomerDetailRecordListItem,
@@ -27,22 +27,6 @@ type CustomerDetailVisitsTabProps = {
   isActive: boolean;
   refreshKey?: number;
 };
-
-function VisitStatusBadge({ status }: { status: string }) {
-  if (status === "active") {
-    return <Badge variant="success">Active</Badge>;
-  }
-
-  if (status === "completed") {
-    return <Badge variant="secondary">Completed</Badge>;
-  }
-
-  if (status === "cancelled") {
-    return <Badge variant="outline">Cancelled</Badge>;
-  }
-
-  return <Badge variant="outline">Not started</Badge>;
-}
 
 function formatPaymentMode(mode: CustomerVisit["mode_of_payment"]) {
   return mode.charAt(0).toUpperCase() + mode.slice(1);
@@ -138,7 +122,7 @@ export function CustomerDetailVisitsTab({
               key={visit.uuid}
               icon={Stethoscope}
               title={visit.visit_type_name}
-              badges={<VisitStatusBadge status={visit.status} />}
+              badges={<CustomerVisitStatusBadge status={visit.status} />}
               description={
                 <div className="space-y-0.5">
                   <p>{formatPaymentMode(visit.mode_of_payment)}</p>

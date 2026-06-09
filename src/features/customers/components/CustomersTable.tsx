@@ -6,6 +6,7 @@ import { ClientAvatar } from "@/components/client-avatar";
 import { HoverPreviewCard } from "@/components/hover-preview-card";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { CustomerVisitStatusBadge } from "@/features/customers/components/CustomerVisitStatusBadge";
 import type { Customer } from "@/features/customers/types/customer.types";
 import {
   formatCustomerName,
@@ -24,6 +25,7 @@ type CustomersTableProps = {
 const columns = [
   { key: "client", label: "Client" },
   { key: "id", label: "Client ID" },
+  { key: "visit_status", label: "Visit status" },
   { key: "gender", label: "Gender" },
   { key: "age", label: "Age" },
   { key: "created", label: "Created" },
@@ -42,6 +44,10 @@ function CustomerHoverPreview({ customer }: { customer: Customer }) {
         </div>
       </div>
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
+        <dt className="text-brand-muted">Visit status</dt>
+        <dd>
+          <CustomerVisitStatusBadge status={customer.visit_status} />
+        </dd>
         <dt className="text-brand-muted">Gender</dt>
         <dd>{customer.gender}</dd>
         <dt className="text-brand-muted">Age</dt>
@@ -122,6 +128,9 @@ export function CustomersTable({
                     </td>
                     <td className="px-4 py-3 font-mono text-sm text-brand-slate">
                       {customer.customer_identifier}
+                    </td>
+                    <td className="px-4 py-3">
+                      <CustomerVisitStatusBadge status={customer.visit_status} />
                     </td>
                     <td className="px-4 py-3 text-sm text-brand-slate">
                       {customer.gender}
