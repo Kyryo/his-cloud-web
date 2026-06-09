@@ -12,6 +12,8 @@ export const ROUTES = {
   features: "/features",
   services: "/services",
   customerDetail: (customerId: string) => `/customers/${customerId}`,
+  salesOrders: "/sales-orders",
+  salesOrderDetail: (orderId: number | string) => `/sales-orders/${orderId}`,
   settings: "/settings",
   settingsAccount: "/settings/account",
   settingsOrganization: "/settings/organization",
@@ -27,6 +29,7 @@ export const WEB_NEW_ROUTE_PREFIXES = [
   ROUTES.signup,
   ROUTES.onboarding,
   ROUTES.customers,
+  ROUTES.salesOrders,
   ROUTES.settings,
   ROUTES.contacts,
   ROUTES.ourProducts,
@@ -51,5 +54,6 @@ export const AUTH_ROUTES = [ROUTES.auth, ROUTES.signup] as const;
 export const PROTECTED_ROUTES = [
   ROUTES.onboarding,
   ROUTES.customers,
+  ROUTES.salesOrders,
   ROUTES.settings,
 ] as const;

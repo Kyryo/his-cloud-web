@@ -77,6 +77,21 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
     ];
   }
 
+  if (navItem?.requiredGroup === "Billing") {
+    if (pathname === ROUTES.salesOrders) {
+      return [
+        { label: getModuleLabel("Billing") },
+        { label: "Sales Orders" },
+      ];
+    }
+
+    return [
+      { label: getModuleLabel("Billing") },
+      { label: "Sales Orders", href: ROUTES.salesOrders },
+      { label: "Order details" },
+    ];
+  }
+
   if (navItem) {
     const moduleLabel = navItem.requiredGroup
       ? getModuleLabel(navItem.requiredGroup)

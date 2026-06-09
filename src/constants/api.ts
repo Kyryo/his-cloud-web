@@ -62,6 +62,12 @@ export const BFF_CUSTOMER_ENCOUNTERS_ROUTES = {
   list: "/api/customer-encounters",
 } as const;
 
+/** Browser-facing BFF sales order routes (same origin). */
+export const BFF_SALES_ORDERS_ROUTES = {
+  list: "/api/sales-orders",
+  detail: (orderId: number | string) => `/api/sales-orders/${orderId}`,
+} as const;
+
 /** Browser-facing BFF settings routes (same origin). */
 export const BFF_SETTINGS_ROUTES = {
   updateProfile: "/api/auth/me",

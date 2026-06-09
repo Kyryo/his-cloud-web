@@ -21,6 +21,21 @@ describe("buildAppBreadcrumbs", () => {
       { label: "Client details" },
     ]);
   });
+
+  it("returns billing and sales orders for the sales orders list", () => {
+    expect(buildAppBreadcrumbs(ROUTES.salesOrders)).toEqual([
+      { label: "Billing" },
+      { label: "Sales Orders" },
+    ]);
+  });
+
+  it("returns billing, sales orders link, and detail label for an order page", () => {
+    expect(buildAppBreadcrumbs("/sales-orders/81")).toEqual([
+      { label: "Billing" },
+      { label: "Sales Orders", href: ROUTES.salesOrders },
+      { label: "Order details" },
+    ]);
+  });
 });
 
 describe("applyPageLabelToCrumbs", () => {

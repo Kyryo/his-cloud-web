@@ -83,10 +83,10 @@ export const navigation: NavigationItem[] = [
   },
   {
     name: "Sales Orders",
-    href: "/sales-orders",
+    href: ROUTES.salesOrders,
     icon: FileText,
     requiredGroup: "Billing",
-    enabledInWebNew: false,
+    enabledInWebNew: true,
   },
   {
     name: "Invoices",
