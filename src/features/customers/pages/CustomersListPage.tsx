@@ -222,16 +222,18 @@ export function CustomersListPage() {
 
   if (isUnauthorized) {
     return (
-      <div className="rounded-xl border border-brand-border bg-white p-8 text-center">
-        <h1 className="text-xl font-semibold text-brand-navy">Access denied</h1>
-        <p className="mt-2 text-sm text-brand-muted">
-          You are not authorized to view clients. Sign in again or contact your
-          administrator.
-        </p>
-        <Button className="mt-6" onClick={() => router.push(ROUTES.auth)}>
-          Go to sign in
-        </Button>
-      </div>
+      <ListPageLayout data-testid="customers-page">
+        <div className="rounded-xl border border-brand-border bg-white p-8 text-center">
+          <h1 className="text-xl font-semibold text-brand-navy">Access denied</h1>
+          <p className="mt-2 text-sm text-brand-muted">
+            You are not authorized to view clients. Sign in again or contact your
+            administrator.
+          </p>
+          <Button className="mt-6" onClick={() => router.push(ROUTES.auth)}>
+            Go to sign in
+          </Button>
+        </div>
+      </ListPageLayout>
     );
   }
 
