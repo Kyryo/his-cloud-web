@@ -42,18 +42,19 @@ export function HeroSection() {
               className="hero-fade-up font-[family-name:var(--font-bricolage)] text-[2rem] font-extrabold leading-[1.08] tracking-[-0.03em] text-brand-navy sm:text-[2.375rem] lg:text-[42px]"
               style={{ animationDelay: "0.05s" }}
             >
-              Reclaim the{" "}
-              <span className="text-brand-primary">16%</span> of revenue your
-              hospital loses every month.
+              The clinic software built for the other 80% of the world&apos;s
+              hospitals
             </h1>
 
             <p
               className="hero-fade-up mb-[10px] mt-3 max-w-lg text-sm leading-6 text-brand-muted sm:mt-4 sm:text-base sm:leading-7"
               style={{ animationDelay: "0.15s" }}
             >
-              Sigma Health automates claims processing and inventory control,
-              eliminating the billing errors and stock wastages that quietly
-              drain your bottom line.
+              Most hospital software is designed for hospitals with IT teams,
+              large budgets, and uninterrupted power. Yours isn&apos;t one of
+              them. Sigma gets your clinic from paper records to a fully digital
+              system in under a day — no consultants, no training fees, no
+              frustration.
             </p>
 
             <div
