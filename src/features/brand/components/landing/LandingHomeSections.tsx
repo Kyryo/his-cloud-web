@@ -25,6 +25,7 @@ import {
   LANDING_PROBLEM,
   LANDING_TESTIMONIALS,
 } from "@/features/brand/constants/landing-home-content";
+import { LandingInteractiveDemo } from "@/features/brand/components/landing/LandingInteractiveDemo";
 import { LandingSectionHeader } from "@/features/brand/components/landing/LandingSectionHeader";
 import { cn } from "@/lib/utils";
 
@@ -212,6 +213,21 @@ export function LandingHomeSections() {
                 </figcaption>
               </figure>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="border-t border-brand-border bg-brand-tint/30 py-20 sm:py-24">
+        <div className="mx-auto max-w-7xl px-6 sm:px-12">
+          <LandingSectionHeader
+            eyebrow="Try it yourself"
+            title="A clinic app your staff can actually use"
+            description="No login, no setup — explore a working day at a small clinic. Everything you see is how Sigma looks in the browser."
+            align="center"
+            className="mx-auto"
+          />
+          <div className="mt-12">
+            <LandingInteractiveDemo />
           </div>
         </div>
       </section>
