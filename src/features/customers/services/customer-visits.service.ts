@@ -30,6 +30,10 @@ export async function closeCustomerVisit(uuid: string): Promise<CustomerVisit> {
   });
 }
 
+export async function fetchVisit(uuid: string): Promise<CustomerVisit> {
+  return bffRequest<CustomerVisit>(BFF_VISITS_ROUTES.detail(uuid));
+}
+
 export function countCustomerVisits(visits: CustomerVisit[]): number {
   return visits.length;
 }

@@ -1,8 +1,30 @@
-import { formatOdooRelation } from "@/features/sales-orders/utils/format-odoo-relation";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
+import {
+  formatOdooCustomField,
+  isEmptyOdooCustomField,
+} from "@/features/sales-orders/utils/format-odoo-custom-field";
+import { formatOdooRelation } from "@/features/sales-orders/utils/format-odoo-relation";
 
 export function formatSalesOrderCustomer(order: SalesOrder): string {
-  return formatOdooRelation(order.partner_id);
+  const label = formatOdooRelation(order.partner_id);
+  return label === "—" ? "No customer" : label;
+}
+
+export function formatSalesOrderClinicName(
+  order: Pick<SalesOrder, "clinic_name" | "x_clinic_name">,
+): string {
+  const clinicName = !isEmptyOdooCustomField(order.x_clinic_name)
+    ? order.x_clinic_name
+    : order.clinic_name;
+
+  return formatOdooCustomField(clinicName, "No clinic");
+}
+
+export function formatSalesOrderPricelist(
+  order: Pick<SalesOrder, "pricelist_id">,
+): string {
+  const label = formatOdooRelation(order.pricelist_id);
+  return label === "—" ? "No pricelist" : label;
 }
 
 export function formatSalesOrderAmount(

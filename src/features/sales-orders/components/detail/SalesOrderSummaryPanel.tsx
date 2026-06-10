@@ -1,13 +1,24 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { DetailPageAsidePanelSection } from "@/features/app-shell/components/page-layout";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
 import {
   formatSalesOrderAmount,
+  formatSalesOrderClinicName,
   formatSalesOrderCurrency,
+  formatSalesOrderCustomer,
   formatSalesOrderDate,
+  formatSalesOrderDateTime,
+  formatSalesOrderPricelist,
 } from "@/features/sales-orders/utils/format-sales-order";
-import { formatOdooRelation, getOdooRelationId } from "@/features/sales-orders/utils/format-odoo-relation";
+import {
+  formatSalesOrderInsuranceLabel,
+  formatSalesOrderInsuranceNumber,
+} from "@/features/sales-orders/utils/format-sales-order-insurance";
+import { formatOdooRelation } from "@/features/sales-orders/utils/format-odoo-relation";
+import { formatSalesOrderStateLabel } from "@/features/sales-orders/utils/sales-order-status";
 import { cn } from "@/lib/utils";
 
 type SalesOrderSummaryPanelProps = {
@@ -15,17 +26,63 @@ type SalesOrderSummaryPanelProps = {
   className?: string;
 };
 
-function SummaryRow({
+function SummaryField({
   label,
   value,
 }: {
   label: string;
-  value: string;
+  value: ReactNode;
 }) {
   return (
-    <div className="flex items-start justify-between gap-3 text-sm">
-      <dt className="text-brand-muted">{label}</dt>
-      <dd className="text-right font-medium text-brand-navy">{value}</dd>
+    <div>
+      <dt className="text-xs text-brand-muted">{label}</dt>
+      <dd className="mt-0.5 break-words text-sm font-semibold text-brand-navy">
+        {value}
+      </dd>
+    </div>
+  );
+}
+
+function SummarySection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className="border-t border-brand-border pt-4">
+      <h3 className="mb-3 text-[11px] font-semibold uppercase text-brand-muted">
+        {title}
+      </h3>
+      <dl className="space-y-3">{children}</dl>
+    </div>
+  );
+}
+
+function BillingAmountRow({
+  label,
+  value,
+  emphasized = false,
+}: {
+  label: string;
+  value: string;
+  emphasized?: boolean;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 text-sm">
+      <dt className={emphasized ? "font-medium text-brand-navy" : "text-brand-muted"}>
+        {label}
+      </dt>
+      <dd
+        className={
+          emphasized
+            ? "font-semibold text-brand-navy"
+            : "font-medium text-brand-navy"
+        }
+      >
+        {value}
+      </dd>
     </div>
   );
 }
@@ -35,48 +92,98 @@ export function SalesOrderSummaryPanel({
   className,
 }: SalesOrderSummaryPanelProps) {
   const currency = formatSalesOrderCurrency(order);
-  const visitId = getOdooRelationId(order.x_visit_id);
+  const insuranceLabel = formatSalesOrderInsuranceLabel(order);
+  const insuranceNumber = formatSalesOrderInsuranceNumber(order);
+  const hasInsuranceDetails =
+    insuranceLabel !== "—" || insuranceNumber !== "—";
 
   return (
     <DetailPageAsidePanelSection className={cn(className)}>
-      <div>
-        <h2 className="text-sm font-semibold text-brand-navy">Order summary</h2>
-        <p className="mt-1 text-xs text-brand-muted">
-          Key billing details from ERP.
-        </p>
+      <div className="rounded-xl border border-brand-border bg-slate-50/60 p-4">
+        <h2 className="text-[11px] font-semibold uppercase text-brand-muted">
+          Billing summary
+        </h2>
+        <dl className="mt-3 space-y-2.5">
+          <BillingAmountRow
+            label="Gross amount"
+            value={formatSalesOrderAmount(order.amount_untaxed, currency)}
+          />
+          <BillingAmountRow
+            label="Tax"
+            value={formatSalesOrderAmount(order.amount_tax, currency)}
+          />
+          <BillingAmountRow
+            label="Total"
+            value={formatSalesOrderAmount(order.amount_total, currency)}
+            emphasized
+          />
+        </dl>
       </div>
 
-      <dl className="space-y-3 rounded-xl border border-brand-border bg-slate-50/60 p-4">
-        <SummaryRow
-          label="Untaxed"
-          value={formatSalesOrderAmount(order.amount_untaxed, currency)}
+      <SummarySection title="Order summary">
+        <SummaryField
+          label="State"
+          value={formatSalesOrderStateLabel(order.state)}
         />
-        <SummaryRow
-          label="Tax"
-          value={formatSalesOrderAmount(order.amount_tax, currency)}
+        <SummaryField label="Client" value={formatSalesOrderCustomer(order)} />
+        <SummaryField
+          label="Order date"
+          value={formatSalesOrderDateTime(order.date_order)}
         />
-        <SummaryRow
-          label="Total"
-          value={formatSalesOrderAmount(order.amount_total, currency)}
+        <SummaryField
+          label="Clinic"
+          value={formatSalesOrderClinicName(order)}
         />
-        <SummaryRow
+        <SummaryField
           label="Pricelist"
-          value={formatOdooRelation(order.pricelist_id)}
+          value={formatSalesOrderPricelist(order)}
         />
-        <SummaryRow
+        <SummaryField
           label="Salesperson"
           value={formatOdooRelation(order.user_id)}
         />
-        {visitId ? (
-          <SummaryRow label="Visit" value={`#${visitId}`} />
+        <SummaryField
+          label="Company"
+          value={formatOdooRelation(order.company_id)}
+        />
+        <SummaryField
+          label="Payment terms"
+          value={formatOdooRelation(order.payment_term_id)}
+        />
+        {hasInsuranceDetails ? (
+          <>
+            <SummaryField label="Insurance" value={insuranceLabel} />
+            {insuranceNumber !== "—" ? (
+              <SummaryField label="Membership no." value={insuranceNumber} />
+            ) : null}
+          </>
+        ) : null}
+        {order.client_order_ref ? (
+          <SummaryField label="Reference" value={order.client_order_ref} />
         ) : null}
         {order.validity_date ? (
-          <SummaryRow
+          <SummaryField
             label="Validity"
             value={formatSalesOrderDate(order.validity_date)}
           />
         ) : null}
-      </dl>
+        {order.commitment_date ? (
+          <SummaryField
+            label="Delivery"
+            value={formatSalesOrderDate(order.commitment_date)}
+          />
+        ) : null}
+        {order.note?.trim() ? (
+          <SummaryField
+            label="Notes"
+            value={
+              <span className="whitespace-pre-wrap font-normal text-brand-slate">
+                {order.note}
+              </span>
+            }
+          />
+        ) : null}
+      </SummarySection>
     </DetailPageAsidePanelSection>
   );
 }

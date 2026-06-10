@@ -23,7 +23,7 @@ export function UserManagementSettingsPage() {
   if (!isTenantAdmin) {
     return (
       <SettingsPageLayout
-        title="User management"
+        title="User Management"
         description="User and group settings are available to tenant administrators."
       >
         <SettingsSection title="Access restricted">
@@ -43,7 +43,7 @@ export function UserManagementSettingsPage() {
 
   return (
     <SettingsPageLayout
-      title="User management"
+      title="User Management"
       description="Invite team members, manage access groups, and keep your organization roster up to date."
     >
       <UserManagementSettingsTabs />

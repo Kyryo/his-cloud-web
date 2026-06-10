@@ -7,6 +7,7 @@ import {
   countCompletedCustomerVisits,
   createCustomerVisit,
   fetchCustomerVisits,
+  fetchVisit,
   findActiveCustomerVisit,
 } from "@/features/customers/services/customer-visits.service";
 import { fetchVisitTypeCatalog } from "@/features/customers/services/visit-types.service";
@@ -48,6 +49,14 @@ describe("customer visits services", () => {
         mode_of_payment: "cash",
       },
     });
+  });
+
+  it("fetches a visit by uuid", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({ uuid: "visit-1" });
+
+    await fetchVisit("visit-1");
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_VISITS_ROUTES.detail("visit-1"));
   });
 
   it("closes a customer visit", async () => {

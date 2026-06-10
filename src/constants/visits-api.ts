@@ -1,6 +1,7 @@
 /** Django DRF v1 visit endpoints (relative to HMIS_API_URL, server-only). */
 export const VISITS_API_PATHS = {
   list: "/visits/",
+  detail: (uuid: string) => `/visits/${uuid}/`,
   end: (uuid: string) => `/visits/${uuid}/end/`,
   customerVisits: (customerUuid: string, query?: { limit?: number }) => {
     const params = new URLSearchParams({

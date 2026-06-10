@@ -5,18 +5,16 @@ import Link from "next/link";
 import { HoverPreviewCard } from "@/components/hover-preview-card";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import {
-  SalesOrderInvoiceStatusBadge,
-  SalesOrderStateBadge,
-} from "@/features/sales-orders/components/SalesOrderStatusBadge";
+import { SalesOrderStateBadge } from "@/features/sales-orders/components/SalesOrderStatusBadge";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
 import {
   formatSalesOrderAmount,
+  formatSalesOrderClinicName,
   formatSalesOrderCurrency,
   formatSalesOrderCustomer,
   formatSalesOrderDateTime,
+  formatSalesOrderPricelist,
 } from "@/features/sales-orders/utils/format-sales-order";
-import { formatOdooRelation } from "@/features/sales-orders/utils/format-odoo-relation";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 
@@ -29,9 +27,10 @@ type SalesOrdersTableProps = {
 const columns = [
   { key: "order", label: "Order" },
   { key: "customer", label: "Customer" },
+  { key: "clinic", label: "Clinic" },
+  { key: "pricelist", label: "Pricelist" },
   { key: "date", label: "Order date" },
   { key: "state", label: "State" },
-  { key: "invoice", label: "Invoice status" },
   { key: "total", label: "Total" },
 ] as const;
 
@@ -49,18 +48,16 @@ function SalesOrderHoverPreview({ order }: { order: SalesOrder }) {
         <dd>{formatSalesOrderCustomer(order)}</dd>
         <dt className="text-brand-muted">Order date</dt>
         <dd>{formatSalesOrderDateTime(order.date_order)}</dd>
+        <dt className="text-brand-muted">Clinic</dt>
+        <dd>{formatSalesOrderClinicName(order)}</dd>
+        <dt className="text-brand-muted">Pricelist</dt>
+        <dd>{formatSalesOrderPricelist(order)}</dd>
         <dt className="text-brand-muted">State</dt>
         <dd>
           <SalesOrderStateBadge state={order.state} />
         </dd>
-        <dt className="text-brand-muted">Invoice</dt>
-        <dd>
-          <SalesOrderInvoiceStatusBadge status={order.invoice_status} />
-        </dd>
         <dt className="text-brand-muted">Total</dt>
         <dd>{formatSalesOrderAmount(order.amount_total, currency)}</dd>
-        <dt className="text-brand-muted">Pricelist</dt>
-        <dd>{formatOdooRelation(order.pricelist_id)}</dd>
       </dl>
     </div>
   );
@@ -124,13 +121,16 @@ export function SalesOrdersTable({
                       {formatSalesOrderCustomer(order)}
                     </td>
                     <td className="px-4 py-3 text-sm text-brand-slate">
+                      {formatSalesOrderClinicName(order)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-brand-slate">
+                      {formatSalesOrderPricelist(order)}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-brand-slate">
                       {formatSalesOrderDateTime(order.date_order)}
                     </td>
                     <td className="px-4 py-3">
                       <SalesOrderStateBadge state={order.state} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <SalesOrderInvoiceStatusBadge status={order.invoice_status} />
                     </td>
                     <td className="px-4 py-3 text-sm font-medium text-brand-navy">
                       {formatSalesOrderAmount(order.amount_total, currency)}

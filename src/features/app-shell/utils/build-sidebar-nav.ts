@@ -87,7 +87,7 @@ export function buildSidebarNavItems(
             isActive: isNavItemActive(pathname, ROUTES.settingsFinanceOperations),
           },
           {
-            title: "User management",
+            title: "User Management",
             url: ROUTES.settingsUserManagement,
             isActive: isNavItemActive(pathname, ROUTES.settingsUserManagement),
           },

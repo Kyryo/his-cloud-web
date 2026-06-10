@@ -3,6 +3,8 @@ import type { PaginatedListResponse } from "@/types/api.types";
 /** Odoo many2one field: [id, display_name] */
 export type OdooRelation = [number, string];
 
+export type OdooCustomFieldValue = number | string | null;
+
 export type SalesOrderState =
   | "draft"
   | "sent"
@@ -32,7 +34,23 @@ export type SalesOrder = {
   pricelist_id: OdooRelation | false | null;
   company_id: OdooRelation | false | null;
   user_id: OdooRelation | false | null;
-  x_visit_id: number | OdooRelation | false | null;
+  x_hmis_tenant_id: OdooCustomFieldValue;
+  x_clinic_id: OdooCustomFieldValue;
+  x_clinic_name?: OdooCustomFieldValue;
+  clinic_name: OdooCustomFieldValue;
+  x_visit_id: OdooCustomFieldValue;
+  x_hmis_visit_uuid: OdooCustomFieldValue;
+  x_hmis_customer_id: OdooCustomFieldValue;
+  x_hmis_customer_uuid: OdooCustomFieldValue;
+  x_hmis_provider_id: OdooCustomFieldValue;
+  x_hmis_provider_name: OdooCustomFieldValue;
+  x_visit_pricelist_id: OdooCustomFieldValue;
+  x_insurance_scheme_id: OdooCustomFieldValue;
+  x_insurance_scheme_name: OdooCustomFieldValue;
+  x_insurance_company: OdooCustomFieldValue;
+  x_insurance_number: OdooCustomFieldValue;
+  x_insurance_number_prefix: OdooCustomFieldValue;
+  x_authorization_number: OdooCustomFieldValue;
   payment_term_id?: OdooRelation | false | null;
   client_order_ref?: string | null;
   note?: string | null;

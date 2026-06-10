@@ -36,6 +36,7 @@ export const BFF_CUSTOMERS_ROUTES = {
 /** Browser-facing BFF visit routes (same origin). */
 export const BFF_VISITS_ROUTES = {
   create: "/api/visits",
+  detail: (uuid: string) => `/api/visits/${uuid}`,
   end: (uuid: string) => `/api/visits/${uuid}/end`,
   visitTypesCatalog: "/api/visit-types/catalog",
 } as const;
