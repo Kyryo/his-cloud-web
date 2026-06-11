@@ -19,6 +19,7 @@ import {
 import type { PurchaseOrder } from "@/features/inventory/types/inventory.types";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/providers/toast-provider";
 
 type PurchaseOrderAction = "submit" | "confirm" | "cancel";
 
@@ -27,6 +28,7 @@ type PendingAction = Extract<PurchaseOrderAction, "submit" | "cancel">;
 type PurchaseOrderDocumentActionsProps = {
   order: PurchaseOrder;
   onAction: (action: PurchaseOrderAction) => Promise<void>;
+  onBeforeSubmit?: () => string | null;
   className?: string;
 };
 
@@ -52,8 +54,10 @@ function getConfirmCopy(
 export function PurchaseOrderDocumentActions({
   order,
   onAction,
+  onBeforeSubmit,
   className,
 }: PurchaseOrderDocumentActionsProps) {
+  const { toast } = useToast();
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [loadingAction, setLoadingAction] = useState<PurchaseOrderAction | null>(null);
 
@@ -83,12 +87,38 @@ export function PurchaseOrderDocumentActions({
   return (
     <>
       <div className={cn("flex flex-wrap gap-2", className)}>
+        {showCancel ? (
+          <DestructiveButton
+            type="button"
+            size="sm"
+            disabled={isBusy}
+            onClick={() => setPendingAction("cancel")}
+            data-testid="purchase-order-cancel-button"
+          >
+            {loadingAction === "cancel" ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            ) : null}
+            Cancel
+          </DestructiveButton>
+        ) : null}
+
         {showSubmit ? (
           <PrimaryButton
             type="button"
             size="sm"
             disabled={isBusy}
-            onClick={() => setPendingAction("submit")}
+            onClick={() => {
+              const validationMessage = onBeforeSubmit?.();
+              if (validationMessage) {
+                toast({
+                  title: "Cannot submit purchase order",
+                  description: validationMessage,
+                  variant: "error",
+                });
+                return;
+              }
+              setPendingAction("submit");
+            }}
             data-testid="purchase-order-submit-button"
           >
             {loadingAction === "submit" ? (
@@ -111,21 +141,6 @@ export function PurchaseOrderDocumentActions({
             ) : null}
             Confirm
           </PrimaryButton>
-        ) : null}
-
-        {showCancel ? (
-          <DestructiveButton
-            type="button"
-            size="sm"
-            disabled={isBusy}
-            onClick={() => setPendingAction("cancel")}
-            data-testid="purchase-order-cancel-button"
-          >
-            {loadingAction === "cancel" ? (
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            ) : null}
-            Cancel
-          </DestructiveButton>
         ) : null}
       </div>
 

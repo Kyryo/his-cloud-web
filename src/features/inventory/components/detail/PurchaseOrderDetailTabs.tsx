@@ -1,10 +1,9 @@
 "use client";
 
 import { PanelRight } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { FabButton } from "@/components/ui/fab-button";
-import { AddPurchaseOrderLineItemButton } from "@/features/inventory/components/detail/AddPurchaseOrderLineItemButton";
 import {
   DetailPageMainAsideGrid,
   DetailPageMainSection,
@@ -12,60 +11,44 @@ import {
   DetailPageTabsNavSection,
   DetailPageTabsSection,
 } from "@/features/app-shell/components/page-layout";
+import { AnimatedPurchaseOrderTotal } from "@/features/inventory/components/detail/AnimatedPurchaseOrderTotal";
+import { PurchaseOrderLinesEditor } from "@/features/inventory/components/detail/PurchaseOrderLinesEditor";
 import { InventorySummaryPanel } from "@/features/inventory/components/InventorySummaryPanel";
-import {
-  InventoryListTable,
-  type InventoryListTableColumn,
-} from "@/features/inventory/components/list/InventoryListTable";
 import type { PurchaseOrder } from "@/features/inventory/types/inventory.types";
+import type { PurchaseOrderLineDraft } from "@/features/inventory/types/purchase-order-line-draft";
 import {
   formatDisplayDate,
   formatDisplayDateTime,
-  formatInventoryAmount,
-  formatInventoryQuantity,
   formatPurchaseStatusLabel,
 } from "@/features/inventory/utils/format-inventory";
 import { cn } from "@/lib/utils";
 
 type PurchaseOrderDetailTabsProps = {
   order: PurchaseOrder;
-  canEditLines?: boolean;
-  onManageLines?: () => void;
+  canEditLines: boolean;
+  currency: string;
+  autoAddLine?: boolean;
+  onOrderUpdated: (order: PurchaseOrder) => void;
+  onError: (message: string) => void;
+  onLinesStateChange?: (state: {
+    lineCount: number;
+    totalValue: number;
+    isDirty: boolean;
+    draftLines: PurchaseOrderLineDraft[];
+  }) => void;
 };
 
 type DetailTabId = "lines" | "summary";
 
-const lineColumns: InventoryListTableColumn<PurchaseOrder["lines"][number]>[] = [
-  {
-    key: "product",
-    label: "Product",
-    cellClassName: "font-mono font-medium text-brand-navy",
-    render: (line) => line.odoo_product_id,
-  },
-  {
-    key: "qty",
-    label: "Qty",
-    headerClassName: "text-right",
-    cellClassName: "text-right",
-    render: (line) => formatInventoryQuantity(line.quantity),
-  },
-  {
-    key: "unit_cost",
-    label: "Unit cost",
-    headerClassName: "text-right",
-    cellClassName: "text-right",
-    render: (line) => formatInventoryAmount(line.unit_cost),
-  },
-  {
-    key: "total",
-    label: "Total",
-    headerClassName: "text-right",
-    cellClassName: "text-right",
-    render: (line) => formatInventoryAmount(line.total_cost),
-  },
-];
-
-function PurchaseOrderSummaryContent({ order }: { order: PurchaseOrder }) {
+function PurchaseOrderSummaryContent({
+  order,
+  currency,
+  totalValue,
+}: {
+  order: PurchaseOrder;
+  currency: string;
+  totalValue: number;
+}) {
   return (
     <InventorySummaryPanel
       className="p-0"
@@ -74,7 +57,7 @@ function PurchaseOrderSummaryContent({ order }: { order: PurchaseOrder }) {
           <div className="flex items-center justify-between gap-3 text-sm">
             <dt className="text-brand-muted">Total value</dt>
             <dd className="font-semibold text-brand-navy">
-              {formatInventoryAmount(order.total_value)}
+              <AnimatedPurchaseOrderTotal value={totalValue} currency={currency} />
             </dd>
           </div>
         </dl>
@@ -99,11 +82,33 @@ function PurchaseOrderSummaryContent({ order }: { order: PurchaseOrder }) {
 
 export function PurchaseOrderDetailTabs({
   order,
-  canEditLines = false,
-  onManageLines,
+  canEditLines,
+  currency,
+  autoAddLine = false,
+  onOrderUpdated,
+  onError,
+  onLinesStateChange,
 }: PurchaseOrderDetailTabsProps) {
   const [activeTab, setActiveTab] = useState<DetailTabId>("lines");
   const [showSummaryPanel, setShowSummaryPanel] = useState(false);
+  const [lineCount, setLineCount] = useState(order.lines.length);
+  const [totalValue, setTotalValue] = useState(
+    Number.parseFloat(String(order.total_value ?? 0)) || 0,
+  );
+
+  const handleLinesStateChange = useCallback(
+    (state: {
+      lineCount: number;
+      totalValue: number;
+      isDirty: boolean;
+      draftLines: PurchaseOrderLineDraft[];
+    }) => {
+      setLineCount(state.lineCount);
+      setTotalValue(state.totalValue);
+      onLinesStateChange?.(state);
+    },
+    [onLinesStateChange],
+  );
 
   const summaryPanel = (
     <InventorySummaryPanel
@@ -113,7 +118,7 @@ export function PurchaseOrderDetailTabs({
           <div className="flex items-center justify-between gap-3 text-sm">
             <dt className="text-brand-muted">Total value</dt>
             <dd className="font-semibold text-brand-navy">
-              {formatInventoryAmount(order.total_value)}
+              <AnimatedPurchaseOrderTotal value={totalValue} currency={currency} />
             </dd>
           </div>
         </dl>
@@ -142,7 +147,14 @@ export function PurchaseOrderDetailTabs({
           isActive={activeTab === "lines"}
           onClick={() => setActiveTab("lines")}
         >
-          Line items{order.lines.length > 0 ? ` (${order.lines.length})` : ""}
+          <span className="inline-flex items-center gap-2">
+            Line items
+            {lineCount > 0 ? (
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-brand-muted">
+                {lineCount}
+              </span>
+            ) : null}
+          </span>
         </DetailPageTabNavItem>
         <DetailPageTabNavItem
           isActive={activeTab === "summary"}
@@ -155,43 +167,22 @@ export function PurchaseOrderDetailTabs({
       <DetailPageMainAsideGrid>
         <DetailPageMainSection>
           {activeTab === "lines" ? (
-            order.lines.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-brand-border bg-white px-6 py-14 text-center">
-                <p className="text-sm font-medium text-brand-navy">No line items yet</p>
-                <p className="mt-2 text-sm text-brand-muted">
-                  Add products, quantities, and unit costs to this purchase order.
-                </p>
-                {canEditLines && onManageLines ? (
-                  <AddPurchaseOrderLineItemButton
-                    className="mt-6"
-                    onClick={onManageLines}
-                    data-testid="add-purchase-order-line-item-button"
-                  />
-                ) : null}
-              </div>
-            ) : (
-              <InventoryListTable
-                items={order.lines}
-                columns={lineColumns}
-                getRowKey={(line) =>
-                  String(
-                    line.id ??
-                      `${line.odoo_product_id}-${line.quantity}-${line.unit_cost}`,
-                  )
-                }
-                footer={
-                  canEditLines && onManageLines ? (
-                    <AddPurchaseOrderLineItemButton
-                      onClick={onManageLines}
-                      data-testid="add-purchase-order-line-item-button"
-                    />
-                  ) : undefined
-                }
-              />
-            )
+            <PurchaseOrderLinesEditor
+              order={order}
+              canEdit={canEditLines}
+              currency={currency}
+              autoAddLine={autoAddLine}
+              onUpdated={onOrderUpdated}
+              onError={onError}
+              onStateChange={handleLinesStateChange}
+            />
           ) : (
             <div className="rounded-xl border border-brand-border bg-white p-6 xl:hidden">
-              <PurchaseOrderSummaryContent order={order} />
+              <PurchaseOrderSummaryContent
+                order={order}
+                currency={currency}
+                totalValue={totalValue}
+              />
             </div>
           )}
         </DetailPageMainSection>

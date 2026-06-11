@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { ROUTES } from "@/constants/routes";
 
@@ -12,29 +12,42 @@ import {
 import { DetailPageLayout } from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
 import { InventoryDetailNotFound } from "@/features/inventory/components/detail/InventoryDetailNotFound";
-import { EditPurchaseOrderLinesDialog } from "@/features/inventory/components/EditPurchaseOrderLinesDialog";
-import { PurchaseOrderDocumentActions } from "@/features/inventory/components/PurchaseOrderDocumentActions";
 import { PurchaseOrderDetailHeader } from "@/features/inventory/components/detail/PurchaseOrderDetailHeader";
 import { PurchaseOrderDetailTabs } from "@/features/inventory/components/detail/PurchaseOrderDetailTabs";
+import { PurchaseOrderDocumentActions } from "@/features/inventory/components/PurchaseOrderDocumentActions";
+import { UpdatePurchaseOrderDialog } from "@/features/inventory/components/UpdatePurchaseOrderDialog";
+import { useTenantCurrency } from "@/features/inventory/hooks/use-tenant-currency";
 import {
   fetchPurchaseOrder,
   runPurchaseOrderAction,
 } from "@/features/inventory/services/purchase-orders.service";
 import type { PurchaseOrder } from "@/features/inventory/types/inventory.types";
+import type { PurchaseOrderLineDraft } from "@/features/inventory/types/purchase-order-line-draft";
+import { validatePurchaseOrderLinesForSubmit } from "@/features/inventory/types/purchase-order-line-draft";
 import { useToast } from "@/providers/toast-provider";
 
 type PurchaseOrderDetailPageProps = {
   orderUuid: string;
 };
 
+type LinesEditorState = {
+  lineCount: number;
+  totalValue: number;
+  isDirty: boolean;
+  draftLines: PurchaseOrderLineDraft[];
+};
+
 export function PurchaseOrderDetailPage({ orderUuid }: PurchaseOrderDetailPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const currency = useTenantCurrency();
   const [order, setOrder] = useState<PurchaseOrder | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editLinesOpen, setEditLinesOpen] = useState(false);
+  const [updateOpen, setUpdateOpen] = useState(false);
+  const [linesEditorState, setLinesEditorState] = useState<LinesEditorState | null>(null);
+  const autoAddLine = searchParams.get("add-lines") === "1";
 
   useAppBreadcrumb(order?.reference_number ?? null);
 
@@ -56,18 +69,12 @@ export function PurchaseOrderDetailPage({ orderUuid }: PurchaseOrderDetailPagePr
   }, [loadOrder]);
 
   useEffect(() => {
-    if (
-      !order ||
-      order.lines.length > 0 ||
-      order.status !== "DRAFT" ||
-      searchParams.get("add-lines") !== "1"
-    ) {
+    if (!order || !autoAddLine) {
       return;
     }
 
-    setEditLinesOpen(true);
     router.replace(ROUTES.inventoryPurchaseOrderDetail(order.uuid), { scroll: false });
-  }, [order, router, searchParams]);
+  }, [autoAddLine, order, router]);
 
   const handleAction = useCallback(
     async (action: "submit" | "confirm" | "cancel") => {
@@ -95,6 +102,41 @@ export function PurchaseOrderDetailPage({ orderUuid }: PurchaseOrderDetailPagePr
     [orderUuid, toast],
   );
 
+  const submitValidationMessage = useMemo(() => {
+    if (!order || order.status !== "DRAFT") {
+      return null;
+    }
+
+    if (linesEditorState?.isDirty) {
+      return "Save your line item changes before submitting this order.";
+    }
+
+    const linesToValidate =
+      linesEditorState?.draftLines ??
+      order.lines.map((line) => ({
+        key: String(line.id ?? line.odoo_product_id),
+        odoo_product_id: line.odoo_product_id,
+        productName: null,
+        quantity: String(line.quantity),
+        unit_cost: String(line.unit_cost),
+      }));
+
+    return validatePurchaseOrderLinesForSubmit(linesToValidate);
+  }, [linesEditorState, order]);
+
+  const handleBeforeSubmit = useCallback(() => submitValidationMessage, [submitValidationMessage]);
+
+  const handleLinesError = useCallback(
+    (message: string) => {
+      toast({
+        title: "Line items",
+        description: message,
+        variant: "error",
+      });
+    },
+    [toast],
+  );
+
   if (isLoading) {
     return (
       <PageLoader
@@ -117,23 +159,32 @@ export function PurchaseOrderDetailPage({ orderUuid }: PurchaseOrderDetailPagePr
 
   return (
     <DetailPageLayout data-testid="inventory-purchase-order-detail-page">
-      <EditPurchaseOrderLinesDialog
+      <UpdatePurchaseOrderDialog
         order={order}
-        open={editLinesOpen}
-        onOpenChange={setEditLinesOpen}
+        open={updateOpen}
+        onOpenChange={setUpdateOpen}
         onUpdated={setOrder}
       />
 
       <PurchaseOrderDetailHeader
         order={order}
+        onUpdate={canEditLines ? () => setUpdateOpen(true) : undefined}
         actions={
-          <PurchaseOrderDocumentActions order={order} onAction={handleAction} />
+          <PurchaseOrderDocumentActions
+            order={order}
+            onAction={handleAction}
+            onBeforeSubmit={handleBeforeSubmit}
+          />
         }
       />
       <PurchaseOrderDetailTabs
         order={order}
         canEditLines={canEditLines}
-        onManageLines={() => setEditLinesOpen(true)}
+        currency={currency}
+        autoAddLine={autoAddLine}
+        onOrderUpdated={setOrder}
+        onError={handleLinesError}
+        onLinesStateChange={setLinesEditorState}
       />
     </DetailPageLayout>
   );

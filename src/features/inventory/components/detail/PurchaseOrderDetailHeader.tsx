@@ -3,6 +3,7 @@
 import { Calendar } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { PrimaryButton } from "@/components/ui/app-buttons";
 import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
 import { PurchaseStatusBadge } from "@/features/inventory/components/InventoryStatusBadge";
 import type { PurchaseOrder } from "@/features/inventory/types/inventory.types";
@@ -10,13 +11,26 @@ import { formatDisplayDateTime } from "@/features/inventory/utils/format-invento
 
 type PurchaseOrderDetailHeaderProps = {
   order: PurchaseOrder;
+  onUpdate?: () => void;
   actions?: ReactNode;
 };
 
 export function PurchaseOrderDetailHeader({
   order,
+  onUpdate,
   actions,
 }: PurchaseOrderDetailHeaderProps) {
+  const headerActions = (
+    <div className="flex flex-wrap items-center gap-2">
+      {onUpdate ? (
+        <PrimaryButton type="button" size="sm" onClick={onUpdate}>
+          Update
+        </PrimaryButton>
+      ) : null}
+      {actions}
+    </div>
+  );
+
   return (
     <DetailPageHeaderSection>
       <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
@@ -39,7 +53,7 @@ export function PurchaseOrderDetailHeader({
             </span>
           </div>
         </div>
-        {actions ? <div className="shrink-0">{actions}</div> : null}
+        <div className="shrink-0">{headerActions}</div>
       </div>
     </DetailPageHeaderSection>
   );
