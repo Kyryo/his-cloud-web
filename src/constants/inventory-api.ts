@@ -9,8 +9,13 @@ export const INVENTORY_API_PATHS = {
     detail: (uuid: string) => `/inventory/movements/${uuid}/`,
   },
   products: {
+    list: "/inventory/products/",
     detail: (productId: number | string) => `/inventory/products/${productId}/`,
     search: "/inventory/products/search/",
+    pricelists: (productId: number | string) =>
+      `/inventory/products/${productId}/pricelists/`,
+    stockLocations: (productId: number | string) =>
+      `/inventory/products/${productId}/stock-locations/`,
   },
   batches: {
     list: "/inventory/batches/",

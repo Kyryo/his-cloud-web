@@ -80,8 +80,13 @@ export const BFF_INVENTORY_ROUTES = {
     detail: (uuid: string) => `/api/inventory/movements/${uuid}`,
   },
   products: {
+    list: "/api/inventory/products",
     search: "/api/inventory/products/search",
     detail: (productId: number | string) => `/api/inventory/products/${productId}`,
+    pricelists: (productId: number | string) =>
+      `/api/inventory/products/${productId}/pricelists`,
+    stockLocations: (productId: number | string) =>
+      `/api/inventory/products/${productId}/stock-locations`,
   },
   batches: {
     list: "/api/inventory/batches",

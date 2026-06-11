@@ -1,51 +1,84 @@
 "use client";
 
+import { PanelRight } from "lucide-react";
+import { useState } from "react";
+
+import { FabButton } from "@/components/ui/fab-button";
 import {
+  DetailPageMainAsideGrid,
   DetailPageMainSection,
   DetailPageTabNavItem,
   DetailPageTabsNavSection,
   DetailPageTabsSection,
 } from "@/features/app-shell/components/page-layout";
-import { InventorySummaryPanel } from "@/features/inventory/components/InventorySummaryPanel";
+import { ProductDetailAvailabilityTab } from "@/features/inventory/components/detail/ProductDetailAvailabilityTab";
+import { ProductDetailPricelistsTab } from "@/features/inventory/components/detail/ProductDetailPricelistsTab";
+import { ProductDetailSummaryTab } from "@/features/inventory/components/detail/ProductDetailSummaryTab";
+import { ProductSummaryPanel } from "@/features/inventory/components/detail/ProductSummaryPanel";
 import type { InventoryProduct } from "@/features/inventory/types/inventory.types";
-import { formatInventoryAmount } from "@/features/inventory/utils/format-inventory";
+import { cn } from "@/lib/utils";
 
 type ProductDetailTabsProps = {
   product: InventoryProduct;
 };
 
+type DetailTabId = "summary" | "pricelists" | "locations";
+
+const tabs: Array<{ id: DetailTabId; label: string }> = [
+  { id: "summary", label: "Summary" },
+  { id: "pricelists", label: "Pricelists" },
+  { id: "locations", label: "Locations" },
+];
+
 export function ProductDetailTabs({ product }: ProductDetailTabsProps) {
-  const uomLabel = Array.isArray(product.uom_id) ? product.uom_id[1] : "—";
+  const [activeTab, setActiveTab] = useState<DetailTabId>("summary");
+  const [showSummaryPanel, setShowSummaryPanel] = useState(false);
 
   return (
     <DetailPageTabsSection>
       <DetailPageTabsNavSection aria-label="Product sections">
-        <DetailPageTabNavItem isActive onClick={() => undefined}>
-          Summary
-        </DetailPageTabNavItem>
+        {tabs.map((tab) => (
+          <DetailPageTabNavItem
+            key={tab.id}
+            isActive={activeTab === tab.id}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            {tab.label}
+          </DetailPageTabNavItem>
+        ))}
       </DetailPageTabsNavSection>
 
-      <DetailPageMainSection>
-        <InventorySummaryPanel
-          sections={[
-            {
-              title: "Product details",
-              fields: [
-                { label: "Name", value: product.display_name || product.name },
-                { label: "Internal code", value: product.default_code ?? "—" },
-                { label: "Barcode", value: product.barcode ?? "—" },
-                { label: "List price", value: formatInventoryAmount(product.list_price) },
-                {
-                  label: "Standard price",
-                  value: formatInventoryAmount(product.standard_price),
-                },
-                { label: "Unit of measure", value: uomLabel },
-                { label: "Status", value: product.active ? "Active" : "Inactive" },
-              ],
-            },
-          ]}
+      <DetailPageMainAsideGrid>
+        <DetailPageMainSection>
+          <ProductDetailSummaryTab
+            product={product}
+            isActive={activeTab === "summary"}
+          />
+          <ProductDetailPricelistsTab
+            product={product}
+            isActive={activeTab === "pricelists"}
+          />
+          <ProductDetailAvailabilityTab
+            product={product}
+            isActive={activeTab === "locations"}
+          />
+        </DetailPageMainSection>
+
+        <ProductSummaryPanel
+          product={product}
+          className={cn(!showSummaryPanel && "hidden xl:block")}
         />
-      </DetailPageMainSection>
+      </DetailPageMainAsideGrid>
+
+      <FabButton
+        label={showSummaryPanel ? "Hide product summary" : "Show product summary"}
+        icon={PanelRight}
+        variant="outline"
+        hideFrom="xl"
+        className="bg-white"
+        onClick={() => setShowSummaryPanel((current) => !current)}
+        data-testid="product-summary-fab"
+      />
     </DetailPageTabsSection>
   );
 }

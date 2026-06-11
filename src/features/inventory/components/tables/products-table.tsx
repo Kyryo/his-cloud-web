@@ -4,6 +4,7 @@ import {
   InventoryListTable,
   type InventoryListTableColumn,
 } from "@/features/inventory/components/list/InventoryListTable";
+import { ProductTypeBadge } from "@/features/inventory/components/ProductTypeBadge";
 import type { InventoryProduct } from "@/features/inventory/types/inventory.types";
 import { formatInventoryAmount } from "@/features/inventory/utils/format-inventory";
 
@@ -13,6 +14,11 @@ const columns: InventoryListTableColumn<InventoryProduct>[] = [
     label: "Name",
     cellClassName: "font-medium text-brand-navy",
     render: (item) => item.display_name || item.name,
+  },
+  {
+    key: "type",
+    label: "Type",
+    render: (item) => <ProductTypeBadge product={item} />,
   },
   {
     key: "code",

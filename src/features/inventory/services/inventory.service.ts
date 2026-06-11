@@ -5,6 +5,8 @@ import type {
   InventoryMovement,
   InventoryMovementListResponse,
   InventoryProduct,
+  InventoryProductPricelistItem,
+  InventoryProductStockLocation,
   InventoryStock,
   InventoryStockListResponse,
 } from "@/features/inventory/types/inventory.types";
@@ -63,6 +65,67 @@ export async function fetchInventoryProduct(
 ): Promise<InventoryProduct> {
   return bffRequest<InventoryProduct>(
     BFF_INVENTORY_ROUTES.products.detail(productId),
+  );
+}
+
+export type CreateInventoryProductPayload = {
+  name: string;
+  default_code?: string;
+  barcode?: string;
+  list_price?: number;
+  standard_price?: number;
+  product_type?: "product" | "consu" | "service";
+  sale_ok?: boolean;
+  purchase_ok?: boolean;
+  active?: boolean;
+  is_drug?: boolean;
+  liquid_or_cream?: boolean;
+  is_procedure?: boolean;
+  dental_only_procedure?: boolean;
+  opd_only_procedure?: boolean;
+  ipd_only_procedure?: boolean;
+  physio_only_procedure?: boolean;
+  clinic_wide_procedure?: boolean;
+  x_meta?: Record<string, unknown>;
+};
+
+export async function createInventoryProduct(
+  payload: CreateInventoryProductPayload,
+): Promise<InventoryProduct> {
+  return bffRequest<InventoryProduct>(BFF_INVENTORY_ROUTES.products.list, {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export type UpdateInventoryProductPayload = CreateInventoryProductPayload;
+
+export async function updateInventoryProduct(
+  productId: number | string,
+  payload: UpdateInventoryProductPayload,
+): Promise<InventoryProduct> {
+  return bffRequest<InventoryProduct>(
+    BFF_INVENTORY_ROUTES.products.detail(productId),
+    {
+      method: "PATCH",
+      body: payload,
+    },
+  );
+}
+
+export async function fetchInventoryProductPricelists(
+  productId: number | string,
+): Promise<InventoryProductPricelistItem[]> {
+  return bffRequest<InventoryProductPricelistItem[]>(
+    BFF_INVENTORY_ROUTES.products.pricelists(productId),
+  );
+}
+
+export async function fetchInventoryProductStockLocations(
+  productId: number | string,
+): Promise<InventoryProductStockLocation[]> {
+  return bffRequest<InventoryProductStockLocation[]>(
+    BFF_INVENTORY_ROUTES.products.stockLocations(productId),
   );
 }
 

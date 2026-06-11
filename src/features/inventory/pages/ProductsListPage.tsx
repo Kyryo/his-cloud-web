@@ -2,13 +2,16 @@
 
 import { Package } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
+import { AddActionButton } from "@/components/ui/app-buttons";
+import { FabButton } from "@/components/ui/fab-button";
 import { ROUTES } from "@/constants/routes";
 import {
   ListPageDataSectionsStack,
   ListPageLayout,
 } from "@/features/app-shell/components/page-layout";
+import { CreateProductDialog } from "@/features/inventory/components/CreateProductDialog";
 import { InventoryListToolbar } from "@/features/inventory/components/InventoryListToolbar";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
 import { InventoryListEmptyState } from "@/features/inventory/components/list/InventoryListEmptyState";
@@ -43,6 +46,7 @@ async function fetchProducts(
 
 export function ProductsListPage() {
   const router = useRouter();
+  const [createOpen, setCreateOpen] = useState(false);
   const fetchFn = useCallback(
     (f: InventoryListFilters) => fetchProducts(f),
     [],
@@ -69,6 +73,18 @@ export function ProductsListPage() {
     handlePageChange,
   } = useInventoryList<InventoryProduct>({ fetchFn });
 
+  const handleCreate = useCallback(() => {
+    setCreateOpen(true);
+  }, []);
+
+  const handleProductCreated = useCallback(
+    (product: InventoryProduct) => {
+      void reload();
+      router.push(ROUTES.inventoryProductDetail(product.id));
+    },
+    [reload, router],
+  );
+
   const handleRowClick = useCallback(
     (product: InventoryProduct) => router.push(ROUTES.inventoryProductDetail(product.id)),
     [router],
@@ -80,15 +96,30 @@ export function ProductsListPage() {
 
   return (
     <ListPageLayout data-testid="inventory-products-page">
+      <CreateProductDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={handleProductCreated}
+      />
+
       <InventoryListPageHeader
         title="Products"
         description="Search products synced from ERP."
+        addLabel="New product"
+        onAdd={handleCreate}
         search={search}
         isSearchDisabled={isRefreshing}
         onSearchChange={setSearch}
         onSearchSubmit={handleSearchSubmit}
         onClearSearch={handleClearSearch}
         searchPlaceholder="Search by name, code, or barcode..."
+        data-testid="add-product-button"
+      />
+
+      <FabButton
+        label="New product"
+        onClick={handleCreate}
+        data-testid="add-product-fab"
       />
 
       {!hasNoRecords ? (
@@ -100,7 +131,6 @@ export function ProductsListPage() {
             onSearchChange={setSearch}
             onSearchSubmit={handleSearchSubmit}
             onClearSearch={handleClearSearch}
-            onRefresh={() => void reload()}
           />
         </ListPageDataSectionsStack>
       ) : null}
@@ -116,7 +146,9 @@ export function ProductsListPage() {
           <InventoryListEmptyState
             icon={Package}
             title="No products found"
-            description="Products from ERP will appear here once synced."
+            description="Create a product or sync from ERP to get started."
+            actionLabel="New product"
+            onAction={handleCreate}
           />
         }
         isFilteredEmpty={isFilteredEmpty}

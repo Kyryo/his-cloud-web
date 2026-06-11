@@ -2,8 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BFF_INVENTORY_ROUTES } from "@/constants/api";
 import {
+  createInventoryProduct,
+  fetchInventoryProductPricelists,
+  fetchInventoryProductStockLocations,
   fetchInventoryStock,
   searchInventoryProducts,
+  updateInventoryProduct,
 } from "@/features/inventory/services/inventory.service";
 import {
   fetchPurchaseOrders,
@@ -45,6 +49,83 @@ describe("inventory.service", () => {
 
     expect(bffRequest).toHaveBeenCalledWith(
       `${BFF_INVENTORY_ROUTES.products.search}?q=paracetamol&active=true`,
+    );
+  });
+
+  it("creates products via the BFF", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({
+      id: 101,
+      name: "Ibuprofen",
+      display_name: "Ibuprofen",
+      active: true,
+    });
+
+    await createInventoryProduct({
+      name: "Ibuprofen",
+      default_code: "IBU",
+      product_type: "product",
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_INVENTORY_ROUTES.products.list, {
+      method: "POST",
+      body: {
+        name: "Ibuprofen",
+        default_code: "IBU",
+        product_type: "product",
+      },
+    });
+  });
+
+  it("fetches product pricelists via the BFF", async () => {
+    vi.mocked(bffRequest).mockResolvedValue([]);
+
+    await fetchInventoryProductPricelists(101);
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_INVENTORY_ROUTES.products.pricelists(101),
+    );
+  });
+
+  it("fetches product stock locations via the BFF", async () => {
+    vi.mocked(bffRequest).mockResolvedValue([]);
+
+    await fetchInventoryProductStockLocations(101);
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_INVENTORY_ROUTES.products.stockLocations(101),
+    );
+  });
+
+  it("updates products via the BFF", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({
+      id: 101,
+      name: "Ibuprofen",
+      display_name: "Ibuprofen",
+      active: true,
+    });
+
+    await updateInventoryProduct(101, {
+      name: "Ibuprofen",
+      product_type: "product",
+      is_drug: true,
+      liquid_or_cream: false,
+      is_procedure: false,
+      dental_only_procedure: false,
+      opd_only_procedure: false,
+      ipd_only_procedure: false,
+      physio_only_procedure: false,
+      clinic_wide_procedure: false,
+      sale_ok: true,
+      purchase_ok: true,
+      active: true,
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_INVENTORY_ROUTES.products.detail(101),
+      {
+        method: "PATCH",
+        body: expect.objectContaining({ name: "Ibuprofen" }),
+      },
     );
   });
 });

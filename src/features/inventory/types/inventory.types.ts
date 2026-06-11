@@ -70,17 +70,72 @@ export type InventoryMovement = {
   created_at: string;
 };
 
+export type InventoryProductType = "product" | "consu" | "service" | string;
+
+export type InventoryProductTypeLabel =
+  | "stockable"
+  | "consumable"
+  | "service"
+  | string;
+
+export type InventoryProductMeta = {
+  created_by?: number | null;
+  created_by_name?: string | null;
+  is_drug?: boolean;
+  liquid_or_cream?: boolean;
+  is_procedure?: boolean;
+  dental_only_procedure?: boolean;
+  opd_only_procedure?: boolean;
+  ipd_only_procedure?: boolean;
+  physio_only_procedure?: boolean;
+  clinic_wide_procedure?: boolean;
+  [key: string]: unknown;
+};
+
 export type InventoryProduct = {
   id: number;
   name: string;
   display_name: string;
-  default_code: string | null;
-  barcode: string | null;
+  default_code: string | false | null;
+  barcode: string | false | null;
   list_price: number | string | null;
   standard_price: number | string | null;
   uom_id: [number, string] | false | null;
   active: boolean;
-  x_meta?: Record<string, unknown> | null;
+  product_type?: InventoryProductType | null;
+  product_type_label?: InventoryProductTypeLabel | null;
+  sale_ok?: boolean;
+  purchase_ok?: boolean;
+  x_meta?: InventoryProductMeta | null;
+};
+
+export type InventoryProductPricelistItem = {
+  id: number;
+  applied_on?: string;
+  compute_price?: string;
+  fixed_price?: number | string | null;
+  percent_price?: number | string | null;
+  min_quantity?: number | string | null;
+  date_start?: string | false | null;
+  date_end?: string | false | null;
+  pricelist?: { id: number; name: string } | null;
+  product?: { id: number; name: string } | null;
+  product_template?: { id: number; name: string } | null;
+};
+
+export type InventoryProductStockLocation = {
+  location: {
+    id: number;
+    uuid: string;
+    name: string;
+    code: string;
+  };
+  clinic: {
+    id: number;
+    name: string;
+  };
+  odoo_product_id: number;
+  quantity_on_hand: string | number;
 };
 
 export type InventoryBatch = {

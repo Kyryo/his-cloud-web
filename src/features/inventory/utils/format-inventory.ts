@@ -1,5 +1,8 @@
 import type {
   InternalOrderStatus,
+  InventoryProduct,
+  InventoryProductMeta,
+  InventoryProductTypeLabel,
   PurchaseStatus,
   StockAdjustmentStatus,
 } from "@/features/inventory/types/inventory.types";
@@ -179,4 +182,83 @@ export function formatProductLabel(
     return `${name} (${product.default_code})`;
   }
   return name;
+}
+
+export function formatProductTypeLabel(
+  product: Pick<InventoryProduct, "product_type_label" | "product_type">,
+): string {
+  if (product.product_type_label) {
+    return product.product_type_label.charAt(0).toUpperCase() +
+      product.product_type_label.slice(1);
+  }
+
+  switch (product.product_type) {
+    case "product":
+      return "Stockable";
+    case "consu":
+      return "Consumable";
+    case "service":
+      return "Service";
+    default:
+      return product.product_type ?? "—";
+  }
+}
+
+export function getProductTypeBadgeVariant(
+  label: InventoryProductTypeLabel | null | undefined,
+): "default" | "secondary" | "outline" {
+  switch (label) {
+    case "stockable":
+      return "default";
+    case "consumable":
+      return "secondary";
+    case "service":
+      return "outline";
+    default:
+      return "outline";
+  }
+}
+
+export function formatBooleanLabel(value: boolean | null | undefined): string {
+  if (value === true) {
+    return "Yes";
+  }
+  if (value === false) {
+    return "No";
+  }
+  return "—";
+}
+
+export function getProductMeta(product: InventoryProduct): InventoryProductMeta {
+  return product.x_meta ?? {};
+}
+
+export function formatProcedureScopeLabel(meta: InventoryProductMeta): string {
+  if (meta.clinic_wide_procedure) {
+    return "Clinic-wide";
+  }
+  if (meta.dental_only_procedure) {
+    return "Dental only";
+  }
+  if (meta.opd_only_procedure) {
+    return "OPD only";
+  }
+  if (meta.ipd_only_procedure) {
+    return "IPD only";
+  }
+  if (meta.physio_only_procedure) {
+    return "Physio only";
+  }
+  return "—";
+}
+
+export function formatPricelistComputePrice(value: string | undefined): string {
+  switch (value) {
+    case "fixed":
+      return "Fixed price";
+    case "percentage":
+      return "Percentage";
+    default:
+      return value ?? "—";
+  }
 }

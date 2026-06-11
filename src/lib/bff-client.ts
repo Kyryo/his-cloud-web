@@ -1,3 +1,7 @@
+import {
+  handleSessionExpired,
+  isAuthBffPath,
+} from "@/lib/handle-session-expired";
 import type { V1ApiError } from "@/types/api.types";
 
 const BFF_TIMEOUT_MS = 30_000;
@@ -45,6 +49,10 @@ export async function bffRequest<T>(
       payload = await response.json();
     } catch {
       if (!response.ok) {
+        if (response.status === 401 && !isAuthBffPath(path)) {
+          await handleSessionExpired();
+        }
+
         throw new BffError(
           response.status >= 500
             ? "Something went wrong. Try again later."
@@ -57,6 +65,11 @@ export async function bffRequest<T>(
 
     if (!response.ok) {
       const record = payload as { message?: string; errors?: V1ApiError[] };
+
+      if (response.status === 401 && !isAuthBffPath(path)) {
+        await handleSessionExpired();
+      }
+
       throw new BffError(
         record.message ?? "Request failed.",
         response.status,
