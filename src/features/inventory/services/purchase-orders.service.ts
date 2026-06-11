@@ -18,7 +18,7 @@ export type PurchaseOrderPayload = {
   invoice_date?: string | null;
   receiving_location: number;
   notes?: string | null;
-  lines: PurchaseOrderLine[];
+  lines?: PurchaseOrderLine[];
   is_active?: boolean;
 };
 

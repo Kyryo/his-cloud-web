@@ -18,6 +18,7 @@ type InventoryListTableProps<T> = {
   columns: InventoryListTableColumn<T>[];
   getRowKey: (item: T) => string;
   onRowClick?: (item: T) => void;
+  footer?: ReactNode;
   className?: string;
 };
 
@@ -26,6 +27,7 @@ export function InventoryListTable<T>({
   columns,
   getRowKey,
   onRowClick,
+  footer,
   className,
 }: InventoryListTableProps<T>) {
   return (
@@ -75,6 +77,9 @@ export function InventoryListTable<T>({
           </tbody>
         </table>
       </div>
+      {footer ? (
+        <div className="border-t border-brand-border px-4 py-3">{footer}</div>
+      ) : null}
     </div>
   );
 }

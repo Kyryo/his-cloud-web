@@ -69,7 +69,9 @@ export function PurchaseOrdersListPage() {
       <CreatePurchaseOrderDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
-        onCreated={(order) => router.push(ROUTES.inventoryPurchaseOrderDetail(order.uuid))}
+        onCreated={(order) =>
+          router.push(`${ROUTES.inventoryPurchaseOrderDetail(order.uuid)}?add-lines=1`)
+        }
       />
 
       <InventoryListPageHeader

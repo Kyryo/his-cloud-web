@@ -4,6 +4,7 @@ import { PanelRight } from "lucide-react";
 import { useState } from "react";
 
 import { FabButton } from "@/components/ui/fab-button";
+import { AddPurchaseOrderLineItemButton } from "@/features/inventory/components/detail/AddPurchaseOrderLineItemButton";
 import {
   DetailPageMainAsideGrid,
   DetailPageMainSection,
@@ -28,6 +29,8 @@ import { cn } from "@/lib/utils";
 
 type PurchaseOrderDetailTabsProps = {
   order: PurchaseOrder;
+  canEditLines?: boolean;
+  onManageLines?: () => void;
 };
 
 type DetailTabId = "lines" | "summary";
@@ -94,7 +97,11 @@ function PurchaseOrderSummaryContent({ order }: { order: PurchaseOrder }) {
   );
 }
 
-export function PurchaseOrderDetailTabs({ order }: PurchaseOrderDetailTabsProps) {
+export function PurchaseOrderDetailTabs({
+  order,
+  canEditLines = false,
+  onManageLines,
+}: PurchaseOrderDetailTabsProps) {
   const [activeTab, setActiveTab] = useState<DetailTabId>("lines");
   const [showSummaryPanel, setShowSummaryPanel] = useState(false);
 
@@ -150,10 +157,17 @@ export function PurchaseOrderDetailTabs({ order }: PurchaseOrderDetailTabsProps)
           {activeTab === "lines" ? (
             order.lines.length === 0 ? (
               <div className="rounded-xl border border-dashed border-brand-border bg-white px-6 py-14 text-center">
-                <p className="text-sm font-medium text-brand-navy">No line items</p>
+                <p className="text-sm font-medium text-brand-navy">No line items yet</p>
                 <p className="mt-2 text-sm text-brand-muted">
-                  Line items will appear here once added to this order.
+                  Add products, quantities, and unit costs to this purchase order.
                 </p>
+                {canEditLines && onManageLines ? (
+                  <AddPurchaseOrderLineItemButton
+                    className="mt-6"
+                    onClick={onManageLines}
+                    data-testid="add-purchase-order-line-item-button"
+                  />
+                ) : null}
               </div>
             ) : (
               <InventoryListTable
@@ -164,6 +178,14 @@ export function PurchaseOrderDetailTabs({ order }: PurchaseOrderDetailTabsProps)
                     line.id ??
                       `${line.odoo_product_id}-${line.quantity}-${line.unit_cost}`,
                   )
+                }
+                footer={
+                  canEditLines && onManageLines ? (
+                    <AddPurchaseOrderLineItemButton
+                      onClick={onManageLines}
+                      data-testid="add-purchase-order-line-item-button"
+                    />
+                  ) : undefined
                 }
               />
             )

@@ -1,6 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+
+import { ROUTES } from "@/constants/routes";
 
 import {
   PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS,
@@ -8,11 +11,9 @@ import {
 } from "@/components/page-loader";
 import { DetailPageLayout } from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
-import {
-  InventoryDocumentActions,
-  type InventoryDocumentAction,
-} from "@/features/inventory/components/InventoryDocumentActions";
 import { InventoryDetailNotFound } from "@/features/inventory/components/detail/InventoryDetailNotFound";
+import { EditPurchaseOrderLinesDialog } from "@/features/inventory/components/EditPurchaseOrderLinesDialog";
+import { PurchaseOrderDocumentActions } from "@/features/inventory/components/PurchaseOrderDocumentActions";
 import { PurchaseOrderDetailHeader } from "@/features/inventory/components/detail/PurchaseOrderDetailHeader";
 import { PurchaseOrderDetailTabs } from "@/features/inventory/components/detail/PurchaseOrderDetailTabs";
 import {
@@ -26,35 +27,14 @@ type PurchaseOrderDetailPageProps = {
   orderUuid: string;
 };
 
-function getPurchaseOrderActions(
-  order: PurchaseOrder,
-  onAction: (action: "submit" | "confirm" | "cancel") => Promise<void>,
-): InventoryDocumentAction[] {
-  const actions: InventoryDocumentAction[] = [];
-
-  if (order.status === "DRAFT") {
-    actions.push({ key: "submit", label: "Submit", onClick: () => onAction("submit") });
-  }
-  if (order.status === "SUBMITTED") {
-    actions.push({ key: "confirm", label: "Confirm", onClick: () => onAction("confirm") });
-  }
-  if (order.status !== "CANCELLED" && order.status !== "CONFIRMED") {
-    actions.push({
-      key: "cancel",
-      label: "Cancel",
-      variant: "destructive",
-      onClick: () => onAction("cancel"),
-    });
-  }
-
-  return actions;
-}
-
 export function PurchaseOrderDetailPage({ orderUuid }: PurchaseOrderDetailPageProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [order, setOrder] = useState<PurchaseOrder | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [editLinesOpen, setEditLinesOpen] = useState(false);
 
   useAppBreadcrumb(order?.reference_number ?? null);
 
@@ -74,6 +54,20 @@ export function PurchaseOrderDetailPage({ orderUuid }: PurchaseOrderDetailPagePr
   useEffect(() => {
     void loadOrder();
   }, [loadOrder]);
+
+  useEffect(() => {
+    if (
+      !order ||
+      order.lines.length > 0 ||
+      order.status !== "DRAFT" ||
+      searchParams.get("add-lines") !== "1"
+    ) {
+      return;
+    }
+
+    setEditLinesOpen(true);
+    router.replace(ROUTES.inventoryPurchaseOrderDetail(order.uuid), { scroll: false });
+  }, [order, router, searchParams]);
 
   const handleAction = useCallback(
     async (action: "submit" | "confirm" | "cancel") => {
@@ -101,11 +95,6 @@ export function PurchaseOrderDetailPage({ orderUuid }: PurchaseOrderDetailPagePr
     [orderUuid, toast],
   );
 
-  const actions = useMemo(
-    () => (order ? getPurchaseOrderActions(order, handleAction) : []),
-    [order, handleAction],
-  );
-
   if (isLoading) {
     return (
       <PageLoader
@@ -124,13 +113,28 @@ export function PurchaseOrderDetailPage({ orderUuid }: PurchaseOrderDetailPagePr
     );
   }
 
+  const canEditLines = order.status === "DRAFT";
+
   return (
     <DetailPageLayout data-testid="inventory-purchase-order-detail-page">
+      <EditPurchaseOrderLinesDialog
+        order={order}
+        open={editLinesOpen}
+        onOpenChange={setEditLinesOpen}
+        onUpdated={setOrder}
+      />
+
       <PurchaseOrderDetailHeader
         order={order}
-        actions={<InventoryDocumentActions actions={actions} />}
+        actions={
+          <PurchaseOrderDocumentActions order={order} onAction={handleAction} />
+        }
       />
-      <PurchaseOrderDetailTabs order={order} />
+      <PurchaseOrderDetailTabs
+        order={order}
+        canEditLines={canEditLines}
+        onManageLines={() => setEditLinesOpen(true)}
+      />
     </DetailPageLayout>
   );
 }

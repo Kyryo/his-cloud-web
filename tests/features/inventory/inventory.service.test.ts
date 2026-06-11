@@ -10,8 +10,10 @@ import {
   updateInventoryProduct,
 } from "@/features/inventory/services/inventory.service";
 import {
+  createPurchaseOrder,
   fetchPurchaseOrders,
   runPurchaseOrderAction,
+  updatePurchaseOrder,
 } from "@/features/inventory/services/purchase-orders.service";
 import { bffRequest } from "@/lib/bff-client";
 
@@ -156,6 +158,46 @@ describe("purchase-orders.service", () => {
     expect(bffRequest).toHaveBeenCalledWith(
       BFF_INVENTORY_ROUTES.purchaseOrders.action("po-1", "submit"),
       { method: "POST" },
+    );
+  });
+
+  it("creates purchase orders without line items", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({ uuid: "po-2", lines: [] });
+
+    await createPurchaseOrder({
+      vendor_name: "Acme Supplies",
+      receiving_location: 4,
+      lines: [],
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_INVENTORY_ROUTES.purchaseOrders.list,
+      {
+        method: "POST",
+        body: {
+          vendor_name: "Acme Supplies",
+          receiving_location: 4,
+          lines: [],
+        },
+      },
+    );
+  });
+
+  it("updates purchase order line items via PATCH", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({ uuid: "po-2", lines: [{ id: 1 }] });
+
+    await updatePurchaseOrder("po-2", {
+      lines: [{ odoo_product_id: 9, quantity: "1", unit_cost: "10" }],
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_INVENTORY_ROUTES.purchaseOrders.detail("po-2"),
+      {
+        method: "PATCH",
+        body: {
+          lines: [{ odoo_product_id: 9, quantity: "1", unit_cost: "10" }],
+        },
+      },
     );
   });
 });
