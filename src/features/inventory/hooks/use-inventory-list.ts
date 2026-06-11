@@ -7,6 +7,11 @@ import type { PaginatedListResponse } from "@/types/api.types";
 
 const DEFAULT_PAGE_SIZE = 20;
 
+const EMPTY_EXTRA_FILTERS: Omit<
+  InventoryListFilters,
+  "page" | "pageSize" | "search"
+> = {};
+
 type UseInventoryListOptions<T> = {
   fetchFn: (filters: InventoryListFilters) => Promise<PaginatedListResponse<T>>;
   pageSize?: number;
@@ -16,8 +21,9 @@ type UseInventoryListOptions<T> = {
 export function useInventoryList<T>({
   fetchFn,
   pageSize = DEFAULT_PAGE_SIZE,
-  extraFilters = {},
+  extraFilters,
 }: UseInventoryListOptions<T>) {
+  const resolvedExtraFilters = extraFilters ?? EMPTY_EXTRA_FILTERS;
   const [items, setItems] = useState<T[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
@@ -33,9 +39,9 @@ export function useInventoryList<T>({
       page,
       pageSize,
       search: activeSearch || undefined,
-      ...extraFilters,
+      ...resolvedExtraFilters,
     }),
-    [activeSearch, extraFilters, page, pageSize],
+    [activeSearch, page, pageSize, resolvedExtraFilters],
   );
 
   const hasNext = page * pageSize < totalCount;
