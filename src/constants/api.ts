@@ -69,6 +69,61 @@ export const BFF_SALES_ORDERS_ROUTES = {
   detail: (orderId: number | string) => `/api/sales-orders/${orderId}`,
 } as const;
 
+/** Browser-facing BFF inventory routes (same origin). */
+export const BFF_INVENTORY_ROUTES = {
+  stock: {
+    list: "/api/inventory/stock",
+    detail: (uuid: string) => `/api/inventory/stock/${uuid}`,
+  },
+  movements: {
+    list: "/api/inventory/movements",
+    detail: (uuid: string) => `/api/inventory/movements/${uuid}`,
+  },
+  products: {
+    search: "/api/inventory/products/search",
+    detail: (productId: number | string) => `/api/inventory/products/${productId}`,
+  },
+  batches: {
+    list: "/api/inventory/batches",
+    detail: (uuid: string) => `/api/inventory/batches/${uuid}`,
+  },
+  purchaseOrders: {
+    list: "/api/inventory/purchase-orders",
+    detail: (uuid: string) => `/api/inventory/purchase-orders/${uuid}`,
+    action: (uuid: string, action: string) =>
+      `/api/inventory/purchase-orders/${uuid}/${action}`,
+  },
+  internalOrders: {
+    list: "/api/inventory/internal-orders",
+    detail: (uuid: string) => `/api/inventory/internal-orders/${uuid}`,
+    action: (uuid: string, action: string) =>
+      `/api/inventory/internal-orders/${uuid}/${action}`,
+  },
+  stockAdjustments: {
+    list: "/api/inventory/stock-adjustments",
+    detail: (uuid: string) => `/api/inventory/stock-adjustments/${uuid}`,
+    action: (uuid: string, action: string) =>
+      `/api/inventory/stock-adjustments/${uuid}/${action}`,
+  },
+  clinicConfigurations: {
+    list: "/api/inventory/clinic-configurations",
+    detail: (uuid: string) => `/api/inventory/clinic-configurations/${uuid}`,
+  },
+  workflows: {
+    list: "/api/inventory/workflows",
+    detail: (uuid: string) => `/api/inventory/workflows/${uuid}`,
+  },
+  workflowSteps: {
+    list: "/api/inventory/workflow-steps",
+    detail: (uuid: string) => `/api/inventory/workflow-steps/${uuid}`,
+  },
+  approvalRecords: {
+    list: "/api/inventory/approval-records",
+    detail: (uuid: string) => `/api/inventory/approval-records/${uuid}`,
+  },
+  locations: "/api/inventory/locations",
+} as const;
+
 /** Browser-facing BFF settings routes (same origin). */
 export const BFF_SETTINGS_ROUTES = {
   updateProfile: "/api/auth/me",

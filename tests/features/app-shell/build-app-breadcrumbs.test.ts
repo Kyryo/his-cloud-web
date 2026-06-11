@@ -36,6 +36,36 @@ describe("buildAppBreadcrumbs", () => {
       { label: "Order details" },
     ]);
   });
+
+  it("returns inventory and stock for the stock list", () => {
+    expect(buildAppBreadcrumbs(ROUTES.inventoryStock)).toEqual([
+      { label: "Inventory" },
+      { label: "Stock" },
+    ]);
+  });
+
+  it("returns inventory, stock link, and detail label for a stock detail page", () => {
+    expect(buildAppBreadcrumbs("/inventory/stock/abc-123")).toEqual([
+      { label: "Inventory" },
+      { label: "Stock", href: ROUTES.inventoryStock },
+      { label: "Details" },
+    ]);
+  });
+
+  it("returns settings modules crumbs", () => {
+    expect(buildAppBreadcrumbs(ROUTES.settingsModules)).toEqual([
+      { label: "Settings" },
+      { label: "Modules" },
+    ]);
+  });
+
+  it("returns settings modules inventory crumbs", () => {
+    expect(buildAppBreadcrumbs(ROUTES.settingsModuleInventory)).toEqual([
+      { label: "Settings" },
+      { label: "Modules", href: ROUTES.settingsModules },
+      { label: "Inventory" },
+    ]);
+  });
 });
 
 describe("applyPageLabelToCrumbs", () => {

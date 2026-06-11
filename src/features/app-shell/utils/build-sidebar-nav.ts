@@ -91,6 +91,13 @@ export function buildSidebarNavItems(
             url: ROUTES.settingsUserManagement,
             isActive: isNavItemActive(pathname, ROUTES.settingsUserManagement),
           },
+          {
+            title: "Modules",
+            url: ROUTES.settingsModules,
+            isActive:
+              isNavItemActive(pathname, ROUTES.settingsModules) ||
+              pathname.startsWith(`${ROUTES.settingsModules}/`),
+          },
         ]
       : []),
   ];

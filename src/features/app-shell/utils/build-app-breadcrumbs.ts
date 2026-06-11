@@ -57,6 +57,18 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
       return [{ label: "Settings" }, { label: "User Management" }];
     }
 
+    if (pathname === ROUTES.settingsModules) {
+      return [{ label: "Settings" }, { label: "Modules" }];
+    }
+
+    if (pathname === ROUTES.settingsModuleInventory) {
+      return [
+        { label: "Settings" },
+        { label: "Modules", href: ROUTES.settingsModules },
+        { label: "Inventory" },
+      ];
+    }
+
     return [{ label: "Settings" }];
   }
 
@@ -89,6 +101,33 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
       { label: getModuleLabel("Billing") },
       { label: "Sales Orders", href: ROUTES.salesOrders },
       { label: "Order details" },
+    ];
+  }
+
+  if (navItem?.requiredGroup === "Inventory") {
+    const inventoryListRoutes: Record<string, string> = {
+      [ROUTES.inventoryStock]: "Stock",
+      [ROUTES.inventoryProducts]: "Products",
+      [ROUTES.inventoryPurchaseOrders]: "Purchase orders",
+      [ROUTES.inventoryInternalOrders]: "Internal orders",
+      [ROUTES.inventoryStockAdjustments]: "Stock adjustments",
+      [ROUTES.inventoryMovements]: "Movements",
+      [ROUTES.inventoryBatches]: "Batches",
+    };
+
+    const listHref = Object.keys(inventoryListRoutes).find((href) =>
+      isNavItemActive(pathname, href),
+    );
+    const listLabel = listHref ? inventoryListRoutes[listHref] : navItem.name;
+
+    if (pathname === listHref) {
+      return [{ label: getModuleLabel("Inventory") }, { label: listLabel }];
+    }
+
+    return [
+      { label: getModuleLabel("Inventory") },
+      { label: listLabel, href: listHref },
+      { label: "Details" },
     ];
   }
 
