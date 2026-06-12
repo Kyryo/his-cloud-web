@@ -228,6 +228,7 @@ export function SignUpForm() {
 
         {currentStep === 1 && (
           <form
+            method="post"
             className="mt-6 space-y-4"
             data-testid="signup-credentials-form"
             onSubmit={(event) => {
@@ -301,6 +302,7 @@ export function SignUpForm() {
 
         {currentStep === 2 && (
           <form
+            method="post"
             className="mt-6 space-y-4"
             data-testid="signup-profile-form"
             onSubmit={(event) => {

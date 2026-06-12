@@ -127,6 +127,7 @@ export function LoginForm() {
     await otpForm.handleSubmit(handleOtpSubmit)();
   }
 
+  const submitCredentials = credentialsForm.handleSubmit(handleCredentialsSubmit);
   const isSubmitting = otpForm.formState.isSubmitting;
 
   if (step === "otp") {
@@ -177,9 +178,13 @@ export function LoginForm() {
 
         <div className="space-y-8">
           <form
+            method="post"
             className="space-y-6"
             data-testid="login-credentials-form"
-            onSubmit={credentialsForm.handleSubmit(handleCredentialsSubmit)}
+            onSubmit={(event) => {
+              event.preventDefault();
+              void submitCredentials(event);
+            }}
           >
               <div className="space-y-4">
                 <div>
