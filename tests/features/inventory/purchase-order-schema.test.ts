@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  countPurchaseOrderStepErrors,
   createPurchaseOrderDefaultValues,
+  purchaseOrderDetailsStepFields,
+  purchaseOrderReferencesStepFields,
+  resolvePurchaseOrderErrorStep,
   toCreatePurchaseOrderPayload,
 } from "@/features/inventory/schemas/purchase-order.schema";
 
@@ -17,6 +21,40 @@ describe("createPurchaseOrderDefaultValues", () => {
       invoice_date: "",
       notes: "",
     });
+  });
+});
+
+describe("resolvePurchaseOrderErrorStep", () => {
+  it("lands on details when details fields have errors", () => {
+    expect(
+      resolvePurchaseOrderErrorStep({
+        vendor_name: { message: "Required" },
+        lpo_number: { message: "Invalid" },
+      }),
+    ).toBe("details");
+  });
+
+  it("lands on references when only reference fields have errors", () => {
+    expect(
+      resolvePurchaseOrderErrorStep({
+        lpo_number: { message: "Invalid" },
+      }),
+    ).toBe("references");
+  });
+
+  it("counts step errors separately", () => {
+    expect(
+      countPurchaseOrderStepErrors(
+        { vendor_name: { message: "Required" } },
+        purchaseOrderDetailsStepFields,
+      ),
+    ).toBe(1);
+    expect(
+      countPurchaseOrderStepErrors(
+        { notes: { message: "Too long" } },
+        purchaseOrderReferencesStepFields,
+      ),
+    ).toBe(1);
   });
 });
 

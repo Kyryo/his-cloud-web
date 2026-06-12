@@ -1,9 +1,8 @@
 "use client";
 
 import { PanelRight } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { FabButton } from "@/components/ui/fab-button";
 import {
   DetailPageMainAsideGrid,
@@ -12,18 +11,13 @@ import {
   DetailPageTabsNavSection,
   DetailPageTabsSection,
 } from "@/features/app-shell/components/page-layout";
-import { AnimatedPurchaseOrderTotal } from "@/features/inventory/components/detail/AnimatedPurchaseOrderTotal";
 import { PurchaseOrderDetailActivityTab } from "@/features/inventory/components/detail/PurchaseOrderDetailActivityTab";
 import { PurchaseOrderDetailNotesTab } from "@/features/inventory/components/detail/PurchaseOrderDetailNotesTab";
 import { PurchaseOrderLinesEditor } from "@/features/inventory/components/detail/PurchaseOrderLinesEditor";
-import { InventorySummaryPanel } from "@/features/inventory/components/InventorySummaryPanel";
+import { PurchaseOrderSummarySidebar } from "@/features/inventory/components/detail/PurchaseOrderSummarySidebar";
 import type { PurchaseOrder } from "@/features/inventory/types/inventory.types";
 import type { PurchaseOrderLineDraft } from "@/features/inventory/types/purchase-order-line-draft";
-import {
-  formatDisplayDate,
-  formatDisplayDateTime,
-  formatPurchaseStatusLabel,
-} from "@/features/inventory/utils/format-inventory";
+import { buildPurchaseOrderActivityItems } from "@/features/inventory/utils/purchase-order-activity";
 import { cn } from "@/lib/utils";
 
 type PurchaseOrderDetailTabsProps = {
@@ -39,6 +33,7 @@ type PurchaseOrderDetailTabsProps = {
     totalValue: number;
     isDirty: boolean;
     draftLines: PurchaseOrderLineDraft[];
+    validationIssueCount: number;
   }) => void;
 };
 
@@ -60,6 +55,13 @@ export function PurchaseOrderDetailTabs({
   const [totalValue, setTotalValue] = useState(
     Number.parseFloat(String(order.total_value ?? 0)) || 0,
   );
+  const [draftLines, setDraftLines] = useState<PurchaseOrderLineDraft[] | null>(null);
+  const [validationIssueCount, setValidationIssueCount] = useState(0);
+
+  const activityCount = useMemo(
+    () => buildPurchaseOrderActivityItems(order).length,
+    [order],
+  );
 
   const handleLinesStateChange = useCallback(
     (state: {
@@ -67,56 +69,23 @@ export function PurchaseOrderDetailTabs({
       totalValue: number;
       isDirty: boolean;
       draftLines: PurchaseOrderLineDraft[];
+      validationIssueCount: number;
     }) => {
       setLineCount(state.lineCount);
       setTotalValue(state.totalValue);
+      setDraftLines(state.draftLines);
+      setValidationIssueCount(state.validationIssueCount);
       onLinesStateChange?.(state);
     },
     [onLinesStateChange],
   );
 
-  const sidebarUpdateAction =
-    canEditLines && onUpdateClick ? (
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="h-7 px-2 text-brand-primary hover:text-brand-navy"
-        onClick={onUpdateClick}
-        data-testid="purchase-order-sidebar-update-button"
-      >
-        Update
-      </Button>
-    ) : null;
-
   const summaryPanel = (
     <div className={cn(!showSummaryPanel && "hidden xl:block")}>
-      <InventorySummaryPanel
-        highlight={
-          <dl className="space-y-2.5">
-            <div className="flex items-center justify-between gap-3 text-sm">
-              <dt className="text-brand-muted">Total value</dt>
-              <dd className="font-semibold text-brand-navy">
-                <AnimatedPurchaseOrderTotal value={totalValue} currency={currency} />
-              </dd>
-            </div>
-          </dl>
-        }
-        sections={[
-          {
-            title: "Order summary",
-            action: sidebarUpdateAction,
-            fields: [
-              { label: "Reference", value: order.reference_number },
-              { label: "Vendor", value: order.vendor_name },
-              { label: "Status", value: formatPurchaseStatusLabel(order.status) },
-              { label: "Delivery date", value: formatDisplayDate(order.delivery_date) },
-              { label: "LPO number", value: order.lpo_number ?? "—" },
-              { label: "GRN number", value: order.grn_number ?? "—" },
-              { label: "Created", value: formatDisplayDateTime(order.created_at) },
-            ],
-          },
-        ]}
+      <PurchaseOrderSummarySidebar
+        order={order}
+        draftLines={draftLines ?? undefined}
+        onEditClick={canEditLines ? onUpdateClick : undefined}
       />
     </div>
   );
@@ -128,12 +97,18 @@ export function PurchaseOrderDetailTabs({
           isActive={activeTab === "lines"}
           onClick={() => setActiveTab("lines")}
         >
-          <span className="inline-flex items-center gap-2">
+          <span className="relative inline-flex items-center gap-2">
             Line items
             {lineCount > 0 ? (
               <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-brand-muted">
                 {lineCount}
               </span>
+            ) : null}
+            {canEditLines && validationIssueCount > 0 ? (
+              <span
+                className="absolute -right-1 -top-1 size-2 rounded-full bg-red-500"
+                aria-label="Line item validation warnings"
+              />
             ) : null}
           </span>
         </DetailPageTabNavItem>
@@ -147,7 +122,14 @@ export function PurchaseOrderDetailTabs({
           isActive={activeTab === "activity"}
           onClick={() => setActiveTab("activity")}
         >
-          Activity
+          <span className="inline-flex items-center gap-2">
+            Activity
+            {activityCount > 0 ? (
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-brand-muted">
+                {activityCount}
+              </span>
+            ) : null}
+          </span>
         </DetailPageTabNavItem>
       </DetailPageTabsNavSection>
 

@@ -24,7 +24,7 @@ function getPurchaseStatusVariant(status: PurchaseStatus): BadgeVariant {
     case "CONFIRMED":
       return "success";
     case "SUBMITTED":
-      return "warning";
+      return "default";
     case "CANCELLED":
       return "destructive";
     case "DRAFT":

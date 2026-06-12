@@ -156,7 +156,9 @@ export type InventoryBatch = {
 export type PurchaseOrderLine = {
   id?: number;
   odoo_product_id: number;
+  product_name?: string | null;
   batch?: number | null;
+  batch_number?: string | null;
   quantity: string | number;
   unit_cost: string | number;
   total_cost?: string | number;
@@ -178,6 +180,7 @@ export type PurchaseOrder = {
   invoice_date: string | null;
   receiving_location: number;
   status: PurchaseStatus;
+  created_by: number | null;
   received_by: number | null;
   received_at: string | null;
   confirmed_by: number | null;

@@ -20,6 +20,7 @@ import { useTenantCurrency } from "@/features/inventory/hooks/use-tenant-currenc
 import {
   fetchPurchaseOrder,
   runPurchaseOrderAction,
+  type PurchaseOrderAction,
 } from "@/features/inventory/services/purchase-orders.service";
 import type { PurchaseOrder } from "@/features/inventory/types/inventory.types";
 import type { PurchaseOrderLineDraft } from "@/features/inventory/types/purchase-order-line-draft";
@@ -35,6 +36,7 @@ type LinesEditorState = {
   totalValue: number;
   isDirty: boolean;
   draftLines: PurchaseOrderLineDraft[];
+  validationIssueCount: number;
 };
 
 export function PurchaseOrderDetailPage({ orderUuid }: PurchaseOrderDetailPageProps) {
@@ -77,18 +79,30 @@ export function PurchaseOrderDetailPage({ orderUuid }: PurchaseOrderDetailPagePr
   }, [autoAddLine, order, router]);
 
   const handleAction = useCallback(
-    async (action: "submit" | "confirm" | "cancel") => {
+    async (action: PurchaseOrderAction) => {
       try {
         const updated = await runPurchaseOrderAction(orderUuid, action);
         setOrder(updated);
+
+        const titleByAction: Record<PurchaseOrderAction, string> = {
+          submit: "Purchase order submitted",
+          approve: "Purchase order approved",
+          confirm: "Purchase order confirmed",
+          reject: "Purchase order rejected",
+          cancel: "Purchase order cancelled",
+        };
+
+        const descriptionByAction: Record<PurchaseOrderAction, string> = {
+          submit: "Awaiting approval from another team member.",
+          approve: "Stock has been posted to the receiving location.",
+          confirm: "Stock has been posted to the receiving location.",
+          reject: "The order has been returned to the owner as cancelled.",
+          cancel: "This order can no longer be edited or submitted.",
+        };
+
         toast({
-          title:
-            action === "submit"
-              ? "Purchase order submitted"
-              : action === "confirm"
-                ? "Purchase order confirmed"
-                : "Purchase order cancelled",
-          description: "Sigma will post stock when this order is confirmed.",
+          title: titleByAction[action],
+          description: descriptionByAction[action],
           variant: "success",
         });
       } catch (err) {
@@ -119,6 +133,8 @@ export function PurchaseOrderDetailPage({ orderUuid }: PurchaseOrderDetailPagePr
         productName: null,
         quantity: String(line.quantity),
         unit_cost: String(line.unit_cost),
+        batch: line.batch ?? null,
+        expiry_date: line.expiry_date ?? null,
       }));
 
     return validatePurchaseOrderLinesForSubmit(linesToValidate);

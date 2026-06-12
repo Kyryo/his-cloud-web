@@ -7,6 +7,13 @@ export type PurchaseOrderLineDraft = {
   productName: string | null;
   quantity: string;
   unit_cost: string;
+  batch?: number | null;
+  batchUuid?: string | null;
+  batchNumber?: string | null;
+  expiry_date?: string | null;
+  manufactureDate?: string | null;
+  supplier?: string | null;
+  notes?: string | null;
   isNew?: boolean;
 };
 
@@ -17,6 +24,10 @@ export function createEmptyPurchaseOrderLineDraft(): PurchaseOrderLineDraft {
     productName: null,
     quantity: "1",
     unit_cost: "0",
+    batch: null,
+    batchUuid: null,
+    batchNumber: null,
+    expiry_date: null,
     isNew: true,
   };
 }
@@ -26,10 +37,69 @@ export function purchaseOrderLineToDraft(line: PurchaseOrderLine): PurchaseOrder
     key: crypto.randomUUID(),
     id: line.id,
     odoo_product_id: line.odoo_product_id,
-    productName: null,
+    productName: line.product_name?.trim() || null,
     quantity: String(line.quantity),
     unit_cost: String(line.unit_cost),
+    batch: line.batch ?? null,
+    batchUuid: null,
+    batchNumber: line.batch_number?.trim() || null,
+    expiry_date: line.expiry_date ?? null,
+    notes: line.notes ?? null,
   };
+}
+
+export function linesMissingProductName(lines: PurchaseOrderLineDraft[]): boolean {
+  return lines.some((line) => line.odoo_product_id && !line.productName);
+}
+
+export function lineMissingBatchOrExpiry(line: {
+  odoo_product_id: number | null;
+  batch?: number | null;
+  expiry_date?: string | null;
+}): boolean {
+  if (!line.odoo_product_id) {
+    return false;
+  }
+
+  return !line.batch || !line.expiry_date?.trim();
+}
+
+export function countLinesMissingBatchOrExpiry(
+  lines: Array<{
+    odoo_product_id: number | null;
+    batch?: number | null;
+    expiry_date?: string | null;
+  }>,
+): number {
+  return lines.filter((line) => lineMissingBatchOrExpiry(line)).length;
+}
+
+export function getLineValidationIssues(line: PurchaseOrderLineDraft): string[] {
+  if (!line.odoo_product_id) {
+    return [];
+  }
+
+  const issues: string[] = [];
+  if (lineMissingBatchOrExpiry(line)) {
+    issues.push("batch");
+  }
+  if (parseDraftNumber(line.quantity) <= 0) {
+    issues.push("quantity");
+  }
+  if (parseDraftNumber(line.unit_cost) <= 0) {
+    issues.push("unit_cost");
+  }
+  return issues;
+}
+
+export function countLinesWithValidationIssues(lines: PurchaseOrderLineDraft[]): number {
+  return lines.filter((line) => getLineValidationIssues(line).length > 0).length;
+}
+
+export function calculateDraftsTotalQuantity(lines: PurchaseOrderLineDraft[]): number {
+  return lines
+    .filter((line) => line.odoo_product_id)
+    .reduce((sum, line) => sum + parseDraftNumber(line.quantity), 0);
 }
 
 export function parseDraftNumber(value: string): number {
@@ -61,6 +131,9 @@ export function draftsToPurchaseOrderLines(
       odoo_product_id: line.odoo_product_id!,
       quantity: line.quantity,
       unit_cost: line.unit_cost,
+      batch: line.batch ?? null,
+      expiry_date: line.expiry_date?.trim() || null,
+      notes: line.notes?.trim() || null,
     }));
 }
 
@@ -69,8 +142,16 @@ export function serializeDraftLines(lines: PurchaseOrderLineDraft[]): string {
     lines.map((line) => ({
       id: line.id ?? null,
       odoo_product_id: line.odoo_product_id,
+      productName: line.productName,
       quantity: line.quantity,
       unit_cost: line.unit_cost,
+      batch: line.batch ?? null,
+      batchUuid: line.batchUuid ?? null,
+      batchNumber: line.batchNumber ?? null,
+      expiry_date: line.expiry_date ?? null,
+      manufactureDate: line.manufactureDate ?? null,
+      supplier: line.supplier ?? null,
+      notes: line.notes ?? null,
     })),
   );
 }

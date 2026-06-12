@@ -15,6 +15,47 @@ export const updatePurchaseOrderSchema = z.object({
 
 export type UpdatePurchaseOrderFormValues = z.infer<typeof updatePurchaseOrderSchema>;
 
+export const purchaseOrderDetailsStepFields = [
+  "vendor_name",
+  "receiving_location",
+  "delivery_date",
+] as const satisfies ReadonlyArray<keyof UpdatePurchaseOrderFormValues>;
+
+export const purchaseOrderReferencesStepFields = [
+  "lpo_number",
+  "grn_number",
+  "invoice_number",
+  "invoice_date",
+  "notes",
+] as const satisfies ReadonlyArray<keyof UpdatePurchaseOrderFormValues>;
+
+export const purchaseOrderDetailsStepSchema = updatePurchaseOrderSchema.pick({
+  vendor_name: true,
+  receiving_location: true,
+  delivery_date: true,
+});
+
+export function countPurchaseOrderStepErrors(
+  errors: Partial<Record<keyof UpdatePurchaseOrderFormValues, unknown>>,
+  fields: ReadonlyArray<keyof UpdatePurchaseOrderFormValues>,
+): number {
+  return fields.filter((field) => Boolean(errors[field])).length;
+}
+
+export function resolvePurchaseOrderErrorStep(
+  errors: Partial<Record<keyof UpdatePurchaseOrderFormValues, unknown>>,
+): "details" | "references" {
+  if (countPurchaseOrderStepErrors(errors, purchaseOrderDetailsStepFields) > 0) {
+    return "details";
+  }
+
+  if (countPurchaseOrderStepErrors(errors, purchaseOrderReferencesStepFields) > 0) {
+    return "references";
+  }
+
+  return "details";
+}
+
 export function toUpdatePurchaseOrderFormValues(
   order: PurchaseOrder,
 ): UpdatePurchaseOrderFormValues {

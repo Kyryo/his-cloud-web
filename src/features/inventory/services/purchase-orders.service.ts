@@ -22,7 +22,12 @@ export type PurchaseOrderPayload = {
   is_active?: boolean;
 };
 
-export type PurchaseOrderAction = "submit" | "confirm" | "cancel";
+export type PurchaseOrderAction =
+  | "submit"
+  | "confirm"
+  | "approve"
+  | "reject"
+  | "cancel";
 
 export async function fetchPurchaseOrders(
   filters: InventoryListFilters = {},

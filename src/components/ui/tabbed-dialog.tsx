@@ -16,6 +16,7 @@ export type TabbedDialogTab = {
   id: string;
   label: string;
   disabled?: boolean;
+  errorCount?: number;
 };
 
 type TabbedDialogProps = {
@@ -93,7 +94,17 @@ export function TabbedDialog({
                     )}
                     data-testid={`tabbed-dialog-tab-${tab.id}`}
                   >
-                    {tab.label}
+                    <span className="inline-flex items-center gap-1.5">
+                      {tab.label}
+                      {tab.errorCount && tab.errorCount > 0 ? (
+                        <span
+                          className="inline-flex min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold leading-4 text-white"
+                          aria-label={`${tab.errorCount} validation ${tab.errorCount === 1 ? "error" : "errors"}`}
+                        >
+                          {tab.errorCount > 1 ? tab.errorCount : "●"}
+                        </span>
+                      ) : null}
+                    </span>
                   </button>
                 );
               })}

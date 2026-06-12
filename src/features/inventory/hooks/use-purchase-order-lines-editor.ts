@@ -8,6 +8,7 @@ import type { PurchaseOrder } from "@/features/inventory/types/inventory.types";
 import {
   createEmptyPurchaseOrderLineDraft,
   draftsToPurchaseOrderLines,
+  linesMissingProductName,
   purchaseOrderLineToDraft,
   serializeDraftLines,
   type PurchaseOrderLineDraft,
@@ -59,15 +60,7 @@ export function usePurchaseOrderLinesEditor({
     let cancelled = false;
 
     async function hydrateProductNames() {
-      const productIds = [
-        ...new Set(
-          draftLines
-            .map((line) => line.odoo_product_id)
-            .filter((id): id is number => id !== null),
-        ),
-      ];
-
-      if (productIds.length === 0) {
+      if (!linesMissingProductName(buildInitialDrafts(order.lines))) {
         return;
       }
 
@@ -112,7 +105,7 @@ export function usePurchaseOrderLinesEditor({
     return () => {
       cancelled = true;
     };
-  }, [order.uuid]);
+  }, [order.uuid, serverLinesSnapshot, order.lines]);
 
   useEffect(() => {
     if (!canEdit || !autoAddLine || hasAutoAdded || draftLines.length > 0) {
@@ -130,6 +123,13 @@ export function usePurchaseOrderLinesEditor({
     () => serializeDraftLines(draftLines) !== savedSnapshot,
     [draftLines, savedSnapshot],
   );
+
+  const isEditingLines = useMemo(
+    () => editingRowKey !== null || draftLines.some((line) => line.isNew),
+    [draftLines, editingRowKey],
+  );
+
+  const hasPendingChanges = isDirty || isEditingLines;
 
   const updateLine = useCallback(
     (key: string, patch: Partial<PurchaseOrderLineDraft>) => {
@@ -198,8 +198,16 @@ export function usePurchaseOrderLinesEditor({
     const restored = JSON.parse(savedSnapshot) as Array<{
       id: number | null;
       odoo_product_id: number | null;
+      productName?: string | null;
       quantity: string;
       unit_cost: string;
+      batch?: number | null;
+      batchUuid?: string | null;
+      batchNumber?: string | null;
+      expiry_date?: string | null;
+      manufactureDate?: string | null;
+      supplier?: string | null;
+      notes?: string | null;
     }>;
 
     setDraftLines(
@@ -207,26 +215,32 @@ export function usePurchaseOrderLinesEditor({
         key: crypto.randomUUID(),
         id: line.id ?? undefined,
         odoo_product_id: line.odoo_product_id,
-        productName: line.odoo_product_id
-          ? `Product #${line.odoo_product_id}`
-          : null,
+        productName:
+          line.productName ??
+          (line.odoo_product_id ? `Product #${line.odoo_product_id}` : null),
         quantity: line.quantity,
         unit_cost: line.unit_cost,
+        batch: line.batch ?? null,
+        batchUuid: line.batchUuid ?? null,
+        batchNumber: line.batchNumber ?? null,
+        expiry_date: line.expiry_date ?? null,
+        manufactureDate: line.manufactureDate ?? null,
+        supplier: line.supplier ?? null,
+        notes: line.notes ?? null,
       })),
     );
     setEditingRowKey(null);
     setActiveRowKey(null);
   }, [savedSnapshot]);
 
-  const saveChanges = useCallback(async () => {
-    const payloadLines = draftsToPurchaseOrderLines(draftLines);
-    if (payloadLines.length === 0) {
-      onError("Add at least one line item before saving.");
-      return;
-    }
+  const persistDraftLines = useCallback(
+    async (lines: PurchaseOrderLineDraft[]) => {
+      const payloadLines = draftsToPurchaseOrderLines(lines);
+      if (payloadLines.length === 0) {
+        onError("Add at least one line item before saving.");
+        return;
+      }
 
-    setIsSaving(true);
-    try {
       const updated = await updatePurchaseOrder(order.uuid, { lines: payloadLines });
       const nextDrafts = buildInitialDrafts(updated.lines);
       setDraftLines(nextDrafts);
@@ -234,12 +248,43 @@ export function usePurchaseOrderLinesEditor({
       setEditingRowKey(null);
       setActiveRowKey(null);
       onUpdated(updated);
+    },
+    [onError, onUpdated, order.uuid],
+  );
+
+  const saveChanges = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      await persistDraftLines(draftLines);
     } catch (error) {
       onError(error instanceof Error ? error.message : "Could not save line items.");
     } finally {
       setIsSaving(false);
     }
-  }, [draftLines, onError, onUpdated, order.uuid]);
+  }, [draftLines, onError, persistDraftLines]);
+
+  const saveLineBatchDetails = useCallback(
+    async (key: string, patch: Partial<PurchaseOrderLineDraft>) => {
+      const nextDrafts = draftLines.map((line) =>
+        line.key === key ? { ...line, ...patch } : line,
+      );
+
+      setIsSaving(true);
+      try {
+        await persistDraftLines(nextDrafts);
+      } catch (error) {
+        onError(
+          error instanceof Error
+            ? error.message
+            : "Batch was created but could not be linked to this line item.",
+        );
+        throw error;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [draftLines, onError, persistDraftLines],
+  );
 
   return {
     draftLines,
@@ -247,6 +292,8 @@ export function usePurchaseOrderLinesEditor({
     activeRowKey,
     draggingKey,
     isDirty,
+    hasPendingChanges,
+    isEditingLines,
     isSaving,
     canEdit,
     setEditingRowKey,
@@ -260,5 +307,6 @@ export function usePurchaseOrderLinesEditor({
     reorderLines,
     discardChanges,
     saveChanges,
+    saveLineBatchDetails,
   };
 }

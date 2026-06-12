@@ -2,7 +2,7 @@ import { INVENTORY_API_PATHS } from "@/constants/inventory-api";
 import { bffSuccess } from "@/lib/server/bff-response";
 import { handleInventoryAction } from "@/lib/server/inventory-bff-handlers";
 
-const VALID_ACTIONS = ["submit", "confirm", "cancel"] as const;
+const VALID_ACTIONS = ["submit", "confirm", "approve", "reject", "cancel"] as const;
 
 type RouteContext = {
   params: Promise<{ uuid: string; action: string }>;
