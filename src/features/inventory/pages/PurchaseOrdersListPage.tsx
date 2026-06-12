@@ -4,7 +4,6 @@ import { FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
-import { AddActionButton } from "@/components/ui/app-buttons";
 import { FabButton } from "@/components/ui/fab-button";
 import { ROUTES } from "@/constants/routes";
 import {
@@ -39,6 +38,7 @@ export function PurchaseOrdersListPage() {
     totalCount,
     page,
     pageSize,
+    search,
     isLoading,
     isRefreshing,
     error,
@@ -47,6 +47,9 @@ export function PurchaseOrdersListPage() {
     hasPrevious,
     hasNoRecords,
     isFilteredEmpty,
+    setSearch,
+    handleSearchSubmit,
+    handleClearSearch,
     reload,
     handlePageChange,
   } = useInventoryList<PurchaseOrder>({ fetchFn });
@@ -65,7 +68,7 @@ export function PurchaseOrdersListPage() {
   }
 
   return (
-    <ListPageLayout data-testid="inventory-purchase-orders-page">
+    <ListPageLayout className="space-y-4" data-testid="inventory-purchase-orders-page">
       <CreatePurchaseOrderDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
@@ -79,6 +82,12 @@ export function PurchaseOrdersListPage() {
         description="Manage inbound stock from vendors."
         addLabel="New purchase order"
         onAdd={handleCreate}
+        search={search}
+        isSearchDisabled={isRefreshing}
+        onSearchChange={setSearch}
+        onSearchSubmit={handleSearchSubmit}
+        onClearSearch={handleClearSearch}
+        searchPlaceholder="Search by reference, vendor, LPO, or GRN..."
         data-testid="add-purchase-order-button"
       />
 
@@ -89,18 +98,15 @@ export function PurchaseOrdersListPage() {
       />
 
       {!hasNoRecords ? (
-        <ListPageDataSectionsStack>
+        <ListPageDataSectionsStack className="space-y-2">
           <InventoryListToolbar
-            showSearch={false}
+            search={search}
+            searchPlaceholder="Search by reference, vendor, LPO, or GRN..."
             isLoading={isRefreshing}
-            onRefresh={() => void reload()}
-            primaryAction={
-              <AddActionButton
-                label="New purchase order"
-                className="hidden sm:inline-flex"
-                onClick={handleCreate}
-              />
-            }
+            onSearchChange={setSearch}
+            onSearchSubmit={handleSearchSubmit}
+            onClearSearch={handleClearSearch}
+            compact
           />
         </ListPageDataSectionsStack>
       ) : null}
@@ -122,9 +128,11 @@ export function PurchaseOrdersListPage() {
           />
         }
         isFilteredEmpty={isFilteredEmpty}
+        filteredEmptyTitle="No matching purchase orders"
       >
-        <PurchaseOrdersTable orders={items} onRowClick={handleRowClick} />
-        <InventoryListPagination
+        <div className="space-y-2">
+          <PurchaseOrdersTable orders={items} onRowClick={handleRowClick} compact />
+          <InventoryListPagination
           page={page}
           pageSize={pageSize}
           totalCount={totalCount}
@@ -133,6 +141,7 @@ export function PurchaseOrdersListPage() {
           isLoading={isRefreshing}
           onPageChange={handlePageChange}
         />
+        </div>
       </InventoryListPageContent>
     </ListPageLayout>
   );

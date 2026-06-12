@@ -5,7 +5,7 @@ import { useEffect, useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { InlineProductSearchInput } from "@/features/inventory/components/detail/InlineProductSearchInput";
+import { InlineProductCombobox } from "@/features/inventory/components/detail/InlineProductCombobox";
 import { PurchaseOrderPendingChangesBar } from "@/features/inventory/components/detail/PurchaseOrderPendingChangesBar";
 import { usePurchaseOrderLinesEditor } from "@/features/inventory/hooks/use-purchase-order-lines-editor";
 import type { PurchaseOrder } from "@/features/inventory/types/inventory.types";
@@ -177,7 +177,6 @@ export function PurchaseOrderLinesEditor({
                   <th className="w-10 px-3 py-3 text-left text-sm font-medium text-brand-muted">
                     #
                   </th>
-                  <th className="w-10 px-2 py-3" aria-label="Reorder" />
                   <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
                     Product
                   </th>
@@ -190,6 +189,7 @@ export function PurchaseOrderLinesEditor({
                   <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
                     Total ({currency})
                   </th>
+                  <th className="w-10 px-2 py-3" aria-label="Reorder" />
                 </tr>
               </thead>
               <tbody className="divide-y divide-brand-border">
@@ -225,19 +225,9 @@ export function PurchaseOrderLinesEditor({
                       }}
                     >
                       <td className="px-3 py-3 text-sm text-brand-muted">{index + 1}</td>
-                      <td className="px-2 py-3 text-brand-muted/70">
-                        <button
-                          type="button"
-                          className="cursor-grab rounded p-1 hover:bg-slate-100 active:cursor-grabbing"
-                          aria-label={`Reorder line ${index + 1}`}
-                          onClick={(event) => event.stopPropagation()}
-                        >
-                          <GripVertical className="size-4" aria-hidden="true" />
-                        </button>
-                      </td>
                       <td className="px-4 py-3">
                         {isEditing ? (
-                          <InlineProductSearchInput
+                          <InlineProductCombobox
                             id={`po-line-product-${line.key}`}
                             value={line.odoo_product_id}
                             displayLabel={line.productName}
@@ -323,6 +313,16 @@ export function PurchaseOrderLinesEditor({
                       </td>
                       <td className="px-4 py-3 text-right text-sm font-medium text-brand-navy">
                         {formatInventoryAmount(lineTotal, currency)}
+                      </td>
+                      <td className="px-2 py-3 text-brand-muted/70">
+                        <button
+                          type="button"
+                          className="cursor-grab rounded p-1 hover:bg-slate-100 active:cursor-grabbing"
+                          aria-label={`Reorder line ${index + 1}`}
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          <GripVertical className="size-4" aria-hidden="true" />
+                        </button>
                       </td>
                     </tr>
                   );

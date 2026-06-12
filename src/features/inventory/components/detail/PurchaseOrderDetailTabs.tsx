@@ -3,6 +3,7 @@
 import { PanelRight } from "lucide-react";
 import { useCallback, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { FabButton } from "@/components/ui/fab-button";
 import {
   DetailPageMainAsideGrid,
@@ -12,6 +13,8 @@ import {
   DetailPageTabsSection,
 } from "@/features/app-shell/components/page-layout";
 import { AnimatedPurchaseOrderTotal } from "@/features/inventory/components/detail/AnimatedPurchaseOrderTotal";
+import { PurchaseOrderDetailActivityTab } from "@/features/inventory/components/detail/PurchaseOrderDetailActivityTab";
+import { PurchaseOrderDetailNotesTab } from "@/features/inventory/components/detail/PurchaseOrderDetailNotesTab";
 import { PurchaseOrderLinesEditor } from "@/features/inventory/components/detail/PurchaseOrderLinesEditor";
 import { InventorySummaryPanel } from "@/features/inventory/components/InventorySummaryPanel";
 import type { PurchaseOrder } from "@/features/inventory/types/inventory.types";
@@ -28,6 +31,7 @@ type PurchaseOrderDetailTabsProps = {
   canEditLines: boolean;
   currency: string;
   autoAddLine?: boolean;
+  onUpdateClick?: () => void;
   onOrderUpdated: (order: PurchaseOrder) => void;
   onError: (message: string) => void;
   onLinesStateChange?: (state: {
@@ -38,53 +42,14 @@ type PurchaseOrderDetailTabsProps = {
   }) => void;
 };
 
-type DetailTabId = "lines" | "summary";
-
-function PurchaseOrderSummaryContent({
-  order,
-  currency,
-  totalValue,
-}: {
-  order: PurchaseOrder;
-  currency: string;
-  totalValue: number;
-}) {
-  return (
-    <InventorySummaryPanel
-      className="p-0"
-      highlight={
-        <dl className="space-y-2.5">
-          <div className="flex items-center justify-between gap-3 text-sm">
-            <dt className="text-brand-muted">Total value</dt>
-            <dd className="font-semibold text-brand-navy">
-              <AnimatedPurchaseOrderTotal value={totalValue} currency={currency} />
-            </dd>
-          </div>
-        </dl>
-      }
-      sections={[
-        {
-          title: "Order summary",
-          fields: [
-            { label: "Reference", value: order.reference_number },
-            { label: "Vendor", value: order.vendor_name },
-            { label: "Status", value: formatPurchaseStatusLabel(order.status) },
-            { label: "Delivery date", value: formatDisplayDate(order.delivery_date) },
-            { label: "LPO number", value: order.lpo_number ?? "—" },
-            { label: "GRN number", value: order.grn_number ?? "—" },
-            { label: "Created", value: formatDisplayDateTime(order.created_at) },
-          ],
-        },
-      ]}
-    />
-  );
-}
+type DetailTabId = "lines" | "notes" | "activity";
 
 export function PurchaseOrderDetailTabs({
   order,
   canEditLines,
   currency,
   autoAddLine = false,
+  onUpdateClick,
   onOrderUpdated,
   onError,
   onLinesStateChange,
@@ -110,34 +75,50 @@ export function PurchaseOrderDetailTabs({
     [onLinesStateChange],
   );
 
+  const sidebarUpdateAction =
+    canEditLines && onUpdateClick ? (
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="h-7 px-2 text-brand-primary hover:text-brand-navy"
+        onClick={onUpdateClick}
+        data-testid="purchase-order-sidebar-update-button"
+      >
+        Update
+      </Button>
+    ) : null;
+
   const summaryPanel = (
-    <InventorySummaryPanel
-      className={cn(!showSummaryPanel && "hidden xl:block")}
-      highlight={
-        <dl className="space-y-2.5">
-          <div className="flex items-center justify-between gap-3 text-sm">
-            <dt className="text-brand-muted">Total value</dt>
-            <dd className="font-semibold text-brand-navy">
-              <AnimatedPurchaseOrderTotal value={totalValue} currency={currency} />
-            </dd>
-          </div>
-        </dl>
-      }
-      sections={[
-        {
-          title: "Order summary",
-          fields: [
-            { label: "Reference", value: order.reference_number },
-            { label: "Vendor", value: order.vendor_name },
-            { label: "Status", value: formatPurchaseStatusLabel(order.status) },
-            { label: "Delivery date", value: formatDisplayDate(order.delivery_date) },
-            { label: "LPO number", value: order.lpo_number ?? "—" },
-            { label: "GRN number", value: order.grn_number ?? "—" },
-            { label: "Created", value: formatDisplayDateTime(order.created_at) },
-          ],
-        },
-      ]}
-    />
+    <div className={cn(!showSummaryPanel && "hidden xl:block")}>
+      <InventorySummaryPanel
+        highlight={
+          <dl className="space-y-2.5">
+            <div className="flex items-center justify-between gap-3 text-sm">
+              <dt className="text-brand-muted">Total value</dt>
+              <dd className="font-semibold text-brand-navy">
+                <AnimatedPurchaseOrderTotal value={totalValue} currency={currency} />
+              </dd>
+            </div>
+          </dl>
+        }
+        sections={[
+          {
+            title: "Order summary",
+            action: sidebarUpdateAction,
+            fields: [
+              { label: "Reference", value: order.reference_number },
+              { label: "Vendor", value: order.vendor_name },
+              { label: "Status", value: formatPurchaseStatusLabel(order.status) },
+              { label: "Delivery date", value: formatDisplayDate(order.delivery_date) },
+              { label: "LPO number", value: order.lpo_number ?? "—" },
+              { label: "GRN number", value: order.grn_number ?? "—" },
+              { label: "Created", value: formatDisplayDateTime(order.created_at) },
+            ],
+          },
+        ]}
+      />
+    </div>
   );
 
   return (
@@ -157,10 +138,16 @@ export function PurchaseOrderDetailTabs({
           </span>
         </DetailPageTabNavItem>
         <DetailPageTabNavItem
-          isActive={activeTab === "summary"}
-          onClick={() => setActiveTab("summary")}
+          isActive={activeTab === "notes"}
+          onClick={() => setActiveTab("notes")}
         >
-          Summary
+          Notes
+        </DetailPageTabNavItem>
+        <DetailPageTabNavItem
+          isActive={activeTab === "activity"}
+          onClick={() => setActiveTab("activity")}
+        >
+          Activity
         </DetailPageTabNavItem>
       </DetailPageTabsNavSection>
 
@@ -176,15 +163,17 @@ export function PurchaseOrderDetailTabs({
               onError={onError}
               onStateChange={handleLinesStateChange}
             />
-          ) : (
-            <div className="rounded-xl border border-brand-border bg-white p-6 xl:hidden">
-              <PurchaseOrderSummaryContent
-                order={order}
-                currency={currency}
-                totalValue={totalValue}
-              />
-            </div>
-          )}
+          ) : null}
+          <PurchaseOrderDetailNotesTab
+            order={order}
+            canEdit={canEditLines}
+            isActive={activeTab === "notes"}
+            onUpdated={onOrderUpdated}
+          />
+          <PurchaseOrderDetailActivityTab
+            order={order}
+            isActive={activeTab === "activity"}
+          />
         </DetailPageMainSection>
 
         {summaryPanel}

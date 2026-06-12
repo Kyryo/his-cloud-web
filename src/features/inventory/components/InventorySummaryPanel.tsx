@@ -24,16 +24,21 @@ export function SummaryField({
 
 export function SummarySection({
   title,
+  action,
   children,
 }: {
   title: string;
+  action?: ReactNode;
   children: ReactNode;
 }) {
   return (
     <div className="border-t border-brand-border pt-4">
-      <h3 className="mb-3 text-[11px] font-semibold uppercase text-brand-muted">
-        {title}
-      </h3>
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <h3 className="text-[11px] font-semibold uppercase text-brand-muted">
+          {title}
+        </h3>
+        {action}
+      </div>
       <dl className="space-y-3">{children}</dl>
     </div>
   );
@@ -44,6 +49,7 @@ type InventorySummaryPanelProps = {
   highlight?: ReactNode;
   sections: Array<{
     title: string;
+    action?: ReactNode;
     fields: Array<{ label: string; value: ReactNode }>;
   }>;
   className?: string;
@@ -64,7 +70,11 @@ export function InventorySummaryPanel({
       ) : null}
 
       {sections.map((section) => (
-        <SummarySection key={section.title} title={section.title}>
+        <SummarySection
+          key={section.title}
+          title={section.title}
+          action={section.action}
+        >
           {section.fields.map((field) => (
             <SummaryField
               key={field.label}

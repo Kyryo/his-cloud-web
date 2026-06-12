@@ -45,15 +45,21 @@ const columns: InventoryListTableColumn<PurchaseOrder>[] = [
 type PurchaseOrdersTableProps = {
   orders: PurchaseOrder[];
   onRowClick?: (order: PurchaseOrder) => void;
+  compact?: boolean;
 };
 
-export function PurchaseOrdersTable({ orders, onRowClick }: PurchaseOrdersTableProps) {
+export function PurchaseOrdersTable({
+  orders,
+  onRowClick,
+  compact = false,
+}: PurchaseOrdersTableProps) {
   return (
     <InventoryListTable
       items={orders}
       columns={columns}
       getRowKey={(order) => order.uuid}
       onRowClick={onRowClick}
+      compact={compact}
     />
   );
 }

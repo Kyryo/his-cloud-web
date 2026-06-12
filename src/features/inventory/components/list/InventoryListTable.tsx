@@ -20,6 +20,7 @@ type InventoryListTableProps<T> = {
   onRowClick?: (item: T) => void;
   footer?: ReactNode;
   className?: string;
+  compact?: boolean;
 };
 
 export function InventoryListTable<T>({
@@ -29,7 +30,10 @@ export function InventoryListTable<T>({
   onRowClick,
   footer,
   className,
+  compact = false,
 }: InventoryListTableProps<T>) {
+  const cellPadding = compact ? "px-3 py-2" : "px-4 py-3";
+
   return (
     <div
       className={cn(
@@ -46,7 +50,9 @@ export function InventoryListTable<T>({
                   key={column.key}
                   scope="col"
                   className={cn(
-                    "px-4 py-3 text-left text-sm font-medium text-brand-muted",
+                    cellPadding,
+                    "text-left text-sm font-medium text-brand-muted",
+                    compact && "text-xs",
                     column.headerClassName,
                   )}
                 >
@@ -67,7 +73,12 @@ export function InventoryListTable<T>({
                 {columns.map((column) => (
                   <td
                     key={column.key}
-                    className={cn("px-4 py-3 text-sm text-brand-slate", column.cellClassName)}
+                    className={cn(
+                      cellPadding,
+                      "text-sm text-brand-slate",
+                      compact && "text-[13px]",
+                      column.cellClassName,
+                    )}
                   >
                     {column.render(item)}
                   </td>
@@ -78,7 +89,9 @@ export function InventoryListTable<T>({
         </table>
       </div>
       {footer ? (
-        <div className="border-t border-brand-border px-4 py-3">{footer}</div>
+        <div className={cn("border-t border-brand-border", compact ? "px-3 py-2" : "px-4 py-3")}>
+          {footer}
+        </div>
       ) : null}
     </div>
   );

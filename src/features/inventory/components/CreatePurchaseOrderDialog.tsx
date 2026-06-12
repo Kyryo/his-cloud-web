@@ -1,27 +1,25 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
+import { Form } from "@/components/ui/form";
+import { TabbedDialog } from "@/components/ui/tabbed-dialog";
+import { PurchaseOrderFormTabContent } from "@/features/inventory/components/PurchaseOrderFormTabContent";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { InventoryLocationSelect } from "@/features/inventory/components/InventoryLocationSelect";
-import {
-  createPurchaseOrder,
-  type PurchaseOrderPayload,
-} from "@/features/inventory/services/purchase-orders.service";
+  createPurchaseOrderDefaultValues,
+  toCreatePurchaseOrderPayload,
+  updatePurchaseOrderSchema,
+  type UpdatePurchaseOrderFormValues,
+} from "@/features/inventory/schemas/purchase-order.schema";
+import { createPurchaseOrder } from "@/features/inventory/services/purchase-orders.service";
 import type { PurchaseOrder } from "@/features/inventory/types/inventory.types";
+import { BffError } from "@/lib/bff-client";
+import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
-import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
 type CreatePurchaseOrderDialogProps = {
@@ -30,107 +28,86 @@ type CreatePurchaseOrderDialogProps = {
   onCreated: (order: PurchaseOrder) => void;
 };
 
+type CreatePurchaseOrderTab = "details" | "references";
+
 export function CreatePurchaseOrderDialog({
   open,
   onOpenChange,
   onCreated,
 }: CreatePurchaseOrderDialogProps) {
   const { toast } = useToast();
-  const [vendorName, setVendorName] = useState("");
-  const [receivingLocation, setReceivingLocation] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTab, setActiveTab] = useState<CreatePurchaseOrderTab>("details");
 
-  function resetForm() {
-    setVendorName("");
-    setReceivingLocation("");
-  }
+  const form = useForm<UpdatePurchaseOrderFormValues>({
+    resolver: zodResolver(updatePurchaseOrderSchema),
+    defaultValues: createPurchaseOrderDefaultValues(),
+  });
 
   useEffect(() => {
-    if (!open) {
-      resetForm();
+    if (open) {
+      setActiveTab("details");
+      form.reset(createPurchaseOrderDefaultValues());
     }
-  }, [open]);
+  }, [form, open]);
 
-  async function handleCreate() {
-    if (!vendorName.trim()) {
-      toast({
-        title: "Vendor required",
-        description: "Enter the supplier name before creating the order.",
-        variant: "error",
-      });
-      return;
-    }
-
-    if (!receivingLocation) {
-      toast({
-        title: "Location required",
-        description: "Choose where stock will be received.",
-        variant: "error",
-      });
-      return;
-    }
-
-    const payload: PurchaseOrderPayload = {
-      vendor_name: vendorName.trim(),
-      receiving_location: Number(receivingLocation),
-      lines: [],
-    };
-
-    setIsSubmitting(true);
+  const handleSubmit = form.handleSubmit(async (values) => {
     try {
-      const order = await createPurchaseOrder(payload);
+      const order = await createPurchaseOrder(toCreatePurchaseOrderPayload(values));
       toast({
+        variant: "success",
         title: "Purchase order created",
         description: `${order.reference_number} is ready for line items.`,
-        variant: "success",
       });
-      resetForm();
-      onOpenChange(false);
       onCreated(order);
-    } catch (err) {
+      onOpenChange(false);
+    } catch (error) {
+      if (error instanceof BffError) {
+        const fieldErrors = mapBffErrorsToForm(error.errors);
+        for (const [field, message] of Object.entries(fieldErrors)) {
+          if (field in createPurchaseOrderDefaultValues()) {
+            form.setError(field as keyof UpdatePurchaseOrderFormValues, { message });
+          }
+        }
+
+        toast({
+          variant: "error",
+          title: "Could not create purchase order",
+          description: formatBffErrorMessage(error.message, error.errors),
+        });
+        return;
+      }
+
       toast({
-        title: "Could not create purchase order",
-        description: err instanceof Error ? err.message : "Something went wrong.",
         variant: "error",
+        title: "Could not create purchase order",
+        description: error instanceof Error ? error.message : "Something went wrong.",
       });
-    } finally {
-      setIsSubmitting(false);
     }
-  }
+  });
+
+  const isSubmitting = form.formState.isSubmitting;
+  const tabs = [
+    { id: "details", label: "Details" },
+    { id: "references", label: "References" },
+  ];
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className={cn("max-w-lg", appFont.className)}
-        data-testid="create-purchase-order-dialog"
-      >
-        <DialogHeader>
-          <DialogTitle>New purchase order</DialogTitle>
-          <DialogDescription>
-            Choose the vendor and receiving location first. You can add line items
-            on the next screen.
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="grid gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="po-vendor">Vendor name</Label>
-            <Input
-              id="po-vendor"
-              value={vendorName}
-              onChange={(event) => setVendorName(event.target.value)}
-              placeholder="Supplier name"
-            />
-          </div>
-          <InventoryLocationSelect
-            id="po-receiving-location"
-            label="Receiving location"
-            value={receivingLocation}
-            onValueChange={(locationId) => setReceivingLocation(String(locationId))}
-          />
-        </div>
-
-        <DialogFooter>
+    <TabbedDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="New purchase order"
+      description="Enter vendor, location, and reference details. You can add line items on the next screen."
+      tabs={tabs}
+      activeTab={activeTab}
+      onTabChange={(tabId) => {
+        if (tabId === "details" || tabId === "references") {
+          setActiveTab(tabId);
+        }
+      }}
+      className={appFont.className}
+      data-testid="create-purchase-order-dialog"
+      footer={
+        <>
           <SecondaryButton
             type="button"
             disabled={isSubmitting}
@@ -141,7 +118,7 @@ export function CreatePurchaseOrderDialog({
           <PrimaryButton
             type="button"
             disabled={isSubmitting}
-            onClick={() => void handleCreate()}
+            onClick={() => void handleSubmit()}
             data-testid="create-purchase-order-submit"
           >
             {isSubmitting ? (
@@ -153,8 +130,18 @@ export function CreatePurchaseOrderDialog({
               "Create purchase order"
             )}
           </PrimaryButton>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    >
+      <Form {...form}>
+        <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
+          <PurchaseOrderFormTabContent
+            form={form}
+            activeTab={activeTab}
+            locationSelectId="create-po-receiving-location"
+          />
+        </form>
+      </Form>
+    </TabbedDialog>
   );
 }

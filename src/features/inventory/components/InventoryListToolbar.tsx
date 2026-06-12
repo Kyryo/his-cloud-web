@@ -23,6 +23,7 @@ type InventoryListToolbarProps = {
   filters?: ReactNode;
   primaryAction?: ReactNode;
   showSearch?: boolean;
+  compact?: boolean;
 };
 
 export function InventoryListToolbar({
@@ -36,17 +37,18 @@ export function InventoryListToolbar({
   filters,
   primaryAction,
   showSearch = true,
+  compact = false,
 }: InventoryListToolbarProps) {
   return (
-    <ListPageToolbarSection>
+    <ListPageToolbarSection className={compact ? "gap-2 lg:gap-3" : undefined}>
       {showSearch && onSearchChange && onSearchSubmit ? (
-        <ListPageToolbarSearch>
+        <ListPageToolbarSearch className={compact ? "gap-1.5" : undefined}>
           <Input
             type="search"
             placeholder={searchPlaceholder}
             value={search}
             disabled={isLoading}
-            className="w-full sm:max-w-md"
+            className={compact ? "h-9 w-full text-sm sm:max-w-sm" : "w-full sm:max-w-md"}
             onChange={(event) => onSearchChange(event.target.value)}
             onKeyDown={(event) => {
               if (event.key === "Enter") {
@@ -58,6 +60,7 @@ export function InventoryListToolbar({
             <Button
               type="button"
               variant="outline"
+              size={compact ? "sm" : "default"}
               disabled={isLoading}
               onClick={onSearchSubmit}
             >
@@ -67,6 +70,7 @@ export function InventoryListToolbar({
               <Button
                 type="button"
                 variant="outline"
+                size={compact ? "sm" : "default"}
                 disabled={isLoading}
                 onClick={onClearSearch}
               >

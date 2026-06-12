@@ -42,3 +42,23 @@ export function toUpdatePurchaseOrderPayload(values: UpdatePurchaseOrderFormValu
     notes: values.notes?.trim() || null,
   };
 }
+
+export function createPurchaseOrderDefaultValues(): UpdatePurchaseOrderFormValues {
+  return {
+    vendor_name: "",
+    receiving_location: 0,
+    lpo_number: "",
+    grn_number: "",
+    delivery_date: "",
+    invoice_number: "",
+    invoice_date: "",
+    notes: "",
+  };
+}
+
+export function toCreatePurchaseOrderPayload(values: UpdatePurchaseOrderFormValues) {
+  return {
+    ...toUpdatePurchaseOrderPayload(values),
+    lines: [],
+  };
+}

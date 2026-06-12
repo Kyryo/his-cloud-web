@@ -1,9 +1,15 @@
 "use client";
 
-import { Calendar } from "lucide-react";
+import { Calendar, MoreVertical } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { PrimaryButton } from "@/components/ui/app-buttons";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
 import { PurchaseStatusBadge } from "@/features/inventory/components/InventoryStatusBadge";
 import type { PurchaseOrder } from "@/features/inventory/types/inventory.types";
@@ -20,17 +26,6 @@ export function PurchaseOrderDetailHeader({
   onUpdate,
   actions,
 }: PurchaseOrderDetailHeaderProps) {
-  const headerActions = (
-    <div className="flex flex-wrap items-center gap-2">
-      {onUpdate ? (
-        <PrimaryButton type="button" size="sm" onClick={onUpdate}>
-          Update
-        </PrimaryButton>
-      ) : null}
-      {actions}
-    </div>
-  );
-
   return (
     <DetailPageHeaderSection>
       <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
@@ -53,7 +48,33 @@ export function PurchaseOrderDetailHeader({
             </span>
           </div>
         </div>
-        <div className="shrink-0">{headerActions}</div>
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {onUpdate ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full"
+                  aria-label="Purchase order actions"
+                  data-testid="purchase-order-actions-menu-button"
+                >
+                  <MoreVertical className="size-4" aria-hidden="true" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={onUpdate}
+                  data-testid="purchase-order-update-menu-item"
+                >
+                  Update details
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : null}
+          {actions}
+        </div>
       </div>
     </DetailPageHeaderSection>
   );

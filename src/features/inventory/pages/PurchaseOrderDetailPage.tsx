@@ -182,6 +182,7 @@ export function PurchaseOrderDetailPage({ orderUuid }: PurchaseOrderDetailPagePr
         canEditLines={canEditLines}
         currency={currency}
         autoAddLine={autoAddLine}
+        onUpdateClick={canEditLines ? () => setUpdateOpen(true) : undefined}
         onOrderUpdated={setOrder}
         onError={handleLinesError}
         onLinesStateChange={setLinesEditorState}
