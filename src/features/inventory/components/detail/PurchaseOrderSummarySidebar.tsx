@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 type PurchaseOrderSummarySidebarProps = {
   order: PurchaseOrder;
   draftLines?: PurchaseOrderLineDraft[];
+  batchTrackingEnabled?: boolean;
   onEditClick?: () => void;
   className?: string;
 };
@@ -27,37 +28,42 @@ type PurchaseOrderSummarySidebarProps = {
 function calculateOrderCompletionPercent(
   order: PurchaseOrder,
   draftLines?: PurchaseOrderLineDraft[],
+  batchTrackingEnabled = false,
 ): number {
   if (order.status === "CONFIRMED") {
     return 100;
   }
 
-  const lines =
+  const savedDrafts =
     draftLines ??
     order.lines.map((line) => ({
+      key: String(line.id ?? line.odoo_product_id),
       odoo_product_id: line.odoo_product_id,
+      productName: null,
+      quantity: String(line.quantity),
+      unit_cost: String(line.unit_cost),
       batch: line.batch ?? null,
       expiry_date: line.expiry_date ?? null,
     }));
 
-  const savedCount = countSavedLineDrafts(
-    draftLines ??
-      order.lines.map((line) => ({
-        key: String(line.id ?? line.odoo_product_id),
-        odoo_product_id: line.odoo_product_id,
-        productName: null,
-        quantity: String(line.quantity),
-        unit_cost: String(line.unit_cost),
-        batch: line.batch ?? null,
-        expiry_date: line.expiry_date ?? null,
-      })),
-  );
+  const savedCount = countSavedLineDrafts(savedDrafts);
 
   if (savedCount === 0) {
     return 0;
   }
 
-  const missingBatchCount = countLinesMissingBatchOrExpiry(lines);
+  if (!batchTrackingEnabled) {
+    const invalidCount = savedDrafts.filter(
+      (line) =>
+        line.odoo_product_id &&
+        (Number.parseFloat(line.quantity) <= 0 || Number.parseFloat(line.unit_cost) <= 0),
+    ).length;
+    return Math.round(((savedCount - invalidCount) / savedCount) * 100);
+  }
+
+  const missingBatchCount = countLinesMissingBatchOrExpiry(savedDrafts, {
+    batchTrackingEnabled: true,
+  });
   const completeCount = savedCount - missingBatchCount;
   return Math.round((completeCount / savedCount) * 100);
 }
@@ -65,10 +71,15 @@ function calculateOrderCompletionPercent(
 export function PurchaseOrderSummarySidebar({
   order,
   draftLines,
+  batchTrackingEnabled = false,
   onEditClick,
   className,
 }: PurchaseOrderSummarySidebarProps) {
-  const completionPercent = calculateOrderCompletionPercent(order, draftLines);
+  const completionPercent = calculateOrderCompletionPercent(
+    order,
+    draftLines,
+    batchTrackingEnabled,
+  );
   const showReadiness = order.status === "DRAFT";
 
   const editAction =
@@ -99,7 +110,9 @@ export function PurchaseOrderSummarySidebar({
                 </div>
                 <Progress value={completionPercent} />
                 <p className="text-[11px] text-brand-muted">
-                  Based on line items with batch and expiry recorded.
+                  {batchTrackingEnabled
+                    ? "Based on line items with batch and expiry recorded."
+                    : "Based on valid line items with quantity and unit cost."}
                 </p>
               </div>
             ) : null}

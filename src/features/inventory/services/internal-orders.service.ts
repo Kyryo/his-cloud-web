@@ -12,7 +12,7 @@ export type InternalOrderPayload = {
   source_location: number;
   destination_location: number;
   notes?: string | null;
-  lines: InternalOrderLine[];
+  lines?: InternalOrderLine[];
   is_active?: boolean;
 };
 

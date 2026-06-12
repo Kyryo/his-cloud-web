@@ -33,6 +33,7 @@ type PurchaseOrderLinesEditorProps = {
   order: PurchaseOrder;
   canEdit: boolean;
   currency: string;
+  batchTrackingEnabled?: boolean;
   autoAddLine?: boolean;
   onUpdated: (order: PurchaseOrder) => void;
   onError: (message: string) => void;
@@ -56,11 +57,13 @@ export function PurchaseOrderLinesEditor({
   order,
   canEdit,
   currency,
+  batchTrackingEnabled = false,
   autoAddLine = false,
   onUpdated,
   onError,
   onStateChange,
 }: PurchaseOrderLinesEditorProps) {
+  const batchValidationOptions = { batchTrackingEnabled };
   const [batchDialogLineKey, setBatchDialogLineKey] = useState<string | null>(null);
   const [highlightedLineKeys, setHighlightedLineKeys] = useState<Set<string>>(new Set());
 
@@ -88,13 +91,13 @@ export function PurchaseOrderLinesEditor({
   );
 
   const validationIssueCount = useMemo(
-    () => countLinesWithValidationIssues(editor.draftLines),
-    [editor.draftLines],
+    () => countLinesWithValidationIssues(editor.draftLines, batchValidationOptions),
+    [batchValidationOptions, editor.draftLines],
   );
 
   const handleReviewItems = useCallback(() => {
     const offendingKeys = editor.draftLines
-      .filter((line) => getLineValidationIssues(line).length > 0)
+      .filter((line) => getLineValidationIssues(line, batchValidationOptions).length > 0)
       .map((line) => line.key);
 
     if (offendingKeys.length === 0) {
@@ -108,7 +111,7 @@ export function PurchaseOrderLinesEditor({
     window.setTimeout(() => {
       setHighlightedLineKeys(new Set());
     }, 2400);
-  }, [editor.draftLines]);
+  }, [batchValidationOptions, editor.draftLines]);
 
   useEffect(() => {
     onStateChange?.({
@@ -172,11 +175,13 @@ export function PurchaseOrderLinesEditor({
                     <div className="text-sm font-medium text-brand-navy">
                       {line.product_name ?? `Product #${line.odoo_product_id}`}
                     </div>
-                    <p className="mt-0.5 text-xs text-brand-muted">
-                      {line.batch_number
-                        ? `${line.batch_number} · Exp ${formatDisplayDate(line.expiry_date)}`
-                        : "No batch recorded"}
-                    </p>
+                    {batchTrackingEnabled ? (
+                      <p className="mt-0.5 text-xs text-brand-muted">
+                        {line.batch_number
+                          ? `${line.batch_number} · Exp ${formatDisplayDate(line.expiry_date)}`
+                          : "No batch recorded"}
+                      </p>
+                    ) : null}
                   </td>
                   <td className="px-4 py-3 text-right text-sm text-brand-slate">
                     {formatInventoryQuantity(line.quantity)}
@@ -230,11 +235,14 @@ export function PurchaseOrderLinesEditor({
         </div>
       ) : (
         <>
-          <PurchaseOrderBatchTrackingNotice
-            orderUuid={order.uuid}
-            lines={editor.draftLines}
-            onReviewItems={handleReviewItems}
-          />
+          {batchTrackingEnabled ? (
+            <PurchaseOrderBatchTrackingNotice
+              orderUuid={order.uuid}
+              lines={editor.draftLines}
+              batchTrackingEnabled
+              onReviewItems={handleReviewItems}
+            />
+          ) : null}
 
           <div className="overflow-hidden rounded-xl border border-brand-border bg-white">
             <div className="overflow-x-auto">
@@ -256,9 +264,11 @@ export function PurchaseOrderLinesEditor({
                     <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
                       Total ({currency})
                     </th>
-                    <th className="px-3 py-3 text-left text-sm font-medium text-brand-muted">
-                      Batch
-                    </th>
+                    {batchTrackingEnabled ? (
+                      <th className="px-3 py-3 text-left text-sm font-medium text-brand-muted">
+                        Batch
+                      </th>
+                    ) : null}
                     <th className="w-10 px-2 py-3" aria-label="Reorder" />
                   </tr>
                 </thead>
@@ -270,7 +280,8 @@ export function PurchaseOrderLinesEditor({
                     const lineTotal = calculateLineDraftTotal(line);
                     const isHighlighted = highlightedLineKeys.has(line.key);
                     const batchComplete = Boolean(
-                      line.odoo_product_id && !lineMissingBatchOrExpiry(line),
+                      line.odoo_product_id &&
+                        !lineMissingBatchOrExpiry(line, batchValidationOptions),
                     );
 
                     return (
@@ -327,16 +338,16 @@ export function PurchaseOrderLinesEditor({
                               <span className="text-sm font-medium text-brand-navy">
                                 {line.productName ?? `Product #${line.odoo_product_id ?? "?"}`}
                               </span>
-                              {line.odoo_product_id ? (
+                              {line.odoo_product_id && batchTrackingEnabled ? (
                                 <p
                                   className={cn(
                                     "mt-0.5 text-xs",
-                                    lineMissingBatchOrExpiry(line)
+                                    lineMissingBatchOrExpiry(line, batchValidationOptions)
                                       ? "text-amber-700"
                                       : "text-brand-muted",
                                   )}
                                 >
-                                  {lineMissingBatchOrExpiry(line)
+                                  {lineMissingBatchOrExpiry(line, batchValidationOptions)
                                     ? "Batch and expiry not recorded"
                                     : `${line.batchNumber ?? "Batch"} · Exp ${formatDisplayDate(line.expiry_date)}`}
                                 </p>
@@ -406,18 +417,20 @@ export function PurchaseOrderLinesEditor({
                         <td className="px-4 py-3 text-right text-sm font-medium text-brand-navy">
                           {formatInventoryAmount(lineTotal, currency)}
                         </td>
-                        <td className="px-3 py-3">
-                          {line.odoo_product_id ? (
-                            <PurchaseOrderLineBatchButton
-                              isComplete={batchComplete}
-                              data-testid={`purchase-order-line-batch-button-${line.key}`}
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                setBatchDialogLineKey(line.key);
-                              }}
-                            />
-                          ) : null}
-                        </td>
+                        {batchTrackingEnabled ? (
+                          <td className="px-3 py-3">
+                            {line.odoo_product_id ? (
+                              <PurchaseOrderLineBatchButton
+                                isComplete={batchComplete}
+                                data-testid={`purchase-order-line-batch-button-${line.key}`}
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  setBatchDialogLineKey(line.key);
+                                }}
+                              />
+                            ) : null}
+                          </td>
+                        ) : null}
                         <td className="px-2 py-3 text-brand-muted/70">
                           <button
                             type="button"
@@ -442,7 +455,7 @@ export function PurchaseOrderLinesEditor({
                     <td className="px-4 py-3 text-right text-sm">
                       {formatInventoryAmount(totalValue, currency)}
                     </td>
-                    <td colSpan={2} />
+                    <td colSpan={batchTrackingEnabled ? 2 : 1} />
                   </tr>
                 </tfoot>
               </table>
@@ -461,24 +474,26 @@ export function PurchaseOrderLinesEditor({
         </>
       )}
 
-      <PurchaseOrderLineBatchDialog
-        open={batchDialogLineKey !== null}
-        onOpenChange={(open) => {
-          if (!open) {
-            setBatchDialogLineKey(null);
-          }
-        }}
-        line={batchDialogLine}
-        tenantId={order.tenant}
-        vendorName={order.vendor_name}
-        onSaved={async (patch) => {
-          if (!batchDialogLineKey) {
-            return;
-          }
+      {batchTrackingEnabled ? (
+        <PurchaseOrderLineBatchDialog
+          open={batchDialogLineKey !== null}
+          onOpenChange={(open) => {
+            if (!open) {
+              setBatchDialogLineKey(null);
+            }
+          }}
+          line={batchDialogLine}
+          tenantId={order.tenant}
+          vendorName={order.vendor_name}
+          onSaved={async (patch) => {
+            if (!batchDialogLineKey) {
+              return;
+            }
 
-          await editor.saveLineBatchDetails(batchDialogLineKey, patch);
-        }}
-      />
+            await editor.saveLineBatchDetails(batchDialogLineKey, patch);
+          }}
+        />
+      ) : null}
 
       {editor.hasPendingChanges ? (
         <PurchaseOrderPendingChangesBar

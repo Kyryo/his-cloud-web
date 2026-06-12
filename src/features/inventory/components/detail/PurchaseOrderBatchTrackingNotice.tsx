@@ -13,6 +13,7 @@ import {
 type PurchaseOrderBatchTrackingNoticeProps = {
   orderUuid: string;
   lines: PurchaseOrderLineDraft[];
+  batchTrackingEnabled?: boolean;
   onReviewItems: () => void;
 };
 
@@ -23,9 +24,12 @@ function getDismissKey(orderUuid: string, missingCount: number) {
 export function PurchaseOrderBatchTrackingNotice({
   orderUuid,
   lines,
+  batchTrackingEnabled = false,
   onReviewItems,
 }: PurchaseOrderBatchTrackingNoticeProps) {
-  const missingCount = countLinesMissingBatchOrExpiry(lines);
+  const missingCount = batchTrackingEnabled
+    ? countLinesMissingBatchOrExpiry(lines, { batchTrackingEnabled: true })
+    : 0;
   const [isDismissed, setIsDismissed] = useState(false);
 
   useEffect(() => {

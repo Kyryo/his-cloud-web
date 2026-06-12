@@ -104,53 +104,84 @@ describe("purchase-order-line-draft utils", () => {
 
   it("collects validation issues for incomplete lines", () => {
     expect(
-      getLineValidationIssues({
-        key: "a",
-        odoo_product_id: 1,
-        productName: "Item",
-        quantity: "0",
-        unit_cost: "10",
-        batch: 2,
-        expiry_date: "2026-12-31",
-      }),
-    ).toContain("quantity");
-
-    expect(
-      countLinesWithValidationIssues([
+      getLineValidationIssues(
         {
           key: "a",
           odoo_product_id: 1,
           productName: "Item",
-          quantity: "2",
+          quantity: "0",
           unit_cost: "10",
           batch: 2,
           expiry_date: "2026-12-31",
         },
-        {
-          key: "b",
-          odoo_product_id: 2,
-          productName: "Item 2",
-          quantity: "1",
-          unit_cost: "5",
-        },
-      ]),
+        { batchTrackingEnabled: true },
+      ),
+    ).toContain("quantity");
+
+    expect(
+      countLinesWithValidationIssues(
+        [
+          {
+            key: "a",
+            odoo_product_id: 1,
+            productName: "Item",
+            quantity: "2",
+            unit_cost: "10",
+            batch: 2,
+            expiry_date: "2026-12-31",
+          },
+          {
+            key: "b",
+            odoo_product_id: 2,
+            productName: "Item 2",
+            quantity: "1",
+            unit_cost: "5",
+          },
+        ],
+        { batchTrackingEnabled: true },
+      ),
     ).toBe(1);
   });
 
-  it("counts lines missing batch or expiry", () => {
+  it("ignores batch validation when clinic batch tracking is disabled", () => {
+    expect(
+      getLineValidationIssues({
+        key: "a",
+        odoo_product_id: 1,
+        productName: "Item",
+        quantity: "2",
+        unit_cost: "10",
+      }),
+    ).toEqual([]);
+
     expect(
       countLinesMissingBatchOrExpiry([
-        {
-          odoo_product_id: 1,
-          batch: 2,
-          expiry_date: "2026-12-31",
-        },
         {
           odoo_product_id: 3,
           batch: null,
           expiry_date: null,
         },
       ]),
+    ).toBe(0);
+  });
+
+  it("counts lines missing batch or expiry when tracking is enabled", () => {
+    expect(
+      countLinesMissingBatchOrExpiry(
+        [
+          {
+            odoo_product_id: 1,
+            batch: 2,
+            expiry_date: "2026-12-31",
+          },
+          {
+            odoo_product_id: 3,
+            batch: null,
+            expiry_date: null,
+          },
+        ],
+        { batchTrackingEnabled: true },
+      ),
     ).toBe(1);
   });
 

@@ -196,7 +196,9 @@ export type PurchaseOrder = {
 export type InternalOrderLine = {
   id?: number;
   odoo_product_id: number;
+  product_name?: string | null;
   batch?: number | null;
+  batch_number?: string | null;
   quantity: string | number;
   unit_cost?: string | number | null;
   notes?: string | null;
@@ -210,6 +212,7 @@ export type InternalOrder = {
   source_location: number;
   destination_location: number;
   status: InternalOrderStatus;
+  created_by: number | null;
   requested_by: number | null;
   approved_by: number | null;
   dispatched_by: number | null;

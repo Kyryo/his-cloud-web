@@ -35,15 +35,21 @@ const columns: InventoryListTableColumn<InternalOrder>[] = [
 type InternalOrdersTableProps = {
   orders: InternalOrder[];
   onRowClick?: (order: InternalOrder) => void;
+  compact?: boolean;
 };
 
-export function InternalOrdersTable({ orders, onRowClick }: InternalOrdersTableProps) {
+export function InternalOrdersTable({
+  orders,
+  onRowClick,
+  compact = false,
+}: InternalOrdersTableProps) {
   return (
     <InventoryListTable
       items={orders}
       columns={columns}
       getRowKey={(order) => order.uuid}
       onRowClick={onRowClick}
+      compact={compact}
     />
   );
 }

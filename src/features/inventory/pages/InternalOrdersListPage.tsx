@@ -4,7 +4,6 @@ import { Shuffle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
-import { AddActionButton } from "@/components/ui/app-buttons";
 import { FabButton } from "@/components/ui/fab-button";
 import { ROUTES } from "@/constants/routes";
 import {
@@ -39,6 +38,7 @@ export function InternalOrdersListPage() {
     totalCount,
     page,
     pageSize,
+    search,
     isLoading,
     isRefreshing,
     error,
@@ -47,6 +47,9 @@ export function InternalOrdersListPage() {
     hasPrevious,
     hasNoRecords,
     isFilteredEmpty,
+    setSearch,
+    handleSearchSubmit,
+    handleClearSearch,
     reload,
     handlePageChange,
   } = useInventoryList<InternalOrder>({ fetchFn });
@@ -65,11 +68,13 @@ export function InternalOrdersListPage() {
   }
 
   return (
-    <ListPageLayout data-testid="inventory-internal-orders-page">
+    <ListPageLayout className="space-y-4" data-testid="inventory-internal-orders-page">
       <CreateInternalOrderDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
-        onCreated={(order) => router.push(ROUTES.inventoryInternalOrderDetail(order.uuid))}
+        onCreated={(order) =>
+          router.push(`${ROUTES.inventoryInternalOrderDetail(order.uuid)}?add-lines=1`)
+        }
       />
 
       <InventoryListPageHeader
@@ -77,6 +82,12 @@ export function InternalOrdersListPage() {
         description="Transfer stock between locations."
         addLabel="New internal order"
         onAdd={handleCreate}
+        search={search}
+        isSearchDisabled={isRefreshing}
+        onSearchChange={setSearch}
+        onSearchSubmit={handleSearchSubmit}
+        onClearSearch={handleClearSearch}
+        searchPlaceholder="Search by reference or notes..."
         data-testid="add-internal-order-button"
       />
 
@@ -87,18 +98,15 @@ export function InternalOrdersListPage() {
       />
 
       {!hasNoRecords ? (
-        <ListPageDataSectionsStack>
+        <ListPageDataSectionsStack className="space-y-2">
           <InventoryListToolbar
-            showSearch={false}
+            search={search}
+            searchPlaceholder="Search by reference or notes..."
             isLoading={isRefreshing}
-            onRefresh={() => void reload()}
-            primaryAction={
-              <AddActionButton
-                label="New internal order"
-                className="hidden sm:inline-flex"
-                onClick={handleCreate}
-              />
-            }
+            onSearchChange={setSearch}
+            onSearchSubmit={handleSearchSubmit}
+            onClearSearch={handleClearSearch}
+            compact
           />
         </ListPageDataSectionsStack>
       ) : null}
@@ -120,17 +128,20 @@ export function InternalOrdersListPage() {
           />
         }
         isFilteredEmpty={isFilteredEmpty}
+        filteredEmptyTitle="No matching internal orders"
       >
-        <InternalOrdersTable orders={items} onRowClick={handleRowClick} />
-        <InventoryListPagination
-          page={page}
-          pageSize={pageSize}
-          totalCount={totalCount}
-          hasNext={hasNext}
-          hasPrevious={hasPrevious}
-          isLoading={isRefreshing}
-          onPageChange={handlePageChange}
-        />
+        <div className="space-y-2">
+          <InternalOrdersTable orders={items} onRowClick={handleRowClick} compact />
+          <InventoryListPagination
+            page={page}
+            pageSize={pageSize}
+            totalCount={totalCount}
+            hasNext={hasNext}
+            hasPrevious={hasPrevious}
+            isLoading={isRefreshing}
+            onPageChange={handlePageChange}
+          />
+        </div>
       </InventoryListPageContent>
     </ListPageLayout>
   );

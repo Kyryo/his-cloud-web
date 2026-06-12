@@ -52,12 +52,19 @@ export function linesMissingProductName(lines: PurchaseOrderLineDraft[]): boolea
   return lines.some((line) => line.odoo_product_id && !line.productName);
 }
 
-export function lineMissingBatchOrExpiry(line: {
-  odoo_product_id: number | null;
-  batch?: number | null;
-  expiry_date?: string | null;
-}): boolean {
-  if (!line.odoo_product_id) {
+export type BatchValidationOptions = {
+  batchTrackingEnabled?: boolean;
+};
+
+export function lineMissingBatchOrExpiry(
+  line: {
+    odoo_product_id: number | null;
+    batch?: number | null;
+    expiry_date?: string | null;
+  },
+  options: BatchValidationOptions = {},
+): boolean {
+  if (!options.batchTrackingEnabled || !line.odoo_product_id) {
     return false;
   }
 
@@ -70,17 +77,21 @@ export function countLinesMissingBatchOrExpiry(
     batch?: number | null;
     expiry_date?: string | null;
   }>,
+  options: BatchValidationOptions = {},
 ): number {
-  return lines.filter((line) => lineMissingBatchOrExpiry(line)).length;
+  return lines.filter((line) => lineMissingBatchOrExpiry(line, options)).length;
 }
 
-export function getLineValidationIssues(line: PurchaseOrderLineDraft): string[] {
+export function getLineValidationIssues(
+  line: PurchaseOrderLineDraft,
+  options: BatchValidationOptions = {},
+): string[] {
   if (!line.odoo_product_id) {
     return [];
   }
 
   const issues: string[] = [];
-  if (lineMissingBatchOrExpiry(line)) {
+  if (lineMissingBatchOrExpiry(line, options)) {
     issues.push("batch");
   }
   if (parseDraftNumber(line.quantity) <= 0) {
@@ -92,8 +103,11 @@ export function getLineValidationIssues(line: PurchaseOrderLineDraft): string[] 
   return issues;
 }
 
-export function countLinesWithValidationIssues(lines: PurchaseOrderLineDraft[]): number {
-  return lines.filter((line) => getLineValidationIssues(line).length > 0).length;
+export function countLinesWithValidationIssues(
+  lines: PurchaseOrderLineDraft[],
+  options: BatchValidationOptions = {},
+): number {
+  return lines.filter((line) => getLineValidationIssues(line, options).length > 0).length;
 }
 
 export function calculateDraftsTotalQuantity(lines: PurchaseOrderLineDraft[]): number {
