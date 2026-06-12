@@ -75,6 +75,43 @@ describe("customer-insurance.schema", () => {
       relationship_to_principal_member: "Self",
     });
   });
+
+  it("requires a dependent relationship", () => {
+    const result = createCustomerInsuranceSchema.safeParse({
+      ...createCustomerInsuranceDefaultValues,
+      insurance_scheme: 12,
+      membership_number: "MEM123",
+      suffix: "001",
+      principal_member_name: "Jane Doe",
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(
+        result.error.flatten().fieldErrors
+          .relationship_to_principal_member,
+      ).toContain("Relationship to principal member is required.");
+    }
+  });
+
+  it("rejects Self as a dependent relationship", () => {
+    const result = createCustomerInsuranceSchema.safeParse({
+      ...createCustomerInsuranceDefaultValues,
+      insurance_scheme: 12,
+      membership_number: "MEM123",
+      suffix: "001",
+      principal_member_name: "Jane Doe",
+      relationship_to_principal_member: "Self",
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(
+        result.error.flatten().fieldErrors
+          .relationship_to_principal_member,
+      ).toContain("A dependent's relationship cannot be Self.");
+    }
+  });
 });
 
 describe("customer-address.schema", () => {

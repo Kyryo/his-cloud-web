@@ -46,6 +46,11 @@ export function CustomerInsuranceFormFields({
 }: CustomerInsuranceFormFieldsProps) {
   const isPrincipalMember = form.watch("is_principal_member");
   const dateJoinedNotAvailable = form.watch("date_joined_not_available");
+  const availableRelationships = isPrincipalMember
+    ? PRINCIPAL_MEMBER_RELATIONSHIPS
+    : PRINCIPAL_MEMBER_RELATIONSHIPS.filter(
+        (relationship) => relationship !== "Self",
+      );
 
   function handleDateJoinedChange(value: string) {
     if (dateJoinedNotAvailable) {
@@ -251,7 +256,10 @@ export function CustomerInsuranceFormFields({
                 ) : null}
               </FormLabel>
               <FormControl>
-                <Input disabled={isSubmitting} {...field} />
+                <Input
+                  disabled={isSubmitting || isPrincipalMember}
+                  {...field}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -265,17 +273,19 @@ export function CustomerInsuranceFormFields({
             <FormItem>
               <FormLabel>Relationship to principal member</FormLabel>
               <Select
-                disabled={isSubmitting}
+                disabled={isSubmitting || isPrincipalMember}
                 onValueChange={field.onChange}
                 value={field.value || undefined}
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select relationship" />
+                    <SelectValue placeholder="Select relationship">
+                      {isPrincipalMember ? "Self" : undefined}
+                    </SelectValue>
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent className={appFont.className}>
-                  {PRINCIPAL_MEMBER_RELATIONSHIPS.map((relationship) => (
+                  {availableRelationships.map((relationship) => (
                     <SelectItem key={relationship} value={relationship}>
                       {relationship}
                     </SelectItem>

@@ -33,14 +33,33 @@ export const createCustomerInsuranceSchema = z
     is_active: z.boolean(),
   })
   .superRefine((values, ctx) => {
-    if (
-      !values.is_principal_member &&
-      !values.principal_member_name.trim()
-    ) {
+    if (!values.is_principal_member && !values.principal_member_name.trim()) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["principal_member_name"],
         message: "Principal member name is required.",
+      });
+    }
+
+    if (
+      !values.is_principal_member &&
+      !values.relationship_to_principal_member
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["relationship_to_principal_member"],
+        message: "Relationship to principal member is required.",
+      });
+    }
+
+    if (
+      !values.is_principal_member &&
+      values.relationship_to_principal_member === "Self"
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["relationship_to_principal_member"],
+        message: "A dependent's relationship cannot be Self.",
       });
     }
 
