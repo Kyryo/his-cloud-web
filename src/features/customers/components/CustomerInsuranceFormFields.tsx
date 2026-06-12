@@ -46,11 +46,9 @@ export function CustomerInsuranceFormFields({
 }: CustomerInsuranceFormFieldsProps) {
   const isPrincipalMember = form.watch("is_principal_member");
   const dateJoinedNotAvailable = form.watch("date_joined_not_available");
-  const availableRelationships = isPrincipalMember
-    ? PRINCIPAL_MEMBER_RELATIONSHIPS
-    : PRINCIPAL_MEMBER_RELATIONSHIPS.filter(
-        (relationship) => relationship !== "Self",
-      );
+  const availableRelationships = PRINCIPAL_MEMBER_RELATIONSHIPS.filter(
+    (relationship) => relationship !== "Self",
+  );
 
   function handleDateJoinedChange(value: string) {
     if (dateJoinedNotAvailable) {
@@ -272,26 +270,30 @@ export function CustomerInsuranceFormFields({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Relationship to principal member</FormLabel>
-              <Select
-                disabled={isSubmitting || isPrincipalMember}
-                onValueChange={field.onChange}
-                value={field.value || undefined}
-              >
+              {isPrincipalMember ? (
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select relationship">
-                      {isPrincipalMember ? "Self" : undefined}
-                    </SelectValue>
-                  </SelectTrigger>
+                  <Input disabled value="Self" />
                 </FormControl>
-                <SelectContent className={appFont.className}>
-                  {availableRelationships.map((relationship) => (
-                    <SelectItem key={relationship} value={relationship}>
-                      {relationship}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              ) : (
+                <Select
+                  disabled={isSubmitting}
+                  onValueChange={field.onChange}
+                  value={field.value || undefined}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select relationship" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent className={appFont.className}>
+                    {availableRelationships.map((relationship) => (
+                      <SelectItem key={relationship} value={relationship}>
+                        {relationship}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
               <FormMessage />
             </FormItem>
           )}
