@@ -18,6 +18,7 @@ function createOrder(overrides: Partial<PurchaseOrder> = {}): PurchaseOrder {
     invoice_date: null,
     receiving_location: 1,
     status: "DRAFT",
+    created_by: null,
     received_by: null,
     received_at: null,
     confirmed_by: null,

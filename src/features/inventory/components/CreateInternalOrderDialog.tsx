@@ -1,24 +1,24 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 
-import { TabbedDialog } from "@/components/ui/tabbed-dialog";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
+import { Form } from "@/components/ui/form";
+import { TabbedDialog } from "@/components/ui/tabbed-dialog";
+import { InternalOrderFormContent } from "@/features/inventory/components/InternalOrderFormContent";
 import {
-  createEmptyLineItem,
-  InventoryLineItemsEditor,
-  type InventoryLineItemDraft,
-} from "@/features/inventory/components/forms/InventoryLineItemsEditor";
-import { InventoryLocationSelect } from "@/features/inventory/components/InventoryLocationSelect";
-import {
-  createInternalOrder,
-  type InternalOrderPayload,
-} from "@/features/inventory/services/internal-orders.service";
-import type {
-  InternalOrder,
-  InternalOrderLine,
-} from "@/features/inventory/types/inventory.types";
+  createInternalOrderDefaultValues,
+  createInternalOrderSchema,
+  toCreateInternalOrderPayload,
+  type CreateInternalOrderFormValues,
+} from "@/features/inventory/schemas/internal-order.schema";
+import { createInternalOrder } from "@/features/inventory/services/internal-orders.service";
+import type { InternalOrder } from "@/features/inventory/types/inventory.types";
+import { BffError } from "@/lib/bff-client";
+import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
 import { useToast } from "@/providers/toast-provider";
 
@@ -28,7 +28,7 @@ type CreateInternalOrderDialogProps = {
   onCreated: (order: InternalOrder) => void;
 };
 
-type CreateInternalOrderTab = "details" | "lines";
+const DETAILS_TAB = "details";
 
 export function CreateInternalOrderDialog({
   open,
@@ -36,109 +36,64 @@ export function CreateInternalOrderDialog({
   onCreated,
 }: CreateInternalOrderDialogProps) {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState<CreateInternalOrderTab>("details");
-  const [sourceLocation, setSourceLocation] = useState<string>("");
-  const [destinationLocation, setDestinationLocation] = useState<string>("");
-  const [lines, setLines] = useState<InventoryLineItemDraft[]>([createEmptyLineItem()]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function resetForm() {
-    setActiveTab("details");
-    setSourceLocation("");
-    setDestinationLocation("");
-    setLines([createEmptyLineItem()]);
-  }
+  const form = useForm<CreateInternalOrderFormValues>({
+    resolver: zodResolver(createInternalOrderSchema),
+    defaultValues: createInternalOrderDefaultValues(),
+  });
 
   useEffect(() => {
-    if (!open) {
-      resetForm();
+    if (open) {
+      form.reset(createInternalOrderDefaultValues());
     }
-  }, [open]);
+  }, [form, open]);
 
-  async function handleCreate() {
-    if (!sourceLocation || !destinationLocation) {
-      toast({
-        title: "Locations required",
-        description: "Choose both source and destination locations.",
-        variant: "error",
-      });
-      setActiveTab("details");
-      return;
-    }
-
-    if (sourceLocation === destinationLocation) {
-      toast({
-        title: "Locations must differ",
-        description: "Source and destination cannot be the same location.",
-        variant: "error",
-      });
-      setActiveTab("details");
-      return;
-    }
-
-    const validLines: InternalOrderLine[] = lines
-      .filter((line) => line.odoo_product_id)
-      .map((line) => ({
-        odoo_product_id: line.odoo_product_id!,
-        quantity: line.quantity,
-      }));
-
-    if (validLines.length === 0) {
-      toast({
-        title: "Line items required",
-        description: "Add at least one product to this internal order.",
-        variant: "error",
-      });
-      setActiveTab("lines");
-      return;
-    }
-
-    const payload: InternalOrderPayload = {
-      source_location: Number(sourceLocation),
-      destination_location: Number(destinationLocation),
-      lines: validLines,
-    };
-
-    setIsSubmitting(true);
+  const handleSubmit = form.handleSubmit(async (values) => {
     try {
-      const order = await createInternalOrder(payload);
+      const order = await createInternalOrder(toCreateInternalOrderPayload(values));
       toast({
-        title: "Internal order created",
-        description: `${order.reference_number} is ready for review.`,
         variant: "success",
+        title: "Internal order created",
+        description: `${order.reference_number} is ready for line items.`,
       });
-      resetForm();
-      onOpenChange(false);
       onCreated(order);
-    } catch (err) {
-      toast({
-        title: "Could not create internal order",
-        description: err instanceof Error ? err.message : "Something went wrong.",
-        variant: "error",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
+      onOpenChange(false);
+    } catch (error) {
+      if (error instanceof BffError) {
+        const fieldErrors = mapBffErrorsToForm(error.errors);
+        for (const [field, message] of Object.entries(fieldErrors)) {
+          if (field in createInternalOrderDefaultValues()) {
+            form.setError(field as keyof CreateInternalOrderFormValues, { message });
+          }
+        }
 
-  const tabs = [
-    { id: "details", label: "Details" },
-    { id: "lines", label: "Line items" },
-  ];
+        toast({
+          variant: "error",
+          title: "Could not create internal order",
+          description: formatBffErrorMessage(error.message, error.errors),
+        });
+        return;
+      }
+
+      toast({
+        variant: "error",
+        title: "Could not create internal order",
+        description: error instanceof Error ? error.message : "Something went wrong.",
+      });
+    }
+  });
+
+  const isSubmitting = form.formState.isSubmitting;
 
   return (
     <TabbedDialog
       open={open}
       onOpenChange={onOpenChange}
       title="New internal order"
-      description="Transfer stock between locations with a draft internal order."
-      tabs={tabs}
-      activeTab={activeTab}
-      onTabChange={(tabId) => {
-        if (tabId === "details" || tabId === "lines") {
-          setActiveTab(tabId);
-        }
-      }}
+      description="Choose source and destination locations. You can add line items on the next screen."
+      tabs={[{ id: DETAILS_TAB, label: "Details" }]}
+      activeTab={DETAILS_TAB}
+      onTabChange={() => undefined}
       className={appFont.className}
       data-testid="create-internal-order-dialog"
       footer={
@@ -150,58 +105,33 @@ export function CreateInternalOrderDialog({
           >
             Cancel
           </SecondaryButton>
-          {activeTab === "details" ? (
-            <PrimaryButton
-              type="button"
-              disabled={isSubmitting}
-              onClick={() => setActiveTab("lines")}
-            >
-              Continue to line items
-            </PrimaryButton>
-          ) : (
-            <PrimaryButton
-              type="button"
-              disabled={isSubmitting}
-              onClick={() => void handleCreate()}
-              data-testid="create-internal-order-submit"
-            >
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                  Creating...
-                </>
-              ) : (
-                "Create order"
-              )}
-            </PrimaryButton>
-          )}
+          <PrimaryButton
+            type="button"
+            disabled={isSubmitting}
+            onClick={() => void handleSubmit()}
+            data-testid="create-internal-order-submit"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                Creating...
+              </>
+            ) : (
+              "Create internal order"
+            )}
+          </PrimaryButton>
         </>
       }
     >
-      {activeTab === "details" ? (
-        <div className="grid gap-4 sm:grid-cols-2">
-          <InventoryLocationSelect
-            id="io-source-location"
-            label="Source location"
-            value={sourceLocation}
-            onValueChange={(locationId) => setSourceLocation(String(locationId))}
+      <Form {...form}>
+        <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
+          <InternalOrderFormContent
+            form={form}
+            sourceLocationSelectId="create-io-source-location"
+            destinationLocationSelectId="create-io-destination-location"
           />
-          <InventoryLocationSelect
-            id="io-destination-location"
-            label="Destination location"
-            value={destinationLocation}
-            onValueChange={(locationId) =>
-              setDestinationLocation(String(locationId))
-            }
-          />
-        </div>
-      ) : (
-        <InventoryLineItemsEditor
-          lines={lines}
-          onChange={setLines}
-          showUnitCost={false}
-        />
-      )}
+        </form>
+      </Form>
     </TabbedDialog>
   );
 }

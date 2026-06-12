@@ -15,6 +15,7 @@ import { PurchaseOrderDetailActivityTab } from "@/features/inventory/components/
 import { PurchaseOrderDetailNotesTab } from "@/features/inventory/components/detail/PurchaseOrderDetailNotesTab";
 import { PurchaseOrderLinesEditor } from "@/features/inventory/components/detail/PurchaseOrderLinesEditor";
 import { PurchaseOrderSummarySidebar } from "@/features/inventory/components/detail/PurchaseOrderSummarySidebar";
+import { useClinicBatchTrackingForLocation } from "@/features/inventory/hooks/use-clinic-batch-tracking";
 import type { PurchaseOrder } from "@/features/inventory/types/inventory.types";
 import type { PurchaseOrderLineDraft } from "@/features/inventory/types/purchase-order-line-draft";
 import { buildPurchaseOrderActivityItems } from "@/features/inventory/utils/purchase-order-activity";
@@ -57,6 +58,9 @@ export function PurchaseOrderDetailTabs({
   );
   const [draftLines, setDraftLines] = useState<PurchaseOrderLineDraft[] | null>(null);
   const [validationIssueCount, setValidationIssueCount] = useState(0);
+  const { batchTrackingEnabled } = useClinicBatchTrackingForLocation(
+    order.receiving_location,
+  );
 
   const activityCount = useMemo(
     () => buildPurchaseOrderActivityItems(order).length,
@@ -85,6 +89,7 @@ export function PurchaseOrderDetailTabs({
       <PurchaseOrderSummarySidebar
         order={order}
         draftLines={draftLines ?? undefined}
+        batchTrackingEnabled={batchTrackingEnabled}
         onEditClick={canEditLines ? onUpdateClick : undefined}
       />
     </div>
@@ -140,6 +145,7 @@ export function PurchaseOrderDetailTabs({
               order={order}
               canEdit={canEditLines}
               currency={currency}
+              batchTrackingEnabled={batchTrackingEnabled}
               autoAddLine={autoAddLine}
               onUpdated={onOrderUpdated}
               onError={onError}

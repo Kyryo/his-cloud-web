@@ -2,15 +2,18 @@
 
 import { Check } from "lucide-react";
 
-import type { PurchaseOrder, PurchaseStatus } from "@/features/inventory/types/inventory.types";
+import type {
+  InternalOrder,
+  InternalOrderStatus,
+} from "@/features/inventory/types/inventory.types";
 import { cn } from "@/lib/utils";
 
-const STEPS = ["Draft", "Submitted", "Approved"] as const;
+const STEPS = ["Draft", "Submitted", "Approved", "Dispatched", "Received"] as const;
 
-function getActiveStepIndex(order: PurchaseOrder): number {
-  const status = order.status as PurchaseStatus;
+function getActiveStepIndex(order: InternalOrder): number {
+  const status = order.status as InternalOrderStatus;
 
-  if (status === "CANCELLED") {
+  if (status === "CANCELLED" || status === "REJECTED") {
     return -1;
   }
   if (status === "DRAFT") {
@@ -19,28 +22,39 @@ function getActiveStepIndex(order: PurchaseOrder): number {
   if (status === "SUBMITTED") {
     return 1;
   }
-  if (status === "CONFIRMED") {
+  if (status === "APPROVED") {
     return 2;
+  }
+  if (status === "DISPATCHED") {
+    return 3;
+  }
+  if (status === "RECEIVED") {
+    return 4;
   }
 
   return 0;
 }
 
-type PurchaseOrderStatusStepperProps = {
-  order: PurchaseOrder;
+type InternalOrderStatusStepperProps = {
+  order: InternalOrder;
 };
 
-export function PurchaseOrderStatusStepper({ order }: PurchaseOrderStatusStepperProps) {
+export function InternalOrderStatusStepper({ order }: InternalOrderStatusStepperProps) {
   const activeIndex = getActiveStepIndex(order);
-  const isCancelled = order.status === "CANCELLED";
+  const isTerminal =
+    order.status === "CANCELLED" || order.status === "REJECTED";
 
   return (
-    <div className="space-y-2" data-testid="purchase-order-status-stepper">
+    <div className="space-y-2" data-testid="internal-order-status-stepper">
       <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-muted">
         Order progress
       </p>
-      {isCancelled ? (
-        <p className="text-sm font-medium text-red-700">This purchase order was cancelled.</p>
+      {isTerminal ? (
+        <p className="text-sm font-medium text-red-700">
+          {order.status === "REJECTED"
+            ? "This internal order was rejected."
+            : "This internal order was cancelled."}
+        </p>
       ) : (
         <ol className="flex items-center gap-1">
           {STEPS.map((label, index) => {

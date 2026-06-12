@@ -1,7 +1,7 @@
 "use client";
 
 import { PanelRight } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { FabButton } from "@/components/ui/fab-button";
 import {
@@ -11,87 +11,78 @@ import {
   DetailPageTabsNavSection,
   DetailPageTabsSection,
 } from "@/features/app-shell/components/page-layout";
-import { InventorySummaryPanel } from "@/features/inventory/components/InventorySummaryPanel";
-import {
-  InventoryListTable,
-  type InventoryListTableColumn,
-} from "@/features/inventory/components/list/InventoryListTable";
+import { InternalOrderDetailActivityTab } from "@/features/inventory/components/detail/InternalOrderDetailActivityTab";
+import { InternalOrderDetailNotesTab } from "@/features/inventory/components/detail/InternalOrderDetailNotesTab";
+import { InternalOrderLinesEditor } from "@/features/inventory/components/detail/InternalOrderLinesEditor";
+import { InternalOrderSummarySidebar } from "@/features/inventory/components/detail/InternalOrderSummarySidebar";
+import { useClinicBatchTrackingForLocation } from "@/features/inventory/hooks/use-clinic-batch-tracking";
 import type { InternalOrder } from "@/features/inventory/types/inventory.types";
-import {
-  formatDisplayDateTime,
-  formatInternalOrderStatusLabel,
-  formatInventoryQuantity,
-} from "@/features/inventory/utils/format-inventory";
+import type { InternalOrderLineDraft } from "@/features/inventory/types/internal-order-line-draft";
+import { buildInternalOrderActivityItems } from "@/features/inventory/utils/internal-order-activity";
 import { cn } from "@/lib/utils";
 
 type InternalOrderDetailTabsProps = {
   order: InternalOrder;
+  canEditLines: boolean;
+  autoAddLine?: boolean;
+  onUpdateClick?: () => void;
+  onOrderUpdated: (order: InternalOrder) => void;
+  onError: (message: string) => void;
+  onLinesStateChange?: (state: {
+    lineCount: number;
+    isDirty: boolean;
+    draftLines: InternalOrderLineDraft[];
+    validationIssueCount: number;
+  }) => void;
 };
 
-type DetailTabId = "lines" | "summary";
+type DetailTabId = "lines" | "notes" | "activity";
 
-const lineColumns: InventoryListTableColumn<InternalOrder["lines"][number]>[] = [
-  {
-    key: "product",
-    label: "Product",
-    cellClassName: "font-mono font-medium text-brand-navy",
-    render: (line) => line.odoo_product_id,
-  },
-  {
-    key: "qty",
-    label: "Qty",
-    headerClassName: "text-right",
-    cellClassName: "text-right",
-    render: (line) => formatInventoryQuantity(line.quantity),
-  },
-];
-
-function InternalOrderSummaryContent({ order }: { order: InternalOrder }) {
-  return (
-    <InventorySummaryPanel
-      className="p-0"
-      sections={[
-        {
-          title: "Order summary",
-          fields: [
-            { label: "Reference", value: order.reference_number },
-            { label: "Status", value: formatInternalOrderStatusLabel(order.status) },
-            { label: "Source location", value: order.source_location },
-            { label: "Destination location", value: order.destination_location },
-            { label: "Approved", value: formatDisplayDateTime(order.approved_at) },
-            { label: "Dispatched", value: formatDisplayDateTime(order.dispatched_at) },
-            { label: "Received", value: formatDisplayDateTime(order.received_at) },
-            { label: "Created", value: formatDisplayDateTime(order.created_at) },
-          ],
-        },
-      ]}
-    />
-  );
-}
-
-export function InternalOrderDetailTabs({ order }: InternalOrderDetailTabsProps) {
+export function InternalOrderDetailTabs({
+  order,
+  canEditLines,
+  autoAddLine = false,
+  onUpdateClick,
+  onOrderUpdated,
+  onError,
+  onLinesStateChange,
+}: InternalOrderDetailTabsProps) {
   const [activeTab, setActiveTab] = useState<DetailTabId>("lines");
   const [showSummaryPanel, setShowSummaryPanel] = useState(false);
+  const [lineCount, setLineCount] = useState(order.lines.length);
+  const [draftLines, setDraftLines] = useState<InternalOrderLineDraft[] | null>(null);
+  const [validationIssueCount, setValidationIssueCount] = useState(0);
+  const { batchTrackingEnabled } = useClinicBatchTrackingForLocation(order.source_location);
+
+  const activityCount = useMemo(
+    () => buildInternalOrderActivityItems(order).length,
+    [order],
+  );
+
+  const handleLinesStateChange = useCallback(
+    (state: {
+      lineCount: number;
+      isDirty: boolean;
+      draftLines: InternalOrderLineDraft[];
+      validationIssueCount: number;
+    }) => {
+      setLineCount(state.lineCount);
+      setDraftLines(state.draftLines);
+      setValidationIssueCount(state.validationIssueCount);
+      onLinesStateChange?.(state);
+    },
+    [onLinesStateChange],
+  );
 
   const summaryPanel = (
-    <InventorySummaryPanel
-      className={cn(!showSummaryPanel && "hidden xl:block")}
-      sections={[
-        {
-          title: "Order summary",
-          fields: [
-            { label: "Reference", value: order.reference_number },
-            { label: "Status", value: formatInternalOrderStatusLabel(order.status) },
-            { label: "Source location", value: order.source_location },
-            { label: "Destination location", value: order.destination_location },
-            { label: "Approved", value: formatDisplayDateTime(order.approved_at) },
-            { label: "Dispatched", value: formatDisplayDateTime(order.dispatched_at) },
-            { label: "Received", value: formatDisplayDateTime(order.received_at) },
-            { label: "Created", value: formatDisplayDateTime(order.created_at) },
-          ],
-        },
-      ]}
-    />
+    <div className={cn(!showSummaryPanel && "hidden xl:block")}>
+      <InternalOrderSummarySidebar
+        order={order}
+        draftLines={draftLines ?? undefined}
+        batchTrackingEnabled={batchTrackingEnabled}
+        onEditClick={canEditLines ? onUpdateClick : undefined}
+      />
+    </div>
   );
 
   return (
@@ -101,40 +92,65 @@ export function InternalOrderDetailTabs({ order }: InternalOrderDetailTabsProps)
           isActive={activeTab === "lines"}
           onClick={() => setActiveTab("lines")}
         >
-          Line items{order.lines.length > 0 ? ` (${order.lines.length})` : ""}
+          <span className="relative inline-flex items-center gap-2">
+            Line items
+            {lineCount > 0 ? (
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-brand-muted">
+                {lineCount}
+              </span>
+            ) : null}
+            {canEditLines && validationIssueCount > 0 ? (
+              <span
+                className="absolute -right-1 -top-1 size-2 rounded-full bg-red-500"
+                aria-label="Line item validation warnings"
+              />
+            ) : null}
+          </span>
         </DetailPageTabNavItem>
         <DetailPageTabNavItem
-          isActive={activeTab === "summary"}
-          onClick={() => setActiveTab("summary")}
+          isActive={activeTab === "notes"}
+          onClick={() => setActiveTab("notes")}
         >
-          Summary
+          Notes
+        </DetailPageTabNavItem>
+        <DetailPageTabNavItem
+          isActive={activeTab === "activity"}
+          onClick={() => setActiveTab("activity")}
+        >
+          <span className="inline-flex items-center gap-2">
+            Activity
+            {activityCount > 0 ? (
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-brand-muted">
+                {activityCount}
+              </span>
+            ) : null}
+          </span>
         </DetailPageTabNavItem>
       </DetailPageTabsNavSection>
 
       <DetailPageMainAsideGrid>
         <DetailPageMainSection>
           {activeTab === "lines" ? (
-            order.lines.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-brand-border bg-white px-6 py-14 text-center">
-                <p className="text-sm font-medium text-brand-navy">No line items</p>
-                <p className="mt-2 text-sm text-brand-muted">
-                  Line items will appear here once added to this order.
-                </p>
-              </div>
-            ) : (
-              <InventoryListTable
-                items={order.lines}
-                columns={lineColumns}
-                getRowKey={(line) =>
-                  String(line.id ?? `${line.odoo_product_id}-${line.quantity}`)
-                }
-              />
-            )
-          ) : (
-            <div className="rounded-xl border border-brand-border bg-white p-6 xl:hidden">
-              <InternalOrderSummaryContent order={order} />
-            </div>
-          )}
+            <InternalOrderLinesEditor
+              order={order}
+              canEdit={canEditLines}
+              batchTrackingEnabled={batchTrackingEnabled}
+              autoAddLine={autoAddLine}
+              onUpdated={onOrderUpdated}
+              onError={onError}
+              onStateChange={handleLinesStateChange}
+            />
+          ) : null}
+          <InternalOrderDetailNotesTab
+            order={order}
+            canEdit={canEditLines}
+            isActive={activeTab === "notes"}
+            onUpdated={onOrderUpdated}
+          />
+          <InternalOrderDetailActivityTab
+            order={order}
+            isActive={activeTab === "activity"}
+          />
         </DetailPageMainSection>
 
         {summaryPanel}
