@@ -3,6 +3,7 @@
 import { CalendarPlus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
+import { TabAddActionButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
 import { StatsCard1, StatsCard1Grid } from "@/components/stats-card1";
 import { CreateAppointmentDialog } from "@/features/appointments/components/CreateAppointmentDialog";
@@ -38,6 +39,15 @@ function canConfirm(appointment: Appointment) {
 
 function canCancel(appointment: Appointment) {
   return ["scheduled", "confirmed"].includes(appointment.status);
+}
+
+function formatAppointmentMeta(appointment: Appointment) {
+  return [
+    appointment.reason || "No reason provided",
+    appointment.location_name,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 export function CustomerDetailAppointmentsTab({
@@ -115,6 +125,14 @@ export function CustomerDetailAppointmentsTab({
     }
   };
 
+  const scheduleButton = (
+    <TabAddActionButton
+      label="Schedule appointment"
+      onClick={() => setCreateOpen(true)}
+      data-testid="schedule-appointment-button"
+    />
+  );
+
   if (!isActive) {
     return null;
   }
@@ -173,41 +191,40 @@ export function CustomerDetailAppointmentsTab({
           <StatsCard1 title="Upcoming" value={formatCompactNumber(upcomingCount)} />
           <StatsCard1 title="Completed" value={formatCompactNumber(completedCount)} />
         </StatsCard1Grid>
-        <Button onClick={() => setCreateOpen(true)} className="shrink-0">
-          <CalendarPlus className="mr-2 size-4" aria-hidden="true" />
-          Schedule appointment
-        </Button>
+        {appointments.length > 0 ? scheduleButton : null}
       </div>
 
       {appointments.length === 0 ? (
         <CustomerDetailTabEmptyState
           icon={CalendarPlus}
           title="No appointments yet"
-          description="Schedule the client's next visit using the button above."
+          description="Schedule the client's next visit to reserve clinic time in advance."
+          action={scheduleButton}
           data-testid="customer-appointments-empty-state"
         />
       ) : (
         <CustomerDetailRecordList
           title="Appointments"
           description="Upcoming and recent appointments for this client."
+          action={scheduleButton}
           data-testid="customer-appointments-list"
         >
           {appointments.map((appointment) => (
             <CustomerDetailRecordListItem
               key={appointment.uuid}
-              icon={CalendarPlus}
+              compact
               title={`${appointment.department_name} · ${appointment.clinic_name}`}
               badges={<AppointmentStatusBadge status={appointment.status} />}
               description={
-                <div className="space-y-1">
-                  <p>{appointment.reason || "No reason provided"}</p>
-                  {appointment.location_name ? <p>{appointment.location_name}</p> : null}
-                  <div className="flex flex-wrap gap-2 pt-1">
+                <div className="space-y-1.5">
+                  <p>{formatAppointmentMeta(appointment)}</p>
+                  <div className="flex flex-wrap gap-1.5 pt-0.5">
                     {canConfirm(appointment) ? (
                       <Button
                         type="button"
                         size="sm"
                         variant="outline"
+                        className="h-7 px-2.5 text-xs"
                         disabled={actionUuid === appointment.uuid}
                         onClick={() => void handleAction(appointment, "confirm")}
                       >
@@ -218,6 +235,8 @@ export function CustomerDetailAppointmentsTab({
                       <Button
                         type="button"
                         size="sm"
+                        variant="outline"
+                        className="h-7 px-2.5 text-xs"
                         onClick={() => setStartingAppointment(appointment)}
                       >
                         Start visit
@@ -228,6 +247,7 @@ export function CustomerDetailAppointmentsTab({
                         type="button"
                         size="sm"
                         variant="ghost"
+                        className="h-7 px-2 text-xs text-brand-muted hover:text-brand-navy"
                         disabled={actionUuid === appointment.uuid}
                         onClick={() => void handleAction(appointment, "cancel")}
                       >

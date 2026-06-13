@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   ArrowLeftRight,
   Calendar,
+  CalendarClock,
   ClipboardList,
   FileText,
   FlaskConical,
@@ -73,6 +74,13 @@ export const navigation: NavigationItem[] = [
     name: "Clients",
     href: ROUTES.customers,
     icon: User,
+    requiredGroup: "Registration",
+    enabledInWebNew: true,
+  },
+  {
+    name: "Appointments",
+    href: ROUTES.appointments,
+    icon: CalendarClock,
     requiredGroup: "Registration",
     enabledInWebNew: true,
   },

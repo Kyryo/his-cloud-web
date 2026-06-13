@@ -2,27 +2,27 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import type { FetchVisitsOptions } from "@/features/visits/types/visit.types";
+import type { FetchAppointmentsOptions } from "@/features/appointments/types/appointment.types";
 import type { PaginatedListResponse } from "@/types/api.types";
 
 const DEFAULT_PAGE_SIZE = 20;
 
 const EMPTY_EXTRA_FILTERS: Omit<
-  FetchVisitsOptions,
+  FetchAppointmentsOptions,
   "page" | "pageSize" | "search"
 > = {};
 
-type UseVisitsListOptions<T> = {
-  fetchFn: (filters: FetchVisitsOptions) => Promise<PaginatedListResponse<T>>;
+type UseAppointmentsListOptions<T> = {
+  fetchFn: (filters: FetchAppointmentsOptions) => Promise<PaginatedListResponse<T>>;
   pageSize?: number;
-  extraFilters?: Omit<FetchVisitsOptions, "page" | "pageSize" | "search">;
+  extraFilters?: Omit<FetchAppointmentsOptions, "page" | "pageSize" | "search">;
 };
 
-export function useVisitsList<T>({
+export function useAppointmentsList<T>({
   fetchFn,
   pageSize = DEFAULT_PAGE_SIZE,
   extraFilters,
-}: UseVisitsListOptions<T>) {
+}: UseAppointmentsListOptions<T>) {
   const resolvedExtraFilters = extraFilters ?? EMPTY_EXTRA_FILTERS;
   const [items, setItems] = useState<T[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -58,7 +58,7 @@ export function useVisitsList<T>({
       setTotalCount(response.pagination?.count ?? response.results.length);
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : "Failed to load visits.";
+        err instanceof Error ? err.message : "Failed to load appointments.";
       setError(message);
       if (message.toLowerCase().includes("unauthorized")) {
         setIsUnauthorized(true);
@@ -85,7 +85,7 @@ export function useVisitsList<T>({
       } catch (err) {
         if (active) {
           const message =
-            err instanceof Error ? err.message : "Failed to load visits.";
+            err instanceof Error ? err.message : "Failed to load appointments.";
           setError(message);
           if (message.toLowerCase().includes("unauthorized")) {
             setIsUnauthorized(true);

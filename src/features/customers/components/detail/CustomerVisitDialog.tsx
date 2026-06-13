@@ -304,6 +304,12 @@ export function CustomerVisitDialog({
         <DialogContent
           className={cn("flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg", appFont.className)}
         >
+          <DialogHeader className="border-b border-brand-border px-6 py-5">
+            <DialogTitle>Loading visit details</DialogTitle>
+            <DialogDescription className="sr-only">
+              Preparing the start visit form.
+            </DialogDescription>
+          </DialogHeader>
           <div className="flex items-center justify-center gap-2 px-6 py-16 text-sm text-brand-muted">
             <Loader2 className="size-4 animate-spin" aria-hidden="true" />
             Loading visit details...

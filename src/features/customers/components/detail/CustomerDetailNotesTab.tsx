@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { NotebookPen } from "lucide-react";
 
-import { AddActionButton } from "@/components/ui/app-buttons";
+import { TabAddActionButton } from "@/components/ui/app-buttons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AddCustomerNoteDialog } from "@/features/customers/components/detail/AddCustomerNoteDialog";
@@ -150,7 +150,7 @@ export function CustomerDetailNotesTab({
   }
 
   const addButton = (
-    <AddActionButton
+    <TabAddActionButton
       label="Add note"
       onClick={() => setAddDialogOpen(true)}
       data-testid="add-customer-note-button"

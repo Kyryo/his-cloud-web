@@ -34,6 +34,7 @@ export const ROUTES = {
   inventoryBatchDetail: (uuid: string) => `/inventory/batches/${uuid}`,
   inventoryBatchNew: "/inventory/batches/new",
   activeVisits: "/active-visits",
+  appointments: "/appointments",
   visitDetail: (uuid: string) => `/visits/${uuid}`,
   settings: "/settings",
   settingsAccount: "/settings/account",
@@ -61,6 +62,7 @@ export const WEB_NEW_ROUTE_PREFIXES = [
   ROUTES.inventoryMovements,
   ROUTES.inventoryBatches,
   ROUTES.activeVisits,
+  ROUTES.appointments,
   "/visits",
   ROUTES.settings,
   ROUTES.contacts,
@@ -95,6 +97,7 @@ export const PROTECTED_ROUTES = [
   ROUTES.inventoryMovements,
   ROUTES.inventoryBatches,
   ROUTES.activeVisits,
+  ROUTES.appointments,
   "/visits",
   ROUTES.settings,
 ] as const;

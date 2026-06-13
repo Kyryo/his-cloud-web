@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { TabbedDialog } from "@/components/ui/tabbed-dialog";
+import { CustomerSearchCombobox } from "@/features/customers/components/CustomerSearchCombobox";
 import {
   fetchClinicalClinics,
   fetchClinicalDepartments,
@@ -50,28 +51,39 @@ import { appFont } from "@/lib/fonts";
 import { useToast } from "@/providers/toast-provider";
 
 type CreateAppointmentDialogProps = {
-  customer: Customer;
+  customer?: Customer;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated: (appointment: Appointment) => void;
 };
 
-type CreateAppointmentTab = "schedule" | "details";
+type CreateAppointmentTab = "client" | "schedule" | "details";
 
-const TABS = [
+const SCHEDULE_TABS = [
   { id: "schedule" as const, label: "Schedule" },
   { id: "details" as const, label: "Details" },
 ];
 
+const FULL_TABS = [
+  { id: "client" as const, label: "Client" },
+  ...SCHEDULE_TABS,
+];
+
 export function CreateAppointmentDialog({
-  customer,
+  customer: initialCustomer,
   open,
   onOpenChange,
   onCreated,
 }: CreateAppointmentDialogProps) {
   const { toast } = useToast();
   const { userData } = useUser();
-  const [activeTab, setActiveTab] = useState<CreateAppointmentTab>("schedule");
+  const requiresClientSelection = !initialCustomer;
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
+    initialCustomer ?? null,
+  );
+  const [activeTab, setActiveTab] = useState<CreateAppointmentTab>(
+    requiresClientSelection ? "client" : "schedule",
+  );
   const [clinics, setClinics] = useState<ClinicalClinic[]>([]);
   const [departments, setDepartments] = useState<ClinicalDepartment[]>([]);
   const [locations, setLocations] = useState<ClinicalLocation[]>([]);
@@ -87,7 +99,12 @@ export function CreateAppointmentDialog({
     return clinics.find((clinic) => clinic.uuid === selectedClinicUuid)?.id ?? null;
   }, [clinics, selectedClinicUuid]);
 
-  const customerName = useMemo(() => formatCustomerName(customer), [customer]);
+  const customer = initialCustomer ?? selectedCustomer;
+  const customerName = useMemo(
+    () => (customer ? formatCustomerName(customer) : ""),
+    [customer],
+  );
+  const tabs = requiresClientSelection ? FULL_TABS : SCHEDULE_TABS;
 
   const loadDepartmentsAndLocations = useCallback(async (clinicId: number) => {
     const [nextDepartments, nextLocations] = await Promise.all([
@@ -107,7 +124,10 @@ export function CreateAppointmentDialog({
 
     async function loadContext() {
       setIsLoadingContext(true);
-      setActiveTab("schedule");
+      setActiveTab(requiresClientSelection ? "client" : "schedule");
+      if (requiresClientSelection) {
+        setSelectedCustomer(null);
+      }
 
       try {
         const clinicList = await fetchClinicalClinics();
@@ -155,9 +175,26 @@ export function CreateAppointmentDialog({
     return () => {
       active = false;
     };
-  }, [form, loadDepartmentsAndLocations, open, toast, userData?.primary_clinic?.id]);
+  }, [
+    form,
+    loadDepartmentsAndLocations,
+    open,
+    requiresClientSelection,
+    toast,
+    userData?.primary_clinic?.id,
+  ]);
 
   const handleSubmit = form.handleSubmit(async (values) => {
+    if (!customer) {
+      toast({
+        variant: "error",
+        title: "Select a client",
+        description: "Choose a client before scheduling the appointment.",
+      });
+      setActiveTab("client");
+      return;
+    }
+
     try {
       const appointment = await createAppointment(
         toCreateAppointmentPayload(customer.uuid, values),
@@ -200,8 +237,12 @@ export function CreateAppointmentDialog({
       open={open}
       onOpenChange={onOpenChange}
       title="Schedule appointment"
-      description={`Book an appointment for ${customerName}.`}
-      tabs={TABS}
+      description={
+        customerName
+          ? `Book an appointment for ${customerName}.`
+          : "Search for a client, then choose when and where to meet."
+      }
+      tabs={tabs}
       activeTab={activeTab}
       onTabChange={(tabId) => setActiveTab(tabId as CreateAppointmentTab)}
       className={appFont.className}
@@ -215,7 +256,15 @@ export function CreateAppointmentDialog({
           >
             Cancel
           </SecondaryButton>
-          {activeTab === "schedule" ? (
+          {activeTab === "client" ? (
+            <PrimaryButton
+              type="button"
+              disabled={!selectedCustomer}
+              onClick={() => setActiveTab("schedule")}
+            >
+              Continue
+            </PrimaryButton>
+          ) : activeTab === "schedule" ? (
             <PrimaryButton
               type="button"
               disabled={isLoadingContext}
@@ -226,7 +275,7 @@ export function CreateAppointmentDialog({
           ) : (
             <PrimaryButton
               type="button"
-              disabled={isSubmitting || isLoadingContext}
+              disabled={isSubmitting || isLoadingContext || !customer}
               onClick={() => void handleSubmit()}
             >
               {isSubmitting ? (
@@ -242,7 +291,33 @@ export function CreateAppointmentDialog({
         </>
       }
     >
-      {isLoadingContext ? (
+      {activeTab === "client" ? (
+        <section className="space-y-4 rounded-xl border border-brand-border bg-slate-50/40 p-4">
+          <div>
+            <p className="text-sm font-medium text-brand-navy">Client</p>
+            <p className="text-xs text-brand-muted">
+              Search by name, identifier, or phone number.
+            </p>
+          </div>
+
+          <CustomerSearchCombobox
+            value={selectedCustomer?.uuid ?? null}
+            onSelect={setSelectedCustomer}
+          />
+
+          {selectedCustomer ? (
+            <div className="rounded-lg border border-brand-border bg-white px-4 py-3">
+              <p className="text-sm font-medium text-brand-navy">{customerName}</p>
+              <p className="mt-1 text-xs text-brand-muted">
+                {selectedCustomer.customer_identifier}
+                {selectedCustomer.phone_number
+                  ? ` · ${selectedCustomer.phone_number}`
+                  : ""}
+              </p>
+            </div>
+          ) : null}
+        </section>
+      ) : isLoadingContext ? (
         <div className="flex items-center justify-center gap-2 py-10 text-sm text-brand-muted">
           <Loader2 className="size-4 animate-spin" aria-hidden="true" />
           Loading clinics...
@@ -251,10 +326,18 @@ export function CreateAppointmentDialog({
         <Form {...form}>
           <form className="space-y-4">
             {activeTab === "schedule" ? (
-              <>
-                <FormField
-                  control={form.control}
-                  name="clinic"
+              <div className="space-y-4">
+                <section className="space-y-4 rounded-xl border border-brand-border bg-slate-50/40 p-4">
+                  <div>
+                    <p className="text-sm font-medium text-brand-navy">Location</p>
+                    <p className="text-xs text-brand-muted">
+                      Choose where the appointment will take place.
+                    </p>
+                  </div>
+
+                  <FormField
+                    control={form.control}
+                    name="clinic"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>
@@ -350,43 +433,60 @@ export function CreateAppointmentDialog({
                       <FormMessage />
                     </FormItem>
                   )}
-                />
+                  />
+                </section>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <FormField
-                    control={form.control}
-                    name="scheduled_start"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          Start <span className="text-red-500">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input type="datetime-local" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="scheduled_end"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>
-                          End <span className="text-red-500">*</span>
-                        </FormLabel>
-                        <FormControl>
-                          <Input type="datetime-local" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </>
+                <section className="space-y-4 rounded-xl border border-brand-border px-4 py-4">
+                  <div>
+                    <p className="text-sm font-medium text-brand-navy">Time</p>
+                    <p className="text-xs text-brand-muted">
+                      Set the start and end of the appointment window.
+                    </p>
+                  </div>
+
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <FormField
+                      control={form.control}
+                      name="scheduled_start"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            Start <span className="text-red-500">*</span>
+                          </FormLabel>
+                          <FormControl>
+                            <Input type="datetime-local" className="bg-white" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="scheduled_end"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>
+                            End <span className="text-red-500">*</span>
+                          </FormLabel>
+                          <FormControl>
+                            <Input type="datetime-local" className="bg-white" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </section>
+              </div>
             ) : (
-              <>
+              <section className="space-y-4 rounded-xl border border-brand-border bg-slate-50/40 p-4">
+                <div>
+                  <p className="text-sm font-medium text-brand-navy">Visit details</p>
+                  <p className="text-xs text-brand-muted">
+                    Optional context for the care team.
+                  </p>
+                </div>
+
                 <FormField
                   control={form.control}
                   name="reason"
@@ -413,7 +513,7 @@ export function CreateAppointmentDialog({
                     </FormItem>
                   )}
                 />
-              </>
+              </section>
             )}
           </form>
         </Form>

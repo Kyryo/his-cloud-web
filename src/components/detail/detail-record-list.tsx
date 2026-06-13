@@ -17,6 +17,7 @@ type DetailRecordListItemProps = {
   createdByEmail?: string | null;
   onUpdate?: () => void;
   updateLabel?: string;
+  compact?: boolean;
   "data-testid"?: string;
 };
 
@@ -30,10 +31,14 @@ export function DetailRecordListItem({
   createdByEmail,
   onUpdate,
   updateLabel = "Update",
+  compact = false,
   "data-testid": testId,
 }: DetailRecordListItemProps) {
   return (
-    <li className="px-4 py-2.5" data-testid={testId}>
+    <li
+      className={cn("px-4", compact ? "py-2" : "py-2.5")}
+      data-testid={testId}
+    >
       <div className={cn("flex gap-2.5", !Icon && "gap-0")}>
         {Icon ? (
           <div className="flex size-7 shrink-0 items-center justify-center rounded-full border border-brand-border bg-slate-50 text-brand-primary">
@@ -44,7 +49,12 @@ export function DetailRecordListItem({
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 space-y-1">
               <div className="flex flex-wrap items-center gap-2">
-                <p className="text-sm font-medium leading-tight text-brand-navy">
+                <p
+                  className={cn(
+                    "font-medium leading-tight text-brand-navy",
+                    compact ? "text-sm" : "text-sm",
+                  )}
+                >
                   {title}
                 </p>
                 {badges ? (
@@ -52,7 +62,12 @@ export function DetailRecordListItem({
                 ) : null}
               </div>
               {description ? (
-                <div className="space-y-0.5 text-xs leading-snug text-brand-slate">
+                <div
+                  className={cn(
+                    "space-y-0.5 leading-snug text-brand-slate",
+                    compact ? "text-xs" : "text-xs",
+                  )}
+                >
                   {description}
                 </div>
               ) : null}

@@ -82,6 +82,28 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
       ];
     }
 
+    if (pathname === ROUTES.appointments) {
+      return [
+        { label: getModuleLabel("Registration") },
+        { label: "Appointments" },
+      ];
+    }
+
+    if (pathname === ROUTES.activeVisits) {
+      return [
+        { label: getModuleLabel("Registration") },
+        { label: "Active Visits" },
+      ];
+    }
+
+    if (pathname.startsWith("/visits/")) {
+      return [
+        { label: getModuleLabel("Registration") },
+        { label: "Active Visits", href: ROUTES.activeVisits },
+        { label: "Visit details" },
+      ];
+    }
+
     return [
       { label: getModuleLabel("Registration") },
       { label: "Clients", href: ROUTES.customers },

@@ -28,8 +28,14 @@ type CustomerDetailVisitsTabProps = {
   refreshKey?: number;
 };
 
-function formatPaymentMode(mode: CustomerVisit["mode_of_payment"]) {
-  return mode.charAt(0).toUpperCase() + mode.slice(1);
+function formatVisitMeta(visit: CustomerVisit) {
+  return [
+    visit.mode_of_payment.charAt(0).toUpperCase() + visit.mode_of_payment.slice(1),
+    visit.clinic_name,
+    visit.requires_pre_authorization ? "Pre-auth required" : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 }
 
 export function CustomerDetailVisitsTab({
@@ -120,18 +126,10 @@ export function CustomerDetailVisitsTab({
           {visits.map((visit) => (
             <CustomerDetailRecordListItem
               key={visit.uuid}
-              icon={Stethoscope}
+              compact
               title={visit.consultation_service_name || "Visit"}
               badges={<CustomerVisitStatusBadge status={visit.status} />}
-              description={
-                <div className="space-y-0.5">
-                  <p>{formatPaymentMode(visit.mode_of_payment)}</p>
-                  {visit.clinic_name ? <p>{visit.clinic_name}</p> : null}
-                  {visit.requires_pre_authorization ? (
-                    <p>Pre-authorization required</p>
-                  ) : null}
-                </div>
-              }
+              description={formatVisitMeta(visit)}
               dateTime={formatDisplayDateTime(visit.visit_date)}
               data-testid={`customer-visit-${visit.uuid}`}
             />

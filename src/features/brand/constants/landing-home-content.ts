@@ -146,9 +146,9 @@ export const LANDING_TESTIMONIALS = {
 
 export const LANDING_PRICING = {
   eyebrow: "Pricing",
-  title: "Priced for clinics, not hospital chains",
+  title: "Priced so the clinics that need it most can actually afford it.",
   description:
-    "No per-seat fees. No hidden costs. No surprise invoices. Pay one flat monthly rate and every staff member gets access.",
+    "We also offer subsidised access for public-sector facilities and NGO-run clinics.",
   plans: [
     {
       name: "Starter",
