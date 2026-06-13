@@ -36,16 +36,20 @@ describe("customer visits services", () => {
     vi.mocked(bffRequest).mockResolvedValueOnce({ uuid: "visit-1" });
 
     await createCustomerVisit({
-      visit_type: "type-uuid",
+      consultation_service: "service-uuid",
       customer: "customer-uuid",
+      department: "department-uuid",
+      clinic: "clinic-uuid",
       mode_of_payment: "cash",
     });
 
     expect(bffRequest).toHaveBeenCalledWith(BFF_VISITS_ROUTES.create, {
       method: "POST",
       body: {
-        visit_type: "type-uuid",
+        consultation_service: "service-uuid",
         customer: "customer-uuid",
+        department: "department-uuid",
+        clinic: "clinic-uuid",
         mode_of_payment: "cash",
       },
     });
@@ -81,14 +85,16 @@ describe("customer visits services", () => {
     expect(findActiveCustomerVisit(visits as never)?.status).toBe("active");
   });
 
-  it("fetches visit type catalog", async () => {
+  it("fetches consultation service catalog", async () => {
     vi.mocked(bffRequest).mockResolvedValueOnce({
-      results: [{ uuid: "type-1", name: "Consultation" }],
+      results: [{ uuid: "service-1", name: "Consultation" }],
     });
 
     const results = await fetchVisitTypeCatalog();
 
-    expect(bffRequest).toHaveBeenCalledWith(BFF_VISITS_ROUTES.visitTypesCatalog);
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_VISITS_ROUTES.consultationServicesCatalog,
+    );
     expect(results).toHaveLength(1);
   });
 });

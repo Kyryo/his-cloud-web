@@ -121,7 +121,7 @@ export function CustomerDetailVisitsTab({
             <CustomerDetailRecordListItem
               key={visit.uuid}
               icon={Stethoscope}
-              title={visit.visit_type_name}
+              title={visit.consultation_service_name || "Visit"}
               badges={<CustomerVisitStatusBadge status={visit.status} />}
               description={
                 <div className="space-y-0.5">

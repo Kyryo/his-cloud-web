@@ -162,33 +162,26 @@ export function AddServiceDialog({
             </div>
 
             <div className="space-y-3 rounded-lg border border-brand-border px-4 py-3">
-              <p className="text-sm font-medium text-brand-navy">Service type</p>
-              {(
-                [
-                  ["is_consultation_visit", "Consultation"],
-                  ["is_dentist_visit", "Dental"],
-                  ["is_walk_in_visit", "Walk-in"],
-                ] as const
-              ).map(([name, label]) => (
-                <FormField
-                  key={name}
-                  control={form.control}
-                  name={name}
-                  render={({ field }) => (
-                    <FormItem className="flex items-center gap-3 space-y-0">
-                      <FormControl>
-                        <input
-                          type="checkbox"
-                          checked={field.value}
-                          onChange={field.onChange}
-                          className="size-4 rounded border-brand-border"
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal">{label}</FormLabel>
-                    </FormItem>
-                  )}
-                />
-              ))}
+              <p className="text-sm font-medium text-brand-navy">Billing</p>
+              <FormField
+                control={form.control}
+                name="is_chargable"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-3 space-y-0">
+                    <FormControl>
+                      <input
+                        type="checkbox"
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="size-4 rounded border-brand-border"
+                      />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Chargeable service (creates a consultation order on visit start)
+                    </FormLabel>
+                  </FormItem>
+                )}
+              />
             </div>
 
             <DialogFooter>

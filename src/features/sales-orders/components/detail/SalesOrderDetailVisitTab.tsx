@@ -101,7 +101,7 @@ export function SalesOrderDetailVisitTab({
   }
 
   const rows = [
-    { label: "Visit type", value: visit.visit_type_name || "—" },
+    { label: "Consultation service", value: visit.consultation_service_name || "—" },
     {
       label: "Status",
       value: <CustomerVisitStatusBadge status={visit.status} />,

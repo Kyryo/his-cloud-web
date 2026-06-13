@@ -35,10 +35,37 @@ export const BFF_CUSTOMERS_ROUTES = {
 
 /** Browser-facing BFF visit routes (same origin). */
 export const BFF_VISITS_ROUTES = {
+  list: "/api/visits",
   create: "/api/visits",
   detail: (uuid: string) => `/api/visits/${uuid}`,
   end: (uuid: string) => `/api/visits/${uuid}/end`,
-  visitTypesCatalog: "/api/visit-types/catalog",
+  fromAppointment: (appointmentUuid: string) =>
+    `/api/visits/from-appointment/${appointmentUuid}`,
+  encounters: (uuid: string) => `/api/visits/${uuid}/encounters`,
+  encounterStart: (visitUuid: string, encounterUuid: string) =>
+    `/api/visits/${visitUuid}/encounters/${encounterUuid}/start`,
+  encounterComplete: (visitUuid: string, encounterUuid: string) =>
+    `/api/visits/${visitUuid}/encounters/${encounterUuid}/complete`,
+  encounterCancel: (visitUuid: string, encounterUuid: string) =>
+    `/api/visits/${visitUuid}/encounters/${encounterUuid}/cancel`,
+  consultationServicesCatalog: "/api/consultation-services/catalog",
+} as const;
+
+/** Browser-facing BFF appointment routes (same origin). */
+export const BFF_APPOINTMENTS_ROUTES = {
+  list: "/api/appointments",
+  detail: (uuid: string) => `/api/appointments/${uuid}`,
+  confirm: (uuid: string) => `/api/appointments/${uuid}/confirm`,
+  cancel: (uuid: string) => `/api/appointments/${uuid}/cancel`,
+  noShow: (uuid: string) => `/api/appointments/${uuid}/no-show`,
+  start: (uuid: string) => `/api/appointments/${uuid}/start`,
+} as const;
+
+/** Browser-facing BFF clinical catalog routes (same origin). */
+export const BFF_CLINICAL_ROUTES = {
+  clinics: "/api/clinical/clinics",
+  departments: "/api/clinical/departments",
+  locations: "/api/clinical/locations",
 } as const;
 
 /** Browser-facing BFF insurance catalog routes (same origin). */
@@ -137,10 +164,17 @@ export const BFF_SETTINGS_ROUTES = {
   clinicDetail: (uuid: string) => `/api/clinics/${uuid}`,
   locations: "/api/locations",
   locationDetail: (uuid: string) => `/api/locations/${uuid}`,
-  visitTypes: "/api/visit-types",
-  visitTypeDetail: (uuid: string) => `/api/visit-types/${uuid}`,
+  departments: "/api/departments",
+  departmentDetail: (uuid: string) => `/api/departments/${uuid}`,
+  visitTypes: "/api/consultation-services",
+  visitTypeDetail: (uuid: string) => `/api/consultation-services/${uuid}`,
+  consultationServices: "/api/consultation-services",
+  consultationServiceDetail: (uuid: string) => `/api/consultation-services/${uuid}`,
   insuranceCompanies: "/api/insurance-companies",
   insuranceSchemes: "/api/insurance-schemes",
+  pricelists: "/api/pricelists",
+  pricelistDetail: (id: number | string) => `/api/pricelists/${id}`,
+  pricelistDefault: "/api/pricelists/default",
   branding: "/api/tenants/current/branding",
   currency: "/api/tenants/current/currency",
   users: "/api/user-management",

@@ -79,9 +79,7 @@ export type OrganizationService = {
   name: string;
   code: string;
   description: string;
-  is_dentist_visit: boolean;
-  is_walk_in_visit: boolean;
-  is_consultation_visit: boolean;
+  is_chargable: boolean;
   is_active: boolean;
   has_synced_to_odoo: boolean;
   created_at: string;
@@ -98,6 +96,50 @@ export type OrganizationPayer = {
   address: string;
   is_active: boolean;
   created_at: string;
+};
+
+export type OrganizationDepartment = {
+  id: number;
+  uuid: string;
+  clinic: number;
+  clinic_name: string;
+  name: string;
+  code: string;
+  department_type: string;
+  description: string;
+  status: string;
+  is_active: boolean;
+  requires_appointment: boolean;
+  walk_in_allowed: boolean;
+  default_appointment_duration_minutes: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CreateOrganizationDepartmentPayload = {
+  name: string;
+  code: string;
+  clinic: number;
+  department_type: string;
+  description?: string;
+  status?: string;
+  is_active?: boolean;
+  requires_appointment?: boolean;
+  walk_in_allowed?: boolean;
+  default_appointment_duration_minutes?: number;
+};
+
+export type UpdateOrganizationDepartmentPayload = {
+  name: string;
+  code: string;
+  clinic: number;
+  department_type: string;
+  description?: string;
+  status?: string;
+  is_active?: boolean;
+  requires_appointment?: boolean;
+  walk_in_allowed?: boolean;
+  default_appointment_duration_minutes?: number;
 };
 
 export type CreateOrganizationLocationPayload = {
@@ -124,18 +166,14 @@ export type UpdateOrganizationServicePayload = {
   name: string;
   code?: string;
   description?: string;
-  is_dentist_visit?: boolean;
-  is_walk_in_visit?: boolean;
-  is_consultation_visit?: boolean;
+  is_chargable?: boolean;
 };
 
 export type CreateOrganizationServicePayload = {
   name: string;
   code?: string;
   description?: string;
-  is_dentist_visit?: boolean;
-  is_walk_in_visit?: boolean;
-  is_consultation_visit?: boolean;
+  is_chargable?: boolean;
   is_active?: boolean;
 };
 
@@ -172,6 +210,33 @@ export type CreateOrganizationPayerSchemePayload = {
   is_active?: boolean;
 };
 
+export type OrganizationPricelist = {
+  id: number;
+  name: string;
+  active: boolean;
+  company_id?: unknown;
+  currency_id?: unknown;
+};
+
+export type CreateOrganizationPricelistPayload = {
+  name: string;
+  active?: boolean;
+};
+
+export type UpdateOrganizationPricelistPayload = {
+  name?: string;
+  active?: boolean;
+};
+
+export type OrganizationDefaultPricelist = {
+  tenant: number;
+  default_pricelist_id: number | null;
+};
+
+export type SetOrganizationDefaultPricelistPayload = {
+  default_pricelist_id: number | null;
+};
+
 export type TenantBranding = {
   branding_logo_url: string;
   branding_primary_color: string;
@@ -200,7 +265,12 @@ export type UpdateTenantCurrencyPayload = {
   currency_id: number;
 };
 
-export type OrganizationTabId = "general" | "branding" | "clinics" | "locations";
+export type OrganizationTabId =
+  | "general"
+  | "branding"
+  | "departments"
+  | "clinics"
+  | "locations";
 
 export type UserManagementTabId = "users" | "groups";
 
@@ -335,4 +405,4 @@ export type GroupMembershipPayload = {
   group_id: number;
 };
 
-export type FinanceOperationsTabId = "payers" | "schemes";
+export type FinanceOperationsTabId = "payers" | "schemes" | "pricelists";

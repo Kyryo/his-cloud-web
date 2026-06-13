@@ -1,47 +1,54 @@
-import { VISIT_TYPES_API_PATHS } from "@/constants/visit-types-api";
+import { CONSULTATION_SERVICES_API_PATHS } from "@/constants/consultation-services-api";
 import type {
+  CreateOrganizationServicePayload,
   OrganizationService,
-  UpdateOrganizationServicePayload,
 } from "@/features/settings/types/settings.types";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
 import { hmisApiRequest } from "@/lib/server/hmis-api";
+import { handleClinicalListGet } from "@/lib/server/clinical-bff-handlers";
 import { requireTenantAdmin } from "@/lib/server/require-tenant-admin";
 
-type RouteContext = {
-  params: Promise<{ uuid: string }>;
-};
+const QUERY_KEYS = ["page", "page_size", "search", "ordering"] as const;
 
-export async function PATCH(request: Request, context: RouteContext) {
+export async function GET(request: Request) {
+  return handleClinicalListGet<OrganizationService>(
+    request,
+    CONSULTATION_SERVICES_API_PATHS.list,
+    QUERY_KEYS,
+    "admin",
+    { page_size: "100" },
+  );
+}
+
+export async function POST(request: Request) {
   try {
     const admin = await requireTenantAdmin();
     if ("error" in admin) {
       return admin.error;
     }
 
-    const { uuid } = await context.params;
-    const body = (await request.json()) as UpdateOrganizationServicePayload;
+    const body = (await request.json()) as CreateOrganizationServicePayload;
 
     if (!body.name?.trim()) {
       return bffSuccess({ message: "Name is required." }, 400);
     }
 
     const service = await hmisApiRequest<OrganizationService>(
-      VISIT_TYPES_API_PATHS.detail(uuid),
+      CONSULTATION_SERVICES_API_PATHS.list,
       {
-        method: "PATCH",
+        method: "POST",
         token: admin.accessToken,
         body: {
           name: body.name.trim(),
           code: body.code?.trim() || "",
           description: body.description?.trim() || "",
-          is_dentist_visit: body.is_dentist_visit ?? false,
-          is_walk_in_visit: body.is_walk_in_visit ?? false,
-          is_consultation_visit: body.is_consultation_visit ?? false,
+          is_chargable: body.is_chargable ?? true,
+          is_active: body.is_active ?? true,
         },
       },
     );
 
-    return bffSuccess(service);
+    return bffSuccess(service, 201);
   } catch (error) {
     return bffError(error);
   }

@@ -8,11 +8,13 @@ import {
 } from "@/features/app-shell/components/page-layout";
 import { OrganizationPayerSchemesTab } from "@/features/settings/components/OrganizationPayerSchemesTab";
 import { OrganizationPayersTab } from "@/features/settings/components/OrganizationPayersTab";
+import { OrganizationPricelistsTab } from "@/features/settings/components/OrganizationPricelistsTab";
 import type { FinanceOperationsTabId } from "@/features/settings/types/settings.types";
 
 const tabs: Array<{ id: FinanceOperationsTabId; label: string }> = [
   { id: "payers", label: "Payers" },
   { id: "schemes", label: "Payer schemes" },
+  { id: "pricelists", label: "Pricelists" },
 ];
 
 export function FinanceOperationsSettingsTabs() {
@@ -35,6 +37,7 @@ export function FinanceOperationsSettingsTabs() {
       <div className="px-6 py-8">
         <OrganizationPayersTab isActive={activeTab === "payers"} />
         <OrganizationPayerSchemesTab isActive={activeTab === "schemes"} />
+        <OrganizationPricelistsTab isActive={activeTab === "pricelists"} />
       </div>
     </div>
   );

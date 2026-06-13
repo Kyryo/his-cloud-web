@@ -78,10 +78,10 @@ export const navigation: NavigationItem[] = [
   },
   {
     name: "Active Visits",
-    href: "/active-visits",
+    href: ROUTES.activeVisits,
     icon: Calendar,
     requiredGroup: "Registration",
-    enabledInWebNew: false,
+    enabledInWebNew: true,
   },
   {
     name: "Sales Orders",

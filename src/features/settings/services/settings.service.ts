@@ -2,21 +2,29 @@ import { BFF_SETTINGS_ROUTES } from "@/constants/api";
 import type { User } from "@/features/auth/types/auth.types";
 import type {
   CreateOrganizationLocationPayload,
+  CreateOrganizationDepartmentPayload,
   CreateOrganizationPayerPayload,
   CreateOrganizationPayerSchemePayload,
+  CreateOrganizationPricelistPayload,
   CreateOrganizationServicePayload,
+  OrganizationDefaultPricelist,
   OrganizationClinic,
+  OrganizationDepartment,
   OrganizationListResponse,
   OrganizationLocation,
   OrganizationPayer,
   OrganizationPayerScheme,
+  OrganizationPricelist,
   OrganizationService,
   TenantBranding,
   TenantCurrency,
   TenantDetail,
   UpdateOrganizationClinicPayload,
   UpdateOrganizationContactPayload,
+  UpdateOrganizationDepartmentPayload,
   UpdateOrganizationLocationPayload,
+  UpdateOrganizationPricelistPayload,
+  SetOrganizationDefaultPricelistPayload,
   UpdateOrganizationServicePayload,
   UpdateProfilePayload,
   UpdateTenantBrandingPayload,
@@ -110,6 +118,36 @@ export async function updateOrganizationLocation(
   );
 }
 
+export async function fetchOrganizationDepartments(): Promise<
+  OrganizationListResponse<OrganizationDepartment>
+> {
+  return bffRequest<OrganizationListResponse<OrganizationDepartment>>(
+    `${BFF_SETTINGS_ROUTES.departments}?page_size=100&ordering=clinic__name,name`,
+  );
+}
+
+export async function createOrganizationDepartment(
+  payload: CreateOrganizationDepartmentPayload,
+): Promise<OrganizationDepartment> {
+  return bffRequest<OrganizationDepartment>(BFF_SETTINGS_ROUTES.departments, {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export async function updateOrganizationDepartment(
+  uuid: string,
+  payload: UpdateOrganizationDepartmentPayload,
+): Promise<OrganizationDepartment> {
+  return bffRequest<OrganizationDepartment>(
+    BFF_SETTINGS_ROUTES.departmentDetail(uuid),
+    {
+      method: "PATCH",
+      body: payload,
+    },
+  );
+}
+
 export async function fetchOrganizationServices(): Promise<
   OrganizationListResponse<OrganizationService>
 > {
@@ -172,6 +210,57 @@ export async function createOrganizationPayerScheme(
     method: "POST",
     body: payload,
   });
+}
+
+export async function fetchOrganizationPricelists(): Promise<
+  OrganizationListResponse<OrganizationPricelist>
+> {
+  return bffRequest<OrganizationListResponse<OrganizationPricelist>>(
+    `${BFF_SETTINGS_ROUTES.pricelists}?include_inactive=true`,
+  );
+}
+
+export async function createOrganizationPricelist(
+  payload: CreateOrganizationPricelistPayload,
+): Promise<OrganizationPricelist> {
+  return bffRequest<OrganizationPricelist>(BFF_SETTINGS_ROUTES.pricelists, {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export async function updateOrganizationPricelist(
+  id: number,
+  payload: UpdateOrganizationPricelistPayload,
+): Promise<OrganizationPricelist> {
+  return bffRequest<OrganizationPricelist>(BFF_SETTINGS_ROUTES.pricelistDetail(id), {
+    method: "PATCH",
+    body: payload,
+  });
+}
+
+export async function archiveOrganizationPricelist(id: number): Promise<void> {
+  await bffRequest<void>(BFF_SETTINGS_ROUTES.pricelistDetail(id), {
+    method: "DELETE",
+  });
+}
+
+export async function fetchOrganizationDefaultPricelist(): Promise<OrganizationDefaultPricelist> {
+  return bffRequest<OrganizationDefaultPricelist>(
+    BFF_SETTINGS_ROUTES.pricelistDefault,
+  );
+}
+
+export async function setOrganizationDefaultPricelist(
+  payload: SetOrganizationDefaultPricelistPayload,
+): Promise<OrganizationDefaultPricelist> {
+  return bffRequest<OrganizationDefaultPricelist>(
+    BFF_SETTINGS_ROUTES.pricelistDefault,
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
 }
 
 export async function fetchOrganizationBranding(): Promise<TenantBranding> {

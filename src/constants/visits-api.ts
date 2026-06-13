@@ -3,6 +3,15 @@ export const VISITS_API_PATHS = {
   list: "/visits/",
   detail: (uuid: string) => `/visits/${uuid}/`,
   end: (uuid: string) => `/visits/${uuid}/end/`,
+  fromAppointment: (appointmentUuid: string) =>
+    `/visits/from-appointment/${appointmentUuid}/`,
+  encounters: (uuid: string) => `/visits/${uuid}/encounters/`,
+  encounterStart: (visitUuid: string, encounterUuid: string) =>
+    `/visits/${visitUuid}/encounters/${encounterUuid}/start/`,
+  encounterComplete: (visitUuid: string, encounterUuid: string) =>
+    `/visits/${visitUuid}/encounters/${encounterUuid}/complete/`,
+  encounterCancel: (visitUuid: string, encounterUuid: string) =>
+    `/visits/${visitUuid}/encounters/${encounterUuid}/cancel/`,
   customerVisits: (customerUuid: string, query?: { limit?: number }) => {
     const params = new URLSearchParams({
       customer_uuid: customerUuid,

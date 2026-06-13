@@ -1,7 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Building2, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
@@ -18,33 +18,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Form } from "@/components/ui/form";
+import { TabbedDialog } from "@/components/ui/tabbed-dialog";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import {
-  createStartVisitDefaultValues,
-  startVisitSchema,
-  toCreateVisitPayload,
-  type StartVisitFormValues,
-} from "@/features/customers/schemas/start-visit.schema";
+  fetchClinicalClinics,
+  fetchClinicalDepartments,
+} from "@/features/clinical/services/clinical-catalog.service";
+import type {
+  ClinicalClinic,
+  ClinicalDepartment,
+} from "@/features/clinical/types/clinical-catalog.types";
 import { fetchCustomerInsurance } from "@/features/customers/services/customer-insurance.service";
 import {
   closeCustomerVisit,
@@ -52,10 +40,8 @@ import {
   fetchCustomerVisits,
   findActiveCustomerVisit,
 } from "@/features/customers/services/customer-visits.service";
-import { fetchVisitTypeCatalog } from "@/features/customers/services/visit-types.service";
-import type { CustomerInsurance } from "@/features/customers/types/customer-insurance.types";
 import type { CustomerVisit } from "@/features/customers/types/customer-visit.types";
-import type { VisitTypeCatalogItem } from "@/features/customers/types/customer-visit.types";
+import type { CustomerInsurance } from "@/features/customers/types/customer-insurance.types";
 import type { Customer } from "@/features/customers/types/customer.types";
 import {
   canCloseCustomerVisit,
@@ -63,7 +49,15 @@ import {
 } from "@/features/customers/utils/can-close-customer-visit";
 import { formatCustomerName, formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { formatVisitStartedBy } from "@/features/customers/utils/format-visit-started-by";
-import { fetchOrganizationClinics } from "@/features/settings/services/settings.service";
+import { StartVisitFormFields } from "@/features/visits/components/StartVisitFormFields";
+import {
+  createStartVisitDefaultValues,
+  startVisitSchema,
+  toCreateVisitPayload,
+  type StartVisitFormValues,
+} from "@/features/visits/schemas/start-visit.schema";
+import { fetchConsultationServiceCatalog } from "@/features/visits/services/consultation-services.service";
+import type { ConsultationServiceCatalogItem } from "@/features/visits/types/visit.types";
 import { useUser } from "@/providers/user-provider";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-errors";
@@ -78,6 +72,13 @@ type CustomerVisitDialogProps = {
   onVisitChanged: (visit: CustomerVisit) => void;
 };
 
+type StartVisitTab = "visit" | "payment";
+
+const START_VISIT_TABS = [
+  { id: "visit" as const, label: "Visit" },
+  { id: "payment" as const, label: "Payment" },
+];
+
 export function CustomerVisitDialog({
   customer,
   open,
@@ -86,33 +87,53 @@ export function CustomerVisitDialog({
 }: CustomerVisitDialogProps) {
   const { toast } = useToast();
   const { userData } = useUser();
-  const [visitTypes, setVisitTypes] = useState<VisitTypeCatalogItem[]>([]);
+  const [activeTab, setActiveTab] = useState<StartVisitTab>("visit");
+  const [consultationServices, setConsultationServices] = useState<
+    ConsultationServiceCatalogItem[]
+  >([]);
   const [insuranceSchemes, setInsuranceSchemes] = useState<CustomerInsurance[]>([]);
+  const [clinics, setClinics] = useState<ClinicalClinic[]>([]);
+  const [departments, setDepartments] = useState<ClinicalDepartment[]>([]);
   const [activeVisit, setActiveVisit] = useState<CustomerVisit | null>(null);
-  const [clinicIdByUuid, setClinicIdByUuid] = useState<Map<string, number>>(
-    new Map(),
-  );
   const [isLoadingContext, setIsLoadingContext] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [closeError, setCloseError] = useState<string | null>(null);
-  const [visitTypeSearch, setVisitTypeSearch] = useState("");
+  const [consultationServiceSearch, setConsultationServiceSearch] = useState("");
 
   const form = useForm<StartVisitFormValues>({
     resolver: zodResolver(startVisitSchema),
     defaultValues: createStartVisitDefaultValues(),
   });
 
+  const selectedClinicUuid = form.watch("clinic");
   const modeOfPayment = form.watch("mode_of_payment");
   const requiresPreAuth = form.watch("requires_pre_authorization");
   const customerName = useMemo(() => formatCustomerName(customer), [customer]);
+  const defaultClinic = userData?.primary_clinic ?? null;
 
-  const filteredVisitTypes = useMemo(
-    () =>
-      visitTypes.filter((type) =>
-        type.name.toLowerCase().includes(visitTypeSearch.toLowerCase()),
-      ),
-    [visitTypeSearch, visitTypes],
+  const clinicIdByUuid = useMemo(
+    () => new Map(clinics.map((clinic) => [clinic.uuid, clinic.id])),
+    [clinics],
   );
+
+  const defaultClinicUuid = useMemo(() => {
+    if (!defaultClinic) {
+      return "";
+    }
+
+    return (
+      clinics.find((clinic) => clinic.id === defaultClinic.id)?.uuid ?? ""
+    );
+  }, [clinics, defaultClinic]);
+
+  const selectedClinicId = useMemo(() => {
+    if (!selectedClinicUuid) {
+      return defaultClinic?.id ?? null;
+    }
+    return clinicIdByUuid.get(selectedClinicUuid) ?? defaultClinic?.id ?? null;
+  }, [clinicIdByUuid, defaultClinic?.id, selectedClinicUuid]);
+
+  const hasDefaultClinic = Boolean(defaultClinic && defaultClinicUuid);
 
   const canClose = useMemo(
     () => canCloseCustomerVisit(userData, activeVisit, clinicIdByUuid),
@@ -124,26 +145,45 @@ export function CustomerVisitDialog({
     [activeVisit, clinicIdByUuid, userData],
   );
 
+  const loadDepartments = useCallback(async (clinicId: number) => {
+    const nextDepartments = await fetchClinicalDepartments(clinicId);
+    setDepartments(nextDepartments);
+  }, []);
+
   const loadDialogContext = useCallback(async () => {
     setIsLoadingContext(true);
     setCloseError(null);
 
     try {
-      const [types, visits, insurance, clinicsResponse] = await Promise.all([
-        fetchVisitTypeCatalog(),
+      const [services, visits, insurance, clinicList] = await Promise.all([
+        fetchConsultationServiceCatalog(),
         fetchCustomerVisits(customer.uuid, { limit: 100 }),
         fetchCustomerInsurance(customer.uuid).catch(() => [] as CustomerInsurance[]),
-        fetchOrganizationClinics(),
+        fetchClinicalClinics(),
       ]);
 
-      setVisitTypes(types);
+      setConsultationServices(services);
       setInsuranceSchemes(insurance);
       setActiveVisit(findActiveCustomerVisit(visits));
-      setClinicIdByUuid(
-        new Map(
-          clinicsResponse.results.map((clinic) => [clinic.uuid, clinic.id]),
-        ),
+      setClinics(clinicList);
+
+      const primaryClinic = userData?.primary_clinic ?? null;
+      const matchedClinic = primaryClinic
+        ? clinicList.find((clinic) => clinic.id === primaryClinic.id)
+        : undefined;
+      const primaryClinicUuid = matchedClinic?.uuid ?? "";
+
+      form.reset(
+        createStartVisitDefaultValues({
+          clinic: primaryClinicUuid,
+        }),
       );
+
+      if (primaryClinic) {
+        await loadDepartments(primaryClinic.id);
+      } else {
+        setDepartments([]);
+      }
     } catch (error) {
       toast({
         variant: "error",
@@ -154,15 +194,15 @@ export function CustomerVisitDialog({
     } finally {
       setIsLoadingContext(false);
     }
-  }, [customer.uuid, toast]);
+  }, [customer.uuid, form, loadDepartments, toast, userData?.primary_clinic]);
 
   useEffect(() => {
     if (open) {
-      form.reset(createStartVisitDefaultValues());
-      setVisitTypeSearch("");
+      setActiveTab("visit");
+      setConsultationServiceSearch("");
       void loadDialogContext();
     }
-  }, [form, loadDialogContext, open]);
+  }, [loadDialogContext, open]);
 
   useEffect(() => {
     if (modeOfPayment !== "insurance") {
@@ -258,20 +298,30 @@ export function CustomerVisitDialog({
     }
   };
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className={cn(
-          "flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg",
-          appFont.className,
-        )}
-      >
-        {isLoadingContext ? (
+  if (isLoadingContext) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent
+          className={cn("flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg", appFont.className)}
+        >
           <div className="flex items-center justify-center gap-2 px-6 py-16 text-sm text-brand-muted">
             <Loader2 className="size-4 animate-spin" aria-hidden="true" />
             Loading visit details...
           </div>
-        ) : activeVisit ? (
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (activeVisit) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent
+          className={cn(
+            "flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg",
+            appFont.className,
+          )}
+        >
           <div className="flex min-h-0 flex-1 flex-col">
             <DialogHeader className="border-b border-brand-border px-6 py-5">
               <DialogTitle>Close active visit</DialogTitle>
@@ -284,9 +334,9 @@ export function CustomerVisitDialog({
               <div className="rounded-xl border border-brand-border bg-slate-50/60 p-5 text-sm">
                 <dl className="space-y-3">
                   <div className="flex items-start justify-between gap-4">
-                    <dt className="text-brand-muted">Visit type</dt>
+                    <dt className="text-brand-muted">Consultation service</dt>
                     <dd className="text-right font-medium text-brand-navy">
-                      {activeVisit.visit_type_name}
+                      {activeVisit.consultation_service_name || "—"}
                     </dd>
                   </div>
                   <div className="flex items-start justify-between gap-4">
@@ -324,9 +374,7 @@ export function CustomerVisitDialog({
                 </p>
               ) : null}
 
-              {closeError ? (
-                <p className="text-sm text-red-600">{closeError}</p>
-              ) : null}
+              {closeError ? <p className="text-sm text-red-600">{closeError}</p> : null}
             </div>
 
             <DialogFooter className="mt-0 border-t border-brand-border px-6 py-5">
@@ -366,234 +414,87 @@ export function CustomerVisitDialog({
               )}
             </DialogFooter>
           </div>
-        ) : (
-          <Form {...form}>
-            <form
-              onSubmit={(event) => void handleStartVisit(event)}
-              className="flex min-h-0 flex-1 flex-col"
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <TabbedDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Start visit"
+      description={`Start a walk-in visit for ${customerName}.`}
+      tabs={START_VISIT_TABS}
+      activeTab={activeTab}
+      onTabChange={(tabId) => setActiveTab(tabId as StartVisitTab)}
+      className={appFont.className}
+      data-testid="customer-visit-dialog"
+      footer={
+        <>
+          <SecondaryButton
+            type="button"
+            onClick={() => onOpenChange(false)}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </SecondaryButton>
+          {!hasDefaultClinic ? null : activeTab === "visit" ? (
+            <PrimaryButton type="button" onClick={() => setActiveTab("payment")}>
+              Continue
+            </PrimaryButton>
+          ) : (
+            <PrimaryButton
+              type="button"
+              disabled={
+                isSubmitting ||
+                (modeOfPayment === "insurance" && insuranceSchemes.length === 0)
+              }
+              onClick={() => void handleStartVisit()}
             >
-              <DialogHeader className="border-b border-brand-border px-6 py-5">
-                <DialogTitle>Start visit</DialogTitle>
-                <DialogDescription>
-                  Start a new visit for {customerName}.
-                </DialogDescription>
-              </DialogHeader>
-
-              <div className="flex-1 space-y-4 overflow-y-auto px-6 py-6">
-                <FormField
-                  control={form.control}
-                  name="visit_type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Visit type <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a visit type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent className="max-h-72">
-                          <div className="border-b border-brand-border p-2">
-                            <Input
-                              type="search"
-                              placeholder="Search visit types..."
-                              value={visitTypeSearch}
-                              onChange={(event) =>
-                                setVisitTypeSearch(event.target.value)
-                              }
-                            />
-                          </div>
-                          {filteredVisitTypes.length > 0 ? (
-                            filteredVisitTypes.map((type) => (
-                              <SelectItem key={type.uuid} value={type.uuid}>
-                                {type.name}
-                              </SelectItem>
-                            ))
-                          ) : (
-                            <p className="px-2 py-3 text-center text-sm text-brand-muted">
-                              No visit types found
-                            </p>
-                          )}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="visit_date"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Visit date & time <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <FormControl>
-                        <Input type="datetime-local" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="mode_of_payment"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Mode of payment <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="cash">Cash</SelectItem>
-                          <SelectItem value="insurance">Insurance</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {modeOfPayment === "insurance" ? (
-                  <>
-                    <FormField
-                      control={form.control}
-                      name="insurance_scheme"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Insurance scheme</FormLabel>
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
-                            disabled={insuranceSchemes.length === 0}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select insurance scheme" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {insuranceSchemes.map((scheme) => (
-                                <SelectItem key={scheme.uuid} value={scheme.uuid}>
-                                  {scheme.scheme_name}
-                                  {scheme.insurance_company_name
-                                    ? ` · ${scheme.insurance_company_name}`
-                                    : ""}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          {insuranceSchemes.length === 0 ? (
-                            <p className="text-xs text-brand-muted">
-                              This client has no insurance schemes on file.
-                            </p>
-                          ) : null}
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="requires_pre_authorization"
-                      render={({ field }) => (
-                        <FormItem className="flex items-center gap-2 space-y-0">
-                          <FormControl>
-                            <input
-                              type="checkbox"
-                              checked={field.value}
-                              onChange={(event) =>
-                                field.onChange(event.target.checked)
-                              }
-                              className="size-4 rounded border-brand-border text-brand-primary focus:ring-brand-primary"
-                            />
-                          </FormControl>
-                          <FormLabel className="font-normal">
-                            Requires pre-authorization
-                          </FormLabel>
-                        </FormItem>
-                      )}
-                    />
-
-                    {requiresPreAuth ? (
-                      <>
-                        <FormField
-                          control={form.control}
-                          name="pre_authorization_number"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>
-                                Pre-authorization number{" "}
-                                <span className="text-red-500">*</span>
-                              </FormLabel>
-                              <FormControl>
-                                <Input placeholder="AUTH123456" {...field} />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="pre_authorization_comments"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Pre-authorization comments</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="Additional notes..."
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </>
-                    ) : null}
-                  </>
-                ) : null}
-              </div>
-
-              <DialogFooter className="mt-0 border-t border-brand-border px-6 py-5">
-                <SecondaryButton
-                  type="button"
-                  onClick={() => onOpenChange(false)}
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </SecondaryButton>
-                <PrimaryButton
-                  type="submit"
-                  disabled={
-                    isSubmitting ||
-                    (modeOfPayment === "insurance" && insuranceSchemes.length === 0)
-                  }
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                      Starting...
-                    </>
-                  ) : (
-                    "Start visit"
-                  )}
-                </PrimaryButton>
-              </DialogFooter>
-            </form>
-          </Form>
-        )}
-      </DialogContent>
-    </Dialog>
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                  Starting...
+                </>
+              ) : (
+                "Start visit"
+              )}
+            </PrimaryButton>
+          )}
+        </>
+      }
+    >
+      {!hasDefaultClinic ? (
+        <div className="flex flex-col items-center px-2 py-10 text-center">
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-slate-100 text-brand-muted">
+            <Building2 className="size-6" aria-hidden="true" />
+          </div>
+          <h3 className="mt-4 text-base font-semibold text-brand-navy">
+            No default clinic assigned
+          </h3>
+          <p className="mt-2 max-w-sm text-sm text-brand-muted">
+            You don&apos;t have a default clinic set. Please ask an administrator to
+            assign your primary clinic in Settings → User Management.
+          </p>
+        </div>
+      ) : (
+        <Form {...form}>
+          <form className="space-y-4">
+            <StartVisitFormFields
+              form={form}
+              tab={activeTab}
+              defaultClinicName={defaultClinic?.name ?? "Your clinic"}
+              departments={departments}
+              consultationServices={consultationServices}
+              insuranceSchemes={insuranceSchemes}
+              consultationServiceSearch={consultationServiceSearch}
+              onConsultationServiceSearchChange={setConsultationServiceSearch}
+              selectedClinicId={selectedClinicId}
+            />
+          </form>
+        </Form>
+      )}
+    </TabbedDialog>
   );
 }
