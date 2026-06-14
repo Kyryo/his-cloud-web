@@ -23,7 +23,6 @@ import {
 } from "@/features/appointments/services/appointments.service";
 import type { Appointment } from "@/features/appointments/types/appointment.types";
 import {
-  buildAppointmentListFilters,
   countActiveAppointmentFilters,
   DEFAULT_APPOINTMENT_FILTERS,
   type AppointmentListFilterState,
@@ -53,19 +52,16 @@ export function AppointmentsListPage() {
     DEFAULT_APPOINTMENT_FILTERS,
   );
 
-  const extraFilters = useMemo(() => {
-    const built = buildAppointmentListFilters(filters, {
-      page: 1,
-      pageSize: 20,
-    });
-    return {
-      status: built.status,
-      clinicUuid: built.clinicUuid,
-      departmentUuid: built.departmentUuid,
-      scheduledFrom: built.scheduledFrom,
-      scheduledTo: built.scheduledTo,
-    };
-  }, [filters]);
+  const extraFilters = useMemo(
+    () => ({
+      status: filters.status === "all" ? undefined : filters.status,
+      clinicUuid: filters.clinicUuid || undefined,
+      departmentUuid: filters.departmentUuid || undefined,
+      scheduledFrom: filters.scheduledFrom || undefined,
+      scheduledTo: filters.scheduledTo || undefined,
+    }),
+    [filters],
+  );
 
   const hasActiveFilters = countActiveAppointmentFilters(filters) > 0;
 

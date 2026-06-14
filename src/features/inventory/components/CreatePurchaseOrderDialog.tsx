@@ -9,6 +9,7 @@ import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import { Form } from "@/components/ui/form";
 import { TabbedDialog } from "@/components/ui/tabbed-dialog";
 import { PurchaseOrderFormTabContent } from "@/features/inventory/components/PurchaseOrderFormTabContent";
+import { InventoryNoLocationsAlert } from "@/features/inventory/components/InventoryNoLocationsAlert";
 import {
   countPurchaseOrderStepErrors,
   createPurchaseOrderDefaultValues,
@@ -191,6 +192,7 @@ export function CreatePurchaseOrderDialog({
     >
       <Form {...form}>
         <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
+          <InventoryNoLocationsAlert enabled={open} />
           <PurchaseOrderFormTabContent
             form={form}
             activeTab={activeTab}
