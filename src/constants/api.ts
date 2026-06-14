@@ -97,9 +97,9 @@ export const BFF_SALES_ORDERS_ROUTES = {
   detail: (orderId: number | string) => `/api/sales-orders/${orderId}`,
   lines: (orderId: number | string) => `/api/sales-orders/${orderId}/lines`,
   linePrice: (orderId: number | string, lineId: number | string) =>
-    `/api/sales-orders/${orderId}/lines/${lineId}/price`,
+    `/api/sales-order-lines/${orderId}/${lineId}/price`,
   lineDetail: (orderId: number | string, lineId: number | string) =>
-    `/api/sales-orders/${orderId}/lines/${lineId}`,
+    `/api/sales-order-lines/${orderId}/${lineId}`,
 } as const;
 
 /** Browser-facing BFF inventory routes (same origin). */
@@ -117,13 +117,13 @@ export const BFF_INVENTORY_ROUTES = {
     search: "/api/inventory/products/search",
     detail: (productId: number | string) => `/api/inventory/products/${productId}`,
     pricelists: (productId: number | string) =>
-      `/api/inventory/products/${productId}/pricelists`,
+      `/api/inventory/product-pricelists/${productId}`,
     tariffCodes: (productId: number | string) =>
-      `/api/inventory/products/${productId}/tariff-codes`,
+      `/api/inventory/product-tariff-codes/${productId}`,
     tariffCodeDetail: (productId: number | string, schemeUuid: string) =>
-      `/api/inventory/products/${productId}/tariff-codes/${schemeUuid}`,
+      `/api/inventory/product-tariff-codes/${productId}/${schemeUuid}`,
     stockLocations: (productId: number | string) =>
-      `/api/inventory/products/${productId}/stock-locations`,
+      `/api/inventory/product-stock-locations/${productId}`,
   },
   batches: {
     list: "/api/inventory/batches",
