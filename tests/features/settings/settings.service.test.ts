@@ -108,9 +108,43 @@ describe("settings.service organization", () => {
     const response = await fetchOrganizationDepartments();
 
     expect(bffRequest).toHaveBeenCalledWith(
-      `${BFF_SETTINGS_ROUTES.departments}?page_size=100&ordering=clinic__name,name`,
+      `${BFF_SETTINGS_ROUTES.departments}?page=1&page_size=100&ordering=clinic__name%2Cname`,
     );
     expect(response.results).toHaveLength(1);
+  });
+
+  it("fetches organization departments for a clinic with server-side filtering", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      results: [{ uuid: "department-2", name: "Pharmacy" }],
+      pagination: null,
+    });
+
+    const response = await fetchOrganizationDepartments({ clinicId: 3 });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      `${BFF_SETTINGS_ROUTES.departments}?page=1&page_size=100&ordering=name&clinic=3`,
+    );
+    expect(response.results).toHaveLength(1);
+  });
+
+  it("paginates through all organization department pages", async () => {
+    vi.mocked(bffRequest).mockClear();
+    vi.mocked(bffRequest)
+      .mockResolvedValueOnce({
+        results: [{ uuid: "department-1", name: "OPD" }],
+        pagination: { count: 2, next: "/next", previous: null },
+      })
+      .mockResolvedValueOnce({
+        results: [{ uuid: "department-2", name: "IPD" }],
+        pagination: { count: 2, next: null, previous: "/prev" },
+      });
+
+    const response = await fetchOrganizationDepartments();
+
+    expect(bffRequest).toHaveBeenCalledTimes(2);
+    expect(response.results).toHaveLength(2);
+    expect(response.pagination?.count).toBe(2);
+    expect(response.pagination?.next).toBeNull();
   });
 
   it("creates an organization department", async () => {

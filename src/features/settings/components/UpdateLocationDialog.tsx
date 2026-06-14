@@ -107,12 +107,10 @@ export function UpdateLocationDialog({
     setDepartmentsError(null);
 
     try {
-      const response = await fetchOrganizationDepartments();
-      setDepartments(
-        response.results.filter(
-          (department) => String(department.clinic) === clinicId,
-        ),
-      );
+      const response = await fetchOrganizationDepartments({
+        clinicId: Number(clinicId),
+      });
+      setDepartments(response.results);
     } catch (error) {
       logFetchError("UpdateLocationDialog.loadDepartments", error);
       setDepartments([]);
