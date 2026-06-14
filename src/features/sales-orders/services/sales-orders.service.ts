@@ -1,8 +1,10 @@
 import { BFF_SALES_ORDERS_ROUTES } from "@/constants/api";
 import type {
+  CreateSalesOrderLinePayload,
   SalesOrder,
   SalesOrderListFilters,
   SalesOrdersListResponse,
+  UpdateSalesOrderLinePricePayload,
 } from "@/features/sales-orders/types/sales-order.types";
 import { bffRequest } from "@/lib/bff-client";
 
@@ -59,4 +61,38 @@ export async function fetchSalesOrders(
 
 export async function fetchSalesOrder(orderId: number | string): Promise<SalesOrder> {
   return bffRequest<SalesOrder>(BFF_SALES_ORDERS_ROUTES.detail(orderId));
+}
+
+export async function addSalesOrderLine(
+  orderId: number | string,
+  payload: CreateSalesOrderLinePayload,
+): Promise<SalesOrder> {
+  return bffRequest<SalesOrder>(BFF_SALES_ORDERS_ROUTES.lines(orderId), {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export async function updateSalesOrderLinePrice(
+  orderId: number | string,
+  lineId: number,
+  payload: UpdateSalesOrderLinePricePayload,
+): Promise<SalesOrder> {
+  return bffRequest<SalesOrder>(
+    BFF_SALES_ORDERS_ROUTES.linePrice(orderId, lineId),
+    {
+      method: "PATCH",
+      body: payload,
+    },
+  );
+}
+
+export async function removeSalesOrderLine(
+  orderId: number | string,
+  lineId: number,
+): Promise<SalesOrder> {
+  return bffRequest<SalesOrder>(
+    BFF_SALES_ORDERS_ROUTES.lineDetail(orderId, lineId),
+    { method: "DELETE" },
+  );
 }

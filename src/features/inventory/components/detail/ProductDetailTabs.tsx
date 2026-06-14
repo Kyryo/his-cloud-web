@@ -14,6 +14,7 @@ import {
 import { ProductDetailAvailabilityTab } from "@/features/inventory/components/detail/ProductDetailAvailabilityTab";
 import { ProductDetailPricelistsTab } from "@/features/inventory/components/detail/ProductDetailPricelistsTab";
 import { ProductDetailSummaryTab } from "@/features/inventory/components/detail/ProductDetailSummaryTab";
+import { ProductDetailTariffCodesTab } from "@/features/inventory/components/detail/ProductDetailTariffCodesTab";
 import { ProductSummaryPanel } from "@/features/inventory/components/detail/ProductSummaryPanel";
 import type { InventoryProduct } from "@/features/inventory/types/inventory.types";
 import { cn } from "@/lib/utils";
@@ -22,10 +23,11 @@ type ProductDetailTabsProps = {
   product: InventoryProduct;
 };
 
-type DetailTabId = "summary" | "pricelists" | "locations";
+type DetailTabId = "summary" | "tariff-codes" | "pricelists" | "locations";
 
 const tabs: Array<{ id: DetailTabId; label: string }> = [
   { id: "summary", label: "Summary" },
+  { id: "tariff-codes", label: "Tariff codes" },
   { id: "pricelists", label: "Pricelists" },
   { id: "locations", label: "Locations" },
 ];
@@ -53,6 +55,10 @@ export function ProductDetailTabs({ product }: ProductDetailTabsProps) {
           <ProductDetailSummaryTab
             product={product}
             isActive={activeTab === "summary"}
+          />
+          <ProductDetailTariffCodesTab
+            product={product}
+            isActive={activeTab === "tariff-codes"}
           />
           <ProductDetailPricelistsTab
             product={product}

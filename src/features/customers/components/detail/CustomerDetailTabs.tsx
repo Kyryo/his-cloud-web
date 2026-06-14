@@ -14,6 +14,7 @@ import {
 import { CustomerDetailAddressesTab } from "@/features/customers/components/detail/CustomerDetailAddressesTab";
 import { CustomerDetailInsuranceTab } from "@/features/customers/components/detail/CustomerDetailInsuranceTab";
 import { CustomerDetailNotesTab } from "@/features/customers/components/detail/CustomerDetailNotesTab";
+import { CustomerDetailSalesOrdersTab } from "@/features/customers/components/detail/CustomerDetailSalesOrdersTab";
 import { CustomerDetailSummaryTab } from "@/features/customers/components/detail/CustomerDetailSummaryTab";
 import { CustomerDetailVisitsTab } from "@/features/customers/components/detail/CustomerDetailVisitsTab";
 import { CustomerDetailAppointmentsTab } from "@/features/appointments/components/detail/CustomerDetailAppointmentsTab";
@@ -95,9 +96,10 @@ export function CustomerDetailTabs({
             customer={customer}
             isActive={activeTab === "summary"}
           />
-          {activeTab === "orders" ? (
-            <TabPlaceholder label="Sales orders" />
-          ) : null}
+          <CustomerDetailSalesOrdersTab
+            customer={customer}
+            isActive={activeTab === "orders"}
+          />
           {activeTab === "invoices" ? (
             <TabPlaceholder label="Invoices" />
           ) : null}
@@ -117,14 +119,12 @@ export function CustomerDetailTabs({
             customer={customer}
             isActive={activeTab === "addresses"}
           />
-          {activeTab === "appointments" ? (
-            <CustomerDetailAppointmentsTab
-              customer={customer}
-              isActive
-              refreshKey={visitsRefreshKey}
-              onVisitStarted={onVisitChanged}
-            />
-          ) : null}
+          <CustomerDetailAppointmentsTab
+            customer={customer}
+            isActive={activeTab === "appointments"}
+            refreshKey={visitsRefreshKey}
+            onVisitStarted={onVisitChanged}
+          />
           <CustomerDetailNotesTab
             customer={customer}
             isActive={activeTab === "notes"}

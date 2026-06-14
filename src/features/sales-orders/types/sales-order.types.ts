@@ -88,3 +88,14 @@ export type SalesOrderListFilters = {
 };
 
 export type SalesOrdersListResponse = PaginatedListResponse<SalesOrder>;
+
+export type CreateSalesOrderLinePayload = {
+  product_id: number;
+  quantity: number | string;
+  price_unit?: number | string;
+  name?: string;
+};
+
+export type UpdateSalesOrderLinePricePayload = {
+  price_unit: number | string;
+};
