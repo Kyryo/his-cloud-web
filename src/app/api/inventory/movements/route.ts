@@ -8,8 +8,10 @@ const QUERY_KEYS = [
   "ordering",
   "tenant",
   "movement_type",
+  "from_location_uuid",
+  "to_location_uuid",
   "odoo_product_id",
-  "batch",
+  "batch_uuid",
 ] as const;
 
 export async function GET(request: Request) {

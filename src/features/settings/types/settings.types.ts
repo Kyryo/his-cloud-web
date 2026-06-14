@@ -58,6 +58,9 @@ export type OrganizationLocation = {
   clinic: number;
   clinic_name: string;
   clinic_code: string;
+  department: number;
+  department_name: string;
+  department_type?: string;
   status: string;
   is_active: boolean;
   operating_hours_display: string | null;
@@ -146,6 +149,7 @@ export type CreateOrganizationLocationPayload = {
   name: string;
   code: string;
   clinic: number;
+  department: number;
   description?: string;
   status?: string;
   is_active?: boolean;
@@ -159,6 +163,7 @@ export type UpdateOrganizationLocationPayload = {
   name: string;
   code: string;
   clinic: number;
+  department: number;
   description?: string;
 };
 

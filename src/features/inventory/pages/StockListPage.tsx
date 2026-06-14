@@ -9,6 +9,7 @@ import {
   ListPageDataSectionsStack,
   ListPageLayout,
 } from "@/features/app-shell/components/page-layout";
+import { InventoryFiltersSheet } from "@/features/inventory/components/InventoryFiltersSheet";
 import { InventoryListToolbar } from "@/features/inventory/components/InventoryListToolbar";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
 import { InventoryListEmptyState } from "@/features/inventory/components/list/InventoryListEmptyState";
@@ -16,12 +17,17 @@ import { InventoryListPageContent } from "@/features/inventory/components/list/I
 import { InventoryListPageHeader } from "@/features/inventory/components/list/InventoryListPageHeader";
 import { InventoryListPagination } from "@/features/inventory/components/list/InventoryListTable";
 import { StockTable } from "@/features/inventory/components/tables/stock-table";
-import { useInventoryList } from "@/features/inventory/hooks/use-inventory-list";
+import { useInventoryListFilters } from "@/features/inventory/hooks/use-inventory-list-filters";
 import { fetchInventoryStock } from "@/features/inventory/services/inventory.service";
 import type {
   InventoryListFilters,
   InventoryStock,
 } from "@/features/inventory/types/inventory.types";
+import {
+  buildStockListFilters,
+  countActiveStockFilters,
+  DEFAULT_STOCK_SHEET_FILTERS,
+} from "@/features/inventory/utils/inventory-list-filters";
 
 export function StockListPage() {
   const router = useRouter();
@@ -45,7 +51,14 @@ export function StockListPage() {
     isFilteredEmpty,
     reload,
     handlePageChange,
-  } = useInventoryList<InventoryStock>({ fetchFn });
+    sheetFilters,
+    handleFiltersApply,
+  } = useInventoryListFilters({
+    fetchFn,
+    defaultSheetFilters: DEFAULT_STOCK_SHEET_FILTERS,
+    buildExtraFilters: buildStockListFilters,
+    countActiveSheetFilters: countActiveStockFilters,
+  });
 
   const handleRowClick = useCallback(
     (item: InventoryStock) => router.push(ROUTES.inventoryStockDetail(item.uuid)),
@@ -71,6 +84,14 @@ export function StockListPage() {
             showSearch={false}
             isLoading={isRefreshing}
             onRefresh={() => void reload()}
+            filters={
+              <InventoryFiltersSheet
+                variant="stock"
+                filters={sheetFilters}
+                isLoading={isRefreshing}
+                onApply={handleFiltersApply}
+              />
+            }
           />
         </ListPageDataSectionsStack>
       ) : null}
@@ -90,6 +111,7 @@ export function StockListPage() {
           />
         }
         isFilteredEmpty={isFilteredEmpty}
+        filteredEmptyTitle="No matching stock records"
       >
         <StockTable items={items} onRowClick={handleRowClick} />
         <InventoryListPagination

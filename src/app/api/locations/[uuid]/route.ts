@@ -21,9 +21,9 @@ export async function PATCH(request: Request, context: RouteContext) {
     const { uuid } = await context.params;
     const body = (await request.json()) as UpdateOrganizationLocationPayload;
 
-    if (!body.name?.trim() || !body.code?.trim() || !body.clinic) {
+    if (!body.name?.trim() || !body.code?.trim() || !body.clinic || !body.department) {
       return bffSuccess(
-        { message: "Name, code, and clinic are required." },
+        { message: "Name, code, clinic, and department are required." },
         400,
       );
     }
@@ -37,6 +37,7 @@ export async function PATCH(request: Request, context: RouteContext) {
           name: body.name.trim(),
           code: body.code.trim(),
           clinic: body.clinic,
+          department: body.department,
           description: body.description?.trim() || "",
         },
       },

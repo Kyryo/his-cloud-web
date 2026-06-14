@@ -121,12 +121,56 @@ export async function updateOrganizationLocation(
   );
 }
 
-export async function fetchOrganizationDepartments(): Promise<
-  OrganizationListResponse<OrganizationDepartment>
-> {
-  return bffRequest<OrganizationListResponse<OrganizationDepartment>>(
-    `${BFF_SETTINGS_ROUTES.departments}?page_size=100&ordering=clinic__name,name`,
-  );
+export type FetchOrganizationDepartmentsOptions = {
+  clinicId?: number;
+  pageSize?: number;
+};
+
+export async function fetchOrganizationDepartments(
+  options: FetchOrganizationDepartmentsOptions = {},
+): Promise<OrganizationListResponse<OrganizationDepartment>> {
+  const pageSize = options.pageSize ?? 100;
+  const results: OrganizationDepartment[] = [];
+  let page = 1;
+  let lastPagination: OrganizationListResponse<OrganizationDepartment>["pagination"] =
+    null;
+
+  while (true) {
+    const params = new URLSearchParams({
+      page: String(page),
+      page_size: String(pageSize),
+      ordering: options.clinicId ? "name" : "clinic__name,name",
+    });
+
+    if (options.clinicId) {
+      params.set("clinic", String(options.clinicId));
+    }
+
+    const response = await bffRequest<
+      OrganizationListResponse<OrganizationDepartment>
+    >(`${BFF_SETTINGS_ROUTES.departments}?${params.toString()}`);
+
+    results.push(...response.results);
+    lastPagination = response.pagination;
+
+    if (!response.pagination?.next) {
+      break;
+    }
+
+    page += 1;
+  }
+
+  return {
+    results,
+    pagination: lastPagination
+      ? {
+          ...lastPagination,
+          count: results.length,
+          next: null,
+          previous: null,
+        }
+      : null,
+  };
 }
 
 export async function createOrganizationDepartment(
