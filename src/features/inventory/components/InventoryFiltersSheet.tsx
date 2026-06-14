@@ -1,8 +1,9 @@
 "use client";
 
 import { SlidersHorizontal } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { FetchErrorNotice } from "@/components/fetch-error-notice";
 import { FilterSelectField } from "@/components/filter-select-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -51,6 +52,7 @@ import {
 } from "@/features/inventory/utils/inventory-list-filters";
 import { fetchOrganizationClinics } from "@/features/settings/services/settings.service";
 import type { OrganizationClinic } from "@/features/settings/types/settings.types";
+import { getErrorMessage, logFetchError } from "@/lib/fetch-error";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 
@@ -185,6 +187,39 @@ export function InventoryFiltersSheet({
   const [locations, setLocations] = useState<InventoryLocationOption[]>([]);
   const [clinics, setClinics] = useState<OrganizationClinic[]>([]);
   const [isLoadingOptions, setIsLoadingOptions] = useState(false);
+  const [optionsLoadError, setOptionsLoadError] = useState<string | null>(null);
+
+  const needsLocationOptions =
+    variant === "stock" ||
+    variant === "purchase-orders" ||
+    variant === "internal-orders" ||
+    variant === "stock-adjustments" ||
+    variant === "movements";
+
+  const loadOptions = useCallback(async () => {
+    setIsLoadingOptions(true);
+    setOptionsLoadError(null);
+
+    try {
+      const needsClinics = variant === "stock";
+      const [locationsResponse, clinicsResponse] = await Promise.all([
+        needsLocationOptions ? fetchInventoryLocations() : Promise.resolve(null),
+        needsClinics ? fetchOrganizationClinics() : Promise.resolve(null),
+      ]);
+
+      setLocations(locationsResponse?.results ?? []);
+      setClinics(clinicsResponse?.results ?? []);
+    } catch (error) {
+      logFetchError("InventoryFiltersSheet.loadOptions", error);
+      setLocations([]);
+      setClinics([]);
+      setOptionsLoadError(
+        getErrorMessage(error, "Could not load filter options."),
+      );
+    } finally {
+      setIsLoadingOptions(false);
+    }
+  }, [needsLocationOptions, variant]);
 
   const meta = VARIANT_META[variant];
   const activeCount = useMemo(
@@ -214,44 +249,12 @@ export function InventoryFiltersSheet({
 
   useEffect(() => {
     if (!open) {
+      setOptionsLoadError(null);
       return;
     }
 
-    let active = true;
-
-    async function loadOptions() {
-      setIsLoadingOptions(true);
-      try {
-        const needsClinics = variant === "stock";
-        const [locationsResponse, clinicsResponse] = await Promise.all([
-          fetchInventoryLocations(),
-          needsClinics ? fetchOrganizationClinics() : Promise.resolve(null),
-        ]);
-
-        if (!active) {
-          return;
-        }
-
-        setLocations(locationsResponse.results);
-        setClinics(clinicsResponse?.results ?? []);
-      } catch {
-        if (active) {
-          setLocations([]);
-          setClinics([]);
-        }
-      } finally {
-        if (active) {
-          setIsLoadingOptions(false);
-        }
-      }
-    }
-
     void loadOptions();
-
-    return () => {
-      active = false;
-    };
-  }, [open, variant]);
+  }, [loadOptions, open]);
 
   function handleOpenChange(nextOpen: boolean) {
     if (nextOpen) {
@@ -305,6 +308,14 @@ export function InventoryFiltersSheet({
             {meta.description}
           </SheetDescription>
         </SheetHeader>
+
+        {optionsLoadError ? (
+          <FetchErrorNotice
+            className="mt-4"
+            message={optionsLoadError}
+            onRetry={() => void loadOptions()}
+          />
+        ) : null}
 
         <div className="mt-5 space-y-3">
           {variant === "stock" ? (
