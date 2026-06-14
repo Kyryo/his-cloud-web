@@ -13,7 +13,6 @@ import {
   Package,
   Pill,
   Receipt,
-  Settings,
   Shuffle,
   Store,
   TestTube,
