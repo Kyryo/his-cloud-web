@@ -22,8 +22,8 @@ export type TabbedDialogTab = {
 type TabbedDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  title: string;
-  description?: string;
+  title: ReactNode;
+  description?: ReactNode;
   tabs: TabbedDialogTab[];
   activeTab: string;
   onTabChange: (tabId: string) => void;

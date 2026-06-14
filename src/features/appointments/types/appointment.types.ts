@@ -43,6 +43,17 @@ export type CreateAppointmentPayload = {
   notes?: string;
 };
 
+export type CareProvider = {
+  id: number;
+  name: string;
+  user_role: string;
+};
+
+export type FetchCareProvidersOptions = {
+  search?: string;
+  clinic?: string;
+};
+
 export type FetchAppointmentsOptions = {
   page?: number;
   pageSize?: number;
@@ -50,7 +61,23 @@ export type FetchAppointmentsOptions = {
   patient?: string;
   clinic?: string;
   department?: string;
+  clinicUuid?: string;
+  departmentUuid?: string;
   status?: AppointmentStatus;
+  scheduledFrom?: string;
+  scheduledTo?: string;
+  isActive?: boolean;
+};
+
+export type UpdateAppointmentPayload = {
+  clinic?: string;
+  department?: string;
+  location?: string | null;
+  clinician?: number | null;
+  scheduled_start?: string;
+  scheduled_end?: string;
+  reason?: string;
+  notes?: string;
 };
 
 export type StartAppointmentVisitPayload = {

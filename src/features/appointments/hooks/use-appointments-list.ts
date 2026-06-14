@@ -16,12 +16,14 @@ type UseAppointmentsListOptions<T> = {
   fetchFn: (filters: FetchAppointmentsOptions) => Promise<PaginatedListResponse<T>>;
   pageSize?: number;
   extraFilters?: Omit<FetchAppointmentsOptions, "page" | "pageSize" | "search">;
+  hasActiveFilters?: boolean;
 };
 
 export function useAppointmentsList<T>({
   fetchFn,
   pageSize = DEFAULT_PAGE_SIZE,
   extraFilters,
+  hasActiveFilters = false,
 }: UseAppointmentsListOptions<T>) {
   const resolvedExtraFilters = extraFilters ?? EMPTY_EXTRA_FILTERS;
   const [items, setItems] = useState<T[]>([]);
@@ -117,9 +119,17 @@ export function useAppointmentsList<T>({
     isUnauthorized,
     hasNext,
     hasPrevious,
-    hasNoRecords: !isLoading && !error && items.length === 0 && !activeSearch,
+    hasNoRecords:
+      !isLoading &&
+      !error &&
+      items.length === 0 &&
+      !activeSearch &&
+      !hasActiveFilters,
     isFilteredEmpty:
-      !isLoading && !error && items.length === 0 && Boolean(activeSearch),
+      !isLoading &&
+      !error &&
+      items.length === 0 &&
+      (Boolean(activeSearch) || hasActiveFilters),
     setSearch,
     handleSearchSubmit: () => {
       setPage(1);
@@ -132,5 +142,6 @@ export function useAppointmentsList<T>({
     },
     reload,
     handlePageChange: (nextPage: number) => setPage(nextPage),
+    resetPage: () => setPage(1),
   };
 }

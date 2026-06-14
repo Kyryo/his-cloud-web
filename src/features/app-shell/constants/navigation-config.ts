@@ -112,7 +112,7 @@ export const navigation: NavigationItem[] = [
     enabledInWebNew: false,
   },
   {
-    name: "Stock",
+    name: "Inventory Register",
     href: ROUTES.inventoryStock,
     icon: Store,
     requiredGroup: "Inventory",
@@ -140,7 +140,7 @@ export const navigation: NavigationItem[] = [
     enabledInWebNew: true,
   },
   {
-    name: "Stock adjustments",
+    name: "Inventory Adjustments",
     href: ROUTES.inventoryStockAdjustments,
     icon: ClipboardList,
     requiredGroup: "Inventory",
