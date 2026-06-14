@@ -1,5 +1,5 @@
-/** Django DRF v1 visit type endpoints (relative to HMIS_API_URL, server-only). */
+/** Django DRF v1 consultation service endpoints (relative to HMIS_API_URL). */
 export const VISIT_TYPES_API_PATHS = {
-  list: "/visit-types/",
-  detail: (uuid: string) => `/visit-types/${uuid}/`,
+  list: "/consultation-services/",
+  detail: (uuid: string) => `/consultation-services/${uuid}/`,
 } as const;

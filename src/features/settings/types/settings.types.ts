@@ -79,9 +79,7 @@ export type OrganizationService = {
   name: string;
   code: string;
   description: string;
-  is_dentist_visit: boolean;
-  is_walk_in_visit: boolean;
-  is_consultation_visit: boolean;
+  is_chargable: boolean;
   is_active: boolean;
   has_synced_to_odoo: boolean;
   created_at: string;
@@ -124,18 +122,14 @@ export type UpdateOrganizationServicePayload = {
   name: string;
   code?: string;
   description?: string;
-  is_dentist_visit?: boolean;
-  is_walk_in_visit?: boolean;
-  is_consultation_visit?: boolean;
+  is_chargable?: boolean;
 };
 
 export type CreateOrganizationServicePayload = {
   name: string;
   code?: string;
   description?: string;
-  is_dentist_visit?: boolean;
-  is_walk_in_visit?: boolean;
-  is_consultation_visit?: boolean;
+  is_chargable?: boolean;
   is_active?: boolean;
 };
 

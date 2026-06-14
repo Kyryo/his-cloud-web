@@ -131,6 +131,18 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
     ];
   }
 
+  if (navItem?.moduleName === "Therapy") {
+    if (pathname === navItem.href) {
+      return [{ label: "Therapy" }, { label: navItem.name }];
+    }
+
+    return [
+      { label: "Therapy" },
+      { label: navItem.name, href: navItem.href },
+      { label: "Visit details" },
+    ];
+  }
+
   if (navItem) {
     const moduleLabel = navItem.requiredGroup
       ? getModuleLabel(navItem.requiredGroup)

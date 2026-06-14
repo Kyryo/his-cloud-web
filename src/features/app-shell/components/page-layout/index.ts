@@ -27,3 +27,13 @@ export {
   ListPageDataSectionsStack,
   ListPageTableSection,
 } from "@/features/app-shell/components/page-layout/list-page-table-section";
+export {
+  ListPageDataTable,
+  ListPageDataTableBody,
+  ListPageDataTableCell,
+  ListPageDataTableHeader,
+  ListPageDataTableHeaderCell,
+  ListPageDataTableHeaderRow,
+  ListPageDataTableRow,
+} from "@/features/app-shell/components/page-layout/list-page-data-table";
+export { ListPagePagination } from "@/features/app-shell/components/page-layout/list-page-pagination";

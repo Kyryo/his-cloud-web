@@ -55,23 +55,52 @@ describe("buildSidebarNavItems", () => {
     const settings = items.find((item) => item.title === "Settings");
 
     expect(settings?.isActive).toBe(true);
-    expect(settings?.items).toEqual([
-      expect.objectContaining({ title: "Account" }),
+    expect(settings?.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ title: "Account" }),
+        expect.objectContaining({
+          title: "Organization",
+          url: ROUTES.settingsOrganization,
+          isActive: true,
+        }),
+        expect.objectContaining({
+          title: "Visit Management",
+          url: ROUTES.settingsVisitManagement,
+          isActive: false,
+        }),
+        expect.objectContaining({
+          title: "Finance & Operations",
+          url: ROUTES.settingsFinanceOperations,
+          isActive: false,
+        }),
+      ]),
+    );
+  });
+
+  it("groups only authorized therapy disciplines under Therapy", () => {
+    const items = buildSidebarNavItems(
+      ["Speech", "Occupational"],
+      ROUTES.therapySpeech,
+    );
+    const therapy = items.find((item) => item.title === "Therapy");
+
+    expect(therapy).toEqual(
       expect.objectContaining({
-        title: "Organization",
-        url: ROUTES.settingsOrganization,
+        url: ROUTES.therapySpeech,
         isActive: true,
+        items: [
+          expect.objectContaining({
+            title: "OT Queue",
+            url: ROUTES.therapyOccupational,
+            isActive: false,
+          }),
+          expect.objectContaining({
+            title: "Speech Queue",
+            url: ROUTES.therapySpeech,
+            isActive: true,
+          }),
+        ],
       }),
-      expect.objectContaining({
-        title: "Visit Management",
-        url: ROUTES.settingsVisitManagement,
-        isActive: false,
-      }),
-      expect.objectContaining({
-        title: "Finance & Operations",
-        url: ROUTES.settingsFinanceOperations,
-        isActive: false,
-      }),
-    ]);
+    );
   });
 });

@@ -35,10 +35,43 @@ export const BFF_CUSTOMERS_ROUTES = {
 
 /** Browser-facing BFF visit routes (same origin). */
 export const BFF_VISITS_ROUTES = {
+  list: "/api/visits",
   create: "/api/visits",
   detail: (uuid: string) => `/api/visits/${uuid}`,
   end: (uuid: string) => `/api/visits/${uuid}/end`,
   visitTypesCatalog: "/api/visit-types/catalog",
+} as const;
+
+export const BFF_THERAPY_ROUTES = {
+    departments: "/api/therapy",
+    visitAssessment: (discipline: string, uuid: string) =>
+      `/api/therapy/${discipline}/visits/${uuid}/assessment`,
+    visitSessions: (discipline: string, uuid: string) =>
+      `/api/therapy/${discipline}/visits/${uuid}/sessions`,
+    visitSession: (
+      discipline: string,
+      visitUuid: string,
+      sessionUuid: string,
+    ) =>
+      `/api/therapy/${discipline}/visits/${visitUuid}/sessions/${sessionUuid}`,
+    visitSessionActivities: (discipline: string, uuid: string) =>
+      `/api/therapy/${discipline}/visits/${uuid}/session-activities`,
+    visitSessionActivity: (
+      discipline: string,
+      visitUuid: string,
+      activityUuid: string,
+    ) =>
+      `/api/therapy/${discipline}/visits/${visitUuid}/session-activities/${activityUuid}`,
+    visitDetails: (discipline: string, uuid: string) =>
+    `/api/therapy/${discipline}/visits/${uuid}`,
+  treatmentGoals: (discipline: string, uuid: string) =>
+    `/api/therapy/${discipline}/visits/${uuid}/treatment-goals`,
+  treatmentPlanDischarge: (discipline: string, uuid: string) =>
+    `/api/therapy/${discipline}/visits/${uuid}/treatment-plan/discharge`,
+  goalProgress: (discipline: string, visitUuid: string, goalUuid: string) =>
+    `/api/therapy/${discipline}/visits/${visitUuid}/treatment-goals/${goalUuid}/progress`,
+  futureAppointments: (discipline: string, visitUuid: string) =>
+    `/api/therapy/${discipline}/visits/${visitUuid}/future-appointments`,
 } as const;
 
 /** Browser-facing BFF insurance catalog routes (same origin). */

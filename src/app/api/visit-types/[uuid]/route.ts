@@ -34,9 +34,7 @@ export async function PATCH(request: Request, context: RouteContext) {
           name: body.name.trim(),
           code: body.code?.trim() || "",
           description: body.description?.trim() || "",
-          is_dentist_visit: body.is_dentist_visit ?? false,
-          is_walk_in_visit: body.is_walk_in_visit ?? false,
-          is_consultation_visit: body.is_consultation_visit ?? false,
+          is_chargable: body.is_chargable ?? true,
         },
       },
     );

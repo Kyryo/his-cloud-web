@@ -3,6 +3,7 @@ import {
   ArrowLeftRight,
   Calendar,
   ClipboardList,
+  Dumbbell,
   FileText,
   FlaskConical,
   HeartPulse,
@@ -12,7 +13,6 @@ import {
   Package,
   Pill,
   Receipt,
-  Settings,
   Shuffle,
   Store,
   TestTube,
@@ -28,6 +28,7 @@ export type NavigationItem = {
   href: string;
   icon: LucideIcon;
   requiredGroup: string | null;
+  moduleName?: string;
   enabledInWebNew: boolean;
 };
 
@@ -41,6 +42,7 @@ export const moduleDisplayNames: Record<string, string> = {
   Radiology: "Radiology",
   Inventory: "Inventory",
   Clinical: "Clinical",
+  Therapy: "Therapy",
 };
 
 export const moduleIcons: Record<string, LucideIcon> = {
@@ -53,6 +55,7 @@ export const moduleIcons: Record<string, LucideIcon> = {
   Inventory: Store,
   Dental: Users,
   Clinical: Hospital,
+  Therapy: Dumbbell,
 };
 
 export const moduleOrder = [
@@ -65,6 +68,7 @@ export const moduleOrder = [
   "Inventory",
   "Dental",
   "Clinical",
+  "Therapy",
 ] as const;
 
 /** Mirrors web-old navigation; only enabled routes appear in web-new for now. */
@@ -168,6 +172,30 @@ export const navigation: NavigationItem[] = [
     enabledInWebNew: false,
   },
   {
+    name: "Physio Queue",
+    href: ROUTES.therapyPhysio,
+    icon: Dumbbell,
+    requiredGroup: "Physio",
+    moduleName: "Therapy",
+    enabledInWebNew: true,
+  },
+  {
+    name: "OT Queue",
+    href: ROUTES.therapyOccupational,
+    icon: Dumbbell,
+    requiredGroup: "Occupational",
+    moduleName: "Therapy",
+    enabledInWebNew: true,
+  },
+  {
+    name: "Speech Queue",
+    href: ROUTES.therapySpeech,
+    icon: Dumbbell,
+    requiredGroup: "Speech",
+    moduleName: "Therapy",
+    enabledInWebNew: true,
+  },
+  {
     name: "Home",
     href: "/dashboard",
     icon: Home,
@@ -202,7 +230,7 @@ export function filterNavigation(userGroups: string[]) {
 
 export function groupNavigationByModule(items: NavigationItem[]) {
   return items.reduce<Record<string, NavigationItem[]>>((acc, item) => {
-    const moduleName = item.requiredGroup || "General";
+    const moduleName = item.moduleName || item.requiredGroup || "General";
     if (!acc[moduleName]) {
       acc[moduleName] = [];
     }

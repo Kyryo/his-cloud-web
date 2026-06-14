@@ -11,7 +11,9 @@ import {
 
 type AppBreadcrumbContextValue = {
   pageLabel: string | null;
+  pageAction: ReactNode;
   setPageLabel: (label: string | null) => void;
+  setPageAction: (action: ReactNode) => void;
 };
 
 const AppBreadcrumbContext = createContext<AppBreadcrumbContextValue | null>(
@@ -20,14 +22,18 @@ const AppBreadcrumbContext = createContext<AppBreadcrumbContextValue | null>(
 
 export function AppBreadcrumbProvider({ children }: { children: ReactNode }) {
   const [pageLabel, setPageLabelState] = useState<string | null>(null);
+  const [pageAction, setPageActionState] = useState<ReactNode>(null);
 
   const setPageLabel = useCallback((label: string | null) => {
     setPageLabelState(label);
   }, []);
+  const setPageAction = useCallback((action: ReactNode) => {
+    setPageActionState(action);
+  }, []);
 
   const value = useMemo(
-    () => ({ pageLabel, setPageLabel }),
-    [pageLabel, setPageLabel],
+    () => ({ pageLabel, pageAction, setPageAction, setPageLabel }),
+    [pageAction, pageLabel, setPageAction, setPageLabel],
   );
 
   return (

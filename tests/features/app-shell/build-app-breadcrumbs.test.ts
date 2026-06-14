@@ -7,6 +7,25 @@ import {
 } from "@/features/app-shell/utils/build-app-breadcrumbs";
 
 describe("buildAppBreadcrumbs", () => {
+  it("builds Therapy queue breadcrumbs without duplicate labels", () => {
+    expect(buildAppBreadcrumbs(ROUTES.therapyPhysio)).toEqual([
+      { label: "Therapy" },
+      { label: "Physio Queue" },
+    ]);
+  });
+
+  it("builds therapy visit detail breadcrumbs", () => {
+    expect(
+      buildAppBreadcrumbs(
+        "/therapy/occupational/9ca46f31-af4e-4e79-90ac-cf7d62ca76f8",
+      ),
+    ).toEqual([
+      { label: "Therapy" },
+      { label: "OT Queue", href: ROUTES.therapyOccupational },
+      { label: "Visit details" },
+    ]);
+  });
+
   it("returns front desk and clients for the customers list", () => {
     expect(buildAppBreadcrumbs(ROUTES.customers)).toEqual([
       { label: "Front Desk" },
