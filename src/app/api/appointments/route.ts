@@ -9,12 +9,13 @@ const QUERY_KEYS = [
   "page_size",
   "search",
   "ordering",
-  "patient",
-  "clinic",
-  "department",
+  "patient_uuid",
+  "clinic_uuid",
+  "department_uuid",
   "status",
-  "scheduled_start_after",
-  "scheduled_start_before",
+  "scheduled_from",
+  "scheduled_to",
+  "is_active",
 ] as const;
 
 export async function GET(request: Request) {

@@ -1,14 +1,20 @@
 "use client";
 
 import { CalendarClock } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import {
   ListPageDataSectionsStack,
   ListPageLayout,
 } from "@/features/app-shell/components/page-layout";
-import { StartVisitFromAppointmentDialog } from "@/features/appointments/components/StartVisitFromAppointmentDialog";
+import {
+  AppointmentActionConfirmDialog,
+  type AppointmentTableAction,
+} from "@/features/appointments/components/AppointmentActionConfirmDialog";
+import { AppointmentDetailDialog } from "@/features/appointments/components/AppointmentDetailDialog";
+import { AppointmentsListToolbar } from "@/features/appointments/components/AppointmentsListToolbar";
 import { CreateAppointmentDialog } from "@/features/appointments/components/CreateAppointmentDialog";
+import { StartVisitFromAppointmentDialog } from "@/features/appointments/components/StartVisitFromAppointmentDialog";
 import { AppointmentsTable } from "@/features/appointments/components/tables/appointments-table";
 import { useAppointmentsList } from "@/features/appointments/hooks/use-appointments-list";
 import {
@@ -16,24 +22,56 @@ import {
   runAppointmentAction,
 } from "@/features/appointments/services/appointments.service";
 import type { Appointment } from "@/features/appointments/types/appointment.types";
+import {
+  buildAppointmentListFilters,
+  countActiveAppointmentFilters,
+  DEFAULT_APPOINTMENT_FILTERS,
+  type AppointmentListFilterState,
+} from "@/features/appointments/utils/appointment-list-filters";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
 import { InventoryListEmptyState } from "@/features/inventory/components/list/InventoryListEmptyState";
 import { InventoryListPageContent } from "@/features/inventory/components/list/InventoryListPageContent";
 import { InventoryListPageHeader } from "@/features/inventory/components/list/InventoryListPageHeader";
 import { InventoryListPagination } from "@/features/inventory/components/list/InventoryListTable";
-import { InventoryListToolbar } from "@/features/inventory/components/InventoryListToolbar";
 import { useToast } from "@/providers/toast-provider";
 
 export function AppointmentsListPage() {
   const { toast } = useToast();
   const [actionUuid, setActionUuid] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [selectedAppointmentUuid, setSelectedAppointmentUuid] = useState<
+    string | null
+  >(null);
   const [startingAppointment, setStartingAppointment] = useState<Appointment | null>(
     null,
   );
+  const [pendingAction, setPendingAction] = useState<{
+    appointment: Appointment;
+    action: AppointmentTableAction;
+  } | null>(null);
+  const [filters, setFilters] = useState<AppointmentListFilterState>(
+    DEFAULT_APPOINTMENT_FILTERS,
+  );
+
+  const extraFilters = useMemo(() => {
+    const built = buildAppointmentListFilters(filters, {
+      page: 1,
+      pageSize: 20,
+    });
+    return {
+      status: built.status,
+      clinicUuid: built.clinicUuid,
+      departmentUuid: built.departmentUuid,
+      scheduledFrom: built.scheduledFrom,
+      scheduledTo: built.scheduledTo,
+    };
+  }, [filters]);
+
+  const hasActiveFilters = countActiveAppointmentFilters(filters) > 0;
 
   const fetchFn = useCallback(
-    (filters: Parameters<typeof fetchAppointments>[0]) => fetchAppointments(filters),
+    (listFilters: Parameters<typeof fetchAppointments>[0]) =>
+      fetchAppointments(listFilters),
     [],
   );
 
@@ -56,7 +94,12 @@ export function AppointmentsListPage() {
     handleClearSearch,
     reload,
     handlePageChange,
-  } = useAppointmentsList<Appointment>({ fetchFn });
+    resetPage,
+  } = useAppointmentsList<Appointment>({
+    fetchFn,
+    extraFilters,
+    hasActiveFilters,
+  });
 
   const handleAction = async (
     appointment: Appointment,
@@ -72,6 +115,7 @@ export function AppointmentsListPage() {
         description:
           action === "confirm" ? "Appointment confirmed." : "Appointment cancelled.",
       });
+      setPendingAction(null);
       await reload();
     } catch (err) {
       toast({
@@ -82,6 +126,20 @@ export function AppointmentsListPage() {
     } finally {
       setActionUuid(null);
     }
+  };
+
+  const handleConfirmPendingAction = () => {
+    if (!pendingAction) {
+      return;
+    }
+
+    if (pendingAction.action === "start") {
+      setStartingAppointment(pendingAction.appointment);
+      setPendingAction(null);
+      return;
+    }
+
+    void handleAction(pendingAction.appointment, pendingAction.action);
   };
 
   if (isUnauthorized) {
@@ -96,27 +154,22 @@ export function AppointmentsListPage() {
           description="Scheduled visits across your clinics. Confirm, start visits, or manage cancellations."
           addLabel="New appointment"
           onAdd={() => setCreateOpen(true)}
-          search={search}
-          isSearchDisabled={isRefreshing}
-          onSearchChange={setSearch}
-          onSearchSubmit={handleSearchSubmit}
-          onClearSearch={handleClearSearch}
-          searchPlaceholder="Search by client, clinic, or department..."
         />
 
-        {!hasNoRecords ? (
-          <ListPageDataSectionsStack className="space-y-2">
-            <InventoryListToolbar
-              search={search}
-              searchPlaceholder="Search by client, clinic, or department..."
-              isLoading={isRefreshing}
-              onSearchChange={setSearch}
-              onSearchSubmit={handleSearchSubmit}
-              onClearSearch={handleClearSearch}
-              compact
-            />
-          </ListPageDataSectionsStack>
-        ) : null}
+        <ListPageDataSectionsStack className="space-y-2">
+          <AppointmentsListToolbar
+            search={search}
+            filters={filters}
+            isLoading={isRefreshing}
+            onSearchChange={setSearch}
+            onSearchSubmit={handleSearchSubmit}
+            onClearSearch={handleClearSearch}
+            onFiltersApply={(nextFilters) => {
+              setFilters(nextFilters);
+              resetPage();
+            }}
+          />
+        </ListPageDataSectionsStack>
 
         <InventoryListPageContent
           isLoading={isLoading}
@@ -142,9 +195,10 @@ export function AppointmentsListPage() {
             <AppointmentsTable
               appointments={items}
               actionUuid={actionUuid}
-              onConfirm={(appointment) => void handleAction(appointment, "confirm")}
-              onCancel={(appointment) => void handleAction(appointment, "cancel")}
-              onStartVisit={setStartingAppointment}
+              onRowClick={(appointment) => setSelectedAppointmentUuid(appointment.uuid)}
+              onActionRequest={(appointment, action) =>
+                setPendingAction({ appointment, action })
+              }
             />
             <InventoryListPagination
               page={page}
@@ -158,6 +212,29 @@ export function AppointmentsListPage() {
           </div>
         </InventoryListPageContent>
       </ListPageLayout>
+
+      <AppointmentDetailDialog
+        appointmentUuid={selectedAppointmentUuid}
+        open={Boolean(selectedAppointmentUuid)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedAppointmentUuid(null);
+          }
+        }}
+        onUpdated={() => void reload()}
+      />
+
+      <AppointmentActionConfirmDialog
+        action={pendingAction?.action ?? null}
+        appointment={pendingAction?.appointment ?? null}
+        isSubmitting={Boolean(actionUuid)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingAction(null);
+          }
+        }}
+        onConfirm={handleConfirmPendingAction}
+      />
 
       {startingAppointment ? (
         <StartVisitFromAppointmentDialog

@@ -10,6 +10,6 @@ export default function Error({
   reset: () => void;
 }) {
   return (
-    <InventoryRouteError error={error} reset={reset} title="Could not load stock adjustments" />
+    <InventoryRouteError error={error} reset={reset} title="Could not load inventory adjustments" />
   );
 }

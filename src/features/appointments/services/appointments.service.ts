@@ -2,19 +2,21 @@ import { BFF_APPOINTMENTS_ROUTES } from "@/constants/api";
 import type {
   Appointment,
   AppointmentAction,
+  CareProvider,
   CreateAppointmentPayload,
   FetchAppointmentsOptions,
+  FetchCareProvidersOptions,
   StartAppointmentVisitPayload,
+  UpdateAppointmentPayload,
 } from "@/features/appointments/types/appointment.types";
 import type { VisitDetail } from "@/features/visits/types/visit.types";
 import { bffRequest } from "@/lib/bff-client";
 import type { PaginatedListResponse } from "@/types/api.types";
 
-export async function fetchAppointments(
+function appendAppointmentQueryParams(
+  params: URLSearchParams,
   options?: FetchAppointmentsOptions,
-): Promise<PaginatedListResponse<Appointment>> {
-  const params = new URLSearchParams();
-
+) {
   if (options?.page) {
     params.set("page", String(options.page));
   }
@@ -25,17 +27,33 @@ export async function fetchAppointments(
     params.set("search", options.search);
   }
   if (options?.patient) {
-    params.set("patient", options.patient);
+    params.set("patient_uuid", options.patient);
   }
-  if (options?.clinic) {
-    params.set("clinic", options.clinic);
+  if (options?.clinic || options?.clinicUuid) {
+    params.set("clinic_uuid", options.clinicUuid ?? options.clinic ?? "");
   }
-  if (options?.department) {
-    params.set("department", options.department);
+  if (options?.department || options?.departmentUuid) {
+    params.set("department_uuid", options.departmentUuid ?? options.department ?? "");
   }
   if (options?.status) {
     params.set("status", options.status);
   }
+  if (options?.scheduledFrom) {
+    params.set("scheduled_from", options.scheduledFrom);
+  }
+  if (options?.scheduledTo) {
+    params.set("scheduled_to", options.scheduledTo);
+  }
+  if (options?.isActive !== undefined) {
+    params.set("is_active", String(options.isActive));
+  }
+}
+
+export async function fetchAppointments(
+  options?: FetchAppointmentsOptions,
+): Promise<PaginatedListResponse<Appointment>> {
+  const params = new URLSearchParams();
+  appendAppointmentQueryParams(params, options);
 
   const suffix = params.toString();
   const path = suffix
@@ -56,6 +74,16 @@ export async function createAppointment(
 
 export async function fetchAppointment(uuid: string): Promise<Appointment> {
   return bffRequest<Appointment>(BFF_APPOINTMENTS_ROUTES.detail(uuid));
+}
+
+export async function updateAppointment(
+  uuid: string,
+  payload: UpdateAppointmentPayload,
+): Promise<Appointment> {
+  return bffRequest<Appointment>(BFF_APPOINTMENTS_ROUTES.detail(uuid), {
+    method: "PATCH",
+    body: payload,
+  });
 }
 
 export async function runAppointmentAction(
@@ -85,4 +113,25 @@ export async function startAppointmentVisit(
   return runAppointmentAction(uuid, "start", payload) as Promise<
     { visit: VisitDetail; encounter: unknown } | VisitDetail
   >;
+}
+
+export async function fetchCareProviders(
+  options?: FetchCareProvidersOptions,
+): Promise<CareProvider[]> {
+  const params = new URLSearchParams();
+
+  if (options?.search?.trim()) {
+    params.set("search", options.search.trim());
+  }
+  if (options?.clinic?.trim()) {
+    params.set("clinic", options.clinic.trim());
+  }
+
+  const suffix = params.toString();
+  const path = suffix
+    ? `${BFF_APPOINTMENTS_ROUTES.careProviders}?${suffix}`
+    : BFF_APPOINTMENTS_ROUTES.careProviders;
+
+  const response = await bffRequest<{ results: CareProvider[] }>(path);
+  return response.results;
 }
