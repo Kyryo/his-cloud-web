@@ -59,6 +59,7 @@ export const BFF_APPOINTMENTS_ROUTES = {
   cancel: (uuid: string) => `/api/appointments/${uuid}/cancel`,
   noShow: (uuid: string) => `/api/appointments/${uuid}/no-show`,
   start: (uuid: string) => `/api/appointments/${uuid}/start`,
+  careProviders: "/api/appointments/care-providers",
 } as const;
 
 /** Browser-facing BFF clinical catalog routes (same origin). */

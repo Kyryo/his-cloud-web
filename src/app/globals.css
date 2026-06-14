@@ -44,13 +44,13 @@
 
 @layer base {
   :root {
-    --sidebar-background: 210 20% 98%;
+    --sidebar-background: 214 28% 96%;
     --sidebar-foreground: 210 35% 19%;
     --sidebar-primary: 212 82% 47%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 214 20% 96%;
+    --sidebar-accent: 214 24% 92%;
     --sidebar-accent-foreground: 210 35% 19%;
-    --sidebar-border: 214 24% 89%;
+    --sidebar-border: 214 22% 86%;
     --sidebar-ring: 212 82% 47%;
   }
 
@@ -262,6 +262,21 @@
   .brand-calendar .rdp-today:not(.rdp-selected) .rdp-day_button {
     color: var(--color-brand-primary);
     font-weight: 600;
+  }
+
+  .datetime-local-input {
+    appearance: auto;
+    color-scheme: light;
+  }
+
+  .datetime-local-input::-webkit-calendar-picker-indicator {
+    margin-left: auto;
+    cursor: pointer;
+    opacity: 0.7;
+  }
+
+  .datetime-local-input::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
   }
 
   [data-landing-demo] {

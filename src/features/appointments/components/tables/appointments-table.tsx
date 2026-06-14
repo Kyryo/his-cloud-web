@@ -1,16 +1,22 @@
 "use client";
 
-import Link from "next/link";
+import { MoreHorizontal } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { AppointmentStatusBadge } from "@/features/appointments/components/AppointmentStatusBadge";
+import type { AppointmentTableAction } from "@/features/appointments/components/AppointmentActionConfirmDialog";
 import type { Appointment } from "@/features/appointments/types/appointment.types";
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import {
   InventoryListTable,
   type InventoryListTableColumn,
 } from "@/features/inventory/components/list/InventoryListTable";
-import { ROUTES } from "@/constants/routes";
 
 function canStartVisit(appointment: Appointment) {
   return ["scheduled", "confirmed"].includes(appointment.status);
@@ -27,32 +33,25 @@ function canCancel(appointment: Appointment) {
 type AppointmentsTableProps = {
   appointments: Appointment[];
   actionUuid: string | null;
-  onConfirm: (appointment: Appointment) => void;
-  onCancel: (appointment: Appointment) => void;
-  onStartVisit: (appointment: Appointment) => void;
+  onRowClick: (appointment: Appointment) => void;
+  onActionRequest: (
+    appointment: Appointment,
+    action: AppointmentTableAction,
+  ) => void;
 };
 
 export function AppointmentsTable({
   appointments,
   actionUuid,
-  onConfirm,
-  onCancel,
-  onStartVisit,
+  onRowClick,
+  onActionRequest,
 }: AppointmentsTableProps) {
   const columns: InventoryListTableColumn<Appointment>[] = [
     {
       key: "patient",
       label: "Client",
       cellClassName: "font-medium text-brand-navy",
-      render: (appointment) => (
-        <Link
-          href={ROUTES.customerDetail(appointment.patient)}
-          className="hover:text-brand-primary hover:underline"
-          onClick={(event) => event.stopPropagation()}
-        >
-          {appointment.patient_name}
-        </Link>
-      ),
+      render: (appointment) => appointment.patient_name,
     },
     {
       key: "clinic",
@@ -78,47 +77,63 @@ export function AppointmentsTable({
       key: "actions",
       label: "",
       cellClassName: "text-right",
-      render: (appointment) => (
-        <div
-          className="flex items-center justify-end gap-1"
-          onClick={(event) => event.stopPropagation()}
-        >
-          {canConfirm(appointment) ? (
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              className="h-8"
-              disabled={actionUuid === appointment.uuid}
-              onClick={() => onConfirm(appointment)}
-            >
-              Confirm
-            </Button>
-          ) : null}
-          {canStartVisit(appointment) ? (
-            <Button
-              type="button"
-              size="sm"
-              className="h-8"
-              onClick={() => onStartVisit(appointment)}
-            >
-              Start visit
-            </Button>
-          ) : null}
-          {canCancel(appointment) ? (
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              className="h-8 text-brand-muted hover:text-brand-navy"
-              disabled={actionUuid === appointment.uuid}
-              onClick={() => onCancel(appointment)}
-            >
-              Cancel
-            </Button>
-          ) : null}
-        </div>
-      ),
+      render: (appointment) => {
+        const showOverflow = canConfirm(appointment) || canCancel(appointment);
+
+        return (
+          <div
+            className="flex items-center justify-end gap-1.5"
+            onClick={(event) => event.stopPropagation()}
+          >
+            {canStartVisit(appointment) ? (
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-8 rounded-full border-brand-primary text-brand-primary hover:bg-brand-primary/5 hover:text-brand-primary"
+                onClick={() => onActionRequest(appointment, "start")}
+              >
+                Start visit
+              </Button>
+            ) : null}
+
+            {showOverflow ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="outline"
+                    className="size-8 rounded-full"
+                    aria-label="More actions"
+                  >
+                    <MoreHorizontal className="size-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-44">
+                  {canConfirm(appointment) ? (
+                    <DropdownMenuItem
+                      disabled={actionUuid === appointment.uuid}
+                      onClick={() => onActionRequest(appointment, "confirm")}
+                    >
+                      Confirm
+                    </DropdownMenuItem>
+                  ) : null}
+                  {canCancel(appointment) ? (
+                    <DropdownMenuItem
+                      disabled={actionUuid === appointment.uuid}
+                      className="text-red-600 focus:text-red-600"
+                      onClick={() => onActionRequest(appointment, "cancel")}
+                    >
+                      Cancel
+                    </DropdownMenuItem>
+                  ) : null}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : null}
+          </div>
+        );
+      },
     },
   ];
 
@@ -127,6 +142,7 @@ export function AppointmentsTable({
       items={appointments}
       columns={columns}
       getRowKey={(appointment) => appointment.uuid}
+      onRowClick={onRowClick}
     />
   );
 }

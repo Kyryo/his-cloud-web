@@ -15,15 +15,17 @@ import {
 } from "@/components/ui/form";
 import { Form } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { TabbedDialog } from "@/components/ui/tabbed-dialog";
-import { CustomerSearchCombobox } from "@/features/customers/components/CustomerSearchCombobox";
+import { Textarea } from "@/components/ui/textarea";
+import { AppointmentFormFields } from "@/features/appointments/components/AppointmentFormFields";
+import {
+  createAppointmentDefaultValues,
+  createAppointmentSchema,
+  toCreateAppointmentPayload,
+  type CreateAppointmentFormValues,
+} from "@/features/appointments/schemas/appointment.schema";
+import { createAppointment } from "@/features/appointments/services/appointments.service";
+import type { Appointment } from "@/features/appointments/types/appointment.types";
 import {
   fetchClinicalClinics,
   fetchClinicalDepartments,
@@ -34,14 +36,7 @@ import type {
   ClinicalDepartment,
   ClinicalLocation,
 } from "@/features/clinical/types/clinical-catalog.types";
-import {
-  createAppointmentDefaultValues,
-  createAppointmentSchema,
-  toCreateAppointmentPayload,
-  type CreateAppointmentFormValues,
-} from "@/features/appointments/schemas/appointment.schema";
-import { createAppointment } from "@/features/appointments/services/appointments.service";
-import type { Appointment } from "@/features/appointments/types/appointment.types";
+import { CustomerAppointmentPicker } from "@/features/customers/components/CustomerAppointmentPicker";
 import type { Customer } from "@/features/customers/types/customer.types";
 import { formatCustomerName } from "@/features/customers/utils/format-customer";
 import { useUser } from "@/providers/user-provider";
@@ -80,6 +75,9 @@ export function CreateAppointmentDialog({
   const requiresClientSelection = !initialCustomer;
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     initialCustomer ?? null,
+  );
+  const [selectedClinicianName, setSelectedClinicianName] = useState<string | null>(
+    null,
   );
   const [activeTab, setActiveTab] = useState<CreateAppointmentTab>(
     requiresClientSelection ? "client" : "schedule",
@@ -120,14 +118,16 @@ export function CreateAppointmentDialog({
       return;
     }
 
+    setActiveTab(requiresClientSelection ? "client" : "schedule");
+    if (requiresClientSelection) {
+      setSelectedCustomer(null);
+    }
+    setSelectedClinicianName(null);
+
     let active = true;
 
     async function loadContext() {
       setIsLoadingContext(true);
-      setActiveTab(requiresClientSelection ? "client" : "schedule");
-      if (requiresClientSelection) {
-        setSelectedCustomer(null);
-      }
 
       try {
         const clinicList = await fetchClinicalClinics();
@@ -175,14 +175,9 @@ export function CreateAppointmentDialog({
     return () => {
       active = false;
     };
-  }, [
-    form,
-    loadDepartmentsAndLocations,
-    open,
-    requiresClientSelection,
-    toast,
-    userData?.primary_clinic?.id,
-  ]);
+    // Reset form state only when the dialog opens, not when unrelated deps change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const handleSubmit = form.handleSubmit(async (values) => {
     if (!customer) {
@@ -292,31 +287,10 @@ export function CreateAppointmentDialog({
       }
     >
       {activeTab === "client" ? (
-        <section className="space-y-4 rounded-xl border border-brand-border bg-slate-50/40 p-4">
-          <div>
-            <p className="text-sm font-medium text-brand-navy">Client</p>
-            <p className="text-xs text-brand-muted">
-              Search by name, identifier, or phone number.
-            </p>
-          </div>
-
-          <CustomerSearchCombobox
-            value={selectedCustomer?.uuid ?? null}
-            onSelect={setSelectedCustomer}
-          />
-
-          {selectedCustomer ? (
-            <div className="rounded-lg border border-brand-border bg-white px-4 py-3">
-              <p className="text-sm font-medium text-brand-navy">{customerName}</p>
-              <p className="mt-1 text-xs text-brand-muted">
-                {selectedCustomer.customer_identifier}
-                {selectedCustomer.phone_number
-                  ? ` · ${selectedCustomer.phone_number}`
-                  : ""}
-              </p>
-            </div>
-          ) : null}
-        </section>
+        <CustomerAppointmentPicker
+          customer={selectedCustomer}
+          onCustomerChange={setSelectedCustomer}
+        />
       ) : isLoadingContext ? (
         <div className="flex items-center justify-center gap-2 py-10 text-sm text-brand-muted">
           <Loader2 className="size-4 animate-spin" aria-hidden="true" />
@@ -324,169 +298,29 @@ export function CreateAppointmentDialog({
         </div>
       ) : (
         <Form {...form}>
-          <form className="space-y-4">
+          <form className="space-y-5">
             {activeTab === "schedule" ? (
-              <div className="space-y-4">
-                <section className="space-y-4 rounded-xl border border-brand-border bg-slate-50/40 p-4">
-                  <div>
-                    <p className="text-sm font-medium text-brand-navy">Location</p>
-                    <p className="text-xs text-brand-muted">
-                      Choose where the appointment will take place.
-                    </p>
-                  </div>
-
-                  <FormField
-                    control={form.control}
-                    name="clinic"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Clinic <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={(value) => {
-                          field.onChange(value);
-                          form.setValue("department", "");
-                          form.setValue("location", "");
-                          const clinicId = clinics.find(
-                            (clinic) => clinic.uuid === value,
-                          )?.id;
-                          if (clinicId) {
-                            void loadDepartmentsAndLocations(clinicId);
-                          }
-                        }}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a clinic" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {clinics.map((clinic) => (
-                            <SelectItem key={clinic.uuid} value={clinic.uuid}>
-                              {clinic.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="department"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>
-                        Department <span className="text-red-500">*</span>
-                      </FormLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        disabled={!selectedClinicId || departments.length === 0}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select a department" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {departments.map((department) => (
-                            <SelectItem key={department.uuid} value={department.uuid}>
-                              {department.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="location"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Location</FormLabel>
-                      <Select
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        disabled={!selectedClinicId || locations.length === 0}
-                      >
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Optional service point" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {locations.map((location) => (
-                            <SelectItem key={location.uuid} value={location.uuid}>
-                              {location.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                  />
-                </section>
-
-                <section className="space-y-4 rounded-xl border border-brand-border px-4 py-4">
-                  <div>
-                    <p className="text-sm font-medium text-brand-navy">Time</p>
-                    <p className="text-xs text-brand-muted">
-                      Set the start and end of the appointment window.
-                    </p>
-                  </div>
-
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name="scheduled_start"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            Start <span className="text-red-500">*</span>
-                          </FormLabel>
-                          <FormControl>
-                            <Input type="datetime-local" className="bg-white" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="scheduled_end"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>
-                            End <span className="text-red-500">*</span>
-                          </FormLabel>
-                          <FormControl>
-                            <Input type="datetime-local" className="bg-white" {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </section>
-              </div>
+              <AppointmentFormFields
+                form={form}
+                clinics={clinics}
+                departments={departments}
+                locations={locations}
+                selectedClinicId={selectedClinicId}
+                selectedClinicUuid={selectedClinicUuid}
+                selectedClinicianName={selectedClinicianName}
+                onClinicianChange={(_, name) => setSelectedClinicianName(name)}
+                onClinicChange={(_, clinicId) => {
+                  if (clinicId) {
+                    void loadDepartmentsAndLocations(clinicId);
+                  } else {
+                    setDepartments([]);
+                    setLocations([]);
+                  }
+                }}
+                showDetails={false}
+              />
             ) : (
-              <section className="space-y-4 rounded-xl border border-brand-border bg-slate-50/40 p-4">
-                <div>
-                  <p className="text-sm font-medium text-brand-navy">Visit details</p>
-                  <p className="text-xs text-brand-muted">
-                    Optional context for the care team.
-                  </p>
-                </div>
-
+              <>
                 <FormField
                   control={form.control}
                   name="reason"
@@ -507,13 +341,17 @@ export function CreateAppointmentDialog({
                     <FormItem>
                       <FormLabel>Internal notes</FormLabel>
                       <FormControl>
-                        <Input placeholder="Optional scheduling notes..." {...field} />
+                        <Textarea
+                          placeholder="Optional scheduling notes for the care team..."
+                          className="min-h-24 resize-y bg-white"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
-              </section>
+              </>
             )}
           </form>
         </Form>
