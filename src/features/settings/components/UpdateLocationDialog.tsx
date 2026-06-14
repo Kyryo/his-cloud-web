@@ -77,6 +77,46 @@ export function UpdateLocationDialog({
   });
 
   const selectedClinicId = form.watch("clinic");
+  const selectedDepartmentId = form.watch("department");
+  const hasClinicValue = Boolean(selectedClinicId);
+  const hasDepartmentValue = Boolean(selectedDepartmentId);
+
+  const departmentSelectOptions = (() => {
+    const options = departments.map((department) => ({
+      value: String(department.id),
+      label: `${department.name} (${department.code})`,
+    }));
+
+    if (
+      hasDepartmentValue &&
+      !options.some((option) => option.value === selectedDepartmentId)
+    ) {
+      options.unshift({
+        value: selectedDepartmentId,
+        label:
+          location.department_name ||
+          `Department #${selectedDepartmentId}`,
+      });
+    }
+
+    return options;
+  })();
+
+  const isDepartmentSelectDisabled =
+    !selectedClinicId ||
+    (isLoadingDepartments && !hasDepartmentValue) ||
+    (!hasDepartmentValue &&
+      !isLoadingDepartments &&
+      departmentSelectOptions.length === 0);
+
+  const isSubmitDisabled =
+    isSubmitting ||
+    (isLoadingClinics && !hasClinicValue) ||
+    (!hasClinicValue && clinics.length === 0) ||
+    (isLoadingDepartments && !hasDepartmentValue) ||
+    (!hasDepartmentValue &&
+      !isLoadingDepartments &&
+      departmentSelectOptions.length === 0);
 
   useEffect(() => {
     if (!open) {
@@ -303,11 +343,7 @@ export function UpdateLocationDialog({
                   <Select
                     value={field.value}
                     onValueChange={field.onChange}
-                    disabled={
-                      !selectedClinicId ||
-                      isLoadingDepartments ||
-                      departments.length === 0
-                    }
+                    disabled={isDepartmentSelectDisabled}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -317,7 +353,7 @@ export function UpdateLocationDialog({
                               ? "Select a clinic first"
                               : isLoadingDepartments
                                 ? "Loading departments..."
-                                : departments.length === 0
+                                : departmentSelectOptions.length === 0
                                   ? "No departments for this clinic"
                                   : "Select a department"
                           }
@@ -325,9 +361,9 @@ export function UpdateLocationDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {departments.map((department) => (
-                        <SelectItem key={department.uuid} value={String(department.id)}>
-                          {department.name} ({department.code})
+                      {departmentSelectOptions.map((department) => (
+                        <SelectItem key={department.value} value={department.value}>
+                          {department.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -361,13 +397,7 @@ export function UpdateLocationDialog({
               </SecondaryButton>
               <PrimaryButton
                 type="submit"
-                disabled={
-                  isSubmitting ||
-                  isLoadingClinics ||
-                  clinics.length === 0 ||
-                  isLoadingDepartments ||
-                  departments.length === 0
-                }
+                disabled={isSubmitDisabled}
               >
                 {isSubmitting ? (
                   <>
