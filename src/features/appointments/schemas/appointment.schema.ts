@@ -80,14 +80,18 @@ export function toCreateAppointmentPayload(
   };
 }
 
+function toLocalDateTimeString(date: Date): string {
+  const offset = date.getTimezoneOffset();
+  return new Date(date.getTime() - offset * 60_000).toISOString().slice(0, 16);
+}
+
 function toLocalDateTimeInput(iso: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) {
     return "";
   }
 
-  const offset = date.getTimezoneOffset();
-  return new Date(date.getTime() - offset * 60_000).toISOString().slice(0, 16);
+  return toLocalDateTimeString(date);
 }
 
 export function appointmentToFormValues(
