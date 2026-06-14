@@ -11,6 +11,7 @@ import {
   ListPageLayout,
 } from "@/features/app-shell/components/page-layout";
 import { CreateInternalOrderDialog } from "@/features/inventory/components/CreateInternalOrderDialog";
+import { InventoryFiltersSheet } from "@/features/inventory/components/InventoryFiltersSheet";
 import { InventoryListToolbar } from "@/features/inventory/components/InventoryListToolbar";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
 import { InventoryListEmptyState } from "@/features/inventory/components/list/InventoryListEmptyState";
@@ -18,12 +19,17 @@ import { InventoryListPageContent } from "@/features/inventory/components/list/I
 import { InventoryListPageHeader } from "@/features/inventory/components/list/InventoryListPageHeader";
 import { InventoryListPagination } from "@/features/inventory/components/list/InventoryListTable";
 import { InternalOrdersTable } from "@/features/inventory/components/tables/internal-orders-table";
-import { useInventoryList } from "@/features/inventory/hooks/use-inventory-list";
+import { useInventoryListFilters } from "@/features/inventory/hooks/use-inventory-list-filters";
 import { fetchInternalOrders } from "@/features/inventory/services/internal-orders.service";
 import type {
   InternalOrder,
   InventoryListFilters,
 } from "@/features/inventory/types/inventory.types";
+import {
+  buildInternalOrderListFilters,
+  countActiveInternalOrderFilters,
+  DEFAULT_INTERNAL_ORDER_SHEET_FILTERS,
+} from "@/features/inventory/utils/inventory-list-filters";
 
 export function InternalOrdersListPage() {
   const router = useRouter();
@@ -52,7 +58,14 @@ export function InternalOrdersListPage() {
     handleClearSearch,
     reload,
     handlePageChange,
-  } = useInventoryList<InternalOrder>({ fetchFn });
+    sheetFilters,
+    handleFiltersApply,
+  } = useInventoryListFilters({
+    fetchFn,
+    defaultSheetFilters: DEFAULT_INTERNAL_ORDER_SHEET_FILTERS,
+    buildExtraFilters: buildInternalOrderListFilters,
+    countActiveSheetFilters: countActiveInternalOrderFilters,
+  });
 
   const handleCreate = useCallback(() => {
     setCreateOpen(true);
@@ -107,6 +120,14 @@ export function InternalOrdersListPage() {
             onSearchSubmit={handleSearchSubmit}
             onClearSearch={handleClearSearch}
             compact
+            filters={
+              <InventoryFiltersSheet
+                variant="internal-orders"
+                filters={sheetFilters}
+                isLoading={isRefreshing}
+                onApply={handleFiltersApply}
+              />
+            }
           />
         </ListPageDataSectionsStack>
       ) : null}

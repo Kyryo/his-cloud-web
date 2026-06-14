@@ -39,9 +39,11 @@ import {
 import {
   createOrganizationLocation,
   fetchOrganizationClinics,
+  fetchOrganizationDepartments,
 } from "@/features/settings/services/settings.service";
 import type {
   OrganizationClinic,
+  OrganizationDepartment,
   OrganizationLocation,
 } from "@/features/settings/types/settings.types";
 import { BffError } from "@/lib/bff-client";
@@ -63,12 +65,16 @@ export function AddLocationDialog({
 }: AddLocationDialogProps) {
   const { toast } = useToast();
   const [clinics, setClinics] = useState<OrganizationClinic[]>([]);
+  const [departments, setDepartments] = useState<OrganizationDepartment[]>([]);
   const [isLoadingClinics, setIsLoadingClinics] = useState(false);
+  const [isLoadingDepartments, setIsLoadingDepartments] = useState(false);
 
   const form = useForm<CreateOrganizationLocationFormValues>({
     resolver: zodResolver(createOrganizationLocationSchema),
     defaultValues: createOrganizationLocationDefaultValues,
   });
+
+  const selectedClinicId = form.watch("clinic");
 
   useEffect(() => {
     if (!open) {
@@ -101,6 +107,51 @@ export function AddLocationDialog({
       active = false;
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!open || !selectedClinicId) {
+      setDepartments([]);
+      return;
+    }
+
+    let active = true;
+
+    async function loadDepartments() {
+      setIsLoadingDepartments(true);
+      try {
+        const response = await fetchOrganizationDepartments();
+        if (active) {
+          setDepartments(
+            response.results.filter(
+              (department) => String(department.clinic) === selectedClinicId,
+            ),
+          );
+        }
+      } catch {
+        if (active) {
+          setDepartments([]);
+        }
+      } finally {
+        if (active) {
+          setIsLoadingDepartments(false);
+        }
+      }
+    }
+
+    void loadDepartments();
+
+    return () => {
+      active = false;
+    };
+  }, [open, selectedClinicId]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    form.setValue("department", "");
+  }, [form, open, selectedClinicId]);
 
   useEffect(() => {
     if (!open) {
@@ -233,6 +284,49 @@ export function AddLocationDialog({
 
             <FormField
               control={form.control}
+              name="department"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Department</FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={
+                      !selectedClinicId ||
+                      isLoadingDepartments ||
+                      departments.length === 0
+                    }
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            !selectedClinicId
+                              ? "Select a clinic first"
+                              : isLoadingDepartments
+                                ? "Loading departments..."
+                                : departments.length === 0
+                                  ? "No departments for this clinic"
+                                  : "Select a department"
+                          }
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {departments.map((department) => (
+                        <SelectItem key={department.uuid} value={String(department.id)}>
+                          {department.name} ({department.code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem>
@@ -255,7 +349,13 @@ export function AddLocationDialog({
               </SecondaryButton>
               <PrimaryButton
                 type="submit"
-                disabled={isSubmitting || isLoadingClinics || clinics.length === 0}
+                disabled={
+                  isSubmitting ||
+                  isLoadingClinics ||
+                  clinics.length === 0 ||
+                  isLoadingDepartments ||
+                  departments.length === 0
+                }
               >
                 {isSubmitting ? (
                   <>

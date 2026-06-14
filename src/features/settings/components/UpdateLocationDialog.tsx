@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
@@ -38,10 +38,12 @@ import {
 } from "@/features/settings/schemas/organization-location.schema";
 import {
   fetchOrganizationClinics,
+  fetchOrganizationDepartments,
   updateOrganizationLocation,
 } from "@/features/settings/services/settings.service";
 import type {
   OrganizationClinic,
+  OrganizationDepartment,
   OrganizationLocation,
 } from "@/features/settings/types/settings.types";
 import { BffError } from "@/lib/bff-client";
@@ -65,12 +67,16 @@ export function UpdateLocationDialog({
 }: UpdateLocationDialogProps) {
   const { toast } = useToast();
   const [clinics, setClinics] = useState<OrganizationClinic[]>([]);
+  const [departments, setDepartments] = useState<OrganizationDepartment[]>([]);
   const [isLoadingClinics, setIsLoadingClinics] = useState(false);
+  const [isLoadingDepartments, setIsLoadingDepartments] = useState(false);
 
   const form = useForm<UpdateOrganizationLocationFormValues>({
     resolver: zodResolver(updateOrganizationLocationSchema),
     defaultValues: toUpdateOrganizationLocationFormValues(location),
   });
+
+  const selectedClinicId = form.watch("clinic");
 
   useEffect(() => {
     if (!open) {
@@ -103,6 +109,61 @@ export function UpdateLocationDialog({
       active = false;
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!open || !selectedClinicId) {
+      setDepartments([]);
+      return;
+    }
+
+    let active = true;
+
+    async function loadDepartments() {
+      setIsLoadingDepartments(true);
+      try {
+        const response = await fetchOrganizationDepartments();
+        if (active) {
+          setDepartments(
+            response.results.filter(
+              (department) => String(department.clinic) === selectedClinicId,
+            ),
+          );
+        }
+      } catch {
+        if (active) {
+          setDepartments([]);
+        }
+      } finally {
+        if (active) {
+          setIsLoadingDepartments(false);
+        }
+      }
+    }
+
+    void loadDepartments();
+
+    return () => {
+      active = false;
+    };
+  }, [open, selectedClinicId]);
+
+  const previousClinicId = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!open) {
+      previousClinicId.current = null;
+      return;
+    }
+
+    if (
+      previousClinicId.current &&
+      previousClinicId.current !== selectedClinicId
+    ) {
+      form.setValue("department", "");
+    }
+
+    previousClinicId.current = selectedClinicId;
+  }, [form, open, selectedClinicId]);
 
   useEffect(() => {
     if (open) {
@@ -235,6 +296,49 @@ export function UpdateLocationDialog({
 
             <FormField
               control={form.control}
+              name="department"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Department</FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={
+                      !selectedClinicId ||
+                      isLoadingDepartments ||
+                      departments.length === 0
+                    }
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            !selectedClinicId
+                              ? "Select a clinic first"
+                              : isLoadingDepartments
+                                ? "Loading departments..."
+                                : departments.length === 0
+                                  ? "No departments for this clinic"
+                                  : "Select a department"
+                          }
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {departments.map((department) => (
+                        <SelectItem key={department.uuid} value={String(department.id)}>
+                          {department.name} ({department.code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem>
@@ -257,7 +361,13 @@ export function UpdateLocationDialog({
               </SecondaryButton>
               <PrimaryButton
                 type="submit"
-                disabled={isSubmitting || isLoadingClinics || clinics.length === 0}
+                disabled={
+                  isSubmitting ||
+                  isLoadingClinics ||
+                  clinics.length === 0 ||
+                  isLoadingDepartments ||
+                  departments.length === 0
+                }
               >
                 {isSubmitting ? (
                   <>

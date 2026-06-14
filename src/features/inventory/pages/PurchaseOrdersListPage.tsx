@@ -11,6 +11,7 @@ import {
   ListPageLayout,
 } from "@/features/app-shell/components/page-layout";
 import { CreatePurchaseOrderDialog } from "@/features/inventory/components/CreatePurchaseOrderDialog";
+import { InventoryFiltersSheet } from "@/features/inventory/components/InventoryFiltersSheet";
 import { InventoryListToolbar } from "@/features/inventory/components/InventoryListToolbar";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
 import { InventoryListEmptyState } from "@/features/inventory/components/list/InventoryListEmptyState";
@@ -18,12 +19,17 @@ import { InventoryListPageContent } from "@/features/inventory/components/list/I
 import { InventoryListPageHeader } from "@/features/inventory/components/list/InventoryListPageHeader";
 import { InventoryListPagination } from "@/features/inventory/components/list/InventoryListTable";
 import { PurchaseOrdersTable } from "@/features/inventory/components/tables/purchase-orders-table";
-import { useInventoryList } from "@/features/inventory/hooks/use-inventory-list";
+import { useInventoryListFilters } from "@/features/inventory/hooks/use-inventory-list-filters";
 import { fetchPurchaseOrders } from "@/features/inventory/services/purchase-orders.service";
 import type {
   InventoryListFilters,
   PurchaseOrder,
 } from "@/features/inventory/types/inventory.types";
+import {
+  buildPurchaseOrderListFilters,
+  countActivePurchaseOrderFilters,
+  DEFAULT_PURCHASE_ORDER_SHEET_FILTERS,
+} from "@/features/inventory/utils/inventory-list-filters";
 
 export function PurchaseOrdersListPage() {
   const router = useRouter();
@@ -52,7 +58,14 @@ export function PurchaseOrdersListPage() {
     handleClearSearch,
     reload,
     handlePageChange,
-  } = useInventoryList<PurchaseOrder>({ fetchFn });
+    sheetFilters,
+    handleFiltersApply,
+  } = useInventoryListFilters({
+    fetchFn,
+    defaultSheetFilters: DEFAULT_PURCHASE_ORDER_SHEET_FILTERS,
+    buildExtraFilters: buildPurchaseOrderListFilters,
+    countActiveSheetFilters: countActivePurchaseOrderFilters,
+  });
 
   const handleCreate = useCallback(() => {
     setCreateOpen(true);
@@ -107,6 +120,14 @@ export function PurchaseOrdersListPage() {
             onSearchSubmit={handleSearchSubmit}
             onClearSearch={handleClearSearch}
             compact
+            filters={
+              <InventoryFiltersSheet
+                variant="purchase-orders"
+                filters={sheetFilters}
+                isLoading={isRefreshing}
+                onApply={handleFiltersApply}
+              />
+            }
           />
         </ListPageDataSectionsStack>
       ) : null}

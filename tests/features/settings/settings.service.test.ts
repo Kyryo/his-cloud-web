@@ -148,6 +148,7 @@ describe("settings.service organization", () => {
       name: "Front Desk",
       code: "FD-01",
       clinic: 1,
+      department: 2,
     });
 
     expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.locations, {
@@ -156,6 +157,7 @@ describe("settings.service organization", () => {
         name: "Front Desk",
         code: "FD-01",
         clinic: 1,
+        department: 2,
       },
     });
     expect(location.name).toBe("Front Desk");
@@ -354,6 +356,7 @@ describe("settings.service organization", () => {
       name: "Updated Desk",
       code: "FD-02",
       clinic: 1,
+      department: 2,
     });
 
     expect(bffRequest).toHaveBeenCalledWith(
@@ -364,6 +367,7 @@ describe("settings.service organization", () => {
           name: "Updated Desk",
           code: "FD-02",
           clinic: 1,
+          department: 2,
         },
       },
     );

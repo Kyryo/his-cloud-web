@@ -12,6 +12,7 @@ import {
   ListPageLayout,
 } from "@/features/app-shell/components/page-layout";
 import { CreateProductDialog } from "@/features/inventory/components/CreateProductDialog";
+import { InventoryFiltersSheet } from "@/features/inventory/components/InventoryFiltersSheet";
 import { InventoryListToolbar } from "@/features/inventory/components/InventoryListToolbar";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
 import { InventoryListEmptyState } from "@/features/inventory/components/list/InventoryListEmptyState";
@@ -19,12 +20,17 @@ import { InventoryListPageContent } from "@/features/inventory/components/list/I
 import { InventoryListPageHeader } from "@/features/inventory/components/list/InventoryListPageHeader";
 import { InventoryListPagination } from "@/features/inventory/components/list/InventoryListTable";
 import { ProductsTable } from "@/features/inventory/components/tables/products-table";
-import { useInventoryList } from "@/features/inventory/hooks/use-inventory-list";
+import { useInventoryListFilters } from "@/features/inventory/hooks/use-inventory-list-filters";
 import { searchInventoryProducts } from "@/features/inventory/services/inventory.service";
 import type {
   InventoryListFilters,
   InventoryProduct,
 } from "@/features/inventory/types/inventory.types";
+import {
+  buildProductListFilters,
+  countActiveProductFilters,
+  DEFAULT_PRODUCT_SHEET_FILTERS,
+} from "@/features/inventory/utils/inventory-list-filters";
 import type { PaginatedListResponse } from "@/types/api.types";
 
 async function fetchProducts(
@@ -32,7 +38,7 @@ async function fetchProducts(
 ): Promise<PaginatedListResponse<InventoryProduct>> {
   const results = await searchInventoryProducts({
     q: filters.search,
-    active: true,
+    active: filters.is_active,
   });
   const page = filters.page ?? 1;
   const pageSize = filters.pageSize ?? 20;
@@ -71,7 +77,14 @@ export function ProductsListPage() {
     handleClearSearch,
     reload,
     handlePageChange,
-  } = useInventoryList<InventoryProduct>({ fetchFn });
+    sheetFilters,
+    handleFiltersApply,
+  } = useInventoryListFilters({
+    fetchFn,
+    defaultSheetFilters: DEFAULT_PRODUCT_SHEET_FILTERS,
+    buildExtraFilters: buildProductListFilters,
+    countActiveSheetFilters: countActiveProductFilters,
+  });
 
   const handleCreate = useCallback(() => {
     setCreateOpen(true);
@@ -131,6 +144,14 @@ export function ProductsListPage() {
             onSearchChange={setSearch}
             onSearchSubmit={handleSearchSubmit}
             onClearSearch={handleClearSearch}
+            filters={
+              <InventoryFiltersSheet
+                variant="products"
+                filters={sheetFilters}
+                isLoading={isRefreshing}
+                onApply={handleFiltersApply}
+              />
+            }
           />
         </ListPageDataSectionsStack>
       ) : null}

@@ -10,7 +10,8 @@ const QUERY_KEYS = [
   "search",
   "ordering",
   "tenant",
-  "location",
+  "location_uuid",
+  "clinic_uuid",
   "adjustment_type",
   "status",
 ] as const;

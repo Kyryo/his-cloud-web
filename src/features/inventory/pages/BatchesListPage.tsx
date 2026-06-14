@@ -11,6 +11,7 @@ import {
   ListPageDataSectionsStack,
   ListPageLayout,
 } from "@/features/app-shell/components/page-layout";
+import { InventoryFiltersSheet } from "@/features/inventory/components/InventoryFiltersSheet";
 import { InventoryListToolbar } from "@/features/inventory/components/InventoryListToolbar";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
 import { InventoryListEmptyState } from "@/features/inventory/components/list/InventoryListEmptyState";
@@ -18,12 +19,17 @@ import { InventoryListPageContent } from "@/features/inventory/components/list/I
 import { InventoryListPageHeader } from "@/features/inventory/components/list/InventoryListPageHeader";
 import { InventoryListPagination } from "@/features/inventory/components/list/InventoryListTable";
 import { BatchesTable } from "@/features/inventory/components/tables/batches-table";
-import { useInventoryList } from "@/features/inventory/hooks/use-inventory-list";
+import { useInventoryListFilters } from "@/features/inventory/hooks/use-inventory-list-filters";
 import { fetchInventoryBatches } from "@/features/inventory/services/batches.service";
 import type {
   InventoryBatch,
   InventoryListFilters,
 } from "@/features/inventory/types/inventory.types";
+import {
+  buildBatchListFilters,
+  countActiveBatchFilters,
+  DEFAULT_BATCH_SHEET_FILTERS,
+} from "@/features/inventory/utils/inventory-list-filters";
 
 export function BatchesListPage() {
   const router = useRouter();
@@ -37,6 +43,7 @@ export function BatchesListPage() {
     totalCount,
     page,
     pageSize,
+    search,
     isLoading,
     isRefreshing,
     error,
@@ -45,9 +52,19 @@ export function BatchesListPage() {
     hasPrevious,
     hasNoRecords,
     isFilteredEmpty,
+    setSearch,
+    handleSearchSubmit,
+    handleClearSearch,
     reload,
     handlePageChange,
-  } = useInventoryList<InventoryBatch>({ fetchFn });
+    sheetFilters,
+    handleFiltersApply,
+  } = useInventoryListFilters({
+    fetchFn,
+    defaultSheetFilters: DEFAULT_BATCH_SHEET_FILTERS,
+    buildExtraFilters: buildBatchListFilters,
+    countActiveSheetFilters: countActiveBatchFilters,
+  });
 
   const handleAdd = useCallback(() => {
     router.push(ROUTES.inventoryBatchNew);
@@ -69,6 +86,12 @@ export function BatchesListPage() {
         description="Track batch numbers, expiry, and supplier details."
         addLabel="New batch"
         onAdd={handleAdd}
+        search={search}
+        isSearchDisabled={isRefreshing}
+        onSearchChange={setSearch}
+        onSearchSubmit={handleSearchSubmit}
+        onClearSearch={handleClearSearch}
+        searchPlaceholder="Search by batch number, supplier, or notes..."
         data-testid="add-batch-button"
       />
 
@@ -81,9 +104,21 @@ export function BatchesListPage() {
       {!hasNoRecords ? (
         <ListPageDataSectionsStack>
           <InventoryListToolbar
-            showSearch={false}
+            search={search}
+            searchPlaceholder="Search by batch number, supplier, or notes..."
             isLoading={isRefreshing}
+            onSearchChange={setSearch}
+            onSearchSubmit={handleSearchSubmit}
+            onClearSearch={handleClearSearch}
             onRefresh={() => void reload()}
+            filters={
+              <InventoryFiltersSheet
+                variant="batches"
+                filters={sheetFilters}
+                isLoading={isRefreshing}
+                onApply={handleFiltersApply}
+              />
+            }
             primaryAction={
               <AddActionButton
                 label="New batch"
@@ -112,6 +147,7 @@ export function BatchesListPage() {
           />
         }
         isFilteredEmpty={isFilteredEmpty}
+        filteredEmptyTitle="No matching batches"
       >
         <BatchesTable items={items} onRowClick={handleRowClick} />
         <InventoryListPagination

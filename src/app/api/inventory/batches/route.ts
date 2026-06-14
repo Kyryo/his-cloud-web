@@ -13,6 +13,7 @@ const QUERY_KEYS = [
   "odoo_product_id",
   "batch_number",
   "is_active",
+  "has_expiry_date",
 ] as const;
 
 export async function GET(request: Request) {
