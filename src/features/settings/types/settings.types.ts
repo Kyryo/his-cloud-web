@@ -406,3 +406,54 @@ export type GroupMembershipPayload = {
 };
 
 export type FinanceOperationsTabId = "payers" | "schemes" | "pricelists";
+
+export type TenantEmailConfiguration = {
+  id: number;
+  tenant: number;
+  is_active: boolean;
+  appointment_emails_enabled: boolean;
+  smtp_host: string;
+  smtp_port: number;
+  smtp_username: string;
+  use_tls: boolean;
+  use_ssl: boolean;
+  timeout: number;
+  sender_name: string;
+  from_email: string;
+  reply_to: string;
+  has_smtp_password: boolean;
+  created_at: string;
+  updated_at: string;
+  created_by: number | null;
+  updated_by: number | null;
+};
+
+export type CreateTenantEmailConfigurationPayload = {
+  is_active?: boolean;
+  appointment_emails_enabled?: boolean;
+  smtp_host: string;
+  smtp_port: number;
+  smtp_username: string;
+  smtp_password: string;
+  use_tls?: boolean;
+  use_ssl?: boolean;
+  timeout?: number;
+  sender_name: string;
+  from_email: string;
+  reply_to?: string;
+};
+
+export type UpdateTenantEmailConfigurationPayload = {
+  is_active?: boolean;
+  appointment_emails_enabled?: boolean;
+  smtp_host?: string;
+  smtp_port?: number;
+  smtp_username?: string;
+  smtp_password?: string;
+  use_tls?: boolean;
+  use_ssl?: boolean;
+  timeout?: number;
+  sender_name?: string;
+  from_email?: string;
+  reply_to?: string;
+};

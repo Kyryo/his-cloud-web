@@ -69,6 +69,18 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
       ];
     }
 
+    if (pathname === ROUTES.settingsIntegrations) {
+      return [{ label: "Settings" }, { label: "Integrations" }];
+    }
+
+    if (pathname === ROUTES.settingsIntegrationsEmail) {
+      return [
+        { label: "Settings" },
+        { label: "Integrations", href: ROUTES.settingsIntegrations },
+        { label: "Email Settings" },
+      ];
+    }
+
     return [{ label: "Settings" }];
   }
 

@@ -190,4 +190,7 @@ export const BFF_SETTINGS_ROUTES = {
   userLocations: "/api/user-locations",
   userLocationDetail: (id: number) => `/api/user-locations/${id}`,
   userLocationSetPrimary: (id: number) => `/api/user-locations/${id}/set-primary`,
+  emailConfiguration: "/api/integrations/email-configuration",
+  emailConfigurationDetail: (id: number | string) =>
+    `/api/integrations/email-configuration/${id}`,
 } as const;

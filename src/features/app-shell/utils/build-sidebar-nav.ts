@@ -98,6 +98,13 @@ export function buildSidebarNavItems(
               isNavItemActive(pathname, ROUTES.settingsModules) ||
               pathname.startsWith(`${ROUTES.settingsModules}/`),
           },
+          {
+            title: "Integrations",
+            url: ROUTES.settingsIntegrations,
+            isActive:
+              isNavItemActive(pathname, ROUTES.settingsIntegrations) ||
+              pathname.startsWith(`${ROUTES.settingsIntegrations}/`),
+          },
         ]
       : []),
   ];

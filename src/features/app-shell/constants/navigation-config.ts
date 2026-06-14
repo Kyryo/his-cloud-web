@@ -126,14 +126,14 @@ export const navigation: NavigationItem[] = [
     enabledInWebNew: true,
   },
   {
-    name: "Purchase orders",
+    name: "Purchase Orders",
     href: ROUTES.inventoryPurchaseOrders,
     icon: FileText,
     requiredGroup: "Inventory",
     enabledInWebNew: true,
   },
   {
-    name: "Internal orders",
+    name: "Internal Orders",
     href: ROUTES.inventoryInternalOrders,
     icon: Shuffle,
     requiredGroup: "Inventory",
