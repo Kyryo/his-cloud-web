@@ -7,8 +7,11 @@ import {
   BFF_CUSTOMERS_ROUTES,
 } from "@/constants/api";
 import {
+  countCancelledCustomerSalesOrders,
+  countOpenCustomerSalesOrders,
   extractCustomerBillingCounts,
   fetchCustomerBillingSummary,
+  fetchCustomerSalesOrders,
 } from "@/features/customers/services/customer-billing.service";
 import { fetchCustomerEncounters } from "@/features/customers/services/customer-encounters.service";
 import { fetchCustomerAddresses } from "@/features/customers/services/customer-addresses.service";
@@ -44,6 +47,37 @@ describe("customer detail services", () => {
     expect(bffRequest).toHaveBeenCalledWith(
       `${BFF_CUSTOMERS_ROUTES.billing("customer-uuid")}?sales_limit=1&sales_offset=0&invoice_limit=1&invoice_offset=0&payment_limit=1&payment_offset=0`,
     );
+  });
+
+  it("fetches customer sales orders from billing endpoint", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({
+      sales_order_ids: [
+        { id: 1, name: "SO001", state: "draft", amount_total: 100, date_order: "2026-01-01" },
+        { id: 2, name: "SO002", state: "cancel", amount_total: 50, date_order: "2026-01-02" },
+      ],
+      sales_orders_pagination: {
+        count: 2,
+        limit: 20,
+        offset: 0,
+        has_next: false,
+        has_previous: false,
+      },
+      totals: {
+        total_sales: 150,
+        total_invoiced: 0,
+        total_paid: 0,
+        total_due: 150,
+      },
+    });
+
+    const response = await fetchCustomerSalesOrders("customer-uuid");
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      `${BFF_CUSTOMERS_ROUTES.billing("customer-uuid")}?sales_limit=20&sales_offset=0&invoice_limit=0&invoice_offset=0&payment_limit=0&payment_offset=0`,
+    );
+    expect(response.salesOrders).toHaveLength(2);
+    expect(countOpenCustomerSalesOrders(response.salesOrders)).toBe(1);
+    expect(countCancelledCustomerSalesOrders(response.salesOrders)).toBe(1);
   });
 
   it("extracts billing counts from summary payload", () => {

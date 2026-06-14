@@ -6,10 +6,15 @@ import { useCallback, useEffect, useState } from "react";
 import { TabAddActionButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
 import { StatsCard1, StatsCard1Grid } from "@/components/stats-card1";
+import {
+  AppointmentActionConfirmDialog,
+  type AppointmentTableAction,
+} from "@/features/appointments/components/AppointmentActionConfirmDialog";
+import { AppointmentDetailDialog } from "@/features/appointments/components/AppointmentDetailDialog";
 import { CreateAppointmentDialog } from "@/features/appointments/components/CreateAppointmentDialog";
 import { StartVisitFromAppointmentDialog } from "@/features/appointments/components/StartVisitFromAppointmentDialog";
 import { fetchAppointments, runAppointmentAction } from "@/features/appointments/services/appointments.service";
-import type { Appointment } from "@/features/appointments/types/appointment.types";
+import type { Appointment, AppointmentAction } from "@/features/appointments/types/appointment.types";
 import {
   CustomerDetailRecordList,
   CustomerDetailRecordListItem,
@@ -21,6 +26,8 @@ import { formatDisplayDateTime } from "@/features/customers/utils/format-custome
 import { AppointmentStatusBadge } from "@/features/appointments/components/AppointmentStatusBadge";
 import { formatCompactNumber } from "@/utils/format-compact-number";
 import { useToast } from "@/providers/toast-provider";
+
+const STAT_CARD_CLASS = "border-brand-border bg-white shadow-none";
 
 type CustomerDetailAppointmentsTabProps = {
   customer: Customer;
@@ -38,6 +45,10 @@ function canConfirm(appointment: Appointment) {
 }
 
 function canCancel(appointment: Appointment) {
+  return ["scheduled", "confirmed"].includes(appointment.status);
+}
+
+function canMarkNoShow(appointment: Appointment) {
   return ["scheduled", "confirmed"].includes(appointment.status);
 }
 
@@ -62,10 +73,17 @@ export function CustomerDetailAppointmentsTab({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [selectedAppointmentUuid, setSelectedAppointmentUuid] = useState<
+    string | null
+  >(null);
   const [startingAppointment, setStartingAppointment] = useState<Appointment | null>(
     null,
   );
   const [actionUuid, setActionUuid] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<{
+    appointment: Appointment;
+    action: AppointmentTableAction;
+  } | null>(null);
 
   const loadAppointments = useCallback(async () => {
     setIsLoading(true);
@@ -97,7 +115,7 @@ export function CustomerDetailAppointmentsTab({
 
   const handleAction = async (
     appointment: Appointment,
-    action: "confirm" | "cancel" | "no-show",
+    action: AppointmentAction,
   ) => {
     setActionUuid(appointment.uuid);
 
@@ -122,6 +140,7 @@ export function CustomerDetailAppointmentsTab({
       });
     } finally {
       setActionUuid(null);
+      setPendingAction(null);
     }
   };
 
@@ -138,13 +157,18 @@ export function CustomerDetailAppointmentsTab({
   }
 
   if (isLoading && !hasLoaded) {
-    return <CustomerTabSkeleton statCards={3} rows={5} />;
+    return <CustomerTabSkeleton statCards={4} rows={5} />;
   }
 
   if (loadError && !hasLoaded) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-6 text-sm text-red-700">
-        {loadError}
+      <div className="space-y-3">
+        <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-6 text-sm text-red-700">
+          {loadError}
+        </div>
+        <Button type="button" variant="outline" onClick={() => void loadAppointments()}>
+          Try again
+        </Button>
       </div>
     );
   }
@@ -155,6 +179,9 @@ export function CustomerDetailAppointmentsTab({
   const completedCount = appointments.filter(
     (appointment) => appointment.status === "completed",
   ).length;
+  const cancelledCount = appointments.filter(
+    (appointment) => appointment.status === "cancelled",
+  ).length;
 
   return (
     <div className="space-y-4" data-testid="customer-detail-appointments-tab">
@@ -163,6 +190,17 @@ export function CustomerDetailAppointmentsTab({
         open={createOpen}
         onOpenChange={setCreateOpen}
         onCreated={() => void loadAppointments()}
+      />
+
+      <AppointmentDetailDialog
+        appointmentUuid={selectedAppointmentUuid}
+        open={Boolean(selectedAppointmentUuid)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedAppointmentUuid(null);
+          }
+        }}
+        onUpdated={() => void loadAppointments()}
       />
 
       {startingAppointment ? (
@@ -182,14 +220,44 @@ export function CustomerDetailAppointmentsTab({
         />
       ) : null}
 
+      {pendingAction ? (
+        <AppointmentActionConfirmDialog
+          appointment={pendingAction.appointment}
+          action={pendingAction.action}
+          open={Boolean(pendingAction)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setPendingAction(null);
+            }
+          }}
+          onConfirm={() =>
+            void handleAction(pendingAction.appointment, pendingAction.action)
+          }
+        />
+      ) : null}
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <StatsCard1Grid className="flex-1">
           <StatsCard1
+            className={STAT_CARD_CLASS}
             title="Total appointments"
             value={formatCompactNumber(appointments.length)}
           />
-          <StatsCard1 title="Upcoming" value={formatCompactNumber(upcomingCount)} />
-          <StatsCard1 title="Completed" value={formatCompactNumber(completedCount)} />
+          <StatsCard1
+            className={STAT_CARD_CLASS}
+            title="Upcoming"
+            value={formatCompactNumber(upcomingCount)}
+          />
+          <StatsCard1
+            className={STAT_CARD_CLASS}
+            title="Completed"
+            value={formatCompactNumber(completedCount)}
+          />
+          <StatsCard1
+            className={STAT_CARD_CLASS}
+            title="Cancelled"
+            value={formatCompactNumber(cancelledCount)}
+          />
         </StatsCard1Grid>
         {appointments.length > 0 ? scheduleButton : null}
       </div>
@@ -219,6 +287,15 @@ export function CustomerDetailAppointmentsTab({
                 <div className="space-y-1.5">
                   <p>{formatAppointmentMeta(appointment)}</p>
                   <div className="flex flex-wrap gap-1.5 pt-0.5">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-7 px-2.5 text-xs"
+                      onClick={() => setSelectedAppointmentUuid(appointment.uuid)}
+                    >
+                      View
+                    </Button>
                     {canConfirm(appointment) ? (
                       <Button
                         type="button"
@@ -242,6 +319,18 @@ export function CustomerDetailAppointmentsTab({
                         Start visit
                       </Button>
                     ) : null}
+                    {canMarkNoShow(appointment) ? (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        className="h-7 px-2 text-xs text-brand-muted hover:text-brand-navy"
+                        disabled={actionUuid === appointment.uuid}
+                        onClick={() => void handleAction(appointment, "no-show")}
+                      >
+                        No-show
+                      </Button>
+                    ) : null}
                     {canCancel(appointment) ? (
                       <Button
                         type="button"
@@ -249,7 +338,9 @@ export function CustomerDetailAppointmentsTab({
                         variant="ghost"
                         className="h-7 px-2 text-xs text-brand-muted hover:text-brand-navy"
                         disabled={actionUuid === appointment.uuid}
-                        onClick={() => void handleAction(appointment, "cancel")}
+                        onClick={() =>
+                          setPendingAction({ appointment, action: "cancel" })
+                        }
                       >
                         Cancel
                       </Button>
@@ -263,6 +354,10 @@ export function CustomerDetailAppointmentsTab({
           ))}
         </CustomerDetailRecordList>
       )}
+
+      {loadError && hasLoaded ? (
+        <p className="text-xs text-red-600">{loadError}</p>
+      ) : null}
     </div>
   );
 }
