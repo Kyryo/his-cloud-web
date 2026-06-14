@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 
 type SalesOrderDetailTabsProps = {
   order: SalesOrder;
+  onOrderUpdated: (order: SalesOrder) => void;
 };
 
 type DetailTabId = "lines" | "visit" | "client";
@@ -30,7 +31,10 @@ const tabs: Array<{ id: DetailTabId; label: string }> = [
   { id: "client", label: "Client" },
 ];
 
-export function SalesOrderDetailTabs({ order }: SalesOrderDetailTabsProps) {
+export function SalesOrderDetailTabs({
+  order,
+  onOrderUpdated,
+}: SalesOrderDetailTabsProps) {
   const [activeTab, setActiveTab] = useState<DetailTabId>("lines");
   const [showSummaryPanel, setShowSummaryPanel] = useState(false);
   const lineCount = order.order_lines?.length ?? order.order_line?.length ?? 0;
@@ -55,6 +59,7 @@ export function SalesOrderDetailTabs({ order }: SalesOrderDetailTabsProps) {
           <SalesOrderDetailLinesTab
             order={order}
             isActive={activeTab === "lines"}
+            onOrderUpdated={onOrderUpdated}
           />
           <SalesOrderDetailVisitTab
             order={order}

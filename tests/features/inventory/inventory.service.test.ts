@@ -1,13 +1,19 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { BFF_INVENTORY_ROUTES } from "@/constants/api";
+import { BFF_INVENTORY_ROUTES, BFF_SETTINGS_ROUTES } from "@/constants/api";
 import {
+  addProductToPricelist,
   createInventoryProduct,
+  createProductTariffCode,
+  deleteProductTariffCode,
   fetchInventoryProductPricelists,
-  fetchInventoryProductStockLocations,
   fetchInventoryStock,
+  fetchProductTariffCodes,
+  removeProductFromPricelist,
   searchInventoryProducts,
   updateInventoryProduct,
+  updatePricelistProductPrice,
+  updateProductTariffCode,
 } from "@/features/inventory/services/inventory.service";
 import {
   createPurchaseOrder,
@@ -88,17 +94,107 @@ describe("inventory.service", () => {
     );
   });
 
-  it("fetches product stock locations via the BFF", async () => {
+  it("fetches product tariff codes via the BFF", async () => {
     vi.mocked(bffRequest).mockResolvedValue([]);
 
-    await fetchInventoryProductStockLocations(101);
+    await fetchProductTariffCodes(101);
 
     expect(bffRequest).toHaveBeenCalledWith(
-      BFF_INVENTORY_ROUTES.products.stockLocations(101),
+      BFF_INVENTORY_ROUTES.products.tariffCodes(101),
     );
   });
 
-  it("updates products via the BFF", async () => {
+  it("creates product tariff codes via the BFF", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({
+      scheme_uuid: "scheme-1",
+      tariff_code: "03001",
+    });
+
+    await createProductTariffCode(101, {
+      scheme: "scheme-1",
+      tariff_code: "03001",
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_INVENTORY_ROUTES.products.tariffCodes(101),
+      {
+        method: "POST",
+        body: { scheme: "scheme-1", tariff_code: "03001" },
+      },
+    );
+  });
+
+  it("updates product tariff codes via the BFF", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({
+      scheme_uuid: "scheme-1",
+      tariff_code: "03002",
+    });
+
+    await updateProductTariffCode(101, "scheme-1", { tariff_code: "03002" });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_INVENTORY_ROUTES.products.tariffCodeDetail(101, "scheme-1"),
+      {
+        method: "PATCH",
+        body: { tariff_code: "03002" },
+      },
+    );
+  });
+
+  it("deletes product tariff codes via the BFF", async () => {
+    vi.mocked(bffRequest).mockResolvedValue(undefined);
+
+    await deleteProductTariffCode(101, "scheme-1");
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_INVENTORY_ROUTES.products.tariffCodeDetail(101, "scheme-1"),
+      { method: "DELETE" },
+    );
+  });
+
+  it("adds products to pricelists via the BFF", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({ approval_required: false });
+
+    await addProductToPricelist(5, {
+      product_id: 101,
+      fixed_price: "12.50",
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_SETTINGS_ROUTES.pricelistAddProduct(5),
+      {
+        method: "POST",
+        body: { product_id: 101, fixed_price: "12.50" },
+      },
+    );
+  });
+
+  it("updates pricelist product prices via the BFF", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({ approval_required: false });
+
+    await updatePricelistProductPrice(5, 9, { fixed_price: "15.00" });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_SETTINGS_ROUTES.pricelistUpdateProductPrice(5, 9),
+      {
+        method: "PATCH",
+        body: { fixed_price: "15.00" },
+      },
+    );
+  });
+
+  it("removes products from pricelists via the BFF", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({ approval_required: false });
+
+    await removeProductFromPricelist(5, 9);
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_SETTINGS_ROUTES.pricelistRemoveProduct(5, 9),
+      { method: "DELETE" },
+    );
+  });
+
+  it("fetches product stock locations via the BFF", async () => {
     vi.mocked(bffRequest).mockResolvedValue({
       id: 101,
       name: "Ibuprofen",

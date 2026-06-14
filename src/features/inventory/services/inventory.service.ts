@@ -1,5 +1,7 @@
-import { BFF_INVENTORY_ROUTES } from "@/constants/api";
+import { BFF_INVENTORY_ROUTES, BFF_SETTINGS_ROUTES } from "@/constants/api";
 import type {
+  AddPricelistProductPayload,
+  CreateProductTariffCodePayload,
   InventoryListFilters,
   InventoryLocationOption,
   InventoryMovement,
@@ -9,6 +11,10 @@ import type {
   InventoryProductStockLocation,
   InventoryStock,
   InventoryStockListResponse,
+  PricelistProductMutationResult,
+  ProductTariffCode,
+  UpdatePricelistProductPricePayload,
+  UpdateProductTariffCodePayload,
 } from "@/features/inventory/types/inventory.types";
 import { buildInventoryQuery } from "@/features/inventory/utils/inventory-query";
 import { bffRequest } from "@/lib/bff-client";
@@ -118,6 +124,88 @@ export async function fetchInventoryProductPricelists(
 ): Promise<InventoryProductPricelistItem[]> {
   return bffRequest<InventoryProductPricelistItem[]>(
     BFF_INVENTORY_ROUTES.products.pricelists(productId),
+  );
+}
+
+export async function fetchProductTariffCodes(
+  productId: number | string,
+): Promise<ProductTariffCode[]> {
+  return bffRequest<ProductTariffCode[]>(
+    BFF_INVENTORY_ROUTES.products.tariffCodes(productId),
+  );
+}
+
+export async function createProductTariffCode(
+  productId: number | string,
+  payload: CreateProductTariffCodePayload,
+): Promise<ProductTariffCode> {
+  return bffRequest<ProductTariffCode>(
+    BFF_INVENTORY_ROUTES.products.tariffCodes(productId),
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
+}
+
+export async function updateProductTariffCode(
+  productId: number | string,
+  schemeUuid: string,
+  payload: UpdateProductTariffCodePayload,
+): Promise<ProductTariffCode> {
+  return bffRequest<ProductTariffCode>(
+    BFF_INVENTORY_ROUTES.products.tariffCodeDetail(productId, schemeUuid),
+    {
+      method: "PATCH",
+      body: payload,
+    },
+  );
+}
+
+export async function deleteProductTariffCode(
+  productId: number | string,
+  schemeUuid: string,
+): Promise<void> {
+  await bffRequest<void>(
+    BFF_INVENTORY_ROUTES.products.tariffCodeDetail(productId, schemeUuid),
+    { method: "DELETE" },
+  );
+}
+
+export async function addProductToPricelist(
+  pricelistId: number,
+  payload: AddPricelistProductPayload,
+): Promise<PricelistProductMutationResult> {
+  return bffRequest<PricelistProductMutationResult>(
+    BFF_SETTINGS_ROUTES.pricelistAddProduct(pricelistId),
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
+}
+
+export async function updatePricelistProductPrice(
+  pricelistId: number,
+  itemId: number,
+  payload: UpdatePricelistProductPricePayload,
+): Promise<PricelistProductMutationResult> {
+  return bffRequest<PricelistProductMutationResult>(
+    BFF_SETTINGS_ROUTES.pricelistUpdateProductPrice(pricelistId, itemId),
+    {
+      method: "PATCH",
+      body: payload,
+    },
+  );
+}
+
+export async function removeProductFromPricelist(
+  pricelistId: number,
+  itemId: number,
+): Promise<PricelistProductMutationResult> {
+  return bffRequest<PricelistProductMutationResult>(
+    BFF_SETTINGS_ROUTES.pricelistRemoveProduct(pricelistId, itemId),
+    { method: "DELETE" },
   );
 }
 

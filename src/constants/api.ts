@@ -95,6 +95,11 @@ export const BFF_CUSTOMER_ENCOUNTERS_ROUTES = {
 export const BFF_SALES_ORDERS_ROUTES = {
   list: "/api/sales-orders",
   detail: (orderId: number | string) => `/api/sales-orders/${orderId}`,
+  lines: (orderId: number | string) => `/api/sales-orders/${orderId}/lines`,
+  linePrice: (orderId: number | string, lineId: number | string) =>
+    `/api/sales-orders/${orderId}/lines/${lineId}/price`,
+  lineDetail: (orderId: number | string, lineId: number | string) =>
+    `/api/sales-orders/${orderId}/lines/${lineId}`,
 } as const;
 
 /** Browser-facing BFF inventory routes (same origin). */
@@ -113,6 +118,10 @@ export const BFF_INVENTORY_ROUTES = {
     detail: (productId: number | string) => `/api/inventory/products/${productId}`,
     pricelists: (productId: number | string) =>
       `/api/inventory/products/${productId}/pricelists`,
+    tariffCodes: (productId: number | string) =>
+      `/api/inventory/products/${productId}/tariff-codes`,
+    tariffCodeDetail: (productId: number | string, schemeUuid: string) =>
+      `/api/inventory/products/${productId}/tariff-codes/${schemeUuid}`,
     stockLocations: (productId: number | string) =>
       `/api/inventory/products/${productId}/stock-locations`,
   },
@@ -175,6 +184,11 @@ export const BFF_SETTINGS_ROUTES = {
   insuranceSchemes: "/api/insurance-schemes",
   pricelists: "/api/pricelists",
   pricelistDetail: (id: number | string) => `/api/pricelists/${id}`,
+  pricelistAddProduct: (id: number | string) => `/api/pricelists/${id}/products`,
+  pricelistUpdateProductPrice: (id: number | string, itemId: number | string) =>
+    `/api/pricelists/${id}/products/${itemId}/price`,
+  pricelistRemoveProduct: (id: number | string, itemId: number | string) =>
+    `/api/pricelists/${id}/products/${itemId}`,
   pricelistDefault: "/api/pricelists/default",
   branding: "/api/tenants/current/branding",
   currency: "/api/tenants/current/currency",

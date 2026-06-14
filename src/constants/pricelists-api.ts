@@ -2,6 +2,11 @@
 export const PRICELISTS_API_PATHS = {
   list: "/pricelists/",
   detail: (id: number | string) => `/pricelists/${id}/`,
+  addProduct: (id: number | string) => `/pricelists/${id}/products/`,
+  updateProductPrice: (id: number | string, itemId: number | string) =>
+    `/pricelists/${id}/products/${itemId}/price/`,
+  removeProduct: (id: number | string, itemId: number | string) =>
+    `/pricelists/${id}/products/${itemId}/`,
   tenantDefault: (tenantUuid: string) =>
     `/tenants/${tenantUuid}/pricelists/default/`,
 } as const;

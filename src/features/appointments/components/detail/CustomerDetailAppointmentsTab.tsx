@@ -220,21 +220,21 @@ export function CustomerDetailAppointmentsTab({
         />
       ) : null}
 
-      {pendingAction ? (
-        <AppointmentActionConfirmDialog
-          appointment={pendingAction.appointment}
-          action={pendingAction.action}
-          open={Boolean(pendingAction)}
-          onOpenChange={(open) => {
-            if (!open) {
-              setPendingAction(null);
-            }
-          }}
-          onConfirm={() =>
-            void handleAction(pendingAction.appointment, pendingAction.action)
+      <AppointmentActionConfirmDialog
+        action={pendingAction?.action ?? null}
+        appointment={pendingAction?.appointment ?? null}
+        isSubmitting={Boolean(actionUuid)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setPendingAction(null);
           }
-        />
-      ) : null}
+        }}
+        onConfirm={() => {
+          if (pendingAction) {
+            void handleAction(pendingAction.appointment, pendingAction.action);
+          }
+        }}
+      />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <StatsCard1Grid className="flex-1">

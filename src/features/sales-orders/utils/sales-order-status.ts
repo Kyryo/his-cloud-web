@@ -78,3 +78,7 @@ export function getSalesOrderInvoiceStatusBadgeVariant(
       return "secondary";
   }
 }
+
+export function canEditSalesOrderLines(state: SalesOrderState): boolean {
+  return state === "draft" || state === "sent";
+}

@@ -66,7 +66,10 @@ export function SalesOrderDetailPage({ orderId }: SalesOrderDetailPageProps) {
   return (
     <DetailPageLayout data-testid="sales-order-detail-page">
       <SalesOrderDetailHeader order={order} />
-      <SalesOrderDetailTabs order={order} />
+      <SalesOrderDetailTabs
+        order={order}
+        onOrderUpdated={(updatedOrder) => setOrder(updatedOrder)}
+      />
     </DetailPageLayout>
   );
 }

@@ -14,6 +14,10 @@ export const INVENTORY_API_PATHS = {
     search: "/inventory/products/search/",
     pricelists: (productId: number | string) =>
       `/inventory/products/${productId}/pricelists/`,
+    tariffCodes: (productId: number | string) =>
+      `/inventory/products/${productId}/tariff-codes/`,
+    tariffCodeDetail: (productId: number | string, schemeUuid: string) =>
+      `/inventory/products/${productId}/tariff-codes/${schemeUuid}/`,
     stockLocations: (productId: number | string) =>
       `/inventory/products/${productId}/stock-locations/`,
   },

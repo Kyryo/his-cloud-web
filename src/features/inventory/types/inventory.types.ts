@@ -123,6 +123,38 @@ export type InventoryProductPricelistItem = {
   product_template?: { id: number; name: string } | null;
 };
 
+export type ProductTariffCode = {
+  scheme_id: number;
+  scheme_uuid: string;
+  scheme_name: string;
+  tariff_code: string;
+};
+
+export type CreateProductTariffCodePayload = {
+  scheme: string;
+  tariff_code: string;
+};
+
+export type UpdateProductTariffCodePayload = {
+  tariff_code: string;
+};
+
+export type PricelistProductMutationResult = {
+  approval_required: boolean;
+  change: Record<string, unknown>;
+  record?: InventoryProductPricelistItem;
+};
+
+export type AddPricelistProductPayload = {
+  product_id: number;
+  fixed_price: number | string;
+  min_quantity?: number | string;
+};
+
+export type UpdatePricelistProductPricePayload = {
+  fixed_price: number | string;
+};
+
 export type InventoryProductStockLocation = {
   location: {
     id: number;
