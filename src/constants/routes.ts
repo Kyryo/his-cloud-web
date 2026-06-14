@@ -44,6 +44,8 @@ export const ROUTES = {
   settingsUserManagement: "/settings/user-management",
   settingsModules: "/settings/modules",
   settingsModuleInventory: "/settings/modules/inventory",
+  settingsIntegrations: "/settings/integrations",
+  settingsIntegrationsEmail: "/settings/integrations/email",
 } as const;
 
 /** Paths served by web-new through the deploy gateway. */

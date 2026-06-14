@@ -20,7 +20,10 @@ import {
   fetchOrganizationPricelists,
   fetchOrganizationDefaultPricelist,
   fetchOrganizationServices,
+  fetchTenantEmailConfiguration,
   setOrganizationDefaultPricelist,
+  createTenantEmailConfiguration,
+  updateTenantEmailConfiguration,
   updateOrganizationBranding,
   updateOrganizationClinic,
   updateOrganizationDepartment,
@@ -556,5 +559,67 @@ describe("settings.service organization", () => {
       body: { currency_id: 2 },
     });
     expect(currency.currency.name).toBe("USD");
+  });
+
+  it("fetches tenant email configuration", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      configuration: {
+        id: 1,
+        smtp_host: "smtp.example.com",
+        has_smtp_password: true,
+      },
+    });
+
+    const configuration = await fetchTenantEmailConfiguration();
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.emailConfiguration);
+    expect(configuration?.smtp_host).toBe("smtp.example.com");
+  });
+
+  it("creates tenant email configuration", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      configuration: { id: 2, smtp_host: "smtp.example.com" },
+    });
+
+    const configuration = await createTenantEmailConfiguration({
+      smtp_host: "smtp.example.com",
+      smtp_port: 587,
+      smtp_username: "smtp-user",
+      smtp_password: "secret",
+      sender_name: "Acme Clinic",
+      from_email: "no-reply@example.com",
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.emailConfiguration, {
+      method: "POST",
+      body: {
+        smtp_host: "smtp.example.com",
+        smtp_port: 587,
+        smtp_username: "smtp-user",
+        smtp_password: "secret",
+        sender_name: "Acme Clinic",
+        from_email: "no-reply@example.com",
+      },
+    });
+    expect(configuration.id).toBe(2);
+  });
+
+  it("updates tenant email configuration", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      configuration: { id: 3, smtp_host: "mail.example.com" },
+    });
+
+    const configuration = await updateTenantEmailConfiguration(3, {
+      smtp_host: "mail.example.com",
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_SETTINGS_ROUTES.emailConfigurationDetail(3),
+      {
+        method: "PATCH",
+        body: { smtp_host: "mail.example.com" },
+      },
+    );
+    expect(configuration.smtp_host).toBe("mail.example.com");
   });
 });

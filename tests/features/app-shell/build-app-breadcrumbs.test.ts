@@ -80,6 +80,21 @@ describe("buildAppBreadcrumbs", () => {
       { label: "Inventory" },
     ]);
   });
+
+  it("returns settings integrations crumbs", () => {
+    expect(buildAppBreadcrumbs(ROUTES.settingsIntegrations)).toEqual([
+      { label: "Settings" },
+      { label: "Integrations" },
+    ]);
+  });
+
+  it("returns settings integrations email crumbs", () => {
+    expect(buildAppBreadcrumbs(ROUTES.settingsIntegrationsEmail)).toEqual([
+      { label: "Settings" },
+      { label: "Integrations", href: ROUTES.settingsIntegrations },
+      { label: "Email Settings" },
+    ]);
+  });
 });
 
 describe("applyPageLabelToCrumbs", () => {

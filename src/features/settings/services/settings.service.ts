@@ -7,6 +7,7 @@ import type {
   CreateOrganizationPayerSchemePayload,
   CreateOrganizationPricelistPayload,
   CreateOrganizationServicePayload,
+  CreateTenantEmailConfigurationPayload,
   OrganizationDefaultPricelist,
   OrganizationClinic,
   OrganizationDepartment,
@@ -19,6 +20,7 @@ import type {
   TenantBranding,
   TenantCurrency,
   TenantDetail,
+  TenantEmailConfiguration,
   UpdateOrganizationClinicPayload,
   UpdateOrganizationContactPayload,
   UpdateOrganizationDepartmentPayload,
@@ -29,6 +31,7 @@ import type {
   UpdateProfilePayload,
   UpdateTenantBrandingPayload,
   UpdateTenantCurrencyPayload,
+  UpdateTenantEmailConfigurationPayload,
 } from "@/features/settings/types/settings.types";
 import { joinDisplayName } from "@/features/settings/utils/user-name";
 import { bffRequest } from "@/lib/bff-client";
@@ -305,4 +308,41 @@ export async function updateOrganizationCurrency(
   );
 
   return data.currency;
+}
+
+export async function fetchTenantEmailConfiguration(): Promise<TenantEmailConfiguration | null> {
+  const data = await bffRequest<{ configuration: TenantEmailConfiguration | null }>(
+    BFF_SETTINGS_ROUTES.emailConfiguration,
+  );
+
+  return data.configuration;
+}
+
+export async function createTenantEmailConfiguration(
+  payload: CreateTenantEmailConfigurationPayload,
+): Promise<TenantEmailConfiguration> {
+  const data = await bffRequest<{ configuration: TenantEmailConfiguration }>(
+    BFF_SETTINGS_ROUTES.emailConfiguration,
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
+
+  return data.configuration;
+}
+
+export async function updateTenantEmailConfiguration(
+  id: number,
+  payload: UpdateTenantEmailConfigurationPayload,
+): Promise<TenantEmailConfiguration> {
+  const data = await bffRequest<{ configuration: TenantEmailConfiguration }>(
+    BFF_SETTINGS_ROUTES.emailConfigurationDetail(id),
+    {
+      method: "PATCH",
+      body: payload,
+    },
+  );
+
+  return data.configuration;
 }
