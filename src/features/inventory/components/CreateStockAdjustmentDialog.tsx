@@ -19,6 +19,7 @@ import {
   type InventoryAdjustmentLineItemDraft,
 } from "@/features/inventory/components/forms/InventoryAdjustmentLineItemsEditor";
 import { InventoryLocationSelect } from "@/features/inventory/components/InventoryLocationSelect";
+import { InventoryNoLocationsAlert } from "@/features/inventory/components/InventoryNoLocationsAlert";
 import {
   createStockAdjustment,
   type StockAdjustmentPayload,
@@ -183,6 +184,7 @@ export function CreateStockAdjustmentDialog({
     >
       {activeTab === "details" ? (
         <div className="space-y-4">
+          <InventoryNoLocationsAlert enabled={open} />
           <div className="grid gap-4 sm:grid-cols-2">
             <InventoryLocationSelect
               id="sa-location"

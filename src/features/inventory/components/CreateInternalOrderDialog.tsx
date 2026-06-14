@@ -9,6 +9,7 @@ import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import { Form } from "@/components/ui/form";
 import { TabbedDialog } from "@/components/ui/tabbed-dialog";
 import { InternalOrderFormContent } from "@/features/inventory/components/InternalOrderFormContent";
+import { InventoryNoLocationsAlert } from "@/features/inventory/components/InventoryNoLocationsAlert";
 import {
   createInternalOrderDefaultValues,
   createInternalOrderSchema,
@@ -125,6 +126,7 @@ export function CreateInternalOrderDialog({
     >
       <Form {...form}>
         <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
+          <InventoryNoLocationsAlert enabled={open} />
           <InternalOrderFormContent
             form={form}
             sourceLocationSelectId="create-io-source-location"

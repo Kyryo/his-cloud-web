@@ -73,7 +73,7 @@ export function CustomerDetailAppointmentsTab({
 
     try {
       const response = await fetchAppointments({
-        patient: customer.uuid,
+        patient: customer.patient_uuid,
         pageSize: 100,
       });
       setAppointments(response.results);
@@ -85,7 +85,7 @@ export function CustomerDetailAppointmentsTab({
     } finally {
       setIsLoading(false);
     }
-  }, [customer.uuid]);
+  }, [customer.patient_uuid]);
 
   useEffect(() => {
     if (!isActive) {

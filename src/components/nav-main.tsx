@@ -22,10 +22,7 @@ import { cn } from "@/lib/utils";
 
 function NavIcon({ icon: Icon, isActive }: { icon: LucideIcon; isActive?: boolean }) {
   return (
-    <Icon
-      className={cn(isActive && "fill-current text-sidebar-primary")}
-      strokeWidth={isActive ? 2.25 : 2}
-    />
+    <Icon className={cn(isActive && "text-sidebar-primary")} />
   );
 }
 
