@@ -103,6 +103,12 @@ export const BFF_SALES_ORDERS_ROUTES = {
   invoice: (orderId: number | string) => `/api/sales-orders/${orderId}/invoice`,
 } as const;
 
+/** Browser-facing BFF invoice routes (same origin). */
+export const BFF_INVOICES_ROUTES = {
+  list: "/api/invoices",
+  detail: (invoiceId: number | string) => `/api/invoices/${invoiceId}`,
+} as const;
+
 /** Browser-facing BFF inventory routes (same origin). */
 export const BFF_INVENTORY_ROUTES = {
   stock: {

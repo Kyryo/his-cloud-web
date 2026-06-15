@@ -7,11 +7,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
+import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { TabbedDialog } from "@/components/ui/tabbed-dialog";
 import { ROUTES } from "@/constants/routes";
 import { AppointmentFormFields } from "@/features/appointments/components/AppointmentFormFields";
-import { AppointmentStatusBadge } from "@/features/appointments/components/AppointmentStatusBadge";
 import {
   appointmentToFormValues,
   canEditAppointment,
@@ -39,7 +39,6 @@ import { formatDisplayDateTime } from "@/features/customers/utils/format-custome
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
-import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
 type AppointmentDetailDialogProps = {
@@ -189,16 +188,23 @@ export function AppointmentDetailDialog({
   });
 
   const dialogTitle = appointment ? (
-    <Link
-      href={ROUTES.customerDetail(appointment.patient)}
-      className={cn(
-        "inline-flex cursor-pointer text-brand-primary underline-offset-4 transition-colors",
-        "hover:text-brand-primary/80 hover:underline",
-      )}
-      onClick={() => onOpenChange(false)}
-    >
-      {appointment.patient_name}
-    </Link>
+    <span className="inline-flex flex-wrap items-center gap-2">
+      <span className="text-brand-navy">{appointment.patient_name}</span>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="h-7 px-2 text-xs text-brand-muted hover:text-brand-navy"
+        asChild
+      >
+        <Link
+          href={ROUTES.customerDetail(appointment.patient)}
+          onClick={() => onOpenChange(false)}
+        >
+          View client
+        </Link>
+      </Button>
+    </span>
   ) : (
     "Appointment details"
   );
@@ -269,11 +275,6 @@ export function AppointmentDetailDialog({
         </div>
       ) : appointment && activeTab === "overview" ? (
         <div className="space-y-5">
-          <div className="flex items-center justify-between gap-3">
-            <p className="text-sm font-medium text-brand-navy">Status</p>
-            <AppointmentStatusBadge status={appointment.status} />
-          </div>
-
           <dl className="grid gap-4 sm:grid-cols-2">
             <div>
               <dt className="text-xs text-brand-muted">Client</dt>

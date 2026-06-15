@@ -51,7 +51,7 @@ describe("customer detail services", () => {
 
   it("fetches customer sales orders from billing endpoint", async () => {
     vi.mocked(bffRequest).mockResolvedValue({
-      sales_order_ids: [
+      sales_orders: [
         { id: 1, name: "SO001", state: "draft", amount_total: 100, date_order: "2026-01-01" },
         { id: 2, name: "SO002", state: "cancel", amount_total: 50, date_order: "2026-01-02" },
       ],

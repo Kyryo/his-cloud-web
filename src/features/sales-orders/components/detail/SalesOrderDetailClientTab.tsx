@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { CustomerDetailTabEmptyState } from "@/features/customers/components/detail/CustomerDetailTabEmptyState";
 import { CustomerTabSkeleton } from "@/features/customers/components/detail/CustomerTabSkeleton";
 import { fetchCustomer } from "@/features/customers/services/customers.service";
-import { fetchVisit } from "@/features/customers/services/customer-visits.service";
 import type { Customer } from "@/features/customers/types/customer.types";
 import {
   formatAdaptiveAge,
@@ -35,8 +34,8 @@ export function SalesOrderDetailClientTab({
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const loadCustomer = useCallback(async () => {
-    const visitUuid = order.visit_uuid?.trim();
-    if (!visitUuid) {
+    const customerUuid = order.customer_uuid?.trim();
+    if (!customerUuid) {
       setCustomer(null);
       setLoadError(null);
       setIsLoading(false);
@@ -47,8 +46,7 @@ export function SalesOrderDetailClientTab({
     setLoadError(null);
 
     try {
-      const visit = await fetchVisit(visitUuid);
-      const record = await fetchCustomer(visit.customer);
+      const record = await fetchCustomer(customerUuid);
       setCustomer(record);
     } catch (error) {
       setCustomer(null);
@@ -58,7 +56,7 @@ export function SalesOrderDetailClientTab({
     } finally {
       setIsLoading(false);
     }
-  }, [order.visit_uuid]);
+  }, [order.customer_uuid]);
 
   useEffect(() => {
     if (!isActive) {
@@ -72,7 +70,7 @@ export function SalesOrderDetailClientTab({
     return null;
   }
 
-  if (!order.visit_uuid?.trim()) {
+  if (!order.customer_uuid?.trim()) {
     return (
       <div className="space-y-4" data-testid="sales-order-client-tab">
         <SalesOrderLinkedDetailsTable
@@ -87,7 +85,7 @@ export function SalesOrderDetailClientTab({
         <CustomerDetailTabEmptyState
           icon={UserRound}
           title="Client profile unavailable"
-          description="Link a visit to this order to open the full client profile."
+          description="The full client profile could not be loaded for this order."
           data-testid="sales-order-client-empty-state"
         />
       </div>

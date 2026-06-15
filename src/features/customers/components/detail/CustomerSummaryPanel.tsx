@@ -93,17 +93,6 @@ export function CustomerSummaryPanel({
           value={formatDisplayDate(customer.updated_at)}
         />
       </DetailPageAsideSummarySection>
-
-      <DetailPageAsideSummarySection title="Account">
-        <DetailPageAsideSummaryField
-          label="Billing"
-          value={
-            <span className="text-brand-muted">
-              Billing summaries will appear once connected to the billing service.
-            </span>
-          }
-        />
-      </DetailPageAsideSummarySection>
     </DetailPageAsidePanelSection>
   );
 }

@@ -202,6 +202,7 @@ export function CustomerDetailNotesTab({
         {notes.map((note) => (
           <CustomerDetailRecordListItem
             key={note.uuid}
+            compact
             title={note.title?.trim() || formatNoteType(note.note_type)}
             badges={
               <>
@@ -215,11 +216,16 @@ export function CustomerDetailNotesTab({
               </>
             }
             description={
-              <p className="whitespace-pre-wrap">{note.body}</p>
+              <p className="line-clamp-2 whitespace-pre-wrap">{note.body}</p>
             }
             dateTime={note.created_at}
             createdByName={note.created_by_name}
-            onUpdate={() => setEditingNote(note)}
+            menuActions={[
+              {
+                label: "Update",
+                onClick: () => setEditingNote(note),
+              },
+            ]}
           />
         ))}
       </CustomerDetailRecordList>

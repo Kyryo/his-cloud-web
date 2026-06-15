@@ -8,35 +8,37 @@ import {
   ListPageToolbarSearch,
   ListPageToolbarSection,
 } from "@/features/app-shell/components/page-layout";
-import { AppointmentsFiltersSheet } from "@/features/appointments/components/AppointmentsFiltersSheet";
-import type { AppointmentListFilterState } from "@/features/appointments/utils/appointment-list-filters";
+import { InvoiceFiltersSheet } from "@/features/invoices/components/InvoiceFiltersSheet";
+import type { InvoiceListFilterState } from "@/features/invoices/utils/invoice-list-filters";
 
-type AppointmentsListToolbarProps = {
+type InvoiceListToolbarProps = {
   search: string;
-  filters: AppointmentListFilterState;
+  filters: InvoiceListFilterState;
   isLoading?: boolean;
   onSearchChange: (value: string) => void;
   onSearchSubmit: () => void;
   onClearSearch: () => void;
-  onFiltersApply: (filters: AppointmentListFilterState) => void;
+  onFiltersApply: (filters: InvoiceListFilterState) => void;
 };
 
-export function AppointmentsListToolbar({
-  search,
-  filters,
-  isLoading = false,
-  onSearchChange,
-  onSearchSubmit,
-  onClearSearch,
-  onFiltersApply,
-}: AppointmentsListToolbarProps) {
+export function InvoiceListToolbar(props: InvoiceListToolbarProps) {
+  const {
+    search,
+    filters,
+    isLoading = false,
+    onSearchChange,
+    onSearchSubmit,
+    onClearSearch,
+    onFiltersApply,
+  } = props;
+
   return (
     <ListPageToolbarSection>
       <ListPageToolbarSearch>
         <Input
-          id="appointments-search"
+          id="invoice-search"
           type="search"
-          placeholder="Search by client, clinic, or department..."
+          placeholder="Search by invoice number..."
           value={search}
           disabled={isLoading}
           className="w-full sm:max-w-md"
@@ -46,34 +48,21 @@ export function AppointmentsListToolbar({
               onSearchSubmit();
             }
           }}
-          data-testid="appointments-search"
+          data-testid="invoices-search"
         />
-
         <ListPageToolbarActions>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={isLoading}
-            onClick={onSearchSubmit}
-            data-testid="appointments-search-submit"
-          >
+          <Button type="button" variant="outline" disabled={isLoading} onClick={onSearchSubmit}>
             Search
           </Button>
           {search ? (
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isLoading}
-              onClick={onClearSearch}
-            >
+            <Button type="button" variant="outline" disabled={isLoading} onClick={onClearSearch}>
               Clear
             </Button>
           ) : null}
         </ListPageToolbarActions>
       </ListPageToolbarSearch>
-
       <ListPageToolbarFilters>
-        <AppointmentsFiltersSheet
+        <InvoiceFiltersSheet
           filters={filters}
           isLoading={isLoading}
           onApply={onFiltersApply}

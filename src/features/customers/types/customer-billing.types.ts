@@ -16,14 +16,38 @@ export type CustomerSalesOrderRecord = {
 };
 
 export type CustomerBillingTotals = {
-  total_sales: number;
-  total_invoiced: number;
-  total_paid: number;
-  total_due: number;
+  total_sales: number | string;
+  total_invoiced: number | string;
+  total_paid: number | string;
+  total_due: number | string;
+};
+
+export type CustomerInvoiceRecord = {
+  id: number;
+  name: string;
+  state: string;
+  amount_total: string | number;
+  invoice_date: string;
+  customer_id?: number;
+  customer_name?: string | null;
+  invoice_origin?: string | null;
+};
+
+export type CustomerPaymentRecord = {
+  id: number;
+  name: string;
+  state: string;
+  amount: string | number;
+  payment_date: string;
+  payment_method?: string | null;
+  customer_id?: number;
+  customer_name?: string | null;
 };
 
 export type CustomerBillingSummary = {
-  sales_order_ids?: CustomerSalesOrderRecord[];
+  sales_orders?: CustomerSalesOrderRecord[];
+  invoices?: CustomerInvoiceRecord[];
+  payments?: CustomerPaymentRecord[];
   sales_orders_pagination: CustomerBillingPagination;
   invoices_pagination: CustomerBillingPagination;
   payments_pagination: CustomerBillingPagination;
@@ -36,13 +60,25 @@ export type CustomerBillingCounts = {
   payments: number;
 };
 
-export type FetchCustomerSalesOrdersOptions = {
+export type FetchCustomerBillingListOptions = {
   limit?: number;
   offset?: number;
 };
 
 export type CustomerSalesOrdersResponse = {
   salesOrders: CustomerSalesOrderRecord[];
+  pagination: CustomerBillingPagination;
+  totals: CustomerBillingTotals;
+};
+
+export type CustomerInvoicesResponse = {
+  invoices: CustomerInvoiceRecord[];
+  pagination: CustomerBillingPagination;
+  totals: CustomerBillingTotals;
+};
+
+export type CustomerPaymentsResponse = {
+  payments: CustomerPaymentRecord[];
   pagination: CustomerBillingPagination;
   totals: CustomerBillingTotals;
 };

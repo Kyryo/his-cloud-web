@@ -131,6 +131,21 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
       ];
     }
 
+    if (pathname === ROUTES.invoices) {
+      return [
+        { label: getModuleLabel("Billing") },
+        { label: "Invoices" },
+      ];
+    }
+
+    if (pathname.startsWith(`${ROUTES.invoices}/`)) {
+      return [
+        { label: getModuleLabel("Billing") },
+        { label: "Invoices", href: ROUTES.invoices },
+        { label: "Invoice details" },
+      ];
+    }
+
     return [
       { label: getModuleLabel("Billing") },
       { label: "Sales Orders", href: ROUTES.salesOrders },

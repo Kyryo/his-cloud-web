@@ -91,7 +91,7 @@ export function CustomerDetailAppointmentsTab({
 
     try {
       const response = await fetchAppointments({
-        patient: customer.patient_uuid,
+        patient: customer.uuid,
         pageSize: 100,
       });
       setAppointments(response.results);
@@ -103,7 +103,7 @@ export function CustomerDetailAppointmentsTab({
     } finally {
       setIsLoading(false);
     }
-  }, [customer.patient_uuid]);
+  }, [customer.uuid]);
 
   useEffect(() => {
     if (!isActive) {
@@ -146,7 +146,7 @@ export function CustomerDetailAppointmentsTab({
 
   const scheduleButton = (
     <TabAddActionButton
-      label="Schedule appointment"
+      label="Schedule appointmentx"
       onClick={() => setCreateOpen(true)}
       data-testid="schedule-appointment-button"
     />
@@ -259,7 +259,6 @@ export function CustomerDetailAppointmentsTab({
             value={formatCompactNumber(cancelledCount)}
           />
         </StatsCard1Grid>
-        {appointments.length > 0 ? scheduleButton : null}
       </div>
 
       {appointments.length === 0 ? (
