@@ -32,10 +32,7 @@ import {
 import { createOrganizationService } from "@/features/settings/services/settings.service";
 import type { OrganizationService } from "@/features/settings/types/settings.types";
 import { BffError } from "@/lib/bff-client";
-import {
-  formatBffErrorMessage,
-  mapBffErrorsToForm,
-} from "@/lib/bff-field-errors";
+import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
@@ -109,25 +106,18 @@ export function AddServiceDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={cn(
-          "max-h-[90vh] overflow-y-auto sm:max-w-lg",
-          appFont.className,
-        )}
+        className={cn("max-h-[90vh] overflow-y-auto sm:max-w-lg", appFont.className)}
         data-testid="add-service-dialog"
       >
         <DialogHeader>
           <DialogTitle>Add consultation service</DialogTitle>
           <DialogDescription>
-            Create a consultation service staff can use when registering patient
-            visits.
+            Create a consultation service staff can use when registering patient visits.
           </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
-          <form
-            className="space-y-4"
-            onSubmit={form.handleSubmit(handleSubmit)}
-          >
+          <form className="space-y-4" onSubmit={form.handleSubmit(handleSubmit)}>
             <FormField
               control={form.control}
               name="name"
@@ -187,8 +177,7 @@ export function AddServiceDialog({
                       />
                     </FormControl>
                     <FormLabel className="font-normal">
-                      Chargeable service (creates a consultation order on visit
-                      start)
+                      Chargeable service (creates a consultation order on visit start)
                     </FormLabel>
                   </FormItem>
                 )}
@@ -206,10 +195,7 @@ export function AddServiceDialog({
               <PrimaryButton type="submit" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
-                    <Loader2
-                      className="size-4 animate-spin"
-                      aria-hidden="true"
-                    />
+                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
                     Saving...
                   </>
                 ) : (

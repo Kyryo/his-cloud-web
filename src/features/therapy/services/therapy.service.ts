@@ -1,4 +1,4 @@
-import { BFF_THERAPY_ROUTES } from "@/constants/api";
+import { BFF_THERAPY_ROUTES } from "@/constants/therapy-api";
 import type {
   TherapyDepartment,
   TherapyDiscipline,

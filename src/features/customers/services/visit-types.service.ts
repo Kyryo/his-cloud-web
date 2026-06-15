@@ -4,7 +4,7 @@ import { bffRequest } from "@/lib/bff-client";
 
 export async function fetchVisitTypeCatalog(): Promise<VisitTypeCatalogItem[]> {
   const data = await bffRequest<{ results: VisitTypeCatalogItem[] }>(
-    BFF_VISITS_ROUTES.visitTypesCatalog,
+    BFF_VISITS_ROUTES.consultationServicesCatalog,
   );
 
   return data.results;

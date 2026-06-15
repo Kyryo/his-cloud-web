@@ -88,7 +88,9 @@ describe("customer visits services", () => {
 
     const results = await fetchVisitTypeCatalog();
 
-    expect(bffRequest).toHaveBeenCalledWith(BFF_VISITS_ROUTES.visitTypesCatalog);
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_VISITS_ROUTES.consultationServicesCatalog,
+    );
     expect(results).toHaveLength(1);
   });
 });

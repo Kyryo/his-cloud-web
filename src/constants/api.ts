@@ -39,36 +39,34 @@ export const BFF_VISITS_ROUTES = {
   create: "/api/visits",
   detail: (uuid: string) => `/api/visits/${uuid}`,
   end: (uuid: string) => `/api/visits/${uuid}/end`,
-  visitTypesCatalog: "/api/consultation-services/catalog",
+  fromAppointment: (appointmentUuid: string) =>
+    `/api/visits/from-appointment/${appointmentUuid}`,
+  encounters: (uuid: string) => `/api/visits/${uuid}/encounters`,
+  encounterStart: (visitUuid: string, encounterUuid: string) =>
+    `/api/visits/${visitUuid}/encounters/${encounterUuid}/start`,
+  encounterComplete: (visitUuid: string, encounterUuid: string) =>
+    `/api/visits/${visitUuid}/encounters/${encounterUuid}/complete`,
+  encounterCancel: (visitUuid: string, encounterUuid: string) =>
+    `/api/visits/${visitUuid}/encounters/${encounterUuid}/cancel`,
+  consultationServicesCatalog: "/api/consultation-services/catalog",
 } as const;
 
-export const BFF_THERAPY_ROUTES = {
-  departments: "/api/therapy",
-  visits: "/api/therapy/visits",
-  visitAssessment: (discipline: string, uuid: string) =>
-    `/api/therapy/${discipline}/visits/${uuid}/assessment`,
-  visitSessions: (discipline: string, uuid: string) =>
-    `/api/therapy/${discipline}/visits/${uuid}/sessions`,
-  visitSession: (discipline: string, visitUuid: string, sessionUuid: string) =>
-    `/api/therapy/${discipline}/visits/${visitUuid}/sessions/${sessionUuid}`,
-  visitSessionActivities: (discipline: string, uuid: string) =>
-    `/api/therapy/${discipline}/visits/${uuid}/session-activities`,
-  visitSessionActivity: (
-    discipline: string,
-    visitUuid: string,
-    activityUuid: string,
-  ) =>
-    `/api/therapy/${discipline}/visits/${visitUuid}/session-activities/${activityUuid}`,
-  visitDetails: (discipline: string, uuid: string) =>
-    `/api/therapy/${discipline}/visits/${uuid}`,
-  treatmentGoals: (discipline: string, uuid: string) =>
-    `/api/therapy/${discipline}/visits/${uuid}/treatment-goals`,
-  treatmentPlanDischarge: (discipline: string, uuid: string) =>
-    `/api/therapy/${discipline}/visits/${uuid}/treatment-plan/discharge`,
-  goalProgress: (discipline: string, visitUuid: string, goalUuid: string) =>
-    `/api/therapy/${discipline}/visits/${visitUuid}/treatment-goals/${goalUuid}/progress`,
-  futureAppointments: (discipline: string, visitUuid: string) =>
-    `/api/therapy/${discipline}/visits/${visitUuid}/future-appointments`,
+/** Browser-facing BFF appointment routes (same origin). */
+export const BFF_APPOINTMENTS_ROUTES = {
+  list: "/api/appointments",
+  detail: (uuid: string) => `/api/appointments/${uuid}`,
+  confirm: (uuid: string) => `/api/appointments/${uuid}/confirm`,
+  cancel: (uuid: string) => `/api/appointments/${uuid}/cancel`,
+  noShow: (uuid: string) => `/api/appointments/${uuid}/no-show`,
+  start: (uuid: string) => `/api/appointments/${uuid}/start`,
+  careProviders: "/api/appointments/care-providers",
+} as const;
+
+/** Browser-facing BFF clinical catalog routes (same origin). */
+export const BFF_CLINICAL_ROUTES = {
+  clinics: "/api/clinical/clinics",
+  departments: "/api/clinical/departments",
+  locations: "/api/clinical/locations",
 } as const;
 
 /** Browser-facing BFF insurance catalog routes (same origin). */
@@ -97,6 +95,12 @@ export const BFF_CUSTOMER_ENCOUNTERS_ROUTES = {
 export const BFF_SALES_ORDERS_ROUTES = {
   list: "/api/sales-orders",
   detail: (orderId: number | string) => `/api/sales-orders/${orderId}`,
+  lines: (orderId: number | string) => `/api/sales-orders/${orderId}/lines`,
+  linePrice: (orderId: number | string, lineId: number | string) =>
+    `/api/sales-order-line-prices/${orderId}/${lineId}`,
+  lineDetail: (orderId: number | string, lineId: number | string) =>
+    `/api/sales-order-lines/${orderId}/${lineId}`,
+  invoice: (orderId: number | string) => `/api/sales-orders/${orderId}/invoice`,
 } as const;
 
 /** Browser-facing BFF inventory routes (same origin). */
@@ -112,12 +116,15 @@ export const BFF_INVENTORY_ROUTES = {
   products: {
     list: "/api/inventory/products",
     search: "/api/inventory/products/search",
-    detail: (productId: number | string) =>
-      `/api/inventory/products/${productId}`,
+    detail: (productId: number | string) => `/api/inventory/products/${productId}`,
     pricelists: (productId: number | string) =>
-      `/api/inventory/products/${productId}/pricelists`,
+      `/api/inventory/product-pricelists/${productId}`,
+    tariffCodes: (productId: number | string) =>
+      `/api/inventory/product-tariff-codes/${productId}`,
+    tariffCodeDetail: (productId: number | string, schemeUuid: string) =>
+      `/api/inventory/product-tariff-codes/${productId}/${schemeUuid}`,
     stockLocations: (productId: number | string) =>
-      `/api/inventory/products/${productId}/stock-locations`,
+      `/api/inventory/product-stock-locations/${productId}`,
   },
   batches: {
     list: "/api/inventory/batches",
@@ -168,10 +175,22 @@ export const BFF_SETTINGS_ROUTES = {
   clinicDetail: (uuid: string) => `/api/clinics/${uuid}`,
   locations: "/api/locations",
   locationDetail: (uuid: string) => `/api/locations/${uuid}`,
+  departments: "/api/departments",
+  departmentDetail: (uuid: string) => `/api/departments/${uuid}`,
   visitTypes: "/api/consultation-services",
   visitTypeDetail: (uuid: string) => `/api/consultation-services/${uuid}`,
+  consultationServices: "/api/consultation-services",
+  consultationServiceDetail: (uuid: string) => `/api/consultation-services/${uuid}`,
   insuranceCompanies: "/api/insurance-companies",
   insuranceSchemes: "/api/insurance-schemes",
+  pricelists: "/api/pricelists",
+  pricelistDetail: (id: number | string) => `/api/pricelists/${id}`,
+  pricelistAddProduct: (id: number | string) => `/api/pricelists/${id}/products`,
+  pricelistUpdateProductPrice: (id: number | string, itemId: number | string) =>
+    `/api/pricelists/${id}/products/${itemId}/price`,
+  pricelistRemoveProduct: (id: number | string, itemId: number | string) =>
+    `/api/pricelists/${id}/products/${itemId}`,
+  pricelistDefault: "/api/pricelists/default",
   branding: "/api/tenants/current/branding",
   currency: "/api/tenants/current/currency",
   users: "/api/user-management",
@@ -185,6 +204,8 @@ export const BFF_SETTINGS_ROUTES = {
   userClinicSetPrimary: (id: number) => `/api/user-clinics/${id}/set-primary`,
   userLocations: "/api/user-locations",
   userLocationDetail: (id: number) => `/api/user-locations/${id}`,
-  userLocationSetPrimary: (id: number) =>
-    `/api/user-locations/${id}/set-primary`,
+  userLocationSetPrimary: (id: number) => `/api/user-locations/${id}/set-primary`,
+  emailConfiguration: "/api/integrations/email-configuration",
+  emailConfigurationDetail: (id: number | string) =>
+    `/api/integrations/email-configuration/${id}`,
 } as const;
