@@ -2,47 +2,13 @@
 
 import type { ReactNode } from "react";
 
-import { DetailPageAsidePanelSection } from "@/features/app-shell/components/page-layout";
+import {
+  DetailPageAsidePanelSection,
+  DetailPageAsideSummaryField,
+  DetailPageAsideSummaryHighlight,
+  DetailPageAsideSummarySection,
+} from "@/features/app-shell/components/page-layout";
 import { cn } from "@/lib/utils";
-
-export function SummaryField({
-  label,
-  value,
-}: {
-  label: string;
-  value: ReactNode;
-}) {
-  return (
-    <div>
-      <dt className="text-xs text-brand-muted">{label}</dt>
-      <dd className="mt-0.5 break-words text-sm font-semibold text-brand-navy">
-        {value}
-      </dd>
-    </div>
-  );
-}
-
-export function SummarySection({
-  title,
-  action,
-  children,
-}: {
-  title: string;
-  action?: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <div className="border-t border-brand-border pt-4">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <h3 className="text-[11px] font-semibold uppercase text-brand-muted">
-          {title}
-        </h3>
-        {action}
-      </div>
-      <dl className="space-y-3">{children}</dl>
-    </div>
-  );
-}
 
 type InventorySummaryPanelProps = {
   title?: string;
@@ -64,32 +30,36 @@ export function InventorySummaryPanel({
   return (
     <DetailPageAsidePanelSection className={cn(className)}>
       {highlight ? (
-        <div className="rounded-xl border border-brand-border bg-slate-50/60 p-4">
-          {highlight}
-        </div>
+        <DetailPageAsideSummaryHighlight>{highlight}</DetailPageAsideSummaryHighlight>
       ) : null}
 
       {sections.map((section) => (
-        <SummarySection
+        <DetailPageAsideSummarySection
           key={section.title}
           title={section.title}
           action={section.action}
         >
           {section.fields.map((field) => (
-            <SummaryField
+            <DetailPageAsideSummaryField
               key={field.label}
               label={field.label}
               value={field.value}
             />
           ))}
-        </SummarySection>
+        </DetailPageAsideSummarySection>
       ))}
 
       {!highlight && sections.length === 0 ? (
-        <h2 className="text-[11px] font-semibold uppercase text-brand-muted">
+        <h2 className="text-[11px] font-medium uppercase tracking-wide text-brand-muted">
           {title}
         </h2>
       ) : null}
     </DetailPageAsidePanelSection>
   );
 }
+
+// Re-export shared field/section for callers that import from here.
+export {
+  DetailPageAsideSummaryField as SummaryField,
+  DetailPageAsideSummarySection as SummarySection,
+} from "@/features/app-shell/components/page-layout";

@@ -175,7 +175,12 @@ export function formatDisplayDateTime(value: string | null | undefined): string 
 }
 
 export function formatProductLabel(
-  product: { display_name?: string; name?: string; default_code?: string | null; id?: number },
+  product: {
+    display_name?: string;
+    name?: string;
+    default_code?: string | false | null;
+    id?: number;
+  },
 ): string {
   const name = product.display_name || product.name || `Product #${product.id ?? "?"}`;
   if (product.default_code) {

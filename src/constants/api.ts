@@ -97,9 +97,10 @@ export const BFF_SALES_ORDERS_ROUTES = {
   detail: (orderId: number | string) => `/api/sales-orders/${orderId}`,
   lines: (orderId: number | string) => `/api/sales-orders/${orderId}/lines`,
   linePrice: (orderId: number | string, lineId: number | string) =>
-    `/api/sales-order-lines/${orderId}/${lineId}/price`,
+    `/api/sales-order-line-prices/${orderId}/${lineId}`,
   lineDetail: (orderId: number | string, lineId: number | string) =>
     `/api/sales-order-lines/${orderId}/${lineId}`,
+  invoice: (orderId: number | string) => `/api/sales-orders/${orderId}/invoice`,
 } as const;
 
 /** Browser-facing BFF inventory routes (same origin). */

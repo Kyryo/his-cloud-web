@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BFF_SALES_ORDERS_ROUTES } from "@/constants/api";
 import {
   addSalesOrderLine,
+  createSalesOrderInvoice,
   fetchSalesOrder,
   fetchSalesOrders,
   removeSalesOrderLine,
@@ -90,5 +91,18 @@ describe("sales-orders.service", () => {
       BFF_SALES_ORDERS_ROUTES.lineDetail(81, 3),
       { method: "DELETE" },
     );
+  });
+
+  it("creates a sales order invoice via the BFF", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({
+      sales_order: 81,
+      invoice: { id: 501, name: "INV/2026/0001" },
+    });
+
+    await createSalesOrderInvoice(81);
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SALES_ORDERS_ROUTES.invoice(81), {
+      method: "POST",
+    });
   });
 });

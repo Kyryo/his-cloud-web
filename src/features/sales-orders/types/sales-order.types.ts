@@ -73,6 +73,23 @@ export type SalesOrderLine = {
   price_total?: string | number | null;
   discount?: string | number | null;
   tax_id?: number[] | OdooRelation[] | false | null;
+  tariff_code?: string | null;
+};
+
+export type SalesOrderInvoice = {
+  id: number;
+  name?: string | null;
+  state?: string | null;
+  move_type?: string | null;
+  partner_id?: OdooRelation | false | null;
+  amount_total?: string | number | null;
+  invoice_date?: string | null;
+  invoice_origin?: string | null;
+};
+
+export type CreateSalesOrderInvoiceResponse = {
+  sales_order: number;
+  invoice: SalesOrderInvoice;
 };
 
 export type SalesOrderListFilters = {

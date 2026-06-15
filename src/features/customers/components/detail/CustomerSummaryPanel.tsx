@@ -1,9 +1,12 @@
 "use client";
 
-import type { ReactNode } from "react";
-
 import { Button } from "@/components/ui/button";
-import { DetailPageAsidePanelSection } from "@/features/app-shell/components/page-layout";
+import {
+  DetailPageAsidePanelHeader,
+  DetailPageAsidePanelSection,
+  DetailPageAsideSummaryField,
+  DetailPageAsideSummarySection,
+} from "@/features/app-shell/components/page-layout";
 import {
   ERP_SYNC_LABELS,
   formatErpSyncStatus,
@@ -21,45 +24,6 @@ type CustomerSummaryPanelProps = {
   className?: string;
 };
 
-function SummaryField({
-  label,
-  value,
-}: {
-  label: string;
-  value: ReactNode;
-}) {
-  return (
-    <div>
-      <dt className="text-xs text-brand-muted">{label}</dt>
-      <dd className="mt-0.5 break-words text-sm font-normal text-brand-slate">
-        {value}
-      </dd>
-    </div>
-  );
-}
-
-function SummarySection({
-  title,
-  action,
-  children,
-}: {
-  title: string;
-  action?: ReactNode;
-  children: ReactNode;
-}) {
-  return (
-    <div className="border-t border-brand-border pt-4">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <h3 className="text-[11px] font-medium uppercase tracking-wide text-brand-muted">
-          {title}
-        </h3>
-        {action}
-      </div>
-      <dl className="space-y-3">{children}</dl>
-    </div>
-  );
-}
-
 export function CustomerSummaryPanel({
   customer,
   onUpdateClick,
@@ -70,16 +34,12 @@ export function CustomerSummaryPanel({
 
   return (
     <DetailPageAsidePanelSection className={className}>
-      <div className="flex items-start justify-between gap-2">
-        <div className="min-w-0">
-          <h2 className="text-sm font-semibold text-brand-navy">Client Summary</h2>
-          <p className="mt-0.5 text-xs text-brand-muted">
-            Client profile and sync details
-          </p>
-        </div>
-      </div>
+      <DetailPageAsidePanelHeader
+        title="Client Summary"
+        description="Client profile and sync details"
+      />
 
-      <SummarySection
+      <DetailPageAsideSummarySection
         title="Personal"
         action={
           <Button
@@ -94,12 +54,18 @@ export function CustomerSummaryPanel({
           </Button>
         }
       >
-        <SummaryField label="Name" value={fullName} />
-        <SummaryField label="Client ID" value={customer.customer_identifier} />
-        <SummaryField label="Phone" value={customer.phone_number ?? "—"} />
-        <SummaryField label="Email" value={customer.email ?? "—"} />
-        <SummaryField label="Gender" value={customer.gender} />
-        <SummaryField
+        <DetailPageAsideSummaryField label="Name" value={fullName} />
+        <DetailPageAsideSummaryField
+          label="Client ID"
+          value={customer.customer_identifier}
+        />
+        <DetailPageAsideSummaryField
+          label="Phone"
+          value={customer.phone_number ?? "—"}
+        />
+        <DetailPageAsideSummaryField label="Email" value={customer.email ?? "—"} />
+        <DetailPageAsideSummaryField label="Gender" value={customer.gender} />
+        <DetailPageAsideSummaryField
           label="Date of Birth"
           value={
             <>
@@ -110,11 +76,11 @@ export function CustomerSummaryPanel({
             </>
           }
         />
-        <SummaryField label="Age" value={ageDisplay} />
-      </SummarySection>
+        <DetailPageAsideSummaryField label="Age" value={ageDisplay} />
+      </DetailPageAsideSummarySection>
 
-      <SummarySection title="System">
-        <SummaryField
+      <DetailPageAsideSummarySection title="System">
+        <DetailPageAsideSummaryField
           label="Patient UUID"
           value={
             <span className="break-all font-mono text-xs text-brand-muted">
@@ -122,34 +88,30 @@ export function CustomerSummaryPanel({
             </span>
           }
         />
-        <SummaryField
+        <DetailPageAsideSummaryField
           label="Registered"
           value={formatDisplayDate(customer.created_at)}
         />
-        <SummaryField
+        <DetailPageAsideSummaryField
           label="Last Updated"
           value={formatDisplayDate(customer.updated_at)}
         />
-        <SummaryField
+        <DetailPageAsideSummaryField
           label={ERP_SYNC_LABELS.fieldLabel}
-          value={
-            <span className="text-sm text-brand-slate">
-              {formatErpSyncStatus(customer.has_synced_to_odoo)}
-            </span>
-          }
+          value={formatErpSyncStatus(customer.has_synced_to_odoo)}
         />
-      </SummarySection>
+      </DetailPageAsideSummarySection>
 
-      <SummarySection title="Account">
-        <SummaryField
+      <DetailPageAsideSummarySection title="Account">
+        <DetailPageAsideSummaryField
           label="Billing"
           value={
-            <span className="text-sm text-brand-muted">
+            <span className="text-brand-muted">
               Billing summaries will appear once connected to the billing service.
             </span>
           }
         />
-      </SummarySection>
+      </DetailPageAsideSummarySection>
     </DetailPageAsidePanelSection>
   );
 }

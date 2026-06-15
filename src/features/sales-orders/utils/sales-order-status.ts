@@ -1,4 +1,5 @@
 import type {
+  SalesOrder,
   SalesOrderInvoiceStatus,
   SalesOrderState,
 } from "@/features/sales-orders/types/sales-order.types";
@@ -81,4 +82,28 @@ export function getSalesOrderInvoiceStatusBadgeVariant(
 
 export function canEditSalesOrderLines(state: SalesOrderState): boolean {
   return state === "draft" || state === "sent";
+}
+
+export function getConvertSalesOrderToInvoiceDisabledReason(
+  order: Pick<SalesOrder, "state" | "invoice_status" | "order_lines">,
+): string | null {
+  if (order.state === "cancel") {
+    return "Cancelled orders cannot be converted to an invoice.";
+  }
+
+  if (order.invoice_status === "invoiced") {
+    return "This sales order is already fully invoiced.";
+  }
+
+  if ((order.order_lines ?? []).length === 0) {
+    return "Add at least one line item before converting to an invoice.";
+  }
+
+  return null;
+}
+
+export function canConvertSalesOrderToInvoice(
+  order: Pick<SalesOrder, "state" | "invoice_status" | "order_lines">,
+): boolean {
+  return getConvertSalesOrderToInvoiceDisabledReason(order) === null;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { Calendar } from "lucide-react";
+import type { ReactNode } from "react";
 
 import { SalesOrderStateBadge } from "@/features/sales-orders/components/SalesOrderStatusBadge";
 import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
@@ -12,9 +13,13 @@ import {
 
 type SalesOrderDetailHeaderProps = {
   order: SalesOrder;
+  actions?: ReactNode;
 };
 
-export function SalesOrderDetailHeader({ order }: SalesOrderDetailHeaderProps) {
+export function SalesOrderDetailHeader({
+  order,
+  actions,
+}: SalesOrderDetailHeaderProps) {
   const orderLabel = order.name || `Order #${order.id}`;
   const clientName = formatSalesOrderCustomer(order);
 
@@ -32,13 +37,16 @@ export function SalesOrderDetailHeader({ order }: SalesOrderDetailHeaderProps) {
           <p className="mt-1 font-mono text-sm text-brand-muted">{orderLabel}</p>
 
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-brand-muted">
-            <span className="font-mono text-brand-slate">#{order.id}</span>
             <span className="inline-flex items-center gap-1.5">
               <Calendar className="size-3.5 shrink-0" aria-hidden="true" />
               Ordered {formatSalesOrderDateTime(order.date_order)}
             </span>
           </div>
         </div>
+
+        {actions ? (
+          <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
+        ) : null}
       </div>
     </DetailPageHeaderSection>
   );

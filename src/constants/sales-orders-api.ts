@@ -7,4 +7,5 @@ export const SALES_ORDERS_API_PATHS = {
     `/sales-orders/${orderId}/lines/${lineId}/price/`,
   lineDetail: (orderId: number | string, lineId: number | string) =>
     `/sales-orders/${orderId}/lines/${lineId}/`,
+  invoice: (orderId: number | string) => `/sales-orders/${orderId}/invoice/`,
 } as const;

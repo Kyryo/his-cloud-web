@@ -1,5 +1,6 @@
 import { BFF_SALES_ORDERS_ROUTES } from "@/constants/api";
 import type {
+  CreateSalesOrderInvoiceResponse,
   CreateSalesOrderLinePayload,
   SalesOrder,
   SalesOrderListFilters,
@@ -94,5 +95,14 @@ export async function removeSalesOrderLine(
   return bffRequest<SalesOrder>(
     BFF_SALES_ORDERS_ROUTES.lineDetail(orderId, lineId),
     { method: "DELETE" },
+  );
+}
+
+export async function createSalesOrderInvoice(
+  orderId: number | string,
+): Promise<CreateSalesOrderInvoiceResponse> {
+  return bffRequest<CreateSalesOrderInvoiceResponse>(
+    BFF_SALES_ORDERS_ROUTES.invoice(orderId),
+    { method: "POST" },
   );
 }

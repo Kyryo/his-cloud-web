@@ -1,0 +1,99 @@
+import type { SalesOrderLine } from "@/features/sales-orders/types/sales-order.types";
+import { getOdooRelationId } from "@/features/sales-orders/utils/format-odoo-relation";
+
+export type SalesOrderLineDraft = {
+  key: string;
+  id?: number;
+  product_id: number | null;
+  productName: string | null;
+  tariff_code?: string | null;
+  quantity: string;
+  price_unit: string;
+  price_total?: string | number | null;
+  isNew?: boolean;
+};
+
+export function createEmptySalesOrderLineDraft(): SalesOrderLineDraft {
+  return {
+    key: crypto.randomUUID(),
+    product_id: null,
+    productName: null,
+    quantity: "1",
+    price_unit: "",
+    isNew: true,
+  };
+}
+
+export function salesOrderLineToDraft(line: SalesOrderLine): SalesOrderLineDraft {
+  const productId = getOdooRelationId(line.product_id);
+
+  return {
+    key: crypto.randomUUID(),
+    id: line.id,
+    product_id: productId,
+    productName: line.name?.trim() || null,
+    tariff_code: line.tariff_code ?? null,
+    quantity: line.product_uom_qty != null ? String(line.product_uom_qty) : "1",
+    price_unit: line.price_unit != null ? String(line.price_unit) : "",
+    price_total: line.price_total,
+  };
+}
+
+export function linesMissingProductName(lines: SalesOrderLineDraft[]): boolean {
+  return lines.some((line) => line.product_id && !line.productName);
+}
+
+export function calculateSalesOrderLineDraftTotal(line: SalesOrderLineDraft): number {
+  const quantity = Number(line.quantity);
+  const price = Number(line.price_unit);
+
+  if (!Number.isFinite(quantity) || !Number.isFinite(price)) {
+    return 0;
+  }
+
+  return quantity * price;
+}
+
+export function serializeSalesOrderDraftLines(lines: SalesOrderLineDraft[]): string {
+  return JSON.stringify(
+    lines.map((line) => ({
+      id: line.id ?? null,
+      product_id: line.product_id,
+      productName: line.productName,
+      quantity: line.quantity,
+      price_unit: line.price_unit,
+      price_total: line.price_total ?? null,
+    })),
+  );
+}
+
+export function salesOrderLineDraftNeedsReplace(
+  original: Pick<SalesOrderLineDraft, "product_id" | "quantity">,
+  line: Pick<SalesOrderLineDraft, "product_id" | "quantity">,
+): boolean {
+  return (
+    original.product_id !== line.product_id || original.quantity !== line.quantity
+  );
+}
+
+export function validateSalesOrderLinesForSave(
+  lines: SalesOrderLineDraft[],
+): string | null {
+  const pendingLines = lines.filter((line) => line.product_id);
+
+  for (const line of pendingLines) {
+    const quantity = Number(line.quantity);
+    if (!Number.isFinite(quantity) || quantity <= 0) {
+      return "Each line item must have a quantity greater than zero.";
+    }
+
+    if (line.price_unit.trim()) {
+      const price = Number(line.price_unit);
+      if (!Number.isFinite(price) || price < 0) {
+        return "Each line item must have a unit price of zero or greater.";
+      }
+    }
+  }
+
+  return null;
+}
