@@ -9,7 +9,7 @@ const QUERY_KEYS = [
   "tenant",
   "location_uuid",
   "clinic_uuid",
-  "odoo_product_id",
+  "product_id",
   "batch_uuid",
   "is_active",
   "has_batch",

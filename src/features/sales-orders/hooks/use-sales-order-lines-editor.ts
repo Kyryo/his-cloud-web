@@ -39,7 +39,7 @@ type SavedSnapshotLine = {
 };
 
 function buildDraftsFromOrder(order: SalesOrder): SalesOrderLineDraft[] {
-  return (order.order_lines ?? []).map(salesOrderLineToDraft);
+  return (order.lines ?? []).map(salesOrderLineToDraft);
 }
 
 function parseSnapshot(snapshot: string): SavedSnapshotLine[] {

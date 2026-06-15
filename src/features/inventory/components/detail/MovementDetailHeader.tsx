@@ -28,7 +28,7 @@ export function MovementDetailHeader({
           </h1>
 
           <p className="mt-1 font-mono text-sm text-brand-muted">
-            Product {movement.odoo_product_id}
+            Product {movement.product_id}
             {movement.batch_number ? ` · Batch ${movement.batch_number}` : ""}
           </p>
 

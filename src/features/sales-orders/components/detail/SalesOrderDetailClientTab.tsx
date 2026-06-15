@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { CustomerDetailTabEmptyState } from "@/features/customers/components/detail/CustomerDetailTabEmptyState";
 import { CustomerTabSkeleton } from "@/features/customers/components/detail/CustomerTabSkeleton";
 import { fetchCustomer } from "@/features/customers/services/customers.service";
+import { fetchVisit } from "@/features/customers/services/customer-visits.service";
 import type { Customer } from "@/features/customers/types/customer.types";
 import {
   formatAdaptiveAge,
@@ -18,7 +19,6 @@ import {
 import { formatCustomerVisitStatusLabel } from "@/features/customers/utils/customer-visit-status";
 import { SalesOrderLinkedDetailsTable } from "@/features/sales-orders/components/detail/SalesOrderLinkedDetailsTable";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
-import { getOdooCustomFieldString } from "@/features/sales-orders/utils/format-odoo-custom-field";
 import { ROUTES } from "@/constants/routes";
 
 type SalesOrderDetailClientTabProps = {
@@ -30,12 +30,13 @@ export function SalesOrderDetailClientTab({
   order,
   isActive,
 }: SalesOrderDetailClientTabProps) {
-  const customerUuid = getOdooCustomFieldString(order.x_hmis_customer_uuid);
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+
   const loadCustomer = useCallback(async () => {
-    if (!customerUuid) {
+    const visitUuid = order.visit_uuid?.trim();
+    if (!visitUuid) {
       setCustomer(null);
       setLoadError(null);
       setIsLoading(false);
@@ -46,7 +47,8 @@ export function SalesOrderDetailClientTab({
     setLoadError(null);
 
     try {
-      const record = await fetchCustomer(customerUuid);
+      const visit = await fetchVisit(visitUuid);
+      const record = await fetchCustomer(visit.customer);
       setCustomer(record);
     } catch (error) {
       setCustomer(null);
@@ -56,7 +58,7 @@ export function SalesOrderDetailClientTab({
     } finally {
       setIsLoading(false);
     }
-  }, [customerUuid]);
+  }, [order.visit_uuid]);
 
   useEffect(() => {
     if (!isActive) {
@@ -70,14 +72,25 @@ export function SalesOrderDetailClientTab({
     return null;
   }
 
-  if (!customerUuid) {
+  if (!order.visit_uuid?.trim()) {
     return (
-      <CustomerDetailTabEmptyState
-        icon={UserRound}
-        title="No client linked"
-        description="This sales order is not linked to an HMIS client record yet."
-        data-testid="sales-order-client-empty-state"
-      />
+      <div className="space-y-4" data-testid="sales-order-client-tab">
+        <SalesOrderLinkedDetailsTable
+          rows={[
+            { label: "Client", value: order.customer_name || "—" },
+            {
+              label: "Client ID",
+              value: order.customer_id ? String(order.customer_id) : "—",
+            },
+          ]}
+        />
+        <CustomerDetailTabEmptyState
+          icon={UserRound}
+          title="Client profile unavailable"
+          description="Link a visit to this order to open the full client profile."
+          data-testid="sales-order-client-empty-state"
+        />
+      </div>
     );
   }
 

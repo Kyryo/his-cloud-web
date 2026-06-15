@@ -11,7 +11,6 @@ import type { CustomerVisit } from "@/features/customers/types/customer-visit.ty
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { SalesOrderLinkedDetailsTable } from "@/features/sales-orders/components/detail/SalesOrderLinkedDetailsTable";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
-import { getOdooCustomFieldString } from "@/features/sales-orders/utils/format-odoo-custom-field";
 import { formatSalesOrderInsuranceLabel } from "@/features/sales-orders/utils/format-sales-order-insurance";
 
 type SalesOrderDetailVisitTabProps = {
@@ -31,7 +30,7 @@ export function SalesOrderDetailVisitTab({
   order,
   isActive,
 }: SalesOrderDetailVisitTabProps) {
-  const visitUuid = getOdooCustomFieldString(order.x_hmis_visit_uuid);
+  const visitUuid = order.visit_uuid?.trim() || null;
   const [visit, setVisit] = useState<CustomerVisit | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);

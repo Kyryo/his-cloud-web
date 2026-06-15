@@ -61,15 +61,13 @@ export function OrganizationCurrencySection() {
     return <span className="text-sm text-brand-muted">{loadError}</span>;
   }
 
-  const currency = currencyData?.currency;
+  const currencyCode = currencyData?.currency_code;
 
   return (
     <>
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-sm text-brand-navy">
-          {currency
-            ? `${currency.full_name} (${currency.symbol})`
-            : "—"}
+          {currencyCode || "—"}
         </span>
         <Button
           type="button"

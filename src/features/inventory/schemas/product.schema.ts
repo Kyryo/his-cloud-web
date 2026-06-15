@@ -38,9 +38,9 @@ const optionalPriceField = z
     "Must be 0 or greater",
   );
 
-/** Odoo returns `false` for empty char fields — normalize before string validation. */
+/** API may return null for empty optional text fields. */
 const optionalTextField = z.preprocess(
-  (value) => (value === false || value === null || value === undefined ? "" : value),
+  (value) => (value === null || value === undefined ? "" : value),
   z.string().trim(),
 );
 
@@ -236,9 +236,9 @@ function formatPriceField(
 }
 
 function formatOptionalTextField(
-  value: string | false | null | undefined,
+  value: string | null | undefined,
 ): string {
-  if (value === false || value === null || value === undefined) {
+  if (value === null || value === undefined) {
     return "";
   }
   return String(value);
@@ -268,7 +268,7 @@ export function procedureScopeFromMeta(
 export function toInventoryProductFormValues(
   product: InventoryProduct,
 ): CreateInventoryProductFormValues {
-  const meta = product.x_meta ?? {};
+  const meta = product.metadata ?? {};
 
   return {
     name: product.display_name || product.name || "",
@@ -283,6 +283,6 @@ export function toInventoryProductFormValues(
     procedure_scope: procedureScopeFromMeta(meta),
     sale_ok: product.sale_ok ?? true,
     purchase_ok: product.purchase_ok ?? true,
-    active: product.active,
+    active: product.is_active,
   };
 }

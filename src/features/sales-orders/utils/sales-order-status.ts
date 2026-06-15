@@ -85,7 +85,7 @@ export function canEditSalesOrderLines(state: SalesOrderState): boolean {
 }
 
 export function getConvertSalesOrderToInvoiceDisabledReason(
-  order: Pick<SalesOrder, "state" | "invoice_status" | "order_lines">,
+  order: Pick<SalesOrder, "state" | "invoice_status" | "lines">,
 ): string | null {
   if (order.state === "cancel") {
     return "Cancelled orders cannot be converted to an invoice.";
@@ -95,7 +95,7 @@ export function getConvertSalesOrderToInvoiceDisabledReason(
     return "This sales order is already fully invoiced.";
   }
 
-  if ((order.order_lines ?? []).length === 0) {
+  if ((order.lines ?? []).length === 0) {
     return "Add at least one line item before converting to an invoice.";
   }
 
@@ -103,7 +103,7 @@ export function getConvertSalesOrderToInvoiceDisabledReason(
 }
 
 export function canConvertSalesOrderToInvoice(
-  order: Pick<SalesOrder, "state" | "invoice_status" | "order_lines">,
+  order: Pick<SalesOrder, "state" | "invoice_status" | "lines">,
 ): boolean {
   return getConvertSalesOrderToInvoiceDisabledReason(order) === null;
 }

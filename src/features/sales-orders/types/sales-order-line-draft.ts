@@ -1,5 +1,4 @@
 import type { SalesOrderLine } from "@/features/sales-orders/types/sales-order.types";
-import { getOdooRelationId } from "@/features/sales-orders/utils/format-odoo-relation";
 
 export type SalesOrderLineDraft = {
   key: string;
@@ -25,15 +24,13 @@ export function createEmptySalesOrderLineDraft(): SalesOrderLineDraft {
 }
 
 export function salesOrderLineToDraft(line: SalesOrderLine): SalesOrderLineDraft {
-  const productId = getOdooRelationId(line.product_id);
-
   return {
     key: crypto.randomUUID(),
     id: line.id,
-    product_id: productId,
-    productName: line.name?.trim() || null,
+    product_id: line.product_id,
+    productName: line.product_name?.trim() || line.name?.trim() || null,
     tariff_code: line.tariff_code ?? null,
-    quantity: line.product_uom_qty != null ? String(line.product_uom_qty) : "1",
+    quantity: line.quantity != null ? String(line.quantity) : "1",
     price_unit: line.price_unit != null ? String(line.price_unit) : "",
     price_total: line.price_total,
   };

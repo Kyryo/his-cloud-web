@@ -42,11 +42,11 @@ describe("inventory.service", () => {
       page: 1,
       pageSize: 20,
       location: 3,
-      odoo_product_id: 42,
+      product_id: 42,
     });
 
     expect(bffRequest).toHaveBeenCalledWith(
-      `${BFF_INVENTORY_ROUTES.stock.list}?page=1&page_size=20&location=3&odoo_product_id=42`,
+      `${BFF_INVENTORY_ROUTES.stock.list}?page=1&page_size=20&location=3&product_id=42`,
     );
   });
 
@@ -283,7 +283,7 @@ describe("purchase-orders.service", () => {
     vi.mocked(bffRequest).mockResolvedValue({ uuid: "po-2", lines: [{ id: 1 }] });
 
     await updatePurchaseOrder("po-2", {
-      lines: [{ odoo_product_id: 9, quantity: "1", unit_cost: "10" }],
+      lines: [{ product_id: 9, quantity: "1", unit_cost: "10" }],
     });
 
     expect(bffRequest).toHaveBeenCalledWith(
@@ -291,7 +291,7 @@ describe("purchase-orders.service", () => {
       {
         method: "PATCH",
         body: {
-          lines: [{ odoo_product_id: 9, quantity: "1", unit_cost: "10" }],
+          lines: [{ product_id: 9, quantity: "1", unit_cost: "10" }],
         },
       },
     );

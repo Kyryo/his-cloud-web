@@ -21,7 +21,7 @@ const columns: InventoryListTableColumn<InventoryMovement>[] = [
     key: "product",
     label: "Product",
     cellClassName: "font-mono text-brand-navy",
-    render: (item) => item.odoo_product_id,
+    render: (item) => item.product_id,
   },
   {
     key: "from",

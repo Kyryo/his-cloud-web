@@ -221,19 +221,9 @@ Reference implementations: `features/customers/pages/CustomerDetailPage.tsx`, `f
 
 If main content sits under the sidebar, verify `sidebar.tsx` uses `w-[var(--sidebar-width)]` (Tailwind v4 requires `var()` — `w-[--sidebar-width]` resolves to 0px). Do not add margins to `AppShell`.
 
-#### ERP sync terminology (clients)
+#### Client integrations
 
-The backend field `has_synced_to_odoo` tracks whether a client record has synced to the ERP system (Odoo). **Do not** expose “Odoo”, “OpenMRS”, or “Clinical App” sync labels in user-facing UI.
-
-Use **ERP** copy instead:
-
-| Context | Label |
-|---------|-------|
-| Synced | `Synced to ERP` |
-| Not synced | `Not synced to ERP` |
-| Filter group | `ERP sync` |
-
-Shared constants live in `src/features/customers/constants/customer-sync-labels.ts` (`ERP_SYNC_LABELS`, `formatErpSyncStatus()`). Keep API/query param names (`has_synced_to_odoo`) unchanged — only UI copy uses ERP.
+The local ERP no longer exposes `has_synced_to_odoo` on customers. Do not surface “Odoo”, “OpenMRS”, or “Clinical App” sync labels in user-facing UI.
 
 Do not surface `has_synced_to_openmrs` in web-new client UI; that integration is not tracked in the new app.
 

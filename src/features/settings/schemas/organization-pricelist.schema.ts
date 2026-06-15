@@ -33,7 +33,7 @@ export function toUpdateOrganizationPricelistFormValues(
 ): UpdateOrganizationPricelistFormValues {
   return {
     name: pricelist.name,
-    active: pricelist.active,
+    active: pricelist.is_active,
   };
 }
 
@@ -45,5 +45,5 @@ export function toUpdateOrganizationPricelistPayload(
 
 type OrganizationPricelistLike = {
   name: string;
-  active: boolean;
+  is_active: boolean;
 };

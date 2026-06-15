@@ -128,8 +128,8 @@ export function PurchaseOrderDetailPage({ orderUuid }: PurchaseOrderDetailPagePr
     const linesToValidate =
       linesEditorState?.draftLines ??
       order.lines.map((line) => ({
-        key: String(line.id ?? line.odoo_product_id),
-        odoo_product_id: line.odoo_product_id,
+        key: String(line.id ?? line.product_id),
+        product_id: line.product_id,
         productName: null,
         quantity: String(line.quantity),
         unit_cost: String(line.unit_cost),

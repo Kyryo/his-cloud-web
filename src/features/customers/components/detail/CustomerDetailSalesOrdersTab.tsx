@@ -13,7 +13,6 @@ import {
 } from "@/features/customers/components/detail/CustomerDetailRecordList";
 import { CustomerDetailTabEmptyState } from "@/features/customers/components/detail/CustomerDetailTabEmptyState";
 import { CustomerTabSkeleton } from "@/features/customers/components/detail/CustomerTabSkeleton";
-import { ERP_SYNC_LABELS } from "@/features/customers/constants/customer-sync-labels";
 import {
   countCancelledCustomerSalesOrders,
   countConfirmedCustomerSalesOrders,
@@ -111,17 +110,6 @@ export function CustomerDetailSalesOrdersTab({
 
   if (!isActive) {
     return null;
-  }
-
-  if (!customer.has_synced_to_odoo) {
-    return (
-      <CustomerDetailTabEmptyState
-        icon={ShoppingBag}
-        title="Sales orders unavailable"
-        description={`Billing data requires the client to be synced to ERP. ${ERP_SYNC_LABELS.notSynced}.`}
-        data-testid="customer-sales-orders-sync-required"
-      />
-    );
   }
 
   if (isLoading && !hasLoaded) {

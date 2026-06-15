@@ -12,7 +12,7 @@ const FORWARDED_QUERY_KEYS = [
   "invoice_status",
   "date_from",
   "date_to",
-  "partner_id",
+  "customer_id",
   "visit_id",
 ] as const;
 

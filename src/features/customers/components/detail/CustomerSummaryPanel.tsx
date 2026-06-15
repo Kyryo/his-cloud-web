@@ -7,10 +7,6 @@ import {
   DetailPageAsideSummaryField,
   DetailPageAsideSummarySection,
 } from "@/features/app-shell/components/page-layout";
-import {
-  ERP_SYNC_LABELS,
-  formatErpSyncStatus,
-} from "@/features/customers/constants/customer-sync-labels";
 import type { Customer } from "@/features/customers/types/customer.types";
 import {
   formatAdaptiveAge,
@@ -36,7 +32,7 @@ export function CustomerSummaryPanel({
     <DetailPageAsidePanelSection className={className}>
       <DetailPageAsidePanelHeader
         title="Client Summary"
-        description="Client profile and sync details"
+        description="Client profile details"
       />
 
       <DetailPageAsideSummarySection
@@ -95,10 +91,6 @@ export function CustomerSummaryPanel({
         <DetailPageAsideSummaryField
           label="Last Updated"
           value={formatDisplayDate(customer.updated_at)}
-        />
-        <DetailPageAsideSummaryField
-          label={ERP_SYNC_LABELS.fieldLabel}
-          value={formatErpSyncStatus(customer.has_synced_to_odoo)}
         />
       </DetailPageAsideSummarySection>
 

@@ -12,7 +12,6 @@ const FORWARDED_QUERY_KEYS = [
   "page_size",
   "search",
   "gender",
-  "has_synced_to_odoo",
   "is_active",
   "ordering",
 ] as const;

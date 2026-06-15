@@ -14,7 +14,6 @@ describe("customer list filters", () => {
         page: 2,
         pageSize: 20,
         gender: "Female",
-        syncStatus: "synced",
         activeStatus: "active",
         ordering: "-created_at",
       }),
@@ -23,7 +22,6 @@ describe("customer list filters", () => {
       page: 2,
       pageSize: 20,
       gender: "Female",
-      hasSyncedToOdoo: true,
       isActive: true,
       ordering: "-created_at",
     });
@@ -33,7 +31,6 @@ describe("customer list filters", () => {
     expect(
       countActiveCustomerFilters({
         gender: "all",
-        syncStatus: "all",
         activeStatus: "all",
         ordering: DEFAULT_CUSTOMER_ORDERING,
       }),
@@ -42,10 +39,9 @@ describe("customer list filters", () => {
     expect(
       countActiveCustomerFilters({
         gender: "Male",
-        syncStatus: "not_synced",
         activeStatus: "inactive",
         ordering: "first_name",
       }),
-    ).toBe(4);
+    ).toBe(3);
   });
 });

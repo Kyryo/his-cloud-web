@@ -9,14 +9,14 @@ import { ProductSearchCombobox } from "@/features/inventory/components/ProductSe
 
 export type InventoryAdjustmentLineItemDraft = {
   key: string;
-  odoo_product_id: number | null;
+  product_id: number | null;
   quantity_delta: string;
 };
 
 export function createEmptyAdjustmentLineItem(): InventoryAdjustmentLineItemDraft {
   return {
     key: crypto.randomUUID(),
-    odoo_product_id: null,
+    product_id: null,
     quantity_delta: "0",
   };
 }
@@ -64,9 +64,9 @@ export function InventoryAdjustmentLineItemsEditor({
             <ProductSearchCombobox
               id={`adj-line-product-${line.key}`}
               label={index === 0 ? "Product" : undefined}
-              value={line.odoo_product_id}
+              value={line.product_id}
               onSelect={(product) =>
-                updateLine(line.key, { odoo_product_id: product.id })
+                updateLine(line.key, { product_id: product.id })
               }
             />
             <div className="space-y-2">

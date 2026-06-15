@@ -80,9 +80,9 @@ export function CreateStockAdjustmentDialog({
     }
 
     const validLines: StockAdjustmentLine[] = lines
-      .filter((line) => line.odoo_product_id)
+      .filter((line) => line.product_id)
       .map((line) => ({
-        odoo_product_id: line.odoo_product_id!,
+        product_id: line.product_id!,
         quantity_delta: line.quantity_delta,
       }));
 

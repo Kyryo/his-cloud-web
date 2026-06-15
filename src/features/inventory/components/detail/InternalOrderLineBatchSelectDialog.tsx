@@ -39,7 +39,7 @@ export function InternalOrderLineBatchSelectDialog({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!open || !line?.odoo_product_id) {
+    if (!open || !line?.product_id) {
       return;
     }
 
@@ -52,7 +52,7 @@ export function InternalOrderLineBatchSelectDialog({
 
       try {
         const response = await fetchInventoryBatches({
-          odoo_product_id: line!.odoo_product_id!,
+          product_id: line!.product_id!,
           pageSize: 100,
         });
         if (!cancelled) {

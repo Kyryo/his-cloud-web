@@ -75,7 +75,7 @@ export function AddProductToPricelistDialog({
   const availablePricelists = useMemo(
     () =>
       pricelists.filter(
-        (entry) => entry.active && !usedPricelistIds.has(entry.id),
+        (entry) => entry.is_active && !usedPricelistIds.has(entry.id),
       ),
     [pricelists, usedPricelistIds],
   );

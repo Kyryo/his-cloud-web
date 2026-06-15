@@ -36,7 +36,7 @@ export function StockDetailHeader({
             </h1>
 
             <p className="mt-1 font-mono text-sm text-brand-muted">
-              Product {stock.odoo_product_id}
+              Product {stock.product_id}
               {stock.batch_number ? ` · Batch ${stock.batch_number}` : ""}
             </p>
 

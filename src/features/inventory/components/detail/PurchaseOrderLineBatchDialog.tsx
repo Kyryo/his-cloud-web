@@ -36,10 +36,10 @@ type BatchDialogTab = "batch" | "details";
 
 async function resolveBatchUuid(
   batchId: number,
-  odooProductId: number,
+  productId: number,
 ): Promise<string | null> {
   const response = await fetchInventoryBatches({
-    odoo_product_id: odooProductId,
+    product_id: productId,
     is_active: true,
   });
   const match = response.results.find((batch) => batch.id === batchId);
@@ -85,7 +85,7 @@ export function PurchaseOrderLineBatchDialog({
       return;
     }
 
-    if (!line.batch || !line.odoo_product_id) {
+    if (!line.batch || !line.product_id) {
       setBatchUuid(null);
       return;
     }
@@ -95,7 +95,7 @@ export function PurchaseOrderLineBatchDialog({
 
     void (async () => {
       try {
-        const uuid = await resolveBatchUuid(line.batch!, line.odoo_product_id!);
+        const uuid = await resolveBatchUuid(line.batch!, line.product_id!);
         if (!cancelled) {
           setBatchUuid(uuid);
         }
@@ -116,7 +116,7 @@ export function PurchaseOrderLineBatchDialog({
   }, [form, line, open, vendorName]);
 
   const handleSubmit = form.handleSubmit(async (values) => {
-    if (!line?.odoo_product_id) {
+    if (!line?.product_id) {
       toast({
         variant: "error",
         title: "Product required",
@@ -128,7 +128,7 @@ export function PurchaseOrderLineBatchDialog({
     try {
       const batchPayload = {
         tenant: tenantId,
-        odoo_product_id: line.odoo_product_id,
+        product_id: line.product_id,
         batch_number: values.batch_number.trim(),
         expiry_date: values.expiry_date.trim(),
         manufacture_date: values.manufacture_date?.trim() || null,
@@ -166,7 +166,7 @@ export function PurchaseOrderLineBatchDialog({
   });
 
   const isSubmitting = form.formState.isSubmitting;
-  const productLabel = line?.productName ?? (line?.odoo_product_id ? `Product #${line.odoo_product_id}` : "Line item");
+  const productLabel = line?.productName ?? (line?.product_id ? `Product #${line.product_id}` : "Line item");
   const tabs = [
     { id: "batch", label: "Batch" },
     { id: "details", label: "Details" },

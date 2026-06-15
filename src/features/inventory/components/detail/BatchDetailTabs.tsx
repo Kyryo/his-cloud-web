@@ -106,7 +106,7 @@ export function BatchDetailTabs({ batch, onUpdated }: BatchDetailTabsProps) {
                 title: "Batch details",
                 fields: [
                   { label: "Batch number", value: batch.batch_number },
-                  { label: "Product ID", value: batch.odoo_product_id },
+                  { label: "Product ID", value: batch.product_id },
                   { label: "Expiry date", value: formatDisplayDate(batch.expiry_date) },
                   {
                     label: "Manufacture date",

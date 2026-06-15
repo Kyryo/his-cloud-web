@@ -1,7 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
-
 import {
   DetailPageAsidePanelHeader,
   DetailPageAsidePanelSection,
@@ -24,7 +22,6 @@ import {
   formatSalesOrderInsuranceLabel,
   formatSalesOrderInsuranceNumber,
 } from "@/features/sales-orders/utils/format-sales-order-insurance";
-import { formatOdooRelation } from "@/features/sales-orders/utils/format-odoo-relation";
 import { formatSalesOrderStateLabel } from "@/features/sales-orders/utils/sales-order-status";
 import { cn } from "@/lib/utils";
 
@@ -89,18 +86,12 @@ export function SalesOrderSummaryPanel({
           label="Pricelist"
           value={formatSalesOrderPricelist(order)}
         />
-        <DetailPageAsideSummaryField
-          label="Salesperson"
-          value={formatOdooRelation(order.user_id)}
-        />
-        <DetailPageAsideSummaryField
-          label="Company"
-          value={formatOdooRelation(order.company_id)}
-        />
-        <DetailPageAsideSummaryField
-          label="Payment terms"
-          value={formatOdooRelation(order.payment_term_id)}
-        />
+        {order.provider_name ? (
+          <DetailPageAsideSummaryField
+            label="Provider"
+            value={order.provider_name}
+          />
+        ) : null}
         {hasInsuranceDetails ? (
           <>
             <DetailPageAsideSummaryField label="Insurance" value={insuranceLabel} />

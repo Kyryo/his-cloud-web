@@ -15,7 +15,7 @@ type CustomerListToolbarProps = {
   search: string;
   filters: Pick<
     CustomerListFilterState,
-    "gender" | "syncStatus" | "activeStatus" | "ordering"
+    "gender" | "activeStatus" | "ordering"
   >;
   isLoading?: boolean;
   onSearchChange: (value: string) => void;
@@ -24,7 +24,7 @@ type CustomerListToolbarProps = {
   onFiltersApply: (
     filters: Pick<
       CustomerListFilterState,
-      "gender" | "syncStatus" | "activeStatus" | "ordering"
+      "gender" | "activeStatus" | "ordering"
     >,
   ) => void;
 };

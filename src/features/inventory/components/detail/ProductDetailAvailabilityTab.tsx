@@ -130,7 +130,7 @@ export function ProductDetailAvailabilityTab({
                     </td>
                     <td className="px-4 py-3 text-right">
                       <Link
-                        href={`${ROUTES.inventoryStock}?odoo_product_id=${product.id}&location=${entry.location.id}`}
+                        href={`${ROUTES.inventoryStock}?product_id=${product.id}&location=${entry.location.id}`}
                         className="text-xs font-medium text-brand-primary hover:underline"
                       >
                         View stock
