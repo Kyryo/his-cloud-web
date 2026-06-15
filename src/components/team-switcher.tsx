@@ -17,9 +17,11 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import type { User } from "@/features/auth/types/auth.types";
+import {
+  readActiveClinicId,
+  writeActiveClinicId,
+} from "@/features/app-shell/utils/active-clinic";
 import { useUser } from "@/providers/user-provider";
-
-const ACTIVE_CLINIC_STORAGE_KEY = "hmis-active-clinic-id";
 
 type UserClinic = NonNullable<User["clinics"]>[number];
 
@@ -34,12 +36,12 @@ function resolveInitialClinicId(user: User | null): number | null {
   }
 
   if (typeof window !== "undefined") {
-    const stored = window.localStorage.getItem(ACTIVE_CLINIC_STORAGE_KEY);
-    if (stored) {
-      const storedId = Number(stored);
-      if (clinics.some((clinic) => clinic.clinic === storedId)) {
-        return storedId;
-      }
+    const storedId = readActiveClinicId();
+    if (
+      storedId &&
+      clinics.some((clinic) => clinic.clinic === storedId)
+    ) {
+      return storedId;
     }
   }
 
@@ -55,8 +57,7 @@ export function TeamSwitcher() {
       if (typeof window === "undefined") {
         return null;
       }
-      const stored = window.localStorage.getItem(ACTIVE_CLINIC_STORAGE_KEY);
-      return stored ? Number(stored) : null;
+      return readActiveClinicId();
     },
   );
 
@@ -87,10 +88,7 @@ export function TeamSwitcher() {
 
   function handleClinicSelect(clinic: UserClinic) {
     setManualClinicId(clinic.clinic);
-    window.localStorage.setItem(
-      ACTIVE_CLINIC_STORAGE_KEY,
-      String(clinic.clinic),
-    );
+    writeActiveClinicId(clinic.clinic);
   }
 
   return (

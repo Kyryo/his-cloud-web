@@ -32,13 +32,16 @@ function formatBilling(service: OrganizationService) {
   );
 }
 
-export function OrganizationServicesTab({ isActive }: OrganizationServicesTabProps) {
+export function OrganizationServicesTab({
+  isActive,
+}: OrganizationServicesTabProps) {
   const [services, setServices] = useState<OrganizationService[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [editingService, setEditingService] = useState<OrganizationService | null>(null);
+  const [editingService, setEditingService] =
+    useState<OrganizationService | null>(null);
 
   useEffect(() => {
     if (!isActive) {
@@ -105,9 +108,7 @@ export function OrganizationServicesTab({ isActive }: OrganizationServicesTabPro
         showHeader={!isEmpty}
         actions={
           services.length > 0 ? (
-            <Button onClick={() => setAddDialogOpen(true)}>
-              Add service
-            </Button>
+            <Button onClick={() => setAddDialogOpen(true)}>Add service</Button>
           ) : null
         }
       >
@@ -143,9 +144,13 @@ export function OrganizationServicesTab({ isActive }: OrganizationServicesTabPro
                 {services.map((service) => (
                   <tr key={service.uuid}>
                     <td className="px-6 py-3.5">
-                      <div className="text-sm font-medium text-brand-navy">{service.name}</div>
+                      <div className="text-sm font-medium text-brand-navy">
+                        {service.name}
+                      </div>
                       {service.description ? (
-                        <div className="text-xs text-brand-muted">{service.description}</div>
+                        <div className="text-xs text-brand-muted">
+                          {service.description}
+                        </div>
                       ) : null}
                     </td>
                     <td className="px-6 py-3.5 text-sm text-brand-navy">
@@ -153,7 +158,9 @@ export function OrganizationServicesTab({ isActive }: OrganizationServicesTabPro
                     </td>
                     <td className="px-6 py-3.5">{formatBilling(service)}</td>
                     <td className="px-6 py-3.5">
-                      <Badge variant={service.is_active ? "default" : "outline"}>
+                      <Badge
+                        variant={service.is_active ? "default" : "outline"}
+                      >
                         {service.is_active ? "Active" : "Inactive"}
                       </Badge>
                     </td>

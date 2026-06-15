@@ -4,9 +4,19 @@ import Link from "next/link";
 
 import { ClientAvatar } from "@/components/client-avatar";
 import { HoverPreviewCard } from "@/components/hover-preview-card";
-import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ROUTES } from "@/constants/routes";
+import {
+  ListPageDataTable,
+  ListPageDataTableBody,
+  ListPageDataTableCell,
+  ListPageDataTableHeader,
+  ListPageDataTableHeaderCell,
+  ListPageDataTableHeaderRow,
+  ListPageDataTableRow,
+} from "@/features/app-shell/components/page-layout";
 import { CustomerVisitStatusBadge } from "@/features/customers/components/CustomerVisitStatusBadge";
+import { formatErpSyncStatus } from "@/features/customers/constants/customer-sync-labels";
 import type { Customer } from "@/features/customers/types/customer.types";
 import {
   formatCustomerName,
@@ -39,7 +49,9 @@ function CustomerHoverPreview({ customer }: { customer: Customer }) {
         <ClientAvatar name={name} />
         <div>
           <p className="font-medium text-brand-navy">{name}</p>
-          <p className="text-xs text-brand-muted">{customer.customer_identifier}</p>
+          <p className="text-xs text-brand-muted">
+            {customer.customer_identifier}
+          </p>
         </div>
       </div>
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
@@ -50,9 +62,9 @@ function CustomerHoverPreview({ customer }: { customer: Customer }) {
         <dt className="text-brand-muted">Gender</dt>
         <dd>{customer.gender}</dd>
         <dt className="text-brand-muted">Age</dt>
-        <dd>{customer.age > 0 ? `${customer.age} yrs` : "—"}</dd>
+        <dd>{customer.age > 0 ? `${customer.age} yrs` : "-"}</dd>
         <dt className="text-brand-muted">Phone</dt>
-        <dd>{customer.phone_number || "—"}</dd>
+        <dd>{customer.phone_number || "-"}</dd>
         <dt className="text-brand-muted">Email</dt>
         <dd className="truncate">{customer.email || "—"}</dd>
       </dl>
@@ -67,139 +79,71 @@ export function CustomersTable({
 }: CustomersTableProps) {
   return (
     <TooltipProvider delayDuration={200}>
-      <div
-        className={cn(
-          "overflow-hidden rounded-xl border border-brand-border bg-white",
-          className,
-        )}
-      >
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead>
-              <tr className="border-b border-brand-border bg-slate-50/80">
-                {columns.map((column) => (
-                  <th
-                    key={column.key}
-                    scope="col"
-                    className="px-4 py-3 text-left text-sm font-medium text-brand-muted"
-                  >
-                    {column.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-brand-border">
-              {customers.map((customer) => {
-                const name = formatCustomerName(customer);
+      <ListPageDataTable className={className}>
+        <ListPageDataTableHeader>
+          <ListPageDataTableHeaderRow>
+            {columns.map((column) => (
+              <ListPageDataTableHeaderCell key={column.key}>
+                {column.label}
+              </ListPageDataTableHeaderCell>
+            ))}
+          </ListPageDataTableHeaderRow>
+        </ListPageDataTableHeader>
+        <ListPageDataTableBody>
+          {customers.map((customer) => {
+            const name = formatCustomerName(customer);
 
-                return (
-                  <tr
-                    key={customer.uuid}
-                    className="cursor-pointer transition-colors hover:bg-slate-50/80"
-                    onClick={() => onRowClick?.(customer)}
+            return (
+              <ListPageDataTableRow
+                key={customer.uuid}
+                className="cursor-pointer"
+                onClick={() => onRowClick?.(customer)}
+              >
+                <ListPageDataTableCell>
+                  <HoverPreviewCard
+                    trigger={
+                      <div className="flex min-w-0 items-center gap-3">
+                        <ClientAvatar name={name} />
+                        <div className="min-w-0">
+                          <Link
+                            href={ROUTES.customerDetail(customer.uuid)}
+                            className="truncate text-sm font-medium text-brand-navy hover:text-brand-primary hover:underline"
+                            onClick={(event) => event.stopPropagation()}
+                          >
+                            {name}
+                          </Link>
+                          {customer.phone_number ? (
+                            <p className="truncate text-xs text-brand-muted">
+                              {customer.phone_number}
+                            </p>
+                          ) : null}
+                        </div>
+                      </div>
+                    }
                   >
-                    <td className="px-4 py-3">
-                      <HoverPreviewCard
-                        trigger={
-                          <div className="flex min-w-0 items-center gap-3">
-                            <ClientAvatar name={name} />
-                            <div className="min-w-0">
-                              <Link
-                                href={ROUTES.customerDetail(customer.uuid)}
-                                className="truncate text-sm font-medium text-brand-navy hover:text-brand-primary hover:underline"
-                                onClick={(event) => event.stopPropagation()}
-                              >
-                                {name}
-                              </Link>
-                              {customer.phone_number ? (
-                                <p className="truncate text-xs text-brand-muted">
-                                  {customer.phone_number}
-                                </p>
-                              ) : null}
-                            </div>
-                          </div>
-                        }
-                      >
-                        <CustomerHoverPreview customer={customer} />
-                      </HoverPreviewCard>
-                    </td>
-                    <td className="px-4 py-3 font-mono text-sm text-brand-slate">
-                      {customer.customer_identifier}
-                    </td>
-                    <td className="px-4 py-3">
-                      <CustomerVisitStatusBadge status={customer.visit_status} />
-                    </td>
-                    <td className="px-4 py-3 text-sm text-brand-slate">
-                      {customer.gender}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-brand-slate">
-                      {customer.age > 0 ? customer.age : "—"}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-brand-slate">
-                      {formatDisplayDate(customer.created_at)}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+                    <CustomerHoverPreview customer={customer} />
+                  </HoverPreviewCard>
+                </ListPageDataTableCell>
+                <ListPageDataTableCell className="font-mono text-sm text-brand-slate">
+                  {customer.customer_identifier}
+                </ListPageDataTableCell>
+                <ListPageDataTableCell>
+                  <CustomerVisitStatusBadge status={customer.visit_status} />
+                </ListPageDataTableCell>
+                <ListPageDataTableCell className="text-sm text-brand-slate">
+                  {customer.gender}
+                </ListPageDataTableCell>
+                <ListPageDataTableCell className="text-sm text-brand-slate">
+                  {customer.age > 0 ? customer.age : "-"}
+                </ListPageDataTableCell>
+                <ListPageDataTableCell className="text-sm text-brand-slate">
+                  {formatDisplayDate(customer.created_at)}
+                </ListPageDataTableCell>
+              </ListPageDataTableRow>
+            );
+          })}
+        </ListPageDataTableBody>
+      </ListPageDataTable>
     </TooltipProvider>
-  );
-}
-
-type CustomersPaginationProps = {
-  page: number;
-  pageSize: number;
-  totalCount: number;
-  hasPrevious: boolean;
-  hasNext: boolean;
-  onPageChange: (page: number) => void;
-  isLoading?: boolean;
-};
-
-export function CustomersPagination({
-  page,
-  pageSize,
-  totalCount,
-  hasPrevious,
-  hasNext,
-  onPageChange,
-  isLoading = false,
-}: CustomersPaginationProps) {
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-  const start = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
-  const end = Math.min(page * pageSize, totalCount);
-
-  return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm text-brand-muted">
-        Showing {start}–{end} of {totalCount}
-      </p>
-      <div className="flex items-center gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={!hasPrevious || isLoading}
-          onClick={() => onPageChange(page - 1)}
-        >
-          Previous
-        </Button>
-        <span className="text-sm text-brand-slate">
-          Page {page} of {totalPages}
-        </span>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={!hasNext || isLoading}
-          onClick={() => onPageChange(page + 1)}
-        >
-          Next
-        </Button>
-      </div>
-    </div>
   );
 }
