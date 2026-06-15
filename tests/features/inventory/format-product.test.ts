@@ -27,7 +27,7 @@ describe("format-product", () => {
     expect(getProductTypeBadgeVariant("service")).toBe("outline");
   });
 
-  it("formats procedure scope from x_meta", () => {
+  it("formats procedure scope from metadata", () => {
     expect(
       formatProcedureScopeLabel({
         is_procedure: true,

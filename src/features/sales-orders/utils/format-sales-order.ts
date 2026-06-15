@@ -1,30 +1,31 @@
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
-import {
-  formatOdooCustomField,
-  isEmptyOdooCustomField,
-} from "@/features/sales-orders/utils/format-odoo-custom-field";
-import { formatOdooRelation } from "@/features/sales-orders/utils/format-odoo-relation";
+
+export function formatOptionalString(
+  value: string | number | null | undefined,
+  emptyLabel = "—",
+): string {
+  if (value === null || value === undefined) {
+    return emptyLabel;
+  }
+
+  const trimmed = String(value).trim();
+  return trimmed || emptyLabel;
+}
 
 export function formatSalesOrderCustomer(order: SalesOrder): string {
-  const label = formatOdooRelation(order.partner_id);
-  return label === "—" ? "No customer" : label;
+  return formatOptionalString(order.customer_name, "No customer");
 }
 
 export function formatSalesOrderClinicName(
-  order: Pick<SalesOrder, "clinic_name" | "x_clinic_name">,
+  order: Pick<SalesOrder, "clinic_name">,
 ): string {
-  const clinicName = !isEmptyOdooCustomField(order.x_clinic_name)
-    ? order.x_clinic_name
-    : order.clinic_name;
-
-  return formatOdooCustomField(clinicName, "No clinic");
+  return formatOptionalString(order.clinic_name, "No clinic");
 }
 
 export function formatSalesOrderPricelist(
-  order: Pick<SalesOrder, "pricelist_id">,
+  order: Pick<SalesOrder, "pricelist_name">,
 ): string {
-  const label = formatOdooRelation(order.pricelist_id);
-  return label === "—" ? "No pricelist" : label;
+  return formatOptionalString(order.pricelist_name, "No pricelist");
 }
 
 export function formatSalesOrderAmount(
@@ -49,8 +50,8 @@ export function formatSalesOrderAmount(
 }
 
 export function formatSalesOrderCurrency(order: SalesOrder): string | undefined {
-  const label = formatOdooRelation(order.currency_id);
-  return label === "—" ? undefined : label;
+  const code = order.currency_code?.trim();
+  return code || undefined;
 }
 
 export function formatSalesOrderDateTime(

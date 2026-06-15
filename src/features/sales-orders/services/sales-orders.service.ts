@@ -40,8 +40,8 @@ function buildSalesOrdersQuery(filters: SalesOrderListFilters = {}): string {
     params.set("date_to", filters.dateTo);
   }
 
-  if (filters.partnerId) {
-    params.set("partner_id", String(filters.partnerId));
+  if (filters.customerId) {
+    params.set("customer_id", String(filters.customerId));
   }
 
   if (filters.visitId) {

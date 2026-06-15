@@ -1,16 +1,9 @@
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
-import {
-  formatOdooCustomField,
-  isEmptyOdooCustomField,
-} from "@/features/sales-orders/utils/format-odoo-custom-field";
+import { formatOptionalString } from "@/features/sales-orders/utils/format-sales-order";
 
 export function formatSalesOrderInsuranceLabel(order: SalesOrder): string {
-  const company = isEmptyOdooCustomField(order.x_insurance_company)
-    ? ""
-    : String(order.x_insurance_company).trim();
-  const scheme = isEmptyOdooCustomField(order.x_insurance_scheme_name)
-    ? ""
-    : String(order.x_insurance_scheme_name).trim();
+  const company = order.insurance_company?.trim() ?? "";
+  const scheme = order.insurance_scheme_name?.trim() ?? "";
 
   if (company && scheme) {
     return `${company} - ${scheme}`;
@@ -28,16 +21,16 @@ export function formatSalesOrderInsuranceLabel(order: SalesOrder): string {
 }
 
 export function formatSalesOrderInsuranceNumber(order: SalesOrder): string {
-  const prefix = formatOdooCustomField(order.x_insurance_number_prefix, "");
-  const number = formatOdooCustomField(order.x_insurance_number, "");
+  const prefix = order.insurance_number_prefix?.trim() ?? "";
+  const number = order.insurance_number?.trim() ?? "";
 
-  if (prefix && number && prefix !== "—" && number !== "—") {
+  if (prefix && number) {
     return `${prefix}${number}`;
   }
 
-  if (number && number !== "—") {
+  if (number) {
     return number;
   }
 
-  return "—";
+  return formatOptionalString(null);
 }

@@ -18,7 +18,7 @@ const columns: InventoryListTableColumn<InventoryBatch>[] = [
     key: "product",
     label: "Product ID",
     cellClassName: "font-mono text-brand-slate",
-    render: (item) => item.odoo_product_id,
+    render: (item) => item.product_id,
   },
   {
     key: "expiry",

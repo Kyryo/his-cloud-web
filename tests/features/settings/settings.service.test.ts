@@ -276,7 +276,7 @@ describe("settings.service organization", () => {
 
   it("fetches organization pricelists", async () => {
     vi.mocked(bffRequest).mockResolvedValueOnce({
-      results: [{ id: 101, name: "Cash Pricelist", active: true }],
+      results: [{ id: 101, name: "Cash Pricelist", is_active: true, currency_code: "MWK" }],
       pagination: null,
     });
 
@@ -555,48 +555,34 @@ describe("settings.service organization", () => {
   it("fetches organization currency", async () => {
     vi.mocked(bffRequest).mockResolvedValueOnce({
       currency: {
-        company_id: 1,
-        company_name: "Acme Health",
-        currency: {
-          id: 1,
-          name: "KES",
-          symbol: "KSh",
-          full_name: "Kenyan Shilling",
-          active: true,
-        },
-        available_currencies: [],
+        tenant_id: 1,
+        currency_code: "KES",
+        default_pricelist_id: 2,
       },
     });
 
     const currency = await fetchOrganizationCurrency();
 
     expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.currency);
-    expect(currency.currency.name).toBe("KES");
+    expect(currency.currency_code).toBe("KES");
   });
 
   it("updates organization currency", async () => {
     vi.mocked(bffRequest).mockResolvedValueOnce({
       currency: {
-        company_id: 1,
-        company_name: "Acme Health",
-        currency: {
-          id: 2,
-          name: "USD",
-          symbol: "$",
-          full_name: "US Dollar",
-          active: true,
-        },
-        available_currencies: [],
+        tenant_id: 1,
+        currency_code: "USD",
+        default_pricelist_id: 2,
       },
     });
 
-    const currency = await updateOrganizationCurrency({ currency_id: 2 });
+    const currency = await updateOrganizationCurrency({ currency_code: "USD" });
 
     expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.currency, {
       method: "PATCH",
-      body: { currency_id: 2 },
+      body: { currency_code: "USD" },
     });
-    expect(currency.currency.name).toBe("USD");
+    expect(currency.currency_code).toBe("USD");
   });
 
   it("fetches tenant email configuration", async () => {

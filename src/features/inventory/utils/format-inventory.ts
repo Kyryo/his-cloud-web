@@ -235,7 +235,7 @@ export function formatBooleanLabel(value: boolean | null | undefined): string {
 }
 
 export function getProductMeta(product: InventoryProduct): InventoryProductMeta {
-  return product.x_meta ?? {};
+  return product.metadata ?? {};
 }
 
 export function formatProcedureScopeLabel(meta: InventoryProductMeta): string {

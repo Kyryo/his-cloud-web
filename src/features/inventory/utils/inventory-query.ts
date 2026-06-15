@@ -22,7 +22,7 @@ export function buildInventoryQuery(
   setIfPresent("location_uuid", filters.location_uuid);
   setIfPresent("clinic", filters.clinic);
   setIfPresent("clinic_uuid", filters.clinic_uuid);
-  setIfPresent("odoo_product_id", filters.odoo_product_id);
+  setIfPresent("product_id", filters.product_id);
   setIfPresent("batch", filters.batch);
   setIfPresent("batch_uuid", filters.batch_uuid);
   setIfPresent("is_active", filters.is_active);

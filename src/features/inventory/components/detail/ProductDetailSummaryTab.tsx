@@ -21,7 +21,7 @@ export function ProductDetailSummaryTab({
   isActive,
 }: ProductDetailSummaryTabProps) {
   const meta = getProductMeta(product);
-  const uomLabel = Array.isArray(product.uom_id) ? product.uom_id[1] : "—";
+  const uomLabel = product.uom_name?.trim() || "—";
   const createdBy =
     meta.created_by_name?.trim() ||
     (meta.created_by ? `User #${meta.created_by}` : "—");
@@ -44,7 +44,7 @@ export function ProductDetailSummaryTab({
           },
           {
             label: "Status",
-            value: product.active ? "Active" : "Inactive",
+            value: product.is_active ? "Active" : "Inactive",
           },
           { label: "Created by", value: createdBy },
         ]}

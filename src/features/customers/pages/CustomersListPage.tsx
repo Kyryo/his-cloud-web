@@ -53,11 +53,10 @@ export function CustomersListPage() {
   const [filters, setFilters] = useState<
     Pick<
       CustomerListFilterState,
-      "gender" | "syncStatus" | "activeStatus" | "ordering"
+      "gender" | "activeStatus" | "ordering"
     >
   >({
     gender: "all",
-    syncStatus: "all",
     activeStatus: "all",
     ordering: DEFAULT_CUSTOMER_ORDERING,
   });
@@ -203,7 +202,7 @@ export function CustomersListPage() {
   function handleFiltersApply(
     nextFilters: Pick<
       CustomerListFilterState,
-      "gender" | "syncStatus" | "activeStatus" | "ordering"
+      "gender" | "activeStatus" | "ordering"
     >,
   ) {
     setIsRefreshing(true);

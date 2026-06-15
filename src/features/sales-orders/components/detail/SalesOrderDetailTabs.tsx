@@ -37,7 +37,7 @@ export function SalesOrderDetailTabs({
 }: SalesOrderDetailTabsProps) {
   const [activeTab, setActiveTab] = useState<DetailTabId>("lines");
   const [showSummaryPanel, setShowSummaryPanel] = useState(false);
-  const lineCount = order.order_lines?.length ?? order.order_line?.length ?? 0;
+  const lineCount = order.lines?.length ?? order.line_ids?.length ?? 0;
 
   return (
     <DetailPageTabsSection>

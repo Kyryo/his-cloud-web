@@ -36,7 +36,7 @@ const lineColumns: InventoryListTableColumn<StockAdjustment["lines"][number]>[] 
     key: "product",
     label: "Product",
     cellClassName: "font-mono font-medium text-brand-navy",
-    render: (line) => line.odoo_product_id,
+    render: (line) => line.product_id,
   },
   {
     key: "qty_delta",
@@ -146,7 +146,7 @@ export function StockAdjustmentDetailTabs({
                 items={adjustment.lines}
                 columns={lineColumns}
                 getRowKey={(line) =>
-                  String(line.id ?? `${line.odoo_product_id}-${line.quantity_delta}`)
+                  String(line.id ?? `${line.product_id}-${line.quantity_delta}`)
                 }
               />
             )

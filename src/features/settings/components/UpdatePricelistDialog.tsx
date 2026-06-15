@@ -40,7 +40,6 @@ import {
   updateOrganizationPricelist,
 } from "@/features/settings/services/settings.service";
 import type { OrganizationPricelist } from "@/features/settings/types/settings.types";
-import { formatOdooRelation } from "@/features/sales-orders/utils/format-odoo-relation";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
@@ -214,7 +213,7 @@ export function UpdatePricelistDialog({
 
   const isSubmitting = form.formState.isSubmitting;
   const isBusy = isSubmitting || isArchiving || isUpdatingDefault;
-  const canSetDefault = pricelist.active && !isDefault;
+  const canSetDefault = pricelist.is_active && !isDefault;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -268,7 +267,7 @@ export function UpdatePricelistDialog({
                       Currency
                     </dt>
                     <dd className="mt-1 text-sm font-medium text-brand-navy">
-                      {formatOdooRelation(pricelist.currency_id)}
+                      {pricelist.currency_code}
                     </dd>
                   </div>
                 </dl>
@@ -383,7 +382,7 @@ export function UpdatePricelistDialog({
             </div>
 
             <DialogFooter className="mt-0 flex-col gap-3 border-t border-brand-border px-6 py-4 sm:flex-row sm:justify-between">
-              {pricelist.active ? (
+              {pricelist.is_active ? (
                 <DestructiveButton
                   type="button"
                   disabled={isBusy}

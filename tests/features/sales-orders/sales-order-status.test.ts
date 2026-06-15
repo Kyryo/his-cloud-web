@@ -30,7 +30,7 @@ describe("sales order status utils", () => {
     const baseOrder = {
       state: "sale" as const,
       invoice_status: "to invoice" as const,
-      order_lines: [{ id: 1, name: "Consultation" }],
+      lines: [{ id: 1, name: "Consultation", product_id: 1, quantity: "1" }],
     };
 
     expect(canConvertSalesOrderToInvoice(baseOrder)).toBe(true);
@@ -46,7 +46,7 @@ describe("sales order status utils", () => {
       }),
     ).toContain("Cancelled");
     expect(
-      getConvertSalesOrderToInvoiceDisabledReason({ ...baseOrder, order_lines: [] }),
+      getConvertSalesOrderToInvoiceDisabledReason({ ...baseOrder, lines: [] }),
     ).toContain("line item");
   });
 });

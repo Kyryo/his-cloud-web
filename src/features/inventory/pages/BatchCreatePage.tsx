@@ -65,7 +65,7 @@ export function BatchCreatePage() {
     try {
       const batch = await createInventoryBatch({
         tenant: tenantId,
-        odoo_product_id: productId,
+        product_id: productId,
         batch_number: batchNumber.trim(),
         expiry_date: expiryDate || null,
         manufacture_date: manufactureDate || null,

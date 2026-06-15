@@ -9,7 +9,6 @@ import {
 } from "@/features/customers/components/detail/CustomerActivityTimeline";
 import { CustomerDetailTabEmptyState } from "@/features/customers/components/detail/CustomerDetailTabEmptyState";
 import { CustomerTabSkeleton } from "@/features/customers/components/detail/CustomerTabSkeleton";
-import { ERP_SYNC_LABELS } from "@/features/customers/constants/customer-sync-labels";
 import {
   extractCustomerBillingCounts,
   fetchCustomerBillingSummary,
@@ -264,12 +263,6 @@ export function CustomerDetailSummaryTab({
           }
         />
       </StatsCard1Grid>
-
-      {stats?.billingUnavailable && !customer.has_synced_to_odoo ? (
-        <p className="text-xs text-brand-muted">
-          Billing counts require {ERP_SYNC_LABELS.notSynced.toLowerCase()}.
-        </p>
-      ) : null}
 
       {encounters.length === 0 ? (
         <CustomerDetailTabEmptyState

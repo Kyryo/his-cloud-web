@@ -16,7 +16,7 @@ export function useTenantCurrency() {
       try {
         const data = await fetchOrganizationCurrency();
         if (!cancelled) {
-          setCurrency(data.currency.symbol || data.currency.name || DEFAULT_CURRENCY);
+          setCurrency(data.currency_code || DEFAULT_CURRENCY);
         }
       } catch {
         if (!cancelled) {

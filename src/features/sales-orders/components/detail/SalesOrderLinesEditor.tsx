@@ -77,7 +77,7 @@ export function SalesOrderLinesEditor({
   }
 
   if (!canEdit) {
-    const lines = order.order_lines ?? [];
+    const lines = order.lines ?? [];
 
     if (lines.length === 0) {
       return (
@@ -121,7 +121,7 @@ export function SalesOrderLinesEditor({
                     {formatTariffCode(line.tariff_code)}
                   </td>
                   <td className="px-4 py-3 text-right text-sm text-brand-slate">
-                    {formatQuantity(line.product_uom_qty)}
+                    {formatQuantity(line.quantity)}
                   </td>
                   <td className="px-4 py-3 text-right text-sm text-brand-slate">
                     {formatSalesOrderAmount(line.price_unit)}

@@ -84,7 +84,7 @@ export type OrganizationService = {
   description: string;
   is_chargable: boolean;
   is_active: boolean;
-  has_synced_to_odoo: boolean;
+  product: number | null;
   created_at: string;
 };
 
@@ -218,9 +218,8 @@ export type CreateOrganizationPayerSchemePayload = {
 export type OrganizationPricelist = {
   id: number;
   name: string;
-  active: boolean;
-  company_id?: unknown;
-  currency_id?: unknown;
+  is_active: boolean;
+  currency_code: string;
 };
 
 export type CreateOrganizationPricelistPayload = {
@@ -251,23 +250,14 @@ export type TenantBranding = {
 
 export type UpdateTenantBrandingPayload = Partial<TenantBranding>;
 
-export type OdooCurrency = {
-  id: number;
-  name: string;
-  symbol: string;
-  full_name: string;
-  active: boolean;
-};
-
 export type TenantCurrency = {
-  company_id: number;
-  company_name: string;
-  currency: OdooCurrency;
-  available_currencies: OdooCurrency[];
+  tenant_id: number;
+  currency_code: string;
+  default_pricelist_id: number | null;
 };
 
 export type UpdateTenantCurrencyPayload = {
-  currency_id: number;
+  currency_code: string;
 };
 
 export type OrganizationTabId =

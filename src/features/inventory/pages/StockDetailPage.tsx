@@ -24,7 +24,7 @@ export function StockDetailPage({ stockUuid }: StockDetailPageProps) {
   const [error, setError] = useState<string | null>(null);
 
   useAppBreadcrumb(
-    stock ? `${stock.location_name} · Product ${stock.odoo_product_id}` : null,
+    stock ? `${stock.location_name} · Product ${stock.product_id}` : null,
   );
 
   const loadStock = useCallback(async () => {

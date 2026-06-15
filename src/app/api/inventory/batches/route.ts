@@ -10,7 +10,7 @@ const QUERY_KEYS = [
   "search",
   "ordering",
   "tenant",
-  "odoo_product_id",
+  "product_id",
   "batch_number",
   "is_active",
   "has_expiry_date",

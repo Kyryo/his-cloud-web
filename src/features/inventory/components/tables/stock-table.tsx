@@ -22,7 +22,7 @@ const columns: InventoryListTableColumn<InventoryStock>[] = [
     key: "product",
     label: "Product ID",
     cellClassName: "font-mono text-brand-navy",
-    render: (item) => item.odoo_product_id,
+    render: (item) => item.product_id,
   },
   {
     key: "batch",

@@ -27,10 +27,6 @@ function buildCustomersQuery(filters: CustomerListFilters = {}): string {
     params.set("gender", filters.gender);
   }
 
-  if (filters.hasSyncedToOdoo !== undefined) {
-    params.set("has_synced_to_odoo", String(filters.hasSyncedToOdoo));
-  }
-
   if (filters.isActive !== undefined) {
     params.set("is_active", String(filters.isActive));
   }

@@ -18,16 +18,12 @@ import type {
   CustomerActiveFilter,
   CustomerListFilterState,
   CustomerOrdering,
-  CustomerSyncFilter,
 } from "@/features/customers/utils/customer-list-filters";
 import {
   countActiveCustomerFilters,
   CUSTOMER_ORDERING_OPTIONS,
   DEFAULT_CUSTOMER_ORDERING,
 } from "@/features/customers/utils/customer-list-filters";
-import {
-  ERP_SYNC_LABELS,
-} from "@/features/customers/constants/customer-sync-labels";
 import type { CustomerGender } from "@/features/customers/types/customer.types";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
@@ -35,13 +31,13 @@ import { cn } from "@/lib/utils";
 type CustomerFiltersSheetProps = {
   filters: Pick<
     CustomerListFilterState,
-    "gender" | "syncStatus" | "activeStatus" | "ordering"
+    "gender" | "activeStatus" | "ordering"
   >;
   isLoading?: boolean;
   onApply: (
     filters: Pick<
       CustomerListFilterState,
-      "gender" | "syncStatus" | "activeStatus" | "ordering"
+      "gender" | "activeStatus" | "ordering"
     >,
   ) => void;
 };
@@ -51,12 +47,6 @@ const genderOptions: Array<{ value: CustomerGender | "all"; label: string }> = [
   { value: "Male", label: "Male" },
   { value: "Female", label: "Female" },
   { value: "Other", label: "Other" },
-];
-
-const syncOptions: Array<{ value: CustomerSyncFilter; label: string }> = [
-  { value: "all", label: "All sync statuses" },
-  { value: "synced", label: ERP_SYNC_LABELS.filterSynced },
-  { value: "not_synced", label: ERP_SYNC_LABELS.filterNotSynced },
 ];
 
 const activeOptions: Array<{ value: CustomerActiveFilter; label: string }> = [
@@ -89,7 +79,6 @@ export function CustomerFiltersSheet({
   function handleReset() {
     const reset = {
       gender: "all" as const,
-      syncStatus: "all" as const,
       activeStatus: "all" as const,
       ordering: DEFAULT_CUSTOMER_ORDERING,
     };
@@ -145,20 +134,6 @@ export function CustomerFiltersSheet({
           />
 
           <FilterSelectField
-            id="customer-filter-sync"
-            label={ERP_SYNC_LABELS.filterLabel}
-            value={draft.syncStatus}
-            disabled={isLoading}
-            onValueChange={(value) =>
-              setDraft((current) => ({
-                ...current,
-                syncStatus: value as CustomerSyncFilter,
-              }))
-            }
-            options={syncOptions}
-          />
-
-          <FilterSelectField
             id="customer-filter-active"
             label="Status"
             value={draft.activeStatus}
@@ -187,9 +162,9 @@ export function CustomerFiltersSheet({
           />
         </div>
 
-        <SheetFooter className="mt-8 gap-2 sm:justify-between">
-          <Button type="button" variant="ghost" onClick={handleReset}>
-            Reset filters
+        <SheetFooter className="mt-6 gap-2 sm:justify-between">
+          <Button type="button" variant="outline" onClick={handleReset}>
+            Reset
           </Button>
           <Button type="button" onClick={handleApply}>
             Apply filters

@@ -6,7 +6,6 @@ import type { ReactNode } from "react";
 import { ClientAvatar } from "@/components/client-avatar";
 import { Badge } from "@/components/ui/badge";
 import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
-import { formatErpSyncStatus } from "@/features/customers/constants/customer-sync-labels";
 import type { Customer } from "@/features/customers/types/customer.types";
 import {
   formatAdaptiveAge,
@@ -59,7 +58,6 @@ export function CustomerDetailHeader({
               <Calendar className="size-3.5 shrink-0" aria-hidden="true" />
               Registered {formatDisplayDate(customer.created_at)}
             </span>
-            <span>{formatErpSyncStatus(customer.has_synced_to_odoo)}</span>
           </div>
         </div>
       </div>

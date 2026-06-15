@@ -19,7 +19,6 @@ export type Customer = {
   dob_is_estimated: boolean;
   age: number;
   has_synced_to_openmrs: boolean;
-  has_synced_to_odoo: boolean;
   is_active: boolean;
   visit_status: CustomerVisitStatus;
   created_at: string;
@@ -45,7 +44,6 @@ export type CustomerListFilters = {
   page?: number;
   pageSize?: number;
   gender?: CustomerGender;
-  hasSyncedToOdoo?: boolean;
   isActive?: boolean;
   ordering?: string;
 };

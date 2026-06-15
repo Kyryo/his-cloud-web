@@ -26,7 +26,7 @@ export function MovementDetailPage({ movementUuid }: MovementDetailPageProps) {
 
   useAppBreadcrumb(
     movement
-      ? `${formatMovementTypeLabel(movement.movement_type)} · Product ${movement.odoo_product_id}`
+      ? `${formatMovementTypeLabel(movement.movement_type)} · Product ${movement.product_id}`
       : null,
   );
 

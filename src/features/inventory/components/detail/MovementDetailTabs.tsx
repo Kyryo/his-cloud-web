@@ -54,7 +54,7 @@ export function MovementDetailTabs({ movement }: MovementDetailTabsProps) {
                   label: "Type",
                   value: formatMovementTypeLabel(movement.movement_type),
                 },
-                { label: "Product ID", value: movement.odoo_product_id },
+                { label: "Product ID", value: movement.product_id },
                 { label: "Batch", value: movement.batch_number ?? "—" },
                 {
                   label: "From location",

@@ -3,7 +3,7 @@ import type { InternalOrderLine } from "@/features/inventory/types/inventory.typ
 export type InternalOrderLineDraft = {
   key: string;
   id?: number;
-  odoo_product_id: number | null;
+  product_id: number | null;
   productName: string | null;
   quantity: string;
   batch?: number | null;
@@ -19,7 +19,7 @@ export type InternalOrderBatchValidationOptions = {
 export function createEmptyInternalOrderLineDraft(): InternalOrderLineDraft {
   return {
     key: crypto.randomUUID(),
-    odoo_product_id: null,
+    product_id: null,
     productName: null,
     quantity: "1",
     batch: null,
@@ -32,7 +32,7 @@ export function internalOrderLineToDraft(line: InternalOrderLine): InternalOrder
   return {
     key: crypto.randomUUID(),
     id: line.id,
-    odoo_product_id: line.odoo_product_id,
+    product_id: line.product_id,
     productName: line.product_name?.trim() || null,
     quantity: String(line.quantity),
     batch: line.batch ?? null,
@@ -43,12 +43,12 @@ export function internalOrderLineToDraft(line: InternalOrderLine): InternalOrder
 
 export function lineMissingBatch(
   line: {
-    odoo_product_id: number | null;
+    product_id: number | null;
     batch?: number | null;
   },
   options: InternalOrderBatchValidationOptions = {},
 ): boolean {
-  if (!options.batchTrackingEnabled || !line.odoo_product_id) {
+  if (!options.batchTrackingEnabled || !line.product_id) {
     return false;
   }
 
@@ -57,7 +57,7 @@ export function lineMissingBatch(
 
 export function countLinesMissingBatch(
   lines: Array<{
-    odoo_product_id: number | null;
+    product_id: number | null;
     batch?: number | null;
   }>,
   options: InternalOrderBatchValidationOptions = {},
@@ -69,7 +69,7 @@ export function getInternalLineValidationIssues(
   line: InternalOrderLineDraft,
   options: InternalOrderBatchValidationOptions = {},
 ): string[] {
-  if (!line.odoo_product_id) {
+  if (!line.product_id) {
     return [];
   }
 
@@ -97,17 +97,17 @@ export function parseDraftNumber(value: string): number {
 }
 
 export function countSavedInternalLineDrafts(lines: InternalOrderLineDraft[]): number {
-  return lines.filter((line) => line.odoo_product_id).length;
+  return lines.filter((line) => line.product_id).length;
 }
 
 export function draftsToInternalOrderLines(
   drafts: InternalOrderLineDraft[],
 ): InternalOrderLine[] {
   return drafts
-    .filter((line) => line.odoo_product_id)
+    .filter((line) => line.product_id)
     .map((line) => ({
       id: line.id,
-      odoo_product_id: line.odoo_product_id!,
+      product_id: line.product_id!,
       quantity: line.quantity,
       batch: line.batch ?? null,
       notes: line.notes?.trim() || null,
@@ -118,7 +118,7 @@ export function serializeInternalDraftLines(lines: InternalOrderLineDraft[]): st
   return JSON.stringify(
     lines.map((line) => ({
       id: line.id ?? null,
-      odoo_product_id: line.odoo_product_id,
+      product_id: line.product_id,
       productName: line.productName,
       quantity: line.quantity,
       batch: line.batch ?? null,
@@ -131,7 +131,7 @@ export function serializeInternalDraftLines(lines: InternalOrderLineDraft[]): st
 export function validateInternalOrderLinesForSubmit(
   lines: InternalOrderLineDraft[],
 ): string | null {
-  const savedLines = lines.filter((line) => line.odoo_product_id);
+  const savedLines = lines.filter((line) => line.product_id);
 
   if (savedLines.length === 0) {
     return "Add at least one line item before submitting.";

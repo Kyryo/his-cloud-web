@@ -10,7 +10,7 @@ const QUERY_KEYS = [
   "movement_type",
   "from_location_uuid",
   "to_location_uuid",
-  "odoo_product_id",
+  "product_id",
   "batch_uuid",
 ] as const;
 

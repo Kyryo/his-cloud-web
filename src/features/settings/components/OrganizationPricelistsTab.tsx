@@ -16,7 +16,6 @@ import {
   setOrganizationDefaultPricelist,
 } from "@/features/settings/services/settings.service";
 import type { OrganizationPricelist } from "@/features/settings/types/settings.types";
-import { formatOdooRelation } from "@/features/sales-orders/utils/format-odoo-relation";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { useToast } from "@/providers/toast-provider";
@@ -212,16 +211,16 @@ export function OrganizationPricelistsTab({ isActive }: OrganizationPricelistsTa
                         {pricelist.id}
                       </td>
                       <td className="px-6 py-3.5 text-sm text-brand-navy">
-                        {formatOdooRelation(pricelist.currency_id)}
+                        {pricelist.currency_code}
                       </td>
                       <td className="px-6 py-3.5">
-                        <Badge variant={pricelist.active ? "default" : "outline"}>
-                          {pricelist.active ? "Active" : "Archived"}
+                        <Badge variant={pricelist.is_active ? "default" : "outline"}>
+                          {pricelist.is_active ? "Active" : "Archived"}
                         </Badge>
                       </td>
                       <td className="px-6 py-3.5 text-right">
                         <div className="flex items-center justify-end gap-1">
-                          {pricelist.active && !isDefault ? (
+                          {pricelist.is_active && !isDefault ? (
                             <Button
                               type="button"
                               variant="ghost"
