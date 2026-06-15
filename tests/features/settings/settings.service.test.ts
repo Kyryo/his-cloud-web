@@ -2,23 +2,35 @@ import { describe, expect, it, vi } from "vitest";
 
 import { BFF_SETTINGS_ROUTES } from "@/constants/api";
 import {
+  archiveOrganizationPricelist,
   createOrganizationLocation,
+  createOrganizationDepartment,
   createOrganizationPayer,
   createOrganizationPayerScheme,
+  createOrganizationPricelist,
   createOrganizationService,
   fetchOrganization,
   fetchOrganizationBranding,
   fetchOrganizationCurrency,
   fetchOrganizationClinics,
+  fetchOrganizationDepartments,
   fetchOrganizationLocations,
   fetchOrganizationPayers,
   fetchOrganizationPayerSchemes,
+  fetchOrganizationPricelists,
+  fetchOrganizationDefaultPricelist,
   fetchOrganizationServices,
+  fetchTenantEmailConfiguration,
+  setOrganizationDefaultPricelist,
+  createTenantEmailConfiguration,
+  updateTenantEmailConfiguration,
   updateOrganizationBranding,
   updateOrganizationClinic,
+  updateOrganizationDepartment,
   updateOrganizationContact,
   updateOrganizationCurrency,
   updateOrganizationLocation,
+  updateOrganizationPricelist,
   updateOrganizationService,
 } from "@/features/settings/services/settings.service";
 import { bffRequest } from "@/lib/bff-client";
@@ -87,6 +99,79 @@ describe("settings.service organization", () => {
     expect(response.results).toHaveLength(1);
   });
 
+  it("fetches organization departments", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      results: [{ uuid: "department-1", name: "OPD" }],
+      pagination: null,
+    });
+
+    const response = await fetchOrganizationDepartments();
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      `${BFF_SETTINGS_ROUTES.departments}?page=1&page_size=100&ordering=clinic__name%2Cname`,
+    );
+    expect(response.results).toHaveLength(1);
+  });
+
+  it("fetches organization departments for a clinic with server-side filtering", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      results: [{ uuid: "department-2", name: "Pharmacy" }],
+      pagination: null,
+    });
+
+    const response = await fetchOrganizationDepartments({ clinicId: 3 });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      `${BFF_SETTINGS_ROUTES.departments}?page=1&page_size=100&ordering=name&clinic=3`,
+    );
+    expect(response.results).toHaveLength(1);
+  });
+
+  it("paginates through all organization department pages", async () => {
+    vi.mocked(bffRequest).mockClear();
+    vi.mocked(bffRequest)
+      .mockResolvedValueOnce({
+        results: [{ uuid: "department-1", name: "OPD" }],
+        pagination: { count: 2, next: "/next", previous: null },
+      })
+      .mockResolvedValueOnce({
+        results: [{ uuid: "department-2", name: "IPD" }],
+        pagination: { count: 2, next: null, previous: "/prev" },
+      });
+
+    const response = await fetchOrganizationDepartments();
+
+    expect(bffRequest).toHaveBeenCalledTimes(2);
+    expect(response.results).toHaveLength(2);
+    expect(response.pagination?.count).toBe(2);
+    expect(response.pagination?.next).toBeNull();
+  });
+
+  it("creates an organization department", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      uuid: "department-1",
+      name: "OPD",
+    });
+
+    const department = await createOrganizationDepartment({
+      name: "OPD",
+      code: "OPD-01",
+      clinic: 1,
+      department_type: "opd",
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.departments, {
+      method: "POST",
+      body: {
+        name: "OPD",
+        code: "OPD-01",
+        clinic: 1,
+        department_type: "opd",
+      },
+    });
+    expect(department.name).toBe("OPD");
+  });
+
   it("creates an organization location", async () => {
     vi.mocked(bffRequest).mockResolvedValueOnce({
       uuid: "location-1",
@@ -97,6 +182,7 @@ describe("settings.service organization", () => {
       name: "Front Desk",
       code: "FD-01",
       clinic: 1,
+      department: 2,
     });
 
     expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.locations, {
@@ -105,6 +191,7 @@ describe("settings.service organization", () => {
         name: "Front Desk",
         code: "FD-01",
         clinic: 1,
+        department: 2,
       },
     });
     expect(location.name).toBe("Front Desk");
@@ -187,6 +274,92 @@ describe("settings.service organization", () => {
     expect(response.results).toHaveLength(1);
   });
 
+  it("fetches organization pricelists", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      results: [{ id: 101, name: "Cash Pricelist", is_active: true, currency_code: "MWK" }],
+      pagination: null,
+    });
+
+    const response = await fetchOrganizationPricelists();
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      `${BFF_SETTINGS_ROUTES.pricelists}?include_inactive=true`,
+    );
+    expect(response.results).toHaveLength(1);
+  });
+
+  it("creates an organization pricelist", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      id: 101,
+      name: "Cash Pricelist",
+      active: true,
+    });
+
+    const pricelist = await createOrganizationPricelist({
+      name: "Cash Pricelist",
+      active: true,
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.pricelists, {
+      method: "POST",
+      body: {
+        name: "Cash Pricelist",
+        active: true,
+      },
+    });
+    expect(pricelist.name).toBe("Cash Pricelist");
+  });
+
+  it("fetches organization default pricelist", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      tenant: 1,
+      default_pricelist_id: 101,
+    });
+
+    const response = await fetchOrganizationDefaultPricelist();
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.pricelistDefault);
+    expect(response.default_pricelist_id).toBe(101);
+  });
+
+  it("sets organization default pricelist", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      tenant: 1,
+      default_pricelist_id: 101,
+    });
+
+    const response = await setOrganizationDefaultPricelist({
+      default_pricelist_id: 101,
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.pricelistDefault, {
+      method: "POST",
+      body: {
+        default_pricelist_id: 101,
+      },
+    });
+    expect(response.default_pricelist_id).toBe(101);
+  });
+
+  it("clears organization default pricelist", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      tenant: 1,
+      default_pricelist_id: null,
+    });
+
+    const response = await setOrganizationDefaultPricelist({
+      default_pricelist_id: null,
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.pricelistDefault, {
+      method: "POST",
+      body: {
+        default_pricelist_id: null,
+      },
+    });
+    expect(response.default_pricelist_id).toBeNull();
+  });
+
   it("updates an organization clinic", async () => {
     vi.mocked(bffRequest).mockResolvedValueOnce({
       uuid: "clinic-1",
@@ -217,6 +390,7 @@ describe("settings.service organization", () => {
       name: "Updated Desk",
       code: "FD-02",
       clinic: 1,
+      department: 2,
     });
 
     expect(bffRequest).toHaveBeenCalledWith(
@@ -227,10 +401,39 @@ describe("settings.service organization", () => {
           name: "Updated Desk",
           code: "FD-02",
           clinic: 1,
+          department: 2,
         },
       },
     );
     expect(location.name).toBe("Updated Desk");
+  });
+
+  it("updates an organization department", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      uuid: "department-1",
+      name: "Dental",
+    });
+
+    const department = await updateOrganizationDepartment("department-1", {
+      name: "Dental",
+      code: "DENTAL-01",
+      clinic: 1,
+      department_type: "dental",
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_SETTINGS_ROUTES.departmentDetail("department-1"),
+      {
+        method: "PATCH",
+        body: {
+          name: "Dental",
+          code: "DENTAL-01",
+          clinic: 1,
+          department_type: "dental",
+        },
+      },
+    );
+    expect(department.name).toBe("Dental");
   });
 
   it("updates an organization service", async () => {
@@ -251,6 +454,38 @@ describe("settings.service organization", () => {
       },
     );
     expect(service.name).toBe("Follow-up");
+  });
+
+  it("updates an organization pricelist", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      id: 101,
+      name: "Updated Cash",
+      active: true,
+    });
+
+    const pricelist = await updateOrganizationPricelist(101, {
+      name: "Updated Cash",
+      active: true,
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.pricelistDetail(101), {
+      method: "PATCH",
+      body: {
+        name: "Updated Cash",
+        active: true,
+      },
+    });
+    expect(pricelist.name).toBe("Updated Cash");
+  });
+
+  it("archives an organization pricelist", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce(undefined);
+
+    await archiveOrganizationPricelist(101);
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.pricelistDetail(101), {
+      method: "DELETE",
+    });
   });
 
   it("creates an organization payer scheme", async () => {
@@ -320,47 +555,95 @@ describe("settings.service organization", () => {
   it("fetches organization currency", async () => {
     vi.mocked(bffRequest).mockResolvedValueOnce({
       currency: {
-        company_id: 1,
-        company_name: "Acme Health",
-        currency: {
-          id: 1,
-          name: "KES",
-          symbol: "KSh",
-          full_name: "Kenyan Shilling",
-          active: true,
-        },
-        available_currencies: [],
+        tenant_id: 1,
+        currency_code: "KES",
+        default_pricelist_id: 2,
       },
     });
 
     const currency = await fetchOrganizationCurrency();
 
     expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.currency);
-    expect(currency.currency.name).toBe("KES");
+    expect(currency.currency_code).toBe("KES");
   });
 
   it("updates organization currency", async () => {
     vi.mocked(bffRequest).mockResolvedValueOnce({
       currency: {
-        company_id: 1,
-        company_name: "Acme Health",
-        currency: {
-          id: 2,
-          name: "USD",
-          symbol: "$",
-          full_name: "US Dollar",
-          active: true,
-        },
-        available_currencies: [],
+        tenant_id: 1,
+        currency_code: "USD",
+        default_pricelist_id: 2,
       },
     });
 
-    const currency = await updateOrganizationCurrency({ currency_id: 2 });
+    const currency = await updateOrganizationCurrency({ currency_code: "USD" });
 
     expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.currency, {
       method: "PATCH",
-      body: { currency_id: 2 },
+      body: { currency_code: "USD" },
     });
-    expect(currency.currency.name).toBe("USD");
+    expect(currency.currency_code).toBe("USD");
+  });
+
+  it("fetches tenant email configuration", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      configuration: {
+        id: 1,
+        smtp_host: "smtp.example.com",
+        has_smtp_password: true,
+      },
+    });
+
+    const configuration = await fetchTenantEmailConfiguration();
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.emailConfiguration);
+    expect(configuration?.smtp_host).toBe("smtp.example.com");
+  });
+
+  it("creates tenant email configuration", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      configuration: { id: 2, smtp_host: "smtp.example.com" },
+    });
+
+    const configuration = await createTenantEmailConfiguration({
+      smtp_host: "smtp.example.com",
+      smtp_port: 587,
+      smtp_username: "smtp-user",
+      smtp_password: "secret",
+      sender_name: "Acme Clinic",
+      from_email: "no-reply@example.com",
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.emailConfiguration, {
+      method: "POST",
+      body: {
+        smtp_host: "smtp.example.com",
+        smtp_port: 587,
+        smtp_username: "smtp-user",
+        smtp_password: "secret",
+        sender_name: "Acme Clinic",
+        from_email: "no-reply@example.com",
+      },
+    });
+    expect(configuration.id).toBe(2);
+  });
+
+  it("updates tenant email configuration", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      configuration: { id: 3, smtp_host: "mail.example.com" },
+    });
+
+    const configuration = await updateTenantEmailConfiguration(3, {
+      smtp_host: "mail.example.com",
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_SETTINGS_ROUTES.emailConfigurationDetail(3),
+      {
+        method: "PATCH",
+        body: { smtp_host: "mail.example.com" },
+      },
+    );
+    expect(configuration.smtp_host).toBe("mail.example.com");
   });
 });

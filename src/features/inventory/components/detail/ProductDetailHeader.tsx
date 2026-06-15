@@ -32,7 +32,7 @@ export function ProductDetailHeader({
             <h1 className="truncate text-lg font-semibold text-brand-navy sm:text-xl">
               {product.display_name || product.name}
             </h1>
-            {!product.active ? (
+            {!product.is_active ? (
               <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-brand-muted">
                 Inactive
               </span>

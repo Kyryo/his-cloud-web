@@ -6,6 +6,7 @@ import {
   PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS,
   PageLoader,
 } from "@/components/page-loader";
+import { SalesOrderConvertToInvoiceAction } from "@/features/sales-orders/components/detail/SalesOrderConvertToInvoiceAction";
 import { SalesOrderDetailHeader } from "@/features/sales-orders/components/detail/SalesOrderDetailHeader";
 import { SalesOrderDetailTabs } from "@/features/sales-orders/components/detail/SalesOrderDetailTabs";
 import { fetchSalesOrder } from "@/features/sales-orders/services/sales-orders.service";
@@ -65,8 +66,19 @@ export function SalesOrderDetailPage({ orderId }: SalesOrderDetailPageProps) {
 
   return (
     <DetailPageLayout data-testid="sales-order-detail-page">
-      <SalesOrderDetailHeader order={order} />
-      <SalesOrderDetailTabs order={order} />
+      <SalesOrderDetailHeader
+        order={order}
+        actions={
+          <SalesOrderConvertToInvoiceAction
+            order={order}
+            onOrderUpdated={(updatedOrder) => setOrder(updatedOrder)}
+          />
+        }
+      />
+      <SalesOrderDetailTabs
+        order={order}
+        onOrderUpdated={(updatedOrder) => setOrder(updatedOrder)}
+      />
     </DetailPageLayout>
   );
 }

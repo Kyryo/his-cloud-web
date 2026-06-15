@@ -33,6 +33,20 @@ describe("buildAppBreadcrumbs", () => {
     ]);
   });
 
+  it("returns front desk and appointments for the appointments list", () => {
+    expect(buildAppBreadcrumbs(ROUTES.appointments)).toEqual([
+      { label: "Front Desk" },
+      { label: "Appointments" },
+    ]);
+  });
+
+  it("returns front desk and active visits for the active visits list", () => {
+    expect(buildAppBreadcrumbs(ROUTES.activeVisits)).toEqual([
+      { label: "Front Desk" },
+      { label: "Active Visits" },
+    ]);
+  });
+
   it("returns front desk, clients link, and detail label for a customer page", () => {
     expect(buildAppBreadcrumbs("/customers/abc-123")).toEqual([
       { label: "Front Desk" },
@@ -83,6 +97,21 @@ describe("buildAppBreadcrumbs", () => {
       { label: "Settings" },
       { label: "Modules", href: ROUTES.settingsModules },
       { label: "Inventory" },
+    ]);
+  });
+
+  it("returns settings integrations crumbs", () => {
+    expect(buildAppBreadcrumbs(ROUTES.settingsIntegrations)).toEqual([
+      { label: "Settings" },
+      { label: "Integrations" },
+    ]);
+  });
+
+  it("returns settings integrations email crumbs", () => {
+    expect(buildAppBreadcrumbs(ROUTES.settingsIntegrationsEmail)).toEqual([
+      { label: "Settings" },
+      { label: "Integrations", href: ROUTES.settingsIntegrations },
+      { label: "Email Settings" },
     ]);
   });
 });

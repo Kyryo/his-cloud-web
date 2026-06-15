@@ -12,14 +12,11 @@ export type CustomerOrdering =
   | "customer_identifier"
   | "-customer_identifier";
 
-export type CustomerSyncFilter = "all" | "synced" | "not_synced";
-
 export type CustomerActiveFilter = "all" | "active" | "inactive";
 
 export type CustomerListFilterState = {
   search: string;
   gender: CustomerGender | "all";
-  syncStatus: CustomerSyncFilter;
   activeStatus: CustomerActiveFilter;
   ordering: CustomerOrdering;
 };
@@ -43,13 +40,12 @@ export const CUSTOMER_ORDERING_OPTIONS: Array<{
 export function countActiveCustomerFilters(
   filters: Pick<
     CustomerListFilterState,
-    "gender" | "syncStatus" | "activeStatus" | "ordering"
+    "gender" | "activeStatus" | "ordering"
   >,
 ): number {
   let count = 0;
 
   if (filters.gender !== "all") count += 1;
-  if (filters.syncStatus !== "all") count += 1;
   if (filters.activeStatus !== "all") count += 1;
   if (filters.ordering !== DEFAULT_CUSTOMER_ORDERING) count += 1;
 
@@ -64,10 +60,6 @@ export function buildCustomerListFilters(
     page: state.page,
     pageSize: state.pageSize,
     gender: state.gender === "all" ? undefined : state.gender,
-    hasSyncedToOdoo:
-      state.syncStatus === "all"
-        ? undefined
-        : state.syncStatus === "synced",
     isActive:
       state.activeStatus === "all"
         ? undefined

@@ -2,25 +2,36 @@ import { BFF_SETTINGS_ROUTES } from "@/constants/api";
 import type { User } from "@/features/auth/types/auth.types";
 import type {
   CreateOrganizationLocationPayload,
+  CreateOrganizationDepartmentPayload,
   CreateOrganizationPayerPayload,
   CreateOrganizationPayerSchemePayload,
+  CreateOrganizationPricelistPayload,
   CreateOrganizationServicePayload,
+  CreateTenantEmailConfigurationPayload,
+  OrganizationDefaultPricelist,
   OrganizationClinic,
+  OrganizationDepartment,
   OrganizationListResponse,
   OrganizationLocation,
   OrganizationPayer,
   OrganizationPayerScheme,
+  OrganizationPricelist,
   OrganizationService,
   TenantBranding,
   TenantCurrency,
   TenantDetail,
+  TenantEmailConfiguration,
   UpdateOrganizationClinicPayload,
   UpdateOrganizationContactPayload,
+  UpdateOrganizationDepartmentPayload,
   UpdateOrganizationLocationPayload,
+  UpdateOrganizationPricelistPayload,
+  SetOrganizationDefaultPricelistPayload,
   UpdateOrganizationServicePayload,
   UpdateProfilePayload,
   UpdateTenantBrandingPayload,
   UpdateTenantCurrencyPayload,
+  UpdateTenantEmailConfigurationPayload,
 } from "@/features/settings/types/settings.types";
 import { joinDisplayName } from "@/features/settings/utils/user-name";
 import { bffRequest } from "@/lib/bff-client";
@@ -110,6 +121,80 @@ export async function updateOrganizationLocation(
   );
 }
 
+export type FetchOrganizationDepartmentsOptions = {
+  clinicId?: number;
+  pageSize?: number;
+};
+
+export async function fetchOrganizationDepartments(
+  options: FetchOrganizationDepartmentsOptions = {},
+): Promise<OrganizationListResponse<OrganizationDepartment>> {
+  const pageSize = options.pageSize ?? 100;
+  const results: OrganizationDepartment[] = [];
+  let page = 1;
+  let lastPagination: OrganizationListResponse<OrganizationDepartment>["pagination"] =
+    null;
+
+  while (true) {
+    const params = new URLSearchParams({
+      page: String(page),
+      page_size: String(pageSize),
+      ordering: options.clinicId ? "name" : "clinic__name,name",
+    });
+
+    if (options.clinicId) {
+      params.set("clinic", String(options.clinicId));
+    }
+
+    const response = await bffRequest<
+      OrganizationListResponse<OrganizationDepartment>
+    >(`${BFF_SETTINGS_ROUTES.departments}?${params.toString()}`);
+
+    results.push(...response.results);
+    lastPagination = response.pagination;
+
+    if (!response.pagination?.next) {
+      break;
+    }
+
+    page += 1;
+  }
+
+  return {
+    results,
+    pagination: lastPagination
+      ? {
+          ...lastPagination,
+          count: results.length,
+          next: null,
+          previous: null,
+        }
+      : null,
+  };
+}
+
+export async function createOrganizationDepartment(
+  payload: CreateOrganizationDepartmentPayload,
+): Promise<OrganizationDepartment> {
+  return bffRequest<OrganizationDepartment>(BFF_SETTINGS_ROUTES.departments, {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export async function updateOrganizationDepartment(
+  uuid: string,
+  payload: UpdateOrganizationDepartmentPayload,
+): Promise<OrganizationDepartment> {
+  return bffRequest<OrganizationDepartment>(
+    BFF_SETTINGS_ROUTES.departmentDetail(uuid),
+    {
+      method: "PATCH",
+      body: payload,
+    },
+  );
+}
+
 export async function fetchOrganizationServices(): Promise<
   OrganizationListResponse<OrganizationService>
 > {
@@ -174,6 +259,57 @@ export async function createOrganizationPayerScheme(
   });
 }
 
+export async function fetchOrganizationPricelists(): Promise<
+  OrganizationListResponse<OrganizationPricelist>
+> {
+  return bffRequest<OrganizationListResponse<OrganizationPricelist>>(
+    `${BFF_SETTINGS_ROUTES.pricelists}?include_inactive=true`,
+  );
+}
+
+export async function createOrganizationPricelist(
+  payload: CreateOrganizationPricelistPayload,
+): Promise<OrganizationPricelist> {
+  return bffRequest<OrganizationPricelist>(BFF_SETTINGS_ROUTES.pricelists, {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export async function updateOrganizationPricelist(
+  id: number,
+  payload: UpdateOrganizationPricelistPayload,
+): Promise<OrganizationPricelist> {
+  return bffRequest<OrganizationPricelist>(BFF_SETTINGS_ROUTES.pricelistDetail(id), {
+    method: "PATCH",
+    body: payload,
+  });
+}
+
+export async function archiveOrganizationPricelist(id: number): Promise<void> {
+  await bffRequest<void>(BFF_SETTINGS_ROUTES.pricelistDetail(id), {
+    method: "DELETE",
+  });
+}
+
+export async function fetchOrganizationDefaultPricelist(): Promise<OrganizationDefaultPricelist> {
+  return bffRequest<OrganizationDefaultPricelist>(
+    BFF_SETTINGS_ROUTES.pricelistDefault,
+  );
+}
+
+export async function setOrganizationDefaultPricelist(
+  payload: SetOrganizationDefaultPricelistPayload,
+): Promise<OrganizationDefaultPricelist> {
+  return bffRequest<OrganizationDefaultPricelist>(
+    BFF_SETTINGS_ROUTES.pricelistDefault,
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
+}
+
 export async function fetchOrganizationBranding(): Promise<TenantBranding> {
   const data = await bffRequest<{ branding: TenantBranding }>(
     BFF_SETTINGS_ROUTES.branding,
@@ -216,4 +352,41 @@ export async function updateOrganizationCurrency(
   );
 
   return data.currency;
+}
+
+export async function fetchTenantEmailConfiguration(): Promise<TenantEmailConfiguration | null> {
+  const data = await bffRequest<{ configuration: TenantEmailConfiguration | null }>(
+    BFF_SETTINGS_ROUTES.emailConfiguration,
+  );
+
+  return data.configuration;
+}
+
+export async function createTenantEmailConfiguration(
+  payload: CreateTenantEmailConfigurationPayload,
+): Promise<TenantEmailConfiguration> {
+  const data = await bffRequest<{ configuration: TenantEmailConfiguration }>(
+    BFF_SETTINGS_ROUTES.emailConfiguration,
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
+
+  return data.configuration;
+}
+
+export async function updateTenantEmailConfiguration(
+  id: number,
+  payload: UpdateTenantEmailConfigurationPayload,
+): Promise<TenantEmailConfiguration> {
+  const data = await bffRequest<{ configuration: TenantEmailConfiguration }>(
+    BFF_SETTINGS_ROUTES.emailConfigurationDetail(id),
+    {
+      method: "PATCH",
+      body: payload,
+    },
+  );
+
+  return data.configuration;
 }

@@ -76,14 +76,14 @@ export function usePurchaseOrderLinesEditor({
 
         setDraftLines((current) =>
           current.map((line) => {
-            if (!line.odoo_product_id || line.productName) {
+            if (!line.product_id || line.productName) {
               return line;
             }
 
             return {
               ...line,
               productName:
-                labels.get(line.odoo_product_id) ?? `Product #${line.odoo_product_id}`,
+                labels.get(line.product_id) ?? `Product #${line.product_id}`,
             };
           }),
         );
@@ -91,8 +91,8 @@ export function usePurchaseOrderLinesEditor({
         if (!cancelled) {
           setDraftLines((current) =>
             current.map((line) =>
-              line.odoo_product_id && !line.productName
-                ? { ...line, productName: `Product #${line.odoo_product_id}` }
+              line.product_id && !line.productName
+                ? { ...line, productName: `Product #${line.product_id}` }
                 : line,
             ),
           );
@@ -160,7 +160,7 @@ export function usePurchaseOrderLinesEditor({
   const confirmRow = useCallback(
     (key: string, options?: { addAnother?: boolean }) => {
       const line = draftLines.find((item) => item.key === key);
-      if (!line?.odoo_product_id) {
+      if (!line?.product_id) {
         onError("Choose a product before confirming this line.");
         return;
       }
@@ -197,7 +197,7 @@ export function usePurchaseOrderLinesEditor({
   const discardChanges = useCallback(() => {
     const restored = JSON.parse(savedSnapshot) as Array<{
       id: number | null;
-      odoo_product_id: number | null;
+      product_id: number | null;
       productName?: string | null;
       quantity: string;
       unit_cost: string;
@@ -214,10 +214,10 @@ export function usePurchaseOrderLinesEditor({
       restored.map((line) => ({
         key: crypto.randomUUID(),
         id: line.id ?? undefined,
-        odoo_product_id: line.odoo_product_id,
+        product_id: line.product_id,
         productName:
           line.productName ??
-          (line.odoo_product_id ? `Product #${line.odoo_product_id}` : null),
+          (line.product_id ? `Product #${line.product_id}` : null),
         quantity: line.quantity,
         unit_cost: line.unit_cost,
         batch: line.batch ?? null,

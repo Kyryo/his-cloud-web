@@ -12,6 +12,7 @@ import {
   ListPageLayout,
 } from "@/features/app-shell/components/page-layout";
 import { CreateStockAdjustmentDialog } from "@/features/inventory/components/CreateStockAdjustmentDialog";
+import { InventoryFiltersSheet } from "@/features/inventory/components/InventoryFiltersSheet";
 import { InventoryListToolbar } from "@/features/inventory/components/InventoryListToolbar";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
 import { InventoryListEmptyState } from "@/features/inventory/components/list/InventoryListEmptyState";
@@ -19,12 +20,17 @@ import { InventoryListPageContent } from "@/features/inventory/components/list/I
 import { InventoryListPageHeader } from "@/features/inventory/components/list/InventoryListPageHeader";
 import { InventoryListPagination } from "@/features/inventory/components/list/InventoryListTable";
 import { StockAdjustmentsTable } from "@/features/inventory/components/tables/stock-adjustments-table";
-import { useInventoryList } from "@/features/inventory/hooks/use-inventory-list";
+import { useInventoryListFilters } from "@/features/inventory/hooks/use-inventory-list-filters";
 import { fetchStockAdjustments } from "@/features/inventory/services/stock-adjustments.service";
 import type {
   InventoryListFilters,
   StockAdjustment,
 } from "@/features/inventory/types/inventory.types";
+import {
+  buildStockAdjustmentListFilters,
+  countActiveStockAdjustmentFilters,
+  DEFAULT_STOCK_ADJUSTMENT_SHEET_FILTERS,
+} from "@/features/inventory/utils/inventory-list-filters";
 
 export function StockAdjustmentsListPage() {
   const router = useRouter();
@@ -39,6 +45,7 @@ export function StockAdjustmentsListPage() {
     totalCount,
     page,
     pageSize,
+    search,
     isLoading,
     isRefreshing,
     error,
@@ -47,9 +54,19 @@ export function StockAdjustmentsListPage() {
     hasPrevious,
     hasNoRecords,
     isFilteredEmpty,
+    setSearch,
+    handleSearchSubmit,
+    handleClearSearch,
     reload,
     handlePageChange,
-  } = useInventoryList<StockAdjustment>({ fetchFn });
+    sheetFilters,
+    handleFiltersApply,
+  } = useInventoryListFilters({
+    fetchFn,
+    defaultSheetFilters: DEFAULT_STOCK_ADJUSTMENT_SHEET_FILTERS,
+    buildExtraFilters: buildStockAdjustmentListFilters,
+    countActiveSheetFilters: countActiveStockAdjustmentFilters,
+  });
 
   const handleCreate = useCallback(() => {
     setCreateOpen(true);
@@ -80,6 +97,12 @@ export function StockAdjustmentsListPage() {
         description="Correct on-hand quantities and costs."
         addLabel="New adjustment"
         onAdd={handleCreate}
+        search={search}
+        isSearchDisabled={isRefreshing}
+        onSearchChange={setSearch}
+        onSearchSubmit={handleSearchSubmit}
+        onClearSearch={handleClearSearch}
+        searchPlaceholder="Search by reference, reason, or notes..."
         data-testid="add-stock-adjustment-button"
       />
 
@@ -92,9 +115,21 @@ export function StockAdjustmentsListPage() {
       {!hasNoRecords ? (
         <ListPageDataSectionsStack>
           <InventoryListToolbar
-            showSearch={false}
+            search={search}
+            searchPlaceholder="Search by reference, reason, or notes..."
             isLoading={isRefreshing}
+            onSearchChange={setSearch}
+            onSearchSubmit={handleSearchSubmit}
+            onClearSearch={handleClearSearch}
             onRefresh={() => void reload()}
+            filters={
+              <InventoryFiltersSheet
+                variant="stock-adjustments"
+                filters={sheetFilters}
+                isLoading={isRefreshing}
+                onApply={handleFiltersApply}
+              />
+            }
             primaryAction={
               <AddActionButton
                 label="New adjustment"
@@ -123,6 +158,7 @@ export function StockAdjustmentsListPage() {
           />
         }
         isFilteredEmpty={isFilteredEmpty}
+        filteredEmptyTitle="No matching stock adjustments"
       >
         <StockAdjustmentsTable adjustments={items} onRowClick={handleRowClick} />
         <InventoryListPagination

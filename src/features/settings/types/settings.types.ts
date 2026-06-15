@@ -58,6 +58,9 @@ export type OrganizationLocation = {
   clinic: number;
   clinic_name: string;
   clinic_code: string;
+  department: number;
+  department_name: string;
+  department_type?: string;
   status: string;
   is_active: boolean;
   operating_hours_display: string | null;
@@ -81,7 +84,7 @@ export type OrganizationService = {
   description: string;
   is_chargable: boolean;
   is_active: boolean;
-  has_synced_to_odoo: boolean;
+  product: number | null;
   created_at: string;
 };
 
@@ -98,10 +101,55 @@ export type OrganizationPayer = {
   created_at: string;
 };
 
+export type OrganizationDepartment = {
+  id: number;
+  uuid: string;
+  clinic: number;
+  clinic_name: string;
+  name: string;
+  code: string;
+  department_type: string;
+  description: string;
+  status: string;
+  is_active: boolean;
+  requires_appointment: boolean;
+  walk_in_allowed: boolean;
+  default_appointment_duration_minutes: number;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CreateOrganizationDepartmentPayload = {
+  name: string;
+  code: string;
+  clinic: number;
+  department_type: string;
+  description?: string;
+  status?: string;
+  is_active?: boolean;
+  requires_appointment?: boolean;
+  walk_in_allowed?: boolean;
+  default_appointment_duration_minutes?: number;
+};
+
+export type UpdateOrganizationDepartmentPayload = {
+  name: string;
+  code: string;
+  clinic: number;
+  department_type: string;
+  description?: string;
+  status?: string;
+  is_active?: boolean;
+  requires_appointment?: boolean;
+  walk_in_allowed?: boolean;
+  default_appointment_duration_minutes?: number;
+};
+
 export type CreateOrganizationLocationPayload = {
   name: string;
   code: string;
   clinic: number;
+  department: number;
   description?: string;
   status?: string;
   is_active?: boolean;
@@ -115,6 +163,7 @@ export type UpdateOrganizationLocationPayload = {
   name: string;
   code: string;
   clinic: number;
+  department: number;
   description?: string;
 };
 
@@ -166,6 +215,32 @@ export type CreateOrganizationPayerSchemePayload = {
   is_active?: boolean;
 };
 
+export type OrganizationPricelist = {
+  id: number;
+  name: string;
+  is_active: boolean;
+  currency_code: string;
+};
+
+export type CreateOrganizationPricelistPayload = {
+  name: string;
+  active?: boolean;
+};
+
+export type UpdateOrganizationPricelistPayload = {
+  name?: string;
+  active?: boolean;
+};
+
+export type OrganizationDefaultPricelist = {
+  tenant: number;
+  default_pricelist_id: number | null;
+};
+
+export type SetOrganizationDefaultPricelistPayload = {
+  default_pricelist_id: number | null;
+};
+
 export type TenantBranding = {
   branding_logo_url: string;
   branding_primary_color: string;
@@ -175,26 +250,22 @@ export type TenantBranding = {
 
 export type UpdateTenantBrandingPayload = Partial<TenantBranding>;
 
-export type OdooCurrency = {
-  id: number;
-  name: string;
-  symbol: string;
-  full_name: string;
-  active: boolean;
-};
-
 export type TenantCurrency = {
-  company_id: number;
-  company_name: string;
-  currency: OdooCurrency;
-  available_currencies: OdooCurrency[];
+  tenant_id: number;
+  currency_code: string;
+  default_pricelist_id: number | null;
 };
 
 export type UpdateTenantCurrencyPayload = {
-  currency_id: number;
+  currency_code: string;
 };
 
-export type OrganizationTabId = "general" | "branding" | "clinics" | "locations";
+export type OrganizationTabId =
+  | "general"
+  | "branding"
+  | "departments"
+  | "clinics"
+  | "locations";
 
 export type UserManagementTabId = "users" | "groups";
 
@@ -329,4 +400,55 @@ export type GroupMembershipPayload = {
   group_id: number;
 };
 
-export type FinanceOperationsTabId = "payers" | "schemes";
+export type FinanceOperationsTabId = "payers" | "schemes" | "pricelists";
+
+export type TenantEmailConfiguration = {
+  id: number;
+  tenant: number;
+  is_active: boolean;
+  appointment_emails_enabled: boolean;
+  smtp_host: string;
+  smtp_port: number;
+  smtp_username: string;
+  use_tls: boolean;
+  use_ssl: boolean;
+  timeout: number;
+  sender_name: string;
+  from_email: string;
+  reply_to: string;
+  has_smtp_password: boolean;
+  created_at: string;
+  updated_at: string;
+  created_by: number | null;
+  updated_by: number | null;
+};
+
+export type CreateTenantEmailConfigurationPayload = {
+  is_active?: boolean;
+  appointment_emails_enabled?: boolean;
+  smtp_host: string;
+  smtp_port: number;
+  smtp_username: string;
+  smtp_password: string;
+  use_tls?: boolean;
+  use_ssl?: boolean;
+  timeout?: number;
+  sender_name: string;
+  from_email: string;
+  reply_to?: string;
+};
+
+export type UpdateTenantEmailConfigurationPayload = {
+  is_active?: boolean;
+  appointment_emails_enabled?: boolean;
+  smtp_host?: string;
+  smtp_port?: number;
+  smtp_username?: string;
+  smtp_password?: string;
+  use_tls?: boolean;
+  use_ssl?: boolean;
+  timeout?: number;
+  sender_name?: string;
+  from_email?: string;
+  reply_to?: string;
+};

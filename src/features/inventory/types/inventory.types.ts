@@ -39,7 +39,8 @@ export type InventoryStock = {
   tenant: number;
   location: number;
   location_name: string;
-  odoo_product_id: number;
+  product_id: number;
+  product_name?: string | null;
   batch: number | null;
   batch_number: string | null;
   quantity_on_hand: string | number;
@@ -56,7 +57,8 @@ export type InventoryMovement = {
   movement_type: MovementType;
   reference_model: string | null;
   reference_id: string | null;
-  odoo_product_id: number;
+  product_id: number;
+  product_name?: string | null;
   batch: number | null;
   batch_number: string | null;
   from_location: number | null;
@@ -96,17 +98,17 @@ export type InventoryProduct = {
   id: number;
   name: string;
   display_name: string;
-  default_code: string | false | null;
-  barcode: string | false | null;
+  default_code: string | null;
+  barcode: string | null;
   list_price: number | string | null;
   standard_price: number | string | null;
-  uom_id: [number, string] | false | null;
-  active: boolean;
+  uom_name: string | null;
+  is_active: boolean;
   product_type?: InventoryProductType | null;
   product_type_label?: InventoryProductTypeLabel | null;
   sale_ok?: boolean;
   purchase_ok?: boolean;
-  x_meta?: InventoryProductMeta | null;
+  metadata?: InventoryProductMeta | null;
 };
 
 export type InventoryProductPricelistItem = {
@@ -123,6 +125,38 @@ export type InventoryProductPricelistItem = {
   product_template?: { id: number; name: string } | null;
 };
 
+export type ProductTariffCode = {
+  scheme_id: number;
+  scheme_uuid: string;
+  scheme_name: string;
+  tariff_code: string;
+};
+
+export type CreateProductTariffCodePayload = {
+  scheme: string;
+  tariff_code: string;
+};
+
+export type UpdateProductTariffCodePayload = {
+  tariff_code: string;
+};
+
+export type PricelistProductMutationResult = {
+  approval_required: boolean;
+  change: Record<string, unknown>;
+  record?: InventoryProductPricelistItem;
+};
+
+export type AddPricelistProductPayload = {
+  product_id: number;
+  fixed_price: number | string;
+  min_quantity?: number | string;
+};
+
+export type UpdatePricelistProductPricePayload = {
+  fixed_price: number | string;
+};
+
 export type InventoryProductStockLocation = {
   location: {
     id: number;
@@ -134,7 +168,7 @@ export type InventoryProductStockLocation = {
     id: number;
     name: string;
   };
-  odoo_product_id: number;
+  product_id: number;
   quantity_on_hand: string | number;
 };
 
@@ -142,7 +176,8 @@ export type InventoryBatch = {
   id: number;
   uuid: string;
   tenant: number;
-  odoo_product_id: number;
+  product_id: number;
+  product_name?: string | null;
   batch_number: string;
   expiry_date: string | null;
   manufacture_date: string | null;
@@ -155,7 +190,7 @@ export type InventoryBatch = {
 
 export type PurchaseOrderLine = {
   id?: number;
-  odoo_product_id: number;
+  product_id: number;
   product_name?: string | null;
   batch?: number | null;
   batch_number?: string | null;
@@ -195,7 +230,7 @@ export type PurchaseOrder = {
 
 export type InternalOrderLine = {
   id?: number;
-  odoo_product_id: number;
+  product_id: number;
   product_name?: string | null;
   batch?: number | null;
   batch_number?: string | null;
@@ -229,7 +264,8 @@ export type InternalOrder = {
 
 export type StockAdjustmentLine = {
   id?: number;
-  odoo_product_id: number;
+  product_id: number;
+  product_name?: string | null;
   batch?: number | null;
   quantity_delta: string | number;
   new_unit_cost?: string | number | null;
@@ -332,16 +368,25 @@ export type InventoryListFilters = {
   ordering?: string;
   tenant?: number;
   location?: number;
-  odoo_product_id?: number;
+  location_uuid?: string;
+  clinic?: number;
+  clinic_uuid?: string;
+  product_id?: number;
   batch?: number;
+  batch_uuid?: string;
   is_active?: boolean;
+  has_batch?: boolean;
+  has_expiry_date?: boolean;
   status?: string;
   receiving_location?: number;
   source_location?: number;
+  source_location_uuid?: string;
   destination_location?: number;
+  destination_location_uuid?: string;
+  from_location_uuid?: string;
+  to_location_uuid?: string;
   adjustment_type?: string;
   movement_type?: string;
-  clinic?: number;
   document_type?: string;
   workflow?: number;
 };

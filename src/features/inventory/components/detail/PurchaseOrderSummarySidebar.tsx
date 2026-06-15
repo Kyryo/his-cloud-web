@@ -37,8 +37,8 @@ function calculateOrderCompletionPercent(
   const savedDrafts =
     draftLines ??
     order.lines.map((line) => ({
-      key: String(line.id ?? line.odoo_product_id),
-      odoo_product_id: line.odoo_product_id,
+      key: String(line.id ?? line.product_id),
+      product_id: line.product_id,
       productName: null,
       quantity: String(line.quantity),
       unit_cost: String(line.unit_cost),
@@ -55,7 +55,7 @@ function calculateOrderCompletionPercent(
   if (!batchTrackingEnabled) {
     const invalidCount = savedDrafts.filter(
       (line) =>
-        line.odoo_product_id &&
+        line.product_id &&
         (Number.parseFloat(line.quantity) <= 0 || Number.parseFloat(line.unit_cost) <= 0),
     ).length;
     return Math.round(((savedCount - invalidCount) / savedCount) * 100);

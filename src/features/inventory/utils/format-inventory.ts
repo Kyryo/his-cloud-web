@@ -175,7 +175,12 @@ export function formatDisplayDateTime(value: string | null | undefined): string 
 }
 
 export function formatProductLabel(
-  product: { display_name?: string; name?: string; default_code?: string | null; id?: number },
+  product: {
+    display_name?: string;
+    name?: string;
+    default_code?: string | false | null;
+    id?: number;
+  },
 ): string {
   const name = product.display_name || product.name || `Product #${product.id ?? "?"}`;
   if (product.default_code) {
@@ -230,7 +235,7 @@ export function formatBooleanLabel(value: boolean | null | undefined): string {
 }
 
 export function getProductMeta(product: InventoryProduct): InventoryProductMeta {
-  return product.x_meta ?? {};
+  return product.metadata ?? {};
 }
 
 export function formatProcedureScopeLabel(meta: InventoryProductMeta): string {

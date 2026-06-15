@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  canConvertSalesOrderToInvoice,
   formatSalesOrderInvoiceStatusLabel,
   formatSalesOrderStateLabel,
+  getConvertSalesOrderToInvoiceDisabledReason,
   getSalesOrderStateBadgeVariant,
 } from "@/features/sales-orders/utils/sales-order-status";
 
@@ -22,5 +24,29 @@ describe("sales order status utils", () => {
   it("maps state to badge variants", () => {
     expect(getSalesOrderStateBadgeVariant("sale")).toBe("success");
     expect(getSalesOrderStateBadgeVariant("cancel")).toBe("destructive");
+  });
+
+  it("determines when a sales order can be converted to an invoice", () => {
+    const baseOrder = {
+      state: "sale" as const,
+      invoice_status: "to invoice" as const,
+      lines: [{ id: 1, name: "Consultation", product_id: 1, quantity: "1" }],
+    };
+
+    expect(canConvertSalesOrderToInvoice(baseOrder)).toBe(true);
+    expect(getConvertSalesOrderToInvoiceDisabledReason(baseOrder)).toBeNull();
+
+    expect(
+      canConvertSalesOrderToInvoice({ ...baseOrder, invoice_status: "invoiced" }),
+    ).toBe(false);
+    expect(
+      getConvertSalesOrderToInvoiceDisabledReason({
+        ...baseOrder,
+        state: "cancel",
+      }),
+    ).toContain("Cancelled");
+    expect(
+      getConvertSalesOrderToInvoiceDisabledReason({ ...baseOrder, lines: [] }),
+    ).toContain("line item");
   });
 });

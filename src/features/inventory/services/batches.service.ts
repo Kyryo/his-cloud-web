@@ -9,7 +9,7 @@ import { bffRequest } from "@/lib/bff-client";
 
 export type CreateBatchPayload = {
   tenant: number;
-  odoo_product_id: number;
+  product_id: number;
   batch_number: string;
   expiry_date?: string | null;
   manufacture_date?: string | null;

@@ -22,6 +22,8 @@ import {
   formatCustomerName,
   formatDisplayDate,
 } from "@/features/customers/utils/format-customer";
+import { ROUTES } from "@/constants/routes";
+import { cn } from "@/lib/utils";
 
 type CustomersTableProps = {
   customers: Customer[];
@@ -64,9 +66,7 @@ function CustomerHoverPreview({ customer }: { customer: Customer }) {
         <dt className="text-brand-muted">Phone</dt>
         <dd>{customer.phone_number || "-"}</dd>
         <dt className="text-brand-muted">Email</dt>
-        <dd className="truncate">{customer.email || "-"}</dd>
-        <dt className="text-brand-muted">ERP</dt>
-        <dd>{formatErpSyncStatus(customer.has_synced_to_odoo)}</dd>
+        <dd className="truncate">{customer.email || "—"}</dd>
       </dl>
     </div>
   );

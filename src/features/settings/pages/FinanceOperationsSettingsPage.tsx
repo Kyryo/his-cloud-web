@@ -44,7 +44,7 @@ export function FinanceOperationsSettingsPage() {
   return (
     <SettingsPageLayout
       title="Finance & Operations"
-      description="Manage payers and insurance schemes for billing and operations."
+      description="Manage payers, insurance schemes, and ERP pricelists for billing."
     >
       <FinanceOperationsSettingsTabs />
     </SettingsPageLayout>

@@ -27,7 +27,6 @@ function createCustomer(overrides: Partial<Customer> = {}): Customer {
     dob_is_estimated: false,
     age: 26,
     has_synced_to_openmrs: false,
-    has_synced_to_odoo: false,
     is_active: true,
     visit_status: "not_started",
     created_at: "2024-01-01",

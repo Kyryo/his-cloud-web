@@ -19,6 +19,7 @@ import {
   type InventoryAdjustmentLineItemDraft,
 } from "@/features/inventory/components/forms/InventoryAdjustmentLineItemsEditor";
 import { InventoryLocationSelect } from "@/features/inventory/components/InventoryLocationSelect";
+import { InventoryNoLocationsAlert } from "@/features/inventory/components/InventoryNoLocationsAlert";
 import {
   createStockAdjustment,
   type StockAdjustmentPayload,
@@ -79,9 +80,9 @@ export function CreateStockAdjustmentDialog({
     }
 
     const validLines: StockAdjustmentLine[] = lines
-      .filter((line) => line.odoo_product_id)
+      .filter((line) => line.product_id)
       .map((line) => ({
-        odoo_product_id: line.odoo_product_id!,
+        product_id: line.product_id!,
         quantity_delta: line.quantity_delta,
       }));
 
@@ -183,6 +184,7 @@ export function CreateStockAdjustmentDialog({
     >
       {activeTab === "details" ? (
         <div className="space-y-4">
+          <InventoryNoLocationsAlert enabled={open} />
           <div className="grid gap-4 sm:grid-cols-2">
             <InventoryLocationSelect
               id="sa-location"

@@ -38,6 +38,9 @@ export const ROUTES = {
   inventoryBatches: "/inventory/batches",
   inventoryBatchDetail: (uuid: string) => `/inventory/batches/${uuid}`,
   inventoryBatchNew: "/inventory/batches/new",
+  activeVisits: "/active-visits",
+  appointments: "/appointments",
+  visitDetail: (uuid: string) => `/visits/${uuid}`,
   settings: "/settings",
   settingsAccount: "/settings/account",
   settingsOrganization: "/settings/organization",
@@ -46,6 +49,8 @@ export const ROUTES = {
   settingsUserManagement: "/settings/user-management",
   settingsModules: "/settings/modules",
   settingsModuleInventory: "/settings/modules/inventory",
+  settingsIntegrations: "/settings/integrations",
+  settingsIntegrationsEmail: "/settings/integrations/email",
 } as const;
 
 /** Paths served by web-new through the deploy gateway. */
@@ -66,6 +71,9 @@ export const WEB_NEW_ROUTE_PREFIXES = [
   ROUTES.inventoryStockAdjustments,
   ROUTES.inventoryMovements,
   ROUTES.inventoryBatches,
+  ROUTES.activeVisits,
+  ROUTES.appointments,
+  "/visits",
   ROUTES.settings,
   ROUTES.contacts,
   ROUTES.ourProducts,
@@ -101,5 +109,8 @@ export const PROTECTED_ROUTES = [
   ROUTES.inventoryStockAdjustments,
   ROUTES.inventoryMovements,
   ROUTES.inventoryBatches,
+  ROUTES.activeVisits,
+  ROUTES.appointments,
+  "/visits",
   ROUTES.settings,
 ] as const;

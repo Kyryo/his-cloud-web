@@ -2,6 +2,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   ArrowLeftRight,
   Calendar,
+  CalendarClock,
   ClipboardList,
   Dumbbell,
   FileText,
@@ -81,11 +82,18 @@ export const navigation: NavigationItem[] = [
     enabledInWebNew: true,
   },
   {
+    name: "Appointments",
+    href: ROUTES.appointments,
+    icon: CalendarClock,
+    requiredGroup: "Registration",
+    enabledInWebNew: true,
+  },
+  {
     name: "Active Visits",
-    href: "/active-visits",
+    href: ROUTES.activeVisits,
     icon: Calendar,
     requiredGroup: "Registration",
-    enabledInWebNew: false,
+    enabledInWebNew: true,
   },
   {
     name: "Sales Orders",
@@ -109,7 +117,7 @@ export const navigation: NavigationItem[] = [
     enabledInWebNew: false,
   },
   {
-    name: "Stock",
+    name: "Inventory Register",
     href: ROUTES.inventoryStock,
     icon: Store,
     requiredGroup: "Inventory",
@@ -123,21 +131,21 @@ export const navigation: NavigationItem[] = [
     enabledInWebNew: true,
   },
   {
-    name: "Purchase orders",
+    name: "Purchase Orders",
     href: ROUTES.inventoryPurchaseOrders,
     icon: FileText,
     requiredGroup: "Inventory",
     enabledInWebNew: true,
   },
   {
-    name: "Internal orders",
+    name: "Internal Orders",
     href: ROUTES.inventoryInternalOrders,
     icon: Shuffle,
     requiredGroup: "Inventory",
     enabledInWebNew: true,
   },
   {
-    name: "Stock adjustments",
+    name: "Inventory Adjustments",
     href: ROUTES.inventoryStockAdjustments,
     icon: ClipboardList,
     requiredGroup: "Inventory",

@@ -8,6 +8,13 @@ export {
   DetailPageTabsSection,
 } from "@/features/app-shell/components/page-layout/detail-page-tabs-section";
 export { DetailPageAsidePanelSection } from "@/features/app-shell/components/page-layout/detail-page-aside-panel-section";
+export {
+  DetailPageAsidePanelHeader,
+  DetailPageAsideSummaryAmountRow,
+  DetailPageAsideSummaryField,
+  DetailPageAsideSummaryHighlight,
+  DetailPageAsideSummarySection,
+} from "@/features/app-shell/components/page-layout/detail-page-aside-summary";
 export { ListPageLayout } from "@/features/app-shell/components/page-layout/list-page-layout";
 export {
   ListPageHeaderActions,

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Activity } from "lucide-react";
+import { Activity, Loader2 } from "lucide-react";
 
 import { StatsCard1, StatsCard1Grid } from "@/components/stats-card1";
 import {
@@ -9,7 +9,6 @@ import {
 } from "@/features/customers/components/detail/CustomerActivityTimeline";
 import { CustomerDetailTabEmptyState } from "@/features/customers/components/detail/CustomerDetailTabEmptyState";
 import { CustomerTabSkeleton } from "@/features/customers/components/detail/CustomerTabSkeleton";
-import { ERP_SYNC_LABELS } from "@/features/customers/constants/customer-sync-labels";
 import {
   extractCustomerBillingCounts,
   fetchCustomerBillingSummary,
@@ -25,6 +24,7 @@ import { formatCompactNumber } from "@/utils/format-compact-number";
 import { cn } from "@/lib/utils";
 
 const ACTIVITY_PAGE_SIZE = 10;
+const SUMMARY_STAT_CARD_CLASS = "border-brand-border bg-white shadow-none";
 
 type CustomerDetailSummaryTabProps = {
   customer: Customer;
@@ -32,20 +32,32 @@ type CustomerDetailSummaryTabProps = {
 };
 
 type SummaryStats = {
-  visits: number | null;
+  visits: number;
   salesOrders: number | null;
   invoices: number | null;
   payments: number | null;
   billingUnavailable: boolean;
+  isBillingLoading: boolean;
 };
 
 function StatCardValue({
   value,
   unavailable,
+  isLoading,
 }: {
   value: number | null;
   unavailable?: boolean;
+  isLoading?: boolean;
 }) {
+  if (isLoading) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-brand-muted">
+        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+        <span className="sr-only">Loading</span>
+      </span>
+    );
+  }
+
   if (value === null) {
     return (
       <span className="text-brand-muted" title={unavailable ? "Unavailable" : undefined}>
@@ -109,9 +121,8 @@ export function CustomerDetailSummaryTab({
       setLoadError(null);
 
       try {
-        const [visits, billingResult, encountersResponse] = await Promise.all([
+        const [visits, encountersResponse] = await Promise.all([
           fetchCustomerVisits(customer.uuid, { limit: 100 }),
-          fetchCustomerBillingSummary(customer.uuid).catch(() => null),
           fetchCustomerEncounters({
             customerId: customer.id,
             page: 1,
@@ -123,16 +134,13 @@ export function CustomerDetailSummaryTab({
           return;
         }
 
-        const billingCounts = billingResult
-          ? extractCustomerBillingCounts(billingResult)
-          : null;
-
         setStats({
           visits: countCustomerVisits(visits),
-          salesOrders: billingCounts?.salesOrders ?? null,
-          invoices: billingCounts?.invoices ?? null,
-          payments: billingCounts?.payments ?? null,
-          billingUnavailable: billingResult === null,
+          salesOrders: null,
+          invoices: null,
+          payments: null,
+          billingUnavailable: false,
+          isBillingLoading: true,
         });
         setEncounters(encountersResponse.results);
         setActivityPage(1);
@@ -158,6 +166,45 @@ export function CustomerDetailSummaryTab({
     };
   }, [customer.id, customer.uuid, hasLoaded, isActive]);
 
+  useEffect(() => {
+    if (!isActive || !hasLoaded || !stats?.isBillingLoading) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      const billingResult = await fetchCustomerBillingSummary(customer.uuid).catch(
+        () => null,
+      );
+
+      if (cancelled) {
+        return;
+      }
+
+      const billingCounts = billingResult
+        ? extractCustomerBillingCounts(billingResult)
+        : null;
+
+      setStats((current) =>
+        current
+          ? {
+              ...current,
+              salesOrders: billingCounts?.salesOrders ?? null,
+              invoices: billingCounts?.invoices ?? null,
+              payments: billingCounts?.payments ?? null,
+              billingUnavailable: billingResult === null,
+              isBillingLoading: false,
+            }
+          : current,
+      );
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [customer.uuid, hasLoaded, isActive, stats?.isBillingLoading]);
+
   if (!isActive) {
     return null;
   }
@@ -178,45 +225,44 @@ export function CustomerDetailSummaryTab({
     <div className="space-y-4" data-testid="customer-detail-summary-tab">
       <StatsCard1Grid>
         <StatsCard1
+          className={SUMMARY_STAT_CARD_CLASS}
           title="Visits"
-          value={
-            <StatCardValue value={stats?.visits ?? null} />
-          }
+          value={<StatCardValue value={stats?.visits ?? null} />}
         />
         <StatsCard1
+          className={SUMMARY_STAT_CARD_CLASS}
           title="Sales orders"
           value={
             <StatCardValue
               value={stats?.salesOrders ?? null}
               unavailable={stats?.billingUnavailable}
+              isLoading={stats?.isBillingLoading}
             />
           }
         />
         <StatsCard1
+          className={SUMMARY_STAT_CARD_CLASS}
           title="Invoices"
           value={
             <StatCardValue
               value={stats?.invoices ?? null}
               unavailable={stats?.billingUnavailable}
+              isLoading={stats?.isBillingLoading}
             />
           }
         />
         <StatsCard1
+          className={SUMMARY_STAT_CARD_CLASS}
           title="Payments"
           value={
             <StatCardValue
               value={stats?.payments ?? null}
               unavailable={stats?.billingUnavailable}
+              isLoading={stats?.isBillingLoading}
             />
           }
         />
       </StatsCard1Grid>
-
-      {stats?.billingUnavailable && !customer.has_synced_to_odoo ? (
-        <p className="text-xs text-brand-muted">
-          Billing counts require {ERP_SYNC_LABELS.notSynced.toLowerCase()}.
-        </p>
-      ) : null}
 
       {encounters.length === 0 ? (
         <CustomerDetailTabEmptyState

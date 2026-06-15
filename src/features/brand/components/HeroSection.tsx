@@ -50,11 +50,9 @@ export function HeroSection() {
               className="hero-fade-up mb-[10px] mt-3 max-w-lg text-sm leading-6 text-brand-muted sm:mt-4 sm:text-base sm:leading-7"
               style={{ animationDelay: "0.15s" }}
             >
-              Most hospital software is designed for hospitals with IT teams,
-              large budgets, and uninterrupted power. Yours isn&apos;t one of
-              them. Sigma gets your clinic from paper records to a fully digital
-              system in under a day — no consultants, no training fees, no
-              frustration.
+              Most health software is built for hospitals that have IT departments, 
+              huge admin and finance teams, and six-figure implementation budgets. 
+              We built Sigma for everyone else, which turns out to be most of the world.
             </p>
 
             <div

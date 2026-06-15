@@ -59,9 +59,9 @@ export async function POST(request: Request) {
 
     const body = (await request.json()) as CreateOrganizationLocationPayload;
 
-    if (!body.name?.trim() || !body.code?.trim() || !body.clinic) {
+    if (!body.name?.trim() || !body.code?.trim() || !body.clinic || !body.department) {
       return bffSuccess(
-        { message: "Name, code, and clinic are required." },
+        { message: "Name, code, clinic, and department are required." },
         400,
       );
     }
@@ -75,6 +75,7 @@ export async function POST(request: Request) {
           name: body.name.trim(),
           code: body.code.trim(),
           clinic: body.clinic,
+          department: body.department,
           description: body.description?.trim() || "",
           status: body.status ?? "ACTIVE",
           is_active: body.is_active ?? true,

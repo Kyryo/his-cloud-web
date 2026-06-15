@@ -1,5 +1,5 @@
 import { VISITS_API_PATHS } from "@/constants/visits-api";
-import type { CustomerVisit } from "@/features/customers/types/customer-visit.types";
+import type { VisitDetail } from "@/features/visits/types/visit.types";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
 import { hmisApiRequest } from "@/lib/server/hmis-api";
 import { requireAccessToken } from "@/lib/server/require-access-token";
@@ -16,7 +16,7 @@ export async function GET(_request: Request, context: RouteContext) {
     }
 
     const { uuid } = await context.params;
-    const visit = await hmisApiRequest<CustomerVisit>(VISITS_API_PATHS.detail(uuid), {
+    const visit = await hmisApiRequest<VisitDetail>(VISITS_API_PATHS.detail(uuid), {
       token: auth.accessToken,
     });
 

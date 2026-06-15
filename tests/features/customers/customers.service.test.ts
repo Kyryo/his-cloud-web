@@ -28,13 +28,12 @@ describe("customers.service", () => {
       page: 2,
       pageSize: 20,
       gender: "Female",
-      hasSyncedToOdoo: true,
       isActive: true,
       ordering: "-created_at",
     });
 
     expect(bffRequest).toHaveBeenCalledWith(
-      `${BFF_CUSTOMERS_ROUTES.list}?search=Ada&page=2&page_size=20&gender=Female&has_synced_to_odoo=true&is_active=true&ordering=-created_at`,
+      `${BFF_CUSTOMERS_ROUTES.list}?search=Ada&page=2&page_size=20&gender=Female&is_active=true&ordering=-created_at`,
     );
   });
 

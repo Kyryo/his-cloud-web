@@ -18,6 +18,13 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
+
+function NavIcon({ icon: Icon, isActive }: { icon: LucideIcon; isActive?: boolean }) {
+  return (
+    <Icon className={cn(isActive && "text-sidebar-primary")} />
+  );
+}
 
 export function NavMain({
   items,
@@ -53,7 +60,9 @@ export function NavMain({
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton tooltip={item.title}>
-                    {item.icon ? <item.icon /> : null}
+                    {item.icon ? (
+                      <NavIcon icon={item.icon} isActive={item.isActive} />
+                    ) : null}
                     <span>{item.title}</span>
                     <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                   </SidebarMenuButton>
@@ -84,7 +93,9 @@ export function NavMain({
                 tooltip={item.title}
               >
                 <Link href={item.url}>
-                  {item.icon ? <item.icon /> : null}
+                  {item.icon ? (
+                    <NavIcon icon={item.icon} isActive={item.isActive} />
+                  ) : null}
                   <span>{item.title}</span>
                 </Link>
               </SidebarMenuButton>

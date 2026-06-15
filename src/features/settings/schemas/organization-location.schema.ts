@@ -4,6 +4,7 @@ export const createOrganizationLocationSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   code: z.string().trim().min(1, "Code is required"),
   clinic: z.string().min(1, "Clinic is required"),
+  department: z.string().min(1, "Department is required"),
   description: z.string().trim().optional(),
 });
 
@@ -16,6 +17,7 @@ export const createOrganizationLocationDefaultValues: CreateOrganizationLocation
     name: "",
     code: "",
     clinic: "",
+    department: "",
     description: "",
   };
 
@@ -26,6 +28,7 @@ export function toCreateOrganizationLocationPayload(
     name: values.name.trim(),
     code: values.code.trim(),
     clinic: Number(values.clinic),
+    department: Number(values.department),
     description: values.description?.trim() || "",
   };
 }
@@ -39,6 +42,7 @@ export function toUpdateOrganizationLocationFormValues(
     name: string;
     code: string;
     clinic: number;
+    department: number;
     description?: string | null;
   },
 ): UpdateOrganizationLocationFormValues {
@@ -46,6 +50,7 @@ export function toUpdateOrganizationLocationFormValues(
     name: location.name,
     code: location.code,
     clinic: String(location.clinic),
+    department: String(location.department),
     description: location.description ?? "",
   };
 }

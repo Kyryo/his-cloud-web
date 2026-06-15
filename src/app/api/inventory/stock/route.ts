@@ -7,10 +7,12 @@ const QUERY_KEYS = [
   "search",
   "ordering",
   "tenant",
-  "location",
-  "odoo_product_id",
-  "batch",
+  "location_uuid",
+  "clinic_uuid",
+  "product_id",
+  "batch_uuid",
   "is_active",
+  "has_batch",
 ] as const;
 
 export async function GET(request: Request) {

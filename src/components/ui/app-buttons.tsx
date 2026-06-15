@@ -41,6 +41,27 @@ type AddActionButtonProps = AppButtonProps & {
   showIcon?: boolean;
 };
 
+/** Secondary tab action — ghost style so page-level primary actions stay prominent. */
+export function TabAddActionButton({
+  label = "Add",
+  showIcon = true,
+  className,
+  children,
+  ...props
+}: AddActionButtonProps) {
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      className={cn("h-8 gap-1.5 px-2.5 text-brand-navy", className)}
+      {...props}
+    >
+      {showIcon ? <Plus className="size-3.5" aria-hidden="true" /> : null}
+      {children ?? label}
+    </Button>
+  );
+}
+
 export function AddActionButton({
   label = "Add",
   showIcon = true,

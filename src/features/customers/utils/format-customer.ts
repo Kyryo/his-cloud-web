@@ -13,6 +13,22 @@ export function formatCustomerName(customer: Pick<
     .join(" ");
 }
 
+export function formatCustomerSearchLabel(
+  customer: Pick<
+    Customer,
+    | "first_name"
+    | "middle_name"
+    | "last_name"
+    | "full_name"
+    | "customer_identifier"
+  >,
+): string {
+  const name = formatCustomerName(customer);
+  return customer.customer_identifier
+    ? `${name} · ${customer.customer_identifier}`
+    : name;
+}
+
 export function formatDisplayDate(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {

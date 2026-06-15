@@ -1,3 +1,5 @@
+import { NextResponse } from "next/server";
+
 import { TENANTS_API_PATHS } from "@/constants/tenants-api";
 import type {
   TenantCurrency,
@@ -33,9 +35,13 @@ export async function PATCH(request: Request) {
     }
 
     const body = (await request.json()) as UpdateTenantCurrencyPayload;
+    const currencyCode = body.currency_code?.trim().toUpperCase();
 
-    if (!body.currency_id || body.currency_id < 1) {
-      return bffSuccess({ message: "A valid currency is required." }, 400);
+    if (!currencyCode || !/^[A-Z]{3}$/.test(currencyCode)) {
+      return NextResponse.json(
+        { message: "A valid three-letter currency code is required." },
+        { status: 400 },
+      );
     }
 
     const currency = await hmisApiRequest<TenantCurrency>(
@@ -43,7 +49,7 @@ export async function PATCH(request: Request) {
       {
         method: "PATCH",
         token: admin.accessToken,
-        body: { currency_id: body.currency_id },
+        body: { currency_code: currencyCode },
       },
     );
 

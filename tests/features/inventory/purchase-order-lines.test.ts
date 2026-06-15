@@ -17,19 +17,19 @@ describe("purchase-order-line-draft utils", () => {
   it("creates an empty draft row for new lines", () => {
     const draft = createEmptyPurchaseOrderLineDraft();
 
-    expect(draft.odoo_product_id).toBeNull();
+    expect(draft.product_id).toBeNull();
     expect(draft.isNew).toBe(true);
   });
 
   it("maps saved lines to editable drafts", () => {
     const draft = purchaseOrderLineToDraft({
       id: 1,
-      odoo_product_id: 42,
+      product_id: 42,
       quantity: "3",
       unit_cost: "12.5",
     });
 
-    expect(draft.odoo_product_id).toBe(42);
+    expect(draft.product_id).toBe(42);
     expect(draft.quantity).toBe("3");
     expect(draft.unit_cost).toBe("12.5");
     expect(draft.productName).toBeNull();
@@ -38,7 +38,7 @@ describe("purchase-order-line-draft utils", () => {
   it("uses cached product_name from the purchase order line", () => {
     const draft = purchaseOrderLineToDraft({
       id: 1,
-      odoo_product_id: 42,
+      product_id: 42,
       product_name: "Paracetamol 500mg",
       quantity: "3",
       unit_cost: "12.5",
@@ -52,7 +52,7 @@ describe("purchase-order-line-draft utils", () => {
       linesMissingProductName([
         {
           key: "a",
-          odoo_product_id: 1,
+          product_id: 1,
           productName: "Paracetamol 500mg",
           quantity: "1",
           unit_cost: "10",
@@ -64,7 +64,7 @@ describe("purchase-order-line-draft utils", () => {
       linesMissingProductName([
         {
           key: "a",
-          odoo_product_id: 1,
+          product_id: 1,
           productName: null,
           quantity: "1",
           unit_cost: "10",
@@ -76,7 +76,7 @@ describe("purchase-order-line-draft utils", () => {
   it("calculates line and order totals", () => {
     const draft = {
       ...createEmptyPurchaseOrderLineDraft(),
-      odoo_product_id: 10,
+      product_id: 10,
       quantity: "2",
       unit_cost: "5",
     };
@@ -88,7 +88,7 @@ describe("purchase-order-line-draft utils", () => {
   it("maps batch and expiry fields from purchase order lines", () => {
     const draft = purchaseOrderLineToDraft({
       id: 1,
-      odoo_product_id: 42,
+      product_id: 42,
       product_name: "Paracetamol 500mg",
       batch: 7,
       batch_number: "LOT-001",
@@ -107,7 +107,7 @@ describe("purchase-order-line-draft utils", () => {
       getLineValidationIssues(
         {
           key: "a",
-          odoo_product_id: 1,
+          product_id: 1,
           productName: "Item",
           quantity: "0",
           unit_cost: "10",
@@ -123,7 +123,7 @@ describe("purchase-order-line-draft utils", () => {
         [
           {
             key: "a",
-            odoo_product_id: 1,
+            product_id: 1,
             productName: "Item",
             quantity: "2",
             unit_cost: "10",
@@ -132,7 +132,7 @@ describe("purchase-order-line-draft utils", () => {
           },
           {
             key: "b",
-            odoo_product_id: 2,
+            product_id: 2,
             productName: "Item 2",
             quantity: "1",
             unit_cost: "5",
@@ -147,7 +147,7 @@ describe("purchase-order-line-draft utils", () => {
     expect(
       getLineValidationIssues({
         key: "a",
-        odoo_product_id: 1,
+        product_id: 1,
         productName: "Item",
         quantity: "2",
         unit_cost: "10",
@@ -157,7 +157,7 @@ describe("purchase-order-line-draft utils", () => {
     expect(
       countLinesMissingBatchOrExpiry([
         {
-          odoo_product_id: 3,
+          product_id: 3,
           batch: null,
           expiry_date: null,
         },
@@ -170,12 +170,12 @@ describe("purchase-order-line-draft utils", () => {
       countLinesMissingBatchOrExpiry(
         [
           {
-            odoo_product_id: 1,
+            product_id: 1,
             batch: 2,
             expiry_date: "2026-12-31",
           },
           {
-            odoo_product_id: 3,
+            product_id: 3,
             batch: null,
             expiry_date: null,
           },
@@ -189,7 +189,7 @@ describe("purchase-order-line-draft utils", () => {
     const lines = draftsToPurchaseOrderLines([
       {
         key: "a",
-        odoo_product_id: 10,
+        product_id: 10,
         productName: "A",
         quantity: "2",
         unit_cost: "5",
@@ -200,7 +200,7 @@ describe("purchase-order-line-draft utils", () => {
 
     expect(lines).toEqual([
       {
-        odoo_product_id: 10,
+        product_id: 10,
         quantity: "2",
         unit_cost: "5",
         batch: 3,
@@ -214,14 +214,14 @@ describe("purchase-order-line-draft utils", () => {
     const lines = draftsToPurchaseOrderLines([
       {
         key: "a",
-        odoo_product_id: 10,
+        product_id: 10,
         productName: "A",
         quantity: "2",
         unit_cost: "5",
       },
       {
         key: "b",
-        odoo_product_id: null,
+        product_id: null,
         productName: null,
         quantity: "1",
         unit_cost: "0",
@@ -230,7 +230,7 @@ describe("purchase-order-line-draft utils", () => {
 
     expect(lines).toEqual([
       {
-        odoo_product_id: 10,
+        product_id: 10,
         quantity: "2",
         unit_cost: "5",
         batch: null,
@@ -245,7 +245,7 @@ describe("purchase-order-line-draft utils", () => {
       validatePurchaseOrderLinesForSubmit([
         {
           key: "a",
-          odoo_product_id: 1,
+          product_id: 1,
           productName: "Item",
           quantity: "0",
           unit_cost: "10",
@@ -257,7 +257,7 @@ describe("purchase-order-line-draft utils", () => {
       validatePurchaseOrderLinesForSubmit([
         {
           key: "a",
-          odoo_product_id: 1,
+          product_id: 1,
           productName: "Item",
           quantity: "2",
           unit_cost: "0",

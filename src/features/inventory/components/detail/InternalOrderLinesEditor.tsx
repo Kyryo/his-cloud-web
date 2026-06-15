@@ -153,11 +153,11 @@ export function InternalOrderLinesEditor({
           </thead>
           <tbody className="divide-y divide-brand-border">
             {order.lines.map((line, index) => (
-              <tr key={line.id ?? `${line.odoo_product_id}-${index}`}>
+              <tr key={line.id ?? `${line.product_id}-${index}`}>
                 <td className="px-4 py-3 text-sm text-brand-muted">{index + 1}</td>
                 <td className="px-4 py-3">
                   <div className="text-sm font-medium text-brand-navy">
-                    {line.product_name ?? `Product #${line.odoo_product_id}`}
+                    {line.product_name ?? `Product #${line.product_id}`}
                   </div>
                   {batchTrackingEnabled && line.batch_number ? (
                     <p className="mt-0.5 text-xs text-brand-muted">{line.batch_number}</p>
@@ -248,7 +248,7 @@ export function InternalOrderLinesEditor({
                     const isEditing = isRowEditing(line, editor.editingRowKey);
                     const isHighlighted = highlightedLineKeys.has(line.key);
                     const batchComplete = Boolean(
-                      line.odoo_product_id &&
+                      line.product_id &&
                         !lineMissingBatch(line, batchValidationOptions),
                     );
 
@@ -272,13 +272,13 @@ export function InternalOrderLinesEditor({
                           {isEditing ? (
                             <InlineProductCombobox
                               id={`io-line-product-${line.key}`}
-                              value={line.odoo_product_id}
+                              value={line.product_id}
                               displayLabel={line.productName}
                               autoFocus={line.isNew === true}
                               onFocus={() => editor.setActiveRowKey(line.key)}
                               onSelect={(product) => {
                                 editor.updateLine(line.key, {
-                                  odoo_product_id: product.id,
+                                  product_id: product.id,
                                   productName: formatProductLabel(product),
                                 });
                               }}
@@ -292,9 +292,9 @@ export function InternalOrderLinesEditor({
                           ) : (
                             <div>
                               <span className="text-sm font-medium text-brand-navy">
-                                {line.productName ?? `Product #${line.odoo_product_id ?? "?"}`}
+                                {line.productName ?? `Product #${line.product_id ?? "?"}`}
                               </span>
-                              {line.odoo_product_id && batchTrackingEnabled ? (
+                              {line.product_id && batchTrackingEnabled ? (
                                 <p
                                   className={cn(
                                     "mt-0.5 text-xs",
@@ -342,7 +342,7 @@ export function InternalOrderLinesEditor({
                         </td>
                         {batchTrackingEnabled ? (
                           <td className="px-3 py-3">
-                            {line.odoo_product_id ? (
+                            {line.product_id ? (
                               <PurchaseOrderLineBatchButton
                                 isComplete={batchComplete}
                                 data-testid={`internal-order-line-batch-button-${line.key}`}

@@ -16,12 +16,14 @@ type UseInventoryListOptions<T> = {
   fetchFn: (filters: InventoryListFilters) => Promise<PaginatedListResponse<T>>;
   pageSize?: number;
   extraFilters?: Omit<InventoryListFilters, "page" | "pageSize" | "search">;
+  countActiveSheetFilters?: () => number;
 };
 
 export function useInventoryList<T>({
   fetchFn,
   pageSize = DEFAULT_PAGE_SIZE,
   extraFilters,
+  countActiveSheetFilters,
 }: UseInventoryListOptions<T>) {
   const resolvedExtraFilters = extraFilters ?? EMPTY_EXTRA_FILTERS;
   const [items, setItems] = useState<T[]>([]);
@@ -127,7 +129,8 @@ export function useInventoryList<T>({
     setPage(nextPage);
   }
 
-  const activeFilterCount = activeSearch.length > 0 ? 1 : 0;
+  const activeFilterCount =
+    (countActiveSheetFilters?.() ?? 0) + (activeSearch.length > 0 ? 1 : 0);
   const hasActiveQuery = activeFilterCount > 0;
   const hasNoRecords =
     !isLoading && !error && totalCount === 0 && !hasActiveQuery;
@@ -150,6 +153,7 @@ export function useInventoryList<T>({
     hasNoRecords,
     isFilteredEmpty,
     hasActiveQuery,
+    activeFilterCount,
     setSearch,
     handleSearchSubmit,
     handleClearSearch,

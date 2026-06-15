@@ -126,8 +126,8 @@ export function InternalOrderDetailPage({ orderUuid }: InternalOrderDetailPagePr
     const linesToValidate =
       linesEditorState?.draftLines ??
       order.lines.map((line) => ({
-        key: String(line.id ?? line.odoo_product_id),
-        odoo_product_id: line.odoo_product_id,
+        key: String(line.id ?? line.product_id),
+        product_id: line.product_id,
         productName: line.product_name ?? null,
         quantity: String(line.quantity),
         batch: line.batch ?? null,

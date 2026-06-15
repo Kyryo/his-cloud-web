@@ -2,8 +2,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BFF_SALES_ORDERS_ROUTES } from "@/constants/api";
 import {
+  addSalesOrderLine,
+  createSalesOrderInvoice,
   fetchSalesOrder,
   fetchSalesOrders,
+  removeSalesOrderLine,
+  updateSalesOrderLinePrice,
 } from "@/features/sales-orders/services/sales-orders.service";
 import { bffRequest } from "@/lib/bff-client";
 
@@ -43,5 +47,62 @@ describe("sales-orders.service", () => {
     await fetchSalesOrder(81);
 
     expect(bffRequest).toHaveBeenCalledWith(BFF_SALES_ORDERS_ROUTES.detail(81));
+  });
+
+  it("adds sales order lines via the BFF", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({ id: 81, name: "S00081" });
+
+    await addSalesOrderLine(81, {
+      product_id: 12,
+      quantity: "2.0000",
+      price_unit: "10.0000",
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SALES_ORDERS_ROUTES.lines(81), {
+      method: "POST",
+      body: {
+        product_id: 12,
+        quantity: "2.0000",
+        price_unit: "10.0000",
+      },
+    });
+  });
+
+  it("updates sales order line prices via the BFF", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({ id: 81, name: "S00081" });
+
+    await updateSalesOrderLinePrice(81, 3, { price_unit: "18.0000" });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_SALES_ORDERS_ROUTES.linePrice(81, 3),
+      {
+        method: "PATCH",
+        body: { price_unit: "18.0000" },
+      },
+    );
+  });
+
+  it("removes sales order lines via the BFF", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({ id: 81, name: "S00081" });
+
+    await removeSalesOrderLine(81, 3);
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_SALES_ORDERS_ROUTES.lineDetail(81, 3),
+      { method: "DELETE" },
+    );
+  });
+
+  it("creates a sales order invoice via the BFF", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({
+      sales_order: 81,
+      invoice: { id: 501, name: "INV/2026/0001" },
+    });
+
+    await createSalesOrderInvoice(81);
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SALES_ORDERS_ROUTES.invoice(81), {
+      method: "POST",
+    });
   });
 });

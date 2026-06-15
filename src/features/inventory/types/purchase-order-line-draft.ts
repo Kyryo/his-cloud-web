@@ -3,7 +3,7 @@ import type { PurchaseOrderLine } from "@/features/inventory/types/inventory.typ
 export type PurchaseOrderLineDraft = {
   key: string;
   id?: number;
-  odoo_product_id: number | null;
+  product_id: number | null;
   productName: string | null;
   quantity: string;
   unit_cost: string;
@@ -20,7 +20,7 @@ export type PurchaseOrderLineDraft = {
 export function createEmptyPurchaseOrderLineDraft(): PurchaseOrderLineDraft {
   return {
     key: crypto.randomUUID(),
-    odoo_product_id: null,
+    product_id: null,
     productName: null,
     quantity: "1",
     unit_cost: "0",
@@ -36,7 +36,7 @@ export function purchaseOrderLineToDraft(line: PurchaseOrderLine): PurchaseOrder
   return {
     key: crypto.randomUUID(),
     id: line.id,
-    odoo_product_id: line.odoo_product_id,
+    product_id: line.product_id,
     productName: line.product_name?.trim() || null,
     quantity: String(line.quantity),
     unit_cost: String(line.unit_cost),
@@ -49,7 +49,7 @@ export function purchaseOrderLineToDraft(line: PurchaseOrderLine): PurchaseOrder
 }
 
 export function linesMissingProductName(lines: PurchaseOrderLineDraft[]): boolean {
-  return lines.some((line) => line.odoo_product_id && !line.productName);
+  return lines.some((line) => line.product_id && !line.productName);
 }
 
 export type BatchValidationOptions = {
@@ -58,13 +58,13 @@ export type BatchValidationOptions = {
 
 export function lineMissingBatchOrExpiry(
   line: {
-    odoo_product_id: number | null;
+    product_id: number | null;
     batch?: number | null;
     expiry_date?: string | null;
   },
   options: BatchValidationOptions = {},
 ): boolean {
-  if (!options.batchTrackingEnabled || !line.odoo_product_id) {
+  if (!options.batchTrackingEnabled || !line.product_id) {
     return false;
   }
 
@@ -73,7 +73,7 @@ export function lineMissingBatchOrExpiry(
 
 export function countLinesMissingBatchOrExpiry(
   lines: Array<{
-    odoo_product_id: number | null;
+    product_id: number | null;
     batch?: number | null;
     expiry_date?: string | null;
   }>,
@@ -86,7 +86,7 @@ export function getLineValidationIssues(
   line: PurchaseOrderLineDraft,
   options: BatchValidationOptions = {},
 ): string[] {
-  if (!line.odoo_product_id) {
+  if (!line.product_id) {
     return [];
   }
 
@@ -112,7 +112,7 @@ export function countLinesWithValidationIssues(
 
 export function calculateDraftsTotalQuantity(lines: PurchaseOrderLineDraft[]): number {
   return lines
-    .filter((line) => line.odoo_product_id)
+    .filter((line) => line.product_id)
     .reduce((sum, line) => sum + parseDraftNumber(line.quantity), 0);
 }
 
@@ -127,22 +127,22 @@ export function calculateLineDraftTotal(line: PurchaseOrderLineDraft): number {
 
 export function calculateDraftsTotal(lines: PurchaseOrderLineDraft[]): number {
   return lines
-    .filter((line) => line.odoo_product_id)
+    .filter((line) => line.product_id)
     .reduce((sum, line) => sum + calculateLineDraftTotal(line), 0);
 }
 
 export function countSavedLineDrafts(lines: PurchaseOrderLineDraft[]): number {
-  return lines.filter((line) => line.odoo_product_id).length;
+  return lines.filter((line) => line.product_id).length;
 }
 
 export function draftsToPurchaseOrderLines(
   drafts: PurchaseOrderLineDraft[],
 ): PurchaseOrderLine[] {
   return drafts
-    .filter((line) => line.odoo_product_id)
+    .filter((line) => line.product_id)
     .map((line) => ({
       id: line.id,
-      odoo_product_id: line.odoo_product_id!,
+      product_id: line.product_id!,
       quantity: line.quantity,
       unit_cost: line.unit_cost,
       batch: line.batch ?? null,
@@ -155,7 +155,7 @@ export function serializeDraftLines(lines: PurchaseOrderLineDraft[]): string {
   return JSON.stringify(
     lines.map((line) => ({
       id: line.id ?? null,
-      odoo_product_id: line.odoo_product_id,
+      product_id: line.product_id,
       productName: line.productName,
       quantity: line.quantity,
       unit_cost: line.unit_cost,
@@ -171,7 +171,7 @@ export function serializeDraftLines(lines: PurchaseOrderLineDraft[]): string {
 }
 
 export function hasInvalidLineDraft(line: PurchaseOrderLineDraft): boolean {
-  if (!line.odoo_product_id) {
+  if (!line.product_id) {
     return false;
   }
 
@@ -183,7 +183,7 @@ export function hasInvalidLineDraft(line: PurchaseOrderLineDraft): boolean {
 export function validatePurchaseOrderLinesForSubmit(
   lines: PurchaseOrderLineDraft[],
 ): string | null {
-  const savedLines = lines.filter((line) => line.odoo_product_id);
+  const savedLines = lines.filter((line) => line.product_id);
 
   if (savedLines.length === 0) {
     return "Add at least one line item before submitting.";

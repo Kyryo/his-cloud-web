@@ -2,9 +2,10 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { FetchErrorNotice } from "@/components/fetch-error-notice";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import {
   Dialog,
@@ -39,13 +40,16 @@ import {
 import {
   createOrganizationLocation,
   fetchOrganizationClinics,
+  fetchOrganizationDepartments,
 } from "@/features/settings/services/settings.service";
 import type {
   OrganizationClinic,
+  OrganizationDepartment,
   OrganizationLocation,
 } from "@/features/settings/types/settings.types";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-errors";
+import { getErrorMessage, logFetchError } from "@/lib/fetch-error";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
@@ -63,50 +67,105 @@ export function AddLocationDialog({
 }: AddLocationDialogProps) {
   const { toast } = useToast();
   const [clinics, setClinics] = useState<OrganizationClinic[]>([]);
+  const [departments, setDepartments] = useState<OrganizationDepartment[]>([]);
   const [isLoadingClinics, setIsLoadingClinics] = useState(false);
+  const [isLoadingDepartments, setIsLoadingDepartments] = useState(false);
+  const [clinicsError, setClinicsError] = useState<string | null>(null);
+  const [departmentsError, setDepartmentsError] = useState<string | null>(null);
 
   const form = useForm<CreateOrganizationLocationFormValues>({
     resolver: zodResolver(createOrganizationLocationSchema),
     defaultValues: createOrganizationLocationDefaultValues,
   });
 
+  const selectedClinicId = form.watch("clinic");
+  const selectedDepartmentId = form.watch("department");
+  const hasDepartmentValue = Boolean(selectedDepartmentId);
+  const isSubmitting = form.formState.isSubmitting;
+
+  const loadClinics = useCallback(async () => {
+    setIsLoadingClinics(true);
+    setClinicsError(null);
+
+    try {
+      const response = await fetchOrganizationClinics();
+      setClinics(response.results);
+    } catch (error) {
+      logFetchError("AddLocationDialog.loadClinics", error);
+      setClinics([]);
+      setClinicsError(getErrorMessage(error, "Could not load clinics."));
+    } finally {
+      setIsLoadingClinics(false);
+    }
+  }, []);
+
+  const loadDepartments = useCallback(async (clinicId: string) => {
+    setIsLoadingDepartments(true);
+    setDepartmentsError(null);
+
+    try {
+      const response = await fetchOrganizationDepartments({
+        clinicId: Number(clinicId),
+      });
+      setDepartments(response.results);
+    } catch (error) {
+      logFetchError("AddLocationDialog.loadDepartments", error);
+      setDepartments([]);
+      setDepartmentsError(getErrorMessage(error, "Could not load departments."));
+    } finally {
+      setIsLoadingDepartments(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      setClinicsError(null);
+      setDepartmentsError(null);
+      return;
+    }
+
+    void loadClinics();
+  }, [loadClinics, open]);
+
+  useEffect(() => {
+    if (!open || !selectedClinicId) {
+      setDepartments([]);
+      setDepartmentsError(null);
+      return;
+    }
+
+    void loadDepartments(selectedClinicId);
+  }, [loadDepartments, open, selectedClinicId]);
+
   useEffect(() => {
     if (!open) {
       return;
     }
 
-    let active = true;
-
-    async function loadClinics() {
-      setIsLoadingClinics(true);
-      try {
-        const response = await fetchOrganizationClinics();
-        if (active) {
-          setClinics(response.results);
-        }
-      } catch {
-        if (active) {
-          setClinics([]);
-        }
-      } finally {
-        if (active) {
-          setIsLoadingClinics(false);
-        }
-      }
-    }
-
-    void loadClinics();
-
-    return () => {
-      active = false;
-    };
-  }, [open]);
+    form.setValue("department", "");
+  }, [form, open, selectedClinicId]);
 
   useEffect(() => {
     if (!open) {
       form.reset(createOrganizationLocationDefaultValues);
     }
   }, [form, open]);
+
+  const isDepartmentSelectDisabled =
+    !selectedClinicId ||
+    isLoadingDepartments ||
+    Boolean(departmentsError) ||
+    (departments.length === 0 && !departmentsError && !isLoadingDepartments);
+
+  const isSubmitDisabled =
+    isSubmitting ||
+    isLoadingClinics ||
+    Boolean(clinicsError) ||
+    clinics.length === 0 ||
+    !selectedClinicId ||
+    isLoadingDepartments ||
+    Boolean(departmentsError) ||
+    (!hasDepartmentValue && departments.length === 0);
 
   async function handleSubmit(values: CreateOrganizationLocationFormValues) {
     try {
@@ -142,13 +201,10 @@ export function AddLocationDialog({
       toast({
         variant: "error",
         title: "Could not add location",
-        description:
-          error instanceof Error ? error.message : "Something went wrong.",
+        description: getErrorMessage(error),
       });
     }
   }
-
-  const isSubmitting = form.formState.isSubmitting;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -203,7 +259,7 @@ export function AddLocationDialog({
                   <Select
                     value={field.value}
                     onValueChange={field.onChange}
-                    disabled={isLoadingClinics || clinics.length === 0}
+                    disabled={isLoadingClinics || (clinics.length === 0 && !clinicsError)}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -211,9 +267,11 @@ export function AddLocationDialog({
                           placeholder={
                             isLoadingClinics
                               ? "Loading clinics..."
-                              : clinics.length === 0
-                                ? "No clinics available"
-                                : "Select a clinic"
+                              : clinicsError
+                                ? "Clinics unavailable"
+                                : clinics.length === 0
+                                  ? "No clinics available"
+                                  : "Select a clinic"
                           }
                         />
                       </SelectTrigger>
@@ -226,6 +284,63 @@ export function AddLocationDialog({
                       ))}
                     </SelectContent>
                   </Select>
+                  {clinicsError ? (
+                    <FetchErrorNotice
+                      message={clinicsError}
+                      onRetry={() => void loadClinics()}
+                    />
+                  ) : null}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="department"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Department</FormLabel>
+                  <Select
+                    value={field.value}
+                    onValueChange={field.onChange}
+                    disabled={isDepartmentSelectDisabled}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={
+                            !selectedClinicId
+                              ? "Select a clinic first"
+                              : isLoadingDepartments
+                                ? "Loading departments..."
+                                : departmentsError
+                                  ? "Departments unavailable"
+                                  : departments.length === 0
+                                    ? "No departments for this clinic"
+                                    : "Select a department"
+                          }
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {departments.map((department) => (
+                        <SelectItem key={department.uuid} value={String(department.id)}>
+                          {department.name} ({department.code})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {departmentsError ? (
+                    <FetchErrorNotice
+                      message={departmentsError}
+                      onRetry={() => {
+                        if (selectedClinicId) {
+                          void loadDepartments(selectedClinicId);
+                        }
+                      }}
+                    />
+                  ) : null}
                   <FormMessage />
                 </FormItem>
               )}
@@ -253,10 +368,7 @@ export function AddLocationDialog({
               >
                 Cancel
               </SecondaryButton>
-              <PrimaryButton
-                type="submit"
-                disabled={isSubmitting || isLoadingClinics || clinics.length === 0}
-              >
+              <PrimaryButton type="submit" disabled={isSubmitDisabled}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="size-4 animate-spin" aria-hidden="true" />

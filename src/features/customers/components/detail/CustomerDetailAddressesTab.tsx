@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { MapPin } from "lucide-react";
 
-import { AddActionButton } from "@/components/ui/app-buttons";
+import { TabAddActionButton } from "@/components/ui/app-buttons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AddCustomerAddressDialog } from "@/features/customers/components/detail/AddCustomerAddressDialog";
@@ -164,7 +164,7 @@ export function CustomerDetailAddressesTab({
   }
 
   const addButton = (
-    <AddActionButton
+    <TabAddActionButton
       label="Add address"
       onClick={() => setAddDialogOpen(true)}
       data-testid="add-customer-address-button"

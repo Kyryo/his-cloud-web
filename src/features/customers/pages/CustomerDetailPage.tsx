@@ -100,6 +100,7 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
         customer={customer}
         onUpdateClick={() => setUpdateDialogOpen(true)}
         visitsRefreshKey={visitsRefreshKey}
+        onVisitChanged={() => setVisitsRefreshKey((current) => current + 1)}
       />
       <UpdateCustomerDialog
         customer={customer}

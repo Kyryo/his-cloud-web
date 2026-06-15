@@ -14,8 +14,10 @@ import {
 import { CustomerDetailAddressesTab } from "@/features/customers/components/detail/CustomerDetailAddressesTab";
 import { CustomerDetailInsuranceTab } from "@/features/customers/components/detail/CustomerDetailInsuranceTab";
 import { CustomerDetailNotesTab } from "@/features/customers/components/detail/CustomerDetailNotesTab";
+import { CustomerDetailSalesOrdersTab } from "@/features/customers/components/detail/CustomerDetailSalesOrdersTab";
 import { CustomerDetailSummaryTab } from "@/features/customers/components/detail/CustomerDetailSummaryTab";
 import { CustomerDetailVisitsTab } from "@/features/customers/components/detail/CustomerDetailVisitsTab";
+import { CustomerDetailAppointmentsTab } from "@/features/appointments/components/detail/CustomerDetailAppointmentsTab";
 import { CustomerSummaryPanel } from "@/features/customers/components/detail/CustomerSummaryPanel";
 import type { Customer } from "@/features/customers/types/customer.types";
 import { cn } from "@/lib/utils";
@@ -24,6 +26,7 @@ type CustomerDetailTabsProps = {
   customer: Customer;
   onUpdateClick: () => void;
   visitsRefreshKey?: number;
+  onVisitChanged?: () => void;
 };
 
 type DetailTabId =
@@ -68,6 +71,7 @@ export function CustomerDetailTabs({
   customer,
   onUpdateClick,
   visitsRefreshKey = 0,
+  onVisitChanged,
 }: CustomerDetailTabsProps) {
   const [activeTab, setActiveTab] = useState<DetailTabId>("summary");
   const [showSummaryPanel, setShowSummaryPanel] = useState(false);
@@ -92,9 +96,10 @@ export function CustomerDetailTabs({
             customer={customer}
             isActive={activeTab === "summary"}
           />
-          {activeTab === "orders" ? (
-            <TabPlaceholder label="Sales orders" />
-          ) : null}
+          <CustomerDetailSalesOrdersTab
+            customer={customer}
+            isActive={activeTab === "orders"}
+          />
           {activeTab === "invoices" ? (
             <TabPlaceholder label="Invoices" />
           ) : null}
@@ -114,9 +119,12 @@ export function CustomerDetailTabs({
             customer={customer}
             isActive={activeTab === "addresses"}
           />
-          {activeTab === "appointments" ? (
-            <TabPlaceholder label="Appointments" />
-          ) : null}
+          <CustomerDetailAppointmentsTab
+            customer={customer}
+            isActive={activeTab === "appointments"}
+            refreshKey={visitsRefreshKey}
+            onVisitStarted={onVisitChanged}
+          />
           <CustomerDetailNotesTab
             customer={customer}
             isActive={activeTab === "notes"}

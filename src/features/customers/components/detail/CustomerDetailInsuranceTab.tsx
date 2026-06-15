@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Shield } from "lucide-react";
 
-import { AddActionButton } from "@/components/ui/app-buttons";
+import { TabAddActionButton } from "@/components/ui/app-buttons";
 import { Badge } from "@/components/ui/badge";
 import { AddCustomerInsuranceDialog } from "@/features/customers/components/detail/AddCustomerInsuranceDialog";
 import {
@@ -124,7 +124,7 @@ export function CustomerDetailInsuranceTab({
   }
 
   const addButton = (
-    <AddActionButton
+    <TabAddActionButton
       label="Add insurance"
       onClick={() => setAddDialogOpen(true)}
       data-testid="add-customer-insurance-button"

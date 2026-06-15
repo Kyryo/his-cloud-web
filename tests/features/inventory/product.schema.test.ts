@@ -169,11 +169,11 @@ describe("product.schema", () => {
     expect(result.success).toBe(true);
   });
 
-  it("normalizes Odoo false optional fields", () => {
+  it("normalizes null optional fields", () => {
     const result = createInventoryProductSchema.safeParse({
       name: "Paracetamol",
-      default_code: false,
-      barcode: false,
+      default_code: null,
+      barcode: null,
       product_type: "product",
       list_price: "",
       standard_price: "",
@@ -202,13 +202,13 @@ describe("product.schema", () => {
       barcode: null,
       list_price: 50,
       standard_price: 20,
-      uom_id: [1, "Unit"],
-      active: true,
+      uom_name: "Unit",
+      is_active: true,
       product_type: "service",
       product_type_label: "service",
       sale_ok: true,
       purchase_ok: false,
-      x_meta: {
+      metadata: {
         is_procedure: true,
         opd_only_procedure: true,
       },
@@ -217,8 +217,8 @@ describe("product.schema", () => {
     expect(
       toInventoryProductFormValues({
         ...product,
-        default_code: false,
-        barcode: false,
+        default_code: null,
+        barcode: null,
       }),
     ).toMatchObject({
       default_code: "",

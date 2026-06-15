@@ -8,6 +8,7 @@ import {
 } from "@/features/app-shell/components/page-layout";
 import { OrganizationBrandingTab } from "@/features/settings/components/OrganizationBrandingTab";
 import { OrganizationClinicsTab } from "@/features/settings/components/OrganizationClinicsTab";
+import { OrganizationDepartmentsTab } from "@/features/settings/components/OrganizationDepartmentsTab";
 import { OrganizationGeneralTab } from "@/features/settings/components/OrganizationGeneralTab";
 import { OrganizationLocationsTab } from "@/features/settings/components/OrganizationLocationsTab";
 import type {
@@ -18,6 +19,7 @@ import type {
 const tabs: Array<{ id: OrganizationTabId; label: string }> = [
   { id: "general", label: "General" },
   { id: "branding", label: "Branding" },
+  { id: "departments", label: "Departments" },
   { id: "clinics", label: "Clinics" },
   { id: "locations", label: "Locations" },
 ];
@@ -52,6 +54,7 @@ export function OrganizationSettingsTabs({
           <OrganizationGeneralTab tenant={tenant} onTenantUpdated={onTenantUpdated} />
         ) : null}
         <OrganizationBrandingTab isActive={activeTab === "branding"} />
+        <OrganizationDepartmentsTab isActive={activeTab === "departments"} />
         <OrganizationClinicsTab isActive={activeTab === "clinics"} />
         <OrganizationLocationsTab isActive={activeTab === "locations"} />
       </div>
