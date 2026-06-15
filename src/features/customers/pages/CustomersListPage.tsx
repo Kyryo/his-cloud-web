@@ -12,10 +12,7 @@ import { CustomerListToolbar } from "@/features/customers/components/CustomerLis
 import { CustomerSummaryStats } from "@/features/customers/components/CustomerSummaryStats";
 import { CustomersEmptyState } from "@/features/customers/components/CustomersEmptyState";
 import { CustomersPageHeader } from "@/features/customers/components/CustomersPageHeader";
-import {
-  CustomersPagination,
-  CustomersTable,
-} from "@/features/customers/components/CustomersTable";
+import { CustomersTable } from "@/features/customers/components/CustomersTable";
 import {
   fetchCustomers,
 } from "@/features/customers/services/customers.service";
@@ -34,6 +31,7 @@ import { ROUTES } from "@/constants/routes";
 import {
   ListPageDataSectionsStack,
   ListPageLayout,
+  ListPagePagination,
   ListPageStatsSection,
   ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
@@ -320,7 +318,7 @@ export function CustomersListPage() {
         ) : (
           <>
             <CustomersTable customers={customers} onRowClick={handleRowClick} />
-            <CustomersPagination
+            <ListPagePagination
               page={page}
               pageSize={DEFAULT_PAGE_SIZE}
               totalCount={totalCount}

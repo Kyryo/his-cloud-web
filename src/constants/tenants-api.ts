@@ -4,3 +4,8 @@ export const TENANTS_API_PATHS = {
   branding: (uuid: string) => `/tenants/${uuid}/branding/`,
   currency: (uuid: string) => `/tenants/${uuid}/currency/`,
 } as const;
+
+export const DEPARTMENTS_API_PATHS = {
+  list: "/departments/",
+  detail: (uuid: string) => `/departments/${uuid}/`,
+} as const;

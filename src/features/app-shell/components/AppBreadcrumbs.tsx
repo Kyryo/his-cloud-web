@@ -20,7 +20,7 @@ import { useAppBreadcrumbContext } from "@/features/app-shell/providers/app-brea
 
 export function AppBreadcrumbs() {
   const pathname = usePathname();
-  const { pageLabel } = useAppBreadcrumbContext();
+  const { pageAction, pageLabel } = useAppBreadcrumbContext();
   const crumbs = useMemo(
     () => applyPageLabelToCrumbs(buildAppBreadcrumbs(pathname), pageLabel),
     [pathname, pageLabel],
@@ -31,29 +31,32 @@ export function AppBreadcrumbs() {
   }
 
   return (
-    <Breadcrumb>
-      <BreadcrumbList>
-        {crumbs.map((crumb, index) => {
-          const isLast = index === crumbs.length - 1;
+    <div className="flex min-w-0 flex-1 items-center justify-between gap-4">
+      <Breadcrumb>
+        <BreadcrumbList>
+          {crumbs.map((crumb, index) => {
+            const isLast = index === crumbs.length - 1;
 
-          return (
-            <span key={`${crumb.label}-${index}`} className="contents">
-              {index > 0 ? (
-                <BreadcrumbSeparator className="hidden md:block" />
-              ) : null}
-              <BreadcrumbItem className={index === 0 ? "hidden md:block" : undefined}>
-                {isLast || !crumb.href ? (
-                  <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
-                ) : (
-                  <BreadcrumbLink asChild>
-                    <Link href={crumb.href}>{crumb.label}</Link>
-                  </BreadcrumbLink>
-                )}
-              </BreadcrumbItem>
-            </span>
-          );
-        })}
-      </BreadcrumbList>
-    </Breadcrumb>
+            return (
+              <span key={`${crumb.label}-${index}`} className="contents">
+                {index > 0 ? (
+                  <BreadcrumbSeparator className="hidden md:block" />
+                ) : null}
+                <BreadcrumbItem className={index === 0 ? "hidden md:block" : undefined}>
+                  {isLast || !crumb.href ? (
+                    <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                  ) : (
+                    <BreadcrumbLink asChild>
+                      <Link href={crumb.href}>{crumb.label}</Link>
+                    </BreadcrumbLink>
+                  )}
+                </BreadcrumbItem>
+              </span>
+            );
+          })}
+        </BreadcrumbList>
+      </Breadcrumb>
+      {pageAction ? <div className="shrink-0">{pageAction}</div> : null}
+    </div>
   );
 }
