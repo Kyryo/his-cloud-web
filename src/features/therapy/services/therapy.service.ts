@@ -1,4 +1,4 @@
-import { BFF_THERAPY_ROUTES, BFF_VISITS_ROUTES } from "@/constants/api";
+import { BFF_THERAPY_ROUTES } from "@/constants/api";
 import type {
   TherapyDepartment,
   TherapyDiscipline,
@@ -274,6 +274,6 @@ export async function fetchTherapyVisits({
   }
 
   return bffRequest<TherapyVisitListResponse>(
-    `${BFF_VISITS_ROUTES.list}?${params.toString()}`,
+    `${BFF_THERAPY_ROUTES.visits}?${params.toString()}`,
   );
 }

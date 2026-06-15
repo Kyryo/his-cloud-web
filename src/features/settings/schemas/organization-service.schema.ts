@@ -4,7 +4,7 @@ export const createOrganizationServiceSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   code: z.string().trim().optional(),
   description: z.string().trim().optional(),
-  is_chargable: z.boolean().optional(),
+  is_chargable: z.boolean(),
 });
 
 export type CreateOrganizationServiceFormValues = z.infer<
@@ -26,7 +26,7 @@ export function toCreateOrganizationServicePayload(
     name: values.name.trim(),
     code: values.code?.trim() || "",
     description: values.description?.trim() || "",
-    is_chargable: values.is_chargable ?? true,
+    is_chargable: values.is_chargable,
   };
 }
 

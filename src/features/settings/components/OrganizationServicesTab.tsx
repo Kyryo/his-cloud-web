@@ -19,40 +19,29 @@ type OrganizationServicesTabProps = {
 const columns = [
   { key: "name", label: "Consultation service" },
   { key: "code", label: "Code" },
-  { key: "type", label: "Type" },
+  { key: "billing", label: "Billing" },
   { key: "status", label: "Status" },
   { key: "actions", label: "" },
 ] as const;
 
-function formatServiceType(service: OrganizationService) {
-  const labels = [
-    service.is_consultation_visit ? "Consultation" : null,
-    service.is_dentist_visit ? "Dental" : null,
-    service.is_walk_in_visit ? "Walk-in" : null,
-  ].filter(Boolean);
-
-  if (labels.length === 0) {
-    return "—";
-  }
-
+function formatBilling(service: OrganizationService) {
   return (
-    <div className="flex flex-wrap gap-1.5">
-      {labels.map((label) => (
-        <Badge key={label} variant="secondary">
-          {label}
-        </Badge>
-      ))}
-    </div>
+    <Badge variant={service.is_chargable ? "default" : "secondary"}>
+      {service.is_chargable ? "Chargeable" : "Non-chargeable"}
+    </Badge>
   );
 }
 
-export function OrganizationServicesTab({ isActive }: OrganizationServicesTabProps) {
+export function OrganizationServicesTab({
+  isActive,
+}: OrganizationServicesTabProps) {
   const [services, setServices] = useState<OrganizationService[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [editingService, setEditingService] = useState<OrganizationService | null>(null);
+  const [editingService, setEditingService] =
+    useState<OrganizationService | null>(null);
 
   useEffect(() => {
     if (!isActive) {
@@ -119,9 +108,7 @@ export function OrganizationServicesTab({ isActive }: OrganizationServicesTabPro
         showHeader={!isEmpty}
         actions={
           services.length > 0 ? (
-            <Button onClick={() => setAddDialogOpen(true)}>
-              Add service
-            </Button>
+            <Button onClick={() => setAddDialogOpen(true)}>Add service</Button>
           ) : null
         }
       >
@@ -157,17 +144,23 @@ export function OrganizationServicesTab({ isActive }: OrganizationServicesTabPro
                 {services.map((service) => (
                   <tr key={service.uuid}>
                     <td className="px-6 py-3.5">
-                      <div className="text-sm font-medium text-brand-navy">{service.name}</div>
+                      <div className="text-sm font-medium text-brand-navy">
+                        {service.name}
+                      </div>
                       {service.description ? (
-                        <div className="text-xs text-brand-muted">{service.description}</div>
+                        <div className="text-xs text-brand-muted">
+                          {service.description}
+                        </div>
                       ) : null}
                     </td>
                     <td className="px-6 py-3.5 text-sm text-brand-navy">
                       {service.code || "—"}
                     </td>
-                    <td className="px-6 py-3.5">{formatServiceType(service)}</td>
+                    <td className="px-6 py-3.5">{formatBilling(service)}</td>
                     <td className="px-6 py-3.5">
-                      <Badge variant={service.is_active ? "default" : "outline"}>
+                      <Badge
+                        variant={service.is_active ? "default" : "outline"}
+                      >
                         {service.is_active ? "Active" : "Inactive"}
                       </Badge>
                     </td>

@@ -1,91 +1,31 @@
 import { VISITS_API_PATHS } from "@/constants/visits-api";
-import type {
-  CreateVisitPayload,
-  CustomerVisit,
-} from "@/features/customers/types/customer-visit.types";
-import type {
-  TherapyDepartment,
-  TherapyVisit,
-} from "@/features/therapy/types/therapy.types";
+import type { CreateVisitPayload, VisitDetail } from "@/features/visits/types/visit.types";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
-import {
-  hmisApiRequest,
-  hmisApiRequestWithMeta,
-} from "@/lib/server/hmis-api";
+import { handleClinicalListGet } from "@/lib/server/clinical-bff-handlers";
+import { hmisApiRequest } from "@/lib/server/hmis-api";
 import { requireAccessToken } from "@/lib/server/require-access-token";
-import { DEPARTMENTS_API_PATHS } from "@/constants/tenants-api";
-import {
-  isServerTherapyDiscipline,
-  requireTherapyAccess,
-} from "@/lib/server/require-therapy-access";
 
-const VISIT_QUERY_KEYS = [
-  "department_uuid",
+const QUERY_KEYS = [
   "page",
   "page_size",
   "search",
+  "ordering",
+  "customer_uuid",
+  "clinic",
   "status",
+  "is_active",
+  "visit_date_after",
+  "visit_date_before",
 ] as const;
 
 export async function GET(request: Request) {
-  try {
-    const incoming = new URL(request.url).searchParams;
-    const discipline = incoming.get("discipline");
-    const departmentUuid = incoming.get("department_uuid");
-    const activeClinicId = Number(incoming.get("active_clinic_id"));
-
-    if (!isServerTherapyDiscipline(discipline)) {
-      return bffSuccess({ message: "Invalid therapy discipline." }, 400);
-    }
-    if (!departmentUuid) {
-      return bffSuccess({ message: "Department UUID is required." }, 400);
-    }
-    if (!Number.isInteger(activeClinicId) || activeClinicId <= 0) {
-      return bffSuccess({ message: "Active clinic is required." }, 400);
-    }
-
-    const auth = await requireTherapyAccess(discipline);
-    if ("error" in auth) {
-      return bffSuccess({ message: auth.error }, auth.status);
-    }
-
-    const department = await hmisApiRequest<TherapyDepartment>(
-      DEPARTMENTS_API_PATHS.detail(departmentUuid),
-      { token: auth.accessToken },
-    );
-    if (
-      department.department_type !== discipline ||
-      department.clinic !== activeClinicId
-    ) {
-      return bffSuccess(
-        {
-          message:
-            "Department does not match the active clinic and therapy discipline.",
-        },
-        400,
-      );
-    }
-
-    const params = new URLSearchParams();
-    for (const key of VISIT_QUERY_KEYS) {
-      const value = incoming.get(key);
-      if (value) {
-        params.set(key, value);
-      }
-    }
-
-    const { data, meta } = await hmisApiRequestWithMeta<TherapyVisit[]>(
-      `${VISITS_API_PATHS.list}?${params.toString()}`,
-      { token: auth.accessToken },
-    );
-
-    return bffSuccess({
-      results: data,
-      pagination: meta.pagination ?? null,
-    });
-  } catch (error) {
-    return bffError(error);
-  }
+  return handleClinicalListGet<VisitDetail>(
+    request,
+    VISITS_API_PATHS.list,
+    QUERY_KEYS,
+    "user",
+    { page_size: "20", ordering: "-visit_date" },
+  );
 }
 
 export async function POST(request: Request) {
@@ -97,26 +37,31 @@ export async function POST(request: Request) {
 
     const body = (await request.json()) as CreateVisitPayload;
 
-    if (!body.visit_type?.trim()) {
-      return bffSuccess({ message: "Visit type is required." }, 400);
-    }
-
     if (!body.customer?.trim()) {
       return bffSuccess({ message: "Customer is required." }, 400);
     }
 
-    const visit = await hmisApiRequest<CustomerVisit>(VISITS_API_PATHS.list, {
+    if (!body.department?.trim()) {
+      return bffSuccess({ message: "Department is required." }, 400);
+    }
+
+    const visit = await hmisApiRequest<VisitDetail>(VISITS_API_PATHS.list, {
       method: "POST",
       token: auth.accessToken,
       body: {
-        visit_type: body.visit_type,
+        consultation_service: body.consultation_service ?? null,
         customer: body.customer,
+        clinic: body.clinic ?? null,
+        department: body.department,
+        location: body.location ?? null,
+        clinician: body.clinician ?? null,
         visit_date: body.visit_date,
         mode_of_payment: body.mode_of_payment ?? "cash",
         insurance_scheme: body.insurance_scheme ?? null,
         requires_pre_authorization: body.requires_pre_authorization ?? false,
         pre_authorization_number: body.pre_authorization_number ?? "",
         pre_authorization_comments: body.pre_authorization_comments ?? "",
+        is_walk_in: body.is_walk_in ?? true,
       },
     });
 

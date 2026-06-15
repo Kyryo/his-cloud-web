@@ -53,7 +53,7 @@ describe("therapy service", () => {
     const requestPath = vi.mocked(bffRequest).mock.calls[0]?.[0];
     const url = new URL(String(requestPath), "http://localhost");
 
-    expect(url.pathname).toBe("/api/visits");
+    expect(url.pathname).toBe("/api/therapy/visits");
     expect(url.searchParams.get("discipline")).toBe("speech");
     expect(url.searchParams.get("active_clinic_id")).toBe("12");
     expect(url.searchParams.get("department_uuid")).toBe(

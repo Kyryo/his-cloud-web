@@ -32,7 +32,10 @@ import {
 import { updateOrganizationService } from "@/features/settings/services/settings.service";
 import type { OrganizationService } from "@/features/settings/types/settings.types";
 import { BffError } from "@/lib/bff-client";
-import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-errors";
+import {
+  formatBffErrorMessage,
+  mapBffErrorsToForm,
+} from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
@@ -107,7 +110,10 @@ export function UpdateServiceDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={cn("max-h-[90vh] overflow-y-auto sm:max-w-lg", appFont.className)}
+        className={cn(
+          "max-h-[90vh] overflow-y-auto sm:max-w-lg",
+          appFont.className,
+        )}
         data-testid="update-service-dialog"
       >
         <DialogHeader>
@@ -118,7 +124,10 @@ export function UpdateServiceDialog({
         </DialogHeader>
 
         <Form {...form}>
-          <form className="space-y-4" onSubmit={form.handleSubmit(handleSubmit)}>
+          <form
+            className="space-y-4"
+            onSubmit={form.handleSubmit(handleSubmit)}
+          >
             <FormField
               control={form.control}
               name="name"
@@ -163,33 +172,27 @@ export function UpdateServiceDialog({
             </div>
 
             <div className="space-y-3 rounded-lg border border-brand-border px-4 py-3">
-              <p className="text-sm font-medium text-brand-navy">Service type</p>
-              {(
-                [
-                  ["is_consultation_visit", "Consultation"],
-                  ["is_dentist_visit", "Dental"],
-                  ["is_walk_in_visit", "Walk-in"],
-                ] as const
-              ).map(([name, label]) => (
-                <FormField
-                  key={name}
-                  control={form.control}
-                  name={name}
-                  render={({ field }) => (
-                    <FormItem className="flex items-center gap-3 space-y-0">
-                      <FormControl>
-                        <input
-                          type="checkbox"
-                          checked={field.value}
-                          onChange={field.onChange}
-                          className="size-4 rounded border-brand-border"
-                        />
-                      </FormControl>
-                      <FormLabel className="font-normal">{label}</FormLabel>
-                    </FormItem>
-                  )}
-                />
-              ))}
+              <p className="text-sm font-medium text-brand-navy">Billing</p>
+              <FormField
+                control={form.control}
+                name="is_chargable"
+                render={({ field }) => (
+                  <FormItem className="flex items-center gap-3 space-y-0">
+                    <FormControl>
+                      <input
+                        type="checkbox"
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="size-4 rounded border-brand-border"
+                      />
+                    </FormControl>
+                    <FormLabel className="font-normal">
+                      Chargeable service (creates a consultation order on visit
+                      start)
+                    </FormLabel>
+                  </FormItem>
+                )}
+              />
             </div>
 
             <DialogFooter>
@@ -203,7 +206,10 @@ export function UpdateServiceDialog({
               <PrimaryButton type="submit" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                    <Loader2
+                      className="size-4 animate-spin"
+                      aria-hidden="true"
+                    />
                     Saving...
                   </>
                 ) : (
