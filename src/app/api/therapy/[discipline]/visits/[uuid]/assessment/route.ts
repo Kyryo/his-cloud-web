@@ -27,14 +27,14 @@ export async function GET(_request: Request, context: RouteContext) {
   try {
     const authorized = await authorize(context);
     if ("error" in authorized) return authorized.error;
-    const assessment = await hmisApiRequest<TherapyAssessment | null>(
+    const assessment = await hmisApiRequest<Partial<TherapyAssessment>>(
       THERAPY_API_PATHS.visitAssessment(
         authorized.discipline,
         authorized.uuid,
       ),
       { token: authorized.accessToken },
     );
-    return bffSuccess(assessment);
+    return bffSuccess(assessment.uuid ? assessment : null);
   } catch (error) {
     return bffError(error);
   }
