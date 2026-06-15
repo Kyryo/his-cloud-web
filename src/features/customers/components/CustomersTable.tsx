@@ -16,14 +16,11 @@ import {
   ListPageDataTableRow,
 } from "@/features/app-shell/components/page-layout";
 import { CustomerVisitStatusBadge } from "@/features/customers/components/CustomerVisitStatusBadge";
-import { formatErpSyncStatus } from "@/features/customers/constants/customer-sync-labels";
 import type { Customer } from "@/features/customers/types/customer.types";
 import {
   formatCustomerName,
   formatDisplayDate,
 } from "@/features/customers/utils/format-customer";
-import { ROUTES } from "@/constants/routes";
-import { cn } from "@/lib/utils";
 
 type CustomersTableProps = {
   customers: Customer[];
