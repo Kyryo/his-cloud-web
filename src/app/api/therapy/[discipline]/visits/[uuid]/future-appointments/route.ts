@@ -27,7 +27,7 @@ export async function GET(_request: Request, context: RouteContext) {
     }
 
     const visit = await hmisApiRequest<TherapyVisit>(
-      VISITS_API_PATHS.visitDetails(uuid),
+      VISITS_API_PATHS.detail(uuid),
       { token: auth.accessToken },
     );
     const today = new Date().toISOString().slice(0, 10);

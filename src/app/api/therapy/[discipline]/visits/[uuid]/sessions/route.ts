@@ -35,14 +35,14 @@ export async function GET(_request: Request, context: RouteContext) {
       return authorized.error;
     }
 
-    const data = await hmisApiRequest<{ results: TherapySession[] }>(
+    const sessions = await hmisApiRequest<TherapySession[]>(
       THERAPY_API_PATHS.visitSessions(
         authorized.discipline,
         authorized.uuid,
       ),
       { token: authorized.accessToken },
     );
-    return bffSuccess(data);
+    return bffSuccess({ results: sessions });
   } catch (error) {
     return bffError(error);
   }

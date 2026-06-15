@@ -2,7 +2,6 @@
 export const VISITS_API_PATHS = {
   list: "/visits/",
   detail: (uuid: string) => `/visits/${uuid}/`,
-  visitDetails: (uuid: string) => `/visit-details/${uuid}/`,
   end: (uuid: string) => `/visits/${uuid}/end/`,
   customerVisits: (customerUuid: string, query?: { limit?: number }) => {
     const params = new URLSearchParams({

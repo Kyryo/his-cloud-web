@@ -110,30 +110,31 @@ export function TreatmentGoalsPanel({
         <div className="divide-y divide-brand-border px-4 sm:px-5">
           {data.goals.map((goal) => (
             <div key={goal.uuid} className="py-4">
-              <div className="flex min-w-0 items-start gap-2">
-                {goal.is_achieved ? (
-                  <CheckCircle2
-                    className="mt-1 size-4 shrink-0 text-emerald-600"
-                    aria-label="Goal achieved"
-                  />
-                ) : (
-                  <SecondaryButton
-                    type="button"
-                    size="sm"
-                    className="h-7 shrink-0 px-2 text-xs"
-                    disabled={isReadOnly}
-                    onClick={() => setProgressGoal(goal)}
-                  >
-                    + progress
-                  </SecondaryButton>
-                )}
-                <div className="min-w-0 flex-1">
+              <div className="min-w-0">
+                <div className="flex min-w-0 items-start justify-between gap-2">
                   <p
-                    className="truncate text-sm font-medium text-brand-navy"
+                    className="min-w-0 flex-1 truncate text-sm font-medium text-brand-navy"
                     title={goal.description}
                   >
                     {goal.description}
                   </p>
+                  {goal.is_achieved ? (
+                    <CheckCircle2
+                      className="mt-0.5 size-4 shrink-0 text-emerald-600"
+                      aria-label="Goal achieved"
+                    />
+                  ) : (
+                    <SecondaryButton
+                      type="button"
+                      size="sm"
+                      className="h-7 shrink-0 px-2 text-xs"
+                      disabled={isReadOnly}
+                      onClick={() => setProgressGoal(goal)}
+                    >
+                      + progress
+                    </SecondaryButton>
+                  )}
+                </div>
                   {goal.unit === "boolean" ? (
                     <p className="mt-1 text-xs text-brand-muted">
                       Response:{" "}
@@ -182,7 +183,6 @@ export function TreatmentGoalsPanel({
                       ) : null}
                     </div>
                   ) : null}
-                </div>
               </div>
             </div>
           ))}

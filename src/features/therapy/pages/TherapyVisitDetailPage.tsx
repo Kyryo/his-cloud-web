@@ -33,6 +33,7 @@ import {
   DetailPageLayout,
 } from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
+import { TherapyVisitErrorState } from "@/features/therapy/components/TherapyVisitErrorState";
 import { TherapyVisitStatusBadge } from "@/features/therapy/components/TherapyVisitStatusBadge";
 import { TherapyVisitTabs } from "@/features/therapy/components/TherapyVisitTabs";
 import type { TherapyVisitTabId } from "@/features/therapy/components/TherapyVisitTabs";
@@ -170,12 +171,9 @@ export function TherapyVisitDetailPage({
 
   if (error || !visit) {
     return (
-      <Alert variant="destructive">
-        <AlertTitle>Visit details unavailable</AlertTitle>
-        <AlertDescription>
-          {error ?? "This visit could not be loaded."}
-        </AlertDescription>
-      </Alert>
+      <TherapyVisitErrorState
+        message={error ?? "This visit could not be loaded."}
+      />
     );
   }
 
