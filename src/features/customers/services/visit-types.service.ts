@@ -1,11 +1,1 @@
-import { BFF_VISITS_ROUTES } from "@/constants/api";
-import type { VisitTypeCatalogItem } from "@/features/customers/types/customer-visit.types";
-import { bffRequest } from "@/lib/bff-client";
-
-export async function fetchVisitTypeCatalog(): Promise<VisitTypeCatalogItem[]> {
-  const data = await bffRequest<{ results: VisitTypeCatalogItem[] }>(
-    BFF_VISITS_ROUTES.consultationServicesCatalog,
-  );
-
-  return data.results;
-}
+export { fetchConsultationServiceCatalog as fetchVisitTypeCatalog } from "@/features/visits/services/consultation-services.service";
