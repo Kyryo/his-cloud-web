@@ -21,6 +21,8 @@ import {
 import type { CustomerEncounter } from "@/features/customers/types/customer-encounter.types";
 import type { Customer } from "@/features/customers/types/customer.types";
 import { formatCompactNumber } from "@/utils/format-compact-number";
+import { formatSalesOrderAmount } from "@/features/sales-orders/utils/format-sales-order";
+import type { CustomerBillingTotals } from "@/features/customers/types/customer-billing.types";
 import { cn } from "@/lib/utils";
 
 const ACTIVITY_PAGE_SIZE = 10;
@@ -36,9 +38,17 @@ type SummaryStats = {
   salesOrders: number | null;
   invoices: number | null;
   payments: number | null;
+  totals: CustomerBillingTotals | null;
   billingUnavailable: boolean;
   isBillingLoading: boolean;
 };
+
+function formatBillingTotal(value: number | string | null | undefined) {
+  if (value === null || value === undefined) {
+    return "—";
+  }
+  return formatSalesOrderAmount(value, "MWK");
+}
 
 function StatCardValue({
   value,
@@ -139,6 +149,7 @@ export function CustomerDetailSummaryTab({
           salesOrders: null,
           invoices: null,
           payments: null,
+          totals: null,
           billingUnavailable: false,
           isBillingLoading: true,
         });
@@ -193,6 +204,7 @@ export function CustomerDetailSummaryTab({
               salesOrders: billingCounts?.salesOrders ?? null,
               invoices: billingCounts?.invoices ?? null,
               payments: billingCounts?.payments ?? null,
+              totals: billingResult?.totals ?? null,
               billingUnavailable: billingResult === null,
               isBillingLoading: false,
             }
@@ -233,33 +245,39 @@ export function CustomerDetailSummaryTab({
           className={SUMMARY_STAT_CARD_CLASS}
           title="Sales orders"
           value={
-            <StatCardValue
-              value={stats?.salesOrders ?? null}
-              unavailable={stats?.billingUnavailable}
-              isLoading={stats?.isBillingLoading}
-            />
+            stats?.isBillingLoading ? (
+              <StatCardValue value={null} isLoading />
+            ) : (
+              <span title={`${stats?.salesOrders ?? 0} orders`}>
+                {formatBillingTotal(stats?.totals?.total_sales)}
+              </span>
+            )
           }
         />
         <StatsCard1
           className={SUMMARY_STAT_CARD_CLASS}
           title="Invoices"
           value={
-            <StatCardValue
-              value={stats?.invoices ?? null}
-              unavailable={stats?.billingUnavailable}
-              isLoading={stats?.isBillingLoading}
-            />
+            stats?.isBillingLoading ? (
+              <StatCardValue value={null} isLoading />
+            ) : (
+              <span title={`${stats?.invoices ?? 0} invoices`}>
+                {formatBillingTotal(stats?.totals?.total_invoiced)}
+              </span>
+            )
           }
         />
         <StatsCard1
           className={SUMMARY_STAT_CARD_CLASS}
           title="Payments"
           value={
-            <StatCardValue
-              value={stats?.payments ?? null}
-              unavailable={stats?.billingUnavailable}
-              isLoading={stats?.isBillingLoading}
-            />
+            stats?.isBillingLoading ? (
+              <StatCardValue value={null} isLoading />
+            ) : (
+              <span title={`${stats?.payments ?? 0} payments`}>
+                {formatBillingTotal(stats?.totals?.total_paid)}
+              </span>
+            )
           }
         />
       </StatsCard1Grid>

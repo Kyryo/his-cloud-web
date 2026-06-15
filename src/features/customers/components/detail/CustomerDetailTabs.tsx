@@ -13,7 +13,9 @@ import {
 } from "@/features/app-shell/components/page-layout";
 import { CustomerDetailAddressesTab } from "@/features/customers/components/detail/CustomerDetailAddressesTab";
 import { CustomerDetailInsuranceTab } from "@/features/customers/components/detail/CustomerDetailInsuranceTab";
+import { CustomerDetailInvoicesTab } from "@/features/customers/components/detail/CustomerDetailInvoicesTab";
 import { CustomerDetailNotesTab } from "@/features/customers/components/detail/CustomerDetailNotesTab";
+import { CustomerDetailPaymentsTab } from "@/features/customers/components/detail/CustomerDetailPaymentsTab";
 import { CustomerDetailSalesOrdersTab } from "@/features/customers/components/detail/CustomerDetailSalesOrdersTab";
 import { CustomerDetailSummaryTab } from "@/features/customers/components/detail/CustomerDetailSummaryTab";
 import { CustomerDetailVisitsTab } from "@/features/customers/components/detail/CustomerDetailVisitsTab";
@@ -55,18 +57,6 @@ const tabs: Array<{
   { id: "notes", label: "Notes" },
 ];
 
-function TabPlaceholder({ label }: { label: string }) {
-  return (
-    <div className="rounded-xl border border-dashed border-brand-border bg-white px-6 py-14 text-center">
-      <p className="text-sm font-medium text-brand-navy">{label}</p>
-      <p className="mt-2 text-sm text-brand-muted">
-        This section is not available yet in the new app. It will be added in a
-        future release.
-      </p>
-    </div>
-  );
-}
-
 export function CustomerDetailTabs({
   customer,
   onUpdateClick,
@@ -100,12 +90,14 @@ export function CustomerDetailTabs({
             customer={customer}
             isActive={activeTab === "orders"}
           />
-          {activeTab === "invoices" ? (
-            <TabPlaceholder label="Invoices" />
-          ) : null}
-          {activeTab === "payments" ? (
-            <TabPlaceholder label="Payments" />
-          ) : null}
+          <CustomerDetailInvoicesTab
+            customer={customer}
+            isActive={activeTab === "invoices"}
+          />
+          <CustomerDetailPaymentsTab
+            customer={customer}
+            isActive={activeTab === "payments"}
+          />
           <CustomerDetailVisitsTab
             customer={customer}
             isActive={activeTab === "visits"}

@@ -20,6 +20,7 @@ import {
 import type { CustomerVisit } from "@/features/customers/types/customer-visit.types";
 import type { Customer } from "@/features/customers/types/customer.types";
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
+import { VisitDetailDialog } from "@/features/visits/components/VisitDetailDialog";
 import { formatCompactNumber } from "@/utils/format-compact-number";
 
 type CustomerDetailVisitsTabProps = {
@@ -47,6 +48,7 @@ export function CustomerDetailVisitsTab({
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const [selectedVisitUuid, setSelectedVisitUuid] = useState<string | null>(null);
 
   const loadVisits = useCallback(async () => {
     setIsLoading(true);
@@ -95,6 +97,17 @@ export function CustomerDetailVisitsTab({
 
   return (
     <div className="space-y-4" data-testid="customer-detail-visits-tab">
+      <VisitDetailDialog
+        visitUuid={selectedVisitUuid}
+        open={Boolean(selectedVisitUuid)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedVisitUuid(null);
+          }
+        }}
+        onVisitUpdated={() => void loadVisits()}
+      />
+
       <StatsCard1Grid>
         <StatsCard1
           title="Total visits"
@@ -131,6 +144,7 @@ export function CustomerDetailVisitsTab({
               badges={<CustomerVisitStatusBadge status={visit.status} />}
               description={formatVisitMeta(visit)}
               dateTime={formatDisplayDateTime(visit.visit_date)}
+              onRowClick={() => setSelectedVisitUuid(visit.uuid)}
               data-testid={`customer-visit-${visit.uuid}`}
             />
           ))}

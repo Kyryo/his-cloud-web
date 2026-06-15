@@ -3,6 +3,8 @@
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
+import type { DetailRecordRowMenuAction } from "@/components/detail/detail-record-row-menu";
+import { DetailRecordRowMenu } from "@/components/detail/detail-record-row-menu";
 import { SecondaryButton } from "@/components/ui/app-buttons";
 import { RecordCreatedByMeta } from "@/components/detail/record-created-by-meta";
 import { cn } from "@/lib/utils";
@@ -17,6 +19,8 @@ type DetailRecordListItemProps = {
   createdByEmail?: string | null;
   onUpdate?: () => void;
   updateLabel?: string;
+  menuActions?: DetailRecordRowMenuAction[];
+  onRowClick?: () => void;
   compact?: boolean;
   "data-testid"?: string;
 };
@@ -31,13 +35,32 @@ export function DetailRecordListItem({
   createdByEmail,
   onUpdate,
   updateLabel = "Update",
+  menuActions,
+  onRowClick,
   compact = false,
   "data-testid": testId,
 }: DetailRecordListItemProps) {
   return (
     <li
-      className={cn("px-4", compact ? "py-2" : "py-2.5")}
+      className={cn(
+        "px-4",
+        compact ? "py-2" : "py-2.5",
+        onRowClick && "cursor-pointer hover:bg-slate-50/80",
+      )}
       data-testid={testId}
+      onClick={onRowClick}
+      onKeyDown={
+        onRowClick
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onRowClick();
+              }
+            }
+          : undefined
+      }
+      role={onRowClick ? "button" : undefined}
+      tabIndex={onRowClick ? 0 : undefined}
     >
       <div className={cn("flex gap-2.5", !Icon && "gap-0")}>
         {Icon ? (
@@ -72,13 +95,16 @@ export function DetailRecordListItem({
                 </div>
               ) : null}
             </div>
-            <div className="flex shrink-0 items-start gap-2">
-              {onUpdate ? (
+            <div className="flex shrink-0 items-start gap-1">
+              {onUpdate && !menuActions?.length ? (
                 <SecondaryButton
                   type="button"
                   size="sm"
                   className="h-7 rounded-full px-2.5 text-xs"
-                  onClick={onUpdate}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onUpdate();
+                  }}
                 >
                   {updateLabel}
                 </SecondaryButton>
@@ -88,6 +114,11 @@ export function DetailRecordListItem({
                 createdByName={createdByName}
                 createdByEmail={createdByEmail}
               />
+              {menuActions?.length ? (
+                <div onClick={(event) => event.stopPropagation()}>
+                  <DetailRecordRowMenu actions={menuActions} />
+                </div>
+              ) : null}
             </div>
           </div>
         </div>

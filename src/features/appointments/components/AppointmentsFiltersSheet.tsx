@@ -88,14 +88,13 @@ export function AppointmentsFiltersSheet({
         type="button"
         variant="outline"
         disabled={isLoading}
-        className="rounded-full"
         onClick={() => handleOpenChange(true)}
         data-testid="appointments-filters-button"
       >
         <SlidersHorizontal className="size-4" aria-hidden="true" />
         Filters
         {activeCount > 0 ? (
-          <Badge variant="secondary" className="ml-1 rounded-full px-2">
+          <Badge variant="secondary" className="ml-1 px-1.5 py-0">
             {activeCount}
           </Badge>
         ) : null}
@@ -212,7 +211,6 @@ export function AppointmentsFiltersSheet({
             <Button
               type="button"
               variant="outline"
-              className="rounded-full"
               onClick={() => {
                 setDraft({
                   status: "all",
@@ -227,7 +225,6 @@ export function AppointmentsFiltersSheet({
             </Button>
             <Button
               type="button"
-              className="rounded-full"
               onClick={() => {
                 onApply(draft);
                 setOpen(false);

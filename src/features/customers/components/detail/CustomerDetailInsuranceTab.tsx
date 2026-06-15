@@ -162,24 +162,27 @@ export function CustomerDetailInsuranceTab({
         {insurance.map((record) => (
           <CustomerDetailRecordListItem
             key={record.uuid}
+            compact
             title={record.insurance_company_name}
             badges={<InsuranceStatusBadges insurance={record} />}
             description={
-              <>
-                <p>
-                  {record.scheme_name} · {record.membership_number}
-                  {record.suffix ? `-${record.suffix}` : ""}
-                </p>
-                <p>
-                  {record.is_principal_member ? "Principal member" : "Dependent"}
-                  {record.relationship_to_principal_member
-                    ? ` · ${record.relationship_to_principal_member}`
-                    : ""}
-                </p>
-              </>
+              <p className="truncate">
+                {record.scheme_name} · {record.membership_number}
+                {record.suffix ? `-${record.suffix}` : ""}
+                {" · "}
+                {record.is_principal_member ? "Principal member" : "Dependent"}
+                {record.relationship_to_principal_member
+                  ? ` · ${record.relationship_to_principal_member}`
+                  : ""}
+              </p>
             }
             dateTime={record.created_at}
-            onUpdate={() => setEditingInsurance(record)}
+            menuActions={[
+              {
+                label: "Update",
+                onClick: () => setEditingInsurance(record),
+              },
+            ]}
           />
         ))}
       </CustomerDetailRecordList>

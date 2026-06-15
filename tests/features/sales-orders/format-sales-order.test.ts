@@ -15,6 +15,7 @@ function createOrder(overrides: Partial<SalesOrder> = {}): SalesOrder {
     state: "sale",
     invoice_status: "no",
     customer_id: 42,
+    customer_uuid: "customer-uuid",
     customer_name: "Ada Lovelace",
     amount_untaxed: "10.00",
     amount_tax: "0.00",

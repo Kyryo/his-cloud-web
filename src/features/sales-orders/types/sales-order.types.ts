@@ -22,6 +22,7 @@ export type SalesOrder = {
   state: SalesOrderState;
   invoice_status: SalesOrderInvoiceStatus;
   customer_id: number;
+  customer_uuid: string | null;
   customer_name: string | null;
   amount_untaxed: string | number | null;
   amount_tax: string | number | null;
