@@ -18,7 +18,6 @@ type UserManagementUsersTabProps = {
 
 const userColumns = [
   { key: "name", label: "User" },
-  { key: "email", label: "Email" },
   { key: "role", label: "Role" },
   { key: "status", label: "Status" },
   { key: "groups", label: "Groups" },
@@ -147,10 +146,10 @@ export function UserManagementUsersTab({ isActive }: UserManagementUsersTabProps
               <tbody className="divide-y divide-brand-border">
                 {users.map((user) => (
                   <tr key={user.id}>
-                    <td className="px-6 py-3.5 text-sm font-medium text-brand-navy">
-                      {user.name}
+                    <td className="px-6 py-3.5">
+                      <div className="text-sm font-medium text-brand-navy">{user.name}</div>
+                      <div className="mt-0.5 text-xs text-brand-muted">{user.email}</div>
                     </td>
-                    <td className="px-6 py-3.5 text-sm text-brand-navy">{user.email}</td>
                     <td className="px-6 py-3.5">
                       <Badge variant={user.is_admin ? "default" : "secondary"}>
                         {user.is_admin ? "Administrator" : "Staff"}

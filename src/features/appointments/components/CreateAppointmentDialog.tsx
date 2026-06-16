@@ -17,6 +17,7 @@ import { Form } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { TabbedDialog } from "@/components/ui/tabbed-dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { AppointmentClinicEmptyState } from "@/features/appointments/components/AppointmentClinicEmptyState";
 import { AppointmentFormFields } from "@/features/appointments/components/AppointmentFormFields";
 import {
   createAppointmentDefaultValues,
@@ -71,7 +72,8 @@ export function CreateAppointmentDialog({
   onCreated,
 }: CreateAppointmentDialogProps) {
   const { toast } = useToast();
-  const { userData } = useUser();
+  const { userData, isLoading: isUserLoading } = useUser();
+  const hasAssignedClinic = Boolean(userData?.primary_clinic);
   const requiresClientSelection = !initialCustomer;
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(
     initialCustomer ?? null,
@@ -114,7 +116,7 @@ export function CreateAppointmentDialog({
   }, []);
 
   useEffect(() => {
-    if (!open) {
+    if (!open || isUserLoading) {
       return;
     }
 
@@ -123,6 +125,14 @@ export function CreateAppointmentDialog({
       setSelectedCustomer(null);
     }
     setSelectedClinicianName(null);
+
+    if (!hasAssignedClinic) {
+      setClinics([]);
+      setDepartments([]);
+      setLocations([]);
+      setIsLoadingContext(false);
+      return;
+    }
 
     let active = true;
 
@@ -177,7 +187,7 @@ export function CreateAppointmentDialog({
     };
     // Reset form state only when the dialog opens, not when unrelated deps change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+  }, [open, isUserLoading, hasAssignedClinic]);
 
   const handleSubmit = form.handleSubmit(async (values) => {
     if (!customer) {
@@ -226,6 +236,8 @@ export function CreateAppointmentDialog({
   });
 
   const isSubmitting = form.formState.isSubmitting;
+  const isDialogLoading = isLoadingContext || (open && isUserLoading);
+  const showClinicEmptyState = !isDialogLoading && !hasAssignedClinic;
 
   return (
     <TabbedDialog
@@ -246,23 +258,25 @@ export function CreateAppointmentDialog({
         <>
           <SecondaryButton
             type="button"
-            disabled={isSubmitting || isLoadingContext}
+            disabled={isSubmitting || isDialogLoading}
             onClick={() => onOpenChange(false)}
           >
             Cancel
           </SecondaryButton>
           {activeTab === "client" ? (
+            showClinicEmptyState ? null : (
+              <PrimaryButton
+                type="button"
+                disabled={!selectedCustomer}
+                onClick={() => setActiveTab("schedule")}
+              >
+                Continue
+              </PrimaryButton>
+            )
+          ) : showClinicEmptyState ? null : activeTab === "schedule" ? (
             <PrimaryButton
               type="button"
-              disabled={!selectedCustomer}
-              onClick={() => setActiveTab("schedule")}
-            >
-              Continue
-            </PrimaryButton>
-          ) : activeTab === "schedule" ? (
-            <PrimaryButton
-              type="button"
-              disabled={isLoadingContext}
+              disabled={isDialogLoading}
               onClick={() => setActiveTab("details")}
             >
               Continue
@@ -270,7 +284,7 @@ export function CreateAppointmentDialog({
           ) : (
             <PrimaryButton
               type="button"
-              disabled={isSubmitting || isLoadingContext || !customer}
+              disabled={isSubmitting || isDialogLoading || !customer}
               onClick={() => void handleSubmit()}
             >
               {isSubmitting ? (
@@ -287,15 +301,26 @@ export function CreateAppointmentDialog({
       }
     >
       {activeTab === "client" ? (
-        <CustomerAppointmentPicker
-          customer={selectedCustomer}
-          onCustomerChange={setSelectedCustomer}
-        />
-      ) : isLoadingContext ? (
+        isDialogLoading ? (
+          <div className="flex items-center justify-center gap-2 py-10 text-sm text-brand-muted">
+            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            Loading clinics...
+          </div>
+        ) : showClinicEmptyState ? (
+          <AppointmentClinicEmptyState />
+        ) : (
+          <CustomerAppointmentPicker
+            customer={selectedCustomer}
+            onCustomerChange={setSelectedCustomer}
+          />
+        )
+      ) : isDialogLoading ? (
         <div className="flex items-center justify-center gap-2 py-10 text-sm text-brand-muted">
           <Loader2 className="size-4 animate-spin" aria-hidden="true" />
           Loading clinics...
         </div>
+      ) : showClinicEmptyState ? (
+        <AppointmentClinicEmptyState />
       ) : (
         <Form {...form}>
           <form className="space-y-5">
