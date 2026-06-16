@@ -30,6 +30,12 @@ export type Invoice = {
   sales_order_id?: number | null;
   sales_order_name?: string | null;
   visit_id?: number | null;
+  authorization_number?: string | null;
+  insurance_company?: string | null;
+  insurance_scheme_id?: number | null;
+  insurance_scheme_name?: string | null;
+  insurance_number?: string | null;
+  insurance_number_prefix?: string | null;
   line_ids?: number[];
   lines?: InvoiceLine[];
 };

@@ -11,31 +11,30 @@ import {
   DetailPageTabsNavSection,
   DetailPageTabsSection,
 } from "@/features/app-shell/components/page-layout";
-import { InvoiceDetailClientTab } from "@/features/invoices/components/detail/InvoiceDetailClientTab";
-import { InvoiceDetailLinesTab } from "@/features/invoices/components/detail/InvoiceDetailLinesTab";
-import { InvoiceSummaryPanel } from "@/features/invoices/components/detail/InvoiceSummaryPanel";
-import type { Invoice } from "@/features/invoices/types/invoice.types";
+import { PaymentDetailClientTab } from "@/features/payments/components/detail/PaymentDetailClientTab";
+import { PaymentDetailOverviewTab } from "@/features/payments/components/detail/PaymentDetailOverviewTab";
+import { PaymentSummaryPanel } from "@/features/payments/components/detail/PaymentSummaryPanel";
+import type { Payment } from "@/features/payments/types/payment.types";
 import { cn } from "@/lib/utils";
 
-type InvoiceDetailTabsProps = {
-  invoice: Invoice;
+type PaymentDetailTabsProps = {
+  payment: Payment;
 };
 
-type DetailTabId = "lines" | "client";
+type DetailTabId = "overview" | "client";
 
 const tabs: Array<{ id: DetailTabId; label: string }> = [
-  { id: "lines", label: "Line items" },
+  { id: "overview", label: "Overview" },
   { id: "client", label: "Client" },
 ];
 
-export function InvoiceDetailTabs({ invoice }: InvoiceDetailTabsProps) {
-  const [activeTab, setActiveTab] = useState<DetailTabId>("lines");
+export function PaymentDetailTabs({ payment }: PaymentDetailTabsProps) {
+  const [activeTab, setActiveTab] = useState<DetailTabId>("overview");
   const [showSummaryPanel, setShowSummaryPanel] = useState(false);
-  const lineCount = invoice.lines?.length ?? invoice.line_ids?.length ?? 0;
 
   return (
     <DetailPageTabsSection>
-      <DetailPageTabsNavSection aria-label="Invoice sections">
+      <DetailPageTabsNavSection aria-label="Payment sections">
         {tabs.map((tab) => (
           <DetailPageTabNavItem
             key={tab.id}
@@ -43,31 +42,36 @@ export function InvoiceDetailTabs({ invoice }: InvoiceDetailTabsProps) {
             onClick={() => setActiveTab(tab.id)}
           >
             {tab.label}
-            {tab.id === "lines" && lineCount > 0 ? ` (${lineCount})` : ""}
           </DetailPageTabNavItem>
         ))}
       </DetailPageTabsNavSection>
 
       <DetailPageMainAsideGrid>
         <DetailPageMainSection>
-          <InvoiceDetailLinesTab invoice={invoice} isActive={activeTab === "lines"} />
-          <InvoiceDetailClientTab invoice={invoice} isActive={activeTab === "client"} />
+          <PaymentDetailOverviewTab
+            payment={payment}
+            isActive={activeTab === "overview"}
+          />
+          <PaymentDetailClientTab
+            payment={payment}
+            isActive={activeTab === "client"}
+          />
         </DetailPageMainSection>
 
-        <InvoiceSummaryPanel
-          invoice={invoice}
+        <PaymentSummaryPanel
+          payment={payment}
           className={cn(!showSummaryPanel && "hidden xl:block")}
         />
       </DetailPageMainAsideGrid>
 
       <FabButton
-        label={showSummaryPanel ? "Hide invoice summary" : "Show invoice summary"}
+        label={showSummaryPanel ? "Hide payment summary" : "Show payment summary"}
         icon={PanelRight}
         variant="outline"
         hideFrom="xl"
         className="bg-white"
         onClick={() => setShowSummaryPanel((current) => !current)}
-        data-testid="invoice-summary-fab"
+        data-testid="payment-summary-fab"
       />
     </DetailPageTabsSection>
   );

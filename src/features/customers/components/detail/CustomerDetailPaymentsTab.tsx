@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Wallet } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -16,6 +17,9 @@ import type { CustomerPaymentRecord } from "@/features/customers/types/customer-
 import type { Customer } from "@/features/customers/types/customer.types";
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { formatInvoiceAmount } from "@/features/invoices/utils/format-invoice";
+import { PaymentStatusBadge } from "@/features/payments/components/PaymentStatusBadge";
+import type { PaymentState } from "@/features/payments/types/payment.types";
+import { ROUTES } from "@/constants/routes";
 import { formatCompactNumber } from "@/utils/format-compact-number";
 
 const PAYMENTS_PAGE_SIZE = 20;
@@ -30,6 +34,7 @@ export function CustomerDetailPaymentsTab({
   customer,
   isActive,
 }: CustomerDetailPaymentsTabProps) {
+  const router = useRouter();
   const [payments, setPayments] = useState<CustomerPaymentRecord[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [hasNext, setHasNext] = useState(false);
@@ -147,6 +152,7 @@ export function CustomerDetailPaymentsTab({
               key={payment.id}
               compact
               title={payment.name}
+              badges={<PaymentStatusBadge state={payment.state as PaymentState} />}
               description={[
                 formatInvoiceAmount(payment.amount),
                 payment.payment_method,
@@ -154,6 +160,8 @@ export function CustomerDetailPaymentsTab({
                 .filter(Boolean)
                 .join(" · ")}
               dateTime={formatDisplayDateTime(payment.payment_date)}
+              onUpdate={() => router.push(ROUTES.paymentDetail(payment.id))}
+              updateLabel="View payment"
               data-testid={`customer-payment-${payment.id}`}
             />
           ))}

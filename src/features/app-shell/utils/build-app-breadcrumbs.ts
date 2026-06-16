@@ -146,6 +146,21 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
       ];
     }
 
+    if (pathname === ROUTES.payments) {
+      return [
+        { label: getModuleLabel("Billing") },
+        { label: "Payments" },
+      ];
+    }
+
+    if (pathname.startsWith(`${ROUTES.payments}/`)) {
+      return [
+        { label: getModuleLabel("Billing") },
+        { label: "Payments", href: ROUTES.payments },
+        { label: "Payment details" },
+      ];
+    }
+
     return [
       { label: getModuleLabel("Billing") },
       { label: "Sales Orders", href: ROUTES.salesOrders },

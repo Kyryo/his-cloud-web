@@ -110,8 +110,38 @@ export function CustomerDetailAppointmentsTab({
       return;
     }
 
-    void loadAppointments();
-  }, [isActive, loadAppointments, refreshKey]);
+    let cancelled = false;
+
+    void (async () => {
+      setIsLoading(true);
+      setLoadError(null);
+
+      try {
+        const response = await fetchAppointments({
+          patient: customer.uuid,
+          pageSize: 100,
+        });
+        if (!cancelled) {
+          setAppointments(response.results);
+          setHasLoaded(true);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setLoadError(
+            error instanceof Error ? error.message : "Failed to load appointments.",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isActive, customer.uuid, refreshKey]);
 
   const handleAction = async (
     appointment: Appointment,
@@ -146,7 +176,7 @@ export function CustomerDetailAppointmentsTab({
 
   const scheduleButton = (
     <TabAddActionButton
-      label="Schedule appointmentx"
+      label="Schedule appointment"
       onClick={() => setCreateOpen(true)}
       data-testid="schedule-appointment-button"
     />

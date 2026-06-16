@@ -3,32 +3,34 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { InvoiceStatusBadge } from "@/features/invoices/components/InvoiceStatusBadge";
-import type { Invoice } from "@/features/invoices/types/invoice.types";
+import { PaymentStatusBadge } from "@/features/payments/components/PaymentStatusBadge";
+import type { Payment } from "@/features/payments/types/payment.types";
 import {
-  formatInvoiceAmount,
-  formatInvoiceCustomer,
-  formatInvoiceDate,
-} from "@/features/invoices/utils/format-invoice";
+  formatPaymentAmount,
+  formatPaymentCustomer,
+  formatPaymentDate,
+  formatPaymentMethod,
+} from "@/features/payments/utils/format-payment";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 
-type InvoicesTableProps = {
-  invoices: Invoice[];
-  onRowClick?: (invoice: Invoice) => void;
+type PaymentsTableProps = {
+  payments: Payment[];
+  onRowClick?: (payment: Payment) => void;
   className?: string;
 };
 
 const columns = [
-  { key: "invoice", label: "Invoice" },
+  { key: "payment", label: "Payment" },
   { key: "customer", label: "Customer" },
-  { key: "salesOrder", label: "Sales order" },
-  { key: "date", label: "Invoice date" },
+  { key: "invoice", label: "Invoice" },
+  { key: "date", label: "Payment date" },
+  { key: "method", label: "Method" },
   { key: "state", label: "State" },
-  { key: "total", label: "Total" },
+  { key: "amount", label: "Amount" },
 ] as const;
 
-export function InvoicesTable({ invoices, onRowClick, className }: InvoicesTableProps) {
+export function PaymentsTable({ payments, onRowClick, className }: PaymentsTableProps) {
   return (
     <div className={cn("overflow-hidden rounded-xl border border-brand-border bg-white", className)}>
       <div className="overflow-x-auto">
@@ -47,50 +49,53 @@ export function InvoicesTable({ invoices, onRowClick, className }: InvoicesTable
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-border">
-            {invoices.map((invoice) => (
+            {payments.map((payment) => (
               <tr
-                key={invoice.id}
+                key={payment.id}
                 className={cn(onRowClick && "cursor-pointer hover:bg-slate-50/80")}
-                onClick={() => onRowClick?.(invoice)}
-                data-testid={`invoice-row-${invoice.id}`}
+                onClick={() => onRowClick?.(payment)}
+                data-testid={`payment-row-${payment.id}`}
               >
                 <td className="px-4 py-3 text-sm font-medium text-brand-navy">
-                  {invoice.name || `#${invoice.id}`}
+                  {payment.name || `#${payment.id}`}
                 </td>
                 <td className="px-4 py-3 text-sm text-brand-slate">
-                  {invoice.customer_uuid ? (
+                  {payment.customer_uuid ? (
                     <Link
-                      href={ROUTES.customerDetail(invoice.customer_uuid)}
+                      href={ROUTES.customerDetail(payment.customer_uuid)}
                       className="hover:text-brand-primary hover:underline"
                       onClick={(event) => event.stopPropagation()}
                     >
-                      {formatInvoiceCustomer(invoice)}
+                      {formatPaymentCustomer(payment)}
                     </Link>
                   ) : (
-                    formatInvoiceCustomer(invoice)
+                    formatPaymentCustomer(payment)
                   )}
                 </td>
                 <td className="px-4 py-3 text-sm text-brand-slate">
-                  {invoice.sales_order_id ? (
+                  {payment.invoice_id ? (
                     <Link
-                      href={ROUTES.salesOrderDetail(invoice.sales_order_id)}
+                      href={ROUTES.invoiceDetail(payment.invoice_id)}
                       className="hover:text-brand-primary hover:underline"
                       onClick={(event) => event.stopPropagation()}
                     >
-                      {invoice.sales_order_name || `#${invoice.sales_order_id}`}
+                      {payment.invoice_name || `#${payment.invoice_id}`}
                     </Link>
                   ) : (
                     "—"
                   )}
                 </td>
                 <td className="px-4 py-3 text-sm text-brand-slate">
-                  {formatInvoiceDate(invoice.invoice_date)}
+                  {formatPaymentDate(payment.payment_date)}
+                </td>
+                <td className="px-4 py-3 text-sm text-brand-slate">
+                  {formatPaymentMethod(payment.payment_method)}
                 </td>
                 <td className="px-4 py-3 text-sm">
-                  <InvoiceStatusBadge state={invoice.state} />
+                  <PaymentStatusBadge state={payment.state} />
                 </td>
                 <td className="px-4 py-3 text-sm font-medium text-brand-navy">
-                  {formatInvoiceAmount(invoice.amount_total)}
+                  {formatPaymentAmount(payment.amount)}
                 </td>
               </tr>
             ))}
@@ -101,26 +106,26 @@ export function InvoicesTable({ invoices, onRowClick, className }: InvoicesTable
   );
 }
 
-type InvoicesPaginationProps = {
+type PaymentsPaginationProps = {
   page: number;
   pageSize: number;
   totalCount: number;
   onPageChange: (page: number) => void;
 };
 
-export function InvoicesPagination({
+export function PaymentsPagination({
   page,
   pageSize,
   totalCount,
   onPageChange,
-}: InvoicesPaginationProps) {
+}: PaymentsPaginationProps) {
   const hasNext = page * pageSize < totalCount;
   const hasPrevious = page > 1;
 
   return (
     <div className="flex items-center justify-between gap-3">
       <p className="text-sm text-brand-muted">
-        Showing {invoicesRangeLabel(page, pageSize, totalCount)} of {totalCount}
+        Showing {paymentsRangeLabel(page, pageSize, totalCount)} of {totalCount}
       </p>
       <div className="flex gap-2">
         <Button
@@ -146,7 +151,7 @@ export function InvoicesPagination({
   );
 }
 
-function invoicesRangeLabel(page: number, pageSize: number, totalCount: number) {
+function paymentsRangeLabel(page: number, pageSize: number, totalCount: number) {
   if (totalCount === 0) {
     return "0";
   }
