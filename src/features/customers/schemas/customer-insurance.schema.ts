@@ -124,7 +124,7 @@ export function toCustomerInsurancePayload(
   } = {
     insurance_scheme: values.insurance_scheme,
     membership_number: values.membership_number.trim(),
-    suffix: values.suffix.trim(),
+    suffix: values.suffix?.trim() ?? "",
     is_principal_member: values.is_principal_member,
     principal_member_name: values.principal_member_name.trim(),
     relationship_to_principal_member:

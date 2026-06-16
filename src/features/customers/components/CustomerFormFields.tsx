@@ -40,16 +40,11 @@ export function CustomerFormFields({
 }: CustomerFormFieldsProps) {
   const disabled = isSubmitting || fieldsDisabled;
 
-  function handleNameBlur(
-    fieldName: "first_name" | "middle_name" | "last_name",
-    value: string,
-    onChange: (value: string) => void,
-  ) {
+  function handleNameBlur(value: string, onChange: (value: string) => void) {
     const formatted = formatCapitalizedName(value);
     if (formatted !== value) {
       onChange(formatted);
     }
-    form.clearErrors(fieldName);
   }
 
   function handleDateOfBirthChange(value: string) {
@@ -83,7 +78,7 @@ export function CustomerFormFields({
                   {...field}
                   onBlur={(event) => {
                     field.onBlur();
-                    handleNameBlur("first_name", event.target.value, field.onChange);
+                    handleNameBlur(event.target.value, field.onChange);
                   }}
                 />
               </FormControl>
@@ -104,7 +99,7 @@ export function CustomerFormFields({
                   {...field}
                   onBlur={(event) => {
                     field.onBlur();
-                    handleNameBlur("middle_name", event.target.value, field.onChange);
+                    handleNameBlur(event.target.value, field.onChange);
                   }}
                 />
               </FormControl>
@@ -130,7 +125,7 @@ export function CustomerFormFields({
                 {...field}
                 onBlur={(event) => {
                   field.onBlur();
-                  handleNameBlur("last_name", event.target.value, field.onChange);
+                  handleNameBlur(event.target.value, field.onChange);
                 }}
               />
             </FormControl>
