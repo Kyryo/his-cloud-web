@@ -88,7 +88,7 @@ export function InvoiceFiltersSheet({
               id="invoice-filter-state"
               label="State"
               value={draft.state}
-              options={INVOICE_STATE_OPTIONS}
+              options={[...INVOICE_STATE_OPTIONS]}
               onValueChange={(value) =>
                 setDraft((current) => ({
                   ...current,
@@ -100,7 +100,7 @@ export function InvoiceFiltersSheet({
               id="invoice-filter-payment-status"
               label="Payment status"
               value={draft.paymentStatus}
-              options={INVOICE_PAYMENT_STATUS_OPTIONS}
+              options={[...INVOICE_PAYMENT_STATUS_OPTIONS]}
               onValueChange={(value) =>
                 setDraft((current) => ({
                   ...current,

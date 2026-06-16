@@ -183,7 +183,7 @@ export function InvoiceDetailPaymentsTab({
                   ]
                     .filter(Boolean)
                     .join(" · ")}
-                  dateTime={formatDisplayDateTime(payment.payment_date)}
+                  dateTime={formatDisplayDateTime(payment.payment_date ?? "")}
                   onUpdate={() => router.push(ROUTES.paymentDetail(payment.id))}
                   updateLabel="View payment"
                   data-testid={`invoice-payment-${payment.id}`}

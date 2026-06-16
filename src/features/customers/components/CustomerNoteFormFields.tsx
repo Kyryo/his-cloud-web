@@ -1,6 +1,6 @@
 "use client";
 
-import type { UseFormReturn } from "react-hook-form";
+import type { FieldValues, UseFormReturn } from "react-hook-form";
 
 import {
   FormControl,
@@ -18,18 +18,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { CreateCustomerNoteFormValues } from "@/features/customers/schemas/customer-note.schema";
 import { CUSTOMER_NOTE_TYPE_OPTIONS } from "@/features/customers/types/customer-note.types";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 
-type CustomerNoteFormFieldsProps<T extends CreateCustomerNoteFormValues> = {
+type CustomerNoteFormFieldsProps<T extends FieldValues> = {
   form: UseFormReturn<T>;
   isSubmitting: boolean;
   idPrefix?: string;
 };
 
-export function CustomerNoteFormFields<T extends CreateCustomerNoteFormValues>({
+export function CustomerNoteFormFields<T extends FieldValues>({
   form,
   isSubmitting,
   idPrefix = "create-customer-note",
@@ -38,7 +37,7 @@ export function CustomerNoteFormFields<T extends CreateCustomerNoteFormValues>({
     <>
       <FormField
         control={form.control}
-        name="note_type"
+        name={"note_type" as never}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Note type</FormLabel>
@@ -67,7 +66,7 @@ export function CustomerNoteFormFields<T extends CreateCustomerNoteFormValues>({
 
       <FormField
         control={form.control}
-        name="title"
+        name={"title" as never}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Title</FormLabel>
@@ -86,7 +85,7 @@ export function CustomerNoteFormFields<T extends CreateCustomerNoteFormValues>({
 
       <FormField
         control={form.control}
-        name="body"
+        name={"body" as never}
         render={({ field }) => (
           <FormItem>
             <FormLabel>
@@ -111,7 +110,7 @@ export function CustomerNoteFormFields<T extends CreateCustomerNoteFormValues>({
 
       <FormField
         control={form.control}
-        name="is_pinned"
+        name={"is_pinned" as never}
         render={({ field }) => (
           <FormItem className="flex flex-row items-center gap-3 space-y-0">
             <FormControl>

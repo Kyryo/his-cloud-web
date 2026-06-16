@@ -90,9 +90,10 @@ export function SalesOrderFiltersSheet({
 
           <div className="flex-1 space-y-5 overflow-y-auto px-6 py-6">
             <FilterSelectField
+              id="sales-order-filter-state"
               label="Order state"
               value={draft.state}
-              options={SALES_ORDER_STATE_OPTIONS}
+              options={[...SALES_ORDER_STATE_OPTIONS]}
               onValueChange={(value) =>
                 setDraft((current) => ({
                   ...current,
@@ -102,9 +103,10 @@ export function SalesOrderFiltersSheet({
             />
 
             <FilterSelectField
+              id="sales-order-filter-invoice-status"
               label="Invoice status"
               value={draft.invoiceStatus}
-              options={SALES_ORDER_INVOICE_STATUS_OPTIONS}
+              options={[...SALES_ORDER_INVOICE_STATUS_OPTIONS]}
               onValueChange={(value) =>
                 setDraft((current) => ({
                   ...current,

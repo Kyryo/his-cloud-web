@@ -109,13 +109,13 @@ export function UpdateInternalOrderDialog({
             id="internal-order-source-location"
             label="Source location"
             value={sourceLocation}
-            onValueChange={setSourceLocation}
+            onValueChange={(locationId) => setSourceLocation(String(locationId))}
           />
           <InventoryLocationSelect
             id="internal-order-destination-location"
             label="Destination location"
             value={destinationLocation}
-            onValueChange={setDestinationLocation}
+            onValueChange={(locationId) => setDestinationLocation(String(locationId))}
           />
           <div>
             <Label htmlFor="internal-order-notes">Notes</Label>

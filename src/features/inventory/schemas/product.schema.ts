@@ -130,26 +130,30 @@ export type CreateInventoryProductAvailabilityFormValues = z.infer<
   typeof createInventoryProductAvailabilitySchema
 >;
 
-export type CreateInventoryProductFormValues = z.infer<
-  typeof createInventoryProductSchema
->;
+/**
+ * Use the schema input type for react-hook-form.
+ * `z.preprocess` fields have an `unknown` input type which is what RHF produces.
+ */
+export type CreateInventoryProductFormValues = z.input<typeof createInventoryProductSchema>;
 
-export const createInventoryProductDefaultValues: CreateInventoryProductFormValues =
-  {
-    name: "",
-    default_code: "",
-    barcode: "",
-    product_type: "product",
-    list_price: "",
-    standard_price: "",
-    is_drug: false,
-    liquid_or_cream: false,
-    is_procedure: false,
-    procedure_scope: "",
-    sale_ok: true,
-    purchase_ok: true,
-    active: true,
-  };
+/** Parsed/validated output type from Zod. */
+export type CreateInventoryProductParsedValues = z.output<typeof createInventoryProductSchema>;
+
+export const createInventoryProductDefaultValues: CreateInventoryProductFormValues = {
+  name: "",
+  default_code: "",
+  barcode: "",
+  product_type: "product",
+  list_price: "",
+  standard_price: "",
+  is_drug: false,
+  liquid_or_cream: false,
+  is_procedure: false,
+  procedure_scope: "",
+  sale_ok: true,
+  purchase_ok: true,
+  active: true,
+};
 
 function parseOptionalPrice(value: string): number | undefined {
   const trimmed = value.trim();
@@ -159,7 +163,7 @@ function parseOptionalPrice(value: string): number | undefined {
   return Number(trimmed);
 }
 
-function procedureScopeToFlags(scope: CreateInventoryProductFormValues["procedure_scope"]) {
+function procedureScopeToFlags(scope: CreateInventoryProductParsedValues["procedure_scope"]) {
   return {
     dental_only_procedure: scope === "dental_only",
     opd_only_procedure: scope === "opd_only",
@@ -172,34 +176,35 @@ function procedureScopeToFlags(scope: CreateInventoryProductFormValues["procedur
 export function toCreateInventoryProductPayload(
   values: CreateInventoryProductFormValues,
 ) {
+  const parsed = createInventoryProductSchema.parse(values);
   const payload: CreateInventoryProductPayload = {
-    name: values.name.trim(),
-    product_type: values.product_type,
-    sale_ok: values.sale_ok,
-    purchase_ok: values.purchase_ok,
-    active: values.active,
-    is_drug: values.is_drug,
-    liquid_or_cream: values.liquid_or_cream,
-    is_procedure: values.is_procedure,
-    ...procedureScopeToFlags(values.procedure_scope),
+    name: parsed.name.trim(),
+    product_type: parsed.product_type,
+    sale_ok: parsed.sale_ok,
+    purchase_ok: parsed.purchase_ok,
+    active: parsed.active,
+    is_drug: parsed.is_drug,
+    liquid_or_cream: parsed.liquid_or_cream,
+    is_procedure: parsed.is_procedure,
+    ...procedureScopeToFlags(parsed.procedure_scope),
   };
 
-  const defaultCode = values.default_code.trim();
+  const defaultCode = parsed.default_code.trim();
   if (defaultCode) {
     payload.default_code = defaultCode;
   }
 
-  const barcode = values.barcode.trim();
+  const barcode = parsed.barcode.trim();
   if (barcode) {
     payload.barcode = barcode;
   }
 
-  const listPrice = parseOptionalPrice(values.list_price);
+  const listPrice = parseOptionalPrice(parsed.list_price);
   if (listPrice !== undefined) {
     payload.list_price = listPrice;
   }
 
-  const standardPrice = parseOptionalPrice(values.standard_price);
+  const standardPrice = parseOptionalPrice(parsed.standard_price);
   if (standardPrice !== undefined) {
     payload.standard_price = standardPrice;
   }
@@ -212,8 +217,8 @@ export function toUpdateInventoryProductPayload(
 ) {
   return {
     ...toCreateInventoryProductPayload(values),
-    default_code: values.default_code.trim(),
-    barcode: values.barcode.trim(),
+    default_code: createInventoryProductSchema.parse(values).default_code.trim(),
+    barcode: createInventoryProductSchema.parse(values).barcode.trim(),
   };
 }
 

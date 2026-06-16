@@ -1,6 +1,5 @@
 "use client";
 
-import { Receipt } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { FormControl, FormField, FormItem } from "@/components/ui/form";

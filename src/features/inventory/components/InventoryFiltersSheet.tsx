@@ -357,7 +357,7 @@ export function InventoryFiltersSheet({
                     activeStatus: value as StockSheetFilters["activeStatus"],
                   }))
                 }
-                options={ACTIVE_STATUS_OPTIONS}
+                options={[...ACTIVE_STATUS_OPTIONS]}
               />
               <FilterSelectField
                 id="inventory-filter-stock-batch"
@@ -370,7 +370,7 @@ export function InventoryFiltersSheet({
                     hasBatch: value as StockSheetFilters["hasBatch"],
                   }))
                 }
-                options={TRI_STATE_OPTIONS}
+                options={[...TRI_STATE_OPTIONS]}
               />
               <FilterSelectField
                 id="inventory-filter-stock-ordering"
@@ -383,7 +383,7 @@ export function InventoryFiltersSheet({
                     ordering: value,
                   }))
                 }
-                options={STOCK_ORDERING_OPTIONS}
+                options={[...STOCK_ORDERING_OPTIONS]}
               />
             </>
           ) : null}
@@ -401,7 +401,7 @@ export function InventoryFiltersSheet({
                     activeStatus: value as ProductSheetFilters["activeStatus"],
                   }))
                 }
-                options={ACTIVE_STATUS_OPTIONS}
+                options={[...ACTIVE_STATUS_OPTIONS]}
               />
               <FilterSelectField
                 id="inventory-filter-products-ordering"
@@ -414,7 +414,7 @@ export function InventoryFiltersSheet({
                     ordering: value,
                   }))
                 }
-                options={INVENTORY_ORDERING_OPTIONS}
+                options={[...INVENTORY_ORDERING_OPTIONS]}
               />
             </>
           ) : null}
@@ -432,7 +432,7 @@ export function InventoryFiltersSheet({
                     status: value,
                   }))
                 }
-                options={PURCHASE_STATUS_OPTIONS}
+                options={[...PURCHASE_STATUS_OPTIONS]}
               />
               <FilterSelectField
                 id="inventory-filter-po-location"
@@ -458,7 +458,7 @@ export function InventoryFiltersSheet({
                     activeStatus: value as PurchaseOrderSheetFilters["activeStatus"],
                   }))
                 }
-                options={ACTIVE_STATUS_OPTIONS}
+                options={[...ACTIVE_STATUS_OPTIONS]}
               />
               <FilterSelectField
                 id="inventory-filter-po-ordering"
@@ -471,7 +471,7 @@ export function InventoryFiltersSheet({
                     ordering: value,
                   }))
                 }
-                options={INVENTORY_ORDERING_OPTIONS}
+                options={[...INVENTORY_ORDERING_OPTIONS]}
               />
             </>
           ) : null}
@@ -489,7 +489,7 @@ export function InventoryFiltersSheet({
                     status: value,
                   }))
                 }
-                options={INTERNAL_ORDER_STATUS_OPTIONS}
+                options={[...INTERNAL_ORDER_STATUS_OPTIONS]}
               />
               <FilterSelectField
                 id="inventory-filter-io-source"
@@ -528,7 +528,7 @@ export function InventoryFiltersSheet({
                     ordering: value,
                   }))
                 }
-                options={INVENTORY_ORDERING_OPTIONS}
+                options={[...INVENTORY_ORDERING_OPTIONS]}
               />
             </>
           ) : null}
@@ -546,7 +546,7 @@ export function InventoryFiltersSheet({
                     status: value,
                   }))
                 }
-                options={STOCK_ADJUSTMENT_STATUS_OPTIONS}
+                options={[...STOCK_ADJUSTMENT_STATUS_OPTIONS]}
               />
               <FilterSelectField
                 id="inventory-filter-sa-type"
@@ -559,7 +559,7 @@ export function InventoryFiltersSheet({
                     adjustmentType: value,
                   }))
                 }
-                options={ADJUSTMENT_TYPE_OPTIONS}
+                options={[...ADJUSTMENT_TYPE_OPTIONS]}
               />
               <FilterSelectField
                 id="inventory-filter-sa-location"
@@ -585,7 +585,7 @@ export function InventoryFiltersSheet({
                     ordering: value,
                   }))
                 }
-                options={INVENTORY_ORDERING_OPTIONS}
+                options={[...INVENTORY_ORDERING_OPTIONS]}
               />
             </>
           ) : null}
@@ -603,7 +603,7 @@ export function InventoryFiltersSheet({
                     movementType: value,
                   }))
                 }
-                options={MOVEMENT_TYPE_OPTIONS}
+                options={[...MOVEMENT_TYPE_OPTIONS]}
               />
               <FilterSelectField
                 id="inventory-filter-movement-from"
@@ -642,7 +642,7 @@ export function InventoryFiltersSheet({
                     ordering: value,
                   }))
                 }
-                options={MOVEMENT_ORDERING_OPTIONS}
+                options={[...MOVEMENT_ORDERING_OPTIONS]}
               />
             </>
           ) : null}
@@ -660,7 +660,7 @@ export function InventoryFiltersSheet({
                     activeStatus: value as BatchSheetFilters["activeStatus"],
                   }))
                 }
-                options={ACTIVE_STATUS_OPTIONS}
+                options={[...ACTIVE_STATUS_OPTIONS]}
               />
               <FilterSelectField
                 id="inventory-filter-batch-expiry"
@@ -673,7 +673,7 @@ export function InventoryFiltersSheet({
                     hasExpiryDate: value as BatchSheetFilters["hasExpiryDate"],
                   }))
                 }
-                options={TRI_STATE_OPTIONS}
+                options={[...TRI_STATE_OPTIONS]}
               />
               <FilterSelectField
                 id="inventory-filter-batch-ordering"
@@ -686,7 +686,7 @@ export function InventoryFiltersSheet({
                     ordering: value,
                   }))
                 }
-                options={INVENTORY_ORDERING_OPTIONS}
+                options={[...INVENTORY_ORDERING_OPTIONS]}
               />
             </>
           ) : null}

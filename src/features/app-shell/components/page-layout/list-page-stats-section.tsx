@@ -1,7 +1,5 @@
 import type { ReactNode } from "react";
 
-import { cn } from "@/lib/utils";
-
 type ListPageStatsSectionProps = {
   children: ReactNode;
   className?: string;

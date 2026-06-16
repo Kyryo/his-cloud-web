@@ -125,7 +125,7 @@ export function PurchaseOrdersListPage() {
                 variant="purchase-orders"
                 filters={sheetFilters}
                 isLoading={isRefreshing}
-                onApply={handleFiltersApply}
+                onApply={(filters) => handleFiltersApply(filters as typeof sheetFilters)}
               />
             }
           />

@@ -4,7 +4,6 @@ import { Package } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
-import { AddActionButton } from "@/components/ui/app-buttons";
 import { FabButton } from "@/components/ui/fab-button";
 import { ROUTES } from "@/constants/routes";
 import {
@@ -149,7 +148,7 @@ export function ProductsListPage() {
                 variant="products"
                 filters={sheetFilters}
                 isLoading={isRefreshing}
-                onApply={handleFiltersApply}
+                onApply={(filters) => handleFiltersApply(filters as typeof sheetFilters)}
               />
             }
           />

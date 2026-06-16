@@ -34,7 +34,7 @@ export function toCreateInternalOrderPayload(values: CreateInternalOrderFormValu
     source_location: values.source_location,
     destination_location: values.destination_location,
     notes: values.notes?.trim() || null,
-    lines: [] as const,
+    lines: [],
   };
 }
 

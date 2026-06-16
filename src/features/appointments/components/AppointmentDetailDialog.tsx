@@ -135,7 +135,7 @@ export function AppointmentDetailDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, appointmentUuid]);
 
-  const handleClinicChange = (clinicUuid: string, clinicId: number | null) => {
+  const handleClinicChange = (_clinicUuid: string, clinicId: number | null) => {
     if (clinicId) {
       void loadDepartmentsAndLocations(clinicId);
     } else {

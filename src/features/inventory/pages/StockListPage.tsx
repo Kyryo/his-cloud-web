@@ -89,7 +89,7 @@ export function StockListPage() {
                 variant="stock"
                 filters={sheetFilters}
                 isLoading={isRefreshing}
-                onApply={handleFiltersApply}
+                onApply={(filters) => handleFiltersApply(filters as typeof sheetFilters)}
               />
             }
           />

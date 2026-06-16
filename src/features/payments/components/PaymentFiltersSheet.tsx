@@ -77,9 +77,10 @@ export function PaymentFiltersSheet({
 
           <div className="mt-6 space-y-5">
             <FilterSelectField
+              id="payment-filter-state"
               label="State"
               value={draft.state}
-              options={PAYMENT_STATE_OPTIONS}
+              options={[...PAYMENT_STATE_OPTIONS]}
               onValueChange={(value) =>
                 setDraft((current) => ({
                   ...current,

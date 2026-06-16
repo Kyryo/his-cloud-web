@@ -37,7 +37,9 @@ export async function requireTenantAdmin():
 
   const auth = await requireAccessToken();
   if ("error" in auth) {
-    return { error: auth.error };
+    return {
+      error: auth.error ?? bffSuccess({ message: "Not authenticated." }, 401),
+    };
   }
 
   return {

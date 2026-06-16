@@ -76,6 +76,7 @@ export function ProductFormFields({
               <FormControl>
                 <Input
                   {...field}
+                  value={typeof field.value === "string" ? field.value : ""}
                   placeholder="SKU or item code"
                   data-testid={`${testIdPrefix}-default-code`}
                 />
@@ -97,6 +98,7 @@ export function ProductFormFields({
               <FormControl>
                 <Input
                   {...field}
+                  value={typeof field.value === "string" ? field.value : ""}
                   placeholder="EAN or barcode"
                   data-testid={`${testIdPrefix}-barcode`}
                 />

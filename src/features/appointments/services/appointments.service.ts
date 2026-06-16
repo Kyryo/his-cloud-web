@@ -114,7 +114,7 @@ export async function updateAppointment(
 export async function runAppointmentAction(
   uuid: string,
   action: AppointmentAction,
-  body?: { reason?: string },
+  body?: Record<string, unknown>,
 ): Promise<Appointment | { visit: VisitDetail; encounter: unknown }> {
   const route =
     action === "confirm"

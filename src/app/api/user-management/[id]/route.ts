@@ -29,7 +29,11 @@ function pickUserPayload(body: UpdateOrganizationUserPayload) {
         if (field === "password" && trimmed === "") {
           continue;
         }
-        payload[field] = trimmed;
+        if (field === "user_role") {
+          payload.user_role = trimmed as UpdateOrganizationUserPayload["user_role"];
+        } else {
+          payload[field] = trimmed;
+        }
       }
     }
   }

@@ -116,7 +116,7 @@ export function BatchesListPage() {
                 variant="batches"
                 filters={sheetFilters}
                 isLoading={isRefreshing}
-                onApply={handleFiltersApply}
+                onApply={(filters) => handleFiltersApply(filters as typeof sheetFilters)}
               />
             }
             primaryAction={

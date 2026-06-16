@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { PageLoader } from "@/components/page-loader";
-import { Button } from "@/components/ui/button";
 import { InvoiceListToolbar } from "@/features/invoices/components/InvoiceListToolbar";
 import { InvoicesPageHeader } from "@/features/invoices/components/InvoicesPageHeader";
 import {

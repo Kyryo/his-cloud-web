@@ -53,9 +53,6 @@ export function PurchaseOrderDetailTabs({
   const [activeTab, setActiveTab] = useState<DetailTabId>("lines");
   const [showSummaryPanel, setShowSummaryPanel] = useState(false);
   const [lineCount, setLineCount] = useState(order.lines.length);
-  const [totalValue, setTotalValue] = useState(
-    Number.parseFloat(String(order.total_value ?? 0)) || 0,
-  );
   const [draftLines, setDraftLines] = useState<PurchaseOrderLineDraft[] | null>(null);
   const [validationIssueCount, setValidationIssueCount] = useState(0);
   const { batchTrackingEnabled } = useClinicBatchTrackingForLocation(
@@ -76,7 +73,6 @@ export function PurchaseOrderDetailTabs({
       validationIssueCount: number;
     }) => {
       setLineCount(state.lineCount);
-      setTotalValue(state.totalValue);
       setDraftLines(state.draftLines);
       setValidationIssueCount(state.validationIssueCount);
       onLinesStateChange?.(state);

@@ -127,7 +127,7 @@ export function StockAdjustmentsListPage() {
                 variant="stock-adjustments"
                 filters={sheetFilters}
                 isLoading={isRefreshing}
-                onApply={handleFiltersApply}
+                onApply={(filters) => handleFiltersApply(filters as typeof sheetFilters)}
               />
             }
             primaryAction={

@@ -2,7 +2,6 @@ import { PRICELISTS_API_PATHS } from "@/constants/pricelists-api";
 import type {
   CreateOrganizationPricelistPayload,
   OrganizationPricelist,
-  UpdateOrganizationPricelistPayload,
 } from "@/features/settings/types/settings.types";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
 import { hmisApiRequest } from "@/lib/server/hmis-api";

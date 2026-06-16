@@ -101,7 +101,7 @@ export function MovementsListPage() {
                 variant="movements"
                 filters={sheetFilters}
                 isLoading={isRefreshing}
-                onApply={handleFiltersApply}
+                onApply={(filters) => handleFiltersApply(filters as typeof sheetFilters)}
               />
             }
           />
