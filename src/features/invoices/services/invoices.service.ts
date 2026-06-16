@@ -30,6 +30,9 @@ function buildInvoicesQuery(filters: InvoiceListFilters = {}): string {
   if (filters.customerId) {
     params.set("customer_id", String(filters.customerId));
   }
+  if (filters.paymentStatus) {
+    params.set("payment_status", filters.paymentStatus);
+  }
 
   const query = params.toString();
   return query ? `?${query}` : "";

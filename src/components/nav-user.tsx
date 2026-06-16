@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronsUpDown, LogOut } from "lucide-react";
+import Link from "next/link";
+import { ChevronsUpDown, LogOut, UserRound } from "lucide-react";
 
 import { UserIdenticon } from "@/components/UserIdenticon";
 import {
@@ -17,6 +18,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { ROUTES } from "@/constants/routes";
 import { logout } from "@/features/auth/services/auth.service";
 import { useUser } from "@/providers/user-provider";
 
@@ -66,6 +68,13 @@ export function NavUser() {
                 </div>
               </div>
             </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href={ROUTES.settingsAccount}>
+                <UserRound />
+                Account
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => void logout()}>
               <LogOut />

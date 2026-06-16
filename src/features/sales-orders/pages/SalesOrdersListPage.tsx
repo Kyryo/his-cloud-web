@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { PageLoader } from "@/components/page-loader";
 import { Button } from "@/components/ui/button";
+import { CreateSalesOrderDialog } from "@/features/sales-orders/components/CreateSalesOrderDialog";
 import { SalesOrderListToolbar } from "@/features/sales-orders/components/SalesOrderListToolbar";
 import { SalesOrdersPageHeader } from "@/features/sales-orders/components/SalesOrdersPageHeader";
 import {
@@ -42,6 +43,7 @@ export function SalesOrdersListPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isUnauthorized, setIsUnauthorized] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   const listFilters = useMemo(
     () =>
@@ -177,6 +179,7 @@ export function SalesOrdersListPage() {
   return (
     <ListPageLayout data-testid="sales-orders-page">
       <SalesOrdersPageHeader
+        onNewOrder={() => setCreateDialogOpen(true)}
         search={search}
         isSearchDisabled={isRefreshing}
         onSearchChange={setSearch}
@@ -248,6 +251,12 @@ export function SalesOrdersListPage() {
           </>
         )}
       </ListPageTableSection>
+
+      <CreateSalesOrderDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onCreated={(order) => router.push(ROUTES.salesOrderDetail(order.id))}
+      />
     </ListPageLayout>
   );
 }

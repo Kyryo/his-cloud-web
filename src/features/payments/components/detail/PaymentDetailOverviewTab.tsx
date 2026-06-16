@@ -47,6 +47,10 @@ export function PaymentDetailOverviewTab({
               { label: "Payment date", value: formatPaymentDate(payment.payment_date) },
               { label: "Method", value: formatPaymentMethod(payment.payment_method) },
               {
+                label: "Notes",
+                value: payment.note?.trim() ? payment.note : "—",
+              },
+              {
                 label: "Invoice",
                 value: payment.invoice_id ? (
                   <Link

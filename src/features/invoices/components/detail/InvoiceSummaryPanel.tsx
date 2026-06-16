@@ -21,6 +21,7 @@ import {
   formatInvoiceInsuranceNumber,
 } from "@/features/invoices/utils/format-invoice-insurance";
 import { formatInvoiceStateLabel } from "@/features/invoices/utils/invoice-status";
+import { formatInvoicePaymentStatusLabel } from "@/features/invoices/utils/invoice-payment-status";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 
@@ -60,10 +61,22 @@ export function InvoiceSummaryPanel({
             value={formatInvoiceAmount(invoice.amount_total)}
             emphasized
           />
+          <DetailPageAsideSummaryAmountRow
+            label="Paid"
+            value={formatInvoiceAmount(invoice.amount_paid)}
+          />
+          <DetailPageAsideSummaryAmountRow
+            label="Balance"
+            value={formatInvoiceAmount(invoice.amount_residual)}
+          />
         </dl>
       </DetailPageAsideSummaryHighlight>
 
       <DetailPageAsideSummarySection title="Invoice details">
+        <DetailPageAsideSummaryField
+          label="Payment status"
+          value={formatInvoicePaymentStatusLabel(invoice.payment_status)}
+        />
         <DetailPageAsideSummaryField
           label="State"
           value={formatInvoiceStateLabel(invoice.state)}

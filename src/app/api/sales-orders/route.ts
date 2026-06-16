@@ -1,7 +1,7 @@
 import { SALES_ORDERS_API_PATHS } from "@/constants/sales-orders-api";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
-import { hmisApiRequestWithMeta } from "@/lib/server/hmis-api";
+import { hmisApiRequest, hmisApiRequestWithMeta } from "@/lib/server/hmis-api";
 import { requireAccessToken } from "@/lib/server/require-access-token";
 
 const FORWARDED_QUERY_KEYS = [
@@ -48,6 +48,26 @@ export async function GET(request: Request) {
       results: data,
       pagination: meta.pagination ?? null,
     });
+  } catch (error) {
+    return bffError(error);
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const auth = await requireAccessToken();
+    if ("error" in auth) {
+      return auth.error;
+    }
+
+    const body = await request.json();
+    const order = await hmisApiRequest<SalesOrder>(SALES_ORDERS_API_PATHS.list, {
+      method: "POST",
+      token: auth.accessToken,
+      body,
+    });
+
+    return bffSuccess(order, 201);
   } catch (error) {
     return bffError(error);
   }

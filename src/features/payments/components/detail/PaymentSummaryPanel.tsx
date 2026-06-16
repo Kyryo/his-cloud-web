@@ -64,6 +64,9 @@ export function PaymentSummaryPanel({
           label="Method"
           value={formatPaymentMethod(payment.payment_method)}
         />
+        {payment.note?.trim() ? (
+          <DetailPageAsideSummaryField label="Notes" value={payment.note} />
+        ) : null}
         {payment.invoice_id ? (
           <DetailPageAsideSummaryField
             label="Invoice"

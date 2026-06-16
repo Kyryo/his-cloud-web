@@ -3,6 +3,7 @@ import type {
   Payment,
   PaymentListFilters,
   PaymentListResponse,
+  CreatePaymentPayload,
 } from "@/features/payments/types/payment.types";
 import { bffRequest } from "@/lib/bff-client";
 
@@ -51,4 +52,17 @@ export async function fetchPayments(
 
 export async function fetchPayment(paymentId: number | string): Promise<Payment> {
   return bffRequest<Payment>(BFF_PAYMENTS_ROUTES.detail(paymentId));
+}
+
+export async function createPayment(payload: CreatePaymentPayload): Promise<Payment> {
+  return bffRequest<Payment>(BFF_PAYMENTS_ROUTES.list, {
+    method: "POST",
+    body: {
+      invoice_id: payload.invoiceId,
+      amount: payload.amount,
+      payment_method: payload.paymentMethod,
+      payment_date: payload.paymentDate,
+      note: payload.note,
+    },
+  });
 }

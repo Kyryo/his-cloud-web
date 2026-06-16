@@ -14,6 +14,7 @@ export type Payment = {
   amount: string | number;
   payment_date: string | null;
   payment_method?: string | null;
+  note?: string | null;
 };
 
 export type PaymentListFilters = {
@@ -29,3 +30,11 @@ export type PaymentListFilters = {
 };
 
 export type PaymentListResponse = PaginatedListResponse<Payment>;
+
+export type CreatePaymentPayload = {
+  invoiceId: number;
+  amount: string;
+  paymentMethod?: string;
+  paymentDate?: string;
+  note?: string;
+};

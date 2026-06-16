@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
   PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS,
@@ -10,6 +10,7 @@ import { InvoiceDetailHeader } from "@/features/invoices/components/detail/Invoi
 import { InvoiceDetailTabs } from "@/features/invoices/components/detail/InvoiceDetailTabs";
 import { fetchInvoice } from "@/features/invoices/services/invoices.service";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
+import { RecordPaymentDialog } from "@/features/payments/components/RecordPaymentDialog";
 import { DetailPageLayout } from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
 
@@ -21,22 +22,40 @@ export function InvoiceDetailPage({ invoiceId }: InvoiceDetailPageProps) {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
 
   useAppBreadcrumb(invoice?.name || (invoice ? `Invoice #${invoice.id}` : null));
 
+  const loadInvoice = useCallback(async () => {
+    const data = await fetchInvoice(invoiceId);
+    setInvoice(data);
+  }, [invoiceId]);
+
   useEffect(() => {
+    let cancelled = false;
+
     void (async () => {
       try {
         setIsLoading(true);
         setError(null);
         const data = await fetchInvoice(invoiceId);
-        setInvoice(data);
+        if (!cancelled) {
+          setInvoice(data);
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load invoice.");
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Failed to load invoice.");
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [invoiceId]);
 
   if (isLoading) {
@@ -61,8 +80,19 @@ export function InvoiceDetailPage({ invoiceId }: InvoiceDetailPageProps) {
 
   return (
     <DetailPageLayout data-testid="invoice-detail-page">
-      <InvoiceDetailHeader invoice={invoice} />
+      <InvoiceDetailHeader
+        invoice={invoice}
+        onRecordPayment={() => setRecordPaymentOpen(true)}
+      />
       <InvoiceDetailTabs invoice={invoice} />
+      <RecordPaymentDialog
+        invoice={invoice}
+        open={recordPaymentOpen}
+        onOpenChange={setRecordPaymentOpen}
+        onRecorded={() => {
+          void loadInvoice();
+        }}
+      />
     </DetailPageLayout>
   );
 }

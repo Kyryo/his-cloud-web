@@ -25,18 +25,30 @@ export function PaymentDetailPage({ paymentId }: PaymentDetailPageProps) {
   useAppBreadcrumb(payment?.name || (payment ? `Payment #${payment.id}` : null));
 
   useEffect(() => {
+    let cancelled = false;
+
     void (async () => {
       try {
         setIsLoading(true);
         setError(null);
         const data = await fetchPayment(paymentId);
-        setPayment(data);
+        if (!cancelled) {
+          setPayment(data);
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load payment.");
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Failed to load payment.");
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     })();
+
+    return () => {
+      cancelled = true;
+    };
   }, [paymentId]);
 
   if (isLoading) {

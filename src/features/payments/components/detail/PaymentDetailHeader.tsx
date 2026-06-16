@@ -1,16 +1,11 @@
 "use client";
 
-import Link from "next/link";
-
 import { PaymentStatusBadge } from "@/features/payments/components/PaymentStatusBadge";
 import type { Payment } from "@/features/payments/types/payment.types";
 import {
-  formatPaymentAmount,
   formatPaymentCustomer,
   formatPaymentDate,
-  formatPaymentMethod,
 } from "@/features/payments/utils/format-payment";
-import { ROUTES } from "@/constants/routes";
 import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
 
 type PaymentDetailHeaderProps = {
@@ -36,24 +31,6 @@ export function PaymentDetailHeader({ payment }: PaymentDetailHeaderProps) {
 
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-brand-muted">
             <span>Paid {formatPaymentDate(payment.payment_date)}</span>
-            <span>Amount {formatPaymentAmount(payment.amount)}</span>
-            <span>Method {formatPaymentMethod(payment.payment_method)}</span>
-            {payment.invoice_id ? (
-              <Link
-                href={ROUTES.invoiceDetail(payment.invoice_id)}
-                className="text-brand-primary hover:underline"
-              >
-                {payment.invoice_name || `Invoice #${payment.invoice_id}`}
-              </Link>
-            ) : null}
-            {payment.customer_uuid ? (
-              <Link
-                href={ROUTES.customerDetail(payment.customer_uuid)}
-                className="text-brand-primary hover:underline"
-              >
-                View client
-              </Link>
-            ) : null}
           </div>
         </div>
       </div>

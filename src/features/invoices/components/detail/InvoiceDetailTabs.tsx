@@ -13,6 +13,7 @@ import {
 } from "@/features/app-shell/components/page-layout";
 import { InvoiceDetailClientTab } from "@/features/invoices/components/detail/InvoiceDetailClientTab";
 import { InvoiceDetailLinesTab } from "@/features/invoices/components/detail/InvoiceDetailLinesTab";
+import { InvoiceDetailPaymentsTab } from "@/features/invoices/components/detail/InvoiceDetailPaymentsTab";
 import { InvoiceSummaryPanel } from "@/features/invoices/components/detail/InvoiceSummaryPanel";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 import { cn } from "@/lib/utils";
@@ -21,10 +22,11 @@ type InvoiceDetailTabsProps = {
   invoice: Invoice;
 };
 
-type DetailTabId = "lines" | "client";
+type DetailTabId = "lines" | "payments" | "client";
 
 const tabs: Array<{ id: DetailTabId; label: string }> = [
   { id: "lines", label: "Line items" },
+  { id: "payments", label: "Payments" },
   { id: "client", label: "Client" },
 ];
 
@@ -51,6 +53,10 @@ export function InvoiceDetailTabs({ invoice }: InvoiceDetailTabsProps) {
       <DetailPageMainAsideGrid>
         <DetailPageMainSection>
           <InvoiceDetailLinesTab invoice={invoice} isActive={activeTab === "lines"} />
+          <InvoiceDetailPaymentsTab
+            invoice={invoice}
+            isActive={activeTab === "payments"}
+          />
           <InvoiceDetailClientTab invoice={invoice} isActive={activeTab === "client"} />
         </DetailPageMainSection>
 
