@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 
+import { Button } from "@/components/ui/button";
+import { InvoicePaymentStatusBadge } from "@/features/invoices/components/InvoicePaymentStatusBadge";
 import { InvoiceStatusBadge } from "@/features/invoices/components/InvoiceStatusBadge";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 import {
@@ -24,6 +26,7 @@ const columns = [
   { key: "salesOrder", label: "Sales order" },
   { key: "date", label: "Invoice date" },
   { key: "state", label: "State" },
+  { key: "payment", label: "Payment" },
   { key: "total", label: "Total" },
 ] as const;
 
@@ -87,6 +90,13 @@ export function InvoicesTable({ invoices, onRowClick, className }: InvoicesTable
                 </td>
                 <td className="px-4 py-3 text-sm">
                   <InvoiceStatusBadge state={invoice.state} />
+                </td>
+                <td className="px-4 py-3 text-sm">
+                  {invoice.payment_status ? (
+                    <InvoicePaymentStatusBadge status={invoice.payment_status} />
+                  ) : (
+                    "—"
+                  )}
                 </td>
                 <td className="px-4 py-3 text-sm font-medium text-brand-navy">
                   {formatInvoiceAmount(invoice.amount_total)}

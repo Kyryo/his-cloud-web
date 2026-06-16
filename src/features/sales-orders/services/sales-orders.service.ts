@@ -2,6 +2,7 @@ import { BFF_SALES_ORDERS_ROUTES } from "@/constants/api";
 import type {
   CreateSalesOrderInvoiceResponse,
   CreateSalesOrderLinePayload,
+  CreateSalesOrderPayload,
   SalesOrder,
   SalesOrderListFilters,
   SalesOrdersListResponse,
@@ -62,6 +63,15 @@ export async function fetchSalesOrders(
 
 export async function fetchSalesOrder(orderId: number | string): Promise<SalesOrder> {
   return bffRequest<SalesOrder>(BFF_SALES_ORDERS_ROUTES.detail(orderId));
+}
+
+export async function createSalesOrder(
+  payload: CreateSalesOrderPayload,
+): Promise<SalesOrder> {
+  return bffRequest<SalesOrder>(BFF_SALES_ORDERS_ROUTES.list, {
+    method: "POST",
+    body: payload,
+  });
 }
 
 export async function addSalesOrderLine(

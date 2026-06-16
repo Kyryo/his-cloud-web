@@ -12,6 +12,7 @@ const FORWARDED_QUERY_KEYS = [
   "date_from",
   "date_to",
   "customer_id",
+  "payment_status",
 ] as const;
 
 function buildUpstreamQuery(request: Request): string {

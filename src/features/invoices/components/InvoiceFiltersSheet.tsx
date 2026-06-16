@@ -30,6 +30,14 @@ const INVOICE_STATE_OPTIONS = [
   { value: "cancel", label: "Cancelled" },
 ] as const;
 
+const INVOICE_PAYMENT_STATUS_OPTIONS = [
+  { value: "all", label: "All payment statuses" },
+  { value: "not_paid", label: "Not paid" },
+  { value: "partially_paid", label: "Partially paid" },
+  { value: "paid", label: "Paid" },
+  { value: "overpaid", label: "Overpaid" },
+] as const;
+
 type InvoiceFiltersSheetProps = {
   filters: InvoiceListFilterState;
   isLoading?: boolean;
@@ -77,6 +85,7 @@ export function InvoiceFiltersSheet({
 
           <div className="mt-6 space-y-5">
             <FilterSelectField
+              id="invoice-filter-state"
               label="State"
               value={draft.state}
               options={INVOICE_STATE_OPTIONS}
@@ -84,6 +93,18 @@ export function InvoiceFiltersSheet({
                 setDraft((current) => ({
                   ...current,
                   state: value as InvoiceListFilterState["state"],
+                }))
+              }
+            />
+            <FilterSelectField
+              id="invoice-filter-payment-status"
+              label="Payment status"
+              value={draft.paymentStatus}
+              options={INVOICE_PAYMENT_STATUS_OPTIONS}
+              onValueChange={(value) =>
+                setDraft((current) => ({
+                  ...current,
+                  paymentStatus: value as InvoiceListFilterState["paymentStatus"],
                 }))
               }
             />

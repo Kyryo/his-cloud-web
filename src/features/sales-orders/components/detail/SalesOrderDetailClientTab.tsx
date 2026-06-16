@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { UserRound } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { ClientAvatar } from "@/components/client-avatar";
 import { Badge } from "@/components/ui/badge";
@@ -33,38 +33,45 @@ export function SalesOrderDetailClientTab({
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const loadCustomer = useCallback(async () => {
-    const customerUuid = order.customer_uuid?.trim();
-    if (!customerUuid) {
-      setCustomer(null);
-      setLoadError(null);
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-    setLoadError(null);
-
-    try {
-      const record = await fetchCustomer(customerUuid);
-      setCustomer(record);
-    } catch (error) {
-      setCustomer(null);
-      setLoadError(
-        error instanceof Error ? error.message : "Failed to load client details.",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  }, [order.customer_uuid]);
-
   useEffect(() => {
     if (!isActive) {
       return;
     }
 
-    void loadCustomer();
-  }, [isActive, loadCustomer]);
+    const customerUuid = order.customer_uuid?.trim();
+    if (!customerUuid) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      setIsLoading(true);
+      setLoadError(null);
+
+      try {
+        const record = await fetchCustomer(customerUuid);
+        if (!cancelled) {
+          setCustomer(record);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setCustomer(null);
+          setLoadError(
+            error instanceof Error ? error.message : "Failed to load client details.",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isActive, order.customer_uuid]);
 
   if (!isActive) {
     return null;

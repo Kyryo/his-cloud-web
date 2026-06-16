@@ -7,4 +7,5 @@ export const APPOINTMENTS_API_PATHS = {
   noShow: (uuid: string) => `/appointments/${uuid}/no-show/`,
   start: (uuid: string) => `/appointments/${uuid}/start/`,
   careProviders: "/appointments/care-providers/",
+  clinicianMe: "/appointments/clinician/me/",
 } as const;

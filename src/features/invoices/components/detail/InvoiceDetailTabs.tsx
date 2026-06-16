@@ -1,66 +1,80 @@
 "use client";
 
-import type { Invoice } from "@/features/invoices/types/invoice.types";
-import { formatInvoiceAmount } from "@/features/invoices/utils/format-invoice";
+import { PanelRight } from "lucide-react";
+import { useState } from "react";
+
+import { FabButton } from "@/components/ui/fab-button";
 import {
+  DetailPageMainAsideGrid,
   DetailPageMainSection,
+  DetailPageTabNavItem,
+  DetailPageTabsNavSection,
   DetailPageTabsSection,
 } from "@/features/app-shell/components/page-layout";
+import { InvoiceDetailClientTab } from "@/features/invoices/components/detail/InvoiceDetailClientTab";
+import { InvoiceDetailLinesTab } from "@/features/invoices/components/detail/InvoiceDetailLinesTab";
+import { InvoiceDetailPaymentsTab } from "@/features/invoices/components/detail/InvoiceDetailPaymentsTab";
+import { InvoiceSummaryPanel } from "@/features/invoices/components/detail/InvoiceSummaryPanel";
+import type { Invoice } from "@/features/invoices/types/invoice.types";
+import { cn } from "@/lib/utils";
 
 type InvoiceDetailTabsProps = {
   invoice: Invoice;
 };
 
+type DetailTabId = "lines" | "payments" | "client";
+
+const tabs: Array<{ id: DetailTabId; label: string }> = [
+  { id: "lines", label: "Line items" },
+  { id: "payments", label: "Payments" },
+  { id: "client", label: "Client" },
+];
+
 export function InvoiceDetailTabs({ invoice }: InvoiceDetailTabsProps) {
-  const lines = invoice.lines ?? [];
+  const [activeTab, setActiveTab] = useState<DetailTabId>("lines");
+  const [showSummaryPanel, setShowSummaryPanel] = useState(false);
+  const lineCount = invoice.lines?.length ?? invoice.line_ids?.length ?? 0;
 
   return (
     <DetailPageTabsSection>
-      <DetailPageMainSection>
-        <section className="rounded-xl border border-brand-border bg-white">
-          <div className="border-b border-brand-border px-4 py-3">
-            <h3 className="text-sm font-semibold text-brand-navy">Line items</h3>
-            <p className="mt-0.5 text-xs text-brand-muted">
-              Products and services billed on this invoice.
-            </p>
-          </div>
-          {lines.length === 0 ? (
-            <p className="px-4 py-8 text-center text-sm text-brand-muted">
-              No line items on this invoice.
-            </p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full">
-                <thead>
-                  <tr className="border-b border-brand-border bg-slate-50/80">
-                    <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">Product</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">Qty</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">Unit price</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-brand-border">
-                  {lines.map((line) => (
-                    <tr key={line.id}>
-                      <td className="px-4 py-3 text-sm text-brand-navy">
-                        <p className="font-medium">{line.name}</p>
-                        <p className="text-xs text-brand-muted">{line.product_name}</p>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-brand-slate">{line.quantity}</td>
-                      <td className="px-4 py-3 text-sm text-brand-slate">
-                        {formatInvoiceAmount(line.price_unit)}
-                      </td>
-                      <td className="px-4 py-3 text-sm font-medium text-brand-navy">
-                        {formatInvoiceAmount(line.price_subtotal)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </section>
-      </DetailPageMainSection>
+      <DetailPageTabsNavSection aria-label="Invoice sections">
+        {tabs.map((tab) => (
+          <DetailPageTabNavItem
+            key={tab.id}
+            isActive={activeTab === tab.id}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            {tab.label}
+            {tab.id === "lines" && lineCount > 0 ? ` (${lineCount})` : ""}
+          </DetailPageTabNavItem>
+        ))}
+      </DetailPageTabsNavSection>
+
+      <DetailPageMainAsideGrid>
+        <DetailPageMainSection>
+          <InvoiceDetailLinesTab invoice={invoice} isActive={activeTab === "lines"} />
+          <InvoiceDetailPaymentsTab
+            invoice={invoice}
+            isActive={activeTab === "payments"}
+          />
+          <InvoiceDetailClientTab invoice={invoice} isActive={activeTab === "client"} />
+        </DetailPageMainSection>
+
+        <InvoiceSummaryPanel
+          invoice={invoice}
+          className={cn(!showSummaryPanel && "hidden xl:block")}
+        />
+      </DetailPageMainAsideGrid>
+
+      <FabButton
+        label={showSummaryPanel ? "Hide invoice summary" : "Show invoice summary"}
+        icon={PanelRight}
+        variant="outline"
+        hideFrom="xl"
+        className="bg-white"
+        onClick={() => setShowSummaryPanel((current) => !current)}
+        data-testid="invoice-summary-fab"
+      />
     </DetailPageTabsSection>
   );
 }

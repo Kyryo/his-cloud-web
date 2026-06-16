@@ -1,8 +1,7 @@
 "use client";
 
 import { PageLoader } from "@/components/page-loader";
-import { AccountProfileForm } from "@/features/settings/components/AccountProfileForm";
-import { AssignedClinicsTable } from "@/features/settings/components/AssignedClinicsTable";
+import { AccountProfileSettings } from "@/features/settings/components/AccountProfileSettings";
 import {
   SettingsPageLayout,
   SettingsSection,
@@ -32,23 +31,8 @@ export function AccountSettingsPage() {
   }
 
   return (
-    <SettingsPageLayout
-      title="Account"
-      description="Manage your personal profile and see which clinics you can access."
-    >
-      <SettingsSection
-        title="Profile"
-        description="Update how your name appears across the platform."
-      >
-        <AccountProfileForm user={userData} />
-      </SettingsSection>
-
-      <SettingsSection
-        title="Assigned clinics"
-        description="Clinics linked to your account and your role at each location."
-      >
-        <AssignedClinicsTable clinics={userData.clinics ?? []} />
-      </SettingsSection>
-    </SettingsPageLayout>
+    <div className="p-6">
+      <AccountProfileSettings user={userData} />
+    </div>
   );
 }

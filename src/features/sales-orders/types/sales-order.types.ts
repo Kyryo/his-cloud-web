@@ -95,6 +95,15 @@ export type SalesOrderListFilters = {
 
 export type SalesOrdersListResponse = PaginatedListResponse<SalesOrder>;
 
+export type CreateSalesOrderPayload = {
+  customer_id: number;
+  pricelist_id?: number;
+  clinic_id?: number;
+  clinic_name?: string;
+  client_order_ref?: string;
+  note?: string;
+};
+
 export type CreateSalesOrderLinePayload = {
   product_id: number;
   quantity: number | string;

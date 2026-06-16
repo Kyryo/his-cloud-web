@@ -111,10 +111,10 @@ export const navigation: NavigationItem[] = [
   },
   {
     name: "Payments",
-    href: "/payments",
+    href: ROUTES.payments,
     icon: Wallet,
     requiredGroup: "Billing",
-    enabledInWebNew: false,
+    enabledInWebNew: true,
   },
   {
     name: "Inventory Register",

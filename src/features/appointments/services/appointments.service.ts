@@ -63,6 +63,31 @@ export async function fetchAppointments(
   return bffRequest<PaginatedListResponse<Appointment>>(path);
 }
 
+export async function fetchMyClinicianAppointments(
+  options?: Pick<FetchAppointmentsOptions, "page" | "pageSize" | "scheduledFrom" | "scheduledTo">,
+): Promise<PaginatedListResponse<Appointment>> {
+  const params = new URLSearchParams();
+  if (options?.page) {
+    params.set("page", String(options.page));
+  }
+  if (options?.pageSize) {
+    params.set("page_size", String(options.pageSize));
+  }
+  if (options?.scheduledFrom) {
+    params.set("scheduled_from", options.scheduledFrom);
+  }
+  if (options?.scheduledTo) {
+    params.set("scheduled_to", options.scheduledTo);
+  }
+
+  const suffix = params.toString();
+  const path = suffix
+    ? `${BFF_APPOINTMENTS_ROUTES.clinicianMe}?${suffix}`
+    : BFF_APPOINTMENTS_ROUTES.clinicianMe;
+
+  return bffRequest<PaginatedListResponse<Appointment>>(path);
+}
+
 export async function createAppointment(
   payload: CreateAppointmentPayload,
 ): Promise<Appointment> {

@@ -2,6 +2,13 @@ import type { PaginatedListResponse } from "@/types/api.types";
 
 export type InvoiceState = "draft" | "posted" | "cancel" | string;
 
+export type InvoicePaymentStatus =
+  | "not_paid"
+  | "partially_paid"
+  | "paid"
+  | "overpaid"
+  | string;
+
 export type InvoiceLine = {
   id: number;
   name: string;
@@ -30,6 +37,15 @@ export type Invoice = {
   sales_order_id?: number | null;
   sales_order_name?: string | null;
   visit_id?: number | null;
+  amount_paid?: string | number | null;
+  amount_residual?: string | number | null;
+  payment_status?: InvoicePaymentStatus;
+  authorization_number?: string | null;
+  insurance_company?: string | null;
+  insurance_scheme_id?: number | null;
+  insurance_scheme_name?: string | null;
+  insurance_number?: string | null;
+  insurance_number_prefix?: string | null;
   line_ids?: number[];
   lines?: InvoiceLine[];
 };
@@ -42,6 +58,7 @@ export type InvoiceListFilters = {
   dateFrom?: string;
   dateTo?: string;
   customerId?: number;
+  paymentStatus?: string;
 };
 
 export type InvoiceListResponse = PaginatedListResponse<Invoice>;

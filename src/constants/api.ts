@@ -60,6 +60,7 @@ export const BFF_APPOINTMENTS_ROUTES = {
   noShow: (uuid: string) => `/api/appointments/${uuid}/no-show`,
   start: (uuid: string) => `/api/appointments/${uuid}/start`,
   careProviders: "/api/appointments/care-providers",
+  clinicianMe: "/api/appointments/clinician/me",
 } as const;
 
 /** Browser-facing BFF clinical catalog routes (same origin). */
@@ -107,6 +108,12 @@ export const BFF_SALES_ORDERS_ROUTES = {
 export const BFF_INVOICES_ROUTES = {
   list: "/api/invoices",
   detail: (invoiceId: number | string) => `/api/invoices/${invoiceId}`,
+} as const;
+
+/** Browser-facing BFF payment routes (same origin). */
+export const BFF_PAYMENTS_ROUTES = {
+  list: "/api/payments",
+  detail: (paymentId: number | string) => `/api/payments/${paymentId}`,
 } as const;
 
 /** Browser-facing BFF inventory routes (same origin). */
