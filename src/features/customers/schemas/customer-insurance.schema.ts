@@ -13,7 +13,7 @@ export const createCustomerInsuranceSchema = z
       .string()
       .trim()
       .min(1, "Membership number is required."),
-    suffix: z.string().trim().min(1, "Suffix is required."),
+    suffix: z.string().trim().optional().or(z.literal("")),
     is_principal_member: z.boolean(),
     principal_member_name: z.string().trim(),
     relationship_to_principal_member: z

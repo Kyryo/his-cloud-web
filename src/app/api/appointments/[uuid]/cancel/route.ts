@@ -1,5 +1,4 @@
 import { APPOINTMENTS_API_PATHS } from "@/constants/appointments-api";
-import { handleClinicalAction } from "@/lib/server/clinical-bff-handlers";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
 import { requireAccessToken } from "@/lib/server/require-access-token";
 import { hmisApiRequest } from "@/lib/server/hmis-api";

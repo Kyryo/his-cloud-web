@@ -30,7 +30,7 @@ export function PhoneNumberInput({
   return (
     <div
       className={cn(
-        "customer-phone-input flex h-10 w-full overflow-hidden rounded-md border border-input bg-background transition-[border-color,box-shadow] focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/25",
+        "customer-phone-input relative flex h-10 w-full rounded-md border border-input bg-background transition-[border-color,box-shadow] focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/25",
         hasError &&
           "border-destructive focus-within:border-destructive focus-within:ring-destructive/25",
         disabled && "cursor-not-allowed opacity-50",
@@ -47,6 +47,9 @@ export function PhoneNumberInput({
         inputClassName={phoneInputClassName}
         countrySelectorStyleProps={{
           buttonClassName: phoneCountryButtonClassName,
+          dropdownStyleProps: {
+            className: "customer-phone-country-dropdown",
+          },
         }}
         style={{
           width: "100%",

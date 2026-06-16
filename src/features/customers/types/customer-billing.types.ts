@@ -1,3 +1,15 @@
+export type CustomerBillingStatBucket = {
+  count: number;
+  total: number | string;
+};
+
+export type CustomerInvoicesStats = {
+  all: CustomerBillingStatBucket;
+  paid: CustomerBillingStatBucket;
+  not_paid: CustomerBillingStatBucket;
+  partially_paid: CustomerBillingStatBucket;
+};
+
 export type CustomerBillingPagination = {
   count: number;
   limit: number;
@@ -51,6 +63,13 @@ export type CustomerBillingSummary = {
   sales_orders_pagination: CustomerBillingPagination;
   invoices_pagination: CustomerBillingPagination;
   payments_pagination: CustomerBillingPagination;
+  sales_orders_stats?: {
+    total_orders: number;
+    draft_orders: number;
+    invoiced_orders: number;
+    canceled_orders: number;
+  };
+  invoices_stats?: CustomerInvoicesStats;
   totals: CustomerBillingTotals;
 };
 
@@ -75,10 +94,12 @@ export type CustomerInvoicesResponse = {
   invoices: CustomerInvoiceRecord[];
   pagination: CustomerBillingPagination;
   totals: CustomerBillingTotals;
+  invoicesStats: CustomerInvoicesStats | null;
 };
 
 export type CustomerPaymentsResponse = {
   payments: CustomerPaymentRecord[];
   pagination: CustomerBillingPagination;
   totals: CustomerBillingTotals;
+  invoicesStats: CustomerInvoicesStats | null;
 };
