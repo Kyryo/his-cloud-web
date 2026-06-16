@@ -209,6 +209,16 @@
     box-shadow: none !important;
   }
 
+  .customer-phone-input .customer-phone-country-dropdown,
+  .customer-phone-input .react-international-phone-country-selector-dropdown {
+    z-index: 50;
+    max-height: 16rem;
+    overflow-y: auto;
+    border: 1px solid var(--color-input);
+    border-radius: 0.375rem;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  }
+
   .country-select-field .country-select-field-button {
     display: flex !important;
     height: 2.5rem !important;

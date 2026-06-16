@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { formatCompactNumber } from "@/utils/format-compact-number";
+import {
+  formatCompactAmount,
+  formatCompactNumber,
+} from "@/utils/format-compact-number";
 
 describe("formatCompactNumber", () => {
   it("keeps values below 1000 unchanged", () => {
@@ -9,18 +12,30 @@ describe("formatCompactNumber", () => {
     expect(formatCompactNumber(999)).toBe("999");
   });
 
-  it("uses K suffix from one thousand", () => {
-    expect(formatCompactNumber(1000)).toBe("1K");
-    expect(formatCompactNumber(1500)).toBe("1.5K");
-    expect(formatCompactNumber(999_999)).toBe("1000K");
+  it("uses k suffix from one thousand", () => {
+    expect(formatCompactNumber(1000)).toBe("1k");
+    expect(formatCompactNumber(1500)).toBe("1.5k");
+    expect(formatCompactNumber(999_999)).toBe("1000k");
   });
 
-  it("uses M suffix from one million", () => {
-    expect(formatCompactNumber(1_000_000)).toBe("1M");
-    expect(formatCompactNumber(2_500_000)).toBe("2.5M");
+  it("uses m suffix from one million", () => {
+    expect(formatCompactNumber(1_000_000)).toBe("1m");
+    expect(formatCompactNumber(2_500_000)).toBe("2.5m");
   });
 
   it("handles negative values", () => {
-    expect(formatCompactNumber(-2500)).toBe("-2.5K");
+    expect(formatCompactNumber(-2500)).toBe("-2.5k");
+  });
+});
+
+describe("formatCompactAmount", () => {
+  it("formats numeric strings compactly", () => {
+    expect(formatCompactAmount("1500")).toBe("1.5k");
+    expect(formatCompactAmount(2_500_000)).toBe("2.5m");
+  });
+
+  it("returns dash for empty values", () => {
+    expect(formatCompactAmount(null)).toBe("—");
+    expect(formatCompactAmount("")).toBe("—");
   });
 });

@@ -126,6 +126,10 @@ export function countCompletedVisits(visits: VisitDetail[]): number {
   return visits.filter((visit) => visit.status === "completed").length;
 }
 
+export function countCancelledVisits(visits: VisitDetail[]): number {
+  return visits.filter((visit) => visit.status === "cancelled").length;
+}
+
 export function findActiveVisit(visits: VisitDetail[]): VisitDetail | null {
   return visits.find((visit) => visit.status === "active") ?? null;
 }

@@ -66,6 +66,7 @@ export async function fetchCustomerInvoices(
     invoices: billing.invoices ?? [],
     pagination: billing.invoices_pagination,
     totals: billing.totals,
+    invoicesStats: billing.invoices_stats ?? null,
   };
 }
 
@@ -81,6 +82,7 @@ export async function fetchCustomerPayments(
     payments: billing.payments ?? [],
     pagination: billing.payments_pagination,
     totals: billing.totals,
+    invoicesStats: billing.invoices_stats ?? null,
   };
 }
 

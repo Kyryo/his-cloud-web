@@ -125,14 +125,14 @@ export const LANDING_TESTIMONIALS = {
         "The previous system we tried needed a technician every two weeks. Sigma just works. Our internet isn't great and it still loads fine. We haven't called support once.",
       initials: "RP",
       name: "Dr. R. Patel",
-      role: "Medical director, Rajkot, India",
+      role: "Medical director, Lusaka, Zambia",
     },
     {
       quote:
         "Donor reporting used to take my team five days every quarter. Now I export it in about ten minutes. That time goes back to seeing patients.",
       initials: "MN",
       name: "Marie N.",
-      role: "Executive director, Kinshasa, DRC",
+      role: "Executive director, Lusaka, Zambia",
     },
     {
       quote:

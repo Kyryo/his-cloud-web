@@ -136,9 +136,7 @@ export function CustomerInsuranceFormFields({
           name="suffix"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                Suffix <RequiredFieldMarker />
-              </FormLabel>
+              <FormLabel>Suffix</FormLabel>
               <FormControl>
                 <Input
                   disabled={isSubmitting}

@@ -23,6 +23,7 @@ import {
 import type { CreateCustomerFormValues } from "@/features/customers/schemas/customer.schema";
 import { appFont } from "@/lib/fonts";
 import { validateDateInput } from "@/lib/validate-date-input";
+import { formatCapitalizedName } from "@/utils/format-capitalized-name";
 
 type CustomerFormFieldsProps = {
   form: UseFormReturn<CreateCustomerFormValues>;
@@ -38,6 +39,18 @@ export function CustomerFormFields({
   idPrefix = "customer",
 }: CustomerFormFieldsProps) {
   const disabled = isSubmitting || fieldsDisabled;
+
+  function handleNameBlur(
+    fieldName: "first_name" | "middle_name" | "last_name",
+    value: string,
+    onChange: (value: string) => void,
+  ) {
+    const formatted = formatCapitalizedName(value);
+    if (formatted !== value) {
+      onChange(formatted);
+    }
+    form.clearErrors(fieldName);
+  }
 
   function handleDateOfBirthChange(value: string) {
     const error = validateDateInput(value, {
@@ -68,6 +81,10 @@ export function CustomerFormFields({
                   disabled={disabled}
                   data-testid={`${idPrefix}-first-name`}
                   {...field}
+                  onBlur={(event) => {
+                    field.onBlur();
+                    handleNameBlur("first_name", event.target.value, field.onChange);
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -82,7 +99,14 @@ export function CustomerFormFields({
             <FormItem>
               <FormLabel>Middle name</FormLabel>
               <FormControl>
-                <Input disabled={disabled} {...field} />
+                <Input
+                  disabled={disabled}
+                  {...field}
+                  onBlur={(event) => {
+                    field.onBlur();
+                    handleNameBlur("middle_name", event.target.value, field.onChange);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -104,6 +128,10 @@ export function CustomerFormFields({
                 disabled={disabled}
                 data-testid={`${idPrefix}-last-name`}
                 {...field}
+                onBlur={(event) => {
+                  field.onBlur();
+                  handleNameBlur("last_name", event.target.value, field.onChange);
+                }}
               />
             </FormControl>
             <FormMessage />

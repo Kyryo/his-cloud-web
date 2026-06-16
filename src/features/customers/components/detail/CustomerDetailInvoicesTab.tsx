@@ -5,8 +5,8 @@ import { useCallback, useEffect, useState } from "react";
 import { Receipt } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { StatsCard1, StatsCard1Grid } from "@/components/stats-card1";
 import { ROUTES } from "@/constants/routes";
+import { CustomerInvoicePaymentStatsCards } from "@/features/customers/components/detail/CustomerInvoicePaymentStatsCards";
 import {
   CustomerDetailRecordList,
   CustomerDetailRecordListItem,
@@ -14,16 +14,17 @@ import {
 import { CustomerDetailTabEmptyState } from "@/features/customers/components/detail/CustomerDetailTabEmptyState";
 import { CustomerTabSkeleton } from "@/features/customers/components/detail/CustomerTabSkeleton";
 import { fetchCustomerInvoices } from "@/features/customers/services/customer-billing.service";
-import type { CustomerInvoiceRecord } from "@/features/customers/types/customer-billing.types";
+import type {
+  CustomerInvoiceRecord,
+  CustomerInvoicesStats,
+} from "@/features/customers/types/customer-billing.types";
 import type { Customer } from "@/features/customers/types/customer.types";
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { InvoiceStatusBadge } from "@/features/invoices/components/InvoiceStatusBadge";
 import { formatInvoiceAmount } from "@/features/invoices/utils/format-invoice";
 import type { InvoiceState } from "@/features/invoices/types/invoice.types";
-import { formatCompactNumber } from "@/utils/format-compact-number";
 
 const INVOICES_PAGE_SIZE = 20;
-const STAT_CARD_CLASS = "border-brand-border bg-white shadow-none";
 
 type CustomerDetailInvoicesTabProps = {
   customer: Customer;
@@ -36,7 +37,9 @@ export function CustomerDetailInvoicesTab({
 }: CustomerDetailInvoicesTabProps) {
   const router = useRouter();
   const [invoices, setInvoices] = useState<CustomerInvoiceRecord[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
+  const [invoicesStats, setInvoicesStats] = useState<CustomerInvoicesStats | null>(
+    null,
+  );
   const [hasNext, setHasNext] = useState(false);
   const [offset, setOffset] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -62,7 +65,7 @@ export function CustomerDetailInvoicesTab({
         setInvoices((current) =>
           append ? [...current, ...response.invoices] : response.invoices,
         );
-        setTotalCount(response.pagination.count);
+        setInvoicesStats(response.invoicesStats);
         setHasNext(response.pagination.has_next);
         setOffset(nextOffset);
         setHasLoaded(true);
@@ -90,7 +93,7 @@ export function CustomerDetailInvoicesTab({
   }
 
   if (isLoading && !hasLoaded) {
-    return <CustomerTabSkeleton statCards={2} rows={5} />;
+    return <CustomerTabSkeleton statCards={4} rows={5} />;
   }
 
   if (loadError && !hasLoaded) {
@@ -106,22 +109,9 @@ export function CustomerDetailInvoicesTab({
     );
   }
 
-  const postedCount = invoices.filter((invoice) => invoice.state === "posted").length;
-
   return (
     <div className="space-y-4" data-testid="customer-detail-invoices-tab">
-      <StatsCard1Grid>
-        <StatsCard1
-          className={STAT_CARD_CLASS}
-          title="Total invoices"
-          value={formatCompactNumber(totalCount)}
-        />
-        <StatsCard1
-          className={STAT_CARD_CLASS}
-          title="Posted"
-          value={formatCompactNumber(postedCount)}
-        />
-      </StatsCard1Grid>
+      <CustomerInvoicePaymentStatsCards stats={invoicesStats} />
 
       {invoices.length === 0 ? (
         <CustomerDetailTabEmptyState

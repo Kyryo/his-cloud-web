@@ -2,6 +2,7 @@ export {
   closeVisit as closeCustomerVisit,
   countActiveVisits as countActiveCustomerVisits,
   countCompletedVisits as countCompletedCustomerVisits,
+  countCancelledVisits as countCancelledCustomerVisits,
   countVisits as countCustomerVisits,
   createVisit as createCustomerVisit,
   fetchCustomerVisits,

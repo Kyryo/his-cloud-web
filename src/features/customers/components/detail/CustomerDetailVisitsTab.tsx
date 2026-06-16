@@ -13,6 +13,7 @@ import { CustomerDetailTabEmptyState } from "@/features/customers/components/det
 import { CustomerTabSkeleton } from "@/features/customers/components/detail/CustomerTabSkeleton";
 import {
   countActiveCustomerVisits,
+  countCancelledCustomerVisits,
   countCompletedCustomerVisits,
   countCustomerVisits,
   fetchCustomerVisits,
@@ -22,6 +23,8 @@ import type { Customer } from "@/features/customers/types/customer.types";
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { VisitDetailDialog } from "@/features/visits/components/VisitDetailDialog";
 import { formatCompactNumber } from "@/utils/format-compact-number";
+
+const VISIT_STAT_CARD_CLASS = "border-brand-border bg-white shadow-none";
 
 type CustomerDetailVisitsTabProps = {
   customer: Customer;
@@ -80,7 +83,7 @@ export function CustomerDetailVisitsTab({
   }
 
   if (isLoading && !hasLoaded) {
-    return <CustomerTabSkeleton statCards={3} rows={5} />;
+    return <CustomerTabSkeleton statCards={4} rows={5} />;
   }
 
   if (loadError && !hasLoaded) {
@@ -94,6 +97,7 @@ export function CustomerDetailVisitsTab({
   const totalVisits = countCustomerVisits(visits);
   const activeVisits = countActiveCustomerVisits(visits);
   const completedVisits = countCompletedCustomerVisits(visits);
+  const cancelledVisits = countCancelledCustomerVisits(visits);
 
   return (
     <div className="space-y-4" data-testid="customer-detail-visits-tab">
@@ -110,16 +114,24 @@ export function CustomerDetailVisitsTab({
 
       <StatsCard1Grid>
         <StatsCard1
+          className={VISIT_STAT_CARD_CLASS}
           title="Total visits"
           value={formatCompactNumber(totalVisits)}
         />
         <StatsCard1
+          className={VISIT_STAT_CARD_CLASS}
           title="Active"
           value={formatCompactNumber(activeVisits)}
         />
         <StatsCard1
+          className={VISIT_STAT_CARD_CLASS}
           title="Completed"
           value={formatCompactNumber(completedVisits)}
+        />
+        <StatsCard1
+          className={VISIT_STAT_CARD_CLASS}
+          title="Cancelled"
+          value={formatCompactNumber(cancelledVisits)}
         />
       </StatsCard1Grid>
 

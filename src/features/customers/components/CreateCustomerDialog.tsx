@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { TabbedDialog } from "@/components/ui/tabbed-dialog";
@@ -133,12 +133,6 @@ export function CreateCustomerDialog({
     notesForm.reset(createCustomerNoteDefaultValues);
   }, [addressForm, insuranceForm, notesForm, personalForm]);
 
-  useEffect(() => {
-    if (!open) {
-      resetDialogState();
-    }
-  }, [open, resetDialogState]);
-
   const loadInsuranceSchemes = useCallback(async () => {
     if (schemes.length > 0) {
       return;
@@ -160,11 +154,12 @@ export function CreateCustomerDialog({
     }
   }, [schemes.length, toast]);
 
-  useEffect(() => {
-    if (open && activeTab === "insurance" && isCustomerCreated) {
+  function handleTabChange(tabId: CreateCustomerTab) {
+    setActiveTab(tabId);
+    if (tabId === "insurance" && isCustomerCreated) {
       void loadInsuranceSchemes();
     }
-  }, [activeTab, isCustomerCreated, loadInsuranceSchemes, open]);
+  }
 
   function finalizeCreatedCustomer(customer: Customer) {
     resetDialogState();
@@ -190,6 +185,7 @@ export function CreateCustomerDialog({
       const customer = await createCustomer(toCustomerWritePayload(values));
       setCreatedCustomer(customer);
       setActiveTab("insurance");
+      void loadInsuranceSchemes();
       toast({
         variant: "success",
         title: "Client created",
@@ -385,7 +381,7 @@ export function CreateCustomerDialog({
                 Creating...
               </>
             ) : (
-              "Create client"
+              "Save"
             )}
           </PrimaryButton>
         </>
@@ -405,7 +401,7 @@ export function CreateCustomerDialog({
           <PrimaryButton
             type="button"
             disabled={isBusy}
-            onClick={() => setActiveTab("insurance")}
+            onClick={() => handleTabChange("insurance")}
           >
             Add insurance
           </PrimaryButton>
@@ -438,7 +434,7 @@ export function CreateCustomerDialog({
                   Saving...
                 </>
               ) : (
-                "Add insurance"
+                "Save"
               )}
             </PrimaryButton>
           ) : null}
@@ -468,7 +464,7 @@ export function CreateCustomerDialog({
                 Saving...
               </>
             ) : (
-              "Add address"
+              "Save"
             )}
           </PrimaryButton>
         </>
@@ -496,7 +492,7 @@ export function CreateCustomerDialog({
               Saving...
             </>
           ) : (
-            "Add note"
+            "Save"
           )}
         </PrimaryButton>
       </>
@@ -518,7 +514,7 @@ export function CreateCustomerDialog({
           tabId === "address" ||
           tabId === "notes"
         ) {
-          setActiveTab(tabId);
+          handleTabChange(tabId);
         }
       }}
       className={appFont.className}
