@@ -152,7 +152,7 @@ export function HeroSection() {
               </div>
             </div>
             <p className="text-xs text-brand-muted sm:text-right">
-              6 facilities · 3 health networks
+              21 facilities · 9 health networks
             </p>
           </div>
         </div>
