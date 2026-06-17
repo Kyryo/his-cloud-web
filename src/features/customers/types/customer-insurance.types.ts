@@ -41,7 +41,7 @@ export type CustomerInsurance = {
 export type CreateCustomerInsurancePayload = {
   insurance_scheme: number;
   membership_number: string;
-  suffix: string;
+  suffix?: string;
   is_principal_member: boolean;
   principal_member_name?: string;
   relationship_to_principal_member?: string;
@@ -50,7 +50,7 @@ export type CreateCustomerInsurancePayload = {
   is_active?: boolean;
 };
 
-export type UpdateCustomerInsurancePayload = CreateCustomerInsurancePayload;
+export type UpdateCustomerInsurancePayload = Partial<CreateCustomerInsurancePayload>;
 
 export const PRINCIPAL_MEMBER_RELATIONSHIPS = [
   "Self",

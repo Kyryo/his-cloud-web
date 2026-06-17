@@ -57,6 +57,7 @@ export function serializeSalesOrderDraftLines(lines: SalesOrderLineDraft[]): str
       id: line.id ?? null,
       product_id: line.product_id,
       productName: line.productName,
+      tariff_code: line.tariff_code ?? null,
       quantity: line.quantity,
       price_unit: line.price_unit,
       price_total: line.price_total ?? null,

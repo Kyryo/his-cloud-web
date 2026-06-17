@@ -109,8 +109,13 @@ export type CreateSalesOrderLinePayload = {
   quantity: number | string;
   price_unit?: number | string;
   name?: string;
+  tariff_code?: string | null;
 };
 
 export type UpdateSalesOrderLinePricePayload = {
   price_unit: number | string;
+};
+
+export type UpdateSalesOrderLinePayload = {
+  tariff_code?: string | null;
 };

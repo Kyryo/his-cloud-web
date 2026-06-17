@@ -6,6 +6,7 @@ import type {
   SalesOrder,
   SalesOrderListFilters,
   SalesOrdersListResponse,
+  UpdateSalesOrderLinePayload,
   UpdateSalesOrderLinePricePayload,
 } from "@/features/sales-orders/types/sales-order.types";
 import { bffRequest } from "@/lib/bff-client";
@@ -96,6 +97,17 @@ export async function updateSalesOrderLinePrice(
       body: payload,
     },
   );
+}
+
+export async function updateSalesOrderLine(
+  orderId: number | string,
+  lineId: number,
+  payload: UpdateSalesOrderLinePayload,
+): Promise<SalesOrder> {
+  return bffRequest<SalesOrder>(BFF_SALES_ORDERS_ROUTES.lineDetail(orderId, lineId), {
+    method: "PATCH",
+    body: payload,
+  });
 }
 
 export async function removeSalesOrderLine(

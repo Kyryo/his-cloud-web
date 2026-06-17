@@ -1,11 +1,16 @@
 "use client";
 
 import { ClipboardList, Plus, Trash2 } from "lucide-react";
+import { useRef } from "react";
 
 import { SecondaryButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InlineProductCombobox } from "@/features/inventory/components/detail/InlineProductCombobox";
+import {
+  fetchInventoryProductPricelists,
+  fetchProductTariffCodes,
+} from "@/features/inventory/services/inventory.service";
 import { formatProductLabel } from "@/features/inventory/utils/format-inventory";
 import { SalesOrderPendingChangesBar } from "@/features/sales-orders/components/detail/SalesOrderPendingChangesBar";
 import { useSalesOrderLinesEditor } from "@/features/sales-orders/hooks/use-sales-order-lines-editor";
@@ -62,6 +67,7 @@ export function SalesOrderLinesEditor({
   const { toast } = useToast();
   const canEdit = canEditSalesOrderLines(order.state);
   const currency = formatSalesOrderCurrency(order);
+  const selectionTokenByLineKeyRef = useRef<Map<string, number>>(new Map());
 
   const editor = useSalesOrderLinesEditor({
     order,
@@ -241,9 +247,16 @@ export function SalesOrderLinesEditor({
                             disabled={editor.isSaving}
                             onFocus={() => editor.setActiveRowKey(line.key)}
                             onSelect={(product) => {
+                              const nextToken =
+                                (selectionTokenByLineKeyRef.current.get(line.key) ?? 0) +
+                                1;
+                              selectionTokenByLineKeyRef.current.set(line.key, nextToken);
+
                               editor.updateLine(line.key, {
                                 product_id: product.id,
                                 productName: formatProductLabel(product),
+                                // Reset computed fields when switching products to avoid
+                                // stale values carrying over unnoticed.
                                 tariff_code: null,
                                 price_unit:
                                   line.price_unit ||
@@ -251,6 +264,64 @@ export function SalesOrderLinesEditor({
                                     ? String(product.list_price)
                                     : ""),
                               });
+
+                              void (async () => {
+                                const isStillCurrentSelection = () =>
+                                  selectionTokenByLineKeyRef.current.get(line.key) ===
+                                  nextToken;
+
+                                // Prefill unit price from the order's pricelist (if available).
+                                if (order.pricelist_id) {
+                                  try {
+                                    const items = await fetchInventoryProductPricelists(
+                                      product.id,
+                                    );
+                                    if (!isStillCurrentSelection()) {
+                                      return;
+                                    }
+                                    const match = items.find(
+                                      (item) =>
+                                        (item.pricelist?.id ?? item.pricelist_id) ===
+                                        order.pricelist_id,
+                                    );
+                                    const fixed = match?.fixed_price;
+                                    if (
+                                      fixed !== null &&
+                                      fixed !== undefined &&
+                                      String(fixed).trim() !== ""
+                                    ) {
+                                      editor.updateLine(line.key, {
+                                        price_unit: String(fixed),
+                                      });
+                                    }
+                                  } catch {
+                                    // Best-effort prefill only.
+                                  }
+                                }
+
+                                // Prefill tariff code from the order's scheme (if available).
+                                if (order.insurance_scheme_id) {
+                                  try {
+                                    const codes = await fetchProductTariffCodes(
+                                      product.id,
+                                    );
+                                    if (!isStillCurrentSelection()) {
+                                      return;
+                                    }
+                                    const match = codes.find(
+                                      (code) =>
+                                        code.scheme_id === order.insurance_scheme_id,
+                                    );
+                                    if (match?.tariff_code?.trim()) {
+                                      editor.updateLine(line.key, {
+                                        tariff_code: match.tariff_code.trim(),
+                                      });
+                                    }
+                                  } catch {
+                                    // Best-effort prefill only.
+                                  }
+                                }
+                              })();
                             }}
                             onKeyDown={(event) => {
                               if (event.key === "Escape") {
