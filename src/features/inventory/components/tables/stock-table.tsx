@@ -19,6 +19,12 @@ const columns: InventoryListTableColumn<InventoryStock>[] = [
     ),
   },
   {
+    key: "product_name",
+    label: "Product",
+    cellClassName: "font-medium text-brand-navy",
+    render: (item) => item.product_name?.trim() || "—",
+  },
+  {
     key: "product",
     label: "Product ID",
     cellClassName: "font-mono text-brand-navy",
