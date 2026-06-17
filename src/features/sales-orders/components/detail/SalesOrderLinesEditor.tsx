@@ -6,6 +6,10 @@ import { SecondaryButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { InlineProductCombobox } from "@/features/inventory/components/detail/InlineProductCombobox";
+import {
+  fetchInventoryProductPricelists,
+  fetchProductTariffCodes,
+} from "@/features/inventory/services/inventory.service";
 import { formatProductLabel } from "@/features/inventory/utils/format-inventory";
 import { SalesOrderPendingChangesBar } from "@/features/sales-orders/components/detail/SalesOrderPendingChangesBar";
 import { useSalesOrderLinesEditor } from "@/features/sales-orders/hooks/use-sales-order-lines-editor";
@@ -244,13 +248,60 @@ export function SalesOrderLinesEditor({
                               editor.updateLine(line.key, {
                                 product_id: product.id,
                                 productName: formatProductLabel(product),
-                                tariff_code: null,
                                 price_unit:
                                   line.price_unit ||
                                   (product.list_price != null
                                     ? String(product.list_price)
                                     : ""),
                               });
+
+                              void (async () => {
+                                // Prefill unit price from the order's pricelist (if available).
+                                if (order.pricelist_id) {
+                                  try {
+                                    const items = await fetchInventoryProductPricelists(
+                                      product.id,
+                                    );
+                                    const match = items.find(
+                                      (item) =>
+                                        (item.pricelist?.id ?? item.pricelist_id) ===
+                                        order.pricelist_id,
+                                    );
+                                    const fixed = match?.fixed_price;
+                                    if (
+                                      fixed !== null &&
+                                      fixed !== undefined &&
+                                      String(fixed).trim() !== ""
+                                    ) {
+                                      editor.updateLine(line.key, {
+                                        price_unit: String(fixed),
+                                      });
+                                    }
+                                  } catch {
+                                    // Best-effort prefill only.
+                                  }
+                                }
+
+                                // Prefill tariff code from the order's scheme (if available).
+                                if (order.insurance_scheme_id) {
+                                  try {
+                                    const codes = await fetchProductTariffCodes(
+                                      product.id,
+                                    );
+                                    const match = codes.find(
+                                      (code) =>
+                                        code.scheme_id === order.insurance_scheme_id,
+                                    );
+                                    if (match?.tariff_code?.trim()) {
+                                      editor.updateLine(line.key, {
+                                        tariff_code: match.tariff_code.trim(),
+                                      });
+                                    }
+                                  } catch {
+                                    // Best-effort prefill only.
+                                  }
+                                }
+                              })();
                             }}
                             onKeyDown={(event) => {
                               if (event.key === "Escape") {
@@ -271,9 +322,39 @@ export function SalesOrderLinesEditor({
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        <span className="font-mono text-sm text-brand-slate">
-                          {formatTariffCode(line.tariff_code)}
-                        </span>
+                        {isEditing ? (
+                          <Input
+                            value={line.tariff_code ?? ""}
+                            disabled={editor.isSaving}
+                            className="h-9 w-40 font-mono text-sm"
+                            placeholder="Tariff code"
+                            onFocus={() => editor.setActiveRowKey(line.key)}
+                            onChange={(event) =>
+                              editor.updateLine(line.key, {
+                                tariff_code: event.target.value,
+                              })
+                            }
+                            onKeyDown={(event) => {
+                              if (event.key === "Enter") {
+                                event.preventDefault();
+                                editor.confirmRow(line.key, { addAnother: line.isNew });
+                              }
+                              if (event.key === "Escape") {
+                                event.preventDefault();
+                                if (line.isNew) {
+                                  editor.discardNewLine(line.key);
+                                } else {
+                                  editor.setEditingRowKey(null);
+                                  editor.setActiveRowKey(null);
+                                }
+                              }
+                            }}
+                          />
+                        ) : (
+                          <span className="font-mono text-sm text-brand-slate">
+                            {formatTariffCode(line.tariff_code)}
+                          </span>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-right">
                         {isEditing ? (

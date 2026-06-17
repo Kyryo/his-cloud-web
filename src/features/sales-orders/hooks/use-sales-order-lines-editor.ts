@@ -7,6 +7,7 @@ import { formatProductLabel } from "@/features/inventory/utils/format-inventory"
 import {
   addSalesOrderLine,
   removeSalesOrderLine,
+  updateSalesOrderLine,
   updateSalesOrderLinePrice,
 } from "@/features/sales-orders/services/sales-orders.service";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
@@ -33,6 +34,7 @@ type SavedSnapshotLine = {
   id: number | null;
   product_id: number | null;
   productName: string | null;
+  tariff_code?: string | null;
   quantity: string;
   price_unit: string;
   price_total?: string | number | null;
@@ -239,6 +241,7 @@ export function useSalesOrderLinesEditor({
         id: line.id ?? undefined,
         product_id: line.product_id,
         productName: line.productName,
+        tariff_code: line.tariff_code ?? null,
         quantity: line.quantity,
         price_unit: line.price_unit,
         price_total: line.price_total,
@@ -302,6 +305,21 @@ export function useSalesOrderLinesEditor({
       }
 
       for (const line of draftLines) {
+        if (line.id == null || lineIdsToReplace.has(line.id)) {
+          continue;
+        }
+
+        const original = snapshotById.get(line.id);
+        const originalCode = (original?.tariff_code ?? "").trim();
+        const nextCode = (line.tariff_code ?? "").trim();
+        if (original && originalCode !== nextCode) {
+          currentOrder = await updateSalesOrderLine(order.id, line.id, {
+            tariff_code: nextCode || null,
+          });
+        }
+      }
+
+      for (const line of draftLines) {
         if (!line.product_id) {
           continue;
         }
@@ -315,6 +333,7 @@ export function useSalesOrderLinesEditor({
           product_id: number;
           quantity: string;
           price_unit?: string;
+          tariff_code?: string | null;
         } = {
           product_id: line.product_id,
           quantity: parsedQuantity.toFixed(4),
@@ -322,6 +341,11 @@ export function useSalesOrderLinesEditor({
 
         if (line.price_unit.trim()) {
           payload.price_unit = Number(line.price_unit).toFixed(4);
+        }
+
+        const code = (line.tariff_code ?? "").trim();
+        if (code) {
+          payload.tariff_code = code;
         }
 
         currentOrder = await addSalesOrderLine(order.id, payload);

@@ -113,6 +113,10 @@ export type InventoryProduct = {
 
 export type InventoryProductPricelistItem = {
   id: number;
+  pricelist_id?: number;
+  pricelist_name?: string;
+  product_id?: number;
+  product_name?: string;
   applied_on?: string;
   compute_price?: string;
   fixed_price?: number | string | null;

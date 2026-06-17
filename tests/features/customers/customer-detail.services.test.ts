@@ -185,7 +185,10 @@ describe("customer detail services", () => {
   it("updates customer address via the BFF", async () => {
     vi.mocked(bffRequest).mockResolvedValue({ uuid: "address-1" });
 
-    await updateCustomerAddress("address-uuid", { line1: "Updated line" });
+    await updateCustomerAddress("address-uuid", {
+      address_type: "HOME",
+      line1: "Updated line",
+    });
 
     expect(bffRequest).toHaveBeenCalledWith(
       BFF_CUSTOMER_ADDRESSES_ROUTES.detail("address-uuid"),

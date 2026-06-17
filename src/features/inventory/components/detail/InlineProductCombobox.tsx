@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   Combobox,
@@ -55,6 +55,7 @@ export function InlineProductCombobox({
   const [options, setOptions] = useState<ProductOption[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [inputValue, setInputValue] = useState(displayLabel ?? "");
+  const suppressNextSearchRef = useRef(false);
 
   const selectedOption = useMemo(() => {
     if (!value) {
@@ -78,10 +79,26 @@ export function InlineProductCombobox({
   }, [displayLabel, options, value]);
 
   useEffect(() => {
-    setInputValue(displayLabel ?? "");
+    const nextLabel = displayLabel ?? "";
+    if (nextLabel !== inputValue) {
+      suppressNextSearchRef.current = true;
+      setInputValue(nextLabel);
+    }
   }, [displayLabel, value]);
 
   useEffect(() => {
+    if (suppressNextSearchRef.current) {
+      suppressNextSearchRef.current = false;
+      return;
+    }
+
+    const selectedLabel = selectedOption?.label ?? "";
+    // When a value is selected and the input matches the selected label, avoid
+    // re-querying on internal Combobox input sync events (prevents flicker/loops).
+    if (value && inputValue.trim() === selectedLabel.trim()) {
+      return;
+    }
+
     if (inputValue.trim().length < 2) {
       setOptions([]);
       return;
@@ -105,7 +122,7 @@ export function InlineProductCombobox({
     }, 250);
 
     return () => window.clearTimeout(handle);
-  }, [inputValue]);
+  }, [inputValue, selectedOption?.label, value]);
 
   return (
     <Combobox
@@ -120,6 +137,7 @@ export function InlineProductCombobox({
           return;
         }
         onSelect(option.product);
+        suppressNextSearchRef.current = true;
         setInputValue(option.label);
       }}
       onInputValueChange={(nextValue) => setInputValue(nextValue)}

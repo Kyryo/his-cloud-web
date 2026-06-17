@@ -8,6 +8,31 @@ type RouteContext = {
   params: Promise<{ orderId: string; lineId: string }>;
 };
 
+export async function PATCH(request: Request, context: RouteContext) {
+  try {
+    const auth = await requireAccessToken();
+    if ("error" in auth) {
+      return auth.error;
+    }
+
+    const { orderId, lineId } = await context.params;
+    const body = await request.json();
+
+    const order = await hmisApiRequest<SalesOrder>(
+      SALES_ORDERS_API_PATHS.lineDetail(orderId, lineId),
+      {
+        method: "PATCH",
+        token: auth.accessToken,
+        body,
+      },
+    );
+
+    return bffSuccess(order);
+  } catch (error) {
+    return bffError(error);
+  }
+}
+
 export async function DELETE(_request: Request, context: RouteContext) {
   try {
     const auth = await requireAccessToken();
