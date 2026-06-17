@@ -1,6 +1,7 @@
 "use client";
 
 import { ClipboardList, Plus, Trash2 } from "lucide-react";
+import { useRef } from "react";
 
 import { SecondaryButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
@@ -66,6 +67,7 @@ export function SalesOrderLinesEditor({
   const { toast } = useToast();
   const canEdit = canEditSalesOrderLines(order.state);
   const currency = formatSalesOrderCurrency(order);
+  const selectionTokenByLineKeyRef = useRef<Map<string, number>>(new Map());
 
   const editor = useSalesOrderLinesEditor({
     order,
@@ -245,9 +247,17 @@ export function SalesOrderLinesEditor({
                             disabled={editor.isSaving}
                             onFocus={() => editor.setActiveRowKey(line.key)}
                             onSelect={(product) => {
+                              const nextToken =
+                                (selectionTokenByLineKeyRef.current.get(line.key) ?? 0) +
+                                1;
+                              selectionTokenByLineKeyRef.current.set(line.key, nextToken);
+
                               editor.updateLine(line.key, {
                                 product_id: product.id,
                                 productName: formatProductLabel(product),
+                                // Reset computed fields when switching products to avoid
+                                // stale values carrying over unnoticed.
+                                tariff_code: null,
                                 price_unit:
                                   line.price_unit ||
                                   (product.list_price != null
@@ -256,12 +266,19 @@ export function SalesOrderLinesEditor({
                               });
 
                               void (async () => {
+                                const isStillCurrentSelection = () =>
+                                  selectionTokenByLineKeyRef.current.get(line.key) ===
+                                  nextToken;
+
                                 // Prefill unit price from the order's pricelist (if available).
                                 if (order.pricelist_id) {
                                   try {
                                     const items = await fetchInventoryProductPricelists(
                                       product.id,
                                     );
+                                    if (!isStillCurrentSelection()) {
+                                      return;
+                                    }
                                     const match = items.find(
                                       (item) =>
                                         (item.pricelist?.id ?? item.pricelist_id) ===
@@ -288,6 +305,9 @@ export function SalesOrderLinesEditor({
                                     const codes = await fetchProductTariffCodes(
                                       product.id,
                                     );
+                                    if (!isStillCurrentSelection()) {
+                                      return;
+                                    }
                                     const match = codes.find(
                                       (code) =>
                                         code.scheme_id === order.insurance_scheme_id,
@@ -322,39 +342,9 @@ export function SalesOrderLinesEditor({
                         )}
                       </td>
                       <td className="px-4 py-3">
-                        {isEditing ? (
-                          <Input
-                            value={line.tariff_code ?? ""}
-                            disabled={editor.isSaving}
-                            className="h-9 w-40 font-mono text-sm"
-                            placeholder="Tariff code"
-                            onFocus={() => editor.setActiveRowKey(line.key)}
-                            onChange={(event) =>
-                              editor.updateLine(line.key, {
-                                tariff_code: event.target.value,
-                              })
-                            }
-                            onKeyDown={(event) => {
-                              if (event.key === "Enter") {
-                                event.preventDefault();
-                                editor.confirmRow(line.key, { addAnother: line.isNew });
-                              }
-                              if (event.key === "Escape") {
-                                event.preventDefault();
-                                if (line.isNew) {
-                                  editor.discardNewLine(line.key);
-                                } else {
-                                  editor.setEditingRowKey(null);
-                                  editor.setActiveRowKey(null);
-                                }
-                              }
-                            }}
-                          />
-                        ) : (
-                          <span className="font-mono text-sm text-brand-slate">
-                            {formatTariffCode(line.tariff_code)}
-                          </span>
-                        )}
+                        <span className="font-mono text-sm text-brand-slate">
+                          {formatTariffCode(line.tariff_code)}
+                        </span>
                       </td>
                       <td className="px-4 py-3 text-right">
                         {isEditing ? (
