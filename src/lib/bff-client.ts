@@ -19,7 +19,7 @@ export class BffError extends Error {
 
 type BffRequestOptions = {
   method?: string;
-  body?: unknown | FormData;
+  body?: FormData | object | null;
 };
 
 export async function bffRequest<T>(
