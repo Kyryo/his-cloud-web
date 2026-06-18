@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { TbCircleCheck } from "react-icons/tb";
 
+import HeroGraphic from "@/components/HeroGraphic";
 import { ROUTES } from "@/constants/routes";
-import { HeroBrowserMockup } from "@/features/brand/components/landing/HeroBrowserMockup";
 
 const TRUST_NOTES = [
   "No card required",
@@ -75,7 +75,7 @@ export function HeroSection() {
             className="hero-fade-up w-full"
             style={{ animationDelay: "0.4s" }}
           >
-            <HeroBrowserMockup />
+            <HeroGraphic />
           </div>
         </div>
       </div>
