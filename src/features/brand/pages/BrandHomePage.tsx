@@ -1,5 +1,6 @@
 import { HeroSection } from "@/features/brand/components/HeroSection";
 import { LandingHomeSections } from "@/features/brand/components/landing/LandingHomeSections";
+import { LandingProofStrip } from "@/features/brand/components/landing/LandingProofStrip";
 import { Navigation } from "@/features/brand/components/Navigation";
 
 export function BrandHomePage() {
@@ -7,6 +8,7 @@ export function BrandHomePage() {
     <div className="min-h-dvh bg-white" data-brand-page>
       <Navigation />
       <HeroSection />
+      <LandingProofStrip />
       <LandingHomeSections />
     </div>
   );
