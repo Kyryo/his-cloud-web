@@ -16,7 +16,7 @@ export default function HeroGraphic() {
   return (
     <div className="hero-graphic-root w-full lg:max-w-none">
       <svg
-        viewBox="0 0 680 420"
+        viewBox="0 36 680 384"
         width="100%"
         role="img"
         aria-labelledby="hero-graphic-title hero-graphic-desc"

@@ -1,10 +1,8 @@
 "use client";
 
 import { Store } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
-import { ROUTES } from "@/constants/routes";
 import {
   ListPageDataSectionsStack,
   ListPageLayout,
@@ -16,6 +14,7 @@ import { InventoryListEmptyState } from "@/features/inventory/components/list/In
 import { InventoryListPageContent } from "@/features/inventory/components/list/InventoryListPageContent";
 import { InventoryListPageHeader } from "@/features/inventory/components/list/InventoryListPageHeader";
 import { InventoryListPagination } from "@/features/inventory/components/list/InventoryListTable";
+import { StockDetailDialog } from "@/features/inventory/components/StockDetailDialog";
 import { StockTable } from "@/features/inventory/components/tables/stock-table";
 import { useInventoryListFilters } from "@/features/inventory/hooks/use-inventory-list-filters";
 import { fetchInventoryStock } from "@/features/inventory/services/inventory.service";
@@ -30,7 +29,9 @@ import {
 } from "@/features/inventory/utils/inventory-list-filters";
 
 export function StockListPage() {
-  const router = useRouter();
+  const [selectedStock, setSelectedStock] = useState<InventoryStock | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+
   const fetchFn = useCallback(
     (f: InventoryListFilters) => fetchInventoryStock(f),
     [],
@@ -60,10 +61,14 @@ export function StockListPage() {
     countActiveSheetFilters: countActiveStockFilters,
   });
 
-  const handleRowClick = useCallback(
-    (item: InventoryStock) => router.push(ROUTES.inventoryStockDetail(item.uuid)),
-    [router],
-  );
+  const handleRowClick = useCallback((item: InventoryStock) => {
+    setSelectedStock(item);
+    setDetailOpen(true);
+  }, []);
+
+  const handleDetailOpenChange = useCallback((open: boolean) => {
+    setDetailOpen(open);
+  }, []);
 
   if (isUnauthorized) {
     return (
@@ -73,6 +78,12 @@ export function StockListPage() {
 
   return (
     <ListPageLayout data-testid="inventory-stock-page">
+      <StockDetailDialog
+        stock={selectedStock}
+        open={detailOpen}
+        onOpenChange={handleDetailOpenChange}
+      />
+
       <InventoryListPageHeader
         title="Stock"
         description="On-hand quantities by location and product."
@@ -83,7 +94,7 @@ export function StockListPage() {
           <InventoryListToolbar
             showSearch={false}
             isLoading={isRefreshing}
-            onRefresh={() => void reload()}
+            filtersClassName="ml-auto flex justify-end"
             filters={
               <InventoryFiltersSheet
                 variant="stock"

@@ -50,7 +50,10 @@ export function StockDetailTabs({ stock }: StockDetailTabsProps) {
               title: "Stock details",
               fields: [
                 { label: "Location", value: stock.location_name },
-                { label: "Product ID", value: stock.product_id },
+                {
+                  label: "Product",
+                  value: stock.product_name?.trim() || stock.product_id,
+                },
                 { label: "Batch", value: stock.batch_number ?? "—" },
                 { label: "Status", value: stock.is_active ? "Active" : "Inactive" },
                 { label: "Created", value: formatDisplayDateTime(stock.created_at) },
