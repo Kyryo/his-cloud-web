@@ -19,7 +19,7 @@ export class BffError extends Error {
 
 type BffRequestOptions = {
   method?: string;
-  body?: unknown;
+  body?: FormData | object | null;
 };
 
 export async function bffRequest<T>(
@@ -27,14 +27,18 @@ export async function bffRequest<T>(
   options: BffRequestOptions = {},
 ): Promise<T> {
   const { method = "GET", body } = options;
+  const isFormData = body instanceof FormData;
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), BFF_TIMEOUT_MS);
 
   try {
     const response = await fetch(path, {
       method,
-      headers: body ? { "Content-Type": "application/json" } : undefined,
-      body: body ? JSON.stringify(body) : undefined,
+      headers:
+        body && !isFormData
+          ? { "Content-Type": "application/json" }
+          : undefined,
+      body: isFormData ? body : body ? JSON.stringify(body) : undefined,
       credentials: "include",
       signal: controller.signal,
       cache: "no-store",

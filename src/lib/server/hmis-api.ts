@@ -21,7 +21,7 @@ export class HmisApiError extends Error {
 
 type HmisRequestOptions = {
   method?: string;
-  body?: unknown;
+  body?: unknown | FormData;
   token?: string;
   headers?: Record<string, string>;
 };
@@ -50,12 +50,11 @@ export async function hmisApiRequestWithMeta<T>(
   options: HmisRequestOptions = {},
 ): Promise<HmisRequestResult<T>> {
   if (!HMIS_API_URL) {
-    throw new HmisApiError(
-      "HMIS_API_URL is not configured on the server.",
-    );
+    throw new HmisApiError("HMIS_API_URL is not configured on the server.");
   }
 
   const { method = "GET", body, token, headers = {} } = options;
+  const isFormData = body instanceof FormData;
   const requestId = createRequestId();
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
@@ -66,11 +65,11 @@ export async function hmisApiRequestWithMeta<T>(
       headers: {
         accept: "application/json",
         "X-Request-ID": requestId,
-        ...(body ? { "Content-Type": "application/json" } : {}),
+        ...(body && !isFormData ? { "Content-Type": "application/json" } : {}),
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
         ...headers,
       },
-      body: body ? JSON.stringify(body) : undefined,
+      body: isFormData ? body : body ? JSON.stringify(body) : undefined,
       signal: controller.signal,
       cache: "no-store",
     });
@@ -119,10 +118,7 @@ export async function hmisApiRequestWithMeta<T>(
     }
 
     if (!response.ok) {
-      throw new HmisApiError(
-        parseLegacyErrorMessage(payload),
-        response.status,
-      );
+      throw new HmisApiError(parseLegacyErrorMessage(payload), response.status);
     }
 
     return {
