@@ -32,6 +32,15 @@ import type {
 } from "@/features/therapy/types/therapy.types";
 import { useToast } from "@/providers/toast-provider";
 
+function activityDetailRows(activity: TherapySessionActivity) {
+  return [
+    ["Instructions", activity.instructions],
+    ["Precautions", activity.precautions],
+    ["Cues provided", activity.cues_provided],
+    ["Performance notes", activity.performance_notes],
+  ].filter(([, value]) => value.trim());
+}
+
 export function SessionActivityTab({
   discipline,
   visitUuid,
@@ -47,7 +56,9 @@ export function SessionActivityTab({
 }) {
   const { toast } = useToast();
   const [activities, setActivities] = useState<TherapySessionActivity[]>([]);
-  const [sessionOptions, setSessionOptions] = useState<TherapySessionOption[]>([]);
+  const [sessionOptions, setSessionOptions] = useState<TherapySessionOption[]>(
+    [],
+  );
   const [performanceNoteOptions, setPerformanceNoteOptions] = useState<
     TherapyPerformanceNoteOption[]
   >([]);
@@ -164,7 +175,10 @@ export function SessionActivityTab({
         <AddActionButton
           label="Add activity"
           disabled={
-            !hasSession || isReadOnly || isLoading || sessionOptions.length === 0
+            !hasSession ||
+            isReadOnly ||
+            isLoading ||
+            sessionOptions.length === 0
           }
           onClick={() => {
             setEditing(null);
@@ -217,6 +231,16 @@ export function SessionActivityTab({
                   <p className="mt-2 text-sm leading-6 text-brand-slate">
                     {activity.description}
                   </p>
+                  <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+                    {activityDetailRows(activity).map(([label, value]) => (
+                      <div key={label}>
+                        <dt className="font-medium text-brand-navy">{label}</dt>
+                        <dd className="mt-1 whitespace-pre-wrap leading-6 text-brand-slate">
+                          {value}
+                        </dd>
+                      </div>
+                    ))}
+                  </dl>
                   <div className="mt-3 flex flex-wrap gap-2 text-xs text-brand-muted">
                     {activity.sets ? <span>{activity.sets} sets</span> : null}
                     {activity.reps ? <span>{activity.reps} reps</span> : null}
@@ -229,30 +253,30 @@ export function SessionActivityTab({
                   </div>
                 </div>
                 {!isReadOnly ? (
-                <div className="flex shrink-0 gap-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    aria-label={`Edit ${activity.name}`}
-                    onClick={() => {
-                      setEditing(activity);
-                      setFormOpen(true);
-                    }}
-                  >
-                    <Pencil className="size-4" />
-                    Edit
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-brand-slate hover:bg-red-50 hover:text-red-700"
-                    aria-label={`Remove ${activity.name}`}
-                    onClick={() => setRemoving(activity)}
-                  >
-                    <Trash2 className="size-4" />
-                    Delete
-                  </Button>
-                </div>
+                  <div className="flex shrink-0 gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      aria-label={`Edit ${activity.name}`}
+                      onClick={() => {
+                        setEditing(activity);
+                        setFormOpen(true);
+                      }}
+                    >
+                      <Pencil className="size-4" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-brand-slate hover:bg-red-50 hover:text-red-700"
+                      aria-label={`Remove ${activity.name}`}
+                      onClick={() => setRemoving(activity)}
+                    >
+                      <Trash2 className="size-4" />
+                      Delete
+                    </Button>
+                  </div>
                 ) : null}
               </div>
             </article>

@@ -332,6 +332,23 @@ export async function updateOrganizationBranding(
   return data.branding;
 }
 
+export async function uploadOrganizationBrandingLogo(
+  image: File,
+): Promise<TenantBranding> {
+  const formData = new FormData();
+  formData.set("branding_logo_url", image);
+
+  const data = await bffRequest<{ branding: TenantBranding }>(
+    BFF_SETTINGS_ROUTES.branding,
+    {
+      method: "POST",
+      body: formData,
+    },
+  );
+
+  return data.branding;
+}
+
 export async function fetchOrganizationCurrency(): Promise<TenantCurrency> {
   const data = await bffRequest<{ currency: TenantCurrency }>(
     BFF_SETTINGS_ROUTES.currency,

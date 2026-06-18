@@ -9,17 +9,10 @@ import {
   PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS,
   PageLoader,
 } from "@/components/page-loader";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  PrimaryButton,
-  SecondaryButton,
-} from "@/components/ui/app-buttons";
+import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import {
   Dialog,
   DialogContent,
@@ -200,6 +193,15 @@ export function TherapyVisitDetailPage({
                   {visit.customer_gender || "Gender not recorded"}
                 </Badge>
                 <TherapyVisitStatusBadge status={visit.status} />
+                {visit.consultation_service_name ? (
+                  <span className="inline-flex items-center gap-1.5 text-sm text-brand-muted">
+                    <span
+                      className="size-2 rounded-full bg-indigo-300"
+                      aria-hidden="true"
+                    />
+                    {visit.consultation_service_name}
+                  </span>
+                ) : null}
               </div>
               <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-brand-muted">
                 <span>
@@ -321,9 +323,7 @@ export function TherapyVisitDetailPage({
             </SecondaryButton>
             <PrimaryButton
               type="button"
-              disabled={
-                isCreatingAssessment || !treatmentGoals?.treatment_plan
-              }
+              disabled={isCreatingAssessment || !treatmentGoals?.treatment_plan}
               onClick={() => void createAssessment()}
             >
               {isCreatingAssessment ? <SpinnerGlyph size="xs" /> : null}

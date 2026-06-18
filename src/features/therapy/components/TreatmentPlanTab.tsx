@@ -315,7 +315,7 @@ export function TreatmentPlanTab({
             <TherapyFormActionBar
               isSubmitting={isSubmitting}
               message="Treatment plan ready to add"
-              saveLabel="Add treatment plan"
+              saveLabel="Save treatment plan"
               onCancel={() => form.reset(EMPTY_VALUES)}
             />
           </form>
