@@ -89,7 +89,7 @@ export function useSalesOrderLinesEditor({
         }
 
         const labels = new Map(
-          products.map((product) => [product.id, formatProductLabel(product)]),
+          products.map((product) => [product.uuid, formatProductLabel(product)]),
         );
 
         setDraftLines((current) =>
@@ -101,7 +101,8 @@ export function useSalesOrderLinesEditor({
             return {
               ...line,
               productName:
-                labels.get(line.product_id) ?? `Product #${line.product_id}`,
+                labels.get(line.product_uuid ?? "") ??
+                (line.product_id ? `Product #${line.product_id}` : null),
             };
           }),
         );

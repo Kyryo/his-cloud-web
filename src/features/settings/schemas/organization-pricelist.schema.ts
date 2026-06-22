@@ -20,7 +20,7 @@ export function toCreateOrganizationPricelistPayload(
 ) {
   return {
     name: values.name.trim(),
-    active: values.active,
+    is_active: values.active,
   };
 }
 

@@ -276,7 +276,14 @@ describe("settings.service organization", () => {
 
   it("fetches organization pricelists", async () => {
     vi.mocked(bffRequest).mockResolvedValueOnce({
-      results: [{ id: 101, name: "Cash Pricelist", is_active: true, currency_code: "MWK" }],
+      results: [
+        {
+          uuid: "11111111-1111-1111-1111-111111111111",
+          name: "Cash Pricelist",
+          is_active: true,
+          currency_code: "MWK",
+        },
+      ],
       pagination: null,
     });
 
@@ -290,21 +297,22 @@ describe("settings.service organization", () => {
 
   it("creates an organization pricelist", async () => {
     vi.mocked(bffRequest).mockResolvedValueOnce({
-      id: 101,
+      uuid: "11111111-1111-1111-1111-111111111111",
       name: "Cash Pricelist",
-      active: true,
+      is_active: true,
+      currency_code: "KES",
     });
 
     const pricelist = await createOrganizationPricelist({
       name: "Cash Pricelist",
-      active: true,
+      is_active: true,
     });
 
     expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.pricelists, {
       method: "POST",
       body: {
         name: "Cash Pricelist",
-        active: true,
+        is_active: true,
       },
     });
     expect(pricelist.name).toBe("Cash Pricelist");
@@ -312,52 +320,56 @@ describe("settings.service organization", () => {
 
   it("fetches organization default pricelist", async () => {
     vi.mocked(bffRequest).mockResolvedValueOnce({
-      tenant: 1,
-      default_pricelist_id: 101,
+      tenant_uuid: "tenant-1",
+      default_pricelist_uuid: "11111111-1111-1111-1111-111111111111",
     });
 
     const response = await fetchOrganizationDefaultPricelist();
 
     expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.pricelistDefault);
-    expect(response.default_pricelist_id).toBe(101);
+    expect(response.default_pricelist_uuid).toBe(
+      "11111111-1111-1111-1111-111111111111",
+    );
   });
 
   it("sets organization default pricelist", async () => {
     vi.mocked(bffRequest).mockResolvedValueOnce({
-      tenant: 1,
-      default_pricelist_id: 101,
+      tenant_uuid: "tenant-1",
+      default_pricelist_uuid: "11111111-1111-1111-1111-111111111111",
     });
 
     const response = await setOrganizationDefaultPricelist({
-      default_pricelist_id: 101,
+      default_pricelist_uuid: "11111111-1111-1111-1111-111111111111",
     });
 
     expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.pricelistDefault, {
       method: "POST",
       body: {
-        default_pricelist_id: 101,
+        default_pricelist_uuid: "11111111-1111-1111-1111-111111111111",
       },
     });
-    expect(response.default_pricelist_id).toBe(101);
+    expect(response.default_pricelist_uuid).toBe(
+      "11111111-1111-1111-1111-111111111111",
+    );
   });
 
   it("clears organization default pricelist", async () => {
     vi.mocked(bffRequest).mockResolvedValueOnce({
-      tenant: 1,
-      default_pricelist_id: null,
+      tenant_uuid: "tenant-1",
+      default_pricelist_uuid: null,
     });
 
     const response = await setOrganizationDefaultPricelist({
-      default_pricelist_id: null,
+      default_pricelist_uuid: null,
     });
 
     expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.pricelistDefault, {
       method: "POST",
       body: {
-        default_pricelist_id: null,
+        default_pricelist_uuid: null,
       },
     });
-    expect(response.default_pricelist_id).toBeNull();
+    expect(response.default_pricelist_uuid).toBeNull();
   });
 
   it("updates an organization clinic", async () => {
@@ -458,34 +470,44 @@ describe("settings.service organization", () => {
 
   it("updates an organization pricelist", async () => {
     vi.mocked(bffRequest).mockResolvedValueOnce({
-      id: 101,
+      uuid: "11111111-1111-1111-1111-111111111111",
       name: "Updated Cash",
-      active: true,
+      is_active: true,
+      currency_code: "KES",
     });
 
-    const pricelist = await updateOrganizationPricelist(101, {
-      name: "Updated Cash",
-      active: true,
-    });
-
-    expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.pricelistDetail(101), {
-      method: "PATCH",
-      body: {
+    const pricelist = await updateOrganizationPricelist(
+      "11111111-1111-1111-1111-111111111111",
+      {
         name: "Updated Cash",
-        active: true,
+        is_active: true,
       },
-    });
+    );
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_SETTINGS_ROUTES.pricelistDetail("11111111-1111-1111-1111-111111111111"),
+      {
+        method: "PATCH",
+        body: {
+          name: "Updated Cash",
+          is_active: true,
+        },
+      },
+    );
     expect(pricelist.name).toBe("Updated Cash");
   });
 
   it("archives an organization pricelist", async () => {
     vi.mocked(bffRequest).mockResolvedValueOnce(undefined);
 
-    await archiveOrganizationPricelist(101);
+    await archiveOrganizationPricelist("11111111-1111-1111-1111-111111111111");
 
-    expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.pricelistDetail(101), {
-      method: "DELETE",
-    });
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_SETTINGS_ROUTES.pricelistDetail("11111111-1111-1111-1111-111111111111"),
+      {
+        method: "DELETE",
+      },
+    );
   });
 
   it("creates an organization payer scheme", async () => {
@@ -557,7 +579,7 @@ describe("settings.service organization", () => {
       currency: {
         tenant_id: 1,
         currency_code: "KES",
-        default_pricelist_id: 2,
+        default_pricelist_uuid: 2,
       },
     });
 
@@ -572,7 +594,7 @@ describe("settings.service organization", () => {
       currency: {
         tenant_id: 1,
         currency_code: "USD",
-        default_pricelist_id: 2,
+        default_pricelist_uuid: 2,
       },
     });
 

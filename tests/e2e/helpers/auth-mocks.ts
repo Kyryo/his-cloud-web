@@ -169,8 +169,32 @@ export async function mockSignupOtpFlow(page: Page): Promise<void> {
     });
   });
 
+  await page.route("**/api/auth/signup/verify-email", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        detail: "Email verified successfully.",
+        verification_token: "mock-verification-token",
+      }),
+    });
+  });
+
   await page.route("**/api/auth/signup/verify", async (route) => {
     authenticated = true;
     await fulfillVerify(route, 201);
+  });
+
+  await page.route("**/api/onboarding/modules", async (route) => {
+    if (route.request().method() === "POST") {
+      await route.fulfill({
+        status: 201,
+        contentType: "application/json",
+        body: JSON.stringify([]),
+      });
+      return;
+    }
+
+    await route.continue();
   });
 }

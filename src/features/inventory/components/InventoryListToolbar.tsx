@@ -21,6 +21,7 @@ type InventoryListToolbarProps = {
   isLoading?: boolean;
   onRefresh?: () => void;
   filters?: ReactNode;
+  filtersClassName?: string;
   primaryAction?: ReactNode;
   showSearch?: boolean;
   compact?: boolean;
@@ -35,6 +36,7 @@ export function InventoryListToolbar({
   isLoading = false,
   onRefresh,
   filters,
+  filtersClassName,
   primaryAction,
   showSearch = true,
   compact = false,
@@ -81,7 +83,7 @@ export function InventoryListToolbar({
         </ListPageToolbarSearch>
       ) : null}
 
-      <ListPageToolbarFilters>
+      <ListPageToolbarFilters className={filtersClassName}>
         {filters}
         {onRefresh ? (
           <Button

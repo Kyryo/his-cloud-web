@@ -26,7 +26,7 @@ type OrganizationPricelistsTabProps = {
 
 const columns = [
   { key: "name", label: "Pricelist" },
-  { key: "id", label: "ERP ID" },
+  { key: "uuid", label: "ID" },
   { key: "currency", label: "Currency" },
   { key: "status", label: "Status" },
   { key: "actions", label: "" },
@@ -35,8 +35,8 @@ const columns = [
 export function OrganizationPricelistsTab({ isActive }: OrganizationPricelistsTabProps) {
   const { toast } = useToast();
   const [pricelists, setPricelists] = useState<OrganizationPricelist[]>([]);
-  const [defaultPricelistId, setDefaultPricelistId] = useState<number | null>(null);
-  const [settingDefaultId, setSettingDefaultId] = useState<number | null>(null);
+  const [defaultPricelistUuid, setDefaultPricelistUuid] = useState<string | null>(null);
+  const [settingDefaultUuid, setSettingDefaultUuid] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
@@ -62,12 +62,12 @@ export function OrganizationPricelistsTab({ isActive }: OrganizationPricelistsTa
         ]);
         if (active) {
           setPricelists(pricelistResponse.results);
-          setDefaultPricelistId(defaultResponse.default_pricelist_id);
+          setDefaultPricelistUuid(defaultResponse.default_pricelist_uuid);
         }
       } catch (loadError) {
         if (active) {
           setPricelists([]);
-          setDefaultPricelistId(null);
+          setDefaultPricelistUuid(null);
           setError(
             loadError instanceof Error
               ? loadError.message
@@ -99,30 +99,32 @@ export function OrganizationPricelistsTab({ isActive }: OrganizationPricelistsTa
   function handleUpdated(updatedPricelist: OrganizationPricelist) {
     setPricelists((current) =>
       current.map((pricelist) =>
-        pricelist.id === updatedPricelist.id ? updatedPricelist : pricelist,
+        pricelist.uuid === updatedPricelist.uuid ? updatedPricelist : pricelist,
       ),
     );
   }
 
-  function handleArchived(pricelistId: number) {
+  function handleArchived(pricelistUuid: string) {
     setPricelists((current) =>
       current.map((pricelist) =>
-        pricelist.id === pricelistId ? { ...pricelist, active: false } : pricelist,
+        pricelist.uuid === pricelistUuid
+          ? { ...pricelist, is_active: false }
+          : pricelist,
       ),
     );
-    if (defaultPricelistId === pricelistId) {
-      setDefaultPricelistId(null);
+    if (defaultPricelistUuid === pricelistUuid) {
+      setDefaultPricelistUuid(null);
     }
   }
 
   async function handleSetDefault(pricelist: OrganizationPricelist) {
-    setSettingDefaultId(pricelist.id);
+    setSettingDefaultUuid(pricelist.uuid);
 
     try {
       const response = await setOrganizationDefaultPricelist({
-        default_pricelist_id: pricelist.id,
+        default_pricelist_uuid: pricelist.uuid,
       });
-      setDefaultPricelistId(response.default_pricelist_id);
+      setDefaultPricelistUuid(response.default_pricelist_uuid);
       toast({
         variant: "success",
         title: "Default pricelist updated",
@@ -140,7 +142,7 @@ export function OrganizationPricelistsTab({ isActive }: OrganizationPricelistsTa
               : "Something went wrong.",
       });
     } finally {
-      setSettingDefaultId(null);
+      setSettingDefaultUuid(null);
     }
   }
 
@@ -188,11 +190,11 @@ export function OrganizationPricelistsTab({ isActive }: OrganizationPricelistsTa
               </thead>
               <tbody className="divide-y divide-brand-border">
                 {pricelists.map((pricelist) => {
-                  const isDefault = defaultPricelistId === pricelist.id;
-                  const isSettingDefault = settingDefaultId === pricelist.id;
+                  const isDefault = defaultPricelistUuid === pricelist.uuid;
+                  const isSettingDefault = settingDefaultUuid === pricelist.uuid;
 
                   return (
-                    <tr key={pricelist.id}>
+                    <tr key={pricelist.uuid}>
                       <td className="px-6 py-3.5 text-sm font-medium text-brand-navy">
                         <div className="flex flex-wrap items-center gap-2">
                           <span>{pricelist.name}</span>
@@ -208,7 +210,7 @@ export function OrganizationPricelistsTab({ isActive }: OrganizationPricelistsTa
                         </div>
                       </td>
                       <td className="px-6 py-3.5 font-mono text-sm text-brand-navy">
-                        {pricelist.id}
+                        {pricelist.uuid}
                       </td>
                       <td className="px-6 py-3.5 text-sm text-brand-navy">
                         {pricelist.currency_code}
@@ -265,7 +267,7 @@ export function OrganizationPricelistsTab({ isActive }: OrganizationPricelistsTa
       {editingPricelist ? (
         <UpdatePricelistDialog
           pricelist={editingPricelist}
-          isDefault={defaultPricelistId === editingPricelist.id}
+          isDefault={defaultPricelistUuid === editingPricelist.uuid}
           open={Boolean(editingPricelist)}
           onOpenChange={(open) => {
             if (!open) {
@@ -274,7 +276,7 @@ export function OrganizationPricelistsTab({ isActive }: OrganizationPricelistsTa
           }}
           onUpdated={handleUpdated}
           onArchived={handleArchived}
-          onDefaultChanged={setDefaultPricelistId}
+          onDefaultChanged={setDefaultPricelistUuid}
         />
       ) : null}
     </>

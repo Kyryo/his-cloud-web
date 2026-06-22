@@ -21,7 +21,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     const { id } = await context.params;
     const body = (await request.json()) as UpdateOrganizationPricelistPayload;
 
-    if (!body.name?.trim() && body.active === undefined) {
+    if (!body.name?.trim() && body.is_active === undefined) {
       return bffSuccess({ message: "At least one field is required." }, 400);
     }
 
@@ -32,7 +32,8 @@ export async function PATCH(request: Request, context: RouteContext) {
         token: admin.accessToken,
         body: {
           ...(body.name?.trim() ? { name: body.name.trim() } : {}),
-          ...(body.active !== undefined ? { active: body.active } : {}),
+          ...(body.is_active !== undefined ? { is_active: body.is_active } : {}),
+          ...(body.currency_code ? { currency_code: body.currency_code } : {}),
         },
       },
     );

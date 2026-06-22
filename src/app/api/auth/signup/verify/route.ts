@@ -14,6 +14,7 @@ type RequestBody = {
   clinic_name?: string;
   country?: string;
   code?: string;
+  verification_token?: string;
 };
 
 export async function POST(request: Request) {
@@ -25,7 +26,7 @@ export async function POST(request: Request) {
       !body.password ||
       !body.name ||
       !body.clinic_name ||
-      !body.code
+      (!body.code && !body.verification_token)
     ) {
       return bffSuccess(
         { message: "All required signup fields must be provided." },
@@ -44,6 +45,7 @@ export async function POST(request: Request) {
           clinic_name: body.clinic_name.trim(),
           country: body.country?.trim() || undefined,
           code: body.code,
+          verification_token: body.verification_token,
         },
       },
     );

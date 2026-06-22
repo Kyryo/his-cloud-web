@@ -52,8 +52,8 @@ type UpdatePricelistDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdated: (pricelist: OrganizationPricelist) => void;
-  onArchived: (pricelistId: number) => void;
-  onDefaultChanged: (defaultPricelistId: number | null) => void;
+  onArchived: (pricelistUuid: string) => void;
+  onDefaultChanged: (defaultPricelistUuid: string | null) => void;
 };
 
 export function UpdatePricelistDialog({
@@ -83,7 +83,7 @@ export function UpdatePricelistDialog({
   async function handleSubmit(values: UpdateOrganizationPricelistFormValues) {
     try {
       const updatedPricelist = await updateOrganizationPricelist(
-        pricelist.id,
+        pricelist.uuid,
         toUpdateOrganizationPricelistPayload(values),
       );
       toast({
@@ -125,14 +125,14 @@ export function UpdatePricelistDialog({
 
     try {
       const response = await setOrganizationDefaultPricelist({
-        default_pricelist_id: pricelist.id,
+        default_pricelist_uuid: pricelist.uuid,
       });
       toast({
         variant: "success",
         title: "Default pricelist updated",
         description: `${pricelist.name} is now the organization default.`,
       });
-      onDefaultChanged(response.default_pricelist_id);
+      onDefaultChanged(response.default_pricelist_uuid);
     } catch (error) {
       toast({
         variant: "error",
@@ -154,14 +154,14 @@ export function UpdatePricelistDialog({
 
     try {
       const response = await setOrganizationDefaultPricelist({
-        default_pricelist_id: null,
+        default_pricelist_uuid: null,
       });
       toast({
         variant: "success",
         title: "Default pricelist cleared",
         description: "No organization default pricelist is set.",
       });
-      onDefaultChanged(response.default_pricelist_id);
+      onDefaultChanged(response.default_pricelist_uuid);
     } catch (error) {
       toast({
         variant: "error",
@@ -183,17 +183,17 @@ export function UpdatePricelistDialog({
 
     try {
       if (isDefault) {
-        await setOrganizationDefaultPricelist({ default_pricelist_id: null });
+        await setOrganizationDefaultPricelist({ default_pricelist_uuid: null });
         onDefaultChanged(null);
       }
 
-      await archiveOrganizationPricelist(pricelist.id);
+      await archiveOrganizationPricelist(pricelist.uuid);
       toast({
         variant: "success",
         title: "Pricelist archived",
         description: `${pricelist.name} was deactivated in ERP.`,
       });
-      onArchived(pricelist.id);
+      onArchived(pricelist.uuid);
       onOpenChange(false);
     } catch (error) {
       toast({
@@ -259,7 +259,7 @@ export function UpdatePricelistDialog({
                       ERP ID
                     </dt>
                     <dd className="mt-1 font-mono text-sm font-medium text-brand-navy">
-                      {pricelist.id}
+                      {pricelist.uuid}
                     </dd>
                   </div>
                   <div>

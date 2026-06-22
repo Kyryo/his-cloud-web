@@ -6,6 +6,8 @@ import type {
   SigninOtpRequest,
   SigninVerifyRequest,
   SignupOtpRequest,
+  SignupVerifyEmailRequest,
+  SignupVerifyEmailResponse,
   SignupVerifyRequest,
   User,
 } from "@/features/auth/types/auth.types";
@@ -56,6 +58,19 @@ export async function requestSignupOtp(
   });
 }
 
+export async function verifySignupEmail(
+  payload: SignupVerifyEmailRequest,
+): Promise<SignupVerifyEmailResponse> {
+  return bffRequest<SignupVerifyEmailResponse>(BFF_AUTH_ROUTES.signupVerifyEmail, {
+    method: "POST",
+    body: {
+      email: payload.email.trim().toLowerCase(),
+      password: payload.password,
+      code: payload.code,
+    },
+  });
+}
+
 export async function verifySignup(
   payload: SignupVerifyRequest,
 ): Promise<AuthVerifyResponse> {
@@ -68,6 +83,7 @@ export async function verifySignup(
       clinic_name: payload.clinic_name.trim(),
       country: payload.country?.trim() || undefined,
       code: payload.code,
+      verification_token: payload.verification_token,
     },
   });
 }

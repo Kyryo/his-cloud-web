@@ -16,13 +16,46 @@ export function StepIndicator({
   steps,
   orientation = "horizontal",
 }: StepIndicatorProps) {
+  if (orientation === "vertical") {
+    return (
+      <ol className="space-y-4">
+        {steps.map((step) => {
+          const isActive = step.number === currentStep;
+          const isComplete = step.number < currentStep;
+
+          return (
+            <li key={step.number} className="flex items-start gap-3">
+              <span
+                className={cn(
+                  "mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full border text-xs font-semibold",
+                  isComplete && "border-emerald-500 bg-emerald-500 text-white",
+                  isActive && "border-brand-primary bg-brand-primary text-white",
+                  !isActive &&
+                    !isComplete &&
+                    "border-brand-border bg-white text-brand-muted",
+                )}
+              >
+                {isComplete ? "✓" : step.number}
+              </span>
+              <div className="min-w-0 pt-0.5">
+                <p
+                  className={cn(
+                    "text-sm font-medium",
+                    isActive || isComplete ? "text-brand-navy" : "text-brand-muted",
+                  )}
+                >
+                  {step.label}
+                </p>
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+    );
+  }
+
   return (
-    <div
-      className={cn(
-        "flex gap-2",
-        orientation === "vertical" ? "flex-col" : "flex-row items-center",
-      )}
-    >
+    <div className="flex flex-row items-center gap-2">
       {steps.map((step) => {
         const isActive = step.number === currentStep;
         const isComplete = step.number < currentStep;

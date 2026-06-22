@@ -55,19 +55,19 @@ export function AddProductToPricelistDialog({
   const { toast } = useToast();
   const [pricelists, setPricelists] = useState<OrganizationPricelist[]>([]);
   const [isLoadingPricelists, setIsLoadingPricelists] = useState(false);
-  const [pricelistId, setPricelistId] = useState("");
+  const [pricelistUuid, setPricelistUuid] = useState("");
   const [fixedPrice, setFixedPrice] = useState(
     product.list_price != null ? String(product.list_price) : "",
   );
   const [minQuantity, setMinQuantity] = useState("1");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const usedPricelistIds = useMemo(
+  const usedPricelistUuids = useMemo(
     () =>
       new Set(
         existingItems
-          .map((item) => item.pricelist?.id)
-          .filter((id): id is number => typeof id === "number"),
+          .map((item) => item.pricelist_uuid)
+          .filter((uuid): uuid is string => Boolean(uuid)),
       ),
     [existingItems],
   );
@@ -75,9 +75,9 @@ export function AddProductToPricelistDialog({
   const availablePricelists = useMemo(
     () =>
       pricelists.filter(
-        (entry) => entry.is_active && !usedPricelistIds.has(entry.id),
+        (entry) => entry.is_active && !usedPricelistUuids.has(entry.uuid),
       ),
-    [pricelists, usedPricelistIds],
+    [pricelists, usedPricelistUuids],
   );
 
   useEffect(() => {
@@ -85,7 +85,7 @@ export function AddProductToPricelistDialog({
       return;
     }
 
-    setPricelistId("");
+    setPricelistUuid("");
     setFixedPrice(product.list_price != null ? String(product.list_price) : "");
     setMinQuantity("1");
 
@@ -119,11 +119,10 @@ export function AddProductToPricelistDialog({
   }, [open, product.list_price, toast]);
 
   async function handleSubmit() {
-    const parsedPricelistId = Number(pricelistId);
     const parsedPrice = Number(fixedPrice);
     const parsedMinQty = Number(minQuantity);
 
-    if (!Number.isFinite(parsedPricelistId) || parsedPricelistId <= 0) {
+    if (!pricelistUuid) {
       toast({
         variant: "error",
         title: "Select a pricelist",
@@ -143,8 +142,8 @@ export function AddProductToPricelistDialog({
 
     setIsSubmitting(true);
     try {
-      const result = await addProductToPricelist(parsedPricelistId, {
-        product_id: product.id,
+      const result = await addProductToPricelist(pricelistUuid, {
+        product_uuid: product.uuid,
         fixed_price: parsedPrice,
         ...(Number.isFinite(parsedMinQty) && parsedMinQty > 0
           ? { min_quantity: parsedMinQty }
@@ -204,8 +203,8 @@ export function AddProductToPricelistDialog({
               </p>
             ) : (
               <Select
-                value={pricelistId}
-                onValueChange={setPricelistId}
+                value={pricelistUuid}
+                onValueChange={setPricelistUuid}
                 disabled={isSubmitting}
               >
                 <SelectTrigger id="pricelist-select">
@@ -213,7 +212,7 @@ export function AddProductToPricelistDialog({
                 </SelectTrigger>
                 <SelectContent>
                   {availablePricelists.map((entry) => (
-                    <SelectItem key={entry.id} value={String(entry.id)}>
+                    <SelectItem key={entry.uuid} value={entry.uuid}>
                       {entry.name}
                     </SelectItem>
                   ))}

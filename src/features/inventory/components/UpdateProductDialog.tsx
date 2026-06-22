@@ -67,7 +67,7 @@ export function UpdateProductDialog({
   const handleSubmit = form.handleSubmit(async (values) => {
     try {
       const updatedProduct = await updateInventoryProduct(
-        product.id,
+        product.uuid,
         toUpdateInventoryProductPayload(values),
       );
       toast({

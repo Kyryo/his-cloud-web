@@ -179,10 +179,14 @@ export function formatProductLabel(
     display_name?: string;
     name?: string;
     default_code?: string | false | null;
+    uuid?: string;
     id?: number;
   },
 ): string {
-  const name = product.display_name || product.name || `Product #${product.id ?? "?"}`;
+  const name =
+    product.display_name ||
+    product.name ||
+    (product.uuid ? `Product ${product.uuid.slice(0, 8)}…` : `Product #${product.uuid ?? "?"}`);
   if (product.default_code) {
     return `${name} (${product.default_code})`;
   }

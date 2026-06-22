@@ -131,6 +131,13 @@ export const navigation: NavigationItem[] = [
     enabledInWebNew: true,
   },
   {
+    name: "Pricelists",
+    href: ROUTES.inventoryPricelists,
+    icon: Receipt,
+    requiredGroup: "Inventory",
+    enabledInWebNew: true,
+  },
+  {
     name: "Purchase Orders",
     href: ROUTES.inventoryPurchaseOrders,
     icon: FileText,

@@ -18,7 +18,7 @@ export async function DELETE(_request: Request, context: RouteContext) {
     const { id, itemId } = await context.params;
 
     const result = await hmisApiRequest<PricelistProductMutationResult>(
-      PRICELISTS_API_PATHS.removeProduct(id, itemId),
+      PRICELISTS_API_PATHS.productDetail(id, itemId),
       {
         method: "DELETE",
         token: admin.accessToken,

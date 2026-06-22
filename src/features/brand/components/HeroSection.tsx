@@ -12,10 +12,10 @@ const TRUST_NOTES = [
 
 export function HeroSection() {
   return (
-    <section className="flex min-h-[calc(100dvh-4rem)] flex-col bg-white pt-16">
-      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 sm:px-12">
-        <div className="grid flex-1 grid-cols-1 items-center gap-8 py-4 lg:grid-cols-2 lg:gap-10 lg:py-6">
-          <div className="flex flex-col justify-center text-left lg:pr-16">
+    <section className="flex flex-col bg-white pt-16">
+      <div className="mx-auto mt-10 flex w-full max-w-7xl flex-col px-6 sm:mt-14 sm:px-12 lg:mt-20">
+        <div className="grid grid-cols-1 items-start gap-8 pb-6 lg:grid-cols-2 lg:gap-12 lg:pb-8">
+          <div className="flex flex-col justify-start text-left lg:pr-12">
             <h1
               className="hero-fade-up font-[family-name:var(--font-bricolage)] text-[2rem] font-extrabold leading-[1.08] tracking-[-0.03em] text-brand-navy sm:text-[2.375rem] lg:text-[42px]"
               style={{ animationDelay: "0.05s" }}
@@ -25,7 +25,7 @@ export function HeroSection() {
             </h1>
 
             <p
-              className="hero-fade-up mb-[10px] mt-3 max-w-lg text-sm leading-6 text-brand-muted sm:mt-4 sm:text-base sm:leading-7"
+              className="hero-fade-up mt-4 max-w-lg text-sm leading-6 text-brand-muted sm:mt-5 sm:text-base sm:leading-7"
               style={{ animationDelay: "0.15s" }}
             >
               Most health software is built for hospitals that have IT departments,
@@ -35,13 +35,13 @@ export function HeroSection() {
             </p>
 
             <div
-              className="group/cta hero-fade-up flex flex-col gap-3"
+              className="group/cta hero-fade-up mt-8 flex flex-col gap-5 sm:mt-10"
               style={{ animationDelay: "0.25s" }}
             >
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
                 <Link
                   href={ROUTES.signup}
-                  className="inline-flex items-center justify-center gap-1 rounded-full bg-brand-primary px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#1254b8]"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-full bg-brand-primary px-7 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1254b8] sm:text-base"
                 >
                   Try Sigma Free
                   <span className="inline-block max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-300 ease-out group-hover/cta:max-w-[5.5rem] group-hover/cta:opacity-100">
@@ -51,13 +51,13 @@ export function HeroSection() {
                 </Link>
                 <Link
                   href={ROUTES.contacts}
-                  className="inline-flex items-center justify-center rounded-full border-[1.5px] border-brand-navy bg-transparent px-6 py-3 text-sm font-semibold text-brand-navy transition-colors hover:bg-brand-tint"
+                  className="inline-flex items-center justify-center rounded-full border-[1.5px] border-brand-navy bg-transparent px-7 py-3.5 text-sm font-semibold text-brand-navy transition-colors hover:bg-brand-tint sm:text-base"
                 >
                   Book a demo
                 </Link>
               </div>
 
-              <div className="flex flex-wrap items-center gap-x-3.5 gap-y-1.5 text-xs text-brand-muted">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-brand-muted sm:text-sm">
                 {TRUST_NOTES.map((note) => (
                   <span key={note} className="inline-flex items-center gap-1.5">
                     <TbCircleCheck
@@ -72,7 +72,7 @@ export function HeroSection() {
           </div>
 
           <div
-            className="hero-fade-up w-full"
+            className="hero-fade-up w-full self-start lg:-mt-1"
             style={{ animationDelay: "0.4s" }}
           >
             <HeroGraphic />

@@ -16,14 +16,14 @@ import { formatProductLabel } from "@/features/inventory/utils/format-inventory"
 import { cn } from "@/lib/utils";
 
 type ProductOption = {
-  id: number;
+  uuid: string;
   label: string;
   product: InventoryProduct;
 };
 
 type InlineProductComboboxProps = {
   id: string;
-  value: number | null;
+  value: string | null;
   displayLabel?: string | null;
   disabled?: boolean;
   autoFocus?: boolean;
@@ -35,7 +35,7 @@ type InlineProductComboboxProps = {
 
 function toProductOption(product: InventoryProduct): ProductOption {
   return {
-    id: product.id,
+    uuid: product.uuid,
     label: formatProductLabel(product),
     product,
   };
@@ -62,16 +62,16 @@ export function InlineProductCombobox({
       return null;
     }
 
-    const match = options.find((option) => option.id === value);
+    const match = options.find((option) => option.uuid === value);
     if (match) {
       return match;
     }
 
     if (displayLabel) {
       return {
-        id: value,
+        uuid: value,
         label: displayLabel,
-        product: { id: value } as InventoryProduct,
+        product: { uuid: value } as InventoryProduct,
       };
     }
 
@@ -93,8 +93,6 @@ export function InlineProductCombobox({
     }
 
     const selectedLabel = selectedOption?.label ?? "";
-    // When a value is selected and the input matches the selected label, avoid
-    // re-querying on internal Combobox input sync events (prevents flicker/loops).
     if (value && inputValue.trim() === selectedLabel.trim()) {
       return;
     }
@@ -130,8 +128,8 @@ export function InlineProductCombobox({
       filter={null}
       value={selectedOption}
       itemToStringLabel={(option) => option.label}
-      itemToStringValue={(option) => String(option.id)}
-      isItemEqualToValue={(left, right) => left.id === right.id}
+      itemToStringValue={(option) => option.uuid}
+      isItemEqualToValue={(left, right) => left.uuid === right.uuid}
       onValueChange={(option) => {
         if (!option) {
           return;
@@ -159,7 +157,7 @@ export function InlineProductCombobox({
         </ComboboxEmpty>
         <ComboboxList>
           {(option) => (
-            <ComboboxItem key={option.id} value={option}>
+            <ComboboxItem key={option.uuid} value={option}>
               {option.label}
             </ComboboxItem>
           )}

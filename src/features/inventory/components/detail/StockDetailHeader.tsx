@@ -32,12 +32,21 @@ export function StockDetailHeader({
           ) : null}
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-lg font-semibold text-brand-navy sm:text-xl">
-              {stock.location_name}
+              {stock.product_name?.trim() || stock.location_name}
             </h1>
 
             <p className="mt-1 font-mono text-sm text-brand-muted">
-              Product {stock.product_id}
-              {stock.batch_number ? ` · Batch ${stock.batch_number}` : ""}
+              {stock.product_name?.trim() ? (
+                <>
+                  {stock.location_name}
+                  {stock.batch_number ? ` · Batch ${stock.batch_number}` : ""}
+                </>
+              ) : (
+                <>
+                  Product {stock.product_id}
+                  {stock.batch_number ? ` · Batch ${stock.batch_number}` : ""}
+                </>
+              )}
             </p>
 
             <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-brand-muted">

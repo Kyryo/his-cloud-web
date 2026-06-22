@@ -277,17 +277,17 @@ export async function createOrganizationPricelist(
 }
 
 export async function updateOrganizationPricelist(
-  id: number,
+  uuid: string,
   payload: UpdateOrganizationPricelistPayload,
 ): Promise<OrganizationPricelist> {
-  return bffRequest<OrganizationPricelist>(BFF_SETTINGS_ROUTES.pricelistDetail(id), {
+  return bffRequest<OrganizationPricelist>(BFF_SETTINGS_ROUTES.pricelistDetail(uuid), {
     method: "PATCH",
     body: payload,
   });
 }
 
-export async function archiveOrganizationPricelist(id: number): Promise<void> {
-  await bffRequest<void>(BFF_SETTINGS_ROUTES.pricelistDetail(id), {
+export async function archiveOrganizationPricelist(uuid: string): Promise<void> {
+  await bffRequest<void>(BFF_SETTINGS_ROUTES.pricelistDetail(uuid), {
     method: "DELETE",
   });
 }

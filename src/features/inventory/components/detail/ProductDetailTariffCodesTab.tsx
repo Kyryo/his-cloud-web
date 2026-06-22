@@ -53,7 +53,7 @@ export function ProductDetailTariffCodesTab({
     try {
       setIsLoading(true);
       setError(null);
-      const records = await fetchProductTariffCodes(product.id);
+      const records = await fetchProductTariffCodes(product.uuid);
       setCodes(records);
     } catch (err) {
       setCodes([]);
@@ -63,7 +63,7 @@ export function ProductDetailTariffCodesTab({
     } finally {
       setIsLoading(false);
     }
-  }, [product.id]);
+  }, [product.uuid]);
 
   useEffect(() => {
     if (!isActive) {
@@ -80,7 +80,7 @@ export function ProductDetailTariffCodesTab({
 
     setIsDeleting(true);
     try {
-      await deleteProductTariffCode(product.id, deletingCode.scheme_uuid);
+      await deleteProductTariffCode(product.uuid, deletingCode.scheme_uuid);
       toast({
         variant: "success",
         title: "Tariff code removed",
@@ -219,7 +219,7 @@ export function ProductDetailTariffCodesTab({
       )}
 
       <ProductTariffCodeDialog
-        productId={product.id}
+        productId={product.uuid}
         open={dialogOpen}
         existingCodes={codes}
         editingCode={editingCode}

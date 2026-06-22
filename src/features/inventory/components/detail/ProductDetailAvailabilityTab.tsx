@@ -36,7 +36,7 @@ export function ProductDetailAvailabilityTab({
       try {
         setIsLoading(true);
         setError(null);
-        const records = await fetchInventoryProductStockLocations(product.id);
+        const records = await fetchInventoryProductStockLocations(product.uuid);
         if (!cancelled) {
           setLocations(records);
         }
@@ -57,7 +57,7 @@ export function ProductDetailAvailabilityTab({
     return () => {
       cancelled = true;
     };
-  }, [isActive, product.id]);
+  }, [isActive, product.uuid]);
 
   if (!isActive) {
     return null;
@@ -117,7 +117,7 @@ export function ProductDetailAvailabilityTab({
               </thead>
               <tbody className="divide-y divide-brand-border">
                 {locations.map((entry) => (
-                  <tr key={`${entry.location.id}-${entry.clinic.id}`}>
+                  <tr key={`${entry.location.uuid}-${entry.clinic.uuid}`}>
                     <td className="px-4 py-3 font-medium text-brand-navy">
                       {entry.location.name}
                     </td>
@@ -130,7 +130,7 @@ export function ProductDetailAvailabilityTab({
                     </td>
                     <td className="px-4 py-3 text-right">
                       <Link
-                        href={`${ROUTES.inventoryStock}?product_id=${product.id}&location=${entry.location.id}`}
+                        href={`${ROUTES.inventoryStock}?product_uuid=${product.uuid}&location_uuid=${entry.location.uuid}`}
                         className="text-xs font-medium text-brand-primary hover:underline"
                       >
                         View stock

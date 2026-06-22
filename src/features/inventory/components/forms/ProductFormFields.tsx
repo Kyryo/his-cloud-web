@@ -10,6 +10,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -69,6 +70,35 @@ export function ProductFormFields({
 
         <FormField
           control={form.control}
+          name="product_type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Product type</FormLabel>
+              <Select value={field.value} onValueChange={field.onChange}>
+                <FormControl>
+                  <SelectTrigger data-testid={`${testIdPrefix}-type`}>
+                    <SelectValue placeholder="Select a type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {INVENTORY_PRODUCT_TYPE_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-brand-muted">
+                Storable products track inventory quantities. Consumables and
+                services follow ERP rules.
+              </p>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="default_code"
           render={({ field }) => (
             <FormItem>
@@ -108,34 +138,6 @@ export function ProductFormFields({
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="product_type"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Product type</FormLabel>
-              <Select value={field.value} onValueChange={field.onChange}>
-                <FormControl>
-                  <SelectTrigger data-testid={`${testIdPrefix}-type`}>
-                    <SelectValue placeholder="Select a type" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {INVENTORY_PRODUCT_TYPE_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-brand-muted">
-                Storable products track inventory quantities. Consumables and
-                services follow ERP rules.
-              </p>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
       </>
     );
   }
@@ -204,16 +206,7 @@ export function ProductFormFields({
           control={form.control}
           name="is_drug"
           render={({ field }) => (
-            <FormItem className="flex items-start gap-3 space-y-0 rounded-lg border border-brand-border p-4">
-              <FormControl>
-                <input
-                  type="checkbox"
-                  className="mt-1 size-4 rounded border-brand-border"
-                  checked={field.value}
-                  onChange={(event) => field.onChange(event.target.checked)}
-                  data-testid={`${testIdPrefix}-is-drug`}
-                />
-              </FormControl>
+            <FormItem className="flex items-center justify-between gap-4 space-y-0 rounded-lg border border-brand-border p-4">
               <div className="space-y-1">
                 <FormLabel className="text-sm font-medium text-brand-navy">
                   Drug product
@@ -222,6 +215,13 @@ export function ProductFormFields({
                   Mark pharmaceutical items for dispensing workflows.
                 </p>
               </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  data-testid={`${testIdPrefix}-is-drug`}
+                />
+              </FormControl>
             </FormItem>
           )}
         />
@@ -230,17 +230,7 @@ export function ProductFormFields({
           control={form.control}
           name="liquid_or_cream"
           render={({ field }) => (
-            <FormItem className="flex items-start gap-3 space-y-0 rounded-lg border border-brand-border p-4">
-              <FormControl>
-                <input
-                  type="checkbox"
-                  className="mt-1 size-4 rounded border-brand-border"
-                  checked={field.value}
-                  disabled={!isDrug}
-                  onChange={(event) => field.onChange(event.target.checked)}
-                  data-testid={`${testIdPrefix}-liquid-or-cream`}
-                />
-              </FormControl>
+            <FormItem className="flex items-center justify-between gap-4 space-y-0 rounded-lg border border-brand-border p-4">
               <div className="space-y-1">
                 <FormLabel className="text-sm font-medium text-brand-navy">
                   Liquid or cream
@@ -250,6 +240,14 @@ export function ProductFormFields({
                 </p>
                 <FormMessage />
               </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  disabled={!isDrug}
+                  onCheckedChange={field.onChange}
+                  data-testid={`${testIdPrefix}-liquid-or-cream`}
+                />
+              </FormControl>
             </FormItem>
           )}
         />
@@ -258,17 +256,7 @@ export function ProductFormFields({
           control={form.control}
           name="is_procedure"
           render={({ field }) => (
-            <FormItem className="flex items-start gap-3 space-y-0 rounded-lg border border-brand-border p-4">
-              <FormControl>
-                <input
-                  type="checkbox"
-                  className="mt-1 size-4 rounded border-brand-border"
-                  checked={field.value}
-                  disabled={productType !== "service"}
-                  onChange={(event) => field.onChange(event.target.checked)}
-                  data-testid={`${testIdPrefix}-is-procedure`}
-                />
-              </FormControl>
+            <FormItem className="flex items-center justify-between gap-4 space-y-0 rounded-lg border border-brand-border p-4">
               <div className="space-y-1">
                 <FormLabel className="text-sm font-medium text-brand-navy">
                   Procedure
@@ -278,6 +266,14 @@ export function ProductFormFields({
                 </p>
                 <FormMessage />
               </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  disabled={productType !== "service"}
+                  onCheckedChange={field.onChange}
+                  data-testid={`${testIdPrefix}-is-procedure`}
+                />
+              </FormControl>
             </FormItem>
           )}
         />
@@ -327,16 +323,7 @@ export function ProductFormFields({
         control={form.control}
         name="sale_ok"
         render={({ field }) => (
-          <FormItem className="flex items-start gap-3 space-y-0 rounded-lg border border-brand-border p-4">
-            <FormControl>
-              <input
-                type="checkbox"
-                className="mt-1 size-4 rounded border-brand-border"
-                checked={field.value}
-                onChange={(event) => field.onChange(event.target.checked)}
-                data-testid={`${testIdPrefix}-sale-ok`}
-              />
-            </FormControl>
+          <FormItem className="flex items-center justify-between gap-4 space-y-0 rounded-lg border border-brand-border p-4">
             <div className="space-y-1">
               <FormLabel className="text-sm font-medium text-brand-navy">
                 Can be sold
@@ -345,6 +332,13 @@ export function ProductFormFields({
                 Allow this product on sales orders and invoices.
               </p>
             </div>
+            <FormControl>
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                data-testid={`${testIdPrefix}-sale-ok`}
+              />
+            </FormControl>
           </FormItem>
         )}
       />
@@ -353,16 +347,7 @@ export function ProductFormFields({
         control={form.control}
         name="purchase_ok"
         render={({ field }) => (
-          <FormItem className="flex items-start gap-3 space-y-0 rounded-lg border border-brand-border p-4">
-            <FormControl>
-              <input
-                type="checkbox"
-                className="mt-1 size-4 rounded border-brand-border"
-                checked={field.value}
-                onChange={(event) => field.onChange(event.target.checked)}
-                data-testid={`${testIdPrefix}-purchase-ok`}
-              />
-            </FormControl>
+          <FormItem className="flex items-center justify-between gap-4 space-y-0 rounded-lg border border-brand-border p-4">
             <div className="space-y-1">
               <FormLabel className="text-sm font-medium text-brand-navy">
                 Can be purchased
@@ -371,6 +356,13 @@ export function ProductFormFields({
                 Allow this product on purchase orders and receipts.
               </p>
             </div>
+            <FormControl>
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                data-testid={`${testIdPrefix}-purchase-ok`}
+              />
+            </FormControl>
           </FormItem>
         )}
       />
@@ -379,16 +371,7 @@ export function ProductFormFields({
         control={form.control}
         name="active"
         render={({ field }) => (
-          <FormItem className="flex items-start gap-3 space-y-0 rounded-lg border border-brand-border p-4">
-            <FormControl>
-              <input
-                type="checkbox"
-                className="mt-1 size-4 rounded border-brand-border"
-                checked={field.value}
-                onChange={(event) => field.onChange(event.target.checked)}
-                data-testid={`${testIdPrefix}-active`}
-              />
-            </FormControl>
+          <FormItem className="flex items-center justify-between gap-4 space-y-0 rounded-lg border border-brand-border p-4">
             <div className="space-y-1">
               <FormLabel className="text-sm font-medium text-brand-navy">
                 Active
@@ -397,6 +380,13 @@ export function ProductFormFields({
                 Inactive products are hidden from search and new transactions.
               </p>
             </div>
+            <FormControl>
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+                data-testid={`${testIdPrefix}-active`}
+              />
+            </FormControl>
           </FormItem>
         )}
       />

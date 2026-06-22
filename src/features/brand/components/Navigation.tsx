@@ -52,13 +52,13 @@ export function Navigation() {
           <div className="hidden items-center justify-self-end gap-3 lg:flex">
             <Link
               href={ROUTES.auth}
-              className="rounded-full px-4 py-2 text-sm font-medium text-brand-slate transition-colors hover:bg-brand-tint hover:text-brand-navy"
+              className="inline-flex items-center justify-center rounded-full border border-transparent px-5 py-2.5 text-sm font-semibold text-brand-slate transition-colors hover:border-brand-border hover:bg-brand-tint hover:text-brand-navy"
             >
               Sign In
             </Link>
             <Link
               href={ROUTES.signup}
-              className="rounded-full bg-brand-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1254b8]"
+              className="inline-flex items-center justify-center rounded-full bg-brand-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1254b8]"
             >
               Try Free
             </Link>
@@ -92,14 +92,14 @@ export function Navigation() {
             <div className="flex flex-col gap-2 border-t border-brand-border pt-3">
               <Link
                 href={ROUTES.auth}
-                className="rounded-full px-2 py-2 text-sm font-medium text-brand-slate hover:bg-brand-tint"
+                className="inline-flex items-center justify-center rounded-full border border-transparent px-5 py-2.5 text-center text-sm font-semibold text-brand-slate transition-colors hover:bg-brand-tint hover:text-brand-navy"
                 onClick={() => setIsOpen(false)}
               >
                 Sign In
               </Link>
               <Link
                 href={ROUTES.signup}
-                className="rounded-full bg-brand-primary px-5 py-2.5 text-center text-sm font-semibold text-white"
+                className="inline-flex items-center justify-center rounded-full bg-brand-primary px-5 py-2.5 text-center text-sm font-semibold text-white"
                 onClick={() => setIsOpen(false)}
               >
                 Try Free

@@ -33,6 +33,7 @@ type AuthOtpStepProps = {
   onSubmit: () => void;
   expirySeconds?: number;
   resendDelay?: number;
+  embedded?: boolean;
 };
 
 export function AuthOtpStep({
@@ -55,6 +56,7 @@ export function AuthOtpStep({
   onSubmit,
   expirySeconds = DEFAULT_EXPIRY_SECONDS,
   resendDelay = DEFAULT_RESEND_DELAY_SECONDS,
+  embedded = false,
 }: AuthOtpStepProps) {
   const [isResending, setIsResending] = useState(false);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
@@ -131,8 +133,14 @@ export function AuthOtpStep({
   }
 
   return (
-    <div className="w-full max-w-md rounded-2xl border-[1.5px] border-brand-border bg-white px-8 py-10 sm:px-10 sm:py-12">
-      <div className="flex flex-col items-center text-center">
+    <div
+      className={cn(
+        embedded
+          ? "w-full"
+          : "w-full max-w-md rounded-2xl border-[1.5px] border-brand-border bg-white px-8 py-10 sm:px-10 sm:py-12",
+      )}
+    >
+      <div className={cn("flex flex-col", embedded ? "text-left" : "items-center text-center")}>
         <div
           className="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-brand-tint text-brand-primary"
           aria-hidden="true"
