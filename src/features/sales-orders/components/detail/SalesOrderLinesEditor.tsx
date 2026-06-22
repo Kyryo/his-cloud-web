@@ -241,7 +241,7 @@ export function SalesOrderLinesEditor({
                         {isEditing ? (
                           <InlineProductCombobox
                             id={`so-line-product-${line.key}`}
-                            value={line.product_id}
+                            value={line.product_uuid ?? null}
                             displayLabel={line.productName}
                             autoFocus={line.isNew === true}
                             disabled={editor.isSaving}
@@ -253,7 +253,7 @@ export function SalesOrderLinesEditor({
                               selectionTokenByLineKeyRef.current.set(line.key, nextToken);
 
                               editor.updateLine(line.key, {
-                                product_id: product.id,
+                                product_uuid: product.uuid,
                                 productName: formatProductLabel(product),
                                 // Reset computed fields when switching products to avoid
                                 // stale values carrying over unnoticed.
@@ -274,49 +274,28 @@ export function SalesOrderLinesEditor({
                                 if (order.pricelist_id) {
                                   try {
                                     const items = await fetchInventoryProductPricelists(
-                                      product.id,
+                                      product.uuid,
                                     );
                                     if (!isStillCurrentSelection()) {
                                       return;
                                     }
-                                    const match = items.find(
-                                      (item) =>
-                                        (item.pricelist?.id ?? item.pricelist_id) ===
-                                        order.pricelist_id,
-                                    );
-                                    const fixed = match?.fixed_price;
-                                    if (
-                                      fixed !== null &&
-                                      fixed !== undefined &&
-                                      String(fixed).trim() !== ""
-                                    ) {
-                                      editor.updateLine(line.key, {
-                                        price_unit: String(fixed),
-                                      });
-                                    }
+                                    // Legacy numeric pricelist_id cannot match UUID memberships yet.
+                                    void items;
                                   } catch {
                                     // Best-effort prefill only.
                                   }
                                 }
 
-                                // Prefill tariff code from the order's scheme (if available).
                                 if (order.insurance_scheme_id) {
                                   try {
                                     const codes = await fetchProductTariffCodes(
-                                      product.id,
+                                      product.uuid,
                                     );
                                     if (!isStillCurrentSelection()) {
                                       return;
                                     }
-                                    const match = codes.find(
-                                      (code) =>
-                                        code.scheme_id === order.insurance_scheme_id,
-                                    );
-                                    if (match?.tariff_code?.trim()) {
-                                      editor.updateLine(line.key, {
-                                        tariff_code: match.tariff_code.trim(),
-                                      });
-                                    }
+                                    // Legacy insurance_scheme_id cannot match scheme_uuid yet.
+                                    void codes;
                                   } catch {
                                     // Best-effort prefill only.
                                   }

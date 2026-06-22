@@ -7,6 +7,7 @@ export const BFF_AUTH_ROUTES = {
   signinRequestOtp: "/api/auth/signin/request-otp",
   signinVerify: "/api/auth/signin/verify",
   signupRequestOtp: "/api/auth/signup/request-otp",
+  signupVerifyEmail: "/api/auth/signup/verify-email",
   signupVerify: "/api/auth/signup/verify",
   refresh: "/api/auth/refresh",
   logout: "/api/auth/logout",
@@ -128,16 +129,35 @@ export const BFF_INVENTORY_ROUTES = {
   },
   products: {
     list: "/api/inventory/products",
-    search: "/api/inventory/products/search",
-    detail: (productId: number | string) => `/api/inventory/products/${productId}`,
-    pricelists: (productId: number | string) =>
-      `/api/inventory/product-pricelists/${productId}`,
-    tariffCodes: (productId: number | string) =>
-      `/api/inventory/product-tariff-codes/${productId}`,
-    tariffCodeDetail: (productId: number | string, schemeUuid: string) =>
-      `/api/inventory/product-tariff-codes/${productId}/${schemeUuid}`,
-    stockLocations: (productId: number | string) =>
-      `/api/inventory/product-stock-locations/${productId}`,
+    detail: (productUuid: string) => `/api/inventory/products/${productUuid}`,
+    pricelists: (productUuid: string) =>
+      `/api/inventory/product-pricelists/${productUuid}`,
+    tariffCodes: (productUuid: string) =>
+      `/api/inventory/product-tariff-codes/${productUuid}`,
+    tariffCodeDetail: (productUuid: string, schemeUuid: string) =>
+      `/api/inventory/product-tariff-codes/${productUuid}/${schemeUuid}`,
+    stockLocations: (productUuid: string) =>
+      `/api/inventory/product-stock-locations/${productUuid}`,
+    imports: "/api/inventory/products/imports",
+    importDetail: (importUuid: string) => `/api/inventory/products/imports/${importUuid}`,
+    importTemplate: "/api/inventory/products/import-template",
+  },
+  pricelists: {
+    list: "/api/inventory/pricelists",
+    detail: (pricelistUuid: string) => `/api/inventory/pricelists/${pricelistUuid}`,
+    products: (pricelistUuid: string) =>
+      `/api/inventory/pricelists/${pricelistUuid}/products`,
+    productDetail: (pricelistUuid: string, productUuid: string) =>
+      `/api/inventory/pricelists/${pricelistUuid}/products/${productUuid}`,
+    approvalConfiguration: "/api/inventory/pricelists/approval-configuration",
+    priceChanges: "/api/inventory/pricelists/price-changes",
+    priceChangeDetail: (changeUuid: string) =>
+      `/api/inventory/pricelists/price-changes/${changeUuid}`,
+    confirmPriceChange: (changeUuid: string) =>
+      `/api/inventory/pricelists/price-changes/${changeUuid}/confirm`,
+    rejectPriceChange: (changeUuid: string) =>
+      `/api/inventory/pricelists/price-changes/${changeUuid}/reject`,
+    default: "/api/pricelists/default",
   },
   batches: {
     list: "/api/inventory/batches",
@@ -178,6 +198,11 @@ export const BFF_INVENTORY_ROUTES = {
     detail: (uuid: string) => `/api/inventory/approval-records/${uuid}`,
   },
   locations: "/api/inventory/locations",
+} as const;
+
+/** Browser-facing BFF onboarding routes (same origin). */
+export const BFF_ONBOARDING_ROUTES = {
+  modules: "/api/onboarding/modules",
 } as const;
 
 /** Browser-facing BFF settings routes (same origin). */

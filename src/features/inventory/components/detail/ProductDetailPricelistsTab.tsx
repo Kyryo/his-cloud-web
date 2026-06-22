@@ -31,7 +31,6 @@ import type {
 import {
   formatDisplayDate,
   formatInventoryAmount,
-  formatPricelistComputePrice,
 } from "@/features/inventory/utils/format-inventory";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
@@ -71,7 +70,7 @@ export function ProductDetailPricelistsTab({
     try {
       setIsLoading(true);
       setError(null);
-      const records = await fetchInventoryProductPricelists(product.id);
+      const records = await fetchInventoryProductPricelists(product.uuid);
       setItems(records);
     } catch (err) {
       setItems([]);
@@ -81,7 +80,7 @@ export function ProductDetailPricelistsTab({
     } finally {
       setIsLoading(false);
     }
-  }, [product.id]);
+  }, [product.uuid]);
 
   useEffect(() => {
     if (!isActive) {
@@ -92,7 +91,7 @@ export function ProductDetailPricelistsTab({
   }, [isActive, loadItems]);
 
   async function handleUpdatePrice() {
-    if (!priceEdit?.item.pricelist?.id) {
+    if (!priceEdit?.item.pricelist_uuid) {
       return;
     }
 
@@ -109,8 +108,8 @@ export function ProductDetailPricelistsTab({
     setIsSaving(true);
     try {
       const result = await updatePricelistProductPrice(
-        priceEdit.item.pricelist.id,
-        priceEdit.item.id,
+        priceEdit.item.pricelist_uuid,
+        product.uuid,
         { fixed_price: parsedPrice },
       );
 
@@ -143,15 +142,15 @@ export function ProductDetailPricelistsTab({
   }
 
   async function handleRemove() {
-    if (!pendingRemove?.pricelist?.id) {
+    if (!pendingRemove?.pricelist_uuid) {
       return;
     }
 
     setIsSaving(true);
     try {
       const result = await removeProductFromPricelist(
-        pendingRemove.pricelist.id,
-        pendingRemove.id,
+        pendingRemove.pricelist_uuid,
+        product.uuid,
       );
 
       toast({
@@ -251,10 +250,8 @@ export function ProductDetailPricelistsTab({
               <thead className="bg-slate-50/80 text-left text-xs uppercase tracking-wide text-brand-muted">
                 <tr>
                   <th className="px-4 py-3 font-medium">Pricelist</th>
-                  <th className="px-4 py-3 font-medium">Rule</th>
                   <th className="px-4 py-3 text-right font-medium">Min qty</th>
                   <th className="px-4 py-3 text-right font-medium">Fixed price</th>
-                  <th className="px-4 py-3 text-right font-medium">Discount</th>
                   <th className="px-4 py-3 font-medium">Valid from</th>
                   <th className="px-4 py-3 font-medium">Valid to</th>
                   {isTenantAdmin ? (
@@ -264,23 +261,15 @@ export function ProductDetailPricelistsTab({
               </thead>
               <tbody className="divide-y divide-brand-border">
                 {items.map((item) => (
-                  <tr key={item.id} className="text-brand-navy">
+                  <tr key={item.pricelist_uuid} className="text-brand-navy">
                     <td className="px-4 py-3 font-medium">
-                      {item.pricelist?.name ?? "—"}
-                    </td>
-                    <td className="px-4 py-3 text-brand-slate">
-                      {formatPricelistComputePrice(item.compute_price)}
+                      {item.pricelist_name ?? item.pricelist_uuid}
                     </td>
                     <td className="px-4 py-3 text-right">
                       {item.min_quantity ?? "—"}
                     </td>
                     <td className="px-4 py-3 text-right">
                       {formatInventoryAmount(item.fixed_price)}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      {item.percent_price != null && item.percent_price !== ""
-                        ? `${item.percent_price}%`
-                        : "—"}
                     </td>
                     <td className={cn("px-4 py-3 text-brand-slate")}>
                       {formatDisplayDate(
@@ -352,8 +341,8 @@ export function ProductDetailPricelistsTab({
           <DialogHeader>
             <DialogTitle>Update fixed price</DialogTitle>
             <DialogDescription>
-              {priceEdit?.item.pricelist?.name
-                ? `Set the fixed price for this product on ${priceEdit.item.pricelist.name}.`
+              {priceEdit?.item.pricelist_name
+                ? `Set the fixed price for this product on ${priceEdit.item.pricelist_name}.`
                 : "Set the fixed price for this product on the pricelist."}
             </DialogDescription>
           </DialogHeader>
@@ -411,8 +400,8 @@ export function ProductDetailPricelistsTab({
           <DialogHeader>
             <DialogTitle>Remove from pricelist?</DialogTitle>
             <DialogDescription>
-              {pendingRemove?.pricelist?.name
-                ? `Remove this product from ${pendingRemove.pricelist.name}.`
+              {pendingRemove?.pricelist_name
+                ? `Remove this product from ${pendingRemove.pricelist_name}.`
                 : "Remove this product from the pricelist."}
             </DialogDescription>
           </DialogHeader>

@@ -1,4 +1,10 @@
-import { BFF_INVENTORY_ROUTES, BFF_SETTINGS_ROUTES } from "@/constants/api";
+import { BFF_INVENTORY_ROUTES } from "@/constants/api";
+import {
+  createCatalogProduct,
+  fetchCatalogProduct,
+  fetchCatalogProducts,
+  updateCatalogProduct,
+} from "@/features/catalog/services/catalog.service";
 import type {
   AddPricelistProductPayload,
   CreateProductTariffCodePayload,
@@ -49,29 +55,18 @@ export async function searchInventoryProducts(options: {
   active?: boolean;
   tenant?: number;
 } = {}): Promise<InventoryProduct[]> {
-  const params = new URLSearchParams();
-  if (options.q?.trim()) {
-    params.set("q", options.q.trim());
-  }
-  if (options.active !== undefined) {
-    params.set("active", String(options.active));
-  }
-  if (options.tenant) {
-    params.set("tenant", String(options.tenant));
-  }
-  const query = params.toString();
-  const path = query
-    ? `${BFF_INVENTORY_ROUTES.products.search}?${query}`
-    : BFF_INVENTORY_ROUTES.products.search;
-  return bffRequest<InventoryProduct[]>(path);
+  const response = await fetchCatalogProducts({
+    search: options.q,
+    active: options.active,
+    pageSize: 200,
+  });
+  return response.results;
 }
 
 export async function fetchInventoryProduct(
-  productId: number | string,
+  productUuid: string,
 ): Promise<InventoryProduct> {
-  return bffRequest<InventoryProduct>(
-    BFF_INVENTORY_ROUTES.products.detail(productId),
-  );
+  return fetchCatalogProduct(productUuid);
 }
 
 export type CreateInventoryProductPayload = {
@@ -98,49 +93,41 @@ export type CreateInventoryProductPayload = {
 export async function createInventoryProduct(
   payload: CreateInventoryProductPayload,
 ): Promise<InventoryProduct> {
-  return bffRequest<InventoryProduct>(BFF_INVENTORY_ROUTES.products.list, {
-    method: "POST",
-    body: payload,
-  });
+  return createCatalogProduct(payload);
 }
 
 export type UpdateInventoryProductPayload = CreateInventoryProductPayload;
 
 export async function updateInventoryProduct(
-  productId: number | string,
+  productUuid: string,
   payload: UpdateInventoryProductPayload,
 ): Promise<InventoryProduct> {
-  return bffRequest<InventoryProduct>(
-    BFF_INVENTORY_ROUTES.products.detail(productId),
-    {
-      method: "PATCH",
-      body: payload,
-    },
-  );
+  return updateCatalogProduct(productUuid, payload);
 }
 
 export async function fetchInventoryProductPricelists(
-  productId: number | string,
+  productUuid: string,
 ): Promise<InventoryProductPricelistItem[]> {
-  return bffRequest<InventoryProductPricelistItem[]>(
-    BFF_INVENTORY_ROUTES.products.pricelists(productId),
+  const response = await bffRequest<PaginatedListResponse<InventoryProductPricelistItem>>(
+    `${BFF_INVENTORY_ROUTES.products.pricelists(productUuid)}?page_size=200`,
   );
+  return response.results;
 }
 
 export async function fetchProductTariffCodes(
-  productId: number | string,
+  productUuid: string,
 ): Promise<ProductTariffCode[]> {
   return bffRequest<ProductTariffCode[]>(
-    BFF_INVENTORY_ROUTES.products.tariffCodes(productId),
+    BFF_INVENTORY_ROUTES.products.tariffCodes(productUuid),
   );
 }
 
 export async function createProductTariffCode(
-  productId: number | string,
+  productUuid: string,
   payload: CreateProductTariffCodePayload,
 ): Promise<ProductTariffCode> {
   return bffRequest<ProductTariffCode>(
-    BFF_INVENTORY_ROUTES.products.tariffCodes(productId),
+    BFF_INVENTORY_ROUTES.products.tariffCodes(productUuid),
     {
       method: "POST",
       body: payload,
@@ -149,12 +136,12 @@ export async function createProductTariffCode(
 }
 
 export async function updateProductTariffCode(
-  productId: number | string,
+  productUuid: string,
   schemeUuid: string,
   payload: UpdateProductTariffCodePayload,
 ): Promise<ProductTariffCode> {
   return bffRequest<ProductTariffCode>(
-    BFF_INVENTORY_ROUTES.products.tariffCodeDetail(productId, schemeUuid),
+    BFF_INVENTORY_ROUTES.products.tariffCodeDetail(productUuid, schemeUuid),
     {
       method: "PATCH",
       body: payload,
@@ -163,21 +150,21 @@ export async function updateProductTariffCode(
 }
 
 export async function deleteProductTariffCode(
-  productId: number | string,
+  productUuid: string,
   schemeUuid: string,
 ): Promise<void> {
   await bffRequest<void>(
-    BFF_INVENTORY_ROUTES.products.tariffCodeDetail(productId, schemeUuid),
+    BFF_INVENTORY_ROUTES.products.tariffCodeDetail(productUuid, schemeUuid),
     { method: "DELETE" },
   );
 }
 
 export async function addProductToPricelist(
-  pricelistId: number,
+  pricelistUuid: string,
   payload: AddPricelistProductPayload,
 ): Promise<PricelistProductMutationResult> {
   return bffRequest<PricelistProductMutationResult>(
-    BFF_SETTINGS_ROUTES.pricelistAddProduct(pricelistId),
+    BFF_INVENTORY_ROUTES.pricelists.products(pricelistUuid),
     {
       method: "POST",
       body: payload,
@@ -186,12 +173,12 @@ export async function addProductToPricelist(
 }
 
 export async function updatePricelistProductPrice(
-  pricelistId: number,
-  itemId: number,
+  pricelistUuid: string,
+  productUuid: string,
   payload: UpdatePricelistProductPricePayload,
 ): Promise<PricelistProductMutationResult> {
   return bffRequest<PricelistProductMutationResult>(
-    BFF_SETTINGS_ROUTES.pricelistUpdateProductPrice(pricelistId, itemId),
+    BFF_INVENTORY_ROUTES.pricelists.productDetail(pricelistUuid, productUuid),
     {
       method: "PATCH",
       body: payload,
@@ -200,20 +187,20 @@ export async function updatePricelistProductPrice(
 }
 
 export async function removeProductFromPricelist(
-  pricelistId: number,
-  itemId: number,
+  pricelistUuid: string,
+  productUuid: string,
 ): Promise<PricelistProductMutationResult> {
   return bffRequest<PricelistProductMutationResult>(
-    BFF_SETTINGS_ROUTES.pricelistRemoveProduct(pricelistId, itemId),
+    BFF_INVENTORY_ROUTES.pricelists.productDetail(pricelistUuid, productUuid),
     { method: "DELETE" },
   );
 }
 
 export async function fetchInventoryProductStockLocations(
-  productId: number | string,
+  productUuid: string,
 ): Promise<InventoryProductStockLocation[]> {
   return bffRequest<InventoryProductStockLocation[]>(
-    BFF_INVENTORY_ROUTES.products.stockLocations(productId),
+    BFF_INVENTORY_ROUTES.products.stockLocations(productUuid),
   );
 }
 

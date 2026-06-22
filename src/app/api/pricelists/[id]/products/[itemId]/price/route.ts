@@ -19,7 +19,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     const body = await request.json();
 
     const result = await hmisApiRequest<PricelistProductMutationResult>(
-      PRICELISTS_API_PATHS.updateProductPrice(id, itemId),
+      PRICELISTS_API_PATHS.productDetail(id, itemId),
       {
         method: "PATCH",
         token: admin.accessToken,

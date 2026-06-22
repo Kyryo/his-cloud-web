@@ -79,8 +79,8 @@ export function SalesOrderPricelistPicker({
     }
 
     const match =
-      options.find((option) => String(option.id) === value) ??
-      (pricelist && String(pricelist.id) === value ? pricelist : null);
+      options.find((option) => option.uuid === value) ??
+      (pricelist && pricelist.uuid === value ? pricelist : null);
 
     if (match) {
       onPricelistChange(match);
@@ -100,7 +100,7 @@ export function SalesOrderPricelistPicker({
       </div>
 
       <Select
-        value={pricelist ? String(pricelist.id) : "__none__"}
+        value={pricelist ? pricelist.uuid : "__none__"}
         onValueChange={handleValueChange}
         open={open}
         onOpenChange={(nextOpen) => {
@@ -141,7 +141,7 @@ export function SalesOrderPricelistPicker({
                 </div>
               ) : (
                 filteredOptions.map((option) => (
-                  <SelectItem key={option.id} value={String(option.id)}>
+                  <SelectItem key={option.uuid} value={option.uuid}>
                     <div className="flex flex-col items-start">
                       <span>{option.name}</span>
                       <span className="text-xs text-brand-muted">

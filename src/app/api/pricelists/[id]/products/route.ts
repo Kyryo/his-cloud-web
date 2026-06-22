@@ -19,7 +19,7 @@ export async function POST(request: Request, context: RouteContext) {
     const body = await request.json();
 
     const result = await hmisApiRequest<PricelistProductMutationResult>(
-      PRICELISTS_API_PATHS.addProduct(id),
+      PRICELISTS_API_PATHS.products(id),
       {
         method: "POST",
         token: admin.accessToken,

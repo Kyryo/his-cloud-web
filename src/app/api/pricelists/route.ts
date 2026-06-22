@@ -6,6 +6,7 @@ import type {
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
 import { hmisApiRequest } from "@/lib/server/hmis-api";
 import { requireTenantAdmin } from "@/lib/server/require-tenant-admin";
+import type { PaginatedListResponse } from "@/types/api.types";
 
 export async function GET(request: Request) {
   try {
@@ -14,19 +15,22 @@ export async function GET(request: Request) {
       return admin.error;
     }
 
-    const includeInactive =
-      new URL(request.url).searchParams.get("include_inactive") === "true";
-    const query = includeInactive ? "?include_inactive=true" : "";
+    const url = new URL(request.url);
+    const params = new URLSearchParams();
+    if (url.searchParams.get("include_inactive") === "true") {
+      params.set("include_inactive", "true");
+    }
+    if (!params.has("page_size")) {
+      params.set("page_size", "200");
+    }
+    const query = params.toString();
 
-    const pricelists = await hmisApiRequest<OrganizationPricelist[]>(
-      `${PRICELISTS_API_PATHS.list}${query}`,
+    const response = await hmisApiRequest<PaginatedListResponse<OrganizationPricelist>>(
+      `${PRICELISTS_API_PATHS.list}${query ? `?${query}` : ""}`,
       { token: admin.accessToken },
     );
 
-    return bffSuccess({
-      results: pricelists,
-      pagination: null,
-    });
+    return bffSuccess(response);
   } catch (error) {
     return bffError(error);
   }
@@ -52,7 +56,8 @@ export async function POST(request: Request) {
         token: admin.accessToken,
         body: {
           name: body.name.trim(),
-          active: body.active ?? true,
+          is_active: body.is_active ?? true,
+          ...(body.currency_code ? { currency_code: body.currency_code } : {}),
         },
       },
     );

@@ -42,6 +42,7 @@ export function StockListPage() {
     totalCount,
     page,
     pageSize,
+    search,
     isLoading,
     isRefreshing,
     error,
@@ -50,6 +51,9 @@ export function StockListPage() {
     hasPrevious,
     hasNoRecords,
     isFilteredEmpty,
+    setSearch,
+    handleSearchSubmit,
+    handleClearSearch,
     reload,
     handlePageChange,
     sheetFilters,
@@ -87,13 +91,23 @@ export function StockListPage() {
       <InventoryListPageHeader
         title="Stock"
         description="On-hand quantities by location and product."
+        search={search}
+        isSearchDisabled={isRefreshing}
+        onSearchChange={setSearch}
+        onSearchSubmit={handleSearchSubmit}
+        onClearSearch={handleClearSearch}
+        searchPlaceholder="Search by product, location, or batch..."
       />
 
       {!hasNoRecords ? (
         <ListPageDataSectionsStack>
           <InventoryListToolbar
-            showSearch={false}
+            search={search}
+            searchPlaceholder="Search by product, location, or batch..."
             isLoading={isRefreshing}
+            onSearchChange={setSearch}
+            onSearchSubmit={handleSearchSubmit}
+            onClearSearch={handleClearSearch}
             filtersClassName="ml-auto flex justify-end"
             filters={
               <InventoryFiltersSheet

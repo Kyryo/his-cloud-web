@@ -95,7 +95,7 @@ export type InventoryProductMeta = {
 };
 
 export type InventoryProduct = {
-  id: number;
+  uuid: string;
   name: string;
   display_name: string;
   default_code: string | null;
@@ -106,38 +106,34 @@ export type InventoryProduct = {
   is_active: boolean;
   product_type?: InventoryProductType | null;
   product_type_label?: InventoryProductTypeLabel | null;
+  invoice_policy?: "order" | "delivery" | null;
   sale_ok?: boolean;
   purchase_ok?: boolean;
   metadata?: InventoryProductMeta | null;
+  created_at?: string;
+  updated_at?: string;
 };
 
 export type InventoryProductPricelistItem = {
-  id: number;
-  pricelist_id?: number;
+  uuid?: string;
+  pricelist_uuid: string;
   pricelist_name?: string;
-  product_id?: number;
+  product_uuid?: string;
   product_name?: string;
-  applied_on?: string;
-  compute_price?: string;
   fixed_price?: number | string | null;
-  percent_price?: number | string | null;
   min_quantity?: number | string | null;
-  date_start?: string | false | null;
-  date_end?: string | false | null;
-  pricelist?: { id: number; name: string } | null;
-  product?: { id: number; name: string } | null;
-  product_template?: { id: number; name: string } | null;
+  date_start?: string | null;
+  date_end?: string | null;
 };
 
 export type ProductTariffCode = {
-  scheme_id: number;
   scheme_uuid: string;
   scheme_name: string;
   tariff_code: string;
 };
 
 export type CreateProductTariffCodePayload = {
-  scheme: string;
+  scheme_uuid: string;
   tariff_code: string;
 };
 
@@ -152,27 +148,31 @@ export type PricelistProductMutationResult = {
 };
 
 export type AddPricelistProductPayload = {
-  product_id: number;
+  product_uuid: string;
   fixed_price: number | string;
   min_quantity?: number | string;
+  date_start?: string | null;
+  date_end?: string | null;
 };
 
 export type UpdatePricelistProductPricePayload = {
-  fixed_price: number | string;
+  fixed_price?: number | string;
+  min_quantity?: number | string;
+  date_start?: string | null;
+  date_end?: string | null;
 };
 
 export type InventoryProductStockLocation = {
   location: {
-    id: number;
     uuid: string;
     name: string;
     code: string;
   };
   clinic: {
-    id: number;
+    uuid: string;
     name: string;
   };
-  product_id: number;
+  product_uuid: string;
   quantity_on_hand: string | number;
 };
 

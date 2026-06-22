@@ -1,4 +1,6 @@
 /** Django DRF v1 inventory endpoints (relative to HMIS_API_URL, server-only). */
+import { CATALOG_API_PATHS } from "@/constants/catalog-api";
+
 export const INVENTORY_API_PATHS = {
   stock: {
     list: "/inventory/stock/",
@@ -8,19 +10,7 @@ export const INVENTORY_API_PATHS = {
     list: "/inventory/movements/",
     detail: (uuid: string) => `/inventory/movements/${uuid}/`,
   },
-  products: {
-    list: "/inventory/products/",
-    detail: (productId: number | string) => `/inventory/products/${productId}/`,
-    search: "/inventory/products/search/",
-    pricelists: (productId: number | string) =>
-      `/inventory/products/${productId}/pricelists/`,
-    tariffCodes: (productId: number | string) =>
-      `/inventory/products/${productId}/tariff-codes/`,
-    tariffCodeDetail: (productId: number | string, schemeUuid: string) =>
-      `/inventory/products/${productId}/tariff-codes/${schemeUuid}/`,
-    stockLocations: (productId: number | string) =>
-      `/inventory/products/${productId}/stock-locations/`,
-  },
+  products: CATALOG_API_PATHS.products,
   batches: {
     list: "/inventory/batches/",
     detail: (uuid: string) => `/inventory/batches/${uuid}/`,

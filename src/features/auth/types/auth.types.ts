@@ -107,11 +107,23 @@ export interface SignupOtpRequest {
   password: string;
 }
 
+export interface SignupVerifyEmailRequest {
+  email: string;
+  password: string;
+  code: string;
+}
+
+export interface SignupVerifyEmailResponse {
+  detail: string;
+  verification_token: string;
+}
+
 export interface SignupVerifyRequest {
   email: string;
   password: string;
   name: string;
   clinic_name: string;
   country?: string;
-  code: string;
+  code?: string;
+  verification_token?: string;
 }

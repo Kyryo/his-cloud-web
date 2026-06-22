@@ -49,7 +49,7 @@ export function ProductsTable({ products, onRowClick }: ProductsTableProps) {
     <InventoryListTable
       items={products}
       columns={columns}
-      getRowKey={(product) => String(product.id)}
+      getRowKey={(product) => product.uuid}
       onRowClick={onRowClick}
     />
   );

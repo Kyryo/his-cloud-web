@@ -10,6 +10,7 @@ import { ProductSearchCombobox } from "@/features/inventory/components/ProductSe
 export type InventoryLineItemDraft = {
   key: string;
   product_id: number | null;
+  product_uuid?: string | null;
   quantity: string;
   unit_cost: string;
 };
@@ -74,9 +75,9 @@ export function InventoryLineItemsEditor({
             <ProductSearchCombobox
               id={`line-product-${line.key}`}
               label={index === 0 ? "Product" : undefined}
-              value={line.product_id}
+              value={line.product_uuid ?? null}
               onSelect={(product) =>
-                updateLine(line.key, { product_id: product.id })
+                updateLine(line.key, { product_uuid: product.uuid })
               }
             />
             <div className="space-y-2">

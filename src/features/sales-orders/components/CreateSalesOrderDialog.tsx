@@ -155,7 +155,7 @@ export function CreateSalesOrderDialog({
           clinicId: visit ? null : userData?.primary_clinic?.id ?? null,
           clinicName: visit ? null : userData?.primary_clinic?.name ?? null,
           visitId: visit?.id ?? null,
-          pricelistId: pricelist?.id ?? null,
+          pricelistId: null,
           values,
         }),
       );

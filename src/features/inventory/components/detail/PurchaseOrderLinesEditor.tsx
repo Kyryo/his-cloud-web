@@ -316,13 +316,13 @@ export function PurchaseOrderLinesEditor({
                           {isEditing ? (
                             <InlineProductCombobox
                               id={`po-line-product-${line.key}`}
-                              value={line.product_id}
+                              value={line.product_uuid ?? null}
                               displayLabel={line.productName}
                               autoFocus={line.isNew === true}
                               onFocus={() => editor.setActiveRowKey(line.key)}
                               onSelect={(product) => {
                                 editor.updateLine(line.key, {
-                                  product_id: product.id,
+                                  product_uuid: product.uuid,
                                   productName: formatProductLabel(product),
                                 });
                               }}

@@ -10,6 +10,7 @@ import {
   ListPageDataSectionsStack,
   ListPageLayout,
 } from "@/features/app-shell/components/page-layout";
+import { fetchCatalogProducts } from "@/features/catalog/services/catalog.service";
 import { CreateProductDialog } from "@/features/inventory/components/CreateProductDialog";
 import { InventoryFiltersSheet } from "@/features/inventory/components/InventoryFiltersSheet";
 import { InventoryListToolbar } from "@/features/inventory/components/InventoryListToolbar";
@@ -20,7 +21,6 @@ import { InventoryListPageHeader } from "@/features/inventory/components/list/In
 import { InventoryListPagination } from "@/features/inventory/components/list/InventoryListTable";
 import { ProductsTable } from "@/features/inventory/components/tables/products-table";
 import { useInventoryListFilters } from "@/features/inventory/hooks/use-inventory-list-filters";
-import { searchInventoryProducts } from "@/features/inventory/services/inventory.service";
 import type {
   InventoryListFilters,
   InventoryProduct,
@@ -35,18 +35,12 @@ import type { PaginatedListResponse } from "@/types/api.types";
 async function fetchProducts(
   filters: InventoryListFilters,
 ): Promise<PaginatedListResponse<InventoryProduct>> {
-  const results = await searchInventoryProducts({
-    q: filters.search,
+  return fetchCatalogProducts({
+    page: filters.page,
+    pageSize: filters.pageSize,
+    search: filters.search,
     active: filters.is_active,
   });
-  const page = filters.page ?? 1;
-  const pageSize = filters.pageSize ?? 20;
-  const start = (page - 1) * pageSize;
-
-  return {
-    results: results.slice(start, start + pageSize),
-    pagination: { count: results.length, next: null, previous: null },
-  };
 }
 
 export function ProductsListPage() {
@@ -92,13 +86,13 @@ export function ProductsListPage() {
   const handleProductCreated = useCallback(
     (product: InventoryProduct) => {
       void reload();
-      router.push(ROUTES.inventoryProductDetail(product.id));
+      router.push(ROUTES.inventoryProductDetail(product.uuid));
     },
     [reload, router],
   );
 
   const handleRowClick = useCallback(
-    (product: InventoryProduct) => router.push(ROUTES.inventoryProductDetail(product.id)),
+    (product: InventoryProduct) => router.push(ROUTES.inventoryProductDetail(product.uuid)),
     [router],
   );
 
@@ -116,7 +110,7 @@ export function ProductsListPage() {
 
       <InventoryListPageHeader
         title="Products"
-        description="Search products synced from ERP."
+        description="Search and manage the product catalog."
         addLabel="New product"
         onAdd={handleCreate}
         search={search}
@@ -166,7 +160,7 @@ export function ProductsListPage() {
           <InventoryListEmptyState
             icon={Package}
             title="No products found"
-            description="Create a product or sync from ERP to get started."
+            description="Create a product or import from CSV to get started."
             actionLabel="New product"
             onAction={handleCreate}
           />

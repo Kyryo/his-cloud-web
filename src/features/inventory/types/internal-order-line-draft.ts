@@ -4,6 +4,7 @@ export type InternalOrderLineDraft = {
   key: string;
   id?: number;
   product_id: number | null;
+  product_uuid?: string | null;
   productName: string | null;
   quantity: string;
   batch?: number | null;

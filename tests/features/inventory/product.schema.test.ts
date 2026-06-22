@@ -195,7 +195,7 @@ describe("product.schema", () => {
 
   it("maps API product to update form values", () => {
     const product: InventoryProduct = {
-      id: 2,
+      uuid: "22222222-2222-2222-2222-222222222222",
       name: "Consultation",
       display_name: "Consultation",
       default_code: "CONS",

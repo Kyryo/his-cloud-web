@@ -232,7 +232,7 @@ export const LANDING_FAQ = {
 export const LANDING_FINAL_CTA = {
   title: "Your clinic deserves software that actually works here",
   description:
-    "Join 300+ clinics across Africa, Asia, and the Americas who replaced paper chaos with a system built for their reality — not someone else's.",
+    "Join 200+ clinics across Africa, Asia, and the Americas who replaced paper chaos with a system built for their reality — not someone else's.",
   primaryCta: { label: "Start your free 30-day trial", href: ROUTES.signup },
   secondaryCta: { label: "Book a demo call", href: ROUTES.contacts },
 } as const;

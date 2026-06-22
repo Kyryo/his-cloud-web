@@ -14,7 +14,6 @@ import {
   ListPageLayout,
 } from "@/features/app-shell/components/page-layout";
 import { ProductSearchCombobox } from "@/features/inventory/components/ProductSearchCombobox";
-import { createInventoryBatch } from "@/features/inventory/services/batches.service";
 import { checkSession } from "@/features/auth/services/auth.service";
 import { useToast } from "@/providers/toast-provider";
 
@@ -22,7 +21,7 @@ export function BatchCreatePage() {
   const router = useRouter();
   const { toast } = useToast();
   const [tenantId, setTenantId] = useState<number | null>(null);
-  const [productId, setProductId] = useState<number | null>(null);
+  const [productUuid, setProductUuid] = useState<string | null>(null);
   const [batchNumber, setBatchNumber] = useState("");
   const [expiryDate, setExpiryDate] = useState("");
   const [manufactureDate, setManufactureDate] = useState("");
@@ -51,7 +50,7 @@ export function BatchCreatePage() {
       return;
     }
 
-    if (!productId) {
+    if (!productUuid) {
       toast({ description: "Product is required.", variant: "error" });
       return;
     }
@@ -63,17 +62,11 @@ export function BatchCreatePage() {
 
     setIsSubmitting(true);
     try {
-      const batch = await createInventoryBatch({
-        tenant: tenantId,
-        product_id: productId,
-        batch_number: batchNumber.trim(),
-        expiry_date: expiryDate || null,
-        manufacture_date: manufactureDate || null,
-        supplier: supplier.trim() || null,
-        notes: notes.trim() || null,
+      toast({
+        description:
+          "Batch creation still requires a legacy product ID. Catalog UUID support for batches is pending.",
+        variant: "error",
       });
-      toast({ description: "Batch created.", variant: "success" });
-      router.push(ROUTES.inventoryBatchDetail(batch.uuid));
     } catch (err) {
       toast({
         description: err instanceof Error ? err.message : "Could not create batch.",
@@ -98,8 +91,8 @@ export function BatchCreatePage() {
         className="max-w-xl space-y-4 rounded-xl border border-brand-border bg-white p-6"
       >
         <ProductSearchCombobox
-          value={productId}
-          onSelect={(product) => setProductId(product.id)}
+          value={productUuid}
+          onSelect={(product) => setProductUuid(product.uuid)}
         />
         <div className="space-y-2">
           <Label htmlFor="new-batch-number">Batch number</Label>

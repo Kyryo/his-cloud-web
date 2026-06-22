@@ -32,7 +32,7 @@ export function ProductDetailSummaryTab({
         title="Product details"
         fields={[
           { label: "Name", value: product.display_name || product.name },
-          { label: "ERP ID", value: `#${product.id}` },
+          { label: "Product ID", value: product.uuid },
           { label: "Type", value: formatProductTypeLabel(product) },
           { label: "Internal code", value: product.default_code ?? "—" },
           { label: "Barcode", value: product.barcode ?? "—" },

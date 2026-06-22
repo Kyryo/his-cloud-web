@@ -4,6 +4,7 @@ export type SalesOrderLineDraft = {
   key: string;
   id?: number;
   product_id: number | null;
+  product_uuid?: string | null;
   productName: string | null;
   tariff_code?: string | null;
   quantity: string;

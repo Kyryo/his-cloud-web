@@ -216,7 +216,7 @@ export type CreateOrganizationPayerSchemePayload = {
 };
 
 export type OrganizationPricelist = {
-  id: number;
+  uuid: string;
   name: string;
   is_active: boolean;
   currency_code: string;
@@ -224,21 +224,23 @@ export type OrganizationPricelist = {
 
 export type CreateOrganizationPricelistPayload = {
   name: string;
-  active?: boolean;
+  is_active?: boolean;
+  currency_code?: string;
 };
 
 export type UpdateOrganizationPricelistPayload = {
   name?: string;
-  active?: boolean;
+  is_active?: boolean;
+  currency_code?: string;
 };
 
 export type OrganizationDefaultPricelist = {
-  tenant: number;
-  default_pricelist_id: number | null;
+  tenant_uuid: string;
+  default_pricelist_uuid: string | null;
 };
 
 export type SetOrganizationDefaultPricelistPayload = {
-  default_pricelist_id: number | null;
+  default_pricelist_uuid: string | null;
 };
 
 export type TenantBranding = {

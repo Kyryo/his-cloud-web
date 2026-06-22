@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 type ProductSearchComboboxProps = {
   id?: string;
   label?: string;
-  value?: number | null;
+  value?: string | null;
   onSelect: (product: InventoryProduct) => void;
   disabled?: boolean;
   placeholder?: string;
@@ -45,13 +45,13 @@ export function ProductSearchCombobox({
     void (async () => {
       try {
         const products = await searchInventoryProducts({ active: true });
-        const match = products.find((product) => product.id === value);
+        const match = products.find((product) => product.uuid === value);
         if (!cancelled && match) {
           setSelectedLabel(formatProductLabel(match));
         }
       } catch {
         if (!cancelled) {
-          setSelectedLabel(`Product #${value}`);
+          setSelectedLabel(`Product ${value.slice(0, 8)}…`);
         }
       }
     })();
@@ -147,7 +147,7 @@ export function ProductSearchCombobox({
           )}
         >
           {results.map((product) => (
-            <li key={product.id}>
+            <li key={product.uuid}>
               <button
                 type="button"
                 className="w-full px-3 py-2 text-left text-sm text-brand-navy hover:bg-slate-50"

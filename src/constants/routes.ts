@@ -26,8 +26,11 @@ export const ROUTES = {
   inventoryStock: "/inventory/stock",
   inventoryStockDetail: (uuid: string) => `/inventory/stock/${uuid}`,
   inventoryProducts: "/inventory/products",
-  inventoryProductDetail: (productId: number | string) =>
-    `/inventory/products/${productId}`,
+  inventoryProductDetail: (productUuid: string) =>
+    `/inventory/products/${productUuid}`,
+  inventoryPricelists: "/inventory/pricelists",
+  inventoryPricelistDetail: (pricelistUuid: string) =>
+    `/inventory/pricelists/${pricelistUuid}`,
   inventoryPurchaseOrders: "/inventory/purchase-orders",
   inventoryPurchaseOrderDetail: (uuid: string) =>
     `/inventory/purchase-orders/${uuid}`,
@@ -72,6 +75,7 @@ export const WEB_NEW_ROUTE_PREFIXES = [
   ROUTES.therapyOccupational,
   ROUTES.inventoryStock,
   ROUTES.inventoryProducts,
+  ROUTES.inventoryPricelists,
   ROUTES.inventoryPurchaseOrders,
   ROUTES.inventoryInternalOrders,
   ROUTES.inventoryStockAdjustments,
@@ -112,6 +116,7 @@ export const PROTECTED_ROUTES = [
   ROUTES.therapyOccupational,
   ROUTES.inventoryStock,
   ROUTES.inventoryProducts,
+  ROUTES.inventoryPricelists,
   ROUTES.inventoryPurchaseOrders,
   ROUTES.inventoryInternalOrders,
   ROUTES.inventoryStockAdjustments,

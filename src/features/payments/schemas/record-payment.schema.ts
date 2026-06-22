@@ -5,6 +5,7 @@ export const PAYMENT_METHOD_OPTIONS = [
   { value: "Mobile Money", label: "Mobile Money" },
   { value: "Bank Transfer", label: "Bank Transfer" },
   { value: "Card", label: "Card" },
+  { value: "Insurance", label: "Insurance" },
 ] as const;
 
 export const recordPaymentSchema = z.object({

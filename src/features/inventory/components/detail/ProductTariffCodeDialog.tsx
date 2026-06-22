@@ -38,7 +38,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
 type ProductTariffCodeDialogProps = {
-  productId: number;
+  productId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   existingCodes: ProductTariffCode[];
@@ -138,7 +138,7 @@ export function ProductTariffCodeDialog({
         });
       } else {
         await createProductTariffCode(productId, {
-          scheme: schemeUuid,
+          scheme_uuid: schemeUuid,
           tariff_code: tariffCode.trim(),
         });
         toast({

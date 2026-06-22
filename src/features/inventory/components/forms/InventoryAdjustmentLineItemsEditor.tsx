@@ -10,6 +10,7 @@ import { ProductSearchCombobox } from "@/features/inventory/components/ProductSe
 export type InventoryAdjustmentLineItemDraft = {
   key: string;
   product_id: number | null;
+  product_uuid?: string | null;
   quantity_delta: string;
 };
 
@@ -64,9 +65,9 @@ export function InventoryAdjustmentLineItemsEditor({
             <ProductSearchCombobox
               id={`adj-line-product-${line.key}`}
               label={index === 0 ? "Product" : undefined}
-              value={line.product_id}
+              value={line.product_uuid ?? null}
               onSelect={(product) =>
-                updateLine(line.key, { product_id: product.id })
+                updateLine(line.key, { product_uuid: product.uuid })
               }
             />
             <div className="space-y-2">

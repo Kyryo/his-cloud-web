@@ -40,7 +40,7 @@ export async function POST(request: Request) {
         method: "POST",
         token: admin.accessToken,
         body: {
-          default_pricelist_id: body.default_pricelist_id ?? null,
+          default_pricelist_uuid: body.default_pricelist_uuid ?? null,
         },
       },
     );
