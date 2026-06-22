@@ -3,6 +3,9 @@ export const ROUTES = {
   auth: "/auth",
   signup: "/signup",
   onboarding: "/onboarding",
+  platformAdmin: "/platform-admin",
+  platformAdminTenant: (tenantUuid: string) =>
+    `/platform-admin/tenants/${tenantUuid}`,
   customers: "/customers",
   /** Default destination after successful sign-in / sign-up. */
   postAuth: "/customers",
@@ -66,6 +69,7 @@ export const WEB_NEW_ROUTE_PREFIXES = [
   ROUTES.auth,
   ROUTES.signup,
   ROUTES.onboarding,
+  ROUTES.platformAdmin,
   ROUTES.customers,
   ROUTES.salesOrders,
   ROUTES.invoices,
@@ -107,6 +111,7 @@ export const AUTH_ROUTES = [ROUTES.auth, ROUTES.signup] as const;
 
 export const PROTECTED_ROUTES = [
   ROUTES.onboarding,
+  ROUTES.platformAdmin,
   ROUTES.customers,
   ROUTES.salesOrders,
   ROUTES.invoices,

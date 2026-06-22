@@ -16,6 +16,7 @@ export interface User {
   permissions: Record<string, boolean>;
   permission_codes?: string[];
   is_admin: boolean;
+  is_superuser?: boolean;
   is_active?: boolean;
   location: number | null;
   groups: string[];

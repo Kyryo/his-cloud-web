@@ -247,3 +247,24 @@ export const BFF_SETTINGS_ROUTES = {
   emailConfigurationDetail: (id: number | string) =>
     `/api/integrations/email-configuration/${id}`,
 } as const;
+
+/** Browser-facing BFF platform administration routes (same origin). */
+export const BFF_PLATFORM_ADMIN_ROUTES = {
+  dashboard: "/api/platform-admin/dashboard",
+  tenants: "/api/platform-admin/tenants",
+  tenantDetail: (tenantUuid: string) => `/api/platform-admin/tenants/${tenantUuid}`,
+  tenantStatus: (tenantUuid: string) =>
+    `/api/platform-admin/tenants/${tenantUuid}/status`,
+  tenantClinics: (tenantUuid: string) =>
+    `/api/platform-admin/tenants/${tenantUuid}/clinics`,
+  tenantLocations: (tenantUuid: string) =>
+    `/api/platform-admin/tenants/${tenantUuid}/locations`,
+  tenantDepartments: (tenantUuid: string) =>
+    `/api/platform-admin/tenants/${tenantUuid}/departments`,
+  tenantUsers: (tenantUuid: string) =>
+    `/api/platform-admin/tenants/${tenantUuid}/users`,
+  tenantConfiguration: (tenantUuid: string) =>
+    `/api/platform-admin/tenants/${tenantUuid}/configuration`,
+  tenantAuditEvents: (tenantUuid: string) =>
+    `/api/platform-admin/tenants/${tenantUuid}/audit-events`,
+} as const;

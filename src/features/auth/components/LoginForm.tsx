@@ -17,6 +17,7 @@ import { AuthOtpStep } from "@/features/auth/components/AuthOtpStep";
 import { MedicalIllustrations } from "@/features/auth/components/MedicalIllustrations";
 import {
   isAccessTokenValid,
+  getCurrentUser,
   markAuthenticatedSession,
   requestSigninOtp,
   verifySignin,
@@ -52,7 +53,12 @@ export function LoginForm() {
   useEffect(() => {
     async function redirectIfAuthenticated() {
       if (await isAccessTokenValid()) {
-        router.replace(ROUTES.customers);
+        const user = await getCurrentUser();
+        router.replace(
+          user?.is_superuser && user.tenant === null
+            ? ROUTES.platformAdmin
+            : ROUTES.customers,
+        );
       }
     }
 
@@ -81,9 +87,13 @@ export function LoginForm() {
     setSubmitError(null);
 
     try {
-      await verifySignin(values);
+      const result = await verifySignin(values);
       markAuthenticatedSession();
-      router.push(ROUTES.customers);
+      router.push(
+        result.user.is_superuser && result.user.tenant === null
+          ? ROUTES.platformAdmin
+          : ROUTES.customers,
+      );
     } catch (error) {
       setOtpCode("");
       otpForm.setValue("code", "");

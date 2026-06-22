@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Settings } from "lucide-react";
+import { Settings, Shield } from "lucide-react";
 
 import {
   filterNavigation,
@@ -28,8 +28,9 @@ export function buildSidebarNavItems(
   userGroups: string[],
   pathname: string,
   isTenantAdmin = false,
+  isPlatformAdmin = false,
 ): SidebarNavItem[] {
-  const filtered = filterNavigation(userGroups);
+  const filtered = isPlatformAdmin ? [] : filterNavigation(userGroups);
   const modules = groupNavigationByModule(filtered);
   const items: SidebarNavItem[] = [];
 
@@ -109,13 +110,26 @@ export function buildSidebarNavItems(
       : []),
   ];
 
-  items.push({
-    title: "Settings",
-    url: ROUTES.settingsAccount,
-    icon: Settings,
-    isActive: isSettingsNavActive(pathname),
-    items: settingsItems,
-  });
+  if (isPlatformAdmin) {
+    items.push({
+      title: "Platform Admin",
+      url: ROUTES.platformAdmin,
+      icon: Shield,
+      isActive:
+        isNavItemActive(pathname, ROUTES.platformAdmin) ||
+        pathname.startsWith(`${ROUTES.platformAdmin}/`),
+    });
+  }
+
+  if (!isPlatformAdmin) {
+    items.push({
+      title: "Settings",
+      url: ROUTES.settingsAccount,
+      icon: Settings,
+      isActive: isSettingsNavActive(pathname),
+      items: settingsItems,
+    });
+  }
 
   return items;
 }

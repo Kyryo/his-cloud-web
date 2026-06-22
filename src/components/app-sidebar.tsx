@@ -27,8 +27,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
         userGroups,
         pathname,
         Boolean(userData?.is_admin),
+        Boolean(userData?.is_superuser && userData.tenant === null),
       ),
-    [pathname, userData?.is_admin, userGroups],
+    [pathname, userData?.is_admin, userData?.is_superuser, userData?.tenant, userGroups],
   );
 
   return (
