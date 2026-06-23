@@ -1,18 +1,16 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
 
 import { PageLoader } from "@/components/page-loader";
-import { ROUTES } from "@/constants/routes";
 import { checkSession } from "@/features/auth/services/auth.service";
+import { handleSessionExpired } from "@/lib/handle-session-expired";
 
 type AuthGuardProps = {
   children: ReactNode;
 };
 
 export function AuthGuard({ children }: AuthGuardProps) {
-  const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -22,18 +20,18 @@ export function AuthGuard({ children }: AuthGuardProps) {
         const session = await checkSession();
         if (session.authenticated) {
           setIsAuthenticated(true);
-        } else {
-          router.replace(ROUTES.auth);
+          setIsLoading(false);
+          return;
         }
+
+        await handleSessionExpired();
       } catch {
-        router.replace(ROUTES.auth);
-      } finally {
-        setIsLoading(false);
+        await handleSessionExpired();
       }
     }
 
     void verifyAuth();
-  }, [router]);
+  }, []);
 
   if (isLoading) {
     return <PageLoader fullScreen />;

@@ -1,29 +1,25 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-import { REFRESH_TOKEN_COOKIE } from "@/constants/session";
-import { AUTH_ROUTES, PROTECTED_ROUTES, ROUTES } from "@/constants/routes";
+import { ACCESS_TOKEN_COOKIE, REFRESH_TOKEN_COOKIE } from "@/constants/session";
+import { PROTECTED_ROUTES, ROUTES } from "@/constants/routes";
 import { applySecurityHeaders } from "@/lib/security-headers";
 import { matchesRoute } from "@/lib/route-matching";
 
 function hasSession(request: NextRequest): boolean {
-  return Boolean(request.cookies.get(REFRESH_TOKEN_COOKIE)?.value);
+  const access = request.cookies.get(ACCESS_TOKEN_COOKIE)?.value;
+  const refresh = request.cookies.get(REFRESH_TOKEN_COOKIE)?.value;
+  return Boolean(access && refresh);
 }
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isProtectedRoute = matchesRoute(pathname, PROTECTED_ROUTES);
-  const isAuthRoute = matchesRoute(pathname, AUTH_ROUTES);
   const sessionActive = hasSession(request);
 
   if (isProtectedRoute && !sessionActive) {
     const loginUrl = new URL(ROUTES.auth, request.url);
     return applySecurityHeaders(NextResponse.redirect(loginUrl));
-  }
-
-  if (isAuthRoute && sessionActive) {
-    const postAuthUrl = new URL(ROUTES.postAuth, request.url);
-    return applySecurityHeaders(NextResponse.redirect(postAuthUrl));
   }
 
   return applySecurityHeaders(NextResponse.next());
