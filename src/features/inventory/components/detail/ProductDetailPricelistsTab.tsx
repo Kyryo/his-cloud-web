@@ -71,7 +71,7 @@ export function ProductDetailPricelistsTab({
       setIsLoading(true);
       setError(null);
       const records = await fetchInventoryProductPricelists(product.uuid);
-      setItems(records);
+      setItems(records ?? []);
     } catch (err) {
       setItems([]);
       setError(

@@ -89,7 +89,7 @@ export function StockListPage() {
       />
 
       <InventoryListPageHeader
-        title="Stock"
+        title="Inventory register"
         description="On-hand quantities by location and product."
         search={search}
         isSearchDisabled={isRefreshing}

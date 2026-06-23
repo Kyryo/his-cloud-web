@@ -27,6 +27,14 @@ import type { PaginatedListResponse } from "@/types/api.types";
 
 const DEFAULT_SHEET_FILTERS = { include_inactive: false } as const;
 
+function buildPricelistListFilters() {
+  return {};
+}
+
+function countPricelistSheetFilters() {
+  return 0;
+}
+
 async function fetchPricelists(
   filters: InventoryListFilters,
 ): Promise<PaginatedListResponse<CatalogPricelist>> {
@@ -68,8 +76,8 @@ export function PricelistsListPage() {
   } = useInventoryListFilters({
     fetchFn,
     defaultSheetFilters: DEFAULT_SHEET_FILTERS,
-    buildExtraFilters: () => ({}),
-    countActiveSheetFilters: () => 0,
+    buildExtraFilters: buildPricelistListFilters,
+    countActiveSheetFilters: countPricelistSheetFilters,
   });
 
   const handleCreate = useCallback(() => {

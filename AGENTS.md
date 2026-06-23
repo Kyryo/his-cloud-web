@@ -581,6 +581,24 @@ Never trust client validation alone.
 
 ---
 
+### Searchable fields
+
+Use the shared combobox from `@/components/ui/combobox` (see `InlineProductCombobox`, `CareProviderCombobox`, `BatchProductCombobox`, `SupplierCombobox`) for any field where the user searches or picks from a remote list.
+
+Do not use plain `<Input type="search">` dropdowns or bespoke search UIs unless the design explicitly calls for a different control.
+
+When a match may not exist in the catalog (e.g. supplier names), still use the combobox and allow free-text entry via `onInputValueChange` while offering search results when available.
+
+---
+
+### Required fields
+
+Mark mandatory form labels with `<RequiredFieldMarker />` from `@/components/ui/required-field-marker` (red asterisk). Optional fields omit the marker.
+
+Apply this consistently in dialogs, sheets, and full-page forms.
+
+---
+
 ## 12. Styling
 
 ### Approved Stack

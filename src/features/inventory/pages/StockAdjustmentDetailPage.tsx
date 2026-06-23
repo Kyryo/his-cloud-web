@@ -1,6 +1,9 @@
 "use client";
 
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+
+import { ROUTES } from "@/constants/routes";
 
 import {
   PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS,
@@ -15,16 +18,26 @@ import {
 import { InventoryDetailNotFound } from "@/features/inventory/components/detail/InventoryDetailNotFound";
 import { StockAdjustmentDetailHeader } from "@/features/inventory/components/detail/StockAdjustmentDetailHeader";
 import { StockAdjustmentDetailTabs } from "@/features/inventory/components/detail/StockAdjustmentDetailTabs";
+import { UpdateStockAdjustmentDialog } from "@/features/inventory/components/UpdateStockAdjustmentDialog";
 import {
   fetchStockAdjustment,
   runStockAdjustmentAction,
   type StockAdjustmentAction,
 } from "@/features/inventory/services/stock-adjustments.service";
 import type { StockAdjustment } from "@/features/inventory/types/inventory.types";
+import type { StockAdjustmentLineDraft } from "@/features/inventory/types/stock-adjustment-line-draft";
+import { validateStockAdjustmentLinesForSubmit } from "@/features/inventory/types/stock-adjustment-line-draft";
 import { useToast } from "@/providers/toast-provider";
 
 type StockAdjustmentDetailPageProps = {
   adjustmentUuid: string;
+};
+
+type LinesEditorState = {
+  lineCount: number;
+  isDirty: boolean;
+  draftLines: StockAdjustmentLineDraft[];
+  validationIssueCount: number;
 };
 
 function getStockAdjustmentActions(
@@ -80,10 +93,15 @@ const actionSuccessTitles: Record<StockAdjustmentAction, string> = {
 export function StockAdjustmentDetailPage({
   adjustmentUuid,
 }: StockAdjustmentDetailPageProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const { toast } = useToast();
   const [adjustment, setAdjustment] = useState<StockAdjustment | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [updateOpen, setUpdateOpen] = useState(false);
+  const [linesEditorState, setLinesEditorState] = useState<LinesEditorState | null>(null);
+  const autoAddLine = searchParams.get("add-lines") === "1";
 
   useAppBreadcrumb(adjustment?.reference_number ?? null);
 
@@ -104,8 +122,50 @@ export function StockAdjustmentDetailPage({
     void loadAdjustment();
   }, [loadAdjustment]);
 
+  useEffect(() => {
+    if (!adjustment || !autoAddLine) {
+      return;
+    }
+
+    router.replace(ROUTES.inventoryStockAdjustmentDetail(adjustment.uuid), { scroll: false });
+  }, [adjustment, autoAddLine, router]);
+
+  const submitValidationMessage = useMemo(() => {
+    if (!adjustment || adjustment.status !== "DRAFT") {
+      return null;
+    }
+
+    if (linesEditorState?.isDirty) {
+      return "Save your line item changes before submitting this adjustment.";
+    }
+
+    const linesToValidate =
+      linesEditorState?.draftLines ??
+      adjustment.lines.map((line) => ({
+        key: String(line.id ?? line.product_id),
+        product_id: line.product_id,
+        productName: line.product_name ?? null,
+        quantity_delta: String(line.quantity_delta),
+        new_unit_cost: line.new_unit_cost != null ? String(line.new_unit_cost) : "0",
+      }));
+
+    return validateStockAdjustmentLinesForSubmit(
+      linesToValidate,
+      adjustment.adjustment_type,
+    );
+  }, [adjustment, linesEditorState]);
+
   const handleAction = useCallback(
     async (action: StockAdjustmentAction) => {
+      if (action === "submit" && submitValidationMessage) {
+        toast({
+          title: "Cannot submit adjustment",
+          description: submitValidationMessage,
+          variant: "error",
+        });
+        return;
+      }
+
       try {
         const updated = await runStockAdjustmentAction(adjustmentUuid, action);
         setAdjustment(updated);
@@ -122,7 +182,18 @@ export function StockAdjustmentDetailPage({
         });
       }
     },
-    [adjustmentUuid, toast],
+    [adjustmentUuid, submitValidationMessage, toast],
+  );
+
+  const handleLinesError = useCallback(
+    (message: string) => {
+      toast({
+        title: "Line items",
+        description: message,
+        variant: "error",
+      });
+    },
+    [toast],
   );
 
   const actions = useMemo(
@@ -148,13 +219,31 @@ export function StockAdjustmentDetailPage({
     );
   }
 
+  const canEditLines = adjustment.status === "DRAFT";
+
   return (
     <DetailPageLayout data-testid="inventory-stock-adjustment-detail-page">
+      <UpdateStockAdjustmentDialog
+        adjustment={adjustment}
+        open={updateOpen}
+        onOpenChange={setUpdateOpen}
+        onUpdated={setAdjustment}
+      />
+
       <StockAdjustmentDetailHeader
         adjustment={adjustment}
+        onUpdate={canEditLines ? () => setUpdateOpen(true) : undefined}
         actions={<InventoryDocumentActions actions={actions} />}
       />
-      <StockAdjustmentDetailTabs adjustment={adjustment} />
+
+      <StockAdjustmentDetailTabs
+        adjustment={adjustment}
+        canEditLines={canEditLines}
+        autoAddLine={autoAddLine}
+        onAdjustmentUpdated={setAdjustment}
+        onError={handleLinesError}
+        onLinesStateChange={setLinesEditorState}
+      />
     </DetailPageLayout>
   );
 }

@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AddProductToPricelistEmptyState } from "@/features/inventory/components/detail/AddProductToPricelistEmptyState";
 import { addProductToPricelist } from "@/features/inventory/services/inventory.service";
 import type {
   InventoryProduct,
@@ -72,13 +73,26 @@ export function AddProductToPricelistDialog({
     [existingItems],
   );
 
+  const activePricelists = useMemo(
+    () => pricelists.filter((entry) => entry.is_active),
+    [pricelists],
+  );
+
   const availablePricelists = useMemo(
     () =>
-      pricelists.filter(
-        (entry) => entry.is_active && !usedPricelistUuids.has(entry.uuid),
-      ),
-    [pricelists, usedPricelistUuids],
+      activePricelists.filter((entry) => !usedPricelistUuids.has(entry.uuid)),
+    [activePricelists, usedPricelistUuids],
   );
+
+  const emptyVariant = useMemo(() => {
+    if (activePricelists.length === 0) {
+      return "no-pricelists" as const;
+    }
+    if (availablePricelists.length === 0) {
+      return "all-assigned" as const;
+    }
+    return null;
+  }, [activePricelists.length, availablePricelists.length]);
 
   useEffect(() => {
     if (!open) {
@@ -189,19 +203,17 @@ export function AddProductToPricelistDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
-          <div className="space-y-2">
-            <Label htmlFor="pricelist-select">Pricelist</Label>
-            {isLoadingPricelists ? (
-              <div className="flex items-center gap-2 text-sm text-brand-muted">
-                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                Loading pricelists...
-              </div>
-            ) : availablePricelists.length === 0 ? (
-              <p className="text-sm text-brand-muted">
-                This product is already on every active pricelist.
-              </p>
-            ) : (
+        {isLoadingPricelists ? (
+          <div className="flex items-center justify-center gap-2 py-12 text-sm text-brand-muted">
+            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            Loading pricelists...
+          </div>
+        ) : emptyVariant ? (
+          <AddProductToPricelistEmptyState variant={emptyVariant} />
+        ) : (
+          <div className="space-y-4 py-2">
+            <div className="space-y-2">
+              <Label htmlFor="pricelist-select">Pricelist</Label>
               <Select
                 value={pricelistUuid}
                 onValueChange={setPricelistUuid}
@@ -218,35 +230,35 @@ export function AddProductToPricelistDialog({
                   ))}
                 </SelectContent>
               </Select>
-            )}
-          </div>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="pricelist-fixed-price">Fixed price</Label>
-            <Input
-              id="pricelist-fixed-price"
-              type="number"
-              min="0"
-              step="any"
-              value={fixedPrice}
-              disabled={isSubmitting}
-              onChange={(event) => setFixedPrice(event.target.value)}
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="pricelist-fixed-price">Fixed price</Label>
+              <Input
+                id="pricelist-fixed-price"
+                type="number"
+                min="0"
+                step="any"
+                value={fixedPrice}
+                disabled={isSubmitting}
+                onChange={(event) => setFixedPrice(event.target.value)}
+              />
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="pricelist-min-qty">Minimum quantity</Label>
-            <Input
-              id="pricelist-min-qty"
-              type="number"
-              min="0"
-              step="any"
-              value={minQuantity}
-              disabled={isSubmitting}
-              onChange={(event) => setMinQuantity(event.target.value)}
-            />
+            <div className="space-y-2">
+              <Label htmlFor="pricelist-min-qty">Minimum quantity</Label>
+              <Input
+                id="pricelist-min-qty"
+                type="number"
+                min="0"
+                step="any"
+                value={minQuantity}
+                disabled={isSubmitting}
+                onChange={(event) => setMinQuantity(event.target.value)}
+              />
+            </div>
           </div>
-        </div>
+        )}
 
         <DialogFooter>
           <SecondaryButton
@@ -254,26 +266,24 @@ export function AddProductToPricelistDialog({
             disabled={isSubmitting}
             onClick={() => onOpenChange(false)}
           >
-            Cancel
+            {emptyVariant ? "Close" : "Cancel"}
           </SecondaryButton>
-          <PrimaryButton
-            type="button"
-            disabled={
-              isSubmitting ||
-              isLoadingPricelists ||
-              availablePricelists.length === 0
-            }
-            onClick={() => void handleSubmit()}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                Saving...
-              </>
-            ) : (
-              "Add to pricelist"
-            )}
-          </PrimaryButton>
+          {!emptyVariant && !isLoadingPricelists ? (
+            <PrimaryButton
+              type="button"
+              disabled={isSubmitting || availablePricelists.length === 0}
+              onClick={() => void handleSubmit()}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                  Saving...
+                </>
+              ) : (
+                "Add to pricelist"
+              )}
+            </PrimaryButton>
+          ) : null}
         </DialogFooter>
       </DialogContent>
     </Dialog>

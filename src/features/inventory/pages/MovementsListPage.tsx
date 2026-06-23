@@ -1,16 +1,15 @@
 "use client";
 
 import { ArrowLeftRight } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
-import { ROUTES } from "@/constants/routes";
 import {
   ListPageDataSectionsStack,
   ListPageLayout,
 } from "@/features/app-shell/components/page-layout";
 import { InventoryFiltersSheet } from "@/features/inventory/components/InventoryFiltersSheet";
 import { InventoryListToolbar } from "@/features/inventory/components/InventoryListToolbar";
+import { MovementDetailDialog } from "@/features/inventory/components/MovementDetailDialog";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
 import { InventoryListEmptyState } from "@/features/inventory/components/list/InventoryListEmptyState";
 import { InventoryListPageContent } from "@/features/inventory/components/list/InventoryListPageContent";
@@ -30,7 +29,9 @@ import {
 } from "@/features/inventory/utils/inventory-list-filters";
 
 export function MovementsListPage() {
-  const router = useRouter();
+  const [selectedMovement, setSelectedMovement] = useState<InventoryMovement | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+
   const fetchFn = useCallback(
     (f: InventoryListFilters) => fetchInventoryMovements(f),
     [],
@@ -64,10 +65,14 @@ export function MovementsListPage() {
     countActiveSheetFilters: countActiveMovementFilters,
   });
 
-  const handleRowClick = useCallback(
-    (item: InventoryMovement) => router.push(ROUTES.inventoryMovementDetail(item.uuid)),
-    [router],
-  );
+  const handleRowClick = useCallback((item: InventoryMovement) => {
+    setSelectedMovement(item);
+    setDetailOpen(true);
+  }, []);
+
+  const handleDetailOpenChange = useCallback((open: boolean) => {
+    setDetailOpen(open);
+  }, []);
 
   if (isUnauthorized) {
     return <InventoryListAccessDenied />;
@@ -75,6 +80,12 @@ export function MovementsListPage() {
 
   return (
     <ListPageLayout data-testid="inventory-movements-page">
+      <MovementDetailDialog
+        movement={selectedMovement}
+        open={detailOpen}
+        onOpenChange={handleDetailOpenChange}
+      />
+
       <InventoryListPageHeader
         title="Movements"
         description="Inventory movement history across locations."

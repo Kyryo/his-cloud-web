@@ -14,6 +14,7 @@ export const INVENTORY_API_PATHS = {
   batches: {
     list: "/inventory/batches/",
     detail: (uuid: string) => `/inventory/batches/${uuid}/`,
+    suppliersSearch: "/inventory/batches/suppliers/search/",
   },
   purchaseOrders: {
     list: "/inventory/purchase-orders/",

@@ -162,6 +162,7 @@ export const BFF_INVENTORY_ROUTES = {
   batches: {
     list: "/api/inventory/batches",
     detail: (uuid: string) => `/api/inventory/batches/${uuid}`,
+    suppliersSearch: "/api/inventory/batches/suppliers",
   },
   purchaseOrders: {
     list: "/api/inventory/purchase-orders",

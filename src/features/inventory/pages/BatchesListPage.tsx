@@ -1,16 +1,16 @@
 "use client";
 
 import { Layers } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 
 import { AddActionButton } from "@/components/ui/app-buttons";
 import { FabButton } from "@/components/ui/fab-button";
-import { ROUTES } from "@/constants/routes";
 import {
   ListPageDataSectionsStack,
   ListPageLayout,
 } from "@/features/app-shell/components/page-layout";
+import { BatchDetailDialog } from "@/features/inventory/components/BatchDetailDialog";
+import { CreateBatchDialog } from "@/features/inventory/components/CreateBatchDialog";
 import { InventoryFiltersSheet } from "@/features/inventory/components/InventoryFiltersSheet";
 import { InventoryListToolbar } from "@/features/inventory/components/InventoryListToolbar";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
@@ -32,7 +32,10 @@ import {
 } from "@/features/inventory/utils/inventory-list-filters";
 
 export function BatchesListPage() {
-  const router = useRouter();
+  const [createOpen, setCreateOpen] = useState(false);
+  const [selectedBatch, setSelectedBatch] = useState<InventoryBatch | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+
   const fetchFn = useCallback(
     (f: InventoryListFilters) => fetchInventoryBatches(f),
     [],
@@ -67,13 +70,21 @@ export function BatchesListPage() {
   });
 
   const handleAdd = useCallback(() => {
-    router.push(ROUTES.inventoryBatchNew);
-  }, [router]);
+    setCreateOpen(true);
+  }, []);
 
-  const handleRowClick = useCallback(
-    (item: InventoryBatch) => router.push(ROUTES.inventoryBatchDetail(item.uuid)),
-    [router],
-  );
+  const handleRowClick = useCallback((item: InventoryBatch) => {
+    setSelectedBatch(item);
+    setDetailOpen(true);
+  }, []);
+
+  const handleDetailOpenChange = useCallback((open: boolean) => {
+    setDetailOpen(open);
+  }, []);
+
+  const handleBatchCreated = useCallback(() => {
+    void reload();
+  }, [reload]);
 
   if (isUnauthorized) {
     return <InventoryListAccessDenied />;
@@ -81,6 +92,17 @@ export function BatchesListPage() {
 
   return (
     <ListPageLayout data-testid="inventory-batches-page">
+      <CreateBatchDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        onCreated={handleBatchCreated}
+      />
+      <BatchDetailDialog
+        batch={selectedBatch}
+        open={detailOpen}
+        onOpenChange={handleDetailOpenChange}
+      />
+
       <InventoryListPageHeader
         title="Batches"
         description="Track batch numbers, expiry, and supplier details."

@@ -2,18 +2,27 @@ import { BFF_INVENTORY_ROUTES } from "@/constants/api";
 import type {
   InventoryListFilters,
   StockAdjustment,
-  StockAdjustmentLine,
   StockAdjustmentListResponse,
 } from "@/features/inventory/types/inventory.types";
 import { buildInventoryQuery } from "@/features/inventory/utils/inventory-query";
 import { bffRequest } from "@/lib/bff-client";
+
+export type StockAdjustmentLinePayload = {
+  id?: number;
+  product_id?: number;
+  product_uuid?: string;
+  batch?: number | null;
+  quantity_delta?: string | number;
+  new_unit_cost?: string | number | null;
+  notes?: string | null;
+};
 
 export type StockAdjustmentPayload = {
   location: number;
   adjustment_type: string;
   reason?: string | null;
   notes?: string | null;
-  lines: StockAdjustmentLine[];
+  lines?: StockAdjustmentLinePayload[];
   is_active?: boolean;
 };
 

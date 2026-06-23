@@ -161,6 +161,36 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
       ];
     }
 
+    if (pathname === ROUTES.inventoryProducts) {
+      return [
+        { label: getModuleLabel("Billing") },
+        { label: "Products" },
+      ];
+    }
+
+    if (pathname.startsWith(`${ROUTES.inventoryProducts}/`)) {
+      return [
+        { label: getModuleLabel("Billing") },
+        { label: "Products", href: ROUTES.inventoryProducts },
+        { label: "Product details" },
+      ];
+    }
+
+    if (pathname === ROUTES.inventoryPricelists) {
+      return [
+        { label: getModuleLabel("Billing") },
+        { label: "Pricelists" },
+      ];
+    }
+
+    if (pathname.startsWith(`${ROUTES.inventoryPricelists}/`)) {
+      return [
+        { label: getModuleLabel("Billing") },
+        { label: "Pricelists", href: ROUTES.inventoryPricelists },
+        { label: "Pricelist details" },
+      ];
+    }
+
     return [
       { label: getModuleLabel("Billing") },
       { label: "Sales Orders", href: ROUTES.salesOrders },
@@ -171,7 +201,6 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
   if (navItem?.requiredGroup === "Inventory") {
     const inventoryListRoutes: Record<string, string> = {
       [ROUTES.inventoryStock]: "Stock",
-      [ROUTES.inventoryProducts]: "Products",
       [ROUTES.inventoryPurchaseOrders]: "Purchase orders",
       [ROUTES.inventoryInternalOrders]: "Internal orders",
       [ROUTES.inventoryStockAdjustments]: "Stock adjustments",

@@ -70,6 +70,20 @@ describe("buildAppBreadcrumbs", () => {
     ]);
   });
 
+  it("returns billing and products for the products list", () => {
+    expect(buildAppBreadcrumbs(ROUTES.inventoryProducts)).toEqual([
+      { label: "Billing" },
+      { label: "Products" },
+    ]);
+  });
+
+  it("returns billing and pricelists for the pricelists list", () => {
+    expect(buildAppBreadcrumbs(ROUTES.inventoryPricelists)).toEqual([
+      { label: "Billing" },
+      { label: "Pricelists" },
+    ]);
+  });
+
   it("returns inventory and stock for the stock list", () => {
     expect(buildAppBreadcrumbs(ROUTES.inventoryStock)).toEqual([
       { label: "Inventory" },

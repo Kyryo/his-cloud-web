@@ -3,6 +3,7 @@ import type { InventoryProductMeta } from "@/features/inventory/types/inventory.
 export type CatalogProductType = "product" | "consu" | "service";
 
 export type CatalogProduct = {
+  id?: number;
   uuid: string;
   name: string;
   display_name: string;

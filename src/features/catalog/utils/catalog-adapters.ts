@@ -7,6 +7,7 @@ export function normalizeCatalogProduct(product: CatalogProduct): InventoryProdu
   const isActive = product.active ?? product.is_active ?? true;
 
   return {
+    id: product.id,
     uuid: product.uuid,
     name: product.name,
     display_name: product.display_name || product.name,

@@ -88,7 +88,7 @@ export function StockAdjustmentsListPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
         onCreated={(adjustment) =>
-          router.push(ROUTES.inventoryStockAdjustmentDetail(adjustment.uuid))
+          router.push(`${ROUTES.inventoryStockAdjustmentDetail(adjustment.uuid)}?add-lines=1`)
         }
       />
 

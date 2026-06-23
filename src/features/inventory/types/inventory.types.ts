@@ -95,6 +95,7 @@ export type InventoryProductMeta = {
 };
 
 export type InventoryProduct = {
+  id?: number;
   uuid: string;
   name: string;
   display_name: string;
@@ -269,6 +270,7 @@ export type InternalOrder = {
 export type StockAdjustmentLine = {
   id?: number;
   product_id: number;
+  product_uuid?: string;
   product_name?: string | null;
   batch?: number | null;
   quantity_delta: string | number;

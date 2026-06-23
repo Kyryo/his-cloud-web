@@ -56,8 +56,10 @@ export function useInventoryList<T>({
 
     try {
       const response = await fetchFn(listFilters);
-      setItems(response.results);
-      setTotalCount(response.pagination?.count ?? response.results.length);
+      setItems(response.results ?? []);
+      setTotalCount(
+        response.pagination?.count ?? (response.results ?? []).length,
+      );
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Failed to load records.";

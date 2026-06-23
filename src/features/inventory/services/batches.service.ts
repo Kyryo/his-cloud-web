@@ -9,7 +9,8 @@ import { bffRequest } from "@/lib/bff-client";
 
 export type CreateBatchPayload = {
   tenant: number;
-  product_id: number;
+  product_id?: number;
+  product_uuid?: string;
   batch_number: string;
   expiry_date?: string | null;
   manufacture_date?: string | null;
@@ -55,4 +56,18 @@ export async function deleteInventoryBatch(uuid: string): Promise<void> {
   await bffRequest<void>(BFF_INVENTORY_ROUTES.batches.detail(uuid), {
     method: "DELETE",
   });
+}
+
+export async function searchInventorySuppliers(
+  query: string,
+): Promise<string[]> {
+  const params = new URLSearchParams();
+  if (query.trim()) {
+    params.set("q", query.trim());
+  }
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  const response = await bffRequest<{ results: string[] }>(
+    `${BFF_INVENTORY_ROUTES.batches.suppliersSearch}${suffix}`,
+  );
+  return response.results ?? [];
 }

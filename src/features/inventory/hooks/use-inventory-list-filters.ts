@@ -25,9 +25,18 @@ export function useInventoryListFilters<T, F>({
 }: UseInventoryListFiltersOptions<T, F>) {
   const [sheetFilters, setSheetFilters] = useState(defaultSheetFilters);
 
-  const extraFilters = useMemo(
-    () => buildExtraFilters(sheetFilters),
+  const extraFiltersSerialized = useMemo(
+    () => JSON.stringify(buildExtraFilters(sheetFilters)),
     [buildExtraFilters, sheetFilters],
+  );
+
+  const extraFilters = useMemo(
+    () =>
+      JSON.parse(extraFiltersSerialized) as Omit<
+        InventoryListFilters,
+        "page" | "pageSize" | "search"
+      >,
+    [extraFiltersSerialized],
   );
 
   const { handlePageChange, ...list } = useInventoryList<T>({

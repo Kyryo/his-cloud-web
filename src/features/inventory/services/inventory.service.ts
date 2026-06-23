@@ -108,10 +108,15 @@ export async function updateInventoryProduct(
 export async function fetchInventoryProductPricelists(
   productUuid: string,
 ): Promise<InventoryProductPricelistItem[]> {
-  const response = await bffRequest<PaginatedListResponse<InventoryProductPricelistItem>>(
-    `${BFF_INVENTORY_ROUTES.products.pricelists(productUuid)}?page_size=200`,
-  );
-  return response.results;
+  const response = await bffRequest<
+    PaginatedListResponse<InventoryProductPricelistItem> | InventoryProductPricelistItem[]
+  >(`${BFF_INVENTORY_ROUTES.products.pricelists(productUuid)}?page_size=200`);
+
+  if (Array.isArray(response)) {
+    return response;
+  }
+
+  return response.results ?? [];
 }
 
 export async function fetchProductTariffCodes(

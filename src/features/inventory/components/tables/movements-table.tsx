@@ -20,8 +20,8 @@ const columns: InventoryListTableColumn<InventoryMovement>[] = [
   {
     key: "product",
     label: "Product",
-    cellClassName: "font-mono text-brand-navy",
-    render: (item) => item.product_id,
+    cellClassName: "text-brand-navy",
+    render: (item) => item.product_name?.trim() || `Product ${item.product_id}`,
   },
   {
     key: "from",
