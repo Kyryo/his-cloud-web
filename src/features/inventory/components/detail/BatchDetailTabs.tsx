@@ -55,13 +55,22 @@ export function BatchDetailTabs({ batch, onUpdated }: BatchDetailTabsProps) {
       return;
     }
 
+    if (!supplier.trim()) {
+      toast({
+        title: "Supplier required",
+        description: "Enter a supplier before saving.",
+        variant: "error",
+      });
+      return;
+    }
+
     setIsSaving(true);
     try {
       const updated = await updateInventoryBatch(batch.uuid, {
         batch_number: batchNumber.trim(),
         expiry_date: expiryDate || null,
         manufacture_date: manufactureDate || null,
-        supplier: supplier.trim() || null,
+        supplier: supplier.trim(),
         notes: notes.trim() || null,
       });
       onUpdated(updated);
