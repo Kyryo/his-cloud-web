@@ -2,11 +2,10 @@
 
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ROUTES } from "@/constants/routes";
-import { fetchInventoryLocations } from "@/features/inventory/services/inventory.service";
+import { useInventoryLocations } from "@/features/inventory/hooks/use-inventory-locations";
 import { cn } from "@/lib/utils";
 
 type InventoryNoLocationsAlertProps = {
@@ -18,42 +17,10 @@ export function InventoryNoLocationsAlert({
   enabled = true,
   className,
 }: InventoryNoLocationsAlertProps) {
-  const [isEmpty, setIsEmpty] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const { data, isLoading } = useInventoryLocations(undefined, enabled);
+  const isEmpty = enabled && !isLoading && (data?.results.length ?? 0) === 0;
 
-  useEffect(() => {
-    if (!enabled) {
-      setIsEmpty(false);
-      setIsLoading(true);
-      return;
-    }
-
-    let cancelled = false;
-
-    void (async () => {
-      try {
-        setIsLoading(true);
-        const response = await fetchInventoryLocations();
-        if (!cancelled) {
-          setIsEmpty(response.results.length === 0);
-        }
-      } catch {
-        if (!cancelled) {
-          setIsEmpty(false);
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [enabled]);
-
-  if (!enabled || isLoading || !isEmpty) {
+  if (!isEmpty) {
     return null;
   }
 

@@ -1,4 +1,5 @@
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
+import { HmisApiError } from "@/lib/server/hmis-api";
 import { hmisApiRequest, hmisApiRequestWithMeta } from "@/lib/server/hmis-api";
 import { requireAccessToken } from "@/lib/server/require-access-token";
 import { requireTenantAdmin } from "@/lib/server/require-tenant-admin";
@@ -65,6 +66,7 @@ export async function handleClinicalCreate<T>(
   request: Request,
   upstreamPath: string,
   mode: AuthMode = "user",
+  logLabel?: string,
 ) {
   try {
     const auth = await resolveAuth(mode);
@@ -81,6 +83,16 @@ export async function handleClinicalCreate<T>(
 
     return bffSuccess(data, 201);
   } catch (error) {
+    console.error(
+      `[clinical-bff] ${logLabel ?? "create"} failed path=${upstreamPath}`,
+      error instanceof HmisApiError
+        ? {
+            status: error.status,
+            message: error.message,
+            errors: error.errors,
+          }
+        : error,
+    );
     return bffError(error);
   }
 }

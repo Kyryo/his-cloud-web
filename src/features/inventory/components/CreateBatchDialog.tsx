@@ -1,7 +1,9 @@
 "use client";
 
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 
 import {
   PrimaryButton,
@@ -15,17 +17,34 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
-import { InlineProductCombobox } from "@/features/inventory/components/detail/InlineProductCombobox";
-import { SupplierCombobox } from "@/features/inventory/components/SupplierCombobox";
-import { checkSession } from "@/features/auth/services/auth.service";
+import { InventoryProductPicker } from "@/features/inventory/components/InventoryProductPicker";
+import { InventorySupplierPicker } from "@/features/inventory/components/InventorySupplierPicker";
+import {
+  createBatchDefaultValues,
+  createBatchSchema,
+  toCreateBatchPayload,
+  type CreateBatchFormValues,
+} from "@/features/inventory/schemas/batch.schema";
 import { createInventoryBatch } from "@/features/inventory/services/batches.service";
-import type { InventoryBatch } from "@/features/inventory/types/inventory.types";
-import { formatProductLabel } from "@/features/inventory/utils/format-inventory";
+import type {
+  InventoryBatch,
+  InventoryProduct,
+} from "@/features/inventory/types/inventory.types";
+import { BffError } from "@/lib/bff-client";
+import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
+import { useUser } from "@/providers/user-provider";
 import { useToast } from "@/providers/toast-provider";
 
 type CreateBatchDialogProps = {
@@ -40,81 +59,46 @@ export function CreateBatchDialog({
   onCreated,
 }: CreateBatchDialogProps) {
   const { toast } = useToast();
-  const [tenantId, setTenantId] = useState<number | null>(null);
-  const [selectedProductUuid, setSelectedProductUuid] = useState<string | null>(null);
-  const [selectedProductLabel, setSelectedProductLabel] = useState<string | null>(null);
-  const [selectedProductType, setSelectedProductType] = useState<string | null>(null);
-  const [batchNumber, setBatchNumber] = useState("");
-  const [expiryDate, setExpiryDate] = useState("");
-  const [manufactureDate, setManufactureDate] = useState("");
-  const [supplier, setSupplier] = useState("");
-  const [notes, setNotes] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { userData } = useUser();
+  const tenantId =
+    userData?.tenant?.id ?? userData?.primary_clinic?.tenant ?? null;
+  const [selectedProduct, setSelectedProduct] = useState<InventoryProduct | null>(
+    null,
+  );
+
+  const form = useForm<CreateBatchFormValues>({
+    resolver: zodResolver(createBatchSchema),
+    defaultValues: createBatchDefaultValues(),
+  });
 
   useEffect(() => {
     if (!open) {
       return;
     }
 
-    setSelectedProductUuid(null);
-    setSelectedProductLabel(null);
-    setSelectedProductType(null);
-    setBatchNumber("");
-    setExpiryDate("");
-    setManufactureDate("");
-    setSupplier("");
-    setNotes("");
+    form.reset(createBatchDefaultValues());
+    setSelectedProduct(null);
+  }, [form, open]);
 
-    void (async () => {
-      try {
-        const session = await checkSession();
-        const tenant =
-          session.user?.tenant?.id ?? session.user?.primary_clinic?.tenant ?? null;
-        setTenantId(tenant);
-      } catch {
-        setTenantId(null);
-      }
-    })();
-  }, [open]);
-
-  async function handleSubmit(event: React.FormEvent) {
-    event.preventDefault();
-
+  const handleSubmit = form.handleSubmit(async (values) => {
     if (!tenantId) {
+      form.setError("root", { message: "Tenant context is required." });
       toast({ description: "Tenant context is required.", variant: "error" });
       return;
     }
 
-    if (!selectedProductUuid) {
-      toast({ description: "Product is required.", variant: "error" });
-      return;
-    }
-
-    if (selectedProductType === "service") {
-      toast({
-        description:
+    if (selectedProduct?.product_type === "service") {
+      form.setError("product_uuid", {
+        message:
           "Service products cannot have batches. Choose a stockable or consumable product.",
-        variant: "error",
       });
       return;
     }
 
-    if (!batchNumber.trim()) {
-      toast({ description: "Batch number is required.", variant: "error" });
-      return;
-    }
-
-    setIsSubmitting(true);
     try {
-      const created = await createInventoryBatch({
-        tenant: tenantId,
-        product_uuid: selectedProductUuid,
-        batch_number: batchNumber.trim(),
-        expiry_date: expiryDate || null,
-        manufacture_date: manufactureDate || null,
-        supplier: supplier.trim() || null,
-        notes: notes.trim() || null,
-      });
+      const created = await createInventoryBatch(
+        toCreateBatchPayload(values, tenantId),
+      );
 
       toast({
         variant: "success",
@@ -123,15 +107,32 @@ export function CreateBatchDialog({
       });
       onCreated(created);
       onOpenChange(false);
-    } catch (err) {
+    } catch (error) {
+      if (error instanceof BffError) {
+        const fieldErrors = mapBffErrorsToForm(error.errors);
+        for (const [field, message] of Object.entries(fieldErrors)) {
+          if (field in createBatchDefaultValues()) {
+            form.setError(field as keyof CreateBatchFormValues, { message });
+          }
+        }
+
+        toast({
+          variant: "error",
+          title: "Could not create batch",
+          description: formatBffErrorMessage(error.message, error.errors),
+        });
+        return;
+      }
+
       toast({
-        description: err instanceof Error ? err.message : "Could not create batch.",
         variant: "error",
+        title: "Could not create batch",
+        description: error instanceof Error ? error.message : "Something went wrong.",
       });
-    } finally {
-      setIsSubmitting(false);
     }
-  }
+  });
+
+  const isSubmitting = form.formState.isSubmitting;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -143,95 +144,157 @@ export function CreateBatchDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={(event) => void handleSubmit(event)} className="space-y-4 py-2">
-          <div className="space-y-2">
-            <Label htmlFor="create-batch-product">
-              Product <RequiredFieldMarker />
-            </Label>
-            <InlineProductCombobox
-              id="create-batch-product"
-              value={selectedProductUuid}
-              displayLabel={selectedProductLabel}
-              disabled={isSubmitting}
-              onSelect={(product) => {
-                setSelectedProductUuid(product.uuid);
-                setSelectedProductLabel(formatProductLabel(product));
-                setSelectedProductType(product.product_type ?? null);
-              }}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="create-batch-number">
-              Batch number <RequiredFieldMarker />
-            </Label>
-            <Input
-              id="create-batch-number"
-              value={batchNumber}
-              disabled={isSubmitting}
-              onChange={(event) => setBatchNumber(event.target.value)}
-            />
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="create-batch-expiry">Expiry date</Label>
-              <Input
-                id="create-batch-expiry"
-                type="date"
-                value={expiryDate}
-                disabled={isSubmitting}
-                onChange={(event) => setExpiryDate(event.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="create-batch-manufacture">Manufacture date</Label>
-              <Input
-                id="create-batch-manufacture"
-                type="date"
-                value={manufactureDate}
-                disabled={isSubmitting}
-                onChange={(event) => setManufactureDate(event.target.value)}
-              />
-            </div>
-          </div>
-          <SupplierCombobox
-            value={supplier}
-            disabled={isSubmitting}
-            onChange={setSupplier}
-          />
-          <div className="space-y-2">
-            <Label htmlFor="create-batch-notes">Notes</Label>
-            <textarea
-              id="create-batch-notes"
-              value={notes}
-              disabled={isSubmitting}
-              onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) =>
-                setNotes(event.target.value)
-              }
-              rows={3}
-              className="flex min-h-[5rem] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-            />
-          </div>
-
-          <DialogFooter>
-            <SecondaryButton
-              type="button"
-              disabled={isSubmitting}
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </SecondaryButton>
-            <PrimaryButton type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" />
-                  Creating...
-                </>
-              ) : (
-                "Create batch"
+        <Form {...form}>
+          <form
+            onSubmit={(event) => void handleSubmit(event)}
+            className="space-y-4 py-2"
+          >
+            <FormField
+              control={form.control}
+              name="product_uuid"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <InventoryProductPicker
+                    id="create-batch-product"
+                    label="Product"
+                    required
+                    product={selectedProduct}
+                    disabled={isSubmitting}
+                    invalid={!!fieldState.error}
+                    filterBatchEligible
+                    helperText="Search by product name or SKU. Only stockable and consumable products are shown."
+                    onProductChange={(product) => {
+                      setSelectedProduct(product);
+                      field.onChange(product?.uuid ?? "");
+                    }}
+                  />
+                  <FormMessage />
+                </FormItem>
               )}
-            </PrimaryButton>
-          </DialogFooter>
-        </form>
+            />
+
+            <FormField
+              control={form.control}
+              name="batch_number"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <Label htmlFor="create-batch-number">
+                    Batch number <RequiredFieldMarker />
+                  </Label>
+                  <FormControl>
+                    <Input
+                      id="create-batch-number"
+                      disabled={isSubmitting}
+                      aria-invalid={!!fieldState.error}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="expiry_date"
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <Label htmlFor="create-batch-expiry">Expiry date</Label>
+                    <FormControl>
+                      <Input
+                        id="create-batch-expiry"
+                        type="date"
+                        disabled={isSubmitting}
+                        aria-invalid={!!fieldState.error}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="manufacture_date"
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <Label htmlFor="create-batch-manufacture">Manufacture date</Label>
+                    <FormControl>
+                      <Input
+                        id="create-batch-manufacture"
+                        type="date"
+                        disabled={isSubmitting}
+                        aria-invalid={!!fieldState.error}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <FormField
+              control={form.control}
+              name="supplier"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <InventorySupplierPicker
+                    id="create-batch-supplier"
+                    required
+                    supplier={field.value}
+                    disabled={isSubmitting}
+                    invalid={!!fieldState.error}
+                    onSupplierChange={field.onChange}
+                  />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="notes"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <Label htmlFor="create-batch-notes">Notes</Label>
+                  <FormControl>
+                    <textarea
+                      id="create-batch-notes"
+                      disabled={isSubmitting}
+                      rows={3}
+                      aria-invalid={!!fieldState.error}
+                      className="flex min-h-[5rem] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <DialogFooter>
+              <SecondaryButton
+                type="button"
+                disabled={isSubmitting}
+                onClick={() => onOpenChange(false)}
+              >
+                Cancel
+              </SecondaryButton>
+              <PrimaryButton type="submit" disabled={isSubmitting}>
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" />
+                    Creating...
+                  </>
+                ) : (
+                  "Create batch"
+                )}
+              </PrimaryButton>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );

@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 import { Label } from "@/components/ui/label";
+import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
 import {
   Select,
   SelectContent,
@@ -10,64 +9,43 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { fetchInventoryLocations } from "@/features/inventory/services/inventory.service";
-import type { InventoryLocationOption } from "@/features/inventory/types/inventory.types";
+import { useInventoryLocations } from "@/features/inventory/hooks/use-inventory-locations";
 
 type InventoryLocationSelectProps = {
   id?: string;
   label?: string;
+  required?: boolean;
   value?: string;
   onValueChange: (locationId: number) => void;
   disabled?: boolean;
   placeholder?: string;
   clinicId?: number;
+  enabled?: boolean;
 };
 
 export function InventoryLocationSelect({
   id = "inventory-location",
   label = "Location",
+  required = false,
   value,
   onValueChange,
   disabled = false,
   placeholder = "Select location",
   clinicId,
+  enabled = true,
 }: InventoryLocationSelectProps) {
-  const [locations, setLocations] = useState<InventoryLocationOption[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    void (async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await fetchInventoryLocations(clinicId);
-        if (!cancelled) {
-          setLocations(response.results);
-        }
-      } catch (err) {
-        if (!cancelled) {
-          setError(
-            err instanceof Error ? err.message : "Failed to load locations.",
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [clinicId]);
+  const { data, isLoading, isError } = useInventoryLocations(clinicId, enabled);
+  const locations = data?.results ?? [];
+  const error = isError ? "Failed to load locations." : null;
 
   return (
     <div className="space-y-2">
-      {label ? <Label htmlFor={id}>{label}</Label> : null}
+      {label ? (
+        <Label htmlFor={id}>
+          {label}
+          {required ? <> <RequiredFieldMarker /></> : null}
+        </Label>
+      ) : null}
       <Select
         value={value}
         onValueChange={(nextValue) => onValueChange(Number(nextValue))}

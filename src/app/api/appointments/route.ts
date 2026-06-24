@@ -29,5 +29,10 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  return handleClinicalCreate(request, APPOINTMENTS_API_PATHS.list, "user");
+  return handleClinicalCreate(
+    request,
+    APPOINTMENTS_API_PATHS.list,
+    "user",
+    "appointment-create",
+  );
 }

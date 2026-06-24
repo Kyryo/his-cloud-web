@@ -4,9 +4,8 @@ import type {
   OrganizationPricelist,
 } from "@/features/settings/types/settings.types";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
-import { hmisApiRequest } from "@/lib/server/hmis-api";
+import { hmisApiRequest, hmisApiRequestWithMeta } from "@/lib/server/hmis-api";
 import { requireTenantAdmin } from "@/lib/server/require-tenant-admin";
-import type { PaginatedListResponse } from "@/types/api.types";
 
 export async function GET(request: Request) {
   try {
@@ -25,12 +24,15 @@ export async function GET(request: Request) {
     }
     const query = params.toString();
 
-    const response = await hmisApiRequest<PaginatedListResponse<OrganizationPricelist>>(
+    const { data, meta } = await hmisApiRequestWithMeta<OrganizationPricelist[]>(
       `${PRICELISTS_API_PATHS.list}${query ? `?${query}` : ""}`,
       { token: admin.accessToken },
     );
 
-    return bffSuccess(response);
+    return bffSuccess({
+      results: data,
+      pagination: meta.pagination ?? null,
+    });
   } catch (error) {
     return bffError(error);
   }

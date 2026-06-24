@@ -14,7 +14,7 @@ export type CreateBatchPayload = {
   batch_number: string;
   expiry_date?: string | null;
   manufacture_date?: string | null;
-  supplier?: string | null;
+  supplier: string;
   notes?: string | null;
   is_active?: boolean;
 };

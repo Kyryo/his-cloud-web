@@ -129,6 +129,7 @@ export function CreateInternalOrderDialog({
           <InventoryNoLocationsAlert enabled={open} />
           <InternalOrderFormContent
             form={form}
+            locationsEnabled={open}
             sourceLocationSelectId="create-io-source-location"
             destinationLocationSelectId="create-io-destination-location"
           />

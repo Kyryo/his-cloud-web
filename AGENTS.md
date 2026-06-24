@@ -583,11 +583,19 @@ Never trust client validation alone.
 
 ### Searchable fields
 
-Use the shared combobox from `@/components/ui/combobox` (see `InlineProductCombobox`, `CareProviderCombobox`, `BatchProductCombobox`, `SupplierCombobox`) for any field where the user searches or picks from a remote list.
+Use the shared searchable select pattern from `InventoryProductPicker` and `InventorySupplierPicker` (`@/features/inventory/components/`) for any field where the user searches or picks from a remote list. This is a Radix `Select` with an embedded search `Input` in `SelectContent` (same pattern as the product field on the **New batch** dialog and the client field on **Schedule appointment**).
+
+Reference implementations:
+
+* `InventoryProductPicker` — catalog search (products)
+* `InventorySupplierPicker` — catalog search with custom entry (suppliers)
+* `CustomerAppointmentPicker` — client search (appointments)
 
 Do not use plain `<Input type="search">` dropdowns or bespoke search UIs unless the design explicitly calls for a different control.
 
-When a match may not exist in the catalog (e.g. supplier names), still use the combobox and allow free-text entry via `onInputValueChange` while offering search results when available.
+When a match may not exist in the catalog (e.g. supplier names), offer a “Use …” option in the select list for the typed search value (see `InventorySupplierPicker`).
+
+The legacy combobox from `@/components/ui/combobox` (`InlineProductCombobox`, `CareProviderCombobox`, etc.) remains for existing screens; prefer the searchable select pattern for new work.
 
 ---
 

@@ -11,12 +11,14 @@ type InternalOrderFormContentProps = {
   form: UseFormReturn<CreateInternalOrderFormValues>;
   sourceLocationSelectId?: string;
   destinationLocationSelectId?: string;
+  locationsEnabled?: boolean;
 };
 
 export function InternalOrderFormContent({
   form,
   sourceLocationSelectId = "io-source-location",
   destinationLocationSelectId = "io-destination-location",
+  locationsEnabled = true,
 }: InternalOrderFormContentProps) {
   return (
     <>
@@ -29,8 +31,13 @@ export function InternalOrderFormContent({
               <InventoryLocationSelect
                 id={sourceLocationSelectId}
                 label="Source location"
+                required
+                enabled={locationsEnabled}
                 value={field.value ? String(field.value) : ""}
-                onValueChange={(locationId) => field.onChange(Number(locationId))}
+                onValueChange={(locationId) => {
+                  field.onChange(Number(locationId));
+                  void form.trigger("destination_location");
+                }}
               />
               <FormMessage />
             </FormItem>
@@ -44,8 +51,13 @@ export function InternalOrderFormContent({
               <InventoryLocationSelect
                 id={destinationLocationSelectId}
                 label="Destination location"
+                required
+                enabled={locationsEnabled}
                 value={field.value ? String(field.value) : ""}
-                onValueChange={(locationId) => field.onChange(Number(locationId))}
+                onValueChange={(locationId) => {
+                  field.onChange(Number(locationId));
+                  void form.trigger("destination_location");
+                }}
               />
               <FormMessage />
             </FormItem>

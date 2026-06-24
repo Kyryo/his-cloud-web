@@ -37,7 +37,6 @@ type SummaryStats = {
   visits: number;
   salesOrders: number | null;
   invoices: number | null;
-  payments: number | null;
   totals: CustomerBillingTotals | null;
   billingUnavailable: boolean;
   isBillingLoading: boolean;
@@ -48,6 +47,15 @@ function formatBillingTotal(value: number | string | null | undefined) {
     return "—";
   }
   return formatSalesOrderAmount(value, "MWK");
+}
+
+function parseBillingAmount(value: number | string | null | undefined): number {
+  if (value === null || value === undefined || value === "") {
+    return 0;
+  }
+
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount : 0;
 }
 
 function StatCardValue({
@@ -148,7 +156,6 @@ export function CustomerDetailSummaryTab({
           visits: countCustomerVisits(visits),
           salesOrders: null,
           invoices: null,
-          payments: null,
           totals: null,
           billingUnavailable: false,
           isBillingLoading: true,
@@ -203,7 +210,6 @@ export function CustomerDetailSummaryTab({
               ...current,
               salesOrders: billingCounts?.salesOrders ?? null,
               invoices: billingCounts?.invoices ?? null,
-              payments: billingCounts?.payments ?? null,
               totals: billingResult?.totals ?? null,
               billingUnavailable: billingResult === null,
               isBillingLoading: false,
@@ -269,13 +275,18 @@ export function CustomerDetailSummaryTab({
         />
         <StatsCard1
           className={SUMMARY_STAT_CARD_CLASS}
-          title="Payments"
+          title="Outstanding balance"
           value={
             stats?.isBillingLoading ? (
               <StatCardValue value={null} isLoading />
             ) : (
-              <span title={`${stats?.payments ?? 0} payments`}>
-                {formatBillingTotal(stats?.totals?.total_paid)}
+              <span
+                className={cn(
+                  parseBillingAmount(stats?.totals?.total_due) > 0 && "text-red-600",
+                )}
+                title="Amount invoiced but not yet paid"
+              >
+                {formatBillingTotal(stats?.totals?.total_due)}
               </span>
             )
           }
