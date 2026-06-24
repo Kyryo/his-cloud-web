@@ -125,6 +125,16 @@ export function PurchaseOrderLineBatchDialog({
       return;
     }
 
+    const supplier = vendorName.trim() || values.supplier?.trim() || "";
+    if (!supplier) {
+      toast({
+        variant: "error",
+        title: "Supplier required",
+        description: "Set a vendor on the purchase order before saving batch details.",
+      });
+      return;
+    }
+
     try {
       const batchPayload = {
         tenant: tenantId,
@@ -132,7 +142,7 @@ export function PurchaseOrderLineBatchDialog({
         batch_number: values.batch_number.trim(),
         expiry_date: values.expiry_date.trim(),
         manufacture_date: values.manufacture_date?.trim() || null,
-        supplier: vendorName.trim() || null,
+        supplier,
         notes: values.notes?.trim() || null,
       };
 
@@ -146,7 +156,7 @@ export function PurchaseOrderLineBatchDialog({
         batchNumber: batch.batch_number,
         expiry_date: values.expiry_date.trim(),
         manufactureDate: batch.manufacture_date ?? (values.manufacture_date?.trim() || null),
-        supplier: batch.supplier ?? (vendorName.trim() || null),
+        supplier: batch.supplier ?? supplier,
         notes: values.notes?.trim() || null,
       });
 
