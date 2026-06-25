@@ -105,7 +105,8 @@ export type CreateSalesOrderPayload = {
 };
 
 export type CreateSalesOrderLinePayload = {
-  product_id: number;
+  product_id?: number;
+  product_uuid?: string;
   quantity: number | string;
   price_unit?: number | string;
   name?: string;

@@ -15,11 +15,17 @@ import {
   createEmptySalesOrderLineDraft,
   linesMissingProductName,
   salesOrderLineToDraft,
-  salesOrderLineDraftNeedsReplace,
   serializeSalesOrderDraftLines,
   validateSalesOrderLinesForSave,
   type SalesOrderLineDraft,
 } from "@/features/sales-orders/types/sales-order-line-draft";
+import {
+  buildSalesOrderLineCreatePayload,
+  collectSalesOrderLineIdsToReplace,
+  collectSalesOrderLinesToAdd,
+  parseSalesOrderLineSnapshot,
+  type SavedSalesOrderLineSnapshot,
+} from "@/features/sales-orders/utils/sales-order-lines-save";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 
@@ -30,22 +36,12 @@ type UseSalesOrderLinesEditorOptions = {
   onError: (message: string) => void;
 };
 
-type SavedSnapshotLine = {
-  id: number | null;
-  product_id: number | null;
-  productName: string | null;
-  tariff_code?: string | null;
-  quantity: string;
-  price_unit: string;
-  price_total?: string | number | null;
-};
-
 function buildDraftsFromOrder(order: SalesOrder): SalesOrderLineDraft[] {
   return (order.lines ?? []).map(salesOrderLineToDraft);
 }
 
-function parseSnapshot(snapshot: string): SavedSnapshotLine[] {
-  return JSON.parse(snapshot) as SavedSnapshotLine[];
+function parseSnapshot(snapshot: string): SavedSalesOrderLineSnapshot[] {
+  return parseSalesOrderLineSnapshot(snapshot);
 }
 
 export function useSalesOrderLinesEditor({
@@ -179,7 +175,7 @@ export function useSalesOrderLinesEditor({
       }
 
       if (line.isNew) {
-        if (!line.product_id) {
+        if (!line.product_id && !line.product_uuid) {
           onError("Choose a product before confirming this line.");
           return;
         }
@@ -208,7 +204,7 @@ export function useSalesOrderLinesEditor({
         return;
       }
 
-      if (!line.product_id) {
+      if (!line.product_id && !line.product_uuid) {
         onError("Choose a product before confirming this line.");
         return;
       }
@@ -266,15 +262,8 @@ export function useSalesOrderLinesEditor({
     const currentIds = new Set(
       draftLines.filter((line) => line.id != null).map((line) => line.id!),
     );
-    const lineIdsToReplace = new Set(
-      draftLines
-        .filter((line) => line.id != null)
-        .filter((line) => {
-          const original = snapshotById.get(line.id!);
-          return original && salesOrderLineDraftNeedsReplace(original, line);
-        })
-        .map((line) => line.id!),
-    );
+    const lineIdsToReplace = collectSalesOrderLineIdsToReplace(draftLines, snapshot);
+    const linesToAdd = collectSalesOrderLinesToAdd(draftLines, lineIdsToReplace);
 
     setIsSaving(true);
     try {
@@ -320,33 +309,10 @@ export function useSalesOrderLinesEditor({
         }
       }
 
-      for (const line of draftLines) {
-        if (!line.product_id) {
+      for (const line of linesToAdd) {
+        const payload = buildSalesOrderLineCreatePayload(line);
+        if (!payload) {
           continue;
-        }
-
-        if (line.id != null && !lineIdsToReplace.has(line.id)) {
-          continue;
-        }
-
-        const parsedQuantity = Number(line.quantity);
-        const payload: {
-          product_id: number;
-          quantity: string;
-          price_unit?: string;
-          tariff_code?: string | null;
-        } = {
-          product_id: line.product_id,
-          quantity: parsedQuantity.toFixed(4),
-        };
-
-        if (line.price_unit.trim()) {
-          payload.price_unit = Number(line.price_unit).toFixed(4);
-        }
-
-        const code = (line.tariff_code ?? "").trim();
-        if (code) {
-          payload.tariff_code = code;
         }
 
         currentOrder = await addSalesOrderLine(order.id, payload);

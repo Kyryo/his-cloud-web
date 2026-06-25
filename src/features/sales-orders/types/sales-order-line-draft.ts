@@ -78,7 +78,25 @@ export function salesOrderLineDraftNeedsReplace(
 export function validateSalesOrderLinesForSave(
   lines: SalesOrderLineDraft[],
 ): string | null {
-  const pendingLines = lines.filter((line) => line.product_id);
+  for (const line of lines) {
+    const hasProductReference =
+      line.product_id != null || Boolean(line.product_uuid);
+
+    if (line.isNew && !hasProductReference) {
+      return "Confirm or remove new line items before saving.";
+    }
+
+    const hasProductSelection =
+      hasProductReference || Boolean(line.productName?.trim());
+
+    if (hasProductSelection && line.product_id == null && !line.product_uuid) {
+      return "Each line item must have a product selected.";
+    }
+  }
+
+  const pendingLines = lines.filter(
+    (line) => line.product_id != null || Boolean(line.product_uuid),
+  );
 
   for (const line of pendingLines) {
     const quantity = Number(line.quantity);

@@ -5,6 +5,7 @@ import {
   createEmptySalesOrderLineDraft,
   salesOrderLineDraftNeedsReplace,
   serializeSalesOrderDraftLines,
+  validateSalesOrderLinesForSave,
 } from "@/features/sales-orders/types/sales-order-line-draft";
 
 describe("sales-order-line-draft", () => {
@@ -43,6 +44,7 @@ describe("sales-order-line-draft", () => {
           id: 8,
           product_id: 12,
           productName: "Consultation",
+          tariff_code: null,
           quantity: "1",
           price_unit: "10",
           price_total: null,
@@ -75,5 +77,18 @@ describe("sales-order-line-draft", () => {
         quantity: "1",
       }),
     ).toBe(false);
+  });
+
+  it("accepts lines identified by product_uuid only", () => {
+    const draft = {
+      ...createEmptySalesOrderLineDraft(),
+      isNew: false,
+      product_uuid: "11111111-1111-1111-1111-111111111111",
+      productName: "Consultation",
+      quantity: "1",
+      price_unit: "10",
+    };
+
+    expect(validateSalesOrderLinesForSave([draft])).toBeNull();
   });
 });

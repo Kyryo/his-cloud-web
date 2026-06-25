@@ -49,9 +49,13 @@ export function buildSidebarNavItems(
       continue;
     }
 
+    const activeModuleItem = moduleItems.find((navItem) =>
+      isNavItemActive(pathname, navItem.href),
+    );
+
     items.push({
       title: getModuleLabel(moduleName),
-      url: moduleItems[0].href,
+      url: activeModuleItem?.href ?? moduleItems[0].href,
       icon: getModuleIcon(moduleName),
       isActive: moduleItems.some((navItem) =>
         isNavItemActive(pathname, navItem.href),

@@ -23,7 +23,8 @@ describe("createOrganizationPricelistSchema", () => {
 
     expect(payload).toEqual({
       name: "Cash Pricelist",
-      active: false,
+      is_active: false,
     });
   });
 });
+

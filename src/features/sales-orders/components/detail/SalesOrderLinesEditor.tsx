@@ -254,6 +254,7 @@ export function SalesOrderLinesEditor({
 
                               editor.updateLine(line.key, {
                                 product_uuid: product.uuid,
+                                product_id: product.id ?? null,
                                 productName: formatProductLabel(product),
                                 // Reset computed fields when switching products to avoid
                                 // stale values carrying over unnoticed.

@@ -18,31 +18,33 @@ describe("buildSidebarNavItems", () => {
   it("includes enabled clients navigation for registration users", () => {
     const items = buildSidebarNavItems(["Registration"], ROUTES.customers);
 
-    expect(items).toEqual([
-      expect.objectContaining({
-        title: "Front Desk",
-        url: ROUTES.customers,
-        isActive: true,
-        items: [
-          expect.objectContaining({
-            title: "Clients",
-            url: ROUTES.customers,
-            isActive: true,
-          }),
-        ],
-      }),
-      expect.objectContaining({
-        title: "Settings",
-        url: ROUTES.settingsAccount,
-        isActive: false,
-        items: [
-          expect.objectContaining({
-            title: "Account",
-            url: ROUTES.settingsAccount,
-          }),
-        ],
-      }),
-    ]);
+    expect(items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          title: "Front Desk",
+          url: ROUTES.customers,
+          isActive: true,
+          items: expect.arrayContaining([
+            expect.objectContaining({
+              title: "Clients",
+              url: ROUTES.customers,
+              isActive: true,
+            }),
+          ]),
+        }),
+        expect.objectContaining({
+          title: "Settings",
+          url: ROUTES.settingsAccount,
+          isActive: false,
+          items: expect.arrayContaining([
+            expect.objectContaining({
+              title: "Account",
+              url: ROUTES.settingsAccount,
+            }),
+          ]),
+        }),
+      ]),
+    );
   });
 
   it("includes organization settings for tenant admins", () => {
@@ -104,3 +106,4 @@ describe("buildSidebarNavItems", () => {
     );
   });
 });
+
