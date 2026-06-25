@@ -76,6 +76,7 @@ export type CreateInventoryProductPayload = {
   list_price?: number;
   standard_price?: number;
   product_type?: "product" | "consu" | "service";
+  charge_occurrences?: number;
   sale_ok?: boolean;
   purchase_ok?: boolean;
   active?: boolean;
@@ -96,7 +97,7 @@ export async function createInventoryProduct(
   return createCatalogProduct(payload);
 }
 
-export type UpdateInventoryProductPayload = CreateInventoryProductPayload;
+export type UpdateInventoryProductPayload = Partial<CreateInventoryProductPayload>;
 
 export async function updateInventoryProduct(
   productUuid: string,

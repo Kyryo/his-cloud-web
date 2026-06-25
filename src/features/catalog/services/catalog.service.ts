@@ -1,5 +1,6 @@
 import { BFF_INVENTORY_ROUTES } from "@/constants/api";
 import { normalizeCatalogProduct } from "@/features/catalog/utils/catalog-adapters";
+import { mapProductWritePayload } from "@/features/catalog/utils/catalog-product-payload";
 import type {
   AddCatalogPricelistProductPayload,
   CatalogApprovalConfiguration,
@@ -265,31 +266,4 @@ export async function setOrganizationDefaultPricelistUuid(
       body: payload,
     },
   );
-}
-
-function mapProductWritePayload(payload: CreateInventoryProductPayload) {
-  const metadata = {
-    is_drug: payload.is_drug,
-    liquid_or_cream: payload.liquid_or_cream,
-    is_procedure: payload.is_procedure,
-    dental_only_procedure: payload.dental_only_procedure,
-    opd_only_procedure: payload.opd_only_procedure,
-    ipd_only_procedure: payload.ipd_only_procedure,
-    physio_only_procedure: payload.physio_only_procedure,
-    clinic_wide_procedure: payload.clinic_wide_procedure,
-    ...(payload.x_meta ?? {}),
-  };
-
-  return {
-    name: payload.name,
-    default_code: payload.default_code,
-    barcode: payload.barcode,
-    list_price: payload.list_price,
-    standard_price: payload.standard_price,
-    product_type: payload.product_type,
-    sale_ok: payload.sale_ok,
-    purchase_ok: payload.purchase_ok,
-    active: payload.active,
-    metadata,
-  };
 }

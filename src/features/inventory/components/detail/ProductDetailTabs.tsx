@@ -12,6 +12,7 @@ import {
   DetailPageTabsSection,
 } from "@/features/app-shell/components/page-layout";
 import { ProductDetailAvailabilityTab } from "@/features/inventory/components/detail/ProductDetailAvailabilityTab";
+import { ProductDetailBillingTab } from "@/features/inventory/components/detail/ProductDetailBillingTab";
 import { ProductDetailPricelistsTab } from "@/features/inventory/components/detail/ProductDetailPricelistsTab";
 import { ProductDetailSummaryTab } from "@/features/inventory/components/detail/ProductDetailSummaryTab";
 import { ProductDetailTariffCodesTab } from "@/features/inventory/components/detail/ProductDetailTariffCodesTab";
@@ -21,18 +22,23 @@ import { cn } from "@/lib/utils";
 
 type ProductDetailTabsProps = {
   product: InventoryProduct;
+  onProductUpdated?: (product: InventoryProduct) => void;
 };
 
-type DetailTabId = "summary" | "tariff-codes" | "pricelists" | "locations";
+type DetailTabId = "summary" | "billing" | "tariff-codes" | "pricelists" | "locations";
 
 const tabs: Array<{ id: DetailTabId; label: string }> = [
   { id: "summary", label: "Summary" },
   { id: "tariff-codes", label: "Tariff codes" },
   { id: "pricelists", label: "Pricelists" },
   { id: "locations", label: "Locations" },
+  { id: "billing", label: "Billing" },
 ];
 
-export function ProductDetailTabs({ product }: ProductDetailTabsProps) {
+export function ProductDetailTabs({
+  product,
+  onProductUpdated,
+}: ProductDetailTabsProps) {
   const [activeTab, setActiveTab] = useState<DetailTabId>("summary");
   const [showSummaryPanel, setShowSummaryPanel] = useState(false);
 
@@ -67,6 +73,12 @@ export function ProductDetailTabs({ product }: ProductDetailTabsProps) {
           <ProductDetailAvailabilityTab
             product={product}
             isActive={activeTab === "locations"}
+          />
+          <ProductDetailBillingTab
+            key={product.uuid}
+            product={product}
+            isActive={activeTab === "billing"}
+            onProductUpdated={onProductUpdated}
           />
         </DetailPageMainSection>
 

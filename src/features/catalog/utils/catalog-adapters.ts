@@ -20,6 +20,7 @@ export function normalizeCatalogProduct(product: CatalogProduct): InventoryProdu
     product_type: product.product_type ?? null,
     product_type_label: product.product_type_label ?? null,
     invoice_policy: product.invoice_policy ?? null,
+    charge_occurrences: product.charge_occurrences ?? 1,
     sale_ok: product.sale_ok,
     purchase_ok: product.purchase_ok,
     metadata: metadata,

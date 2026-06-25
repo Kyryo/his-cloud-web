@@ -15,6 +15,7 @@ export type CatalogProduct = {
   product_type?: CatalogProductType | null;
   product_type_label?: string | null;
   invoice_policy?: "order" | "delivery" | null;
+  charge_occurrences?: number;
   sale_ok?: boolean;
   purchase_ok?: boolean;
   active?: boolean;
@@ -111,6 +112,7 @@ export type CreateCatalogProductPayload = {
   uom_name?: string;
   product_type?: CatalogProductType;
   invoice_policy?: "order" | "delivery";
+  charge_occurrences?: number;
   sale_ok?: boolean;
   purchase_ok?: boolean;
   active?: boolean;

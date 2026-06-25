@@ -108,6 +108,7 @@ export type InventoryProduct = {
   product_type?: InventoryProductType | null;
   product_type_label?: InventoryProductTypeLabel | null;
   invoice_policy?: "order" | "delivery" | null;
+  charge_occurrences?: number;
   sale_ok?: boolean;
   purchase_ok?: boolean;
   metadata?: InventoryProductMeta | null;

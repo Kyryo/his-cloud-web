@@ -76,7 +76,7 @@ export function ProductDetailPage({ productId }: ProductDetailPageProps) {
         product={product}
         onUpdate={() => setUpdateOpen(true)}
       />
-      <ProductDetailTabs product={product} />
+      <ProductDetailTabs product={product} onProductUpdated={setProduct} />
     </DetailPageLayout>
   );
 }
