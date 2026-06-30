@@ -25,6 +25,7 @@ import {
 import { formatSalesOrderStateLabel } from "@/features/sales-orders/utils/sales-order-status";
 import {
   formatSalesOrderInsurerDueLabel,
+  hasSalesOrderPaymentSplit,
   sumSalesOrderClientDue,
   sumSalesOrderInsurerDue,
 } from "@/features/sales-orders/utils/sum-sales-order-billing";
@@ -46,6 +47,7 @@ export function SalesOrderSummaryPanel({
     insuranceLabel !== "—" || insuranceNumber !== "—";
   const insurerDueTotal = sumSalesOrderInsurerDue(order);
   const clientDueTotal = sumSalesOrderClientDue(order);
+  const showPaymentSplit = hasSalesOrderPaymentSplit(order);
 
   return (
     <DetailPageAsidePanelSection className={cn(className)}>
@@ -56,22 +58,29 @@ export function SalesOrderSummaryPanel({
 
       <DetailPageAsideSummaryHighlight title="Billing summary">
         <dl className="space-y-2.5">
-          <DetailPageAsideSummaryAmountRow
-            label={formatSalesOrderInsurerDueLabel(order)}
-            value={formatSalesOrderAmount(insurerDueTotal, currency)}
-          />
-          <DetailPageAsideSummaryAmountRow
-            label="Client due"
-            value={formatSalesOrderAmount(clientDueTotal, currency)}
-          />
-          <div className="border-t border-brand-border pt-2.5" role="presentation" />
+          {showPaymentSplit ? (
+            <>
+              <DetailPageAsideSummaryAmountRow
+                label={formatSalesOrderInsurerDueLabel(order)}
+                value={formatSalesOrderAmount(insurerDueTotal)}
+              />
+              <DetailPageAsideSummaryAmountRow
+                label="Client due"
+                value={formatSalesOrderAmount(clientDueTotal)}
+              />
+              <div
+                className="border-t border-brand-border pt-2.5"
+                role="presentation"
+              />
+            </>
+          ) : null}
           <DetailPageAsideSummaryAmountRow
             label="Gross amount"
-            value={formatSalesOrderAmount(order.amount_untaxed, currency)}
+            value={formatSalesOrderAmount(order.amount_untaxed)}
           />
           <DetailPageAsideSummaryAmountRow
             label="Tax"
-            value={formatSalesOrderAmount(order.amount_tax, currency)}
+            value={formatSalesOrderAmount(order.amount_tax)}
           />
           <DetailPageAsideSummaryAmountRow
             label="Total"

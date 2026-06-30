@@ -1,3 +1,4 @@
+import { hasLinePaymentSplit } from "@/features/sales-orders/types/line-payment-split.types";
 import type { SalesOrder, SalesOrderLine } from "@/features/sales-orders/types/sales-order.types";
 
 type BillableLineField = "insurer_due" | "client_due";
@@ -22,6 +23,10 @@ export function sumSalesOrderInsurerDue(order: SalesOrder): number {
 
 export function sumSalesOrderClientDue(order: SalesOrder): number {
   return sumLineField(order.lines, "client_due");
+}
+
+export function hasSalesOrderPaymentSplit(order: SalesOrder): boolean {
+  return (order.lines ?? []).some((line) => hasLinePaymentSplit(line));
 }
 
 export function formatSalesOrderInsurerDueLabel(order: SalesOrder): string {

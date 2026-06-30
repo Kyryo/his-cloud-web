@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
 import {
   formatSalesOrderInsurerDueLabel,
+  hasSalesOrderPaymentSplit,
   sumSalesOrderClientDue,
   sumSalesOrderInsurerDue,
 } from "@/features/sales-orders/utils/sum-sales-order-billing";
@@ -80,5 +81,43 @@ describe("sum-sales-order-billing", () => {
 
   it("falls back to insurance due when no insurer name is present", () => {
     expect(formatSalesOrderInsurerDueLabel(buildOrder())).toBe("Insurance due");
+  });
+
+  it("detects when an order has payment split lines", () => {
+    expect(hasSalesOrderPaymentSplit(buildOrder())).toBe(false);
+    expect(
+      hasSalesOrderPaymentSplit(
+        buildOrder({
+          lines: [
+            {
+              id: 1,
+              name: "Consultation",
+              product_id: 10,
+              quantity: 1,
+              is_payable: true,
+              insurer_due: "0",
+              client_due: "0",
+            },
+          ],
+        }),
+      ),
+    ).toBe(false);
+    expect(
+      hasSalesOrderPaymentSplit(
+        buildOrder({
+          lines: [
+            {
+              id: 1,
+              name: "Consultation",
+              product_id: 10,
+              quantity: 1,
+              is_payable: true,
+              insurer_due: "80",
+              client_due: "0",
+            },
+          ],
+        }),
+      ),
+    ).toBe(true);
   });
 });

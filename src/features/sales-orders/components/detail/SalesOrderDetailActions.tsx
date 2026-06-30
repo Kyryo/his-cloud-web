@@ -1,6 +1,6 @@
 "use client";
 
-import { FileDown, Loader2, MoreVertical } from "lucide-react";
+import { FileDown, Loader2, MoreVertical, XCircle } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -134,7 +134,9 @@ export function SalesOrderDetailActions({
           >
             {isCancelling ? (
               <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            ) : null}
+            ) : (
+              <XCircle className="size-4" aria-hidden="true" />
+            )}
             Cancel
           </DropdownMenuItem>
         </DropdownMenuContent>
