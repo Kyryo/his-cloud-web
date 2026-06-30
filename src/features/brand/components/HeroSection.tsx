@@ -43,11 +43,7 @@ export function HeroSection() {
                   href={ROUTES.signup}
                   className="inline-flex items-center justify-center gap-1.5 rounded-full bg-brand-primary px-7 py-3.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-[#1254b8] sm:text-base"
                 >
-                  Try Sigma Free
-                  <span className="inline-block max-w-0 overflow-hidden whitespace-nowrap opacity-0 transition-all duration-300 ease-out group-hover/cta:max-w-[5.5rem] group-hover/cta:opacity-100">
-                    for 30 Days
-                  </span>
-                  <span aria-hidden="true">→</span>
+                  Start for free
                 </Link>
                 <Link
                   href={ROUTES.contacts}

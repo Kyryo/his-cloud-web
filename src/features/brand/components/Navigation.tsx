@@ -70,7 +70,7 @@ export function Navigation() {
               href={ROUTES.signup}
               className="inline-flex items-center justify-center rounded-full bg-brand-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1254b8]"
             >
-              Try Free
+              Start for free
             </Link>
           </div>
 
@@ -119,7 +119,7 @@ export function Navigation() {
                 className="inline-flex items-center justify-center rounded-full bg-brand-primary px-5 py-2.5 text-center text-sm font-semibold text-white"
                 onClick={() => setIsOpen(false)}
               >
-                Try Free
+                Start for free
               </Link>
             </div>
           </div>
