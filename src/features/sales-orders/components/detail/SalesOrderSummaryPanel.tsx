@@ -23,6 +23,11 @@ import {
   formatSalesOrderInsuranceNumber,
 } from "@/features/sales-orders/utils/format-sales-order-insurance";
 import { formatSalesOrderStateLabel } from "@/features/sales-orders/utils/sales-order-status";
+import {
+  formatSalesOrderInsurerDueLabel,
+  sumSalesOrderClientDue,
+  sumSalesOrderInsurerDue,
+} from "@/features/sales-orders/utils/sum-sales-order-billing";
 import { cn } from "@/lib/utils";
 
 type SalesOrderSummaryPanelProps = {
@@ -39,6 +44,8 @@ export function SalesOrderSummaryPanel({
   const insuranceNumber = formatSalesOrderInsuranceNumber(order);
   const hasInsuranceDetails =
     insuranceLabel !== "—" || insuranceNumber !== "—";
+  const insurerDueTotal = sumSalesOrderInsurerDue(order);
+  const clientDueTotal = sumSalesOrderClientDue(order);
 
   return (
     <DetailPageAsidePanelSection className={cn(className)}>
@@ -49,6 +56,15 @@ export function SalesOrderSummaryPanel({
 
       <DetailPageAsideSummaryHighlight title="Billing summary">
         <dl className="space-y-2.5">
+          <DetailPageAsideSummaryAmountRow
+            label={formatSalesOrderInsurerDueLabel(order)}
+            value={formatSalesOrderAmount(insurerDueTotal, currency)}
+          />
+          <DetailPageAsideSummaryAmountRow
+            label="Client due"
+            value={formatSalesOrderAmount(clientDueTotal, currency)}
+          />
+          <div className="border-t border-brand-border pt-2.5" role="presentation" />
           <DetailPageAsideSummaryAmountRow
             label="Gross amount"
             value={formatSalesOrderAmount(order.amount_untaxed, currency)}

@@ -72,6 +72,30 @@ export type CatalogApprovalConfiguration = {
   updated_at?: string;
 };
 
+export type PricelistRuleType = "CO_PAYMENT" | "EXCESS" | "FORMULA";
+
+export type CatalogPricelistRule = {
+  uuid: string;
+  name: string;
+  scope_type: "ALL" | "PRODUCT";
+  rule_types: PricelistRuleType[];
+  client_liability_formula?: string | null;
+  insurer_max_amount?: string | null;
+  is_active: boolean;
+  product_uuids?: string[];
+  product_names?: string[];
+};
+
+export type CatalogPricelistRuleWritePayload = {
+  name?: string;
+  scope_type: "ALL" | "PRODUCT";
+  rule_types: PricelistRuleType[];
+  client_liability_formula?: string;
+  insurer_max_amount?: string | null;
+  is_active?: boolean;
+  product_uuids?: string[];
+};
+
 export type CatalogProductImportJob = {
   uuid: string;
   original_filename: string;

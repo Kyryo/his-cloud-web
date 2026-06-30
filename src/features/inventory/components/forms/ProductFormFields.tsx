@@ -47,6 +47,11 @@ export function ProductFormFields({
   isProcedure,
   testIdPrefix,
 }: ProductFormFieldsProps) {
+  const isSundry = form.watch("is_sundry");
+  const isLabTest = form.watch("is_lab_test");
+  const isStorableProduct = productType === "product";
+  const isServiceProduct = productType === "service";
+
   if (activeTab === "general") {
     return (
       <>
@@ -212,14 +217,54 @@ export function ProductFormFields({
                   Drug product
                 </FormLabel>
                 <p className="text-xs text-brand-muted">
-                  Mark pharmaceutical items for dispensing workflows.
+                  Mark pharmaceutical items for dispensing workflows. Only storable
+                  products can be drugs. Cannot be combined with sundry items.
                 </p>
               </div>
               <FormControl>
                 <Switch
                   checked={field.value}
-                  onCheckedChange={field.onChange}
+                  disabled={!isStorableProduct || isSundry}
+                  onCheckedChange={(checked) => {
+                    field.onChange(checked);
+                    if (checked) {
+                      form.setValue("is_sundry", false);
+                    }
+                  }}
                   data-testid={`${testIdPrefix}-is-drug`}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="is_sundry"
+          render={({ field }) => (
+            <FormItem className="flex items-center justify-between gap-4 space-y-0 rounded-lg border border-brand-border p-4">
+              <div className="space-y-1">
+                <FormLabel className="text-sm font-medium text-brand-navy">
+                  Sundry
+                </FormLabel>
+                <p className="text-xs text-brand-muted">
+                  Mark non-drug storable items such as supplies or accessories.
+                  Cannot be combined with drug products.
+                </p>
+                <FormMessage />
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  disabled={!isStorableProduct || isDrug}
+                  onCheckedChange={(checked) => {
+                    field.onChange(checked);
+                    if (checked) {
+                      form.setValue("is_drug", false);
+                      form.setValue("liquid_or_cream", false);
+                    }
+                  }}
+                  data-testid={`${testIdPrefix}-is-sundry`}
                 />
               </FormControl>
             </FormItem>
@@ -254,6 +299,39 @@ export function ProductFormFields({
 
         <FormField
           control={form.control}
+          name="is_lab_test"
+          render={({ field }) => (
+            <FormItem className="flex items-center justify-between gap-4 space-y-0 rounded-lg border border-brand-border p-4">
+              <div className="space-y-1">
+                <FormLabel className="text-sm font-medium text-brand-navy">
+                  Lab test
+                </FormLabel>
+                <p className="text-xs text-brand-muted">
+                  Only service products can be marked as lab tests. Cannot be
+                  combined with procedures.
+                </p>
+                <FormMessage />
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  disabled={!isServiceProduct || isProcedure}
+                  onCheckedChange={(checked) => {
+                    field.onChange(checked);
+                    if (checked) {
+                      form.setValue("is_procedure", false);
+                      form.setValue("procedure_scope", "");
+                    }
+                  }}
+                  data-testid={`${testIdPrefix}-is-lab-test`}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="is_procedure"
           render={({ field }) => (
             <FormItem className="flex items-center justify-between gap-4 space-y-0 rounded-lg border border-brand-border p-4">
@@ -262,15 +340,21 @@ export function ProductFormFields({
                   Procedure
                 </FormLabel>
                 <p className="text-xs text-brand-muted">
-                  Only service products can be marked as procedures.
+                  Only service products can be marked as procedures. Cannot be
+                  combined with lab tests.
                 </p>
                 <FormMessage />
               </div>
               <FormControl>
                 <Switch
                   checked={field.value}
-                  disabled={productType !== "service"}
-                  onCheckedChange={field.onChange}
+                  disabled={!isServiceProduct || isLabTest}
+                  onCheckedChange={(checked) => {
+                    field.onChange(checked);
+                    if (checked) {
+                      form.setValue("is_lab_test", false);
+                    }
+                  }}
                   data-testid={`${testIdPrefix}-is-procedure`}
                 />
               </FormControl>

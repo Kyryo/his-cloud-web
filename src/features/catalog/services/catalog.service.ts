@@ -9,6 +9,8 @@ import type {
   CatalogPriceChangeMutationResult,
   CatalogPricelist,
   CatalogPricelistMembership,
+  CatalogPricelistRule,
+  CatalogPricelistRuleWritePayload,
   CatalogProduct,
   CreateCatalogPricelistPayload,
   CreateCatalogProductPayload,
@@ -265,5 +267,50 @@ export async function setOrganizationDefaultPricelistUuid(
       method: "POST",
       body: payload,
     },
+  );
+}
+
+export async function fetchCatalogPricelistRules(
+  pricelistUuid: string,
+): Promise<CatalogPricelistRule[]> {
+  return bffRequest<CatalogPricelistRule[]>(
+    BFF_INVENTORY_ROUTES.pricelists.rules(pricelistUuid),
+  );
+}
+
+export async function createCatalogPricelistRule(
+  pricelistUuid: string,
+  payload: CatalogPricelistRuleWritePayload,
+): Promise<CatalogPricelistRule> {
+  return bffRequest<CatalogPricelistRule>(
+    BFF_INVENTORY_ROUTES.pricelists.rules(pricelistUuid),
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
+}
+
+export async function updateCatalogPricelistRule(
+  pricelistUuid: string,
+  ruleUuid: string,
+  payload: Partial<CatalogPricelistRuleWritePayload>,
+): Promise<CatalogPricelistRule> {
+  return bffRequest<CatalogPricelistRule>(
+    BFF_INVENTORY_ROUTES.pricelists.ruleDetail(pricelistUuid, ruleUuid),
+    {
+      method: "PATCH",
+      body: payload,
+    },
+  );
+}
+
+export async function deleteCatalogPricelistRule(
+  pricelistUuid: string,
+  ruleUuid: string,
+): Promise<void> {
+  await bffRequest(
+    BFF_INVENTORY_ROUTES.pricelists.ruleDetail(pricelistUuid, ruleUuid),
+    { method: "DELETE" },
   );
 }

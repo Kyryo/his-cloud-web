@@ -11,17 +11,19 @@ import {
 import type { CatalogPricelist } from "@/features/catalog/types/catalog.types";
 import { PricelistDetailPriceChangesTab } from "@/features/inventory/components/detail/PricelistDetailPriceChangesTab";
 import { PricelistDetailProductsTab } from "@/features/inventory/components/detail/PricelistDetailProductsTab";
+import { PricelistDetailRulesTab } from "@/features/inventory/components/detail/PricelistDetailRulesTab";
 import { PricelistDetailSummaryTab } from "@/features/inventory/components/detail/PricelistDetailSummaryTab";
 
 type PricelistDetailTabsProps = {
   pricelist: CatalogPricelist;
 };
 
-type DetailTabId = "summary" | "products" | "approvals";
+type DetailTabId = "summary" | "products" | "rules" | "approvals";
 
 const tabs: Array<{ id: DetailTabId; label: string }> = [
   { id: "summary", label: "Summary" },
   { id: "products", label: "Products" },
+  { id: "rules", label: "Rules" },
   { id: "approvals", label: "Price approvals" },
 ];
 
@@ -45,6 +47,7 @@ export function PricelistDetailTabs({ pricelist }: PricelistDetailTabsProps) {
       <DetailPageMainSection>
         <PricelistDetailSummaryTab pricelist={pricelist} isActive={activeTab === "summary"} />
         <PricelistDetailProductsTab pricelist={pricelist} isActive={activeTab === "products"} />
+        <PricelistDetailRulesTab pricelist={pricelist} isActive={activeTab === "rules"} />
         <PricelistDetailPriceChangesTab
           pricelist={pricelist}
           isActive={activeTab === "approvals"}

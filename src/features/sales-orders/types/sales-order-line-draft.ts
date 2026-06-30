@@ -10,6 +10,8 @@ export type SalesOrderLineDraft = {
   quantity: string;
   price_unit: string;
   price_total?: string | number | null;
+  is_payable?: boolean;
+  priceUnitOverridden?: boolean;
   isNew?: boolean;
 };
 
@@ -34,6 +36,7 @@ export function salesOrderLineToDraft(line: SalesOrderLine): SalesOrderLineDraft
     quantity: line.quantity != null ? String(line.quantity) : "1",
     price_unit: line.price_unit != null ? String(line.price_unit) : "",
     price_total: line.price_total,
+    is_payable: line.is_payable,
   };
 }
 

@@ -1,4 +1,4 @@
-import { bffError, bffSuccess } from "@/lib/server/bff-response";
+import { bffError, bffNoContent, bffSuccess } from "@/lib/server/bff-response";
 import { hmisApiRequest, hmisApiRequestWithMeta } from "@/lib/server/hmis-api";
 import { requireAccessToken } from "@/lib/server/require-access-token";
 import { requireTenantAdmin } from "@/lib/server/require-tenant-admin";
@@ -151,7 +151,7 @@ export async function handleInventoryDelete(
       token: auth.accessToken,
     });
 
-    return bffSuccess(null, 204);
+    return bffNoContent();
   } catch (error) {
     return bffError(error);
   }

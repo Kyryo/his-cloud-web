@@ -94,7 +94,7 @@ export function ProductDetailBillingTab({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="charge-occurrences">Charge occurrences</Label>
+          <Label htmlFor="charge-occurrences">Number of occurrences</Label>
           <Input
             id="charge-occurrences"
             type="number"

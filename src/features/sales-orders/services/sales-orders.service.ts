@@ -128,3 +128,9 @@ export async function createSalesOrderInvoice(
     { method: "POST" },
   );
 }
+
+export async function cancelSalesOrder(orderId: number | string): Promise<SalesOrder> {
+  return bffRequest<SalesOrder>(BFF_SALES_ORDERS_ROUTES.cancel(orderId), {
+    method: "POST",
+  });
+}

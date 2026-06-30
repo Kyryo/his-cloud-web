@@ -15,22 +15,42 @@ export type ToastVariant = "success" | "error" | "warning" | "info";
 
 type ToastInput = {
   title?: string;
-  description: string;
+  description?: string;
   variant: ToastVariant;
+};
+
+type ToastVariantInput = {
+  title: string;
+  description?: string;
 };
 
 type ToastContextValue = {
   toast: (input: ToastInput) => void;
   dismiss: (id: string | number) => void;
+  success: (input: ToastVariantInput) => void;
+  error: (input: ToastVariantInput) => void;
+  warning: (input: ToastVariantInput) => void;
+  info: (input: ToastVariantInput) => void;
 };
 
 const ToastContext = createContext<ToastContextValue | undefined>(undefined);
 
+function normalizeToastText(value: string | undefined): string {
+  if (value == null || value === "") {
+    return "";
+  }
+
+  return value;
+}
+
 function showToast(input: ToastInput) {
-  const message = input.title ?? input.description;
-  const options = input.title
-    ? { description: input.description, duration: 5000 }
-    : { duration: 5000 };
+  const title = normalizeToastText(input.title);
+  const description = normalizeToastText(input.description);
+  const message = title || description || "Something went wrong.";
+  const options =
+    title && description
+      ? { description, duration: 5000 }
+      : { duration: 5000 };
 
   switch (input.variant) {
     case "success":
@@ -57,7 +77,38 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     showToast(input);
   }, []);
 
-  const value = useMemo(() => ({ toast, dismiss }), [toast, dismiss]);
+  const success = useCallback(
+    (input: ToastVariantInput) => {
+      showToast({ ...input, variant: "success" });
+    },
+    [],
+  );
+
+  const error = useCallback(
+    (input: ToastVariantInput) => {
+      showToast({ ...input, variant: "error" });
+    },
+    [],
+  );
+
+  const warning = useCallback(
+    (input: ToastVariantInput) => {
+      showToast({ ...input, variant: "warning" });
+    },
+    [],
+  );
+
+  const info = useCallback(
+    (input: ToastVariantInput) => {
+      showToast({ ...input, variant: "info" });
+    },
+    [],
+  );
+
+  const value = useMemo(
+    () => ({ toast, dismiss, success, error, warning, info }),
+    [toast, dismiss, success, error, warning, info],
+  );
 
   return (
     <ToastContext.Provider value={value}>

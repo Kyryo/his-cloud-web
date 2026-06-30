@@ -19,6 +19,14 @@ export type InvoiceLine = {
   price_subtotal: string;
   price_total: string;
   sales_order_line_id?: number | null;
+  is_payable: boolean;
+  list_price_at_order?: string | number | null;
+  pricelist_amount_at_order?: string | number | null;
+  insurer_due?: string | number | null;
+  client_due?: string | number | null;
+  has_excess?: boolean;
+  excess_amount?: string | number | null;
+  pricing_rule_snapshot?: Record<string, unknown> | null;
 };
 
 export type Invoice = {

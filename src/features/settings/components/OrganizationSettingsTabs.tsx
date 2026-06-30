@@ -19,8 +19,8 @@ import type {
 const tabs: Array<{ id: OrganizationTabId; label: string }> = [
   { id: "general", label: "General" },
   { id: "branding", label: "Branding" },
-  { id: "departments", label: "Departments" },
   { id: "clinics", label: "Clinics" },
+  { id: "departments", label: "Departments" },
   { id: "locations", label: "Locations" },
 ];
 
@@ -54,8 +54,8 @@ export function OrganizationSettingsTabs({
           <OrganizationGeneralTab tenant={tenant} onTenantUpdated={onTenantUpdated} />
         ) : null}
         <OrganizationBrandingTab isActive={activeTab === "branding"} />
-        <OrganizationDepartmentsTab isActive={activeTab === "departments"} />
         <OrganizationClinicsTab isActive={activeTab === "clinics"} />
+        <OrganizationDepartmentsTab isActive={activeTab === "departments"} />
         <OrganizationLocationsTab isActive={activeTab === "locations"} />
       </div>
     </div>

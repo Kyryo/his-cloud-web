@@ -103,6 +103,7 @@ export const BFF_SALES_ORDERS_ROUTES = {
   lineDetail: (orderId: number | string, lineId: number | string) =>
     `/api/sales-order-lines/${orderId}/${lineId}`,
   invoice: (orderId: number | string) => `/api/sales-orders/${orderId}/invoice`,
+  cancel: (orderId: number | string) => `/api/sales-orders/${orderId}/cancel`,
 } as const;
 
 /** Browser-facing BFF invoice routes (same origin). */
@@ -157,6 +158,10 @@ export const BFF_INVENTORY_ROUTES = {
       `/api/inventory/pricelists/price-changes/${changeUuid}/confirm`,
     rejectPriceChange: (changeUuid: string) =>
       `/api/inventory/pricelists/price-changes/${changeUuid}/reject`,
+    rules: (pricelistUuid: string) =>
+      `/api/inventory/pricelists/${pricelistUuid}/rules`,
+    ruleDetail: (pricelistUuid: string, ruleUuid: string) =>
+      `/api/inventory/pricelists/${pricelistUuid}/rules/${ruleUuid}`,
     default: "/api/pricelists/default",
   },
   batches: {

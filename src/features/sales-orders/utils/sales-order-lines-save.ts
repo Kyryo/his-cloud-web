@@ -73,7 +73,7 @@ export function buildSalesOrderLineCreatePayload(
       : { product_uuid: line.product_uuid! }),
   };
 
-  if (line.price_unit.trim()) {
+  if (line.priceUnitOverridden && line.price_unit.trim()) {
     payload.price_unit = Number(line.price_unit).toFixed(4);
   }
 

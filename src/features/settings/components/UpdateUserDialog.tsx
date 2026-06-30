@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/password-input";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -74,6 +75,7 @@ function toGeneralFormValues(
     name: user.name,
     email: user.email,
     password: "",
+    is_admin: user.is_admin,
   };
 }
 
@@ -126,15 +128,20 @@ export function UpdateUserDialog({
     }
   }, [generalForm, roleForm, toast, user.id]);
 
-  useEffect(() => {
-    if (open) {
-      setActiveTab("general");
-      setCurrentUser(user);
-      generalForm.reset(toGeneralFormValues(user));
-      roleForm.reset(toRoleFormValues(user.user_role));
+  function resetDialogState() {
+    setActiveTab("general");
+    setCurrentUser(user);
+    generalForm.reset(toGeneralFormValues(user));
+    roleForm.reset(toRoleFormValues(user.user_role));
+  }
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (nextOpen) {
+      resetDialogState();
       void loadUser();
     }
-  }, [generalForm, loadUser, open, roleForm, user]);
+    onOpenChange(nextOpen);
+  }
 
   const refreshUserSummary = useCallback(async () => {
     try {
@@ -264,7 +271,7 @@ export function UpdateUserDialog({
   return (
     <TabbedDialog
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleOpenChange}
       title="Update user"
       description={`Manage profile, role, and access for ${currentUser.name}.`}
       tabs={[...tabs]}
@@ -337,6 +344,29 @@ export function UpdateUserDialog({
                     />
                   </FormControl>
                   <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={generalForm.control}
+              name="is_admin"
+              render={({ field }) => (
+                <FormItem className="flex items-center justify-between gap-4 rounded-lg border border-brand-border px-4 py-3">
+                  <div className="space-y-1">
+                    <FormLabel className="text-base">Tenant administrator</FormLabel>
+                    <p className="text-xs text-brand-muted">
+                      Administrators can manage users, groups, and organization
+                      settings.
+                    </p>
+                  </div>
+                  <FormControl>
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      data-testid="update-user-is-admin-switch"
+                    />
+                  </FormControl>
                 </FormItem>
               )}
             />

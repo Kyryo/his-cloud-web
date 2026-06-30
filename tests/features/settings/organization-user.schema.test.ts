@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  toUpdateOrganizationUserPayload,
   toUpdateOrganizationUserRolePayload,
   updateOrganizationUserRoleSchema,
 } from "@/features/settings/schemas/organization-user.schema";
@@ -26,5 +27,20 @@ describe("organization-user.schema", () => {
         user_role: "nurse",
       }),
     ).toEqual({ user_role: "nurse" });
+  });
+
+  it("maps general form values including tenant admin flag", () => {
+    expect(
+      toUpdateOrganizationUserPayload({
+        name: "Jane Doe",
+        email: "jane@test.com",
+        password: "",
+        is_admin: true,
+      }),
+    ).toEqual({
+      name: "Jane Doe",
+      email: "jane@test.com",
+      is_admin: true,
+    });
   });
 });

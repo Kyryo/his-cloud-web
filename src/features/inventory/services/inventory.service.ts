@@ -81,7 +81,9 @@ export type CreateInventoryProductPayload = {
   purchase_ok?: boolean;
   active?: boolean;
   is_drug?: boolean;
+  is_sundry?: boolean;
   liquid_or_cream?: boolean;
+  is_lab_test?: boolean;
   is_procedure?: boolean;
   dental_only_procedure?: boolean;
   opd_only_procedure?: boolean;

@@ -3,7 +3,15 @@ import { NextResponse } from "next/server";
 import { HmisApiError } from "@/lib/server/hmis-api";
 
 export function bffSuccess<T>(data: T, status = 200): NextResponse {
+  if (status === 204) {
+    return bffNoContent();
+  }
+
   return NextResponse.json(data, { status });
+}
+
+export function bffNoContent(): NextResponse {
+  return new NextResponse(null, { status: 204 });
 }
 
 export function bffError(error: unknown): NextResponse {

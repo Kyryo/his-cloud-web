@@ -18,7 +18,9 @@ describe("product.schema", () => {
       list_price: "",
       standard_price: "",
       is_drug: false,
+      is_sundry: false,
       liquid_or_cream: false,
+      is_lab_test: false,
       is_procedure: false,
       procedure_scope: "",
       sale_ok: true,
@@ -58,6 +60,7 @@ describe("product.schema", () => {
       list_price: "",
       standard_price: "",
       is_drug: false,
+      is_sundry: false,
       liquid_or_cream: false,
       is_procedure: true,
       procedure_scope: "",
@@ -78,7 +81,9 @@ describe("product.schema", () => {
       list_price: "10.5",
       standard_price: "",
       is_drug: true,
+      is_sundry: false,
       liquid_or_cream: false,
+      is_lab_test: false,
       is_procedure: false,
       procedure_scope: "",
       sale_ok: true,
@@ -92,7 +97,9 @@ describe("product.schema", () => {
       list_price: 10.5,
       product_type: "product",
       is_drug: true,
+      is_sundry: false,
       liquid_or_cream: false,
+      is_lab_test: false,
       is_procedure: false,
       dental_only_procedure: false,
       opd_only_procedure: false,
@@ -114,7 +121,9 @@ describe("product.schema", () => {
       list_price: "",
       standard_price: "",
       is_drug: false,
+      is_sundry: false,
       liquid_or_cream: false,
+      is_lab_test: false,
       is_procedure: false,
       procedure_scope: "",
       sale_ok: true,
@@ -136,7 +145,9 @@ describe("product.schema", () => {
       list_price: "",
       standard_price: "",
       is_drug: false,
+      is_sundry: false,
       liquid_or_cream: false,
+      is_lab_test: false,
       is_procedure: true,
       procedure_scope: "dental_only",
       sale_ok: true,
@@ -147,6 +158,7 @@ describe("product.schema", () => {
     expect(payload.dental_only_procedure).toBe(true);
     expect(payload.opd_only_procedure).toBe(false);
     expect(payload.is_procedure).toBe(true);
+    expect(payload.is_lab_test).toBe(false);
   });
 
   it("accepts empty optional text fields on update", () => {
@@ -158,7 +170,9 @@ describe("product.schema", () => {
       list_price: "",
       standard_price: "",
       is_drug: false,
+      is_sundry: false,
       liquid_or_cream: false,
+      is_lab_test: false,
       is_procedure: false,
       procedure_scope: "",
       sale_ok: true,
@@ -178,7 +192,9 @@ describe("product.schema", () => {
       list_price: "",
       standard_price: "",
       is_drug: false,
+      is_sundry: false,
       liquid_or_cream: false,
+      is_lab_test: false,
       is_procedure: false,
       procedure_scope: "",
       sale_ok: true,
@@ -191,6 +207,116 @@ describe("product.schema", () => {
       expect(result.data.default_code).toBe("");
       expect(result.data.barcode).toBe("");
     }
+  });
+
+  it("rejects drug flag on non-storable products", () => {
+    const result = createInventoryProductSchema.safeParse({
+      name: "Consultation",
+      default_code: "",
+      barcode: "",
+      product_type: "service",
+      list_price: "",
+      standard_price: "",
+      is_drug: true,
+      is_sundry: false,
+      liquid_or_cream: false,
+      is_lab_test: false,
+      is_procedure: false,
+      procedure_scope: "",
+      sale_ok: true,
+      purchase_ok: true,
+      active: true,
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects drug and sundry together", () => {
+    const result = createInventoryProductSchema.safeParse({
+      name: "Bandage",
+      default_code: "",
+      barcode: "",
+      product_type: "product",
+      list_price: "",
+      standard_price: "",
+      is_drug: true,
+      is_sundry: true,
+      liquid_or_cream: false,
+      is_lab_test: false,
+      is_procedure: false,
+      procedure_scope: "",
+      sale_ok: true,
+      purchase_ok: true,
+      active: true,
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects sundry flag on non-storable products", () => {
+    const result = createInventoryProductSchema.safeParse({
+      name: "Consultation",
+      default_code: "",
+      barcode: "",
+      product_type: "service",
+      list_price: "",
+      standard_price: "",
+      is_drug: false,
+      is_sundry: true,
+      liquid_or_cream: false,
+      is_lab_test: false,
+      is_procedure: false,
+      procedure_scope: "",
+      sale_ok: true,
+      purchase_ok: true,
+      active: true,
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects procedure and lab test together", () => {
+    const result = createInventoryProductSchema.safeParse({
+      name: "CBC",
+      default_code: "",
+      barcode: "",
+      product_type: "service",
+      list_price: "",
+      standard_price: "",
+      is_drug: false,
+      is_sundry: false,
+      liquid_or_cream: false,
+      is_lab_test: true,
+      is_procedure: true,
+      procedure_scope: "opd_only",
+      sale_ok: true,
+      purchase_ok: true,
+      active: true,
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects lab test flag on non-service products", () => {
+    const result = createInventoryProductSchema.safeParse({
+      name: "Paracetamol",
+      default_code: "",
+      barcode: "",
+      product_type: "product",
+      list_price: "",
+      standard_price: "",
+      is_drug: false,
+      is_sundry: false,
+      liquid_or_cream: false,
+      is_lab_test: true,
+      is_procedure: false,
+      procedure_scope: "",
+      sale_ok: true,
+      purchase_ok: true,
+      active: true,
+    });
+
+    expect(result.success).toBe(false);
   });
 
   it("maps API product to update form values", () => {

@@ -19,11 +19,24 @@ import type {
 } from "@/features/settings/types/settings.types";
 import { bffRequest } from "@/lib/bff-client";
 
-export async function fetchOrganizationUsers(): Promise<
-  OrganizationListResponse<OrganizationUser>
-> {
+export async function fetchOrganizationUsers(
+  filters: {
+    search?: string;
+    page?: number;
+    pageSize?: number;
+  } = {},
+): Promise<OrganizationListResponse<OrganizationUser>> {
+  const params = new URLSearchParams();
+  params.set("page_size", String(filters.pageSize ?? 100));
+  if (filters.page) {
+    params.set("page", String(filters.page));
+  }
+  if (filters.search?.trim()) {
+    params.set("search", filters.search.trim());
+  }
+
   return bffRequest<OrganizationListResponse<OrganizationUser>>(
-    `${BFF_SETTINGS_ROUTES.users}?page_size=100`,
+    `${BFF_SETTINGS_ROUTES.users}?${params.toString()}`,
   );
 }
 

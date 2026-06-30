@@ -39,6 +39,7 @@ export const updateOrganizationUserGeneralSchema = z.object({
       (value) => value === "" || value.length >= 8,
       "Password must be at least 8 characters",
     ),
+  is_admin: z.boolean(),
 });
 
 export const updateOrganizationUserRoleSchema = z.object({
@@ -96,9 +97,11 @@ export function toUpdateOrganizationUserPayload(
     name: string;
     email: string;
     password?: string;
+    is_admin?: boolean;
   } = {
     name: values.name.trim(),
     email: values.email.trim(),
+    is_admin: values.is_admin,
   };
 
   if (values.password.trim()) {

@@ -62,6 +62,14 @@ export type SalesOrderLine = {
   price_total?: string | number | null;
   discount?: string | number | null;
   tariff_code?: string | null;
+  is_payable: boolean;
+  list_price_at_order?: string | number | null;
+  pricelist_amount_at_order?: string | number | null;
+  insurer_due?: string | number | null;
+  client_due?: string | number | null;
+  has_excess?: boolean;
+  excess_amount?: string | number | null;
+  pricing_rule_snapshot?: Record<string, unknown> | null;
 };
 
 export type SalesOrderInvoice = {

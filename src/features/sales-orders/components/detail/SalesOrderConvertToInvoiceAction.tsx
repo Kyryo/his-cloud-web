@@ -1,6 +1,6 @@
 "use client";
 
-import { FileText, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
@@ -85,11 +85,13 @@ export function SalesOrderConvertToInvoiceAction({
         data-testid="sales-order-convert-to-invoice-button"
       >
         {isConverting ? (
-          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+          <>
+            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            Creating...
+          </>
         ) : (
-          <FileText className="size-4" aria-hidden="true" />
+          "Create invoice"
         )}
-        Create invoice
       </PrimaryButton>
 
       <Dialog

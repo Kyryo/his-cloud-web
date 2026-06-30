@@ -86,13 +86,31 @@ describe("collectSalesOrderLinesToAdd", () => {
 });
 
 describe("buildSalesOrderLineCreatePayload", () => {
-  it("builds the API payload from a uuid-only draft line", () => {
+  it("omits price_unit so the backend can apply pricelist rules", () => {
     const draft = {
       ...createEmptySalesOrderLineDraft(),
       isNew: false,
       product_uuid: "11111111-1111-1111-1111-111111111111",
       quantity: "2",
       price_unit: "15.5",
+      tariff_code: "T001",
+    };
+
+    expect(buildSalesOrderLineCreatePayload(draft)).toEqual({
+      product_uuid: "11111111-1111-1111-1111-111111111111",
+      quantity: "2.0000",
+      tariff_code: "T001",
+    });
+  });
+
+  it("includes price_unit when the user explicitly overrode it", () => {
+    const draft = {
+      ...createEmptySalesOrderLineDraft(),
+      isNew: false,
+      product_uuid: "11111111-1111-1111-1111-111111111111",
+      quantity: "2",
+      price_unit: "15.5",
+      priceUnitOverridden: true,
       tariff_code: "T001",
     };
 
@@ -111,6 +129,7 @@ describe("buildSalesOrderLineCreatePayload", () => {
       product_id: 12,
       quantity: "2",
       price_unit: "15.5",
+      priceUnitOverridden: true,
       tariff_code: "T001",
     };
 

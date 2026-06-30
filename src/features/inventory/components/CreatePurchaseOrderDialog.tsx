@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
@@ -58,12 +58,17 @@ export function CreatePurchaseOrderDialog({
     [formErrors],
   );
 
-  useEffect(() => {
-    if (open) {
-      setActiveTab("details");
-      form.reset(createPurchaseOrderDefaultValues());
+  function resetDialog() {
+    setActiveTab("details");
+    form.reset(createPurchaseOrderDefaultValues());
+  }
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (!nextOpen) {
+      resetDialog();
     }
-  }, [form, open]);
+    onOpenChange(nextOpen);
+  }
 
   function navigateToErrorStep(
     errors: Partial<Record<keyof UpdatePurchaseOrderFormValues, unknown>>,
@@ -88,7 +93,7 @@ export function CreatePurchaseOrderDialog({
           description: `${order.reference_number} is ready for line items.`,
         });
         onCreated(order);
-        onOpenChange(false);
+        handleOpenChange(false);
       } catch (error) {
         if (error instanceof BffError) {
           const fieldErrors = mapBffErrorsToForm(error.errors);
@@ -129,7 +134,7 @@ export function CreatePurchaseOrderDialog({
   return (
     <TabbedDialog
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleOpenChange}
       title="New purchase order"
       description="Enter vendor, location, and reference details. You can add line items on the next screen."
       tabs={tabs}
@@ -156,7 +161,7 @@ export function CreatePurchaseOrderDialog({
             <SecondaryButton
               type="button"
               disabled={isSubmitting}
-              onClick={() => onOpenChange(false)}
+              onClick={() => handleOpenChange(false)}
             >
               Cancel
             </SecondaryButton>

@@ -107,3 +107,21 @@ export function canConvertSalesOrderToInvoice(
 ): boolean {
   return getConvertSalesOrderToInvoiceDisabledReason(order) === null;
 }
+
+export function getCancelSalesOrderDisabledReason(
+  order: Pick<SalesOrder, "state">,
+): string | null {
+  if (order.state === "done") {
+    return "Locked sales orders cannot be cancelled.";
+  }
+
+  if (order.state === "cancel") {
+    return "This sales order is already cancelled.";
+  }
+
+  return null;
+}
+
+export function canCancelSalesOrder(order: Pick<SalesOrder, "state">): boolean {
+  return getCancelSalesOrderDisabledReason(order) === null;
+}

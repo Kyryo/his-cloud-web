@@ -84,7 +84,9 @@ export type InventoryProductMeta = {
   created_by?: number | null;
   created_by_name?: string | null;
   is_drug?: boolean;
+  is_sundry?: boolean;
   liquid_or_cream?: boolean;
+  is_lab_test?: boolean;
   is_procedure?: boolean;
   dental_only_procedure?: boolean;
   opd_only_procedure?: boolean;

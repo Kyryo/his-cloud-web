@@ -5,7 +5,9 @@ export function mapProductWritePayload(payload: CreateInventoryProductPayload) {
 
   const metadataFlags = {
     is_drug: payload.is_drug,
+    is_sundry: payload.is_sundry,
     liquid_or_cream: payload.liquid_or_cream,
+    is_lab_test: payload.is_lab_test,
     is_procedure: payload.is_procedure,
     dental_only_procedure: payload.dental_only_procedure,
     opd_only_procedure: payload.opd_only_procedure,

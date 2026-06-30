@@ -22,7 +22,9 @@ const pricingTabFields: Array<keyof CreateInventoryProductFormValues> = [
 
 const classificationTabFields: Array<keyof CreateInventoryProductFormValues> = [
   "is_drug",
+  "is_sundry",
   "liquid_or_cream",
+  "is_lab_test",
   "is_procedure",
   "procedure_scope",
 ];

@@ -55,9 +55,17 @@ export function ProductDetailSummaryTab({
         fields={[
           { label: "Drug product", value: formatBooleanLabel(meta.is_drug) },
           {
+            label: "Sundry",
+            value: formatBooleanLabel(meta.is_sundry),
+          },
+          {
             label: "Liquid or cream",
             value: formatBooleanLabel(meta.liquid_or_cream),
             hidden: !meta.is_drug,
+          },
+          {
+            label: "Lab test",
+            value: formatBooleanLabel(meta.is_lab_test),
           },
           {
             label: "Procedure",

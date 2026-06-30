@@ -53,9 +53,17 @@ export function UpdateProductDialog({
 
   const productType = form.watch("product_type");
   const isDrug = form.watch("is_drug");
+  const isSundry = form.watch("is_sundry");
+  const isLabTest = form.watch("is_lab_test");
   const isProcedure = form.watch("is_procedure");
 
-  useProductFormEffects(form, { productType, isDrug, isProcedure });
+  useProductFormEffects(form, {
+    productType,
+    isDrug,
+    isSundry,
+    isLabTest,
+    isProcedure,
+  });
 
   useEffect(() => {
     if (open) {

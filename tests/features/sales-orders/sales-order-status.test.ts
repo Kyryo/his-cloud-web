@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  canCancelSalesOrder,
   canConvertSalesOrderToInvoice,
   formatSalesOrderInvoiceStatusLabel,
   formatSalesOrderStateLabel,
+  getCancelSalesOrderDisabledReason,
   getConvertSalesOrderToInvoiceDisabledReason,
   getSalesOrderStateBadgeVariant,
 } from "@/features/sales-orders/utils/sales-order-status";
@@ -48,5 +50,13 @@ describe("sales order status utils", () => {
     expect(
       getConvertSalesOrderToInvoiceDisabledReason({ ...baseOrder, lines: [] }),
     ).toContain("line item");
+  });
+
+  it("determines when a sales order can be cancelled", () => {
+    expect(canCancelSalesOrder({ state: "sale" })).toBe(true);
+    expect(getCancelSalesOrderDisabledReason({ state: "done" })).toContain("Locked");
+    expect(getCancelSalesOrderDisabledReason({ state: "cancel" })).toContain(
+      "already cancelled",
+    );
   });
 });

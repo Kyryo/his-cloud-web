@@ -23,12 +23,20 @@ export function mapBffErrorsToForm(
 }
 
 export function formatBffErrorMessage(
-  message: string,
+  message: string | unknown,
   errors: V1ApiError[] = [],
 ): string {
   if (errors.length > 0) {
     return errors.map((error) => error.message).join(" ");
   }
 
-  return message;
+  if (typeof message === "string") {
+    return message;
+  }
+
+  if (message instanceof Error && message.message.trim()) {
+    return message.message;
+  }
+
+  return "Something went wrong.";
 }

@@ -58,7 +58,9 @@ export const createInventoryProductPricingSchema = z.object({
 
 export const createInventoryProductClassificationSchema = z.object({
   is_drug: z.boolean(),
+  is_sundry: z.boolean(),
   liquid_or_cream: z.boolean(),
+  is_lab_test: z.boolean(),
   is_procedure: z.boolean(),
   procedure_scope: z.enum([
     "",
@@ -81,6 +83,30 @@ export const createInventoryProductSchema = createInventoryProductGeneralSchema
   .merge(createInventoryProductClassificationSchema)
   .merge(createInventoryProductAvailabilitySchema)
   .superRefine((values, context) => {
+    if (values.is_drug && values.product_type !== "product") {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Only storable products can be drug products.",
+        path: ["is_drug"],
+      });
+    }
+
+    if (values.is_sundry && values.product_type !== "product") {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Only storable products can be sundry items.",
+        path: ["is_sundry"],
+      });
+    }
+
+    if (values.is_drug && values.is_sundry) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "A product cannot be both a drug and a sundry item.",
+        path: ["is_sundry"],
+      });
+    }
+
     if (values.liquid_or_cream && !values.is_drug) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
@@ -94,6 +120,22 @@ export const createInventoryProductSchema = createInventoryProductGeneralSchema
         code: z.ZodIssueCode.custom,
         message: "Only service products can be procedures.",
         path: ["is_procedure"],
+      });
+    }
+
+    if (values.is_lab_test && values.product_type !== "service") {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Only service products can be lab tests.",
+        path: ["is_lab_test"],
+      });
+    }
+
+    if (values.is_procedure && values.is_lab_test) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "A product cannot be both a procedure and a lab test.",
+        path: ["is_lab_test"],
       });
     }
 
@@ -147,7 +189,9 @@ export const createInventoryProductDefaultValues: CreateInventoryProductFormValu
   list_price: "",
   standard_price: "",
   is_drug: false,
+  is_sundry: false,
   liquid_or_cream: false,
+  is_lab_test: false,
   is_procedure: false,
   procedure_scope: "",
   sale_ok: true,
@@ -184,7 +228,9 @@ export function toCreateInventoryProductPayload(
     purchase_ok: parsed.purchase_ok,
     active: parsed.active,
     is_drug: parsed.is_drug,
+    is_sundry: parsed.is_sundry,
     liquid_or_cream: parsed.liquid_or_cream,
+    is_lab_test: parsed.is_lab_test,
     is_procedure: parsed.is_procedure,
     ...procedureScopeToFlags(parsed.procedure_scope),
   };
@@ -283,7 +329,9 @@ export function toInventoryProductFormValues(
     list_price: formatPriceField(product.list_price),
     standard_price: formatPriceField(product.standard_price),
     is_drug: Boolean(meta.is_drug),
+    is_sundry: Boolean(meta.is_sundry),
     liquid_or_cream: Boolean(meta.liquid_or_cream),
+    is_lab_test: Boolean(meta.is_lab_test),
     is_procedure: Boolean(meta.is_procedure),
     procedure_scope: procedureScopeFromMeta(meta),
     sale_ok: product.sale_ok ?? true,

@@ -19,9 +19,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { addCatalogPricelistProduct } from "@/features/catalog/services/catalog.service";
 import type { CatalogPricelist } from "@/features/catalog/types/catalog.types";
-import { InlineProductCombobox } from "@/features/inventory/components/detail/InlineProductCombobox";
+import { InventoryProductPicker } from "@/features/inventory/components/detail/InventoryProductPicker";
 import type { InventoryProduct } from "@/features/inventory/types/inventory.types";
-import { formatProductLabel } from "@/features/inventory/utils/format-inventory";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
@@ -144,21 +143,20 @@ export function AddPricelistProductDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          <div className="space-y-2">
-            <Label htmlFor="pricelist-add-product">Product</Label>
-            <InlineProductCombobox
-              id="pricelist-add-product"
-              value={product?.uuid ?? null}
-              displayLabel={product ? formatProductLabel(product) : null}
-              disabled={isSubmitting}
-              onSelect={(selected) => {
-                setProduct(selected);
-                setFixedPrice(
-                  selected.list_price != null ? String(selected.list_price) : "",
-                );
-              }}
-            />
-          </div>
+          <InventoryProductPicker
+            id="pricelist-add-product"
+            product={product}
+            excludeProductUuids={existingProductUuids}
+            disabled={isSubmitting}
+            label="Product"
+            description="Search by name, code, or barcode."
+            onProductChange={(selected) => {
+              setProduct(selected);
+              setFixedPrice(
+                selected?.list_price != null ? String(selected.list_price) : "",
+              );
+            }}
+          />
 
           <div className="space-y-2">
             <Label htmlFor="pricelist-add-fixed-price">Fixed price</Label>

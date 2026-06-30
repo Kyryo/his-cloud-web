@@ -1,7 +1,7 @@
 "use client";
 
-import { ClipboardList, Plus, Trash2 } from "lucide-react";
-import { useRef } from "react";
+import { ClipboardList, Info, Maximize2, Plus, Trash2 } from "lucide-react";
+import { useRef, useState } from "react";
 
 import { SecondaryButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,9 @@ import {
 } from "@/features/inventory/services/inventory.service";
 import { formatProductLabel } from "@/features/inventory/utils/format-inventory";
 import { SalesOrderPendingChangesBar } from "@/features/sales-orders/components/detail/SalesOrderPendingChangesBar";
+import { LinePricelistCell } from "@/features/sales-orders/components/detail/LinePricelistCell";
+import { LineExcessBadge } from "@/features/sales-orders/components/detail/LineExcessBadge";
+import { LinePricingBreakdownDialog } from "@/features/sales-orders/components/detail/LinePricingBreakdownDialog";
 import { useSalesOrderLinesEditor } from "@/features/sales-orders/hooks/use-sales-order-lines-editor";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
 import {
@@ -68,6 +71,7 @@ export function SalesOrderLinesEditor({
   const canEdit = canEditSalesOrderLines(order.state);
   const currency = formatSalesOrderCurrency(order);
   const selectionTokenByLineKeyRef = useRef<Map<string, number>>(new Map());
+  const [breakdownLineId, setBreakdownLineId] = useState<number | null>(null);
 
   const editor = useSalesOrderLinesEditor({
     order,
@@ -77,6 +81,9 @@ export function SalesOrderLinesEditor({
       toast({ variant: "error", title: "Could not update line items", description: message });
     },
   });
+
+  const breakdownLine =
+    order.lines?.find((line) => line.id === breakdownLineId) ?? null;
 
   if (!isActive) {
     return null;
@@ -97,6 +104,7 @@ export function SalesOrderLinesEditor({
     }
 
     return (
+      <>
       <div className="overflow-hidden rounded-xl border border-brand-border bg-white">
         <div className="overflow-x-auto">
           <table className="min-w-full">
@@ -108,6 +116,9 @@ export function SalesOrderLinesEditor({
                 <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
                   Code
                 </th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
+                  Pricing
+                </th>
                 <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
                   Qty
                 </th>
@@ -115,7 +126,19 @@ export function SalesOrderLinesEditor({
                   Unit price
                 </th>
                 <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
+                  Insurer
+                </th>
+                <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
+                  Client
+                </th>
+                <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
+                  Excess
+                </th>
+                <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
                   Total
+                </th>
+                <th className="w-12 px-2 py-3">
+                  <span className="sr-only">Details</span>
                 </th>
               </tr>
             </thead>
@@ -126,21 +149,48 @@ export function SalesOrderLinesEditor({
                   <td className="px-4 py-3 text-sm font-mono text-brand-slate">
                     {formatTariffCode(line.tariff_code)}
                   </td>
+                  <td className="px-4 py-3">
+                    <LinePricelistCell
+                      isPayable={line.is_payable}
+                      pricelistName={order.pricelist_name}
+                    />
+                  </td>
                   <td className="px-4 py-3 text-right text-sm text-brand-slate">
                     {formatQuantity(line.quantity)}
                   </td>
                   <td className="px-4 py-3 text-right text-sm text-brand-slate">
                     {formatSalesOrderAmount(line.price_unit)}
                   </td>
+                  <td className="px-4 py-3 text-right text-sm text-brand-slate">
+                    {formatSalesOrderAmount(line.insurer_due)}
+                  </td>
+                  <td className="px-4 py-3 text-right text-sm text-brand-slate">
+                    {formatSalesOrderAmount(line.client_due)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <LineExcessBadge hasExcess={line.has_excess === true} />
+                  </td>
                   <td className="px-4 py-3 text-right text-sm font-medium text-brand-navy">
                     {formatSalesOrderAmount(line.price_total)}
+                  </td>
+                  <td className="px-2 py-3">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 text-brand-muted"
+                      aria-label={`View pricing breakdown for ${line.name}`}
+                      onClick={() => setBreakdownLineId(line.id)}
+                    >
+                      <Info className="size-4" aria-hidden="true" />
+                    </Button>
                   </td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr className="border-t border-brand-border bg-slate-50/80 font-semibold text-brand-navy">
-                <td className="px-4 py-3 text-sm" colSpan={4}>
+                <td className="px-4 py-3 text-sm" colSpan={8}>
                   Order total
                 </td>
                 <td className="px-4 py-3 text-right text-sm">
@@ -151,6 +201,17 @@ export function SalesOrderLinesEditor({
           </table>
         </div>
       </div>
+      <LinePricingBreakdownDialog
+        line={breakdownLine}
+        capturedAt={order.date_order}
+        open={breakdownLineId != null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setBreakdownLineId(null);
+          }
+        }}
+      />
+      </>
     );
   }
 
@@ -207,7 +268,7 @@ export function SalesOrderLinesEditor({
                   <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
                     Total
                   </th>
-                  <th className="w-20 px-2 py-3">
+                  <th className="w-24 px-2 py-3">
                     <span className="sr-only">Actions</span>
                   </th>
                 </tr>
@@ -259,11 +320,8 @@ export function SalesOrderLinesEditor({
                                 // Reset computed fields when switching products to avoid
                                 // stale values carrying over unnoticed.
                                 tariff_code: null,
-                                price_unit:
-                                  line.price_unit ||
-                                  (product.list_price != null
-                                    ? String(product.list_price)
-                                    : ""),
+                                price_unit: "",
+                                priceUnitOverridden: false,
                               });
 
                               void (async () => {
@@ -378,6 +436,7 @@ export function SalesOrderLinesEditor({
                             onChange={(event) =>
                               editor.updateLine(line.key, {
                                 price_unit: event.target.value,
+                                priceUnitOverridden: true,
                               })
                             }
                             onKeyDown={(event) => {
@@ -408,7 +467,23 @@ export function SalesOrderLinesEditor({
                         {formatSalesOrderAmount(lineTotal)}
                       </td>
                       <td className="px-2 py-3">
-                        <div className="flex justify-end">
+                        <div className="flex justify-end gap-0.5">
+                          {line.id ? (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              disabled={editor.isSaving}
+                              className="size-8 text-brand-muted opacity-0 transition-opacity hover:text-brand-navy group-hover:opacity-100"
+                              aria-label={`View details for ${line.productName ?? "line item"}`}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                setBreakdownLineId(line.id ?? null);
+                              }}
+                            >
+                              <Maximize2 className="size-4" aria-hidden="true" />
+                            </Button>
+                          ) : null}
                           <Button
                             type="button"
                             variant="ghost"
@@ -463,6 +538,17 @@ export function SalesOrderLinesEditor({
           onDiscard={editor.discardChanges}
         />
       ) : null}
+
+      <LinePricingBreakdownDialog
+        line={breakdownLine}
+        capturedAt={order.date_order}
+        open={breakdownLineId != null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setBreakdownLineId(null);
+          }
+        }}
+      />
     </>
   );
 }

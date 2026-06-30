@@ -363,6 +363,7 @@ export type UpdateOrganizationUserPayload = {
   email?: string;
   password?: string;
   user_role?: OrganizationUserRole;
+  is_admin?: boolean;
 };
 
 export type CreateUserClinicAssociationPayload = {
