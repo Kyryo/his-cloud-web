@@ -10,6 +10,7 @@ import {
   formatInvoiceAmount,
   formatInvoiceCustomer,
   formatInvoiceDate,
+  formatInvoicePricelist,
 } from "@/features/invoices/utils/format-invoice";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
@@ -24,6 +25,7 @@ const columns = [
   { key: "invoice", label: "Invoice" },
   { key: "customer", label: "Customer" },
   { key: "salesOrder", label: "Sales order" },
+  { key: "pricelist", label: "Pricelist" },
   { key: "date", label: "Invoice date" },
   { key: "state", label: "State" },
   { key: "payment", label: "Payment" },
@@ -84,6 +86,9 @@ export function InvoicesTable({ invoices, onRowClick, className }: InvoicesTable
                   ) : (
                     "—"
                   )}
+                </td>
+                <td className="px-4 py-3 text-sm text-brand-slate">
+                  {formatInvoicePricelist(invoice)}
                 </td>
                 <td className="px-4 py-3 text-sm text-brand-slate">
                   {formatInvoiceDate(invoice.invoice_date)}

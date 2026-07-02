@@ -77,12 +77,14 @@ type DetailPageAsideSummaryAmountRowProps = {
   label: string;
   value: ReactNode;
   emphasized?: boolean;
+  variant?: "default" | "danger";
 };
 
 export function DetailPageAsideSummaryAmountRow({
   label,
   value,
   emphasized = false,
+  variant = "default",
 }: DetailPageAsideSummaryAmountRowProps) {
   return (
     <div className="flex items-center justify-between gap-3 text-sm">
@@ -90,11 +92,12 @@ export function DetailPageAsideSummaryAmountRow({
         {label}
       </dt>
       <dd
-        className={
+        className={cn(
           emphasized
             ? "font-medium text-brand-navy"
-            : "font-normal text-brand-slate"
-        }
+            : "font-normal text-brand-slate",
+          variant === "danger" && "font-medium text-red-600",
+        )}
       >
         {value}
       </dd>

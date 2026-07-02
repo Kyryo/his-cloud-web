@@ -1,6 +1,6 @@
 "use client";
 
-import { ClipboardList, Info, Maximize2, Plus, Trash2 } from "lucide-react";
+import { ClipboardList, Maximize2, Plus, Trash2 } from "lucide-react";
 import { useRef, useState } from "react";
 
 import { SecondaryButton } from "@/components/ui/app-buttons";
@@ -13,8 +13,6 @@ import {
 } from "@/features/inventory/services/inventory.service";
 import { formatProductLabel } from "@/features/inventory/utils/format-inventory";
 import { SalesOrderPendingChangesBar } from "@/features/sales-orders/components/detail/SalesOrderPendingChangesBar";
-import { LinePricelistCell } from "@/features/sales-orders/components/detail/LinePricelistCell";
-import { LineExcessBadge } from "@/features/sales-orders/components/detail/LineExcessBadge";
 import { LinePricingBreakdownDialog } from "@/features/sales-orders/components/detail/LinePricingBreakdownDialog";
 import { useSalesOrderLinesEditor } from "@/features/sales-orders/hooks/use-sales-order-lines-editor";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
@@ -104,7 +102,6 @@ export function SalesOrderLinesEditor({
     }
 
     return (
-      <>
       <div className="overflow-hidden rounded-xl border border-brand-border bg-white">
         <div className="overflow-x-auto">
           <table className="min-w-full">
@@ -116,9 +113,6 @@ export function SalesOrderLinesEditor({
                 <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
                   Code
                 </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
-                  Pricing
-                </th>
                 <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
                   Qty
                 </th>
@@ -126,19 +120,7 @@ export function SalesOrderLinesEditor({
                   Unit price
                 </th>
                 <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
-                  Insurer
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
-                  Client
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
-                  Excess
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
                   Total
-                </th>
-                <th className="w-12 px-2 py-3">
-                  <span className="sr-only">Details</span>
                 </th>
               </tr>
             </thead>
@@ -149,48 +131,21 @@ export function SalesOrderLinesEditor({
                   <td className="px-4 py-3 text-sm font-mono text-brand-slate">
                     {formatTariffCode(line.tariff_code)}
                   </td>
-                  <td className="px-4 py-3">
-                    <LinePricelistCell
-                      isPayable={line.is_payable}
-                      pricelistName={order.pricelist_name}
-                    />
-                  </td>
                   <td className="px-4 py-3 text-right text-sm text-brand-slate">
                     {formatQuantity(line.quantity)}
                   </td>
                   <td className="px-4 py-3 text-right text-sm text-brand-slate">
                     {formatSalesOrderAmount(line.price_unit)}
                   </td>
-                  <td className="px-4 py-3 text-right text-sm text-brand-slate">
-                    {formatSalesOrderAmount(line.insurer_due)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-sm text-brand-slate">
-                    {formatSalesOrderAmount(line.client_due)}
-                  </td>
-                  <td className="px-4 py-3">
-                    <LineExcessBadge hasExcess={line.has_excess === true} />
-                  </td>
                   <td className="px-4 py-3 text-right text-sm font-medium text-brand-navy">
                     {formatSalesOrderAmount(line.price_total)}
-                  </td>
-                  <td className="px-2 py-3">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="size-8 text-brand-muted"
-                      aria-label={`View pricing breakdown for ${line.name}`}
-                      onClick={() => setBreakdownLineId(line.id)}
-                    >
-                      <Info className="size-4" aria-hidden="true" />
-                    </Button>
                   </td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
               <tr className="border-t border-brand-border bg-slate-50/80 font-semibold text-brand-navy">
-                <td className="px-4 py-3 text-sm" colSpan={8}>
+                <td className="px-4 py-3 text-sm" colSpan={4}>
                   Order total
                 </td>
                 <td className="px-4 py-3 text-right text-sm">
@@ -201,17 +156,6 @@ export function SalesOrderLinesEditor({
           </table>
         </div>
       </div>
-      <LinePricingBreakdownDialog
-        line={breakdownLine}
-        capturedAt={order.date_order}
-        open={breakdownLineId != null}
-        onOpenChange={(open) => {
-          if (!open) {
-            setBreakdownLineId(null);
-          }
-        }}
-      />
-      </>
     );
   }
 

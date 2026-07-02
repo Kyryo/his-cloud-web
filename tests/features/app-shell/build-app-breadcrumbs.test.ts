@@ -128,6 +128,14 @@ describe("buildAppBreadcrumbs", () => {
       { label: "Email Settings" },
     ]);
   });
+
+  it("returns settings integrations masm crumbs", () => {
+    expect(buildAppBreadcrumbs(ROUTES.settingsIntegrationsMasemEclaims)).toEqual([
+      { label: "Settings" },
+      { label: "Integrations", href: ROUTES.settingsIntegrations },
+      { label: "MASM eClaims" },
+    ]);
+  });
 });
 
 describe("applyPageLabelToCrumbs", () => {

@@ -11,6 +11,7 @@ import {
   DetailPageTabsNavSection,
   DetailPageTabsSection,
 } from "@/features/app-shell/components/page-layout";
+import { SalesOrderDetailActivityTab } from "@/features/sales-orders/components/detail/SalesOrderDetailActivityTab";
 import { SalesOrderDetailClientTab } from "@/features/sales-orders/components/detail/SalesOrderDetailClientTab";
 import { SalesOrderDetailLinesTab } from "@/features/sales-orders/components/detail/SalesOrderDetailLinesTab";
 import { SalesOrderDetailVisitTab } from "@/features/sales-orders/components/detail/SalesOrderDetailVisitTab";
@@ -23,12 +24,13 @@ type SalesOrderDetailTabsProps = {
   onOrderUpdated: (order: SalesOrder) => void;
 };
 
-type DetailTabId = "lines" | "visit" | "client";
+type DetailTabId = "lines" | "visit" | "client" | "activity";
 
 const tabs: Array<{ id: DetailTabId; label: string }> = [
   { id: "lines", label: "Line items" },
   { id: "visit", label: "Visit" },
   { id: "client", label: "Client" },
+  { id: "activity", label: "Activity" },
 ];
 
 export function SalesOrderDetailTabs({
@@ -68,6 +70,10 @@ export function SalesOrderDetailTabs({
           <SalesOrderDetailClientTab
             order={order}
             isActive={activeTab === "client"}
+          />
+          <SalesOrderDetailActivityTab
+            order={order}
+            isActive={activeTab === "activity"}
           />
         </DetailPageMainSection>
 

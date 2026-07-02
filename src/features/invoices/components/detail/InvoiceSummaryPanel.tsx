@@ -15,6 +15,7 @@ import {
   formatInvoiceAmount,
   formatInvoiceCustomer,
   formatInvoiceDate,
+  formatInvoicePricelist,
 } from "@/features/invoices/utils/format-invoice";
 import {
   formatInvoiceInsuranceLabel,
@@ -22,6 +23,15 @@ import {
 } from "@/features/invoices/utils/format-invoice-insurance";
 import { formatInvoiceStateLabel } from "@/features/invoices/utils/invoice-status";
 import { formatInvoicePaymentStatusLabel } from "@/features/invoices/utils/invoice-payment-status";
+import {
+  formatInvoiceInsurerDueLabel,
+  hasInvoiceBalance,
+  hasInvoicePaymentSplit,
+  sumInvoiceClientDue,
+  sumInvoiceExcess,
+  sumInvoiceInsurerDue,
+} from "@/features/invoices/utils/sum-invoice-billing";
+import { collectInvoicePaymentRules } from "@/features/invoices/utils/collect-invoice-payment-rules";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +48,12 @@ export function InvoiceSummaryPanel({
   const insuranceNumber = formatInvoiceInsuranceNumber(invoice);
   const hasInsuranceDetails =
     insuranceLabel !== "—" || insuranceNumber !== "—";
+  const insurerDueTotal = sumInvoiceInsurerDue(invoice);
+  const clientDueTotal = sumInvoiceClientDue(invoice);
+  const excessTotal = sumInvoiceExcess(invoice);
+  const showPaymentSplit = hasInvoicePaymentSplit(invoice);
+  const showExcess = excessTotal > 0;
+  const paymentRules = collectInvoicePaymentRules(invoice.lines);
 
   return (
     <DetailPageAsidePanelSection className={cn(className)}>
@@ -48,6 +64,28 @@ export function InvoiceSummaryPanel({
 
       <DetailPageAsideSummaryHighlight title="Billing summary">
         <dl className="space-y-2.5">
+          {showPaymentSplit ? (
+            <>
+              <DetailPageAsideSummaryAmountRow
+                label={formatInvoiceInsurerDueLabel(invoice)}
+                value={formatInvoiceAmount(insurerDueTotal)}
+              />
+              <DetailPageAsideSummaryAmountRow
+                label="Client due"
+                value={formatInvoiceAmount(clientDueTotal)}
+              />
+              {showExcess ? (
+                <DetailPageAsideSummaryAmountRow
+                  label="Excess"
+                  value={formatInvoiceAmount(excessTotal)}
+                />
+              ) : null}
+              <div
+                className="border-t border-brand-border pt-2.5"
+                role="presentation"
+              />
+            </>
+          ) : null}
           <DetailPageAsideSummaryAmountRow
             label="Gross amount"
             value={formatInvoiceAmount(invoice.amount_untaxed)}
@@ -61,6 +99,10 @@ export function InvoiceSummaryPanel({
             value={formatInvoiceAmount(invoice.amount_total)}
             emphasized
           />
+          <div
+            className="border-t border-brand-border pt-2.5"
+            role="presentation"
+          />
           <DetailPageAsideSummaryAmountRow
             label="Paid"
             value={formatInvoiceAmount(invoice.amount_paid)}
@@ -68,9 +110,37 @@ export function InvoiceSummaryPanel({
           <DetailPageAsideSummaryAmountRow
             label="Balance"
             value={formatInvoiceAmount(invoice.amount_residual)}
+            variant={hasInvoiceBalance(invoice) ? "danger" : "default"}
           />
         </dl>
       </DetailPageAsideSummaryHighlight>
+
+      <DetailPageAsideSummarySection title="Pricing">
+        <DetailPageAsideSummaryField
+          label="Pricelist"
+          value={formatInvoicePricelist(invoice)}
+        />
+        {paymentRules.length > 0 ? (
+          <div className="space-y-3">
+            <p className="text-xs font-medium uppercase tracking-wide text-brand-muted">
+              Payment rules
+            </p>
+            <ul className="space-y-2">
+              {paymentRules.map((rule) => (
+                <li
+                  key={rule.key}
+                  className="rounded-lg border border-brand-border bg-slate-50/60 px-3 py-2"
+                >
+                  <p className="text-sm font-medium text-brand-navy">{rule.ruleName}</p>
+                  <p className="mt-0.5 text-xs text-brand-muted">{rule.ruleTypesLabel}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <DetailPageAsideSummaryField label="Payment rules" value="List price" />
+        )}
+      </DetailPageAsideSummarySection>
 
       <DetailPageAsideSummarySection title="Invoice details">
         <DetailPageAsideSummaryField

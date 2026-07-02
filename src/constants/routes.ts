@@ -61,6 +61,14 @@ export const ROUTES = {
   settingsModuleInventory: "/settings/modules/inventory",
   settingsIntegrations: "/settings/integrations",
   settingsIntegrationsEmail: "/settings/integrations/email",
+  settingsIntegrationsMasemEclaims: "/settings/integrations/masm-eclaims",
+  settingsIntegrationsMasemEclaimsTab: (tab: "connection" | "practitioners") =>
+    tab === "connection"
+      ? "/settings/integrations/masm-eclaims"
+      : "/settings/integrations/masm-eclaims?tab=practitioners",
+  /** @deprecated Use settingsIntegrationsMasemEclaimsTab("practitioners") */
+  settingsIntegrationsEclaimsPractitioner:
+    "/settings/integrations/masm-eclaims?tab=practitioners",
 } as const;
 
 /** Paths served by web-new through the deploy gateway. */

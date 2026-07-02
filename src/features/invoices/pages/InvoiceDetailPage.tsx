@@ -6,6 +6,7 @@ import {
   PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS,
   PageLoader,
 } from "@/components/page-loader";
+import { InvoiceDetailActions } from "@/features/invoices/components/detail/InvoiceDetailActions";
 import { InvoiceDetailHeader } from "@/features/invoices/components/detail/InvoiceDetailHeader";
 import { InvoiceDetailTabs } from "@/features/invoices/components/detail/InvoiceDetailTabs";
 import { fetchInvoice } from "@/features/invoices/services/invoices.service";
@@ -18,11 +19,20 @@ type InvoiceDetailPageProps = {
   invoiceId: string;
 };
 
+type InvoiceDetailTabId =
+  | "lines"
+  | "client"
+  | "claim"
+  | "payments"
+  | "diagnoses"
+  | "activity";
+
 export function InvoiceDetailPage({ invoiceId }: InvoiceDetailPageProps) {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<InvoiceDetailTabId>("lines");
 
   useAppBreadcrumb(invoice?.name || (invoice ? `Invoice #${invoice.id}` : null));
 
@@ -82,9 +92,20 @@ export function InvoiceDetailPage({ invoiceId }: InvoiceDetailPageProps) {
     <DetailPageLayout data-testid="invoice-detail-page">
       <InvoiceDetailHeader
         invoice={invoice}
-        onRecordPayment={() => setRecordPaymentOpen(true)}
+        actions={
+          <InvoiceDetailActions
+            invoice={invoice}
+            onRecordPayment={() => setRecordPaymentOpen(true)}
+            onClaimInvoice={() => setActiveTab("claim")}
+          />
+        }
       />
-      <InvoiceDetailTabs invoice={invoice} />
+      <InvoiceDetailTabs
+        invoice={invoice}
+        activeTab={activeTab}
+        onActiveTabChange={setActiveTab}
+        onInvoiceRefresh={loadInvoice}
+      />
       <RecordPaymentDialog
         invoice={invoice}
         open={recordPaymentOpen}

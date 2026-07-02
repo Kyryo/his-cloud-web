@@ -7,15 +7,17 @@ import { Button } from "@/components/ui/button";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 import type { InvoiceLine } from "@/features/invoices/types/invoice.types";
 import { formatInvoiceAmount } from "@/features/invoices/utils/format-invoice";
-import { LineExcessBadge } from "@/features/sales-orders/components/detail/LineExcessBadge";
 import { LinePricingBreakdownDialog } from "@/features/sales-orders/components/detail/LinePricingBreakdownDialog";
-import { LinePricelistCell } from "@/features/sales-orders/components/detail/LinePricelistCell";
 import { cn } from "@/lib/utils";
 
 type InvoiceDetailLinesTabProps = {
   invoice: Invoice;
   isActive: boolean;
 };
+
+function formatTariffCode(value: string | null | undefined): string {
+  return value?.trim() ? value : "—";
+}
 
 export function InvoiceDetailLinesTab({
   invoice,
@@ -46,28 +48,19 @@ export function InvoiceDetailLinesTab({
               <thead>
                 <tr className="border-b border-brand-border bg-slate-50/80">
                   <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
-                    Product
+                    Item
                   </th>
                   <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
-                    Pricing
+                    Code
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
+                  <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
                     Qty
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
+                  <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
                     Unit price
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
-                    Insurer
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
-                    Client
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
-                    Excess
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
-                    Subtotal
+                  <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
+                    Total
                   </th>
                   <th className="w-12 px-2 py-3">
                     <span className="sr-only">Details</span>
@@ -79,29 +72,21 @@ export function InvoiceDetailLinesTab({
                   <tr key={line.id}>
                     <td className="px-4 py-3 text-sm text-brand-navy">
                       <p className="font-medium">{line.name}</p>
-                      <p className="text-xs text-brand-muted">{line.product_name}</p>
+                      {line.product_name ? (
+                        <p className="text-xs text-brand-muted">{line.product_name}</p>
+                      ) : null}
                     </td>
-                    <td className="px-4 py-3">
-                      <LinePricelistCell
-                        isPayable={line.is_payable}
-                        pricelistName={null}
-                      />
+                    <td className="px-4 py-3 text-sm font-mono text-brand-slate">
+                      {formatTariffCode(line.tariff_code)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-brand-slate">{line.quantity}</td>
-                    <td className="px-4 py-3 text-sm text-brand-slate">
+                    <td className="px-4 py-3 text-right text-sm text-brand-slate">
+                      {line.quantity}
+                    </td>
+                    <td className="px-4 py-3 text-right text-sm text-brand-slate">
                       {formatInvoiceAmount(line.price_unit)}
                     </td>
-                    <td className="px-4 py-3 text-sm text-brand-slate">
-                      {formatInvoiceAmount(line.insurer_due)}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-brand-slate">
-                      {formatInvoiceAmount(line.client_due)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <LineExcessBadge hasExcess={line.has_excess === true} />
-                    </td>
-                    <td className="px-4 py-3 text-sm font-medium text-brand-navy">
-                      {formatInvoiceAmount(line.price_subtotal)}
+                    <td className="px-4 py-3 text-right text-sm font-medium text-brand-navy">
+                      {formatInvoiceAmount(line.price_total)}
                     </td>
                     <td className="px-2 py-3">
                       <Button

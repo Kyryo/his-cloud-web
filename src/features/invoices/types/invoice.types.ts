@@ -14,6 +14,7 @@ export type InvoiceLine = {
   name: string;
   product_id: number;
   product_name: string | null;
+  tariff_code?: string | null;
   quantity: string;
   price_unit: string;
   price_subtotal: string;
@@ -44,6 +45,8 @@ export type Invoice = {
   invoice_origin?: string | null;
   sales_order_id?: number | null;
   sales_order_name?: string | null;
+  pricelist_id?: number | null;
+  pricelist_name?: string | null;
   visit_id?: number | null;
   amount_paid?: string | number | null;
   amount_residual?: string | number | null;
@@ -54,6 +57,13 @@ export type Invoice = {
   insurance_scheme_name?: string | null;
   insurance_number?: string | null;
   insurance_number_prefix?: string | null;
+  has_diagnosis?: boolean;
+  can_initiate_claim?: boolean;
+  claim_status?: string | null;
+  service_provider_code?: string | null;
+  has_practitioner_mapping?: boolean;
+  visit_uuid?: string | null;
+  encounter_uuid?: string | null;
   line_ids?: number[];
   lines?: InvoiceLine[];
 };

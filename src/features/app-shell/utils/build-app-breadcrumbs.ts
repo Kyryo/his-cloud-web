@@ -81,6 +81,14 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
       ];
     }
 
+    if (pathname === ROUTES.settingsIntegrationsMasemEclaims) {
+      return [
+        { label: "Settings" },
+        { label: "Integrations", href: ROUTES.settingsIntegrations },
+        { label: "MASM eClaims" },
+      ];
+    }
+
     return [{ label: "Settings" }];
   }
 

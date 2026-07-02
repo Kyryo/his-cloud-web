@@ -13,6 +13,12 @@ export type CustomerEncounterAction =
   | "NOTE_ADDED"
   | "NOTE_UPDATED"
   | "NOTE_ARCHIVED"
+  | "ORDER_ADDED"
+  | "ORDER_CANCELLED"
+  | "ORDER_CONFIRMED"
+  | "ORDER_INVOICED"
+  | "INVOICE_CREATED"
+  | "PAYMENT_RECORDED"
   | "OTHER"
   | string;
 

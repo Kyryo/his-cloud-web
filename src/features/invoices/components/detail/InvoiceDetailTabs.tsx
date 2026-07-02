@@ -1,7 +1,7 @@
 "use client";
 
 import { PanelRight } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { FabButton } from "@/components/ui/fab-button";
 import {
@@ -11,27 +11,64 @@ import {
   DetailPageTabsNavSection,
   DetailPageTabsSection,
 } from "@/features/app-shell/components/page-layout";
+import { isInsuranceInvoice } from "@/features/claims/services/claims.service";
+import { InvoiceClaimsTab } from "@/features/invoices/components/detail/InvoiceClaimsTab";
 import { InvoiceDetailClientTab } from "@/features/invoices/components/detail/InvoiceDetailClientTab";
 import { InvoiceDetailLinesTab } from "@/features/invoices/components/detail/InvoiceDetailLinesTab";
 import { InvoiceDetailPaymentsTab } from "@/features/invoices/components/detail/InvoiceDetailPaymentsTab";
+import { InvoiceDetailActivityTab } from "@/features/invoices/components/detail/InvoiceDetailActivityTab";
+import { InvoiceDiagnosesTab } from "@/features/invoices/components/detail/InvoiceDiagnosesTab";
 import { InvoiceSummaryPanel } from "@/features/invoices/components/detail/InvoiceSummaryPanel";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
+import { hasInvoiceClaimReadinessIssues } from "@/features/invoices/utils/invoice-claim-readiness";
 import { cn } from "@/lib/utils";
 
 type InvoiceDetailTabsProps = {
   invoice: Invoice;
+  activeTab?: DetailTabId;
+  onActiveTabChange?: (tab: DetailTabId) => void;
+  onInvoiceRefresh?: () => void | Promise<void>;
 };
 
-type DetailTabId = "lines" | "payments" | "client";
+type DetailTabId = "lines" | "client" | "claim" | "payments" | "diagnoses" | "activity";
 
-const tabs: Array<{ id: DetailTabId; label: string }> = [
-  { id: "lines", label: "Line items" },
-  { id: "payments", label: "Payments" },
-  { id: "client", label: "Client" },
-];
+export function InvoiceDetailTabs({
+  invoice,
+  activeTab: controlledActiveTab,
+  onActiveTabChange,
+  onInvoiceRefresh,
+}: InvoiceDetailTabsProps) {
+  const showClaimTab = isInsuranceInvoice(invoice);
+  const showClaimReadinessIndicator =
+    showClaimTab && hasInvoiceClaimReadinessIssues(invoice);
 
-export function InvoiceDetailTabs({ invoice }: InvoiceDetailTabsProps) {
-  const [activeTab, setActiveTab] = useState<DetailTabId>("lines");
+  const tabs = useMemo(() => {
+    const items: Array<{ id: DetailTabId; label: string }> = [
+      { id: "lines", label: "Line items" },
+      { id: "client", label: "Client" },
+    ];
+
+    if (showClaimTab) {
+      items.push({ id: "claim", label: "Claim" });
+    }
+
+    items.push({ id: "payments", label: "Payments" });
+    items.push({ id: "diagnoses", label: "Diagnoses" });
+    items.push({ id: "activity", label: "Activity" });
+
+    return items;
+  }, [showClaimTab]);
+
+  const [internalActiveTab, setInternalActiveTab] = useState<DetailTabId>("lines");
+  const activeTab = controlledActiveTab ?? internalActiveTab;
+
+  function handleTabChange(tab: DetailTabId) {
+    if (onActiveTabChange) {
+      onActiveTabChange(tab);
+      return;
+    }
+    setInternalActiveTab(tab);
+  }
   const [showSummaryPanel, setShowSummaryPanel] = useState(false);
   const lineCount = invoice.lines?.length ?? invoice.line_ids?.length ?? 0;
 
@@ -42,10 +79,18 @@ export function InvoiceDetailTabs({ invoice }: InvoiceDetailTabsProps) {
           <DetailPageTabNavItem
             key={tab.id}
             isActive={activeTab === tab.id}
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => handleTabChange(tab.id)}
           >
-            {tab.label}
-            {tab.id === "lines" && lineCount > 0 ? ` (${lineCount})` : ""}
+            <span className="relative inline-flex items-center gap-2">
+              {tab.label}
+              {tab.id === "lines" && lineCount > 0 ? ` (${lineCount})` : ""}
+              {tab.id === "claim" && showClaimReadinessIndicator ? (
+                <span
+                  className="size-2 rounded-full bg-red-500"
+                  aria-label="Claim readiness issues"
+                />
+              ) : null}
+            </span>
           </DetailPageTabNavItem>
         ))}
       </DetailPageTabsNavSection>
@@ -53,11 +98,27 @@ export function InvoiceDetailTabs({ invoice }: InvoiceDetailTabsProps) {
       <DetailPageMainAsideGrid>
         <DetailPageMainSection>
           <InvoiceDetailLinesTab invoice={invoice} isActive={activeTab === "lines"} />
+          <InvoiceDetailClientTab invoice={invoice} isActive={activeTab === "client"} />
+          {showClaimTab ? (
+            <InvoiceClaimsTab
+              invoice={invoice}
+              isActive={activeTab === "claim"}
+              onInvoiceRefresh={onInvoiceRefresh}
+            />
+          ) : null}
           <InvoiceDetailPaymentsTab
             invoice={invoice}
             isActive={activeTab === "payments"}
           />
-          <InvoiceDetailClientTab invoice={invoice} isActive={activeTab === "client"} />
+          <InvoiceDiagnosesTab
+            invoice={invoice}
+            isActive={activeTab === "diagnoses"}
+            onInvoiceRefresh={onInvoiceRefresh}
+          />
+          <InvoiceDetailActivityTab
+            invoice={invoice}
+            isActive={activeTab === "activity"}
+          />
         </DetailPageMainSection>
 
         <InvoiceSummaryPanel

@@ -19,3 +19,10 @@ export function formatInvoiceAmount(
 ): string {
   return formatSalesOrderAmount(value, currency);
 }
+
+export function formatInvoicePricelist(
+  invoice: Pick<Invoice, "pricelist_name">,
+): string {
+  const trimmed = invoice.pricelist_name?.trim();
+  return trimmed || "No pricelist";
+}

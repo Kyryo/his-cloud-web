@@ -104,12 +104,48 @@ export const BFF_SALES_ORDERS_ROUTES = {
     `/api/sales-order-lines/${orderId}/${lineId}`,
   invoice: (orderId: number | string) => `/api/sales-orders/${orderId}/invoice`,
   cancel: (orderId: number | string) => `/api/sales-orders/${orderId}/cancel`,
+  activity: (orderId: number | string) => `/api/sales-orders/${orderId}/activity`,
+} as const;
+
+/** Browser-facing BFF sales order activity routes (same origin). */
+export const BFF_SALES_ORDER_ACTIVITY_ROUTES = {
+  detail: (orderId: number | string) => `/api/sales-orders/${orderId}/activity`,
 } as const;
 
 /** Browser-facing BFF invoice routes (same origin). */
 export const BFF_INVOICES_ROUTES = {
   list: "/api/invoices",
   detail: (invoiceId: number | string) => `/api/invoices/${invoiceId}`,
+  activity: (invoiceId: number | string) => `/api/invoices/${invoiceId}/activity`,
+} as const;
+
+/** Browser-facing BFF invoice activity routes (same origin). */
+export const BFF_INVOICE_ACTIVITY_ROUTES = {
+  detail: (invoiceId: number | string) => `/api/invoices/${invoiceId}/activity`,
+} as const;
+
+/** Browser-facing BFF e-claims routes (same origin). */
+export const BFF_CLAIMS_ROUTES = {
+  list: "/api/claims",
+  detail: (claimId: number | string) => `/api/claims/${claimId}`,
+  fromInvoice: (invoiceId: number | string) =>
+    `/api/claims/from-invoice/${invoiceId}`,
+  byInvoice: (invoiceId: number | string) => `/api/claims/by-invoice/${invoiceId}`,
+  verifyMember: "/api/claims/verify-member",
+  submit: (claimId: number | string) => `/api/claims/${claimId}/submit`,
+  masmIntegration: "/api/integrations/eclaims/masm",
+  practitionerMappings: "/api/integrations/eclaims/practitioner-mappings",
+  practitionerMappingsUpsert:
+    "/api/integrations/eclaims/practitioner-mappings/upsert",
+} as const;
+
+/** Browser-facing BFF clinical diagnosis routes (same origin). */
+export const BFF_CLINICAL_DIAGNOSIS_ROUTES = {
+  encounterDiagnoses: (visitUuid: string, encounterUuid: string) =>
+    `/api/clinical/visits/${visitUuid}/encounters/${encounterUuid}/diagnoses`,
+  diagnosisDetail: (diagnosisUuid: string) =>
+    `/api/clinical/diagnoses/${diagnosisUuid}`,
+  diagnosisCatalogSearch: "/api/clinical/diagnosis-catalog/search",
 } as const;
 
 /** Browser-facing BFF payment routes (same origin). */
@@ -252,6 +288,10 @@ export const BFF_SETTINGS_ROUTES = {
   emailConfiguration: "/api/integrations/email-configuration",
   emailConfigurationDetail: (id: number | string) =>
     `/api/integrations/email-configuration/${id}`,
+  masmIntegration: "/api/integrations/eclaims/masm",
+  eclaimsPractitionerMappings: "/api/integrations/eclaims/practitioner-mappings",
+  eclaimsPractitionerMappingsUpsert:
+    "/api/integrations/eclaims/practitioner-mappings/upsert",
 } as const;
 
 /** Browser-facing BFF platform administration routes (same origin). */

@@ -1,8 +1,9 @@
 "use client";
 
-import { Wallet } from "lucide-react";
+import type { ReactNode } from "react";
 
-import { PrimaryButton } from "@/components/ui/app-buttons";
+import { ClaimStatusBadge } from "@/features/claims/components/ClaimStatusBadge";
+import { isInsuranceInvoice } from "@/features/claims/services/claims.service";
 import { InvoicePaymentStatusBadge } from "@/features/invoices/components/InvoicePaymentStatusBadge";
 import { InvoiceStatusBadge } from "@/features/invoices/components/InvoiceStatusBadge";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
@@ -14,17 +15,13 @@ import { DetailPageHeaderSection } from "@/features/app-shell/components/page-la
 
 type InvoiceDetailHeaderProps = {
   invoice: Invoice;
-  onRecordPayment?: () => void;
+  actions?: ReactNode;
 };
 
-export function InvoiceDetailHeader({
-  invoice,
-  onRecordPayment,
-}: InvoiceDetailHeaderProps) {
+export function InvoiceDetailHeader({ invoice, actions }: InvoiceDetailHeaderProps) {
   const invoiceLabel = invoice.name || `Invoice #${invoice.id}`;
   const customerName = formatInvoiceCustomer(invoice);
-  const canRecordPayment =
-    String(invoice.state).toLowerCase() === "posted" && Boolean(onRecordPayment);
+  const showClaimStatus = isInsuranceInvoice(invoice);
 
   return (
     <DetailPageHeaderSection>
@@ -38,6 +35,9 @@ export function InvoiceDetailHeader({
             {invoice.payment_status ? (
               <InvoicePaymentStatusBadge status={invoice.payment_status} />
             ) : null}
+            {showClaimStatus ? (
+              <ClaimStatusBadge status={invoice.claim_status} />
+            ) : null}
           </div>
 
           <p className="mt-1 font-mono text-sm text-brand-muted">{invoiceLabel}</p>
@@ -47,15 +47,8 @@ export function InvoiceDetailHeader({
           </div>
         </div>
 
-        {canRecordPayment ? (
-          <PrimaryButton
-            type="button"
-            onClick={onRecordPayment}
-            data-testid="record-payment-button"
-          >
-            <Wallet className="size-4" aria-hidden="true" />
-            Record payment
-          </PrimaryButton>
+        {actions ? (
+          <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
         ) : null}
       </div>
     </DetailPageHeaderSection>

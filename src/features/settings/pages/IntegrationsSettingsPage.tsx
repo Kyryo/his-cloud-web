@@ -43,7 +43,7 @@ export function IntegrationsSettingsPage() {
   return (
     <SettingsPageLayout
       title="Integrations"
-      description="Connect external services such as email delivery for your organization."
+      description="Connect communication and insurance services for your organization."
     >
       <IntegrationsSettingsGrid />
     </SettingsPageLayout>

@@ -220,7 +220,7 @@ export function RecordPaymentDialog({
                     Saving...
                   </>
                 ) : (
-                  "Record payment"
+                  "Save"
                 )}
               </PrimaryButton>
             </DialogFooter>

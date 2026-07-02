@@ -4,7 +4,6 @@ import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import {
-  PrimaryButton,
   SecondaryButton,
 } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";

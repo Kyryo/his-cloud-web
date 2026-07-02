@@ -878,6 +878,32 @@ Never:
 * Mix business logic with routing
 * Build throwaway MVP code
 
+## Linting & Code Quality
+
+- Before finishing any task that touches `.tsx`/`.ts` files, run `npm run lint` (or `pnpm lint`) 
+  and fix all reported errors before considering the task complete.
+- Never suppress lint errors with `// eslint-disable` comments unless explicitly asked to.
+
+### React Hooks: no direct setState in effects
+This project enforces `react-hooks/set-state-in-effect`. When writing `useEffect`:
+- Do NOT call a state setter (or a function that calls one) synchronously in the effect body.
+- If an effect needs to fetch data and set state, do so inside an async function where the 
+  setState call happens after an `await` (i.e., not on the synchronous first pass).
+- Prefer patterns like:
+```tsx
+  useEffect(() => {
+    let cancelled = false;
+    async function run() {
+      const data = await fetchThing();
+      if (!cancelled) setThing(data); // OK: after await
+    }
+    void run();
+    return () => { cancelled = true; };
+  }, [deps]);
+```
+- If a lint error like `Avoid calling setState() directly within an effect` appears, restructure 
+  the effect as above rather than disabling the rule.
+
 ---
 
 # Golden Rule
