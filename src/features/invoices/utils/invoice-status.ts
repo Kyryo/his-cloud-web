@@ -5,5 +5,8 @@ export function formatInvoiceStateLabel(state: InvoiceState): string {
   if (!normalized) {
     return "Unknown";
   }
+  if (normalized === "posted") {
+    return "Invoiced";
+  }
   return normalized.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 }

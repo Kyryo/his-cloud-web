@@ -1,18 +1,27 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import type { ClaimStatus } from "@/features/claims/types/claims.types";
-import { cn } from "@/lib/utils";
+import {
+  Ban,
+  CheckCircle2,
+  FileEdit,
+  Send,
+  Shield,
+  XCircle,
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-const STATUS_VARIANTS: Record<
+import { StatusPill, type StatusPillVariant } from "@/components/ui/status-pill";
+import type { ClaimStatus } from "@/features/claims/types/claims.types";
+
+const STATUS_CONFIG: Record<
   string,
-  "default" | "secondary" | "outline" | "destructive" | "success"
+  { variant: StatusPillVariant; icon: LucideIcon; label: string }
 > = {
-  draft: "secondary",
-  submitted: "default",
-  approved: "success",
-  rejected: "destructive",
-  cancelled: "outline",
+  draft: { variant: "outline", icon: FileEdit, label: "Draft" },
+  submitted: { variant: "default", icon: Send, label: "Submitted" },
+  approved: { variant: "success", icon: CheckCircle2, label: "Approved" },
+  rejected: { variant: "destructive", icon: XCircle, label: "Rejected" },
+  cancelled: { variant: "outline", icon: Ban, label: "Cancelled" },
 };
 
 export function ClaimStatusBadge({
@@ -24,19 +33,28 @@ export function ClaimStatusBadge({
 }) {
   if (!status) {
     return (
-      <Badge variant="outline" className={cn("font-normal", className)}>
-        Not submitted
-      </Badge>
+      <StatusPill
+        label="Not submitted"
+        variant="outline"
+        icon={Shield}
+        className={className}
+      />
     );
   }
 
   const normalized = String(status).toLowerCase();
+  const config = STATUS_CONFIG[normalized] ?? {
+    variant: "outline" as const,
+    icon: Shield,
+    label: normalized.replace(/_/g, " "),
+  };
+
   return (
-    <Badge
-      variant={STATUS_VARIANTS[normalized] ?? "outline"}
-      className={cn("font-normal", className)}
-    >
-      {normalized.replace(/_/g, " ")}
-    </Badge>
+    <StatusPill
+      label={config.label}
+      variant={config.variant}
+      icon={config.icon}
+      className={className}
+    />
   );
 }

@@ -1,13 +1,19 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
-import type { InvoiceState } from "@/features/invoices/types/invoice.types";
-import { cn } from "@/lib/utils";
+import { Ban, CheckCircle2, FileEdit } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-const STATE_VARIANTS: Record<string, "default" | "secondary" | "outline" | "destructive" | "success"> = {
-  draft: "secondary",
-  posted: "success",
-  cancel: "destructive",
+import { StatusPill, type StatusPillVariant } from "@/components/ui/status-pill";
+import type { InvoiceState } from "@/features/invoices/types/invoice.types";
+import { formatInvoiceStateLabel } from "@/features/invoices/utils/invoice-status";
+
+const STATE_CONFIG: Record<
+  string,
+  { variant: StatusPillVariant; icon: LucideIcon }
+> = {
+  draft: { variant: "outline", icon: FileEdit },
+  posted: { variant: "success", icon: CheckCircle2 },
+  cancel: { variant: "destructive", icon: Ban },
 };
 
 export function InvoiceStatusBadge({
@@ -18,9 +24,17 @@ export function InvoiceStatusBadge({
   className?: string;
 }) {
   const normalized = String(state || "").toLowerCase();
+  const config = STATE_CONFIG[normalized] ?? {
+    variant: "outline" as const,
+    icon: FileEdit,
+  };
+
   return (
-    <Badge variant={STATE_VARIANTS[normalized] ?? "outline"} className={cn("font-normal", className)}>
-      {normalized.replace(/_/g, " ") || "unknown"}
-    </Badge>
+    <StatusPill
+      label={formatInvoiceStateLabel(state)}
+      variant={config.variant}
+      icon={config.icon}
+      className={className}
+    />
   );
 }

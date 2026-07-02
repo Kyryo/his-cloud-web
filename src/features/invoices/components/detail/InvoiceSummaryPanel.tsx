@@ -54,6 +54,7 @@ export function InvoiceSummaryPanel({
   const showPaymentSplit = hasInvoicePaymentSplit(invoice);
   const showExcess = excessTotal > 0;
   const paymentRules = collectInvoicePaymentRules(invoice.lines);
+  const hasBalance = hasInvoiceBalance(invoice);
 
   return (
     <DetailPageAsidePanelSection className={cn(className)}>
@@ -99,10 +100,18 @@ export function InvoiceSummaryPanel({
             value={formatInvoiceAmount(invoice.amount_total)}
             emphasized
           />
-          <div
-            className="border-t border-brand-border pt-2.5"
-            role="presentation"
-          />
+        </dl>
+      </DetailPageAsideSummaryHighlight>
+
+      <div
+        className={cn(
+          "mt-3 rounded-xl border p-4",
+          hasBalance
+            ? "border-red-200 bg-red-50/70"
+            : "border-brand-border bg-slate-50/60",
+        )}
+      >
+        <dl className="space-y-2.5">
           <DetailPageAsideSummaryAmountRow
             label="Paid"
             value={formatInvoiceAmount(invoice.amount_paid)}
@@ -110,10 +119,11 @@ export function InvoiceSummaryPanel({
           <DetailPageAsideSummaryAmountRow
             label="Balance"
             value={formatInvoiceAmount(invoice.amount_residual)}
-            variant={hasInvoiceBalance(invoice) ? "danger" : "default"}
+            variant={hasBalance ? "danger" : "default"}
+            emphasized={hasBalance}
           />
         </dl>
-      </DetailPageAsideSummaryHighlight>
+      </div>
 
       <DetailPageAsideSummarySection title="Pricing">
         <DetailPageAsideSummaryField

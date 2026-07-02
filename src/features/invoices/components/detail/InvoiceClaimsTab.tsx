@@ -3,16 +3,12 @@
 import {
   AlertCircle,
   CheckCircle2,
+  ChevronDown,
   Loader2,
-  Pencil,
-  Plus,
-  Send,
-  Shield,
 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
-import { ClaimStatusBadge } from "@/features/claims/components/ClaimStatusBadge";
 import { EditClaimDialog } from "@/features/claims/components/EditClaimDialog";
 import { PostClaimDialog } from "@/features/claims/components/PostClaimDialog";
 import {
@@ -64,6 +60,61 @@ function ReadinessList({ items }: { items: InvoiceClaimReadinessItem[] }) {
         </li>
       ))}
     </ul>
+  );
+}
+
+function ReadinessSection({ items }: { items: InvoiceClaimReadinessItem[] }) {
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const allMet = items.every((item) => item.met);
+  const metCount = items.filter((item) => item.met).length;
+
+  if (allMet) {
+    return (
+      <div className="rounded-lg border border-emerald-200 bg-emerald-50/80">
+        <div className="flex items-center justify-between gap-3 px-3 py-2.5">
+          <div className="flex items-center gap-2">
+            <CheckCircle2
+              className="size-4 shrink-0 text-emerald-600"
+              aria-hidden="true"
+            />
+            <span className="text-sm font-medium text-emerald-800">
+              All {items.length} checks passed
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setDetailsOpen((open) => !open)}
+            className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 hover:text-emerald-900"
+            aria-expanded={detailsOpen}
+          >
+            Details
+            <ChevronDown
+              className={cn(
+                "size-3.5 transition-transform",
+                detailsOpen && "rotate-180",
+              )}
+              aria-hidden="true"
+            />
+          </button>
+        </div>
+        {detailsOpen ? (
+          <div className="border-t border-emerald-200/80 px-3 py-2.5">
+            <ReadinessList items={items} />
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <h3 className="text-xs font-medium uppercase tracking-wide text-brand-muted">
+        Readiness ({metCount}/{items.length})
+      </h3>
+      <div className="mt-3">
+        <ReadinessList items={items} />
+      </div>
+    </div>
   );
 }
 
@@ -200,17 +251,13 @@ export function InvoiceClaimsTab({
   return (
     <div className="space-y-6" data-testid="invoice-claims-tab">
       <div className="rounded-xl border border-brand-border bg-white p-6">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2">
-              <Shield className="size-4 text-brand-muted" aria-hidden="true" />
-              <h2 className="text-sm font-semibold text-brand-navy">Insurance claim</h2>
-            </div>
-            <p className="mt-1 text-sm text-brand-muted">
-              Verify the member, create a draft claim, then submit to MASM.
-            </p>
+        <div>
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold text-brand-navy">Insurance claim</h2>
           </div>
-          <ClaimStatusBadge status={claimStatus} />
+          <p className="mt-1 text-sm text-brand-muted">
+            Verify the member, create a draft claim, then submit to MASM.
+          </p>
         </div>
 
         {isLoading ? (
@@ -221,28 +268,18 @@ export function InvoiceClaimsTab({
         ) : (
           <>
             <div className="mt-6">
-              <h3 className="text-xs font-medium uppercase tracking-wide text-brand-muted">
-                Readiness
-              </h3>
-              <div className="mt-3">
-                <ReadinessList items={readinessItems} />
-              </div>
+              <ReadinessSection items={readinessItems} />
             </div>
 
             <div className="mt-6 flex flex-wrap gap-2">
               {!claim ? (
                 <PrimaryButton type="button" onClick={() => setPostDialogOpen(true)}>
-                  <Plus className="size-4" aria-hidden="true" />
                   Create claim
                 </PrimaryButton>
               ) : null}
 
               {claim && isDraft ? (
                 <>
-                  <SecondaryButton type="button" onClick={() => setEditDialogOpen(true)}>
-                    <Pencil className="size-4" aria-hidden="true" />
-                    Edit draft
-                  </SecondaryButton>
                   <PrimaryButton
                     type="button"
                     disabled={isSubmitting}
@@ -254,12 +291,12 @@ export function InvoiceClaimsTab({
                         Submitting...
                       </>
                     ) : (
-                      <>
-                        <Send className="size-4" aria-hidden="true" />
-                        Submit to MASM
-                      </>
+                      "Submit"
                     )}
                   </PrimaryButton>
+                  <SecondaryButton type="button" onClick={() => setEditDialogOpen(true)}>
+                    Edit draft
+                  </SecondaryButton>
                 </>
               ) : null}
             </div>
