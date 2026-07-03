@@ -67,53 +67,66 @@ function ReadinessSection({ items }: { items: InvoiceClaimReadinessItem[] }) {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const allMet = items.every((item) => item.met);
   const metCount = items.filter((item) => item.met).length;
+  const remainingCount = items.length - metCount;
 
-  if (allMet) {
-    return (
-      <div className="rounded-lg border border-emerald-200 bg-emerald-50/80">
-        <div className="flex items-center justify-between gap-3 px-3 py-2.5">
-          <div className="flex items-center gap-2">
-            <CheckCircle2
-              className="size-4 shrink-0 text-emerald-600"
-              aria-hidden="true"
-            />
-            <span className="text-sm font-medium text-emerald-800">
-              All {items.length} checks passed
-            </span>
-          </div>
-          <button
-            type="button"
-            onClick={() => setDetailsOpen((open) => !open)}
-            className="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 hover:text-emerald-900"
-            aria-expanded={detailsOpen}
-          >
-            Details
-            <ChevronDown
-              className={cn(
-                "size-3.5 transition-transform",
-                detailsOpen && "rotate-180",
-              )}
-              aria-hidden="true"
-            />
-          </button>
-        </div>
-        {detailsOpen ? (
-          <div className="border-t border-emerald-200/80 px-3 py-2.5">
-            <ReadinessList items={items} />
-          </div>
-        ) : null}
-      </div>
-    );
-  }
+  const barStyles = allMet
+    ? {
+        container: "border-emerald-200 bg-emerald-50/80",
+        divider: "border-emerald-200/80",
+        icon: "text-emerald-600",
+        label: "text-emerald-800",
+        toggle: "text-emerald-700 hover:text-emerald-900",
+      }
+    : {
+        container: "border-amber-200 bg-amber-50/80",
+        divider: "border-amber-200/80",
+        icon: "text-amber-600",
+        label: "text-amber-900",
+        toggle: "text-amber-800 hover:text-amber-950",
+      };
+
+  const summaryLabel = allMet
+    ? `All ${items.length} checks passed`
+    : `${remainingCount} of ${items.length} checks remaining`;
+
+  const StatusIcon = allMet ? CheckCircle2 : AlertCircle;
 
   return (
-    <div>
-      <h3 className="text-xs font-medium uppercase tracking-wide text-brand-muted">
-        Readiness ({metCount}/{items.length})
-      </h3>
-      <div className="mt-3">
-        <ReadinessList items={items} />
+    <div className={cn("rounded-lg border", barStyles.container)}>
+      <div className="flex items-center justify-between gap-3 px-3 py-2.5">
+        <div className="flex items-center gap-2">
+          <StatusIcon
+            className={cn("size-4 shrink-0", barStyles.icon)}
+            aria-hidden="true"
+          />
+          <span className={cn("text-sm font-medium", barStyles.label)}>
+            {summaryLabel}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={() => setDetailsOpen((open) => !open)}
+          className={cn(
+            "inline-flex items-center gap-1 text-xs font-medium",
+            barStyles.toggle,
+          )}
+          aria-expanded={detailsOpen}
+        >
+          Details
+          <ChevronDown
+            className={cn(
+              "size-3.5 transition-transform",
+              detailsOpen && "rotate-180",
+            )}
+            aria-hidden="true"
+          />
+        </button>
       </div>
+      {detailsOpen ? (
+        <div className={cn("border-t px-3 py-2.5", barStyles.divider)}>
+          <ReadinessList items={items} />
+        </div>
+      ) : null}
     </div>
   );
 }
