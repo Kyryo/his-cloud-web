@@ -85,7 +85,7 @@ export function ServicesSection() {
         <div className="mt-16">
           <Link
             href={ROUTES.services}
-            className="inline-flex items-center gap-2 rounded-full bg-brand-primary px-8 py-4 text-lg font-semibold text-white transition-colors hover:bg-[#1254b8]"
+            className="inline-flex items-center gap-2 rounded-full bg-brand-primary px-8 py-4 text-lg font-semibold text-white transition-colors hover:bg-brand-primary-hover"
           >
             Explore Services
           </Link>

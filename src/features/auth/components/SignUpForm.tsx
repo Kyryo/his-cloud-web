@@ -332,7 +332,7 @@ export function SignUpForm() {
           <Button
             type="submit"
             data-testid="signup-continue"
-            className="mt-2 h-11 w-full bg-brand-primary hover:bg-[#1254b8] sm:w-auto sm:min-w-[12rem]"
+            className="mt-2 h-11 w-full bg-brand-primary hover:bg-brand-primary-hover sm:w-auto sm:min-w-[12rem]"
             disabled={credentialsForm.formState.isSubmitting}
           >
             {credentialsForm.formState.isSubmitting ? "Sending code..." : "Continue"}
@@ -458,7 +458,7 @@ export function SignUpForm() {
             <Button
               type="submit"
               data-testid="signup-profile-continue"
-              className="h-11 min-w-[10rem] bg-brand-primary hover:bg-[#1254b8]"
+              className="h-11 min-w-[10rem] bg-brand-primary hover:bg-brand-primary-hover"
             >
               Continue
             </Button>

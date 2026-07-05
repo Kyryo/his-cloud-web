@@ -4,7 +4,6 @@ import { useRouter } from "next/navigation";
 import { BarChart3 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
 import { FabButton } from "@/components/ui/fab-button";
 import { Button } from "@/components/ui/button";
 import { CreateCustomerDialog } from "@/features/customers/components/CreateCustomerDialog";
@@ -13,6 +12,7 @@ import { CustomerSummaryStats } from "@/features/customers/components/CustomerSu
 import { CustomersEmptyState } from "@/features/customers/components/CustomersEmptyState";
 import { CustomersPageHeader } from "@/features/customers/components/CustomersPageHeader";
 import { CustomersTable } from "@/features/customers/components/CustomersTable";
+import { CustomersTableSkeleton } from "@/features/customers/components/CustomersTableSkeleton";
 import {
   fetchCustomers,
 } from "@/features/customers/services/customers.service";
@@ -292,7 +292,7 @@ export function CustomersListPage() {
 
       <ListPageTableSection>
         {isLoading ? (
-          <PageLoader message="Loading clients..." />
+          <CustomersTableSkeleton rows={10} />
         ) : error ? (
           <div className="rounded-xl border border-red-200 bg-red-50 p-6">
             <h2 className="text-sm font-semibold text-red-800">Could not load clients</h2>

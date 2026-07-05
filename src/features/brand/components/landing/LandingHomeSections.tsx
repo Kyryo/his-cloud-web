@@ -20,7 +20,6 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
-import { ROUTES } from "@/constants/routes";
 import { LandingBulletCard } from "@/features/brand/components/landing/LandingBulletCard";
 import { LandingCoverSection } from "@/features/brand/components/landing/LandingCoverSection";
 import { LandingFooter } from "@/features/brand/components/landing/LandingFooter";

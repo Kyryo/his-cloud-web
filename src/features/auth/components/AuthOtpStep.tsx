@@ -201,7 +201,7 @@ export function AuthOtpStep({
         type="button"
         data-testid={submitTestId}
         aria-busy={isSubmitting}
-        className="mt-8 h-12 w-full rounded-full bg-brand-primary text-white hover:bg-[#1254b8]"
+        className="mt-8 h-12 w-full rounded-full bg-brand-primary text-white hover:bg-brand-primary-hover"
         onClick={handleSubmitClick}
       >
         {isSubmitting ? (submittingLabel ?? `${submitLabel}...`) : submitLabel}

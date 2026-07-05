@@ -1,16 +1,18 @@
-/** Landing-page palette — warm clinic grounds + teal/green accents from design plan. */
+import { BRAND, BRAND_LOGO_SRC } from "@/constants/brand";
+
+/** Landing-page palette — derived from global brand tokens. */
 export const LANDING = {
-  paperClay: "#F3EBE0",
-  warmWhite: "#FDF6EE",
-  inkRoot: "#1F2A24",
-  ledgerInk: "#5A4D42",
-  signalAmber: "#B86A1F",
-  signalAmberTint: "#FDF0E4",
-  liveTeal: "#0B6E6E",
-  liveTealHover: "#095656",
-  liveTealTint: "#E6F2F2",
-  matureGreen: "#2F5E46",
-  matureGreenTint: "#EAF2ED",
+  paperClay: BRAND.paperClay,
+  warmWhite: BRAND.warmWhite,
+  inkRoot: BRAND.ink,
+  ledgerInk: BRAND.slate,
+  signalAmber: BRAND.amber,
+  signalAmberTint: BRAND.amberTint,
+  liveTeal: BRAND.primary,
+  liveTealHover: BRAND.primaryHover,
+  liveTealTint: BRAND.tealTint,
+  matureGreen: BRAND.green,
+  matureGreenTint: BRAND.greenTint,
   shadow: "0 8px 24px rgba(31, 42, 36, 0.06)",
   shadowHover: "0 12px 32px rgba(31, 42, 36, 0.1)",
   cardRadius: "14px",
@@ -24,7 +26,7 @@ export const LANDING_PROOF_STATS = [
   { value: "85%", label: "Report time saved" },
 ] as const;
 
-export const LANDING_LOGO_SRC = "/logo-black.png";
+export const LANDING_LOGO_SRC = BRAND_LOGO_SRC;
 
 export type LandingAccent = "amber" | "teal" | "green";
 

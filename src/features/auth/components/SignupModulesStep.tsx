@@ -186,7 +186,7 @@ export function SignupModulesStep({
         <Button
           type="submit"
           data-testid="signup-submit"
-          className="h-11 min-w-[10rem] bg-brand-primary hover:bg-[#1254b8]"
+          className="h-11 min-w-[10rem] bg-brand-primary hover:bg-brand-primary-hover"
           disabled={isSubmitting || selectedModuleIds.length === 0}
         >
           {isSubmitting ? "Creating workspace..." : "Create workspace"}

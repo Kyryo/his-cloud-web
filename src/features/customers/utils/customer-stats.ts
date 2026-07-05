@@ -34,12 +34,33 @@ async function fetchCount(filters: Parameters<typeof fetchCustomers>[0] = {}) {
   return response.pagination?.count ?? response.results.length;
 }
 
-async function countNewThisMonth(): Promise<number> {
-  const monthStart = startOfCurrentMonth();
-  let page = 1;
-  let count = 0;
+type ScanResult = {
+  newThisMonth: number;
+  averageAge: number;
+};
 
-  while (page <= MAX_STATS_PAGES) {
+/**
+ * Single pass over the active-customer pages (ordered by newest first) that
+ * derives both "new this month" and "average age" — avoiding two overlapping
+ * sets of paginated requests.
+ */
+async function scanActiveCustomers(totalClients: number): Promise<ScanResult> {
+  if (totalClients === 0) {
+    return { newThisMonth: 0, averageAge: 0 };
+  }
+
+  const monthStart = startOfCurrentMonth();
+  const pagesToFetch = Math.min(
+    MAX_STATS_PAGES,
+    Math.max(1, Math.ceil(totalClients / STATS_PAGE_SIZE)),
+  );
+
+  let newThisMonth = 0;
+  let countingNew = true;
+  let ageSum = 0;
+  let ageCount = 0;
+
+  for (let page = 1; page <= pagesToFetch; page += 1) {
     const response = await fetchCustomers({
       page,
       pageSize: STATS_PAGE_SIZE,
@@ -52,44 +73,14 @@ async function countNewThisMonth(): Promise<number> {
     }
 
     for (const customer of response.results) {
-      if (parseCreatedAt(customer.created_at) >= monthStart) {
-        count += 1;
-      } else {
-        return count;
+      if (countingNew) {
+        if (parseCreatedAt(customer.created_at) >= monthStart) {
+          newThisMonth += 1;
+        } else {
+          countingNew = false;
+        }
       }
-    }
 
-    if (!response.pagination?.next) {
-      break;
-    }
-
-    page += 1;
-  }
-
-  return count;
-}
-
-async function computeAverageAge(totalClients: number): Promise<number> {
-  if (totalClients === 0) {
-    return 0;
-  }
-
-  const pagesToFetch = Math.min(
-    MAX_STATS_PAGES,
-    Math.max(1, Math.ceil(totalClients / STATS_PAGE_SIZE)),
-  );
-
-  let ageSum = 0;
-  let ageCount = 0;
-
-  for (let page = 1; page <= pagesToFetch; page += 1) {
-    const response = await fetchCustomers({
-      page,
-      pageSize: STATS_PAGE_SIZE,
-      isActive: true,
-    });
-
-    for (const customer of response.results) {
       if (customer.age > 0) {
         ageSum += customer.age;
         ageCount += 1;
@@ -101,24 +92,21 @@ async function computeAverageAge(totalClients: number): Promise<number> {
     }
   }
 
-  if (ageCount === 0) {
-    return 0;
-  }
-
-  return Math.round((ageSum / ageCount) * 10) / 10;
+  return {
+    newThisMonth,
+    averageAge: ageCount === 0 ? 0 : Math.round((ageSum / ageCount) * 10) / 10,
+  };
 }
 
 export async function fetchCustomerSummaryStats(): Promise<CustomerSummaryStats> {
-  const [totalClients, maleCount, femaleCount, otherCount, newThisMonth] =
-    await Promise.all([
-      fetchCount(),
-      fetchCount({ gender: "Male" }),
-      fetchCount({ gender: "Female" }),
-      fetchCount({ gender: "Other" }),
-      countNewThisMonth(),
-    ]);
+  const [totalClients, maleCount, femaleCount, otherCount] = await Promise.all([
+    fetchCount(),
+    fetchCount({ gender: "Male" }),
+    fetchCount({ gender: "Female" }),
+    fetchCount({ gender: "Other" }),
+  ]);
 
-  const averageAge = await computeAverageAge(totalClients);
+  const { newThisMonth, averageAge } = await scanActiveCustomers(totalClients);
 
   return {
     totalClients,

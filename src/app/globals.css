@@ -2,39 +2,45 @@
 
 @theme {
   --color-background: #ffffff;
-  --color-foreground: #1e2d40;
+  --color-foreground: #1f2a24;
   --color-card: #ffffff;
-  --color-card-foreground: #1e2d40;
+  --color-card-foreground: #1f2a24;
   --color-popover: #ffffff;
-  --color-popover-foreground: #1e2d40;
-  --color-primary: #1565d8;
+  --color-popover-foreground: #1f2a24;
+  --color-primary: #0b6e6e;
   --color-primary-foreground: #ffffff;
-  --color-secondary: #e8f1fd;
-  --color-secondary-foreground: #1e2d40;
-  --color-muted: #e8f1fd;
-  --color-muted-foreground: #6b7e93;
-  --color-accent: #e8f1fd;
-  --color-accent-foreground: #1e2d40;
+  --color-secondary: #e6f2f2;
+  --color-secondary-foreground: #1f2a24;
+  --color-muted: #e6f2f2;
+  --color-muted-foreground: #7a6e62;
+  --color-accent: #e6f2f2;
+  --color-accent-foreground: #1f2a24;
   --color-destructive: #dc2626;
   --color-destructive-foreground: #ffffff;
-  --color-border: #dde4ed;
-  --color-input: #dde4ed;
-  --color-ring: #1565d8;
-  --color-brand-navy: #1e2d40;
-  --color-brand-primary: #1565d8;
-  --color-brand-sky: #2196f3;
-  --color-brand-tint: #e8f1fd;
-  --color-brand-slate: #3d5166;
-  --color-brand-muted: #6b7e93;
-  --color-brand-border: #dde4ed;
-  --color-sidebar: #fafbfc;
-  --color-sidebar-foreground: #1e2d40;
-  --color-sidebar-primary: #1565d8;
+  --color-border: #e0d5c8;
+  --color-input: #e0d5c8;
+  --color-ring: #0b6e6e;
+  --color-brand-navy: #1f2a24;
+  --color-brand-primary: #0b6e6e;
+  --color-brand-primary-hover: #095656;
+  --color-brand-sky: #2f5e46;
+  --color-brand-tint: #e6f2f2;
+  --color-brand-slate: #5a4d42;
+  --color-brand-muted: #7a6e62;
+  --color-brand-border: #e0d5c8;
+  --color-brand-paper: #f3ebe0;
+  --color-brand-warm: #fdf6ee;
+  --color-brand-green: #2f5e46;
+  --color-brand-green-tint: #eaf2ed;
+  --color-brand-amber: #b86a1f;
+  --color-sidebar: #faf7f2;
+  --color-sidebar-foreground: #1f2a24;
+  --color-sidebar-primary: #0b6e6e;
   --color-sidebar-primary-foreground: #ffffff;
-  --color-sidebar-accent: #f1f4f8;
-  --color-sidebar-accent-foreground: #1e2d40;
-  --color-sidebar-border: #dde4ed;
-  --color-sidebar-ring: #1565d8;
+  --color-sidebar-accent: #e6f2f2;
+  --color-sidebar-accent-foreground: #1f2a24;
+  --color-sidebar-border: #e0d5c8;
+  --color-sidebar-ring: #0b6e6e;
   --radius-lg: 0.5rem;
   --radius-md: calc(0.5rem - 2px);
   --radius-sm: calc(0.5rem - 4px);
@@ -44,14 +50,14 @@
 
 @layer base {
   :root {
-    --sidebar-background: 214 28% 96%;
-    --sidebar-foreground: 210 35% 19%;
-    --sidebar-primary: 212 82% 47%;
+    --sidebar-background: 40 33% 97%;
+    --sidebar-foreground: 155 15% 14%;
+    --sidebar-primary: 180 82% 24%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 214 24% 92%;
-    --sidebar-accent-foreground: 210 35% 19%;
-    --sidebar-border: 214 22% 86%;
-    --sidebar-ring: 212 82% 47%;
+    --sidebar-accent: 180 33% 93%;
+    --sidebar-accent-foreground: 155 15% 14%;
+    --sidebar-border: 34 24% 83%;
+    --sidebar-ring: 180 82% 24%;
   }
 
   * {
@@ -76,17 +82,17 @@
 
 @layer components {
   [data-brand-page] {
-    --landing-clay: #f3ebe0;
-    --landing-warm: #fdf6ee;
-    --landing-ink: #1f2a24;
-    --landing-ledger-ink: #5a4d42;
-    --landing-amber: #b86a1f;
+    --landing-clay: var(--color-brand-paper);
+    --landing-warm: var(--color-brand-warm);
+    --landing-ink: var(--color-brand-navy);
+    --landing-ledger-ink: var(--color-brand-slate);
+    --landing-amber: var(--color-brand-amber);
     --landing-amber-tint: #fdf0e4;
-    --landing-teal: #0b6e6e;
-    --landing-teal-hover: #095656;
-    --landing-teal-tint: #e6f2f2;
-    --landing-green: #2f5e46;
-    --landing-green-tint: #eaf2ed;
+    --landing-teal: var(--color-brand-primary);
+    --landing-teal-hover: var(--color-brand-primary-hover);
+    --landing-teal-tint: var(--color-brand-tint);
+    --landing-green: var(--color-brand-green);
+    --landing-green-tint: var(--color-brand-green-tint);
     --landing-shadow: 0 8px 24px rgba(31, 42, 36, 0.06);
     --landing-shadow-hover: 0 12px 32px rgba(31, 42, 36, 0.1);
     font-family: var(--font-landing-body), ui-sans-serif, system-ui, sans-serif;
@@ -507,9 +513,9 @@
     --ld-surface: #ffffff;
     --ld-chrome: #f1f4f8;
     --ld-chrome-dot: #e2e8f0;
-    --ld-border: #dde4ed;
+    --ld-border: #e0d5c8;
     --ld-text: #1f2a24;
-    --ld-muted: #6b7e93;
+    --ld-muted: #7a6e62;
     --ld-primary: #0b6e6e;
     --ld-accent: #e6f2f2;
     --ld-hover: #f1f4f8;

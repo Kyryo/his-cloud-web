@@ -1,12 +1,14 @@
 import { jwtDecode } from "jwt-decode";
 import { cookies } from "next/headers";
 
+import { AUTH_API_PATHS } from "@/constants/auth-api";
 import {
   ACCESS_TOKEN_COOKIE,
   AUTH_COOKIE_MAX_AGE_SECONDS,
   REFRESH_TOKEN_COOKIE,
 } from "@/constants/session";
 import type { AuthTokens, TokenPayload } from "@/features/auth/types/auth.types";
+import { hmisApiRequest } from "@/lib/server/hmis-api";
 
 const cookieOptions = {
   httpOnly: true,
@@ -58,5 +60,18 @@ export async function getValidAccessToken(): Promise<string | null> {
     return tokens.access;
   }
 
-  return null;
+  try {
+    const refreshed = await hmisApiRequest<{ access: string }>(
+      AUTH_API_PATHS.tokenRefresh,
+      {
+        method: "POST",
+        body: { refresh: tokens.refresh },
+      },
+    );
+    await setAuthCookies({ access: refreshed.access, refresh: tokens.refresh });
+    return refreshed.access;
+  } catch {
+    await clearAuthCookies();
+    return null;
+  }
 }

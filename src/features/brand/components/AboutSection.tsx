@@ -84,7 +84,7 @@ export function AboutSection() {
 
         <Link
           href={ROUTES.about}
-          className="inline-flex items-center gap-2 rounded-full bg-brand-primary px-8 py-4 text-lg font-semibold text-white transition-colors hover:bg-[#1254b8]"
+          className="inline-flex items-center gap-2 rounded-full bg-brand-primary px-8 py-4 text-lg font-semibold text-white transition-colors hover:bg-brand-primary-hover"
         >
           Learn More
         </Link>

@@ -38,7 +38,7 @@ export function CaseStudySection() {
 
           <Link
             href={ROUTES.about}
-            className="mt-7 inline-flex items-center rounded-full bg-brand-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#1254b8]"
+            className="mt-7 inline-flex items-center rounded-full bg-brand-primary px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-brand-primary-hover"
           >
             Read more
           </Link>
