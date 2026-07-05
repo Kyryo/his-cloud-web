@@ -1,0 +1,106 @@
+import Link from "next/link";
+
+import { ROUTES } from "@/constants/routes";
+import { LandingLogo } from "@/features/brand/components/landing/LandingLogo";
+import { BRAND_NAV_LINKS } from "@/features/brand/constants/nav-links";
+
+const LEGAL_LINKS = [
+  { label: "Privacy", href: "/privacy" },
+  { label: "Terms", href: "/terms" },
+] as const;
+
+export function LandingFooter() {
+  const year = new Date().getFullYear();
+
+  return (
+    <footer className="border-t border-[color:var(--landing-ink)]/10 bg-[color:var(--landing-clay)]">
+      <div className="mx-auto max-w-7xl px-6 py-12 sm:px-12 sm:py-14">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr] lg:gap-12">
+          <div className="space-y-4 sm:col-span-2 lg:col-span-1">
+            <LandingLogo linked={false} imageClassName="h-8 w-auto" />
+            <p className="landing-body max-w-sm text-sm leading-relaxed text-[color:var(--landing-ledger-ink)] sm:text-[15px]">
+              Clinic software that works where you work — patients, billing,
+              stock, and insurance in one place.
+            </p>
+            <Link
+              href={ROUTES.signup}
+              className="landing-focus landing-btn-primary inline-flex min-h-10 items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold"
+            >
+              Start for free
+            </Link>
+          </div>
+
+          <div>
+            <p className="landing-body text-[11px] font-semibold uppercase tracking-[0.14em] text-[color:var(--landing-teal)]">
+              Explore
+            </p>
+            <ul className="mt-4 space-y-2.5">
+              {BRAND_NAV_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="landing-focus landing-body text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-ink)]"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+              <li>
+                <Link
+                  href={ROUTES.features}
+                  className="landing-focus landing-body text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-ink)]"
+                >
+                  Features
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          <div>
+            <p className="landing-body text-[11px] font-semibold uppercase tracking-[0.14em] text-[color:var(--landing-teal)]">
+              Support
+            </p>
+            <ul className="mt-4 space-y-2.5">
+              <li>
+                <Link
+                  href={ROUTES.contacts}
+                  className="landing-focus landing-body text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-ink)]"
+                >
+                  Contact us
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href={ROUTES.auth}
+                  className="landing-focus landing-body text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-ink)]"
+                >
+                  Sign in
+                </Link>
+              </li>
+              {LEGAL_LINKS.map((link) => (
+                <li key={link.href}>
+                  <Link
+                    href={link.href}
+                    className="landing-focus landing-body text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-ink)]"
+                  >
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div className="mt-10 flex flex-col gap-3 border-t border-[color:var(--landing-ink)]/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="landing-body text-xs text-[color:var(--landing-ledger-ink)] sm:text-sm">
+            © {year} Sigma Health. Built for clinics across Africa, Asia, and
+            the Americas.
+          </p>
+          <p className="landing-body text-xs text-[color:var(--landing-ledger-ink)]/80">
+            Paper registers to live clinic data — in under a day.
+          </p>
+        </div>
+      </div>
+    </footer>
+  );
+}

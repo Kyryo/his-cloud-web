@@ -23,7 +23,7 @@ import { useState } from "react";
 import { ROUTES } from "@/constants/routes";
 import { LandingBulletCard } from "@/features/brand/components/landing/LandingBulletCard";
 import { LandingCoverSection } from "@/features/brand/components/landing/LandingCoverSection";
-import { LandingLogo } from "@/features/brand/components/landing/LandingLogo";
+import { LandingFooter } from "@/features/brand/components/landing/LandingFooter";
 import { LandingInteractiveDemo } from "@/features/brand/components/landing/LandingInteractiveDemo";
 import { LandingSection } from "@/features/brand/components/landing/LandingSection";
 import { LandingSectionHeader } from "@/features/brand/components/landing/LandingSectionHeader";
@@ -342,22 +342,7 @@ export function LandingHomeSections() {
         </LandingReveal>
       </LandingSection>
 
-      <footer className="bg-[color:var(--landing-clay)] py-8">
-        <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 sm:flex-row sm:px-12">
-          <LandingLogo linked={false} imageClassName="h-7 w-auto" />
-          <div className="flex flex-wrap items-center justify-center gap-5 text-sm text-[color:var(--landing-ledger-ink)]">
-            <Link href="/privacy" className="landing-focus rounded-sm hover:text-[color:var(--landing-ink)]">
-              Privacy
-            </Link>
-            <Link href="/terms" className="landing-focus rounded-sm hover:text-[color:var(--landing-ink)]">
-              Terms
-            </Link>
-            <Link href={ROUTES.contacts} className="landing-focus rounded-sm hover:text-[color:var(--landing-ink)]">
-              Contact
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <LandingFooter />
     </>
   );
 }

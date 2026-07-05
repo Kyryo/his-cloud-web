@@ -1,5 +1,6 @@
 "use client";
 
+import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -67,11 +68,15 @@ export function Navigation() {
           <button
             type="button"
             onClick={() => setIsOpen((open) => !open)}
-            className="justify-self-end rounded-md p-2 text-brand-muted hover:text-[color:var(--landing-ink)] lg:hidden"
-            aria-label="Toggle menu"
+            className="landing-focus flex size-11 items-center justify-center justify-self-end rounded-full border border-[color:var(--landing-ink)]/10 bg-white/60 text-[color:var(--landing-ink)] transition-colors hover:bg-white lg:hidden"
+            aria-label={isOpen ? "Close menu" : "Open menu"}
             aria-expanded={isOpen}
           >
-            {isOpen ? "✕" : "☰"}
+            {isOpen ? (
+              <X className="size-6" strokeWidth={2} aria-hidden="true" />
+            ) : (
+              <Menu className="size-6" strokeWidth={2} aria-hidden="true" />
+            )}
           </button>
         </div>
       </div>
@@ -99,14 +104,14 @@ export function Navigation() {
             >
               <Link
                 href={ROUTES.auth}
-                className="inline-flex items-center justify-center rounded-full border border-transparent px-5 py-2.5 text-center text-sm font-semibold text-brand-slate transition-colors hover:bg-[color:var(--landing-teal-tint)] hover:text-[color:var(--landing-ink)]"
+                className="inline-flex min-h-11 items-center justify-center rounded-full border border-transparent px-5 py-2.5 text-center text-sm font-semibold text-brand-slate transition-colors hover:bg-[color:var(--landing-teal-tint)] hover:text-[color:var(--landing-ink)]"
                 onClick={() => setIsOpen(false)}
               >
                 Sign In
               </Link>
               <Link
                 href={ROUTES.signup}
-                className="landing-btn-primary inline-flex items-center justify-center rounded-full px-5 py-2.5 text-center text-sm font-semibold"
+                className="landing-btn-primary inline-flex min-h-11 items-center justify-center rounded-full px-5 py-2.5 text-center text-sm font-semibold"
                 onClick={() => setIsOpen(false)}
               >
                 Start for free

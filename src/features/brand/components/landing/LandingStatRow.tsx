@@ -11,7 +11,9 @@ export function LandingStatRow({ className, compact = false }: LandingStatRowPro
     <div
       className={cn(
         "flex flex-wrap gap-x-8 gap-y-4",
-        compact ? "text-left" : "justify-start",
+        compact
+          ? "justify-center text-center sm:justify-start sm:text-left"
+          : "justify-start",
         className,
       )}
       role="list"
