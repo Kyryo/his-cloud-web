@@ -247,6 +247,12 @@ export const BFF_ONBOARDING_ROUTES = {
   modules: "/api/onboarding/modules",
 } as const;
 
+/** Browser-facing BFF care provider routes (same origin). */
+export const BFF_CARE_PROVIDERS_ROUTES = {
+  list: "/api/care-providers",
+  detail: (uuid: string) => `/api/care-providers/${uuid}`,
+} as const;
+
 /** Browser-facing BFF settings routes (same origin). */
 export const BFF_SETTINGS_ROUTES = {
   updateProfile: "/api/auth/me",
@@ -292,6 +298,8 @@ export const BFF_SETTINGS_ROUTES = {
   eclaimsPractitionerMappings: "/api/integrations/eclaims/practitioner-mappings",
   eclaimsPractitionerMappingsUpsert:
     "/api/integrations/eclaims/practitioner-mappings/upsert",
+  careProviders: "/api/care-providers",
+  careProviderDetail: (uuid: string) => `/api/care-providers/${uuid}`,
 } as const;
 
 /** Browser-facing BFF platform administration routes (same origin). */

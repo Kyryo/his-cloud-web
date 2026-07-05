@@ -38,7 +38,7 @@ export function InvoiceListToolbar(props: InvoiceListToolbarProps) {
         <Input
           id="invoice-search"
           type="search"
-          placeholder="Search by invoice number..."
+          placeholder="Search by invoice number, client, or sales order..."
           value={search}
           disabled={isLoading}
           className="w-full sm:max-w-md"

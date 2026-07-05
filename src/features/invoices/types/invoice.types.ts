@@ -71,7 +71,7 @@ export type Invoice = {
 export type InvoiceListFilters = {
   page?: number;
   pageSize?: number;
-  name?: string;
+  search?: string;
   state?: string;
   dateFrom?: string;
   dateTo?: string;

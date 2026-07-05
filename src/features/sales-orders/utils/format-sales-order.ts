@@ -28,9 +28,14 @@ export function formatSalesOrderPricelist(
   return formatOptionalString(order.pricelist_name, "No pricelist");
 }
 
-export function formatSalesOrderAmount(
+export function formatSalesOrderProvider(
+  order: Pick<SalesOrder, "provider_name">,
+): string {
+  return formatOptionalString(order.provider_name, "Unassigned");
+}
+
+export function formatAmountNumber(
   value: string | number | null | undefined,
-  currencyLabel?: string,
 ): string {
   if (value === null || value === undefined || value === "") {
     return "—";
@@ -41,12 +46,23 @@ export function formatSalesOrderAmount(
     return String(value);
   }
 
-  const formatted = new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
+}
 
-  return currencyLabel ? `${formatted} ${currencyLabel}` : formatted;
+export function formatSalesOrderAmount(
+  value: string | number | null | undefined,
+  currencyLabel?: string,
+): string {
+  const formatted = formatAmountNumber(value);
+
+  if (formatted === "—" || !currencyLabel) {
+    return formatted;
+  }
+
+  return `${formatted} ${currencyLabel}`;
 }
 
 export function formatSalesOrderCurrency(order: SalesOrder): string | undefined {

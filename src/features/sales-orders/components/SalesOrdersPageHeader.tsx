@@ -50,7 +50,7 @@ export function SalesOrdersPageHeader({
         <Input
           id="sales-order-search-mobile"
           type="search"
-          placeholder="Search by order number..."
+          placeholder="Search by order number, client, provider, or reference..."
           value={search}
           disabled={isSearchDisabled}
           onChange={(event) => onSearchChange(event.target.value)}

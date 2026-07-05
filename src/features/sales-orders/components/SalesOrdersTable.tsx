@@ -3,17 +3,22 @@
 import Link from "next/link";
 
 import { HoverPreviewCard } from "@/components/hover-preview-card";
+import {
+  TableAmountCell,
+  TableEntityCell,
+  TableTextCell,
+} from "@/components/table-text-cell";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { SalesOrderStateBadge } from "@/features/sales-orders/components/SalesOrderStatusBadge";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
 import {
-  formatSalesOrderAmount,
   formatSalesOrderClinicName,
   formatSalesOrderCurrency,
   formatSalesOrderCustomer,
   formatSalesOrderDateTime,
   formatSalesOrderPricelist,
+  formatSalesOrderProvider,
 } from "@/features/sales-orders/utils/format-sales-order";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
@@ -27,12 +32,25 @@ type SalesOrdersTableProps = {
 const columns = [
   { key: "order", label: "Order" },
   { key: "customer", label: "Customer" },
-  { key: "clinic", label: "Clinic" },
+  { key: "provider", label: "Provider" },
   { key: "pricelist", label: "Pricelist" },
   { key: "date", label: "Order date" },
   { key: "state", label: "State" },
   { key: "total", label: "Total" },
 ] as const;
+
+function SalesOrderProviderCell({ order }: { order: SalesOrder }) {
+  const providerName = order.provider_name?.trim();
+
+  return (
+    <TableEntityCell
+      name={providerName ?? "?"}
+      label={providerName ?? undefined}
+      unassigned={!providerName}
+      unassignedLabel={formatSalesOrderProvider(order)}
+    />
+  );
+}
 
 function SalesOrderHoverPreview({ order }: { order: SalesOrder }) {
   const currency = formatSalesOrderCurrency(order);
@@ -46,6 +64,8 @@ function SalesOrderHoverPreview({ order }: { order: SalesOrder }) {
       <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
         <dt className="text-brand-muted">Customer</dt>
         <dd>{formatSalesOrderCustomer(order)}</dd>
+        <dt className="text-brand-muted">Provider</dt>
+        <dd>{formatSalesOrderProvider(order)}</dd>
         <dt className="text-brand-muted">Order date</dt>
         <dd>{formatSalesOrderDateTime(order.date_order)}</dd>
         <dt className="text-brand-muted">Clinic</dt>
@@ -57,7 +77,9 @@ function SalesOrderHoverPreview({ order }: { order: SalesOrder }) {
           <SalesOrderStateBadge state={order.state} />
         </dd>
         <dt className="text-brand-muted">Total</dt>
-        <dd>{formatSalesOrderAmount(order.amount_total, currency)}</dd>
+        <dd>
+          <TableAmountCell value={order.amount_total} currency={currency} />
+        </dd>
       </dl>
     </div>
   );
@@ -77,14 +99,17 @@ export function SalesOrdersTable({
         )}
       >
         <div className="overflow-x-auto">
-          <table className="min-w-full">
+          <table className="min-w-full table-fixed">
             <thead>
               <tr className="border-b border-brand-border bg-slate-50/80">
                 {columns.map((column) => (
                   <th
                     key={column.key}
                     scope="col"
-                    className="px-4 py-3 text-left text-sm font-medium text-brand-muted"
+                    className={cn(
+                      "px-4 py-3 text-sm font-medium text-brand-muted",
+                      column.key === "total" ? "text-right" : "text-left",
+                    )}
                   >
                     {column.label}
                   </th>
@@ -95,6 +120,7 @@ export function SalesOrdersTable({
               {orders.map((order) => {
                 const currency = formatSalesOrderCurrency(order);
                 const orderLabel = order.name || `#${order.id}`;
+                const customerName = formatSalesOrderCustomer(order);
 
                 return (
                   <tr
@@ -107,7 +133,8 @@ export function SalesOrdersTable({
                         trigger={
                           <Link
                             href={ROUTES.salesOrderDetail(order.id)}
-                            className="font-mono text-sm font-medium text-brand-navy hover:text-brand-primary hover:underline"
+                            className="block max-w-[10rem] truncate font-mono text-sm font-medium text-brand-navy hover:text-brand-primary hover:underline"
+                            title={orderLabel}
                             onClick={(event) => event.stopPropagation()}
                           >
                             {orderLabel}
@@ -117,23 +144,30 @@ export function SalesOrdersTable({
                         <SalesOrderHoverPreview order={order} />
                       </HoverPreviewCard>
                     </td>
-                    <td className="px-4 py-3 text-sm text-brand-slate">
-                      {formatSalesOrderCustomer(order)}
+                    <td className="px-4 py-3">
+                      <TableEntityCell name={customerName} />
                     </td>
-                    <td className="px-4 py-3 text-sm text-brand-slate">
-                      {formatSalesOrderClinicName(order)}
+                    <td className="px-4 py-3">
+                      <SalesOrderProviderCell order={order} />
                     </td>
-                    <td className="px-4 py-3 text-sm text-brand-slate">
-                      {formatSalesOrderPricelist(order)}
+                    <td className="px-4 py-3">
+                      <TableTextCell className="text-brand-slate">
+                        {formatSalesOrderPricelist(order)}
+                      </TableTextCell>
                     </td>
-                    <td className="px-4 py-3 text-sm text-brand-slate">
-                      {formatSalesOrderDateTime(order.date_order)}
+                    <td className="px-4 py-3">
+                      <TableTextCell className="text-brand-slate">
+                        {formatSalesOrderDateTime(order.date_order)}
+                      </TableTextCell>
                     </td>
                     <td className="px-4 py-3">
                       <SalesOrderStateBadge state={order.state} />
                     </td>
-                    <td className="px-4 py-3 text-sm font-medium text-brand-navy">
-                      {formatSalesOrderAmount(order.amount_total, currency)}
+                    <td className="px-4 py-3">
+                      <TableAmountCell
+                        value={order.amount_total}
+                        currency={currency}
+                      />
                     </td>
                   </tr>
                 );
@@ -170,7 +204,7 @@ export function SalesOrdersPagination({
   const end = Math.min(page * pageSize, totalCount);
 
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-sm text-brand-muted">
         Showing {start}–{end} of {totalCount}
       </p>

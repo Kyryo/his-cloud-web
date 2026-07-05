@@ -1,145 +1,134 @@
 import { ROUTES } from "@/constants/routes";
 
 export const LANDING_PROBLEM = {
-  eyebrow: "The problem",
-  title: "Paper records are costing you more than you think",
+  eyebrow: "The Problem",
+  title: "What paper records are really costing you",
   description:
-    "If any of these sound like your clinic, you're losing revenue, time, and sometimes patient outcomes — every single day.",
+    "Paper doesn't fail all at once. It fails one entry at a time, until the small mistakes become costly problems.",
   items: [
     {
-      title: "Patient records that disappear",
+      title: "Stock disappears",
       description:
-        "Notebooks get lost, damaged, or filled up. When a patient returns, you're starting from scratch.",
+        "Medicines leave the shelf, but no one notices until supplies run out and patients can't get the treatment they need.",
     },
     {
-      title: "An HMIS you can't actually use",
+      title: "Insurance and billing become difficult to manage",
       description:
-        "You bought software once. It crashed, needed constant IT support, or your staff quietly went back to paper.",
+        "Claims are rejected because billing rules were missed. Reconciling insurance payments takes hours of manual work. Staff struggle to see which invoices have been paid, which are still outstanding, and which services have already been provided without payment.",
     },
     {
-      title: "Billing errors you catch too late",
+      title: "Patient records are lost",
       description:
-        "Manual invoicing means missed charges, duplicate entries, and patients disputing bills at the door.",
-    },
-    {
-      title: "Stock-outs nobody saw coming",
-      description:
-        "Your pharmacy runs out of essentials because no one knows what's actually on the shelf in real time.",
-    },
-    {
-      title: "Donor reports that eat a full week",
-      description:
-        "Pulling together data for MOH submissions or donor reports means days of manual spreadsheet work.",
-    },
-    {
-      title: "No visibility into what's really happening",
-      description:
-        "You can't see which services are profitable, which staff are overloaded, or how many patients returned.",
+        "A misplaced file, damaged notebook, or missing page can erase critical patient history when it's needed most.",
     },
   ],
+  summary:
+    "Every missing entry, rejected claim, and lost record costs your clinic time, money, and trust.",
+  closing:
+    "Sigma brings your entire clinic together in one secure platform: patients, billing, insurance, inventory, and finances, from day one.",
+} as const;
+
+export const LANDING_TRUST = {
+  title: "Why clinics trust Sigma with the switch",
+  description:
+    "If you've tried software before and gone back to paper, you're not alone. Most clinic software is built for hospitals with an IT department, not a team of three running a single site.",
+  items: [
+    {
+      title: "No IT team required",
+      description:
+        "Sigma is configured for you and works from any browser. No server, no installation, no dedicated staff to maintain it.",
+    },
+    {
+      title: "Live in under 8 hours",
+      description:
+        "Most clinics are trained and running the same day they sign up.",
+    },
+    {
+      title: "Built for unreliable connectivity",
+      description:
+        "Sigma is designed to keep working through the connectivity conditions clinics actually have.",
+    },
+    {
+      title: "You're never on your own",
+      description:
+        "Free setup support, and a team that answers when something breaks.",
+    },
+  ],
+  closing: "200+ clinics have made the switch. None have gone back.",
+} as const;
+
+export const LANDING_CLINIC_COVER = {
+  imageAlt: "Clinic staff caring for patients in a hospital setting",
+  quote: "Built for the clinics that keep communities healthy. Every day.",
 } as const;
 
 export const LANDING_FEATURES = {
-  eyebrow: "What you get",
-  title: "Everything your clinic needs. Nothing it doesn't.",
+  title: "Run your clinic with confidence",
   description:
-    "Sigma replaces your registers, billing book, pharmacy logbook, and reporting spreadsheets — in one place, accessible from any browser.",
+    "Stop waiting for someone to compile spreadsheets or count stock by hand. Sigma gives you the information you need, when you need it.",
   items: [
     {
-      title: "Patient records & visit history",
+      title: "See your revenue at a glance",
       description:
-        "Every patient gets a permanent digital file — diagnoses, prescriptions, lab results, visit notes. Searchable in seconds, accessible from any device in your clinic.",
+        "Track sales by day, week, month, or year so you always know how your clinic is performing.",
     },
     {
-      title: "Billing & payments",
+      title: "Understand where your income comes from",
       description:
-        "Auto-generate invoices at discharge. Track cash, mobile money, and insurance payments. See outstanding balances at a glance. No more end-of-day reconciliation surprises.",
+        "Instantly see how much revenue comes from cash, insurance, or other payment methods.",
     },
     {
-      title: "Pharmacy & inventory",
+      title: "Monitor insurance claims",
       description:
-        "Know exactly what's in stock. Get low-stock alerts before you run out. Track dispensing linked directly to patient visits so nothing falls through the cracks.",
+        "Track submitted, approved, paid, pending, and rejected claims so you can follow up quickly and improve collections.",
     },
     {
-      title: "Appointments & queuing",
+      title: "Measure provider performance",
       description:
-        "Replace the paper waiting list with a digital queue. Patients check in, staff see who's next, and no one waits three hours wondering where they are.",
+        "See the services delivered and revenue generated by each doctor, nurse, or care provider.",
     },
     {
-      title: "Reports & MOH submissions",
+      title: "Stay in control of your inventory",
       description:
-        "Generate your DHIS2, MOH, or donor reports in one click. The data is already there — Sigma just formats it the way each form requires.",
+        "Know what stock has been dispensed, what is running low, and what needs to be reordered.",
     },
     {
-      title: "Role-based access & audit logs",
+      title: "Prevent expired stock",
       description:
-        "Receptionists see what they need. Doctors see what they need. Administrators see everything. Every action is logged, so accountability isn't just a policy — it's built in.",
+        "Get visibility into medicines and supplies approaching their expiry dates before they become a loss.",
+    },
+    {
+      title: "Identify fast and slow moving items",
+      description:
+        "Understand which products need frequent replenishment and which are tying up valuable cash on your shelves.",
     },
   ],
+  closing:
+    "With Sigma, you spend less time searching for information and more time delivering quality patient care, while running a healthier, more profitable clinic.",
 } as const;
 
 export const LANDING_HOW_IT_WORKS = {
-  eyebrow: "How it works",
-  title: "From signup to first patient: under one day",
-  description:
-    "We've removed every step that typically makes software rollouts fail in under-resourced settings.",
+  title: "How it works",
   steps: [
     {
-      title: "Sign up and configure your clinic",
+      title: "Book a free setup call",
       description:
-        "Tell us your clinic's name, departments, and services. No forms to fax. No sales calls. Takes about 20 minutes from any browser.",
+        "We learn your workflow: patient flow, billing, stock, insurance.",
     },
     {
-      title: "We set it up with you — for free",
+      title: "We configure Sigma for your clinic",
       description:
-        "A Sigma onboarding specialist joins a call with your team, walks through the setup, and answers every question. Included in every plan, in your local language where available.",
+        "Your services, staff roles, billing rules, and inventory, set up for you.",
     },
     {
-      title: "Your staff trains in under two hours",
+      title: "Your team is trained the same day",
       description:
-        "We designed Sigma for staff who aren't tech-savvy. If they can use WhatsApp, they can use Sigma. Your nurses and receptionists self-train using short in-app guides.",
+        "No manual required. Most staff are comfortable within an hour.",
     },
     {
-      title: "See your first results in week one",
+      title: "You're live in under 8 hours",
       description:
-        "Most clinics report fewer billing disputes, shorter patient wait times, and better stock visibility within the first seven days of going live.",
-    },
-  ],
-} as const;
-
-export const LANDING_TESTIMONIALS = {
-  eyebrow: "From the field",
-  title: "Clinics that made the switch",
-  description:
-    "These aren't cherry-picked enterprise hospitals. These are clinics like yours.",
-  items: [
-    {
-      quote:
-        "We went from three paper registers and constant billing arguments to a clean digital system in one afternoon. My nurses trained themselves. I didn't have to do a thing.",
-      initials: "AK",
-      name: "Amara K.",
-      role: "Clinic administrator, Kampala, Uganda",
-    },
-    {
-      quote:
-        "The previous system we tried needed a technician every two weeks. Sigma just works. Our internet isn't great and it still loads fine. We haven't called support once.",
-      initials: "RP",
-      name: "Dr. R. Patel",
-      role: "Medical director, Lusaka, Zambia",
-    },
-    {
-      quote:
-        "Donor reporting used to take my team five days every quarter. Now I export it in about ten minutes. That time goes back to seeing patients.",
-      initials: "MN",
-      name: "Marie N.",
-      role: "Executive director, Lusaka, Zambia",
-    },
-    {
-      quote:
-        "We are a small clinic with 4 staff. I was afraid it would be too complicated. But everything is simple and we got help in Swahili during setup. Very happy.",
-      initials: "JM",
-      name: "Jane M.",
-      role: "Clinic owner, Mombasa, Kenya",
+        "Most clinics see fewer billing disputes and clearer stock visibility within the first week.",
     },
   ],
 } as const;

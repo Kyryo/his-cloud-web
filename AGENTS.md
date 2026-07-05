@@ -623,6 +623,19 @@ Apply this consistently in dialogs, sheets, and full-page forms.
 * Avoid large custom CSS files.
 * Use design tokens consistently.
 
+### Typography
+
+The authenticated app and the marketing site use different typefaces. Do not mix them.
+
+| Surface | Font | How it is applied |
+| --- | --- | --- |
+| Authenticated app (`(app)`, `(admin)`) | **DM Sans** | `appFont` from `@/lib/fonts`, set on the layout wrapper |
+| Marketing / landing (`(brand)`, `data-brand-page`) | **Bricolage Grotesque** | `--font-display` / `font-sans` on the landing layout |
+
+Portaled UI (dialogs, sheets, popovers, select menus, hover cards, etc.) renders **outside** the app layout wrapper. Always add `appFont.className` to the portaled content class list so copy matches the authenticated app — not the landing-page font.
+
+Reference: `CreateSalesOrderDialog`, `TherapyDatePickerField`, `SalesOrderProviderSelector`.
+
 ---
 
 ## 13. Security

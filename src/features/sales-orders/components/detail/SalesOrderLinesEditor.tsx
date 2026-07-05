@@ -14,6 +14,7 @@ import {
 import { formatProductLabel } from "@/features/inventory/utils/format-inventory";
 import { SalesOrderPendingChangesBar } from "@/features/sales-orders/components/detail/SalesOrderPendingChangesBar";
 import { LinePricingBreakdownDialog } from "@/features/sales-orders/components/detail/LinePricingBreakdownDialog";
+import { SalesOrderProviderSelector } from "@/features/sales-orders/components/detail/SalesOrderProviderSelector";
 import { useSalesOrderLinesEditor } from "@/features/sales-orders/hooks/use-sales-order-lines-editor";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
 import {
@@ -60,6 +61,33 @@ function isRowEditing(
   return line.isNew === true || editingRowKey === line.key;
 }
 
+function SalesOrderLinesHeader({
+  order,
+  canEdit,
+  onOrderUpdated,
+  description,
+}: {
+  order: SalesOrder;
+  canEdit: boolean;
+  onOrderUpdated: (order: SalesOrder) => void;
+  description: string;
+}) {
+  return (
+    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+      <div className="space-y-1">
+        <h3 className="text-sm font-semibold text-brand-navy">Line items</h3>
+        <p className="text-xs text-brand-muted">{description}</p>
+      </div>
+      <SalesOrderProviderSelector
+        order={order}
+        canEdit={canEdit}
+        onOrderUpdated={onOrderUpdated}
+        className="shrink-0"
+      />
+    </div>
+  );
+}
+
 export function SalesOrderLinesEditor({
   order,
   isActive,
@@ -102,7 +130,14 @@ export function SalesOrderLinesEditor({
     }
 
     return (
-      <div className="overflow-hidden rounded-xl border border-brand-border bg-white">
+      <>
+        <SalesOrderLinesHeader
+          order={order}
+          canEdit={false}
+          onOrderUpdated={onOrderUpdated}
+          description="Line items on this sales order."
+        />
+        <div className="overflow-hidden rounded-xl border border-brand-border bg-white">
         <div className="overflow-x-auto">
           <table className="min-w-full">
             <thead>
@@ -155,7 +190,8 @@ export function SalesOrderLinesEditor({
             </tfoot>
           </table>
         </div>
-      </div>
+        </div>
+      </>
     );
   }
 
@@ -163,12 +199,12 @@ export function SalesOrderLinesEditor({
 
   return (
     <>
-      <div className="mb-4 space-y-1">
-        <h3 className="text-sm font-semibold text-brand-navy">Line items</h3>
-        <p className="text-xs text-brand-muted">
-          Edit line items inline, then save or discard your changes below.
-        </p>
-      </div>
+      <SalesOrderLinesHeader
+        order={order}
+        canEdit={canEdit}
+        onOrderUpdated={onOrderUpdated}
+        description="Edit line items inline, then save or discard your changes below."
+      />
 
       {!hasRows ? (
         <div className="rounded-xl border border-dashed border-brand-border bg-white px-6 py-14 text-center">

@@ -1,18 +1,15 @@
 "use client";
 
-import Link from "next/link";
-
+import { TableAmountCell, TableEntityCell, TableTextCell } from "@/components/table-text-cell";
 import { Button } from "@/components/ui/button";
 import { InvoicePaymentStatusBadge } from "@/features/invoices/components/InvoicePaymentStatusBadge";
 import { InvoiceStatusBadge } from "@/features/invoices/components/InvoiceStatusBadge";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 import {
-  formatInvoiceAmount,
   formatInvoiceCustomer,
   formatInvoiceDate,
   formatInvoicePricelist,
 } from "@/features/invoices/utils/format-invoice";
-import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 
 type InvoicesTableProps = {
@@ -36,14 +33,17 @@ export function InvoicesTable({ invoices, onRowClick, className }: InvoicesTable
   return (
     <div className={cn("overflow-hidden rounded-xl border border-brand-border bg-white", className)}>
       <div className="overflow-x-auto">
-        <table className="min-w-full">
+        <table className="min-w-full table-fixed">
           <thead>
             <tr className="border-b border-brand-border bg-slate-50/80">
               {columns.map((column) => (
                 <th
                   key={column.key}
                   scope="col"
-                  className="px-4 py-3 text-left text-sm font-medium text-brand-muted"
+                  className={cn(
+                    "px-4 py-3 text-sm font-medium text-brand-muted",
+                    column.key === "total" ? "text-right" : "text-left",
+                  )}
                 >
                   {column.label}
                 </th>
@@ -51,63 +51,62 @@ export function InvoicesTable({ invoices, onRowClick, className }: InvoicesTable
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-border">
-            {invoices.map((invoice) => (
-              <tr
-                key={invoice.id}
-                className={cn(onRowClick && "cursor-pointer hover:bg-slate-50/80")}
-                onClick={() => onRowClick?.(invoice)}
-                data-testid={`invoice-row-${invoice.id}`}
-              >
-                <td className="px-4 py-3 text-sm font-medium text-brand-navy">
-                  {invoice.name || `#${invoice.id}`}
-                </td>
-                <td className="px-4 py-3 text-sm text-brand-slate">
-                  {invoice.customer_uuid ? (
-                    <Link
-                      href={ROUTES.customerDetail(invoice.customer_uuid)}
-                      className="hover:text-brand-primary hover:underline"
-                      onClick={(event) => event.stopPropagation()}
-                    >
-                      {formatInvoiceCustomer(invoice)}
-                    </Link>
-                  ) : (
-                    formatInvoiceCustomer(invoice)
-                  )}
-                </td>
-                <td className="px-4 py-3 text-sm text-brand-slate">
-                  {invoice.sales_order_id ? (
-                    <Link
-                      href={ROUTES.salesOrderDetail(invoice.sales_order_id)}
-                      className="hover:text-brand-primary hover:underline"
-                      onClick={(event) => event.stopPropagation()}
-                    >
-                      {invoice.sales_order_name || `#${invoice.sales_order_id}`}
-                    </Link>
-                  ) : (
-                    "—"
-                  )}
-                </td>
-                <td className="px-4 py-3 text-sm text-brand-slate">
-                  {formatInvoicePricelist(invoice)}
-                </td>
-                <td className="px-4 py-3 text-sm text-brand-slate">
-                  {formatInvoiceDate(invoice.invoice_date)}
-                </td>
-                <td className="px-4 py-3 text-sm">
-                  <InvoiceStatusBadge state={invoice.state} />
-                </td>
-                <td className="px-4 py-3 text-sm">
-                  {invoice.payment_status ? (
-                    <InvoicePaymentStatusBadge status={invoice.payment_status} />
-                  ) : (
-                    "—"
-                  )}
-                </td>
-                <td className="px-4 py-3 text-sm font-medium text-brand-navy">
-                  {formatInvoiceAmount(invoice.amount_total)}
-                </td>
-              </tr>
-            ))}
+            {invoices.map((invoice) => {
+              const invoiceLabel = invoice.name || `#${invoice.id}`;
+              const customerName = formatInvoiceCustomer(invoice);
+              const salesOrderLabel =
+                invoice.sales_order_name || `#${invoice.sales_order_id}`;
+
+              return (
+                <tr
+                  key={invoice.id}
+                  className={cn(onRowClick && "cursor-pointer hover:bg-slate-50/80")}
+                  onClick={() => onRowClick?.(invoice)}
+                  data-testid={`invoice-row-${invoice.id}`}
+                >
+                  <td className="px-4 py-3">
+                    <TableTextCell className="font-medium text-brand-navy">
+                      {invoiceLabel}
+                    </TableTextCell>
+                  </td>
+                  <td className="px-4 py-3">
+                    <TableEntityCell name={customerName} />
+                  </td>
+                  <td className="px-4 py-3">
+                    {invoice.sales_order_id ? (
+                      <TableTextCell className="text-brand-slate" title={salesOrderLabel}>
+                        {salesOrderLabel}
+                      </TableTextCell>
+                    ) : (
+                      <TableTextCell className="text-brand-slate">—</TableTextCell>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <TableTextCell className="text-brand-slate">
+                      {formatInvoicePricelist(invoice)}
+                    </TableTextCell>
+                  </td>
+                  <td className="px-4 py-3">
+                    <TableTextCell className="text-brand-slate">
+                      {formatInvoiceDate(invoice.invoice_date)}
+                    </TableTextCell>
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    <InvoiceStatusBadge state={invoice.state} />
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    {invoice.payment_status ? (
+                      <InvoicePaymentStatusBadge status={invoice.payment_status} />
+                    ) : (
+                      <TableTextCell className="text-brand-slate">—</TableTextCell>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <TableAmountCell value={invoice.amount_total} currency="MWK" />
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -132,7 +131,7 @@ export function InvoicesPagination({
   const hasPrevious = page > 1;
 
   return (
-    <div className="flex items-center justify-between gap-3">
+    <div className="mt-4 flex items-center justify-between gap-3">
       <p className="text-sm text-brand-muted">
         Showing {invoicesRangeLabel(page, pageSize, totalCount)} of {totalCount}
       </p>

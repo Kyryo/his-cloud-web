@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 
+import { TableAmountCell, TableEntityCell, TableTextCell } from "@/components/table-text-cell";
 import { Button } from "@/components/ui/button";
 import { PaymentStatusBadge } from "@/features/payments/components/PaymentStatusBadge";
 import type { Payment } from "@/features/payments/types/payment.types";
 import {
-  formatPaymentAmount,
   formatPaymentCustomer,
   formatPaymentDate,
   formatPaymentMethod,
@@ -34,14 +34,17 @@ export function PaymentsTable({ payments, onRowClick, className }: PaymentsTable
   return (
     <div className={cn("overflow-hidden rounded-xl border border-brand-border bg-white", className)}>
       <div className="overflow-x-auto">
-        <table className="min-w-full">
+        <table className="min-w-full table-fixed">
           <thead>
             <tr className="border-b border-brand-border bg-slate-50/80">
               {columns.map((column) => (
                 <th
                   key={column.key}
                   scope="col"
-                  className="px-4 py-3 text-left text-sm font-medium text-brand-muted"
+                  className={cn(
+                    "px-4 py-3 text-sm font-medium text-brand-muted",
+                    column.key === "amount" ? "text-right" : "text-left",
+                  )}
                 >
                   {column.label}
                 </th>
@@ -49,56 +52,67 @@ export function PaymentsTable({ payments, onRowClick, className }: PaymentsTable
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-border">
-            {payments.map((payment) => (
-              <tr
-                key={payment.id}
-                className={cn(onRowClick && "cursor-pointer hover:bg-slate-50/80")}
-                onClick={() => onRowClick?.(payment)}
-                data-testid={`payment-row-${payment.id}`}
-              >
-                <td className="px-4 py-3 text-sm font-medium text-brand-navy">
-                  {payment.name || `#${payment.id}`}
-                </td>
-                <td className="px-4 py-3 text-sm text-brand-slate">
-                  {payment.customer_uuid ? (
-                    <Link
-                      href={ROUTES.customerDetail(payment.customer_uuid)}
-                      className="hover:text-brand-primary hover:underline"
+            {payments.map((payment) => {
+              const paymentLabel = payment.name || `#${payment.id}`;
+              const customerName = formatPaymentCustomer(payment);
+              const invoiceLabel = payment.invoice_name || `#${payment.invoice_id}`;
+
+              return (
+                <tr
+                  key={payment.id}
+                  className={cn(onRowClick && "cursor-pointer hover:bg-slate-50/80")}
+                  onClick={() => onRowClick?.(payment)}
+                  data-testid={`payment-row-${payment.id}`}
+                >
+                  <td className="px-4 py-3">
+                    <TableTextCell className="font-medium text-brand-navy">
+                      {paymentLabel}
+                    </TableTextCell>
+                  </td>
+                  <td className="px-4 py-3">
+                    <TableEntityCell
+                      name={customerName}
+                      href={
+                        payment.customer_uuid
+                          ? ROUTES.customerDetail(payment.customer_uuid)
+                          : undefined
+                      }
                       onClick={(event) => event.stopPropagation()}
-                    >
-                      {formatPaymentCustomer(payment)}
-                    </Link>
-                  ) : (
-                    formatPaymentCustomer(payment)
-                  )}
-                </td>
-                <td className="px-4 py-3 text-sm text-brand-slate">
-                  {payment.invoice_id ? (
-                    <Link
-                      href={ROUTES.invoiceDetail(payment.invoice_id)}
-                      className="hover:text-brand-primary hover:underline"
-                      onClick={(event) => event.stopPropagation()}
-                    >
-                      {payment.invoice_name || `#${payment.invoice_id}`}
-                    </Link>
-                  ) : (
-                    "—"
-                  )}
-                </td>
-                <td className="px-4 py-3 text-sm text-brand-slate">
-                  {formatPaymentDate(payment.payment_date)}
-                </td>
-                <td className="px-4 py-3 text-sm text-brand-slate">
-                  {formatPaymentMethod(payment.payment_method)}
-                </td>
-                <td className="px-4 py-3 text-sm">
-                  <PaymentStatusBadge state={payment.state} />
-                </td>
-                <td className="px-4 py-3 text-sm font-medium text-brand-navy">
-                  {formatPaymentAmount(payment.amount)}
-                </td>
-              </tr>
-            ))}
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    {payment.invoice_id ? (
+                      <Link
+                        href={ROUTES.invoiceDetail(payment.invoice_id)}
+                        className="block max-w-[12rem] truncate text-sm text-brand-slate hover:text-brand-primary hover:underline"
+                        title={invoiceLabel}
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        {invoiceLabel}
+                      </Link>
+                    ) : (
+                      <TableTextCell className="text-brand-slate">—</TableTextCell>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
+                    <TableTextCell className="text-brand-slate">
+                      {formatPaymentDate(payment.payment_date)}
+                    </TableTextCell>
+                  </td>
+                  <td className="px-4 py-3">
+                    <TableTextCell className="text-brand-slate">
+                      {formatPaymentMethod(payment.payment_method)}
+                    </TableTextCell>
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    <PaymentStatusBadge state={payment.state} />
+                  </td>
+                  <td className="px-4 py-3">
+                    <TableAmountCell value={payment.amount} currency="MWK" />
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -123,7 +137,7 @@ export function PaymentsPagination({
   const hasPrevious = page > 1;
 
   return (
-    <div className="flex items-center justify-between gap-3">
+    <div className="mt-4 flex items-center justify-between gap-3">
       <p className="text-sm text-brand-muted">
         Showing {paymentsRangeLabel(page, pageSize, totalCount)} of {totalCount}
       </p>

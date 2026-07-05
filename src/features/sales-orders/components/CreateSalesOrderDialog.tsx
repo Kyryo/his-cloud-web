@@ -5,8 +5,11 @@ import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
+import { PrimaryButton, SecondaryButton, TabAddActionButton } from "@/components/ui/app-buttons";
 import { TabbedDialog } from "@/components/ui/tabbed-dialog";
+import { CareProviderPicker } from "@/features/care-providers/components/CareProviderPicker";
+import type { CareProviderRecord } from "@/features/care-providers/types/care-provider.types";
+import { CreateCustomerDialog } from "@/features/customers/components/CreateCustomerDialog";
 import { CustomerAppointmentPicker } from "@/features/customers/components/CustomerAppointmentPicker";
 import type { Customer } from "@/features/customers/types/customer.types";
 import {
@@ -61,8 +64,10 @@ export function CreateSalesOrderDialog({
   const [activeTab, setActiveTab] = useState<CreateSalesOrderTab>("general");
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [visit, setVisit] = useState<VisitDetail | null>(null);
+  const [provider, setProvider] = useState<CareProviderRecord | null>(null);
   const [pricelist, setPricelist] = useState<OrganizationPricelist | null>(null);
   const [isResolvingVisitPricelist, setIsResolvingVisitPricelist] = useState(false);
+  const [createCustomerOpen, setCreateCustomerOpen] = useState(false);
   const form = useForm<CreateSalesOrderFormValues>({
     resolver: zodResolver(createSalesOrderSchema),
     defaultValues: createSalesOrderDefaultValues,
@@ -79,8 +84,10 @@ export function CreateSalesOrderDialog({
     setActiveTab("general");
     setCustomer(null);
     setVisit(null);
+    setProvider(null);
     setPricelist(null);
     setIsResolvingVisitPricelist(false);
+    setCreateCustomerOpen(false);
     form.reset(createSalesOrderDefaultValues);
   }
 
@@ -124,6 +131,7 @@ export function CreateSalesOrderDialog({
   function handleCustomerChange(nextCustomer: Customer | null) {
     setCustomer(nextCustomer);
     setVisit(null);
+    setProvider(null);
     setPricelist(null);
     if (!nextCustomer && activeTab === "visit") {
       setActiveTab("general");
@@ -156,6 +164,7 @@ export function CreateSalesOrderDialog({
           clinicName: visit ? null : userData?.primary_clinic?.name ?? null,
           visitId: visit?.id ?? null,
           pricelistId: null,
+          providerId: provider?.id ?? null,
           values,
         }),
       );
@@ -292,7 +301,16 @@ export function CreateSalesOrderDialog({
           {activeTab === "general" ? (
             <>
               <div className="space-y-2">
-                <FormLabel>Client</FormLabel>
+                <div className="flex items-center justify-between gap-3">
+                  <FormLabel>Client</FormLabel>
+                  <TabAddActionButton
+                    type="button"
+                    label="New client"
+                    disabled={isBusy}
+                    onClick={() => setCreateCustomerOpen(true)}
+                    data-testid="create-sales-order-new-client"
+                  />
+                </div>
                 <CustomerAppointmentPicker
                   customer={customer}
                   onCustomerChange={handleCustomerChange}
@@ -316,6 +334,16 @@ export function CreateSalesOrderDialog({
                     <FormMessage />
                   </FormItem>
                 )}
+              />
+
+              <CareProviderPicker
+                provider={provider}
+                onProviderChange={(nextProvider) => {
+                  setProvider(nextProvider);
+                  form.setValue("providerId", nextProvider?.id ?? null);
+                }}
+                clinicId={userData?.primary_clinic?.id ?? null}
+                disabled={isBusy}
               />
 
               <FormField
@@ -356,6 +384,15 @@ export function CreateSalesOrderDialog({
           )}
         </form>
       </Form>
+
+      <CreateCustomerDialog
+        open={createCustomerOpen}
+        onOpenChange={setCreateCustomerOpen}
+        onCreated={(createdCustomer) => {
+          handleCustomerChange(createdCustomer);
+          setCreateCustomerOpen(false);
+        }}
+      />
     </TabbedDialog>
   );
 }

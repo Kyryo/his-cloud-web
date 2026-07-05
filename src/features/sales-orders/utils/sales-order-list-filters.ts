@@ -9,9 +9,15 @@ export type SalesOrderInvoiceStatusFilter =
   | "invoiced"
   | "upselling";
 
+export type SalesOrderProviderFilter = "all" | "none" | `${number}`;
+
+export type SalesOrderClinicFilter = "all" | `${number}`;
+
 export type SalesOrderListFilterState = {
   state: SalesOrderStateFilter;
   invoiceStatus: SalesOrderInvoiceStatusFilter;
+  providerId: SalesOrderProviderFilter;
+  clinicId: SalesOrderClinicFilter;
   dateFrom: string;
   dateTo: string;
 };
@@ -19,6 +25,8 @@ export type SalesOrderListFilterState = {
 export const DEFAULT_SALES_ORDER_LIST_FILTERS: SalesOrderListFilterState = {
   state: "all",
   invoiceStatus: "all",
+  providerId: "all",
+  clinicId: "all",
   dateFrom: "",
   dateTo: "",
 };
@@ -36,7 +44,7 @@ export function buildSalesOrderListFilters(input: {
 
   const trimmedSearch = input.search.trim();
   if (trimmedSearch) {
-    result.name = trimmedSearch;
+    result.search = trimmedSearch;
   }
 
   if (input.filters.state !== "all") {
@@ -45,6 +53,16 @@ export function buildSalesOrderListFilters(input: {
 
   if (input.filters.invoiceStatus !== "all") {
     result.invoiceStatus = input.filters.invoiceStatus;
+  }
+
+  if (input.filters.providerId === "none") {
+    result.hasProvider = false;
+  } else if (input.filters.providerId !== "all") {
+    result.providerId = Number(input.filters.providerId);
+  }
+
+  if (input.filters.clinicId !== "all") {
+    result.clinicId = Number(input.filters.clinicId);
   }
 
   if (input.filters.dateFrom) {
@@ -68,6 +86,14 @@ export function countActiveSalesOrderFilters(
   }
 
   if (filters.invoiceStatus !== "all") {
+    count += 1;
+  }
+
+  if (filters.providerId !== "all") {
+    count += 1;
+  }
+
+  if (filters.clinicId !== "all") {
     count += 1;
   }
 

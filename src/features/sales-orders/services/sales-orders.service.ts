@@ -8,6 +8,7 @@ import type {
   SalesOrdersListResponse,
   UpdateSalesOrderLinePayload,
   UpdateSalesOrderLinePricePayload,
+  UpdateSalesOrderPayload,
 } from "@/features/sales-orders/types/sales-order.types";
 import { bffRequest } from "@/lib/bff-client";
 
@@ -22,8 +23,8 @@ function buildSalesOrdersQuery(filters: SalesOrderListFilters = {}): string {
     params.set("page_size", String(filters.pageSize));
   }
 
-  if (filters.name?.trim()) {
-    params.set("name", filters.name.trim());
+  if (filters.search?.trim()) {
+    params.set("search", filters.search.trim());
   }
 
   if (filters.state) {
@@ -50,6 +51,18 @@ function buildSalesOrdersQuery(filters: SalesOrderListFilters = {}): string {
     params.set("visit_id", String(filters.visitId));
   }
 
+  if (filters.providerId) {
+    params.set("provider_id", String(filters.providerId));
+  }
+
+  if (filters.hasProvider === false) {
+    params.set("has_provider", "false");
+  }
+
+  if (filters.clinicId) {
+    params.set("clinic_id", String(filters.clinicId));
+  }
+
   const query = params.toString();
   return query ? `?${query}` : "";
 }
@@ -71,6 +84,16 @@ export async function createSalesOrder(
 ): Promise<SalesOrder> {
   return bffRequest<SalesOrder>(BFF_SALES_ORDERS_ROUTES.list, {
     method: "POST",
+    body: payload,
+  });
+}
+
+export async function updateSalesOrder(
+  orderId: number | string,
+  payload: UpdateSalesOrderPayload,
+): Promise<SalesOrder> {
+  return bffRequest<SalesOrder>(BFF_SALES_ORDERS_ROUTES.detail(orderId), {
+    method: "PATCH",
     body: payload,
   });
 }

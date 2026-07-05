@@ -36,6 +36,8 @@ export type SalesOrder = {
   visit_uuid: string | null;
   provider_id: number | null;
   provider_name: string | null;
+  provider_user_id?: number | null;
+  provider_has_user?: boolean;
   insurance_scheme_id: number | null;
   insurance_scheme_name: string | null;
   insurance_company: string | null;
@@ -92,24 +94,33 @@ export type CreateSalesOrderInvoiceResponse = {
 export type SalesOrderListFilters = {
   page?: number;
   pageSize?: number;
-  name?: string;
+  search?: string;
   state?: string;
   invoiceStatus?: string;
   dateFrom?: string;
   dateTo?: string;
   customerId?: number;
   visitId?: number;
+  providerId?: number;
+  hasProvider?: boolean;
+  clinicId?: number;
 };
 
 export type SalesOrdersListResponse = PaginatedListResponse<SalesOrder>;
 
 export type CreateSalesOrderPayload = {
   customer_id: number;
+  visit_id?: number;
   pricelist_id?: number;
   clinic_id?: number;
   clinic_name?: string;
+  provider_id?: number;
   client_order_ref?: string;
   note?: string;
+};
+
+export type UpdateSalesOrderPayload = {
+  provider_id?: number | null;
 };
 
 export type CreateSalesOrderLinePayload = {

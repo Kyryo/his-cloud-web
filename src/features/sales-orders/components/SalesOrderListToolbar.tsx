@@ -36,7 +36,7 @@ export function SalesOrderListToolbar({
         <Input
           id="sales-order-search"
           type="search"
-          placeholder="Search by order number..."
+          placeholder="Search by order number, client, provider, or reference..."
           value={search}
           disabled={isLoading}
           className="w-full sm:max-w-md"

@@ -267,7 +267,8 @@ export type OrganizationTabId =
   | "branding"
   | "departments"
   | "clinics"
-  | "locations";
+  | "locations"
+  | "care-providers";
 
 export type UserManagementTabId = "users" | "groups";
 

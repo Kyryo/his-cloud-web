@@ -20,7 +20,7 @@ export type Payment = {
 export type PaymentListFilters = {
   page?: number;
   pageSize?: number;
-  name?: string;
+  search?: string;
   state?: string;
   paymentMethod?: string;
   dateFrom?: string;

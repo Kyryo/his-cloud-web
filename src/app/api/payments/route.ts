@@ -7,6 +7,7 @@ import { requireAccessToken } from "@/lib/server/require-access-token";
 const FORWARDED_QUERY_KEYS = [
   "page",
   "page_size",
+  "search",
   "name",
   "state",
   "payment_method",

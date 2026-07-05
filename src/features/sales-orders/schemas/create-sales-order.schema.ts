@@ -3,6 +3,7 @@ import { z } from "zod";
 export const createSalesOrderSchema = z.object({
   clientOrderRef: z.string().trim().max(255, "Reference is too long"),
   note: z.string().trim().max(1000, "Notes are too long"),
+  providerId: z.number().int().positive().optional().nullable(),
 });
 
 export type CreateSalesOrderFormValues = z.infer<typeof createSalesOrderSchema>;
@@ -10,6 +11,7 @@ export type CreateSalesOrderFormValues = z.infer<typeof createSalesOrderSchema>;
 export const createSalesOrderDefaultValues: CreateSalesOrderFormValues = {
   clientOrderRef: "",
   note: "",
+  providerId: null,
 };
 
 export function toCreateSalesOrderPayload(input: {
@@ -19,6 +21,7 @@ export function toCreateSalesOrderPayload(input: {
   visitId?: number | null;
   pricelistId?: number | null;
   values: CreateSalesOrderFormValues;
+  providerId?: number | null;
 }) {
   return {
     customer_id: input.customerId,
@@ -26,6 +29,7 @@ export function toCreateSalesOrderPayload(input: {
     pricelist_id: input.pricelistId ?? undefined,
     clinic_id: input.clinicId ?? undefined,
     clinic_name: input.clinicName ?? undefined,
+    provider_id: input.providerId ?? input.values.providerId ?? undefined,
     client_order_ref: input.values.clientOrderRef || undefined,
     note: input.values.note || undefined,
   };

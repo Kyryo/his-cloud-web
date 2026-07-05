@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import {
   DetailPageAsidePanelHeader,
   DetailPageAsidePanelSection,
@@ -29,11 +31,13 @@ import {
   sumSalesOrderClientDue,
   sumSalesOrderInsurerDue,
 } from "@/features/sales-orders/utils/sum-sales-order-billing";
+import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 
 type SalesOrderSummaryPanelProps = {
   order: SalesOrder;
   className?: string;
+  onOrderUpdated?: (order: SalesOrder) => void;
 };
 
 export function SalesOrderSummaryPanel({
@@ -48,6 +52,21 @@ export function SalesOrderSummaryPanel({
   const insurerDueTotal = sumSalesOrderInsurerDue(order);
   const clientDueTotal = sumSalesOrderClientDue(order);
   const showPaymentSplit = hasSalesOrderPaymentSplit(order);
+
+  const providerValue = order.provider_name?.trim() ? (
+    order.provider_has_user && order.provider_user_id ? (
+      <Link
+        href={ROUTES.settingsUserManagement}
+        className="text-brand-primary hover:underline"
+      >
+        {order.provider_name}
+      </Link>
+    ) : (
+      order.provider_name
+    )
+  ) : (
+    "—"
+  );
 
   return (
     <DetailPageAsidePanelSection className={cn(className)}>
@@ -111,12 +130,7 @@ export function SalesOrderSummaryPanel({
           label="Pricelist"
           value={formatSalesOrderPricelist(order)}
         />
-        {order.provider_name ? (
-          <DetailPageAsideSummaryField
-            label="Provider"
-            value={order.provider_name}
-          />
-        ) : null}
+        <DetailPageAsideSummaryField label="Provider" value={providerValue} />
         {hasInsuranceDetails ? (
           <>
             <DetailPageAsideSummaryField label="Insurance" value={insuranceLabel} />

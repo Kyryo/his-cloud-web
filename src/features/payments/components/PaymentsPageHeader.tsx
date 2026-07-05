@@ -36,7 +36,7 @@ export function PaymentsPageHeader({
         <Input
           id="payment-search-mobile"
           type="search"
-          placeholder="Search by payment reference..."
+          placeholder="Search by payment reference, client, invoice, or method..."
           value={search}
           disabled={isSearchDisabled}
           onChange={(event) => onSearchChange(event.target.value)}

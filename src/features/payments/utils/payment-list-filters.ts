@@ -27,7 +27,7 @@ export function buildPaymentListFilters(input: {
 
   const trimmedSearch = input.search.trim();
   if (trimmedSearch) {
-    result.name = trimmedSearch;
+    result.search = trimmedSearch;
   }
 
   if (input.filters.state !== "all") {

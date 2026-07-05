@@ -7,6 +7,7 @@ import { requireAccessToken } from "@/lib/server/require-access-token";
 const FORWARDED_QUERY_KEYS = [
   "page",
   "page_size",
+  "search",
   "name",
   "state",
   "invoice_status",
@@ -14,6 +15,9 @@ const FORWARDED_QUERY_KEYS = [
   "date_to",
   "customer_id",
   "visit_id",
+  "provider_id",
+  "has_provider",
+  "clinic_id",
 ] as const;
 
 function buildUpstreamQuery(request: Request): string {

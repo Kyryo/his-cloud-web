@@ -36,7 +36,7 @@ export function InvoicesPageHeader({
         <Input
           id="invoice-search-mobile"
           type="search"
-          placeholder="Search by invoice number..."
+          placeholder="Search by invoice number, client, or sales order..."
           value={search}
           disabled={isSearchDisabled}
           onChange={(event) => onSearchChange(event.target.value)}

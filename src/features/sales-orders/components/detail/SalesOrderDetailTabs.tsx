@@ -79,6 +79,7 @@ export function SalesOrderDetailTabs({
 
         <SalesOrderSummaryPanel
           order={order}
+          onOrderUpdated={onOrderUpdated}
           className={cn(!showSummaryPanel && "hidden xl:block")}
         />
       </DetailPageMainAsideGrid>

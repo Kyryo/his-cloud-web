@@ -38,7 +38,7 @@ export function PaymentListToolbar(props: PaymentListToolbarProps) {
         <Input
           id="payment-search"
           type="search"
-          placeholder="Search by payment reference..."
+          placeholder="Search by payment reference, client, invoice, or method..."
           value={search}
           disabled={isLoading}
           className="w-full sm:max-w-md"

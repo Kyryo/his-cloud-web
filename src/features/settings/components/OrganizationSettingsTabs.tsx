@@ -7,6 +7,7 @@ import {
   DetailPageTabsNavSection,
 } from "@/features/app-shell/components/page-layout";
 import { OrganizationBrandingTab } from "@/features/settings/components/OrganizationBrandingTab";
+import { OrganizationCareProvidersTab } from "@/features/settings/components/OrganizationCareProvidersTab";
 import { OrganizationClinicsTab } from "@/features/settings/components/OrganizationClinicsTab";
 import { OrganizationDepartmentsTab } from "@/features/settings/components/OrganizationDepartmentsTab";
 import { OrganizationGeneralTab } from "@/features/settings/components/OrganizationGeneralTab";
@@ -22,6 +23,7 @@ const tabs: Array<{ id: OrganizationTabId; label: string }> = [
   { id: "clinics", label: "Clinics" },
   { id: "departments", label: "Departments" },
   { id: "locations", label: "Locations" },
+  { id: "care-providers", label: "Care providers" },
 ];
 
 type OrganizationSettingsTabsProps = {
@@ -57,6 +59,7 @@ export function OrganizationSettingsTabs({
         <OrganizationClinicsTab isActive={activeTab === "clinics"} />
         <OrganizationDepartmentsTab isActive={activeTab === "departments"} />
         <OrganizationLocationsTab isActive={activeTab === "locations"} />
+        <OrganizationCareProvidersTab isActive={activeTab === "care-providers"} />
       </div>
     </div>
   );

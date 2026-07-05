@@ -16,8 +16,8 @@ function buildPaymentsQuery(filters: PaymentListFilters = {}): string {
   if (filters.pageSize) {
     params.set("page_size", String(filters.pageSize));
   }
-  if (filters.name) {
-    params.set("name", filters.name);
+  if (filters.search?.trim()) {
+    params.set("search", filters.search.trim());
   }
   if (filters.state) {
     params.set("state", filters.state);

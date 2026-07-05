@@ -1,7 +1,7 @@
 "use client";
 
 import { SlidersHorizontal } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { FilterSelectField } from "@/components/filter-select-field";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { fetchCareProviderRecords } from "@/features/care-providers/services/care-providers.service";
+import { fetchClinicalClinics } from "@/features/clinical/services/clinical-catalog.service";
 import type { SalesOrderListFilterState } from "@/features/sales-orders/utils/sales-order-list-filters";
 import {
   countActiveSalesOrderFilters,
@@ -38,10 +40,64 @@ export function SalesOrderFiltersSheet({
 }: SalesOrderFiltersSheetProps) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(filters);
+  const [providerOptions, setProviderOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([{ value: "all", label: "All providers" }]);
+  const [clinicOptions, setClinicOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([{ value: "all", label: "All clinics" }]);
   const activeCount = useMemo(
     () => countActiveSalesOrderFilters(filters),
     [filters],
   );
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const [providersResponse, clinics] = await Promise.all([
+          fetchCareProviderRecords({ isActive: true }),
+          fetchClinicalClinics(),
+        ]);
+        if (cancelled) {
+          return;
+        }
+
+        setProviderOptions([
+          { value: "all", label: "All providers" },
+          { value: "none", label: "Unassigned" },
+          ...providersResponse.results.map((provider) => ({
+            value: String(provider.id),
+            label: provider.display_name,
+          })),
+        ]);
+        setClinicOptions([
+          { value: "all", label: "All clinics" },
+          ...clinics.map((clinic) => ({
+            value: String(clinic.id),
+            label: clinic.name,
+          })),
+        ]);
+      } catch {
+        if (!cancelled) {
+          setProviderOptions([
+            { value: "all", label: "All providers" },
+            { value: "none", label: "Unassigned" },
+          ]);
+          setClinicOptions([{ value: "all", label: "All clinics" }]);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
 
   function handleOpenChange(nextOpen: boolean) {
     if (nextOpen) {
@@ -84,7 +140,8 @@ export function SalesOrderFiltersSheet({
           <SheetHeader className="border-b border-brand-border px-6 py-5">
             <SheetTitle>Filter sales orders</SheetTitle>
             <SheetDescription>
-              Narrow the list by order state, invoice status, or date range.
+              Narrow the list by order state, invoice status, clinic, provider, or
+              date range.
             </SheetDescription>
           </SheetHeader>
 
@@ -111,6 +168,32 @@ export function SalesOrderFiltersSheet({
                 setDraft((current) => ({
                   ...current,
                   invoiceStatus: value as SalesOrderListFilterState["invoiceStatus"],
+                }))
+              }
+            />
+
+            <FilterSelectField
+              id="sales-order-filter-clinic"
+              label="Clinic"
+              value={draft.clinicId}
+              options={clinicOptions}
+              onValueChange={(value) =>
+                setDraft((current) => ({
+                  ...current,
+                  clinicId: value as SalesOrderListFilterState["clinicId"],
+                }))
+              }
+            />
+
+            <FilterSelectField
+              id="sales-order-filter-provider"
+              label="Provider"
+              value={draft.providerId}
+              options={providerOptions}
+              onValueChange={(value) =>
+                setDraft((current) => ({
+                  ...current,
+                  providerId: value as SalesOrderListFilterState["providerId"],
                 }))
               }
             />

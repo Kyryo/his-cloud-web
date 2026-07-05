@@ -26,3 +26,27 @@ export async function GET(_request: Request, context: RouteContext) {
     return bffError(error);
   }
 }
+
+export async function PATCH(request: Request, context: RouteContext) {
+  try {
+    const auth = await requireAccessToken();
+    if ("error" in auth) {
+      return auth.error;
+    }
+
+    const { orderId } = await context.params;
+    const body = await request.json();
+    const order = await hmisApiRequest<SalesOrder>(
+      SALES_ORDERS_API_PATHS.detail(orderId),
+      {
+        method: "PATCH",
+        token: auth.accessToken,
+        body,
+      },
+    );
+
+    return bffSuccess(order);
+  } catch (error) {
+    return bffError(error);
+  }
+}
