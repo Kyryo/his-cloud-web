@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, Edit, RefreshCw } from "lucide-react";
+import { ArrowLeft, Edit } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
@@ -20,6 +20,7 @@ import {
   ListPageDataTableHeaderRow,
   ListPageDataTableRow,
 } from "@/features/app-shell/components/page-layout";
+import { PlatformAdminTenantUsageTab } from "@/features/platform-admin/components/PlatformAdminTenantUsageTab";
 import { PlatformAdminStatusBadge } from "@/features/platform-admin/components/PlatformAdminStatusBadge";
 import { PlatformAdminStatusDialog } from "@/features/platform-admin/components/PlatformAdminStatusDialog";
 import { PlatformAdminTenantDialog } from "@/features/platform-admin/components/PlatformAdminTenantDialog";
@@ -47,7 +48,13 @@ import type {
 } from "@/features/platform-admin/types/platform-admin.types";
 import { cn } from "@/lib/utils";
 
-type TenantDetailTab = "profile" | "structure" | "users" | "configuration" | "audit";
+type TenantDetailTab =
+  | "usage"
+  | "profile"
+  | "structure"
+  | "users"
+  | "configuration"
+  | "audit";
 type ActionStatus = Exclude<PlatformAdminTenantStatus, "PENDING">;
 
 export function PlatformAdminTenantDetailPage({
@@ -64,9 +71,8 @@ export function PlatformAdminTenantDetailPage({
   const [configuration, setConfiguration] =
     useState<PlatformAdminTenantConfiguration | null>(null);
   const [auditEvents, setAuditEvents] = useState<PlatformAdminAuditEvent[]>([]);
-  const [activeTab, setActiveTab] = useState<TenantDetailTab>("profile");
+  const [activeTab, setActiveTab] = useState<TenantDetailTab>("usage");
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
@@ -74,7 +80,6 @@ export function PlatformAdminTenantDetailPage({
 
   const load = useCallback(async () => {
     setError(null);
-    setIsRefreshing(true);
     try {
       const [
         tenantData,
@@ -104,7 +109,6 @@ export function PlatformAdminTenantDetailPage({
       setError(err instanceof Error ? err.message : "Unable to load tenant.");
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
     }
   }, [tenantUuid]);
 
@@ -163,7 +167,7 @@ export function PlatformAdminTenantDetailPage({
             <Button
               variant="ghost"
               className="px-0"
-              onClick={() => router.push(ROUTES.platformAdmin)}
+              onClick={() => router.push(ROUTES.platformAdminTenants)}
             >
               <ArrowLeft className="mr-2 size-4" />
               Tenants
@@ -185,10 +189,6 @@ export function PlatformAdminTenantDetailPage({
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => void load()} disabled={isRefreshing}>
-              <RefreshCw className="mr-2 size-4" />
-              Refresh
-            </Button>
             <Button variant="outline" onClick={() => setEditOpen(true)}>
               <Edit className="mr-2 size-4" />
               Edit
@@ -222,6 +222,9 @@ export function PlatformAdminTenantDetailPage({
       </div>
 
       <div className="mt-6">
+        {activeTab === "usage" ? (
+          <PlatformAdminTenantUsageTab tenantUuid={tenantUuid} />
+        ) : null}
         {activeTab === "profile" ? <ProfileTab tenant={tenant} /> : null}
         {activeTab === "structure" ? (
           <StructureTab
@@ -258,6 +261,7 @@ export function PlatformAdminTenantDetailPage({
 }
 
 const TABS: Array<{ id: TenantDetailTab; label: string }> = [
+  { id: "usage", label: "Usage" },
   { id: "profile", label: "Profile" },
   { id: "structure", label: "Structure" },
   { id: "users", label: "Users" },
@@ -341,13 +345,14 @@ function UsersTab({ users }: { users: PlatformAdminUser[] }) {
   return (
     <SimpleTable
       title="Tenant users"
-      columns={["Name", "Email", "Role", "Admin", "Last login"]}
+      columns={["Name", "Email", "Role", "Admin", "Status", "Last login"]}
       rows={users.map((user) => [
         user.name,
         user.email,
         user.user_role || "Unassigned",
         user.is_admin ? "Yes" : "No",
-        `${user.is_active ? "Active" : "Inactive"} - ${user.last_login_display}`,
+        user.is_active ? "Active" : "Inactive",
+        user.last_login_display,
       ])}
     />
   );

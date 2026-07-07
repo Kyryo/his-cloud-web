@@ -1,5 +1,5 @@
-import { PlatformAdminDashboardPage } from "@/features/platform-admin/pages/PlatformAdminDashboardPage";
+import { PlatformAdminOverviewPage } from "@/features/platform-admin/pages/PlatformAdminOverviewPage";
 
 export default function Page() {
-  return <PlatformAdminDashboardPage />;
+  return <PlatformAdminOverviewPage />;
 }

@@ -2,15 +2,24 @@ import { BFF_PLATFORM_ADMIN_ROUTES } from "@/constants/api";
 import { bffRequest } from "@/lib/bff-client";
 import type {
   PlatformAdminAuditEvent,
+  PlatformAdminCashSnapshot,
+  PlatformAdminCashSnapshotPayload,
   PlatformAdminClinic,
   PlatformAdminDashboard,
   PlatformAdminDepartment,
   PlatformAdminListResponse,
   PlatformAdminLocation,
+  PlatformAdminOperatingCost,
+  PlatformAdminOperatingCostPayload,
+  PlatformAdminOverview,
   PlatformAdminTenant,
   PlatformAdminTenantConfiguration,
   PlatformAdminTenantPayload,
+  PlatformAdminTenantPayment,
+  PlatformAdminTenantPaymentPayload,
   PlatformAdminTenantStatus,
+  PlatformAdminUsageFilters,
+  PlatformAdminUsageResponse,
   PlatformAdminUser,
 } from "@/features/platform-admin/types/platform-admin.types";
 
@@ -136,5 +145,56 @@ export async function fetchPlatformAdminTenantAuditEvents(
 ): Promise<PlatformAdminListResponse<PlatformAdminAuditEvent>> {
   return bffRequest<PlatformAdminListResponse<PlatformAdminAuditEvent>>(
     `${BFF_PLATFORM_ADMIN_ROUTES.tenantAuditEvents(tenantUuid)}?page_size=100`,
+  );
+}
+
+function buildUsageQuery(filters: PlatformAdminUsageFilters): string {
+  const params = new URLSearchParams();
+  params.set("date_from", filters.dateFrom);
+  params.set("date_to", filters.dateTo);
+  if (filters.period) {
+    params.set("period", filters.period);
+  }
+  return `?${params.toString()}`;
+}
+
+export async function fetchPlatformAdminTenantUsage(
+  tenantUuid: string,
+  filters: PlatformAdminUsageFilters,
+): Promise<PlatformAdminUsageResponse> {
+  return bffRequest<PlatformAdminUsageResponse>(
+    `${BFF_PLATFORM_ADMIN_ROUTES.tenantUsage(tenantUuid)}${buildUsageQuery(filters)}`,
+  );
+}
+
+export async function fetchPlatformAdminOverview():
+  Promise<PlatformAdminOverview> {
+  return bffRequest<PlatformAdminOverview>(BFF_PLATFORM_ADMIN_ROUTES.overview);
+}
+
+export async function createPlatformAdminTenantPayment(
+  payload: PlatformAdminTenantPaymentPayload,
+): Promise<PlatformAdminTenantPayment> {
+  return bffRequest<PlatformAdminTenantPayment>(
+    BFF_PLATFORM_ADMIN_ROUTES.financeTenantPayments,
+    { method: "POST", body: payload },
+  );
+}
+
+export async function createPlatformAdminOperatingCost(
+  payload: PlatformAdminOperatingCostPayload,
+): Promise<PlatformAdminOperatingCost> {
+  return bffRequest<PlatformAdminOperatingCost>(
+    BFF_PLATFORM_ADMIN_ROUTES.financeOperatingCosts,
+    { method: "POST", body: payload },
+  );
+}
+
+export async function createPlatformAdminCashSnapshot(
+  payload: PlatformAdminCashSnapshotPayload,
+): Promise<PlatformAdminCashSnapshot> {
+  return bffRequest<PlatformAdminCashSnapshot>(
+    BFF_PLATFORM_ADMIN_ROUTES.financeCashSnapshots,
+    { method: "POST", body: payload },
   );
 }

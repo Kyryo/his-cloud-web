@@ -17,6 +17,9 @@ const DEFAULT_QUERY_KEYS = [
   "user_role",
   "action",
   "target_model",
+  "date_from",
+  "date_to",
+  "period",
 ] as const;
 
 export function buildPlatformAdminQuery(request: Request): string {

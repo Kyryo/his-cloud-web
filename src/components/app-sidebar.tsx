@@ -40,7 +40,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <NavMain items={navItems} />
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border bg-sidebar-accent/70 p-2">
+      <SidebarFooter className="border-t border-sidebar-border bg-sidebar p-2">
         <NavUser />
       </SidebarFooter>
       <SidebarRail />

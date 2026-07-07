@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, Plus, RefreshCw, Search, Users } from "lucide-react";
+import { Building2, Plus, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -40,6 +40,7 @@ import {
 import { PlatformAdminStatusBadge } from "@/features/platform-admin/components/PlatformAdminStatusBadge";
 import { PlatformAdminStatusDialog } from "@/features/platform-admin/components/PlatformAdminStatusDialog";
 import { PlatformAdminTenantDialog } from "@/features/platform-admin/components/PlatformAdminTenantDialog";
+import { PlatformAdminUsageBadge } from "@/features/platform-admin/components/PlatformAdminUsageBadge";
 import {
   createPlatformAdminTenant,
   fetchPlatformAdminDashboard,
@@ -57,7 +58,7 @@ const PAGE_SIZE = 20;
 
 type ActionStatus = Exclude<PlatformAdminTenantStatus, "PENDING">;
 
-export function PlatformAdminDashboardPage() {
+export function PlatformAdminTenantsPage() {
   const router = useRouter();
   const [dashboard, setDashboard] = useState<PlatformAdminDashboard | null>(null);
   const [tenants, setTenants] = useState<PlatformAdminTenant[]>([]);
@@ -69,7 +70,6 @@ export function PlatformAdminDashboardPage() {
   const [activeSearch, setActiveSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -89,7 +89,6 @@ export function PlatformAdminDashboardPage() {
 
   const load = useCallback(async () => {
     setError(null);
-    setIsRefreshing(true);
     try {
       const [dashboardData, tenantData] = await Promise.all([
         fetchPlatformAdminDashboard(),
@@ -104,7 +103,6 @@ export function PlatformAdminDashboardPage() {
       setError(err instanceof Error ? err.message : "Unable to load tenants.");
     } finally {
       setIsLoading(false);
-      setIsRefreshing(false);
     }
   }, [listOptions]);
 
@@ -151,7 +149,7 @@ export function PlatformAdminDashboardPage() {
       <ListPageHeaderSection>
         <ListPageHeaderTopRow>
           <ListPageHeaderTitleBlock
-            title="Platform admin"
+            title="Tenants"
             description="Tenant operations, lifecycle controls, and system health."
           />
           <ListPageHeaderActions>
@@ -169,25 +167,21 @@ export function PlatformAdminDashboardPage() {
             icon={Building2}
             label="Tenants"
             value={dashboard?.total_tenants ?? 0}
-            detail={`${dashboard?.active_tenants ?? 0} active`}
+          />
+          <MetricCard
+            icon={Building2}
+            label="Clinics"
+            value={dashboard?.total_clinics ?? 0}
+          />
+          <MetricCard
+            icon={Building2}
+            label="Active"
+            value={dashboard?.active_tenants ?? 0}
           />
           <MetricCard
             icon={Building2}
             label="Suspended"
             value={dashboard?.suspended_tenants ?? 0}
-            detail={`${dashboard?.pending_tenants ?? 0} pending`}
-          />
-          <MetricCard
-            icon={Building2}
-            label="Structure"
-            value={dashboard?.total_locations ?? 0}
-            detail={`${dashboard?.total_clinics ?? 0} clinics`}
-          />
-          <MetricCard
-            icon={Users}
-            label="Products"
-            value={dashboard?.total_products ?? 0}
-            detail={`${dashboard?.total_users ?? 0} users`}
           />
         </div>
       </ListPageStatsSection>
@@ -238,10 +232,6 @@ export function PlatformAdminDashboardPage() {
               <SelectItem value="INACTIVE">Inactive</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant="outline" onClick={() => void load()} disabled={isRefreshing}>
-            <RefreshCw className="mr-2 size-4" />
-            Refresh
-          </Button>
         </ListPageToolbarActions>
       </ListPageToolbarSection>
 
@@ -256,7 +246,7 @@ export function PlatformAdminDashboardPage() {
               <ListPageDataTableHeaderCell>Country</ListPageDataTableHeaderCell>
               <ListPageDataTableHeaderCell>Clinics</ListPageDataTableHeaderCell>
               <ListPageDataTableHeaderCell>Locations</ListPageDataTableHeaderCell>
-              <ListPageDataTableHeaderCell>Products</ListPageDataTableHeaderCell>
+              <ListPageDataTableHeaderCell>Usage</ListPageDataTableHeaderCell>
               <ListPageDataTableHeaderCell>Users</ListPageDataTableHeaderCell>
               <ListPageDataTableHeaderCell>Actions</ListPageDataTableHeaderCell>
             </ListPageDataTableHeaderRow>
@@ -283,7 +273,9 @@ export function PlatformAdminDashboardPage() {
                 <ListPageDataTableCell>{tenant.country || "Not set"}</ListPageDataTableCell>
                 <ListPageDataTableCell>{tenant.clinic_count}</ListPageDataTableCell>
                 <ListPageDataTableCell>{tenant.location_count}</ListPageDataTableCell>
-                <ListPageDataTableCell>{tenant.product_count}</ListPageDataTableCell>
+                <ListPageDataTableCell>
+                  <PlatformAdminUsageBadge level={tenant.usage_level} />
+                </ListPageDataTableCell>
                 <ListPageDataTableCell>{tenant.user_count}</ListPageDataTableCell>
                 <ListPageDataTableCell>
                   <div className="flex flex-wrap gap-2">
@@ -352,12 +344,10 @@ function MetricCard({
   icon: Icon,
   label,
   value,
-  detail,
 }: {
   icon: typeof Building2;
   label: string;
   value: number;
-  detail: string;
 }) {
   return (
     <Card className="rounded-lg">
@@ -368,7 +358,6 @@ function MetricCard({
         <div>
           <p className="text-xs font-medium uppercase text-brand-muted">{label}</p>
           <p className="text-2xl font-semibold text-brand-navy">{value}</p>
-          <p className="text-xs text-brand-muted">{detail}</p>
         </div>
       </CardContent>
     </Card>

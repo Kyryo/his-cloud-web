@@ -305,6 +305,10 @@ export const BFF_SETTINGS_ROUTES = {
 /** Browser-facing BFF platform administration routes (same origin). */
 export const BFF_PLATFORM_ADMIN_ROUTES = {
   dashboard: "/api/platform-admin/dashboard",
+  overview: "/api/platform-admin/overview",
+  financeTenantPayments: "/api/platform-admin/finance/tenant-payments",
+  financeOperatingCosts: "/api/platform-admin/finance/operating-costs",
+  financeCashSnapshots: "/api/platform-admin/finance/cash-snapshots",
   tenants: "/api/platform-admin/tenants",
   tenantDetail: (tenantUuid: string) => `/api/platform-admin/tenants/${tenantUuid}`,
   tenantStatus: (tenantUuid: string) =>
@@ -321,6 +325,8 @@ export const BFF_PLATFORM_ADMIN_ROUTES = {
     `/api/platform-admin/tenants/${tenantUuid}/configuration`,
   tenantAuditEvents: (tenantUuid: string) =>
     `/api/platform-admin/tenants/${tenantUuid}/audit-events`,
+  tenantUsage: (tenantUuid: string) =>
+    `/api/platform-admin/tenants/${tenantUuid}/usage`,
 } as const;
 
 /** Browser-facing BFF report job routes (same origin). */

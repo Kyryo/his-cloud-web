@@ -39,7 +39,7 @@ export function NavUser() {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="rounded-lg bg-sidebar-accent/80 transition-colors hover:bg-sidebar-accent data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="rounded-lg bg-sidebar-foreground/[0.04] transition-colors hover:bg-sidebar-foreground/[0.07] data-[state=open]:bg-sidebar-foreground/[0.07]"
             >
               <UserIdenticon seed={identiconSeed} name={name} />
               <div className="grid flex-1 text-left text-sm leading-tight">

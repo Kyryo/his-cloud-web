@@ -4,6 +4,7 @@ export const ROUTES = {
   signup: "/signup",
   onboarding: "/onboarding",
   platformAdmin: "/platform-admin",
+  platformAdminTenants: "/platform-admin/tenants",
   platformAdminTenant: (tenantUuid: string) =>
     `/platform-admin/tenants/${tenantUuid}`,
   customers: "/customers",

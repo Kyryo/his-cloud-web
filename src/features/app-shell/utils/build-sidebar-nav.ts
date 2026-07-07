@@ -118,12 +118,26 @@ export function buildSidebarNavItems(
 
   if (isPlatformAdmin) {
     items.push({
-      title: "Platform Admin",
+      title: "Platform",
       url: ROUTES.platformAdmin,
       icon: Shield,
       isActive:
         isNavItemActive(pathname, ROUTES.platformAdmin) ||
         pathname.startsWith(`${ROUTES.platformAdmin}/`),
+      items: [
+        {
+          title: "Overview",
+          url: ROUTES.platformAdmin,
+          isActive: pathname === ROUTES.platformAdmin,
+        },
+        {
+          title: "Tenants",
+          url: ROUTES.platformAdminTenants,
+          isActive:
+            isNavItemActive(pathname, ROUTES.platformAdminTenants) ||
+            pathname.startsWith(`${ROUTES.platformAdminTenants}/`),
+        },
+      ],
     });
   }
 
