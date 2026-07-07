@@ -322,3 +322,19 @@ export const BFF_PLATFORM_ADMIN_ROUTES = {
   tenantAuditEvents: (tenantUuid: string) =>
     `/api/platform-admin/tenants/${tenantUuid}/audit-events`,
 } as const;
+
+/** Browser-facing BFF report job routes (same origin). */
+export const BFF_REPORTS_ROUTES = {
+  list: "/api/reports",
+  types: "/api/reports/types",
+  detail: (uuid: string) => `/api/reports/${uuid}`,
+  download: (uuid: string) => `/api/reports/${uuid}/download`,
+  cancel: (uuid: string) => `/api/reports/${uuid}/cancel`,
+} as const;
+
+/** Browser-facing BFF insights routes (same origin). */
+export const BFF_INSIGHTS_ROUTES = {
+  salesActivity: "/api/insights/sales-activity",
+  salesByProvider: "/api/insights/sales-by-provider",
+  visitsByPeriod: "/api/insights/visits-by-period",
+} as const;

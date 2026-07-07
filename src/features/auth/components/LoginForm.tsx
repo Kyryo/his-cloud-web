@@ -181,7 +181,7 @@ export function LoginForm() {
             alt="Sigma Health Logo"
             width={240}
             height={80}
-            className="mx-auto h-[72px] w-auto rounded-sm object-contain sm:h-[80px]"
+            className="mx-auto h-[88px] w-auto rounded-sm object-contain sm:h-[96px]"
             priority
           />
         </div>

@@ -17,7 +17,7 @@ export function LandingFooter() {
       <div className="mx-auto max-w-7xl px-6 py-12 sm:px-12 sm:py-14">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr] lg:gap-12">
           <div className="space-y-4 sm:col-span-2 lg:col-span-1">
-            <LandingLogo linked={false} imageClassName="h-8 w-auto" />
+            <LandingLogo linked={false} imageClassName="h-12 w-auto sm:h-14" />
             <p className="landing-body max-w-sm text-sm leading-relaxed text-[color:var(--landing-ledger-ink)] sm:text-[15px]">
               Clinic software that works where you work — patients, billing,
               stock, and insurance in one place.

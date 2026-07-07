@@ -17,7 +17,7 @@ export function Navigation() {
 
   return (
     <nav className="fixed top-0 z-50 w-full border-b border-[color:var(--landing-ink)]/5 bg-[color:var(--landing-clay)]/90 backdrop-blur-md">
-      <div className="mx-auto h-16 max-w-7xl px-6 sm:px-12">
+      <div className="mx-auto h-[4.5rem] max-w-7xl px-6 sm:px-12">
         <div
           className={cn(
             "grid h-full items-center gap-4",
@@ -82,14 +82,14 @@ export function Navigation() {
       </div>
 
       {isOpen && (
-        <div className="absolute left-0 right-0 top-16 border-t border-[color:var(--landing-ink)]/5 bg-[color:var(--landing-clay)]/95 backdrop-blur-md lg:hidden">
+        <div className="absolute left-0 right-0 top-[4.5rem] border-t border-[color:var(--landing-ink)]/5 bg-[color:var(--landing-clay)]/95 backdrop-blur-md lg:hidden">
           <div className="space-y-1 px-6 py-4">
             {showNavLinks
               ? BRAND_NAV_LINKS.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="block rounded-md px-2 py-2.5 text-sm text-brand-slate hover:bg-[color:var(--landing-teal-tint)]"
+                    className="landing-focus block rounded-md px-2 py-2.5 text-sm text-brand-slate hover:bg-[color:var(--landing-teal-tint)]"
                     onClick={() => setIsOpen(false)}
                   >
                     {link.name}
@@ -104,14 +104,14 @@ export function Navigation() {
             >
               <Link
                 href={ROUTES.auth}
-                className="inline-flex min-h-11 items-center justify-center rounded-full border border-transparent px-5 py-2.5 text-center text-sm font-semibold text-brand-slate transition-colors hover:bg-[color:var(--landing-teal-tint)] hover:text-[color:var(--landing-ink)]"
+                className="landing-focus inline-flex min-h-11 items-center justify-center rounded-full border border-transparent px-5 py-2.5 text-center text-sm font-semibold text-brand-slate transition-colors hover:bg-[color:var(--landing-teal-tint)] hover:text-[color:var(--landing-ink)]"
                 onClick={() => setIsOpen(false)}
               >
                 Sign In
               </Link>
               <Link
                 href={ROUTES.signup}
-                className="landing-btn-primary inline-flex min-h-11 items-center justify-center rounded-full px-5 py-2.5 text-center text-sm font-semibold"
+                className="landing-focus landing-btn-primary inline-flex min-h-11 items-center justify-center rounded-full px-5 py-2.5 text-center text-sm font-semibold"
                 onClick={() => setIsOpen(false)}
               >
                 Start for free

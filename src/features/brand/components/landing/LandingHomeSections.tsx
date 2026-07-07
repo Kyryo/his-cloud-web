@@ -2,17 +2,12 @@
 
 import {
   AlertTriangle,
-  BarChart3,
   ChevronDown,
-  ClipboardList,
   Clock,
   FileText,
   Headset,
   Monitor,
   Package,
-  PieChart,
-  Stethoscope,
-  TrendingUp,
   Wallet,
   Wifi,
 } from "lucide-react";
@@ -21,7 +16,7 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 
 import { LandingBulletCard } from "@/features/brand/components/landing/LandingBulletCard";
-import { LandingCoverSection } from "@/features/brand/components/landing/LandingCoverSection";
+import { LandingFeatureCardGrid } from "@/features/brand/components/landing/LandingFeatureCardGrid";
 import { LandingFooter } from "@/features/brand/components/landing/LandingFooter";
 import { LandingInteractiveDemo } from "@/features/brand/components/landing/LandingInteractiveDemo";
 import { LandingSection } from "@/features/brand/components/landing/LandingSection";
@@ -29,7 +24,6 @@ import { LandingSectionHeader } from "@/features/brand/components/landing/Landin
 import { LandingStepCard } from "@/features/brand/components/landing/LandingStepCard";
 import {
   LANDING_FAQ,
-  LANDING_FEATURES,
   LANDING_FINAL_CTA,
   LANDING_HOW_IT_WORKS,
   LANDING_PRICING,
@@ -40,16 +34,8 @@ import { useLandingReveal } from "@/features/brand/hooks/useLandingReveal";
 import { cn } from "@/lib/utils";
 
 const PROBLEM_ICONS = [Package, Wallet, FileText] as const;
+
 const TRUST_ICONS = [Monitor, Clock, Wifi, Headset] as const;
-const FEATURE_ICONS = [
-  BarChart3,
-  PieChart,
-  ClipboardList,
-  Stethoscope,
-  Package,
-  AlertTriangle,
-  TrendingUp,
-] as const;
 
 function LandingReveal({
   children,
@@ -77,36 +63,46 @@ function LandingFaqAccordion() {
     <div className="mx-auto max-w-3xl space-y-3">
       {LANDING_FAQ.items.map((item, index) => {
         const isOpen = openIndex === index;
+        const panelId = `landing-faq-panel-${index}`;
 
         return (
           <div
             key={item.question}
             className="landing-card overflow-hidden rounded-[14px] bg-white"
           >
-            <button
-              type="button"
-              onClick={() => setOpenIndex(isOpen ? null : index)}
-              className="landing-focus flex min-h-11 w-full items-center justify-between gap-4 px-5 py-4 text-left"
-              aria-expanded={isOpen}
+            <h3 className="m-0">
+              <button
+                type="button"
+                id={`landing-faq-trigger-${index}`}
+                onClick={() => setOpenIndex(isOpen ? null : index)}
+                className="landing-focus flex min-h-11 w-full items-center justify-between gap-4 px-5 py-4 text-left"
+                aria-expanded={isOpen}
+                aria-controls={panelId}
+              >
+                <span className="landing-text-ink text-base font-semibold">
+                  {item.question}
+                </span>
+                <ChevronDown
+                  className={cn(
+                    "size-5 shrink-0 text-brand-muted transition-transform",
+                    isOpen && "rotate-180",
+                  )}
+                  aria-hidden="true"
+                />
+              </button>
+            </h3>
+            <div
+              id={panelId}
+              role="region"
+              aria-labelledby={`landing-faq-trigger-${index}`}
+              hidden={!isOpen}
             >
-              <span className="landing-text-ink text-base font-semibold">
-                {item.question}
-              </span>
-              <ChevronDown
-                className={cn(
-                  "size-5 shrink-0 text-brand-muted transition-transform",
-                  isOpen && "rotate-180",
-                )}
-                aria-hidden="true"
-              />
-            </button>
-            {isOpen ? (
               <div className="border-t border-brand-border/60 px-5 py-4">
                 <p className="landing-body text-base leading-relaxed text-[color:var(--landing-ledger-ink)]">
                   {item.answer}
                 </p>
               </div>
-            ) : null}
+            </div>
           </div>
         );
       })}
@@ -149,14 +145,15 @@ export function LandingHomeSections() {
         </LandingReveal>
       </LandingSection>
 
-      <LandingSection variant="clay">
+      <LandingSection variant="brandGreen">
         <LandingReveal>
           <LandingSectionHeader
             title={LANDING_TRUST.title}
             description={LANDING_TRUST.description}
-            accent="teal"
+            accent="green"
+            inverted
           />
-          <div className="mt-12 grid gap-5 md:grid-cols-2">
+          <div className="mt-12 grid gap-4 sm:grid-cols-2">
             {LANDING_TRUST.items.map((item, index) => {
               const Icon = TRUST_ICONS[index] ?? Monitor;
               return (
@@ -170,38 +167,15 @@ export function LandingHomeSections() {
               );
             })}
           </div>
-          <p className="landing-body landing-text-ink mx-auto mt-12 max-w-2xl text-center text-lg font-semibold">
+          <p className="landing-body mx-auto mt-12 max-w-2xl text-center text-lg font-semibold text-white">
             {LANDING_TRUST.closing}
           </p>
         </LandingReveal>
       </LandingSection>
 
-      <LandingCoverSection />
-
-      <LandingSection variant="warm">
+      <LandingSection variant="white" withDottedPattern>
         <LandingReveal>
-          <LandingSectionHeader
-            title={LANDING_FEATURES.title}
-            description={LANDING_FEATURES.description}
-          />
-          <div className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {LANDING_FEATURES.items.map((item, index) => {
-              const Icon = FEATURE_ICONS[index] ?? Stethoscope;
-              return (
-                <LandingBulletCard
-                  key={item.title}
-                  title={item.title}
-                  description={item.description}
-                  icon={Icon}
-                  accent="green"
-                  className={index === 6 ? "xl:col-span-1" : undefined}
-                />
-              );
-            })}
-          </div>
-          <p className="landing-body mx-auto mt-12 max-w-3xl text-center text-base leading-relaxed text-[color:var(--landing-ledger-ink)] sm:text-lg">
-            {LANDING_FEATURES.closing}
-          </p>
+          <LandingFeatureCardGrid />
         </LandingReveal>
       </LandingSection>
 

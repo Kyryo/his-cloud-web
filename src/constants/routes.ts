@@ -69,6 +69,11 @@ export const ROUTES = {
   /** @deprecated Use settingsIntegrationsMasemEclaimsTab("practitioners") */
   settingsIntegrationsEclaimsPractitioner:
     "/settings/integrations/masm-eclaims?tab=practitioners",
+  reportsOverview: "/reports/overview",
+  reportsAnalytics: "/reports/analytics",
+  reportsExports: "/reports",
+  reportsExportHistory: "/reports/history",
+  reportsExportWithType: (type: string) => `/reports?type=${encodeURIComponent(type)}`,
 } as const;
 
 /** Paths served by web-new through the deploy gateway. */
@@ -95,6 +100,7 @@ export const WEB_NEW_ROUTE_PREFIXES = [
   ROUTES.inventoryBatches,
   ROUTES.activeVisits,
   ROUTES.appointments,
+  "/reports",
   "/visits",
   ROUTES.settings,
   ROUTES.contacts,
@@ -137,6 +143,7 @@ export const PROTECTED_ROUTES = [
   ROUTES.inventoryBatches,
   ROUTES.activeVisits,
   ROUTES.appointments,
+  "/reports",
   "/visits",
   ROUTES.settings,
 ] as const;

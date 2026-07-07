@@ -2,6 +2,7 @@ import { ROUTES } from "@/constants/routes";
 import {
   getModuleLabel,
   isNavItemActive,
+  isReportsNavActive,
   isSettingsNavActive,
   navigation,
 } from "@/features/app-shell/constants/navigation-config";
@@ -90,6 +91,22 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
     }
 
     return [{ label: "Settings" }];
+  }
+
+  if (isReportsNavActive(pathname)) {
+    if (pathname === ROUTES.reportsOverview) {
+      return [{ label: "Reports & Insights" }, { label: "Overview" }];
+    }
+    if (pathname === ROUTES.reportsAnalytics) {
+      return [{ label: "Reports & Insights" }, { label: "Analytics" }];
+    }
+    if (pathname === ROUTES.reportsExports) {
+      return [{ label: "Reports & Insights" }, { label: "Reports" }];
+    }
+    if (pathname === ROUTES.reportsExportHistory) {
+      return [{ label: "Reports & Insights" }, { label: "Export history" }];
+    }
+    return [{ label: "Reports & Insights" }];
   }
 
   const navItem = findNavItemByPathname(pathname);

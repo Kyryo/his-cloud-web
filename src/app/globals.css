@@ -108,6 +108,7 @@
     letter-spacing: -0.03em;
     line-height: 1.05;
     color: var(--landing-ink);
+    text-wrap: balance;
   }
 
   [data-brand-page] .landing-text-ink {
@@ -143,6 +144,24 @@
   [data-brand-page] .landing-focus:focus-visible {
     outline: 2px solid var(--landing-teal);
     outline-offset: 3px;
+  }
+
+  [data-brand-page] .landing-skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 100;
+    border-radius: 9999px;
+    background-color: var(--landing-teal);
+    color: #ffffff;
+    font-size: 0.875rem;
+    font-weight: 600;
+    padding: 0.625rem 1rem;
+  }
+
+  [data-brand-page] .landing-skip-link:focus {
+    left: 1rem;
+    top: 1rem;
   }
 
   [data-brand-page] .landing-hero-ground {

@@ -14,7 +14,7 @@ type LandingLogoProps = {
 
 export function LandingLogo({
   className,
-  imageClassName = "h-8 w-auto",
+  imageClassName = "h-12 w-auto sm:h-14",
   priority = false,
   linked = true,
 }: LandingLogoProps) {
@@ -22,8 +22,8 @@ export function LandingLogo({
     <Image
       src={LANDING_LOGO_SRC}
       alt="Sigma Health"
-      width={148}
-      height={48}
+      width={128}
+      height={128}
       className={cn("object-contain", imageClassName)}
       priority={priority}
     />

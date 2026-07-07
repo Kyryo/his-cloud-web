@@ -22,7 +22,7 @@ export function HeroSection() {
     <section
       ref={ref}
       className={cn(
-        "landing-hero-ground relative flex min-h-[auto] flex-col pt-16 lg:min-h-[85vh]",
+        "landing-hero-ground relative flex min-h-[auto] flex-col pt-[4.5rem] lg:min-h-[85vh]",
         "landing-reveal",
         isVisible && "is-visible",
       )}
@@ -30,7 +30,7 @@ export function HeroSection() {
       <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 pb-16 pt-10 sm:px-12 sm:pb-20 sm:pt-14 lg:pb-24">
         <div className="grid flex-1 grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-14">
           <div className="flex flex-col justify-center text-left">
-            <h1 className="landing-display max-w-[16ch] text-[clamp(2rem,5vw,3.25rem)] font-extrabold leading-[1.08]">
+            <h1 className="landing-display max-w-[18ch] text-[clamp(2rem,5vw,3.25rem)] font-extrabold leading-[1.08] text-balance">
               Sigma keeps your clinic running every day, not just on paper.
             </h1>
 

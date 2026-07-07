@@ -1,12 +1,14 @@
 import type { LucideIcon } from "lucide-react";
-import { Settings, Shield } from "lucide-react";
+import { BarChart3, Settings, Shield } from "lucide-react";
 
 import {
+  canAccessReports,
   filterNavigation,
   getModuleIcon,
   getModuleLabel,
   groupNavigationByModule,
   isNavItemActive,
+  isReportsNavActive,
   isSettingsNavActive,
   sortModules,
 } from "@/features/app-shell/constants/navigation-config";
@@ -122,6 +124,37 @@ export function buildSidebarNavItems(
       isActive:
         isNavItemActive(pathname, ROUTES.platformAdmin) ||
         pathname.startsWith(`${ROUTES.platformAdmin}/`),
+    });
+  }
+
+  if (!isPlatformAdmin && canAccessReports(userGroups)) {
+    items.push({
+      title: "Reports & Insights",
+      url: ROUTES.reportsOverview,
+      icon: BarChart3,
+      isActive: isReportsNavActive(pathname),
+      items: [
+        {
+          title: "Overview",
+          url: ROUTES.reportsOverview,
+          isActive: isNavItemActive(pathname, ROUTES.reportsOverview),
+        },
+        {
+          title: "Analytics",
+          url: ROUTES.reportsAnalytics,
+          isActive: isNavItemActive(pathname, ROUTES.reportsAnalytics),
+        },
+        {
+          title: "Reports",
+          url: ROUTES.reportsExports,
+          isActive: pathname === ROUTES.reportsExports,
+        },
+        {
+          title: "Export history",
+          url: ROUTES.reportsExportHistory,
+          isActive: isNavItemActive(pathname, ROUTES.reportsExportHistory),
+        },
+      ],
     });
   }
 

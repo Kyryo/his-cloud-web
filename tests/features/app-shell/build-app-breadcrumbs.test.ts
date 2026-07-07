@@ -136,6 +136,13 @@ describe("buildAppBreadcrumbs", () => {
       { label: "MASM eClaims" },
     ]);
   });
+
+  it("returns reports overview breadcrumbs", () => {
+    expect(buildAppBreadcrumbs(ROUTES.reportsOverview)).toEqual([
+      { label: "Reports & Insights" },
+      { label: "Overview" },
+    ]);
+  });
 });
 
 describe("applyPageLabelToCrumbs", () => {

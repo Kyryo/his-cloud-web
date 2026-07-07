@@ -227,6 +227,17 @@ export function isSettingsNavActive(pathname: string) {
   return pathname === ROUTES.settings || pathname.startsWith(`${ROUTES.settings}/`);
 }
 
+export function isReportsNavActive(pathname: string) {
+  return (
+    pathname === ROUTES.reportsExports ||
+    pathname.startsWith(`${ROUTES.reportsExports}/`)
+  );
+}
+
+export function canAccessReports(userGroups: string[]) {
+  return userGroups.includes("Billing") || userGroups.includes("Inventory");
+}
+
 export function hasNavAccess(item: NavigationItem, userGroups: string[]) {
   if (!item.enabledInWebNew) {
     return false;
