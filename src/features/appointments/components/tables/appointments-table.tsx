@@ -64,6 +64,13 @@ export function AppointmentsTable({
       render: (appointment) => appointment.department_name || "—",
     },
     {
+      key: "clinician",
+      label: "Care provider",
+      headerClassName: "hidden md:table-cell",
+      cellClassName: "hidden md:table-cell",
+      render: (appointment) => appointment.clinician_name || "Unassigned",
+    },
+    {
       key: "scheduled_start",
       label: "Scheduled",
       render: (appointment) => formatDisplayDateTime(appointment.scheduled_start),

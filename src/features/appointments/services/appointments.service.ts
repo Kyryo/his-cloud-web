@@ -35,6 +35,9 @@ function appendAppointmentQueryParams(
   if (options?.department || options?.departmentUuid) {
     params.set("department_uuid", options.departmentUuid ?? options.department ?? "");
   }
+  if (options?.clinicianId !== undefined) {
+    params.set("clinician_id", String(options.clinicianId));
+  }
   if (options?.status) {
     params.set("status", options.status);
   }

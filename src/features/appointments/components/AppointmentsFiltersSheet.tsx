@@ -15,17 +15,18 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { CareProviderCombobox } from "@/features/appointments/components/CareProviderCombobox";
+import { useUserAssociatedClinics } from "@/features/appointments/hooks/use-user-associated-clinics";
 import {
-  fetchClinicalClinics,
   fetchClinicalDepartments,
 } from "@/features/clinical/services/clinical-catalog.service";
 import type {
-  ClinicalClinic,
   ClinicalDepartment,
 } from "@/features/clinical/types/clinical-catalog.types";
 import {
   APPOINTMENT_STATUS_OPTIONS,
   countActiveAppointmentFilters,
+  DEFAULT_APPOINTMENT_FILTERS,
   type AppointmentListFilterState,
 } from "@/features/appointments/utils/appointment-list-filters";
 import { appFont } from "@/lib/fonts";
@@ -44,20 +45,12 @@ export function AppointmentsFiltersSheet({
 }: AppointmentsFiltersSheetProps) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(filters);
-  const [clinics, setClinics] = useState<ClinicalClinic[]>([]);
+  const { clinics } = useUserAssociatedClinics();
   const [departments, setDepartments] = useState<ClinicalDepartment[]>([]);
   const activeCount = useMemo(
     () => countActiveAppointmentFilters(filters),
     [filters],
   );
-
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-
-    void fetchClinicalClinics().then(setClinics).catch(() => setClinics([]));
-  }, [open]);
 
   useEffect(() => {
     if (!open || !draft.clinicUuid) {
@@ -105,7 +98,8 @@ export function AppointmentsFiltersSheet({
           <SheetHeader>
             <SheetTitle>Filter appointments</SheetTitle>
             <SheetDescription>
-              Narrow the list by status, clinic, department, or scheduled date.
+              Narrow the list by status, clinic, department, care provider, or scheduled
+              date.
             </SheetDescription>
           </SheetHeader>
 
@@ -142,6 +136,21 @@ export function AppointmentsFiltersSheet({
                   ...current,
                   clinicUuid: value === "all" ? "" : value,
                   departmentUuid: "",
+                  clinicianId: null,
+                }))
+              }
+            />
+
+            <CareProviderCombobox
+              id="appointment-filter-provider"
+              label="Care provider"
+              value={draft.clinicianId}
+              clinicUuid={draft.clinicUuid || undefined}
+              disabled={!draft.clinicUuid}
+              onSelect={(provider) =>
+                setDraft((current) => ({
+                  ...current,
+                  clinicianId: provider?.id ?? null,
                 }))
               }
             />
@@ -212,13 +221,7 @@ export function AppointmentsFiltersSheet({
               type="button"
               variant="outline"
               onClick={() => {
-                setDraft({
-                  status: "all",
-                  clinicUuid: "",
-                  departmentUuid: "",
-                  scheduledFrom: "",
-                  scheduledTo: "",
-                });
+                setDraft(DEFAULT_APPOINTMENT_FILTERS);
               }}
             >
               Reset

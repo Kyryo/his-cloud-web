@@ -9,26 +9,34 @@ import {
   ListPageToolbarSection,
 } from "@/features/app-shell/components/page-layout";
 import { AppointmentsFiltersSheet } from "@/features/appointments/components/AppointmentsFiltersSheet";
+import {
+  AppointmentsViewToggle,
+  type AppointmentsViewMode,
+} from "@/features/appointments/components/AppointmentsViewToggle";
 import type { AppointmentListFilterState } from "@/features/appointments/utils/appointment-list-filters";
 
 type AppointmentsListToolbarProps = {
   search: string;
   filters: AppointmentListFilterState;
+  viewMode: AppointmentsViewMode;
   isLoading?: boolean;
   onSearchChange: (value: string) => void;
   onSearchSubmit: () => void;
   onClearSearch: () => void;
   onFiltersApply: (filters: AppointmentListFilterState) => void;
+  onViewModeChange: (mode: AppointmentsViewMode) => void;
 };
 
 export function AppointmentsListToolbar({
   search,
   filters,
+  viewMode,
   isLoading = false,
   onSearchChange,
   onSearchSubmit,
   onClearSearch,
   onFiltersApply,
+  onViewModeChange,
 }: AppointmentsListToolbarProps) {
   return (
     <ListPageToolbarSection>
@@ -69,14 +77,18 @@ export function AppointmentsListToolbar({
               Clear
             </Button>
           ) : null}
+          <AppointmentsFiltersSheet
+            filters={filters}
+            isLoading={isLoading}
+            onApply={onFiltersApply}
+          />
         </ListPageToolbarActions>
       </ListPageToolbarSearch>
 
       <ListPageToolbarFilters>
-        <AppointmentsFiltersSheet
-          filters={filters}
-          isLoading={isLoading}
-          onApply={onFiltersApply}
+        <AppointmentsViewToggle
+          viewMode={viewMode}
+          onViewModeChange={onViewModeChange}
         />
       </ListPageToolbarFilters>
     </ListPageToolbarSection>

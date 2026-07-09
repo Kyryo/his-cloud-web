@@ -37,6 +37,7 @@ type AppointmentFormFieldsProps = {
   onClinicianChange: (id: number | null, name: string | null) => void;
   onClinicChange: (clinicUuid: string, clinicId: number | null) => void;
   showDetails?: boolean;
+  lockScheduleFields?: boolean;
 };
 
 export function AppointmentFormFields({
@@ -49,6 +50,7 @@ export function AppointmentFormFields({
   onClinicianChange,
   onClinicChange,
   showDetails = true,
+  lockScheduleFields = false,
 }: AppointmentFormFieldsProps) {
   const [clinicOpen, setClinicOpen] = useState(false);
   const [clinicSearch, setClinicSearch] = useState("");
@@ -88,6 +90,7 @@ export function AppointmentFormFields({
             <Select
               value={field.value}
               open={clinicOpen}
+              disabled={lockScheduleFields}
               onOpenChange={(open) => {
                 setClinicOpen(open);
                 if (!open) {
@@ -157,7 +160,7 @@ export function AppointmentFormFields({
                 }
               }}
               onValueChange={field.onChange}
-              disabled={!selectedClinicId || departments.length === 0}
+              disabled={lockScheduleFields || !selectedClinicId || departments.length === 0}
             >
               <FormControl>
                 <SelectTrigger>
@@ -205,7 +208,7 @@ export function AppointmentFormFields({
                 value={field.value ?? null}
                 displayName={selectedClinicianName}
                 clinicUuid={selectedClinicUuid || undefined}
-                disabled={!selectedClinicUuid}
+                disabled={lockScheduleFields || !selectedClinicUuid}
                 onSelect={(provider) => {
                   field.onChange(provider?.id ?? null);
                   onClinicianChange(provider?.id ?? null, provider?.name ?? null);
@@ -230,7 +233,7 @@ export function AppointmentFormFields({
                 Start <span className="text-red-500">*</span>
               </FormLabel>
               <FormControl>
-                <DateTimeLocalInput {...field} />
+                <DateTimeLocalInput {...field} disabled={lockScheduleFields} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -245,7 +248,7 @@ export function AppointmentFormFields({
                 End <span className="text-red-500">*</span>
               </FormLabel>
               <FormControl>
-                <DateTimeLocalInput {...field} />
+                <DateTimeLocalInput {...field} disabled={lockScheduleFields} />
               </FormControl>
               <FormMessage />
             </FormItem>

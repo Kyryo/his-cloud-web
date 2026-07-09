@@ -7,16 +7,26 @@ import {
   ListPageDataSectionsStack,
   ListPageLayout,
 } from "@/features/app-shell/components/page-layout";
+import { AppointmentClinicEmptyState } from "@/features/appointments/components/AppointmentClinicEmptyState";
 import {
   AppointmentActionConfirmDialog,
   type AppointmentTableAction,
 } from "@/features/appointments/components/AppointmentActionConfirmDialog";
 import { AppointmentDetailDialog } from "@/features/appointments/components/AppointmentDetailDialog";
+import {
+  AppointmentsDayPanel,
+  type AppointmentCreateSchedulePrefill,
+} from "@/features/appointments/components/AppointmentsDayPanel";
 import { AppointmentsListToolbar } from "@/features/appointments/components/AppointmentsListToolbar";
+import { AppointmentsMonthCalendar } from "@/features/appointments/components/AppointmentsMonthCalendar";
+import type { AppointmentsViewMode } from "@/features/appointments/components/AppointmentsViewToggle";
 import { CreateAppointmentDialog } from "@/features/appointments/components/CreateAppointmentDialog";
 import { StartVisitFromAppointmentDialog } from "@/features/appointments/components/StartVisitFromAppointmentDialog";
 import { AppointmentsTable } from "@/features/appointments/components/tables/appointments-table";
 import { useAppointmentsList } from "@/features/appointments/hooks/use-appointments-list";
+import { useAppointmentsRange } from "@/features/appointments/hooks/use-appointments-range";
+import { useUserAssociatedClinics } from "@/features/appointments/hooks/use-user-associated-clinics";
+import type { CreateAppointmentFormValues } from "@/features/appointments/schemas/appointment.schema";
 import {
   fetchAppointments,
   runAppointmentAction,
@@ -38,6 +48,10 @@ export function AppointmentsListPage() {
   const { toast } = useToast();
   const [actionUuid, setActionUuid] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [createPrefill, setCreatePrefill] = useState<
+    | (Partial<CreateAppointmentFormValues> & { clinicianName?: string | null })
+    | undefined
+  >(undefined);
   const [selectedAppointmentUuid, setSelectedAppointmentUuid] = useState<
     string | null
   >(null);
@@ -51,16 +65,36 @@ export function AppointmentsListPage() {
   const [filters, setFilters] = useState<AppointmentListFilterState>(
     DEFAULT_APPOINTMENT_FILTERS,
   );
+  const [viewMode, setViewMode] = useState<AppointmentsViewMode>("list");
+  const [visibleMonth, setVisibleMonth] = useState(() => new Date());
+  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  const [dayPanelOpen, setDayPanelOpen] = useState(false);
+
+  const { primaryClinicUuid, hasAssignedClinic, clinics } = useUserAssociatedClinics();
+  const calendarClinicUuid = filters.clinicUuid || primaryClinicUuid;
+  const calendarClinicId = useMemo(
+    () => clinics.find((clinic) => clinic.uuid === calendarClinicUuid)?.id ?? null,
+    [calendarClinicUuid, clinics],
+  );
 
   const extraFilters = useMemo(
     () => ({
       status: filters.status === "all" ? undefined : filters.status,
       clinicUuid: filters.clinicUuid || undefined,
       departmentUuid: filters.departmentUuid || undefined,
+      ...(filters.clinicianId ? { clinicianId: filters.clinicianId } : {}),
       scheduledFrom: filters.scheduledFrom || undefined,
       scheduledTo: filters.scheduledTo || undefined,
     }),
     [filters],
+  );
+
+  const calendarExtraFilters = useMemo(
+    () => ({
+      ...extraFilters,
+      ...(calendarClinicUuid ? { clinicUuid: calendarClinicUuid } : {}),
+    }),
+    [calendarClinicUuid, extraFilters],
   );
 
   const hasActiveFilters = countActiveAppointmentFilters(filters) > 0;
@@ -77,6 +111,7 @@ export function AppointmentsListPage() {
     page,
     pageSize,
     search,
+    activeSearch,
     isLoading,
     isRefreshing,
     error,
@@ -86,16 +121,39 @@ export function AppointmentsListPage() {
     hasNoRecords,
     isFilteredEmpty,
     setSearch,
-    handleSearchSubmit,
+    handleSearchSubmit: submitListSearch,
     handleClearSearch,
-    reload,
+    reload: reloadList,
     handlePageChange,
     resetPage,
   } = useAppointmentsList<Appointment>({
     fetchFn,
     extraFilters,
     hasActiveFilters,
+    enabled: viewMode === "list",
   });
+
+  const handleSearchSubmit = useCallback(() => {
+    setViewMode("list");
+    submitListSearch();
+  }, [submitListSearch]);
+
+  const {
+    appointments: calendarAppointments,
+    isLoading: isCalendarLoading,
+    isRefreshing: isCalendarRefreshing,
+    error: calendarError,
+    reload: reloadCalendar,
+  } = useAppointmentsRange({
+    visibleMonth,
+    extraFilters: calendarExtraFilters,
+    search: activeSearch || undefined,
+    enabled: viewMode === "calendar" && hasAssignedClinic,
+  });
+
+  const reloadAll = useCallback(async () => {
+    await Promise.all([reloadList(), reloadCalendar()]);
+  }, [reloadCalendar, reloadList]);
 
   const handleAction = async (
     appointment: Appointment,
@@ -112,7 +170,7 @@ export function AppointmentsListPage() {
           action === "confirm" ? "Appointment confirmed." : "Appointment cancelled.",
       });
       setPendingAction(null);
-      await reload();
+      await reloadAll();
     } catch (err) {
       toast({
         variant: "error",
@@ -138,6 +196,37 @@ export function AppointmentsListPage() {
     void handleAction(pendingAction.appointment, pendingAction.action);
   };
 
+  const handleDaySelect = (day: Date) => {
+    if (!hasAssignedClinic) {
+      return;
+    }
+
+    setSelectedDay(day);
+    setDayPanelOpen(true);
+  };
+
+  const handleCreateFromSlot = (prefill: AppointmentCreateSchedulePrefill) => {
+    setCreatePrefill({
+      clinic: prefill.clinic,
+      department: prefill.department,
+      clinician: prefill.clinician ?? null,
+      clinicianName: prefill.clinicianName ?? null,
+      scheduled_start: prefill.scheduled_start,
+      scheduled_end: prefill.scheduled_end,
+    });
+    setDayPanelOpen(false);
+    setCreateOpen(true);
+  };
+
+  const isListView = viewMode === "list";
+  const activeError = isListView ? error : calendarError;
+  const activeLoading = isListView
+    ? isLoading
+    : hasAssignedClinic
+      ? isCalendarLoading
+      : false;
+  const activeRefreshing = isListView ? isRefreshing : isCalendarRefreshing;
+
   if (isUnauthorized) {
     return <InventoryListAccessDenied />;
   }
@@ -149,17 +238,22 @@ export function AppointmentsListPage() {
           title="Appointments"
           description="Scheduled visits across your clinics. Confirm, start visits, or manage cancellations."
           addLabel="New appointment"
-          onAdd={() => setCreateOpen(true)}
+          onAdd={() => {
+            setCreatePrefill(undefined);
+            setCreateOpen(true);
+          }}
         />
 
         <ListPageDataSectionsStack className="space-y-2">
           <AppointmentsListToolbar
             search={search}
             filters={filters}
-            isLoading={isRefreshing}
+            viewMode={viewMode}
+            isLoading={activeRefreshing}
             onSearchChange={setSearch}
             onSearchSubmit={handleSearchSubmit}
             onClearSearch={handleClearSearch}
+            onViewModeChange={setViewMode}
             onFiltersApply={(nextFilters) => {
               setFilters(nextFilters);
               resetPage();
@@ -168,46 +262,77 @@ export function AppointmentsListPage() {
         </ListPageDataSectionsStack>
 
         <InventoryListPageContent
-          isLoading={isLoading}
+          isLoading={activeLoading}
           loadingMessage="Loading appointments..."
-          error={error}
-          onRetry={() => void reload()}
+          error={activeError}
+          onRetry={() => void reloadAll()}
           errorTitle="Could not load appointments"
-          hasNoRecords={hasNoRecords}
+          hasNoRecords={isListView ? hasNoRecords : false}
           emptyState={
             <InventoryListEmptyState
               icon={CalendarClock}
               title="No appointments scheduled"
               description="Appointments booked for your clinics will appear here."
               actionLabel="New appointment"
-              onAction={() => setCreateOpen(true)}
+              onAction={() => {
+                setCreatePrefill(undefined);
+                setCreateOpen(true);
+              }}
               data-testid="appointments-empty-state"
             />
           }
-          isFilteredEmpty={isFilteredEmpty}
+          isFilteredEmpty={isListView ? isFilteredEmpty : false}
           filteredEmptyTitle="No matching appointments"
         >
-          <div className="space-y-2">
-            <AppointmentsTable
-              appointments={items}
-              actionUuid={actionUuid}
-              onRowClick={(appointment) => setSelectedAppointmentUuid(appointment.uuid)}
-              onActionRequest={(appointment, action) =>
-                setPendingAction({ appointment, action })
-              }
+          {isListView ? (
+            <div className="space-y-2">
+              <AppointmentsTable
+                appointments={items}
+                actionUuid={actionUuid}
+                onRowClick={(appointment) => setSelectedAppointmentUuid(appointment.uuid)}
+                onActionRequest={(appointment, action) =>
+                  setPendingAction({ appointment, action })
+                }
+              />
+              <InventoryListPagination
+                page={page}
+                pageSize={pageSize}
+                totalCount={totalCount}
+                hasNext={hasNext}
+                hasPrevious={hasPrevious}
+                isLoading={isRefreshing}
+                onPageChange={handlePageChange}
+              />
+            </div>
+          ) : !hasAssignedClinic ? (
+            <AppointmentClinicEmptyState className="rounded-2xl border border-brand-border bg-white py-16" />
+          ) : (
+            <AppointmentsMonthCalendar
+              visibleMonth={visibleMonth}
+              appointments={calendarAppointments}
+              isLoading={isCalendarLoading || isCalendarRefreshing}
+              onVisibleMonthChange={setVisibleMonth}
+              onDaySelect={handleDaySelect}
             />
-            <InventoryListPagination
-              page={page}
-              pageSize={pageSize}
-              totalCount={totalCount}
-              hasNext={hasNext}
-              hasPrevious={hasPrevious}
-              isLoading={isRefreshing}
-              onPageChange={handlePageChange}
-            />
-          </div>
+          )}
         </InventoryListPageContent>
       </ListPageLayout>
+
+      <AppointmentsDayPanel
+        day={selectedDay}
+        open={dayPanelOpen}
+        appointments={calendarAppointments}
+        clinicUuid={calendarClinicUuid}
+        clinicId={calendarClinicId}
+        departmentUuid={filters.departmentUuid || undefined}
+        initialClinicianId={filters.clinicianId}
+        onOpenChange={setDayPanelOpen}
+        onAppointmentSelect={(appointment) => {
+          setDayPanelOpen(false);
+          setSelectedAppointmentUuid(appointment.uuid);
+        }}
+        onCreateSlot={handleCreateFromSlot}
+      />
 
       <AppointmentDetailDialog
         appointmentUuid={selectedAppointmentUuid}
@@ -217,7 +342,7 @@ export function AppointmentsListPage() {
             setSelectedAppointmentUuid(null);
           }
         }}
-        onUpdated={() => void reload()}
+        onUpdated={() => void reloadAll()}
       />
 
       <AppointmentActionConfirmDialog
@@ -244,17 +369,24 @@ export function AppointmentsListPage() {
           }}
           onStarted={() => {
             setStartingAppointment(null);
-            void reload();
+            void reloadAll();
           }}
         />
       ) : null}
 
       <CreateAppointmentDialog
         open={createOpen}
-        onOpenChange={setCreateOpen}
+        initialSchedule={createPrefill}
+        onOpenChange={(open) => {
+          setCreateOpen(open);
+          if (!open) {
+            setCreatePrefill(undefined);
+          }
+        }}
         onCreated={() => {
           setCreateOpen(false);
-          void reload();
+          setCreatePrefill(undefined);
+          void reloadAll();
         }}
       />
     </>

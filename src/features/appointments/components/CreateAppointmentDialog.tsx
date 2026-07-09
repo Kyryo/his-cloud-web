@@ -52,6 +52,9 @@ type CreateAppointmentDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated: (appointment: Appointment) => void;
+  initialSchedule?: Partial<CreateAppointmentFormValues> & {
+    clinicianName?: string | null;
+  };
 };
 
 type CreateAppointmentTab = "client" | "schedule" | "details";
@@ -71,6 +74,7 @@ export function CreateAppointmentDialog({
   open,
   onOpenChange,
   onCreated,
+  initialSchedule,
 }: CreateAppointmentDialogProps) {
   const { toast } = useToast();
   const { userData, isLoading: isUserLoading } = useUser();
@@ -105,6 +109,7 @@ export function CreateAppointmentDialog({
     [customer],
   );
   const tabs = requiresClientSelection ? FULL_TABS : SCHEDULE_TABS;
+  const lockScheduleFields = Boolean(initialSchedule?.scheduled_start);
 
   const loadDepartments = useCallback(async (clinicId: number) => {
     const nextDepartments = await fetchClinicalDepartments(clinicId);
@@ -127,11 +132,19 @@ export function CreateAppointmentDialog({
       return;
     }
 
-    setActiveTab(requiresClientSelection ? "client" : "schedule");
+    setActiveTab(
+      initialSchedule?.scheduled_start
+        ? requiresClientSelection
+          ? "client"
+          : "schedule"
+        : requiresClientSelection
+          ? "client"
+          : "schedule",
+    );
     if (requiresClientSelection) {
       setSelectedCustomer(null);
     }
-    setSelectedClinicianName(null);
+    setSelectedClinicianName(initialSchedule?.clinicianName ?? null);
 
     if (!hasAssignedClinic) {
       setClinics([]);
@@ -159,15 +172,29 @@ export function CreateAppointmentDialog({
           clinicList[0]?.uuid ??
           "";
 
-        form.reset(
-          createAppointmentDefaultValues({
-            clinic: primaryClinicUuid,
-          }),
-        );
+        const resetClinicUuid = initialSchedule?.clinic ?? primaryClinicUuid;
 
-        const clinicId = clinicList.find(
-          (clinic) => clinic.uuid === primaryClinicUuid,
-        )?.id;
+        const resetValues: Partial<CreateAppointmentFormValues> = {
+          clinic: resetClinicUuid,
+        };
+
+        if (initialSchedule?.department) {
+          resetValues.department = initialSchedule.department;
+        }
+        if (initialSchedule?.clinician !== undefined) {
+          resetValues.clinician = initialSchedule.clinician;
+        }
+        if (initialSchedule?.scheduled_start) {
+          resetValues.scheduled_start = initialSchedule.scheduled_start;
+        }
+        if (initialSchedule?.scheduled_end) {
+          resetValues.scheduled_end = initialSchedule.scheduled_end;
+        }
+
+        form.reset(createAppointmentDefaultValues(resetValues));
+
+        const clinicId =
+          clinicList.find((clinic) => clinic.uuid === resetClinicUuid)?.id ?? null;
 
         if (clinicId) {
           await loadDepartments(clinicId);
@@ -193,7 +220,7 @@ export function CreateAppointmentDialog({
     };
     // Reset form state only when the dialog opens, not when unrelated deps change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, isUserLoading, hasAssignedClinic]);
+  }, [open, isUserLoading, hasAssignedClinic, initialSchedule]);
 
   const handleSubmit = form.handleSubmit(
     async (values) => {
@@ -365,6 +392,7 @@ export function CreateAppointmentDialog({
                   }
                 }}
                 showDetails={false}
+                lockScheduleFields={lockScheduleFields}
               />
             ) : (
               <>

@@ -9,6 +9,7 @@ export type AppointmentListFilterState = {
   status: AppointmentStatusFilter;
   clinicUuid: string;
   departmentUuid: string;
+  clinicianId: number | null;
   scheduledFrom: string;
   scheduledTo: string;
 };
@@ -17,6 +18,7 @@ export const DEFAULT_APPOINTMENT_FILTERS: AppointmentListFilterState = {
   status: "all",
   clinicUuid: "",
   departmentUuid: "",
+  clinicianId: null,
   scheduledFrom: "",
   scheduledTo: "",
 };
@@ -33,6 +35,9 @@ export function countActiveAppointmentFilters(
     count += 1;
   }
   if (filters.departmentUuid) {
+    count += 1;
+  }
+  if (filters.clinicianId) {
     count += 1;
   }
   if (filters.scheduledFrom) {
@@ -60,6 +65,7 @@ export function buildAppointmentListFilters(
     status: filters.status === "all" ? undefined : filters.status,
     clinicUuid: filters.clinicUuid || undefined,
     departmentUuid: filters.departmentUuid || undefined,
+    ...(filters.clinicianId ? { clinicianId: filters.clinicianId } : {}),
     scheduledFrom: filters.scheduledFrom || undefined,
     scheduledTo: filters.scheduledTo || undefined,
   };

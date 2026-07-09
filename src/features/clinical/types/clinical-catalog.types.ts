@@ -19,6 +19,7 @@ export type ClinicalDepartment = {
   is_active: boolean;
   walk_in_allowed: boolean;
   requires_appointment: boolean;
+  default_appointment_duration_minutes?: number | null;
 };
 
 export type ClinicalLocation = {

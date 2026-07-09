@@ -12,6 +12,7 @@ const QUERY_KEYS = [
   "patient_uuid",
   "clinic_uuid",
   "department_uuid",
+  "clinician_id",
   "status",
   "scheduled_from",
   "scheduled_to",

@@ -17,6 +17,7 @@ type UseAppointmentsListOptions<T> = {
   pageSize?: number;
   extraFilters?: Omit<FetchAppointmentsOptions, "page" | "pageSize" | "search">;
   hasActiveFilters?: boolean;
+  enabled?: boolean;
 };
 
 export function useAppointmentsList<T>({
@@ -24,6 +25,7 @@ export function useAppointmentsList<T>({
   pageSize = DEFAULT_PAGE_SIZE,
   extraFilters,
   hasActiveFilters = false,
+  enabled = true,
 }: UseAppointmentsListOptions<T>) {
   const resolvedExtraFilters = extraFilters ?? EMPTY_EXTRA_FILTERS;
   const [items, setItems] = useState<T[]>([]);
@@ -50,6 +52,10 @@ export function useAppointmentsList<T>({
   const hasPrevious = page > 1;
 
   const reload = useCallback(async () => {
+    if (!enabled) {
+      return;
+    }
+
     setIsRefreshing(true);
     setError(null);
     setIsUnauthorized(false);
@@ -68,9 +74,14 @@ export function useAppointmentsList<T>({
     } finally {
       setIsRefreshing(false);
     }
-  }, [fetchFn, listFilters]);
+  }, [enabled, fetchFn, listFilters]);
 
   useEffect(() => {
+    if (!enabled) {
+      setIsLoading(false);
+      return;
+    }
+
     let active = true;
 
     async function load() {
@@ -105,7 +116,7 @@ export function useAppointmentsList<T>({
     return () => {
       active = false;
     };
-  }, [fetchFn, listFilters]);
+  }, [enabled, fetchFn, listFilters]);
 
   return {
     items,
@@ -113,6 +124,7 @@ export function useAppointmentsList<T>({
     page,
     pageSize,
     search,
+    activeSearch,
     isLoading,
     isRefreshing,
     error,

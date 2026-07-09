@@ -63,6 +63,7 @@ export type FetchAppointmentsOptions = {
   department?: string;
   clinicUuid?: string;
   departmentUuid?: string;
+  clinicianId?: number;
   status?: AppointmentStatus;
   scheduledFrom?: string;
   scheduledTo?: string;
