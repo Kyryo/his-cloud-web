@@ -59,6 +59,17 @@ describe("user-management.service", () => {
       method: "PATCH",
       body: { name: "Updated User" },
     });
+
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      id: 2,
+      name: "Updated User",
+      is_admin: true,
+    });
+    await updateOrganizationUser(2, { is_admin: true });
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.userDetail(2), {
+      method: "PATCH",
+      body: { is_admin: true },
+    });
   });
 
   it("fetches and updates organization groups", async () => {

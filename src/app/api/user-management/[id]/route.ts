@@ -5,41 +5,12 @@ import type {
 } from "@/features/settings/types/settings.types";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
 import { hmisApiRequest } from "@/lib/server/hmis-api";
+import { pickOrganizationUserPayload } from "@/lib/server/pick-organization-user-payload";
 import { requireTenantAdmin } from "@/lib/server/require-tenant-admin";
 
 type RouteContext = {
   params: Promise<{ id: string }>;
 };
-
-const UPDATABLE_FIELDS = [
-  "name",
-  "email",
-  "password",
-  "user_role",
-] as const satisfies ReadonlyArray<keyof UpdateOrganizationUserPayload>;
-
-function pickUserPayload(body: UpdateOrganizationUserPayload) {
-  const payload: UpdateOrganizationUserPayload = {};
-
-  for (const field of UPDATABLE_FIELDS) {
-    if (field in body) {
-      const value = body[field];
-      if (typeof value === "string") {
-        const trimmed = value.trim();
-        if (field === "password" && trimmed === "") {
-          continue;
-        }
-        if (field === "user_role") {
-          payload.user_role = trimmed as UpdateOrganizationUserPayload["user_role"];
-        } else {
-          payload[field] = trimmed;
-        }
-      }
-    }
-  }
-
-  return payload;
-}
 
 export async function GET(_request: Request, context: RouteContext) {
   try {
@@ -81,7 +52,7 @@ export async function PATCH(request: Request, context: RouteContext) {
     }
 
     const body = (await request.json()) as UpdateOrganizationUserPayload;
-    const payload = pickUserPayload(body);
+    const payload = pickOrganizationUserPayload(body);
 
     if (Object.keys(payload).length === 0) {
       return bffSuccess({ message: "No valid fields to update." }, 400);

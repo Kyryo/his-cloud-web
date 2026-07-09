@@ -30,6 +30,58 @@ export const createAppointmentSchema = z
 
 export type CreateAppointmentFormValues = z.infer<typeof createAppointmentSchema>;
 
+export const appointmentScheduleTabFields = [
+  "clinic",
+  "department",
+  "scheduled_start",
+  "scheduled_end",
+  "clinician",
+] as const satisfies ReadonlyArray<keyof CreateAppointmentFormValues>;
+
+export const appointmentDetailsTabFields = [
+  "reason",
+  "notes",
+] as const satisfies ReadonlyArray<keyof CreateAppointmentFormValues>;
+
+export type AppointmentDialogTab = "client" | "schedule" | "details";
+
+function countTabFieldErrors(
+  errors: Partial<Record<keyof CreateAppointmentFormValues, unknown>>,
+  fields: ReadonlyArray<keyof CreateAppointmentFormValues>,
+): number {
+  return fields.filter((field) => Boolean(errors[field])).length;
+}
+
+export function resolveAppointmentErrorTab(
+  errors: Partial<Record<keyof CreateAppointmentFormValues, unknown>>,
+): Exclude<AppointmentDialogTab, "client"> {
+  if (countTabFieldErrors(errors, appointmentScheduleTabFields) > 0) {
+    return "schedule";
+  }
+
+  if (countTabFieldErrors(errors, appointmentDetailsTabFields) > 0) {
+    return "details";
+  }
+
+  return "schedule";
+}
+
+export function resolveFirstAppointmentErrorField(
+  errors: Partial<Record<keyof CreateAppointmentFormValues, unknown>>,
+  tab: Exclude<AppointmentDialogTab, "client">,
+): keyof CreateAppointmentFormValues | null {
+  const fields =
+    tab === "schedule" ? appointmentScheduleTabFields : appointmentDetailsTabFields;
+
+  for (const field of fields) {
+    if (errors[field]) {
+      return field;
+    }
+  }
+
+  return null;
+}
+
 export function createAppointmentDefaultValues(
   defaults?: Partial<CreateAppointmentFormValues>,
 ): CreateAppointmentFormValues {

@@ -96,7 +96,7 @@ export function LandingFeatureRevenueVisual() {
             {bars.map((height, index) => {
               const isHighlight = index === 3;
               return (
-                <div key={labels[index]} className="flex flex-1 flex-col items-center gap-1.5">
+                <div key={`revenue-bar-${index}`} className="flex flex-1 flex-col items-center gap-1.5">
                   <div
                     className={cn(
                       "w-full rounded-md transition-all",

@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type FieldErrors } from "react-hook-form";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import {
@@ -20,8 +20,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { AppointmentClinicEmptyState } from "@/features/appointments/components/AppointmentClinicEmptyState";
 import { AppointmentFormFields } from "@/features/appointments/components/AppointmentFormFields";
 import {
+  appointmentScheduleTabFields,
   createAppointmentDefaultValues,
   createAppointmentSchema,
+  resolveAppointmentErrorTab,
+  resolveFirstAppointmentErrorField,
   toCreateAppointmentPayload,
   type CreateAppointmentFormValues,
 } from "@/features/appointments/schemas/appointment.schema";
@@ -30,12 +33,10 @@ import type { Appointment } from "@/features/appointments/types/appointment.type
 import {
   fetchClinicalClinics,
   fetchClinicalDepartments,
-  fetchClinicalLocations,
 } from "@/features/clinical/services/clinical-catalog.service";
 import type {
   ClinicalClinic,
   ClinicalDepartment,
-  ClinicalLocation,
 } from "@/features/clinical/types/clinical-catalog.types";
 import { CustomerAppointmentPicker } from "@/features/customers/components/CustomerAppointmentPicker";
 import type { Customer } from "@/features/customers/types/customer.types";
@@ -86,7 +87,6 @@ export function CreateAppointmentDialog({
   );
   const [clinics, setClinics] = useState<ClinicalClinic[]>([]);
   const [departments, setDepartments] = useState<ClinicalDepartment[]>([]);
-  const [locations, setLocations] = useState<ClinicalLocation[]>([]);
   const [isLoadingContext, setIsLoadingContext] = useState(false);
 
   const form = useForm<CreateAppointmentFormValues>({
@@ -106,14 +106,21 @@ export function CreateAppointmentDialog({
   );
   const tabs = requiresClientSelection ? FULL_TABS : SCHEDULE_TABS;
 
-  const loadDepartmentsAndLocations = useCallback(async (clinicId: number) => {
-    const [nextDepartments, nextLocations] = await Promise.all([
-      fetchClinicalDepartments(clinicId),
-      fetchClinicalLocations(clinicId),
-    ]);
+  const loadDepartments = useCallback(async (clinicId: number) => {
+    const nextDepartments = await fetchClinicalDepartments(clinicId);
     setDepartments(nextDepartments);
-    setLocations(nextLocations);
   }, []);
+
+  function navigateToErrorTab(errors: FieldErrors<CreateAppointmentFormValues>) {
+    const tab = resolveAppointmentErrorTab(errors);
+    setActiveTab(tab);
+    const firstField = resolveFirstAppointmentErrorField(errors, tab);
+    if (firstField) {
+      requestAnimationFrame(() => {
+        form.setFocus(firstField);
+      });
+    }
+  }
 
   useEffect(() => {
     if (!open || isUserLoading) {
@@ -129,7 +136,6 @@ export function CreateAppointmentDialog({
     if (!hasAssignedClinic) {
       setClinics([]);
       setDepartments([]);
-      setLocations([]);
       setIsLoadingContext(false);
       return;
     }
@@ -164,7 +170,7 @@ export function CreateAppointmentDialog({
         )?.id;
 
         if (clinicId) {
-          await loadDepartmentsAndLocations(clinicId);
+          await loadDepartments(clinicId);
         }
       } catch (error) {
         toast({
@@ -189,51 +195,69 @@ export function CreateAppointmentDialog({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, isUserLoading, hasAssignedClinic]);
 
-  const handleSubmit = form.handleSubmit(async (values) => {
-    if (!customer) {
-      toast({
-        variant: "error",
-        title: "Select a client",
-        description: "Choose a client before scheduling the appointment.",
-      });
-      setActiveTab("client");
-      return;
-    }
-
-    try {
-      const appointment = await createAppointment(
-        toCreateAppointmentPayload(customer.uuid, values),
-      );
-      toast({
-        variant: "success",
-        title: "Appointment scheduled",
-        description: `Booked ${customerName} for ${new Date(appointment.scheduled_start).toLocaleString()}.`,
-      });
-      onCreated(appointment);
-      onOpenChange(false);
-    } catch (error) {
-      if (error instanceof BffError) {
-        const fieldErrors = mapBffErrorsToForm(error.errors);
-        for (const [field, message] of Object.entries(fieldErrors)) {
-          if (field in createAppointmentDefaultValues()) {
-            form.setError(field as keyof CreateAppointmentFormValues, { message });
-          }
-        }
+  const handleSubmit = form.handleSubmit(
+    async (values) => {
+      if (!customer) {
         toast({
           variant: "error",
-          title: "Could not create appointment",
-          description: formatBffErrorMessage(error.message, error.errors),
+          title: "Select a client",
+          description: "Choose a client before scheduling the appointment.",
         });
+        setActiveTab("client");
         return;
       }
 
-      toast({
-        variant: "error",
-        title: "Could not create appointment",
-        description: error instanceof Error ? error.message : "Something went wrong.",
-      });
+      try {
+        const appointment = await createAppointment(
+          toCreateAppointmentPayload(customer.uuid, values),
+        );
+        toast({
+          variant: "success",
+          title: "Appointment scheduled",
+          description: `Booked ${customerName} for ${new Date(appointment.scheduled_start).toLocaleString()}.`,
+        });
+        onCreated(appointment);
+        onOpenChange(false);
+      } catch (error) {
+        if (error instanceof BffError) {
+          const fieldErrors = mapBffErrorsToForm(error.errors);
+          for (const [field, message] of Object.entries(fieldErrors)) {
+            if (field in createAppointmentDefaultValues()) {
+              form.setError(field as keyof CreateAppointmentFormValues, { message });
+            }
+          }
+          navigateToErrorTab(
+            fieldErrors as FieldErrors<CreateAppointmentFormValues>,
+          );
+          toast({
+            variant: "error",
+            title: "Could not create appointment",
+            description: formatBffErrorMessage(error.message, error.errors),
+          });
+          return;
+        }
+
+        toast({
+          variant: "error",
+          title: "Could not create appointment",
+          description: error instanceof Error ? error.message : "Something went wrong.",
+        });
+      }
+    },
+    (errors) => {
+      navigateToErrorTab(errors);
+    },
+  );
+
+  async function handleContinueToDetails() {
+    const isValid = await form.trigger([...appointmentScheduleTabFields]);
+    if (isValid) {
+      setActiveTab("details");
+      return;
     }
-  });
+
+    navigateToErrorTab(form.formState.errors);
+  }
 
   const isSubmitting = form.formState.isSubmitting;
   const isDialogLoading = isLoadingContext || (open && isUserLoading);
@@ -277,7 +301,7 @@ export function CreateAppointmentDialog({
             <PrimaryButton
               type="button"
               disabled={isDialogLoading}
-              onClick={() => setActiveTab("details")}
+              onClick={() => void handleContinueToDetails()}
             >
               Continue
             </PrimaryButton>
@@ -329,17 +353,15 @@ export function CreateAppointmentDialog({
                 form={form}
                 clinics={clinics}
                 departments={departments}
-                locations={locations}
                 selectedClinicId={selectedClinicId}
                 selectedClinicUuid={selectedClinicUuid}
                 selectedClinicianName={selectedClinicianName}
                 onClinicianChange={(_, name) => setSelectedClinicianName(name)}
                 onClinicChange={(_, clinicId) => {
                   if (clinicId) {
-                    void loadDepartmentsAndLocations(clinicId);
+                    void loadDepartments(clinicId);
                   } else {
                     setDepartments([]);
-                    setLocations([]);
                   }
                 }}
                 showDetails={false}

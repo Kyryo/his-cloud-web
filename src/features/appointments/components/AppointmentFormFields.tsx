@@ -25,14 +25,12 @@ import type { CreateAppointmentFormValues } from "@/features/appointments/schema
 import type {
   ClinicalClinic,
   ClinicalDepartment,
-  ClinicalLocation,
 } from "@/features/clinical/types/clinical-catalog.types";
 
 type AppointmentFormFieldsProps = {
   form: UseFormReturn<CreateAppointmentFormValues>;
   clinics: ClinicalClinic[];
   departments: ClinicalDepartment[];
-  locations: ClinicalLocation[];
   selectedClinicId: number | null;
   selectedClinicUuid: string;
   selectedClinicianName: string | null;
@@ -45,7 +43,6 @@ export function AppointmentFormFields({
   form,
   clinics,
   departments,
-  locations,
   selectedClinicId,
   selectedClinicUuid,
   selectedClinicianName,
@@ -57,8 +54,6 @@ export function AppointmentFormFields({
   const [clinicSearch, setClinicSearch] = useState("");
   const [departmentOpen, setDepartmentOpen] = useState(false);
   const [departmentSearch, setDepartmentSearch] = useState("");
-  const [locationOpen, setLocationOpen] = useState(false);
-  const [locationSearch, setLocationSearch] = useState("");
 
   const filteredClinics = useMemo(() => {
     const term = clinicSearch.trim().toLowerCase();
@@ -79,16 +74,6 @@ export function AppointmentFormFields({
         department.code.toLowerCase().includes(term),
     );
   }, [departmentSearch, departments]);
-
-  const filteredLocations = useMemo(() => {
-    const term = locationSearch.trim().toLowerCase();
-    if (!term) return locations;
-    return locations.filter(
-      (location) =>
-        location.name.toLowerCase().includes(term) ||
-        location.code.toLowerCase().includes(term),
-    );
-  }, [locationSearch, locations]);
 
   return (
     <div className="space-y-5">
@@ -112,7 +97,6 @@ export function AppointmentFormFields({
               onValueChange={(value) => {
                 field.onChange(value);
                 form.setValue("department", "");
-                form.setValue("location", "");
                 onClinicianChange(null, null);
                 form.setValue("clinician", null);
                 const clinicId = clinics.find((clinic) => clinic.uuid === value)?.id ?? null;
@@ -200,60 +184,6 @@ export function AppointmentFormFields({
                       <div className="flex flex-col items-start">
                         <span>{department.name}</span>
                         <span className="text-xs text-brand-muted">{department.code}</span>
-                      </div>
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-
-      <FormField
-        control={form.control}
-        name="location"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Location</FormLabel>
-            <Select
-              value={field.value}
-              open={locationOpen}
-              onOpenChange={(open) => {
-                setLocationOpen(open);
-                if (!open) {
-                  setLocationSearch("");
-                }
-              }}
-              onValueChange={field.onChange}
-              disabled={!selectedClinicId || locations.length === 0}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Optional service point" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <div className="border-b border-brand-border p-2">
-                  <Input
-                    value={locationSearch}
-                    placeholder="Search locations..."
-                    className="h-9"
-                    onChange={(event) => setLocationSearch(event.target.value)}
-                    onKeyDown={(event) => event.stopPropagation()}
-                  />
-                </div>
-                {filteredLocations.length === 0 ? (
-                  <div className="px-3 py-6 text-center text-sm text-brand-muted">
-                    {selectedClinicId ? "No locations found." : "Select a clinic first."}
-                  </div>
-                ) : (
-                  filteredLocations.map((location) => (
-                    <SelectItem key={location.uuid} value={location.uuid}>
-                      <div className="flex flex-col items-start">
-                        <span>{location.name}</span>
-                        <span className="text-xs text-brand-muted">{location.code}</span>
                       </div>
                     </SelectItem>
                   ))

@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   createAppointmentDefaultValues,
   createAppointmentSchema,
+  resolveAppointmentErrorTab,
+  resolveFirstAppointmentErrorField,
   toCreateAppointmentPayload,
 } from "@/features/appointments/schemas/appointment.schema";
 
@@ -31,5 +33,24 @@ describe("createAppointmentSchema", () => {
       patient: "patient-uuid",
       clinician: 7,
     });
+  });
+
+  it("routes schedule tab errors ahead of details tab errors", () => {
+    expect(
+      resolveAppointmentErrorTab({
+        scheduled_start: { message: "Start time is required" },
+        notes: { message: "Too long" },
+      }),
+    ).toBe("schedule");
+  });
+
+  it("returns the first invalid field on the target tab", () => {
+    const errors = {
+      clinic: { message: "Select a clinic" },
+      department: { message: "Select a department" },
+    };
+
+    expect(resolveAppointmentErrorTab(errors)).toBe("schedule");
+    expect(resolveFirstAppointmentErrorField(errors, "schedule")).toBe("clinic");
   });
 });

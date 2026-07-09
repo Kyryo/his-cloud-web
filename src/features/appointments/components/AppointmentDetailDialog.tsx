@@ -28,12 +28,10 @@ import type { Appointment } from "@/features/appointments/types/appointment.type
 import {
   fetchClinicalClinics,
   fetchClinicalDepartments,
-  fetchClinicalLocations,
 } from "@/features/clinical/services/clinical-catalog.service";
 import type {
   ClinicalClinic,
   ClinicalDepartment,
-  ClinicalLocation,
 } from "@/features/clinical/types/clinical-catalog.types";
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { BffError } from "@/lib/bff-client";
@@ -71,7 +69,6 @@ export function AppointmentDetailDialog({
   );
   const [clinics, setClinics] = useState<ClinicalClinic[]>([]);
   const [departments, setDepartments] = useState<ClinicalDepartment[]>([]);
-  const [locations, setLocations] = useState<ClinicalLocation[]>([]);
 
   const form = useForm<CreateAppointmentFormValues>({
     resolver: zodResolver(createAppointmentSchema),
@@ -87,13 +84,9 @@ export function AppointmentDetailDialog({
   const editable = appointment ? canEditAppointment(appointment.status) : false;
   const tabs = editable ? TABS : [TABS[0]];
 
-  const loadDepartmentsAndLocations = useCallback(async (clinicId: number) => {
-    const [nextDepartments, nextLocations] = await Promise.all([
-      fetchClinicalDepartments(clinicId),
-      fetchClinicalLocations(clinicId),
-    ]);
+  const loadDepartments = useCallback(async (clinicId: number) => {
+    const nextDepartments = await fetchClinicalDepartments(clinicId);
     setDepartments(nextDepartments);
-    setLocations(nextLocations);
   }, []);
 
   const loadAppointment = useCallback(async () => {
@@ -115,7 +108,7 @@ export function AppointmentDetailDialog({
 
       const clinicId = clinicList.find((clinic) => clinic.uuid === data.clinic)?.id;
       if (clinicId) {
-        await loadDepartmentsAndLocations(clinicId);
+        await loadDepartments(clinicId);
       }
     } catch (err) {
       setLoadError(err instanceof Error ? err.message : "Failed to load appointment.");
@@ -123,7 +116,7 @@ export function AppointmentDetailDialog({
     } finally {
       setIsLoading(false);
     }
-  }, [appointmentUuid, form, loadDepartmentsAndLocations]);
+  }, [appointmentUuid, form, loadDepartments]);
 
   useEffect(() => {
     if (!open || !appointmentUuid) {
@@ -137,10 +130,9 @@ export function AppointmentDetailDialog({
 
   const handleClinicChange = (_clinicUuid: string, clinicId: number | null) => {
     if (clinicId) {
-      void loadDepartmentsAndLocations(clinicId);
+      void loadDepartments(clinicId);
     } else {
       setDepartments([]);
-      setLocations([]);
     }
   };
 
@@ -340,7 +332,6 @@ export function AppointmentDetailDialog({
               form={form}
               clinics={clinics}
               departments={departments}
-              locations={locations}
               selectedClinicId={selectedClinicId}
               selectedClinicUuid={selectedClinicUuid}
               selectedClinicianName={selectedClinicianName}
