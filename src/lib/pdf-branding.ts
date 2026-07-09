@@ -21,6 +21,9 @@ export type PdfBrandPalette = {
 
 export type PdfBrandingContext = TenantBranding & {
   organizationName: string;
+  organizationEmail: string;
+  organizationPhone: string;
+  organizationAddress: string;
   colors: PdfBrandPalette;
 };
 
@@ -178,6 +181,10 @@ export async function loadPdfBrandingContext(): Promise<PdfBrandingContext> {
   return {
     ...branding,
     organizationName: organization?.name?.trim() ?? "",
+    organizationEmail: organization?.email?.trim() ?? "",
+    organizationPhone: organization?.phone?.trim() ?? "",
+    organizationAddress:
+      organization?.full_address?.trim() || organization?.address?.trim() || "",
     colors: resolvePdfBrandPalette(branding),
   };
 }

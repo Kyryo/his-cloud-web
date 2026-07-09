@@ -16,6 +16,8 @@ import {
   fetchCareProviderRecords,
   updateCareProvider,
 } from "@/features/care-providers/services/care-providers.service";
+import { fetchClinicalClinics } from "@/features/clinical/services/clinical-catalog.service";
+import type { ClinicalClinic } from "@/features/clinical/types/clinical-catalog.types";
 import type { CareProviderRecord } from "@/features/care-providers/types/care-provider.types";
 
 type OrganizationCareProvidersTabProps = {
@@ -24,7 +26,7 @@ type OrganizationCareProvidersTabProps = {
 
 const columns = [
   { key: "name", label: "Provider" },
-  { key: "account", label: "Account" },
+  { key: "account", label: "Login" },
   { key: "status", label: "Status" },
   { key: "actions", label: "" },
 ] as const;
@@ -33,6 +35,7 @@ export function OrganizationCareProvidersTab({
   isActive,
 }: OrganizationCareProvidersTabProps) {
   const [providers, setProviders] = useState<CareProviderRecord[]>([]);
+  const [clinics, setClinics] = useState<ClinicalClinic[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -44,10 +47,15 @@ export function OrganizationCareProvidersTab({
     setIsLoading(true);
     setError(null);
     try {
-      const response = await fetchCareProviderRecords({ isActive: undefined });
+      const [response, clinicList] = await Promise.all([
+        fetchCareProviderRecords({ isActive: undefined }),
+        fetchClinicalClinics(),
+      ]);
       setProviders(response.results ?? []);
+      setClinics(clinicList);
     } catch (loadError) {
       setProviders([]);
+      setClinics([]);
       setError(
         loadError instanceof Error
           ? loadError.message
@@ -62,8 +70,46 @@ export function OrganizationCareProvidersTab({
     if (!isActive) {
       return;
     }
-    void loadProviders();
-  }, [isActive, loadProviders]);
+
+    let active = true;
+
+    async function load() {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const [response, clinicList] = await Promise.all([
+          fetchCareProviderRecords({ isActive: undefined }),
+          fetchClinicalClinics(),
+        ]);
+        if (!active) {
+          return;
+        }
+        setProviders(response.results ?? []);
+        setClinics(clinicList);
+      } catch (loadError) {
+        if (!active) {
+          return;
+        }
+        setProviders([]);
+        setClinics([]);
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Could not load care providers.",
+        );
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void load();
+
+    return () => {
+      active = false;
+    };
+  }, [isActive]);
 
   function openCreateDialog() {
     setEditingProvider(null);
@@ -80,12 +126,14 @@ export function OrganizationCareProvidersTab({
       return updateCareProvider(editingProvider.uuid, {
         display_name: values.displayName,
         is_active: values.isActive,
+        clinic_ids: values.clinicIds,
       });
     }
 
     return createCareProvider({
       display_name: values.displayName,
       user_id: values.linkExistingUser ? values.linkedUser?.id ?? null : undefined,
+      clinic_ids: values.clinicIds,
       create_user_account: values.createUserAccount,
       invite_email: values.createUserAccount ? values.inviteEmail : undefined,
       user_role: values.userRole,
@@ -112,7 +160,7 @@ export function OrganizationCareProvidersTab({
     <>
       <OrganizationTabSection
         title="Care providers"
-        description="Maintain the tenant provider directory used on sales orders and clinical workflows."
+        description="Maintain the tenant provider directory used on billing and clinical workflows."
         actions={
           <PrimaryButton type="button" onClick={openCreateDialog}>
             <Plus className="size-4" aria-hidden="true" />
@@ -157,13 +205,11 @@ export function OrganizationCareProvidersTab({
                       {provider.display_name}
                     </td>
                     <td className="px-3 py-3">
-                      {provider.provider_has_user ? (
-                        <Badge variant="secondary">
-                          {provider.user_email ?? "Linked user"}
-                        </Badge>
-                      ) : (
-                        <span className="text-brand-muted">Standalone</span>
-                      )}
+                      <Badge variant="secondary">
+                        {provider.user_email?.endsWith("@placeholder.local")
+                          ? "No login (inactive placeholder)"
+                          : (provider.user_email ?? "Linked user")}
+                      </Badge>
                     </td>
                     <td className="px-3 py-3">
                       <Badge variant={provider.is_active ? "default" : "outline"}>
@@ -192,6 +238,7 @@ export function OrganizationCareProvidersTab({
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         provider={editingProvider}
+        clinics={clinics}
         onSaved={handleSaved}
         onSubmit={handleSubmit}
       />

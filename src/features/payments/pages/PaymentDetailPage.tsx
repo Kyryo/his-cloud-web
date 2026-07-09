@@ -6,6 +6,7 @@ import {
   PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS,
   PageLoader,
 } from "@/components/page-loader";
+import { PaymentDetailActions } from "@/features/payments/components/detail/PaymentDetailActions";
 import { PaymentDetailHeader } from "@/features/payments/components/detail/PaymentDetailHeader";
 import { PaymentDetailTabs } from "@/features/payments/components/detail/PaymentDetailTabs";
 import { fetchPayment } from "@/features/payments/services/payments.service";
@@ -73,7 +74,10 @@ export function PaymentDetailPage({ paymentId }: PaymentDetailPageProps) {
 
   return (
     <DetailPageLayout data-testid="payment-detail-page">
-      <PaymentDetailHeader payment={payment} />
+      <PaymentDetailHeader
+        payment={payment}
+        actions={<PaymentDetailActions payment={payment} />}
+      />
       <PaymentDetailTabs payment={payment} />
     </DetailPageLayout>
   );

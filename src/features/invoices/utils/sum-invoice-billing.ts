@@ -58,7 +58,22 @@ export function formatInvoiceInsurerDueLabel(invoice: Invoice): string {
   return "Insurance due";
 }
 
+export function getInvoiceOutstandingBalance(invoice: Invoice): number {
+  const residual = Number(invoice.amount_residual ?? NaN);
+  if (Number.isFinite(residual) && residual >= 0) {
+    return residual;
+  }
+
+  const total = Number(invoice.amount_total ?? 0);
+  const paid = Number(invoice.amount_paid ?? 0);
+  if (!Number.isFinite(total)) {
+    return 0;
+  }
+
+  const balance = total - (Number.isFinite(paid) ? paid : 0);
+  return balance > 0 ? balance : 0;
+}
+
 export function hasInvoiceBalance(invoice: Invoice): boolean {
-  const balance = Number(invoice.amount_residual ?? 0);
-  return Number.isFinite(balance) && balance > 0;
+  return getInvoiceOutstandingBalance(invoice) > 0;
 }

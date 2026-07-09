@@ -11,12 +11,17 @@ type RecordCreatedByMetaProps = {
   createdByEmail?: string | null;
 };
 
+function isPlaceholderActorName(value: string): boolean {
+  const normalized = value.trim().toLowerCase();
+  return !normalized || normalized === "none none" || normalized === "none";
+}
+
 function getCreatorLabel(
   createdByName?: string | null,
   createdByEmail?: string | null,
 ): string | null {
   const name = createdByName?.trim();
-  if (name) {
+  if (name && !isPlaceholderActorName(name)) {
     return name;
   }
 

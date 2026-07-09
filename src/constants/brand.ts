@@ -30,4 +30,4 @@ export const BRAND = {
   logoMark: "#0B6E6E",
 } as const;
 
-export const BRAND_LOGO_SRC = "/sigma-health-green.png";
+export const BRAND_LOGO_SRC = "/sigma-logo-green.png";

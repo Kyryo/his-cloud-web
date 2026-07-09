@@ -20,7 +20,10 @@ import {
 } from "@/features/customers/services/customer-visits.service";
 import type { CustomerEncounter } from "@/features/customers/types/customer-encounter.types";
 import type { Customer } from "@/features/customers/types/customer.types";
-import { formatCompactNumber } from "@/utils/format-compact-number";
+import {
+  formatCompactCurrency,
+  formatCompactNumber,
+} from "@/utils/format-compact-number";
 import { formatSalesOrderAmount } from "@/features/sales-orders/utils/format-sales-order";
 import type { CustomerBillingTotals } from "@/features/customers/types/customer-billing.types";
 import { cn } from "@/lib/utils";
@@ -62,10 +65,12 @@ function StatCardValue({
   value,
   unavailable,
   isLoading,
+  title,
 }: {
   value: number | null;
   unavailable?: boolean;
   isLoading?: boolean;
+  title?: string;
 }) {
   if (isLoading) {
     return (
@@ -84,7 +89,31 @@ function StatCardValue({
     );
   }
 
-  return <>{formatCompactNumber(value)}</>;
+  return <span title={title}>{formatCompactNumber(value)}</span>;
+}
+
+function StatCardCurrencyValue({
+  value,
+  isLoading,
+}: {
+  value: number | string | null | undefined;
+  isLoading?: boolean;
+}) {
+  if (isLoading) {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-brand-muted">
+        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+        <span className="sr-only">Loading</span>
+      </span>
+    );
+  }
+
+  const fullValue = formatBillingTotal(value);
+  return (
+    <span title={fullValue === "—" ? undefined : fullValue}>
+      {formatCompactCurrency(value)}
+    </span>
+  );
 }
 
 export function CustomerDetailSummaryTab({
@@ -245,32 +274,31 @@ export function CustomerDetailSummaryTab({
         <StatsCard1
           className={SUMMARY_STAT_CARD_CLASS}
           title="Visits"
-          value={<StatCardValue value={stats?.visits ?? null} />}
+          value={
+            <StatCardValue
+              value={stats?.visits ?? null}
+              title={stats?.visits != null ? String(stats.visits) : undefined}
+            />
+          }
         />
         <StatsCard1
           className={SUMMARY_STAT_CARD_CLASS}
           title="Sales orders"
           value={
-            stats?.isBillingLoading ? (
-              <StatCardValue value={null} isLoading />
-            ) : (
-              <span title={`${stats?.salesOrders ?? 0} orders`}>
-                {formatBillingTotal(stats?.totals?.total_sales)}
-              </span>
-            )
+            <StatCardCurrencyValue
+              value={stats?.totals?.total_sales}
+              isLoading={stats?.isBillingLoading}
+            />
           }
         />
         <StatsCard1
           className={SUMMARY_STAT_CARD_CLASS}
           title="Invoices"
           value={
-            stats?.isBillingLoading ? (
-              <StatCardValue value={null} isLoading />
-            ) : (
-              <span title={`${stats?.invoices ?? 0} invoices`}>
-                {formatBillingTotal(stats?.totals?.total_invoiced)}
-              </span>
-            )
+            <StatCardCurrencyValue
+              value={stats?.totals?.total_invoiced}
+              isLoading={stats?.isBillingLoading}
+            />
           }
         />
         <StatsCard1
@@ -278,15 +306,15 @@ export function CustomerDetailSummaryTab({
           title="Outstanding balance"
           value={
             stats?.isBillingLoading ? (
-              <StatCardValue value={null} isLoading />
+              <StatCardCurrencyValue value={null} isLoading />
             ) : (
               <span
                 className={cn(
                   parseBillingAmount(stats?.totals?.total_due) > 0 && "text-red-600",
                 )}
-                title="Amount invoiced but not yet paid"
+                title={formatBillingTotal(stats?.totals?.total_due)}
               >
-                {formatBillingTotal(stats?.totals?.total_due)}
+                {formatCompactCurrency(stats?.totals?.total_due)}
               </span>
             )
           }

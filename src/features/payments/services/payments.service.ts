@@ -4,6 +4,7 @@ import type {
   PaymentListFilters,
   PaymentListResponse,
   CreatePaymentPayload,
+  SendPaymentReceiptPayload,
 } from "@/features/payments/types/payment.types";
 import { bffRequest } from "@/lib/bff-client";
 
@@ -63,6 +64,18 @@ export async function createPayment(payload: CreatePaymentPayload): Promise<Paym
       payment_method: payload.paymentMethod,
       payment_date: payload.paymentDate,
       note: payload.note,
+    },
+  });
+}
+
+export async function sendPaymentReceipt(
+  paymentId: number | string,
+  payload: SendPaymentReceiptPayload,
+): Promise<{ queued: boolean }> {
+  return bffRequest<{ queued: boolean }>(BFF_PAYMENTS_ROUTES.sendReceipt(paymentId), {
+    method: "POST",
+    body: {
+      email: payload.email,
     },
   });
 }

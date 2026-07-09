@@ -5,6 +5,7 @@ import {
   History,
   Receipt,
   ShoppingCart,
+  UserRound,
   Wallet,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
@@ -17,6 +18,7 @@ const ACTION_ICONS: Record<string, LucideIcon> = {
   ORDER_CANCELLED: Ban,
   ORDER_CONFIRMED: CheckCircle2,
   ORDER_INVOICED: Receipt,
+  ORDER_PROVIDER_UPDATED: UserRound,
   INVOICE_CREATED: FileText,
   PAYMENT_RECORDED: Wallet,
 };

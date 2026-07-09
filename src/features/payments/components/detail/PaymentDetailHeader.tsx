@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { PaymentStatusBadge } from "@/features/payments/components/PaymentStatusBadge";
 import type { Payment } from "@/features/payments/types/payment.types";
 import {
@@ -10,9 +12,10 @@ import { DetailPageHeaderSection } from "@/features/app-shell/components/page-la
 
 type PaymentDetailHeaderProps = {
   payment: Payment;
+  actions?: ReactNode;
 };
 
-export function PaymentDetailHeader({ payment }: PaymentDetailHeaderProps) {
+export function PaymentDetailHeader({ payment, actions }: PaymentDetailHeaderProps) {
   const paymentLabel = payment.name || `Payment #${payment.id}`;
   const customerName = formatPaymentCustomer(payment);
 
@@ -33,6 +36,7 @@ export function PaymentDetailHeader({ payment }: PaymentDetailHeaderProps) {
             <span>Paid {formatPaymentDate(payment.payment_date)}</span>
           </div>
         </div>
+        {actions}
       </div>
     </DetailPageHeaderSection>
   );

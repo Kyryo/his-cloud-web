@@ -18,9 +18,14 @@ describe("formatCompactNumber", () => {
     expect(formatCompactNumber(999_999)).toBe("1000k");
   });
 
-  it("uses m suffix from one million", () => {
-    expect(formatCompactNumber(1_000_000)).toBe("1m");
-    expect(formatCompactNumber(2_500_000)).toBe("2.5m");
+  it("uses M suffix from one million", () => {
+    expect(formatCompactNumber(1_000_000)).toBe("1M");
+    expect(formatCompactNumber(2_500_000)).toBe("2.5M");
+  });
+
+  it("uses B suffix from one billion", () => {
+    expect(formatCompactNumber(1_000_000_000)).toBe("1B");
+    expect(formatCompactNumber(2_500_000_000)).toBe("2.5B");
   });
 
   it("handles negative values", () => {
@@ -31,7 +36,7 @@ describe("formatCompactNumber", () => {
 describe("formatCompactAmount", () => {
   it("formats numeric strings compactly", () => {
     expect(formatCompactAmount("1500")).toBe("1.5k");
-    expect(formatCompactAmount(2_500_000)).toBe("2.5m");
+    expect(formatCompactAmount(2_500_000)).toBe("2.5M");
   });
 
   it("returns dash for empty values", () => {

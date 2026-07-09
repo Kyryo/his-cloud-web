@@ -22,6 +22,8 @@ import {
   createCareProvider,
   fetchCareProviderRecords,
 } from "@/features/care-providers/services/care-providers.service";
+import { fetchClinicalClinics } from "@/features/clinical/services/clinical-catalog.service";
+import type { ClinicalClinic } from "@/features/clinical/types/clinical-catalog.types";
 import type { CareProviderRecord } from "@/features/care-providers/types/care-provider.types";
 
 type CareProviderPickerProps = {
@@ -55,6 +57,31 @@ export function CareProviderPicker({
   const [options, setOptions] = useState<CareProviderRecord[]>([]);
   const [isLoadingResults, setIsLoadingResults] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [clinics, setClinics] = useState<ClinicalClinic[]>([]);
+
+  useEffect(() => {
+    if (!addDialogOpen) {
+      return;
+    }
+
+    let active = true;
+    void (async () => {
+      try {
+        const clinicList = await fetchClinicalClinics();
+        if (active) {
+          setClinics(clinicList);
+        }
+      } catch {
+        if (active) {
+          setClinics([]);
+        }
+      }
+    })();
+
+    return () => {
+      active = false;
+    };
+  }, [addDialogOpen]);
 
   useEffect(() => {
     if (!open) {
@@ -87,6 +114,7 @@ export function CareProviderPicker({
     return createCareProvider({
       display_name: values.displayName,
       user_id: values.linkExistingUser ? values.linkedUser?.id ?? null : undefined,
+      clinic_ids: values.clinicIds,
       create_user_account: values.createUserAccount,
       invite_email: values.createUserAccount ? values.inviteEmail : undefined,
       user_role: values.userRole,
@@ -166,6 +194,7 @@ export function CareProviderPicker({
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
         onSaved={handleProviderCreated}
+        clinics={clinics}
         onSubmit={handleCreateProvider}
       />
     </div>

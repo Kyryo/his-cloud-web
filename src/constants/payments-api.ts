@@ -2,4 +2,5 @@
 export const PAYMENTS_API_PATHS = {
   list: "/payments/",
   detail: (paymentId: number | string) => `/payments/${paymentId}/`,
+  sendReceipt: (paymentId: number | string) => `/payments/${paymentId}/send-receipt/`,
 } as const;

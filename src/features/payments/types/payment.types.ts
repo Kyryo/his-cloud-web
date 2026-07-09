@@ -15,6 +15,8 @@ export type Payment = {
   payment_date: string | null;
   payment_method?: string | null;
   note?: string | null;
+  recorded_by_name?: string | null;
+  recorded_by_email?: string | null;
 };
 
 export type PaymentListFilters = {
@@ -30,6 +32,10 @@ export type PaymentListFilters = {
 };
 
 export type PaymentListResponse = PaginatedListResponse<Payment>;
+
+export type SendPaymentReceiptPayload = {
+  email: string;
+};
 
 export type CreatePaymentPayload = {
   invoiceId: number;

@@ -40,6 +40,21 @@ export function buildRecordPaymentDefaultValues(
   };
 }
 
+export function buildRecordPaymentSchema(maxOutstanding: number) {
+  return recordPaymentSchema.superRefine((values, context) => {
+    const amount = Number(values.amount);
+    if (!Number.isFinite(amount) || amount <= maxOutstanding) {
+      return;
+    }
+
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: `Amount cannot exceed the outstanding balance of ${maxOutstanding.toFixed(2)}.`,
+      path: ["amount"],
+    });
+  });
+}
+
 export function toRecordPaymentPayload(
   invoiceId: number,
   values: RecordPaymentFormValues,

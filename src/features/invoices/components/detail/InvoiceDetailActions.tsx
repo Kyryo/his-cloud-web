@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { isInsuranceInvoice } from "@/features/claims/services/claims.service";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
+import { hasInvoiceBalance } from "@/features/invoices/utils/sum-invoice-billing";
 import { downloadInvoicePdf } from "@/features/invoices/utils/generate-invoice-pdf";
 import { getErrorMessage } from "@/lib/fetch-error";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,7 @@ export function InvoiceDetailActions({
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const isInsurance = isInsuranceInvoice(invoice);
   const isPosted = String(invoice.state).toLowerCase() === "posted";
+  const canRecordPayment = hasInvoiceBalance(invoice);
   const showPrimaryClaim = isInsurance && isPosted && Boolean(onClaimInvoice);
   const showPrimaryPayment = !isInsurance && isPosted && Boolean(onRecordPayment);
   const showMenuRecordPayment = isInsurance && isPosted && Boolean(onRecordPayment);
@@ -91,6 +93,10 @@ export function InvoiceDetailActions({
           {showMenuRecordPayment ? (
             <DropdownMenuItem
               onClick={onRecordPayment}
+              disabled={!canRecordPayment}
+              title={
+                canRecordPayment ? undefined : "This invoice is fully paid."
+              }
               data-testid="invoice-record-payment-menu-item"
             >
               <Wallet className="size-4" aria-hidden="true" />
@@ -115,6 +121,8 @@ export function InvoiceDetailActions({
         <PrimaryButton
           type="button"
           onClick={onRecordPayment}
+          disabled={!canRecordPayment}
+          title={canRecordPayment ? undefined : "This invoice is fully paid."}
           data-testid="record-payment-button"
         >
           Record payment

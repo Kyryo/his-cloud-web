@@ -1,16 +1,17 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@/components/ui/combobox";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { fetchCareProviders } from "@/features/appointments/services/appointments.service";
 import type { CareProvider } from "@/features/appointments/types/appointment.types";
 import { cn } from "@/lib/utils";
@@ -57,7 +58,9 @@ export function CareProviderCombobox({
 }: CareProviderComboboxProps) {
   const [options, setOptions] = useState<ProviderOption[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [inputValue, setInputValue] = useState(displayName ?? "");
+  const [loadedClinicUuid, setLoadedClinicUuid] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
 
   const selectedOption = useMemo(() => {
     if (!value) {
@@ -81,82 +84,100 @@ export function CareProviderCombobox({
   }, [displayName, options, value]);
 
   useEffect(() => {
-    setInputValue(displayName ?? "");
-  }, [displayName, value]);
-
-  useEffect(() => {
-    if (inputValue.trim().length < 2) {
+    if (!clinicUuid) {
       setOptions([]);
+      setLoadedClinicUuid(null);
       return;
     }
 
-    const handle = window.setTimeout(() => {
-      void (async () => {
-        setIsSearching(true);
-        try {
-          const providers = await fetchCareProviders({
-            search: inputValue.trim(),
-            clinic: clinicUuid,
-          });
-          setOptions(providers.map(toProviderOption));
-        } catch {
-          setOptions([]);
-        } finally {
-          setIsSearching(false);
-        }
-      })();
-    }, 250);
+    if (clinicUuid === loadedClinicUuid) {
+      return;
+    }
 
-    return () => window.clearTimeout(handle);
-  }, [clinicUuid, inputValue]);
+    setLoadedClinicUuid(clinicUuid);
+    void (async () => {
+      setIsSearching(true);
+      try {
+        const providers = await fetchCareProviders({ clinic: clinicUuid });
+        setOptions(providers.map(toProviderOption));
+      } catch {
+        setOptions([]);
+      } finally {
+        setIsSearching(false);
+      }
+    })();
+  }, [clinicUuid, loadedClinicUuid]);
+
+  const filteredOptions = useMemo(() => {
+    const term = search.trim().toLowerCase();
+    if (!term) {
+      return options;
+    }
+    return options.filter((option) => option.label.toLowerCase().includes(term));
+  }, [options, search]);
 
   return (
     <div className={cn("space-y-2", className)}>
       {label ? <Label htmlFor={id}>{label}</Label> : null}
-      <Combobox
-        items={options}
-        filter={null}
-        value={selectedOption}
-        itemToStringLabel={(option) => option.label}
-        itemToStringValue={(option) => String(option.id)}
-        isItemEqualToValue={(left, right) => left.id === right.id}
-        onValueChange={(option) => {
-          if (!option) {
-            onSelect(null);
-            setInputValue("");
-            return;
+      <Select
+        value={selectedOption ? String(selectedOption.id) : ""}
+        open={open}
+        onOpenChange={(nextOpen) => {
+          setOpen(nextOpen);
+          if (!nextOpen) {
+            setSearch("");
           }
-
-          onSelect(option.provider);
-          setInputValue(option.label);
         }}
-        onInputValueChange={(nextValue) => setInputValue(nextValue)}
+        onValueChange={(nextValue) => {
+          const selected = options.find((option) => String(option.id) === nextValue);
+          onSelect(selected?.provider ?? null);
+        }}
+        disabled={disabled || !clinicUuid || isSearching}
       >
-        <ComboboxInput
-          id={id}
-          disabled={disabled}
-          placeholder="Search doctors and nurses..."
-          showClear={Boolean(value)}
-          className="w-full"
-          aria-busy={isSearching}
-        />
-        <ComboboxContent className="min-w-[var(--anchor-width)]">
-          <ComboboxEmpty>
-            {inputValue.trim().length < 2
-              ? "Type at least 2 characters to search."
-              : isSearching
-                ? "Searching..."
-                : "No care providers found."}
-          </ComboboxEmpty>
-          <ComboboxList>
-            {(option) => (
-              <ComboboxItem key={option.id} value={option}>
+        <SelectTrigger id={id} className="w-full">
+          <SelectValue
+            placeholder={
+              clinicUuid
+                ? isSearching
+                  ? "Loading providers..."
+                  : "Select a provider"
+                : "Select a clinic first"
+            }
+          />
+        </SelectTrigger>
+        <SelectContent>
+          <div className="border-b border-brand-border p-2">
+            <Input
+              value={search}
+              placeholder="Search providers..."
+              className="h-9"
+              onChange={(event) => setSearch(event.target.value)}
+              onKeyDown={(event) => event.stopPropagation()}
+            />
+          </div>
+
+          {isSearching ? (
+            <div className="flex items-center justify-center gap-2 px-3 py-6 text-sm text-brand-muted">
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              Loading...
+            </div>
+          ) : filteredOptions.length === 0 ? (
+            <div className="px-3 py-6 text-center text-sm text-brand-muted">
+              {clinicUuid
+                ? search.trim()
+                  ? "No matching providers."
+                  : "No assignable providers found for this clinic. Link the provider to a clinical user account to appear here."
+                : "Select a clinic first."}
+            </div>
+          ) : (
+            filteredOptions.map((option) => (
+              <SelectItem key={option.id} value={String(option.id)}>
                 {option.label}
-              </ComboboxItem>
-            )}
-          </ComboboxList>
-        </ComboboxContent>
-      </Combobox>
+              </SelectItem>
+            ))
+          )}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

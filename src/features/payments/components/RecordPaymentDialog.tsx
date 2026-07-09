@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
 import { FilterSelectField } from "@/components/filter-select-field";
@@ -27,10 +27,11 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 import { formatInvoiceAmount } from "@/features/invoices/utils/format-invoice";
+import { getInvoiceOutstandingBalance } from "@/features/invoices/utils/sum-invoice-billing";
 import {
   buildRecordPaymentDefaultValues,
+  buildRecordPaymentSchema,
   PAYMENT_METHOD_OPTIONS,
-  recordPaymentSchema,
   toRecordPaymentPayload,
   type RecordPaymentFormValues,
 } from "@/features/payments/schemas/record-payment.schema";
@@ -56,17 +57,22 @@ export function RecordPaymentDialog({
   onRecorded,
 }: RecordPaymentDialogProps) {
   const { toast } = useToast();
+  const outstandingBalance = getInvoiceOutstandingBalance(invoice);
+  const validationSchema = useMemo(
+    () => buildRecordPaymentSchema(outstandingBalance),
+    [outstandingBalance],
+  );
   const form = useForm<RecordPaymentFormValues>({
-    resolver: zodResolver(recordPaymentSchema),
-    defaultValues: buildRecordPaymentDefaultValues(invoice.amount_total),
+    resolver: zodResolver(validationSchema),
+    defaultValues: buildRecordPaymentDefaultValues(outstandingBalance),
   });
 
   useEffect(() => {
     if (!open) {
       return;
     }
-    form.reset(buildRecordPaymentDefaultValues(invoice.amount_total));
-  }, [form, invoice.amount_total, open]);
+    form.reset(buildRecordPaymentDefaultValues(outstandingBalance));
+  }, [form, open, outstandingBalance]);
 
   async function handleSubmit(values: RecordPaymentFormValues) {
     try {
@@ -106,6 +112,10 @@ export function RecordPaymentDialog({
   }
 
   const isSubmitting = form.formState.isSubmitting;
+  const watchedAmount = Number(form.watch("amount"));
+  const exceedsOutstanding =
+    Number.isFinite(watchedAmount) && watchedAmount > outstandingBalance;
+  const isSubmitDisabled = isSubmitting || exceedsOutstanding;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -117,7 +127,7 @@ export function RecordPaymentDialog({
           <DialogTitle>Record payment</DialogTitle>
           <DialogDescription>
             Capture a payment against {invoice.name || `invoice #${invoice.id}`}.
-            Invoice total {formatInvoiceAmount(invoice.amount_total)}.
+            Outstanding balance {formatInvoiceAmount(outstandingBalance)}.
           </DialogDescription>
         </DialogHeader>
 
@@ -213,7 +223,7 @@ export function RecordPaymentDialog({
               >
                 Cancel
               </SecondaryButton>
-              <PrimaryButton type="submit" disabled={isSubmitting}>
+              <PrimaryButton type="submit" disabled={isSubmitDisabled}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="size-4 animate-spin" aria-hidden="true" />
