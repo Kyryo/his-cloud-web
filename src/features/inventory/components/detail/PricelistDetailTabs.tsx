@@ -21,14 +21,14 @@ type PricelistDetailTabsProps = {
 type DetailTabId = "summary" | "products" | "rules" | "approvals";
 
 const tabs: Array<{ id: DetailTabId; label: string }> = [
-  { id: "summary", label: "Summary" },
   { id: "products", label: "Products" },
   { id: "rules", label: "Rules" },
   { id: "approvals", label: "Price approvals" },
+  { id: "summary", label: "Summary" },
 ];
 
 export function PricelistDetailTabs({ pricelist }: PricelistDetailTabsProps) {
-  const [activeTab, setActiveTab] = useState<DetailTabId>("summary");
+  const [activeTab, setActiveTab] = useState<DetailTabId>("products");
 
   return (
     <DetailPageTabsSection>

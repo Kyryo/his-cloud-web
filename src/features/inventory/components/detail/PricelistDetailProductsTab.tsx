@@ -30,6 +30,8 @@ import type {
   CatalogPricelistMembership,
 } from "@/features/catalog/types/catalog.types";
 import { AddPricelistProductDialog } from "@/features/inventory/components/detail/AddPricelistProductDialog";
+import { CopyPricelistProductsDialog } from "@/features/inventory/components/detail/CopyPricelistProductsDialog";
+import { PricelistCopyJobPanel } from "@/features/inventory/components/detail/PricelistCopyJobPanel";
 import {
   formatDisplayDate,
   formatInventoryAmount,
@@ -60,17 +62,25 @@ export function PricelistDetailProductsTab({
   const isTenantAdmin = Boolean(userData?.is_admin);
   const [items, setItems] = useState<CatalogPricelistMembership[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [copyOpen, setCopyOpen] = useState(false);
+  const [activeCopyJobUuid, setActiveCopyJobUuid] = useState<string | null>(null);
+  const [activeCopyToastId, setActiveCopyToastId] = useState<string | number | null>(
+    null,
+  );
   const [priceEdit, setPriceEdit] = useState<PendingPriceEdit | null>(null);
   const [pendingRemove, setPendingRemove] = useState<CatalogPricelistMembership | null>(
     null,
   );
   const [isSaving, setIsSaving] = useState(false);
 
-  const loadItems = useCallback(async () => {
-    try {
+  const loadItems = useCallback(async (options?: { silent?: boolean }) => {
+    if (!options?.silent) {
       setIsLoading(true);
+    }
+    try {
       setError(null);
       const response = await fetchCatalogPricelistProducts(pricelist.uuid, {
         pageSize: 200,
@@ -80,7 +90,10 @@ export function PricelistDetailProductsTab({
       setItems([]);
       setError(err instanceof Error ? err.message : "Failed to load products.");
     } finally {
-      setIsLoading(false);
+      if (!options?.silent) {
+        setIsLoading(false);
+      }
+      setHasLoaded(true);
     }
   }, [pricelist.uuid]);
 
@@ -182,7 +195,9 @@ export function PricelistDetailProductsTab({
     return null;
   }
 
-  if (isLoading) {
+  const showInitialLoader = isLoading && !hasLoaded;
+
+  if (showInitialLoader) {
     return (
       <div className="flex items-center justify-center gap-2 rounded-xl border border-brand-border bg-white px-6 py-16 text-sm text-brand-muted">
         <Loader2 className="size-4 animate-spin" aria-hidden="true" />
@@ -204,6 +219,25 @@ export function PricelistDetailProductsTab({
 
   return (
     <div className="space-y-4" data-testid="pricelist-products-tab">
+      {activeCopyJobUuid ? (
+        <PricelistCopyJobPanel
+          targetPricelistUuid={pricelist.uuid}
+          jobUuid={activeCopyJobUuid}
+          copyToastId={activeCopyToastId ?? undefined}
+          onTerminal={(job) => {
+            void loadItems({ silent: true });
+            if (job.status === "completed") {
+              setActiveCopyJobUuid(null);
+              setActiveCopyToastId(null);
+            }
+          }}
+          onDismiss={() => {
+            setActiveCopyJobUuid(null);
+            setActiveCopyToastId(null);
+          }}
+        />
+      ) : null}
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h3 className="text-sm font-semibold text-brand-navy">Products</h3>
@@ -212,9 +246,25 @@ export function PricelistDetailProductsTab({
           </p>
         </div>
         {isTenantAdmin ? (
-          <PrimaryButton type="button" className="rounded-full" onClick={() => setAddOpen(true)}>
-            Add product
-          </PrimaryButton>
+          <div className="flex flex-wrap gap-2">
+            <PrimaryButton
+              type="button"
+              className="rounded-full"
+              disabled={Boolean(activeCopyJobUuid)}
+              onClick={() => setAddOpen(true)}
+            >
+              Add product
+            </PrimaryButton>
+            {items.length === 0 && !activeCopyJobUuid ? (
+              <SecondaryButton
+                type="button"
+                className="rounded-full"
+                onClick={() => setCopyOpen(true)}
+              >
+                Copy from pricelist
+              </SecondaryButton>
+            ) : null}
+          </div>
         ) : null}
       </div>
 
@@ -222,8 +272,26 @@ export function PricelistDetailProductsTab({
         <div className="rounded-xl border border-dashed border-brand-border bg-white px-6 py-14 text-center">
           <h3 className="text-lg font-semibold text-brand-navy">No products yet</h3>
           <p className="mt-2 text-sm text-brand-muted">
-            Add products to define fixed prices on this pricelist.
+            Add products manually or copy them from another pricelist.
           </p>
+          {isTenantAdmin && !activeCopyJobUuid ? (
+            <div className="mt-6 flex flex-wrap justify-center gap-2">
+              <PrimaryButton
+                type="button"
+                className="rounded-full"
+                onClick={() => setAddOpen(true)}
+              >
+                Add product
+              </PrimaryButton>
+              <SecondaryButton
+                type="button"
+                className="rounded-full"
+                onClick={() => setCopyOpen(true)}
+              >
+                Copy from pricelist
+              </SecondaryButton>
+            </div>
+          ) : null}
         </div>
       ) : (
         <div className="overflow-hidden rounded-xl border border-brand-border bg-white">
@@ -312,6 +380,16 @@ export function PricelistDetailProductsTab({
         open={addOpen}
         onOpenChange={setAddOpen}
         onAdded={() => void loadItems()}
+      />
+
+      <CopyPricelistProductsDialog
+        targetPricelist={pricelist}
+        open={copyOpen}
+        onOpenChange={setCopyOpen}
+        onCopyStarted={(jobUuid, toastId) => {
+          setActiveCopyJobUuid(jobUuid);
+          setActiveCopyToastId(toastId);
+        }}
       />
 
       <Dialog

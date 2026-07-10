@@ -11,21 +11,23 @@ import { toast as sonnerToast } from "sonner";
 
 import { Toaster } from "@/components/ui/sonner";
 
-export type ToastVariant = "success" | "error" | "warning" | "info";
+export type ToastVariant = "success" | "error" | "warning" | "info" | "loading";
 
 type ToastInput = {
   title?: string;
   description?: string;
   variant: ToastVariant;
+  id?: string | number;
 };
 
 type ToastVariantInput = {
   title: string;
   description?: string;
+  id?: string | number;
 };
 
 type ToastContextValue = {
-  toast: (input: ToastInput) => void;
+  toast: (input: ToastInput) => string | number;
   dismiss: (id: string | number) => void;
   success: (input: ToastVariantInput) => void;
   error: (input: ToastVariantInput) => void;
@@ -43,28 +45,28 @@ function normalizeToastText(value: string | undefined): string {
   return value;
 }
 
-function showToast(input: ToastInput) {
+function showToast(input: ToastInput): string | number {
   const title = normalizeToastText(input.title);
   const description = normalizeToastText(input.description);
   const message = title || description || "Something went wrong.";
-  const options =
-    title && description
-      ? { description, duration: 5000 }
-      : { duration: 5000 };
+  const options = {
+    ...(title && description ? { description } : {}),
+    duration: input.variant === "loading" ? Infinity : 5000,
+    id: input.id,
+  };
 
   switch (input.variant) {
     case "success":
-      sonnerToast.success(message, options);
-      return;
+      return sonnerToast.success(message, options);
     case "error":
-      sonnerToast.error(message, options);
-      return;
+      return sonnerToast.error(message, options);
     case "warning":
-      sonnerToast.warning(message, options);
-      return;
+      return sonnerToast.warning(message, options);
+    case "loading":
+      return sonnerToast.loading(message, options);
     case "info":
     default:
-      sonnerToast.info(message, options);
+      return sonnerToast.info(message, options);
   }
 }
 
@@ -74,7 +76,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const toast = useCallback((input: ToastInput) => {
-    showToast(input);
+    return showToast(input);
   }, []);
 
   const success = useCallback(

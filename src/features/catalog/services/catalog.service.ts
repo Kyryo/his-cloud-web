@@ -8,6 +8,8 @@ import type {
   CatalogPriceChange,
   CatalogPriceChangeMutationResult,
   CatalogPricelist,
+  CatalogPricelistCopyJob,
+  CatalogPricelistCopyJobItem,
   CatalogPricelistMembership,
   CatalogPricelistRule,
   CatalogPricelistRuleWritePayload,
@@ -16,6 +18,7 @@ import type {
   CreateCatalogProductPayload,
   OrganizationDefaultPricelistUuid,
   SetOrganizationDefaultPricelistUuidPayload,
+  StartCatalogPricelistCopyPayload,
   UpdateCatalogPricelistPayload,
   UpdateCatalogPricelistProductPayload,
 } from "@/features/catalog/types/catalog.types";
@@ -192,6 +195,43 @@ export async function removeCatalogPricelistProduct(
     {
       method: "DELETE",
     },
+  );
+}
+
+export async function startCatalogPricelistCopy(
+  targetPricelistUuid: string,
+  payload: StartCatalogPricelistCopyPayload,
+): Promise<CatalogPricelistCopyJob> {
+  return bffRequest<CatalogPricelistCopyJob>(
+    BFF_INVENTORY_ROUTES.pricelists.copyProducts(targetPricelistUuid),
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
+}
+
+export async function fetchCatalogPricelistCopyJob(
+  targetPricelistUuid: string,
+  jobUuid: string,
+): Promise<CatalogPricelistCopyJob> {
+  return bffRequest<CatalogPricelistCopyJob>(
+    BFF_INVENTORY_ROUTES.pricelists.copyProductsJob(targetPricelistUuid, jobUuid),
+  );
+}
+
+export async function fetchCatalogPricelistCopyJobItems(
+  targetPricelistUuid: string,
+  jobUuid: string,
+  filters: { status?: string; page?: number; pageSize?: number } = {},
+): Promise<PaginatedListResponse<CatalogPricelistCopyJobItem>> {
+  const params = new URLSearchParams();
+  if (filters.page) params.set("page", String(filters.page));
+  if (filters.pageSize) params.set("page_size", String(filters.pageSize));
+  if (filters.status) params.set("status", filters.status);
+  const query = params.toString();
+  return bffRequest<PaginatedListResponse<CatalogPricelistCopyJobItem>>(
+    `${BFF_INVENTORY_ROUTES.pricelists.copyProductsJobItems(targetPricelistUuid, jobUuid)}${query ? `?${query}` : ""}`,
   );
 }
 

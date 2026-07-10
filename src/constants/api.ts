@@ -199,6 +199,12 @@ export const BFF_INVENTORY_ROUTES = {
       `/api/inventory/pricelists/${pricelistUuid}/rules`,
     ruleDetail: (pricelistUuid: string, ruleUuid: string) =>
       `/api/inventory/pricelists/${pricelistUuid}/rules/${ruleUuid}`,
+    copyProducts: (pricelistUuid: string) =>
+      `/api/inventory/pricelists/${pricelistUuid}/copy-products`,
+    copyProductsJob: (pricelistUuid: string, jobUuid: string) =>
+      `/api/inventory/pricelists/${pricelistUuid}/copy-products/${jobUuid}`,
+    copyProductsJobItems: (pricelistUuid: string, jobUuid: string) =>
+      `/api/inventory/pricelists/${pricelistUuid}/copy-products/${jobUuid}/items`,
     default: "/api/pricelists/default",
   },
   batches: {

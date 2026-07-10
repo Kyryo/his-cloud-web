@@ -65,6 +65,48 @@ export type CatalogPriceChangeMutationResult = {
   applied_payload?: Record<string, unknown>;
 };
 
+export type CatalogPricelistCopyJobStatus =
+  | "queued"
+  | "running"
+  | "completed"
+  | "partially_completed"
+  | "failed";
+
+export type CatalogPricelistCopyJobItemStatus = "pending" | "succeeded" | "failed";
+
+export type CatalogPricelistCopyJob = {
+  uuid: string;
+  status: CatalogPricelistCopyJobStatus;
+  target_pricelist_uuid: string;
+  source_pricelist_uuid: string;
+  source_pricelist_name: string;
+  total_items: number;
+  succeeded_items: number;
+  failed_items: number;
+  failure_code?: string;
+  failure_message?: string;
+  started_at?: string | null;
+  finished_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type CatalogPricelistCopyJobItem = {
+  product_uuid: string;
+  product_name: string;
+  fixed_price: string;
+  min_quantity: string;
+  date_start?: string | null;
+  date_end?: string | null;
+  status: CatalogPricelistCopyJobItemStatus;
+  error_code?: string;
+  error_message?: string;
+};
+
+export type StartCatalogPricelistCopyPayload = {
+  source_pricelist_uuid: string;
+};
+
 export type CatalogApprovalConfiguration = {
   uuid: string;
   require_two_person_approval: boolean;

@@ -37,6 +37,12 @@ export const CATALOG_API_PATHS = {
     rules: (pricelistUuid: string) => `/pricelists/${pricelistUuid}/rules/`,
     ruleDetail: (pricelistUuid: string, ruleUuid: string) =>
       `/pricelists/${pricelistUuid}/rules/${ruleUuid}/`,
+    copyProducts: (pricelistUuid: string) =>
+      `/pricelists/${pricelistUuid}/copy-products/`,
+    copyProductsJob: (pricelistUuid: string, jobUuid: string) =>
+      `/pricelists/${pricelistUuid}/copy-products/${jobUuid}/`,
+    copyProductsJobItems: (pricelistUuid: string, jobUuid: string) =>
+      `/pricelists/${pricelistUuid}/copy-products/${jobUuid}/items/`,
     tenantDefault: (tenantUuid: string) => `/tenants/${tenantUuid}/pricelists/default/`,
   },
   auditEvents: "/catalog/audit-events/",
