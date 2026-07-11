@@ -4,9 +4,12 @@ import { Info } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { isInsuranceInvoice } from "@/features/claims/services/claims.service";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 import type { InvoiceLine } from "@/features/invoices/types/invoice.types";
 import { formatInvoiceAmount } from "@/features/invoices/utils/format-invoice";
+import { isInvoiceLineNonPayable } from "@/features/invoices/utils/invoice-line-payability";
+import { LineNonPayableBadge } from "@/features/sales-orders/components/detail/LineNonPayableBadge";
 import { LinePricingBreakdownDialog } from "@/features/sales-orders/components/detail/LinePricingBreakdownDialog";
 import { cn } from "@/lib/utils";
 
@@ -24,6 +27,7 @@ export function InvoiceDetailLinesTab({
   isActive,
 }: InvoiceDetailLinesTabProps) {
   const lines = invoice.lines ?? [];
+  const showNonPayableBadges = isInsuranceInvoice(invoice);
   const [breakdownLine, setBreakdownLine] = useState<InvoiceLine | null>(null);
 
   return (
@@ -71,10 +75,17 @@ export function InvoiceDetailLinesTab({
                 {lines.map((line) => (
                   <tr key={line.id}>
                     <td className="px-4 py-3 text-sm text-brand-navy">
-                      <p className="font-medium">{line.name}</p>
-                      {line.product_name ? (
-                        <p className="text-xs text-brand-muted">{line.product_name}</p>
-                      ) : null}
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <div>
+                          <p className="font-medium">{line.name}</p>
+                          {line.product_name ? (
+                            <p className="text-xs text-brand-muted">{line.product_name}</p>
+                          ) : null}
+                        </div>
+                        {showNonPayableBadges && isInvoiceLineNonPayable(line) ? (
+                          <LineNonPayableBadge />
+                        ) : null}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-sm font-mono text-brand-slate">
                       {formatTariffCode(line.tariff_code)}

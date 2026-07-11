@@ -5,6 +5,7 @@ import { Building2, Loader2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { StatusBanner } from "@/components/ui/status-banner";
 import {
   DestructiveButton,
   PrimaryButton,
@@ -38,9 +39,11 @@ import {
   closeCustomerVisit,
   createCustomerVisit,
   fetchCustomerVisits,
+  fetchVisit,
   findActiveCustomerVisit,
 } from "@/features/customers/services/customer-visits.service";
 import type { CustomerVisit } from "@/features/customers/types/customer-visit.types";
+import type { VisitDetail } from "@/features/visits/types/visit.types";
 import type { CustomerInsurance } from "@/features/customers/types/customer-insurance.types";
 import type { Customer } from "@/features/customers/types/customer.types";
 import {
@@ -49,6 +52,7 @@ import {
 } from "@/features/customers/utils/can-close-customer-visit";
 import { formatCustomerName, formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { formatVisitStartedBy } from "@/features/customers/utils/format-visit-started-by";
+import { OpenEncountersCloseNotice } from "@/features/visits/components/OpenEncountersCloseNotice";
 import { StartVisitFormFields } from "@/features/visits/components/StartVisitFormFields";
 import {
   createStartVisitDefaultValues,
@@ -95,6 +99,7 @@ export function CustomerVisitDialog({
   const [clinics, setClinics] = useState<ClinicalClinic[]>([]);
   const [departments, setDepartments] = useState<ClinicalDepartment[]>([]);
   const [activeVisit, setActiveVisit] = useState<CustomerVisit | null>(null);
+  const [activeVisitDetail, setActiveVisitDetail] = useState<VisitDetail | null>(null);
   const [isLoadingContext, setIsLoadingContext] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [closeError, setCloseError] = useState<string | null>(null);
@@ -164,7 +169,13 @@ export function CustomerVisitDialog({
 
       setConsultationServices(services);
       setInsuranceSchemes(insurance);
-      setActiveVisit(findActiveCustomerVisit(visits));
+      const active = findActiveCustomerVisit(visits);
+      setActiveVisit(active);
+      if (active) {
+        setActiveVisitDetail(await fetchVisit(active.uuid));
+      } else {
+        setActiveVisitDetail(null);
+      }
       setClinics(clinicList);
 
       const primaryClinic = userData?.primary_clinic ?? null;
@@ -273,6 +284,7 @@ export function CustomerVisitDialog({
       const visit = await closeCustomerVisit(activeVisit.uuid);
       onVisitChanged(visit);
       setActiveVisit(null);
+      setActiveVisitDetail(null);
       onOpenChange(false);
       toast({
         variant: "success",
@@ -375,12 +387,17 @@ export function CustomerVisitDialog({
               </div>
 
               {!canClose && closeTooltip ? (
-                <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-                  {closeTooltip}
-                </p>
+                <StatusBanner variant="warning" message={closeTooltip} />
               ) : null}
 
-              {closeError ? <p className="text-sm text-red-600">{closeError}</p> : null}
+              <OpenEncountersCloseNotice
+                encounters={activeVisitDetail?.encounters}
+                appointmentLinked={Boolean(activeVisitDetail?.appointment)}
+              />
+
+              {closeError ? (
+                <StatusBanner variant="error" message={closeError} />
+              ) : null}
             </div>
 
             <DialogFooter className="mt-0 border-t border-brand-border px-6 py-5">

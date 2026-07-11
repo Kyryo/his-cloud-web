@@ -19,6 +19,10 @@ import {
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 import {
+  getInvoiceClaimableLines,
+  invoiceHasNonPayableLines,
+} from "@/features/invoices/utils/invoice-line-payability";
+import {
   getInvoiceClaimReadinessItems,
   type InvoiceClaimReadinessItem,
 } from "@/features/invoices/utils/invoice-claim-readiness";
@@ -260,6 +264,8 @@ export function InvoiceClaimsTab({
   const claimStatus = claim?.status ?? invoice.claim_status ?? null;
   const isDraft = String(claimStatus ?? "").toLowerCase() === "draft";
   const readinessItems = getInvoiceClaimReadinessItems(invoice, claim);
+  const claimableLineCount = getInvoiceClaimableLines(invoice.lines).length;
+  const hasExcludedLines = invoiceHasNonPayableLines(invoice.lines);
 
   return (
     <div className="space-y-6" data-testid="invoice-claims-tab">
@@ -269,8 +275,19 @@ export function InvoiceClaimsTab({
             <h2 className="text-sm font-semibold text-brand-navy">Insurance claim</h2>
           </div>
           <p className="mt-1 text-sm text-brand-muted">
-            Verify the member, create a draft claim, then submit to MASM.
+            Verify the member, create a draft claim, then submit to MASM. Only payable
+            line items are sent to insurance; non-payable items are billed to the client.
           </p>
+          {hasExcludedLines ? (
+            <p
+              className="mt-3 rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2 text-sm text-amber-900"
+              data-testid="invoice-claim-non-payable-notice"
+            >
+              {claimableLineCount} payable item{claimableLineCount === 1 ? "" : "s"}{" "}
+              will be included in the claim. Non-payable items on this invoice are
+              excluded because they are paid by the customer.
+            </p>
+          ) : null}
         </div>
 
         {isLoading ? (

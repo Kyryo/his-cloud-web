@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
+import { StatusBanner } from "@/components/ui/status-banner";
 import {
   DestructiveButton,
   SecondaryButton,
@@ -23,12 +24,15 @@ import { ROUTES } from "@/constants/routes";
 import { CustomerVisitStatusBadge } from "@/features/customers/components/CustomerVisitStatusBadge";
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { formatVisitStartedBy } from "@/features/customers/utils/format-visit-started-by";
+import { OpenEncountersCloseNotice } from "@/features/visits/components/OpenEncountersCloseNotice";
 import {
   closeVisit,
   fetchVisit,
   runVisitEncounterAction,
 } from "@/features/visits/services/visits.service";
 import type { VisitDetail, VisitEncounter } from "@/features/visits/types/visit.types";
+import { BffError } from "@/lib/bff-client";
+import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
@@ -87,6 +91,7 @@ export function VisitDetailDialog({
   const [actionKey, setActionKey] = useState<string | null>(null);
   const [isClosingVisit, setIsClosingVisit] = useState(false);
   const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);
+  const [closeError, setCloseError] = useState<string | null>(null);
 
   const loadVisit = useCallback(async () => {
     if (!visitUuid) {
@@ -113,6 +118,7 @@ export function VisitDetailDialog({
 
     setActiveTab("overview");
     setCloseConfirmOpen(false);
+    setCloseError(null);
     void loadVisit();
   }, [loadVisit, open, visitUuid]);
 
@@ -152,6 +158,7 @@ export function VisitDetailDialog({
     }
 
     setIsClosingVisit(true);
+    setCloseError(null);
 
     try {
       await closeVisit(visit.uuid);
@@ -164,10 +171,17 @@ export function VisitDetailDialog({
       await loadVisit();
       onVisitUpdated?.();
     } catch (err) {
+      const message =
+        err instanceof BffError
+          ? formatBffErrorMessage(err.message, err.errors)
+          : err instanceof Error
+            ? err.message
+            : "Try again.";
+      setCloseError(message);
       toast({
         variant: "error",
         title: "Could not close visit",
-        description: err instanceof Error ? err.message : "Try again.",
+        description: message,
       });
     } finally {
       setIsClosingVisit(false);
@@ -358,16 +372,32 @@ export function VisitDetailDialog({
         ) : null}
       </TabbedDialog>
 
-      <Dialog open={closeConfirmOpen} onOpenChange={setCloseConfirmOpen}>
+      <Dialog
+        open={closeConfirmOpen}
+        onOpenChange={(nextOpen) => {
+          setCloseConfirmOpen(nextOpen);
+          if (!nextOpen) {
+            setCloseError(null);
+          }
+        }}
+      >
         <DialogContent className={cn("sm:max-w-md", appFont.className)}>
           <DialogHeader>
             <DialogTitle>Close this visit?</DialogTitle>
             <DialogDescription>
               {visit
-                ? `This will complete ${visit.customer_name}'s active visit. Encounters that are still open may need to be finished separately.`
+                ? `This will complete ${visit.customer_name}'s active visit.`
                 : "This will complete the active visit."}
             </DialogDescription>
           </DialogHeader>
+
+          <div className="space-y-3">
+            <OpenEncountersCloseNotice
+              encounters={visit?.encounters}
+              appointmentLinked={Boolean(visit?.appointment)}
+            />
+            {closeError ? <StatusBanner variant="error" message={closeError} /> : null}
+          </div>
 
           <DialogFooter>
             <SecondaryButton
