@@ -276,13 +276,6 @@ export function PricelistDetailProductsTab({
           </p>
           {isTenantAdmin && !activeCopyJobUuid ? (
             <div className="mt-6 flex flex-wrap justify-center gap-2">
-              <PrimaryButton
-                type="button"
-                className="rounded-full"
-                onClick={() => setAddOpen(true)}
-              >
-                Add product
-              </PrimaryButton>
               <SecondaryButton
                 type="button"
                 className="rounded-full"
@@ -290,6 +283,13 @@ export function PricelistDetailProductsTab({
               >
                 Copy from pricelist
               </SecondaryButton>
+              <PrimaryButton
+                type="button"
+                className="rounded-full"
+                onClick={() => setAddOpen(true)}
+              >
+                Add product
+              </PrimaryButton>
             </div>
           ) : null}
         </div>

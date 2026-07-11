@@ -1,17 +1,9 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect, SelectItem } from "@/components/ui/searchable-select";
 import { fetchCustomers } from "@/features/customers/services/customers.service";
 import type { Customer } from "@/features/customers/types/customer.types";
 import {
@@ -67,7 +59,14 @@ export function CustomerAppointmentPicker({
     return () => window.clearTimeout(handle);
   }, [customer, open, search]);
 
-  const handleValueChange = (uuid: string) => {
+  function handleOpenChange(nextOpen: boolean) {
+    setOpen(nextOpen);
+    if (!nextOpen) {
+      setSearch("");
+    }
+  }
+
+  function handleValueChange(uuid: string) {
     const match =
       options.find((option) => option.uuid === uuid) ??
       (customer?.uuid === uuid ? customer : null);
@@ -76,7 +75,7 @@ export function CustomerAppointmentPicker({
       onCustomerChange(match);
       setOpen(false);
     }
-  };
+  }
 
   return (
     <div className="space-y-2">
@@ -87,57 +86,33 @@ export function CustomerAppointmentPicker({
         </p>
       </div>
 
-      <Select
+      <SearchableSelect
+        id="appointment-client-select"
         value={customer?.uuid}
         onValueChange={handleValueChange}
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={handleOpenChange}
         disabled={disabled}
+        placeholder="Select a client"
+        displayValue={customer ? formatCustomerSearchLabel(customer) : undefined}
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search clients..."
+        isLoading={isLoadingResults}
+        noResultsMessage="No clients found."
       >
-        <SelectTrigger id="appointment-client-select" className="w-full">
-          <SelectValue placeholder="Select a client">
-            {customer ? formatCustomerSearchLabel(customer) : null}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <div className="border-b border-brand-border p-2">
-            <Input
-              value={search}
-              placeholder="Search clients..."
-              className="h-9"
-              onChange={(event) => setSearch(event.target.value)}
-              onKeyDown={(event) => event.stopPropagation()}
-            />
-          </div>
-
-          {isLoadingResults ? (
-            <div className="flex items-center justify-center gap-2 px-3 py-6 text-sm text-brand-muted">
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              Searching...
+        {options.map((option) => (
+          <SelectItem key={option.uuid} value={option.uuid}>
+            <div className="flex flex-col items-start">
+              <span>{formatCustomerName(option)}</span>
+              <span className="text-xs text-brand-muted">
+                {option.customer_identifier}
+                {option.phone_number ? ` · ${option.phone_number}` : ""}
+              </span>
             </div>
-          ) : search.trim().length < 2 ? (
-            <div className="px-3 py-6 text-center text-sm text-brand-muted">
-              Type at least 2 characters to search.
-            </div>
-          ) : options.length === 0 ? (
-            <div className="px-3 py-6 text-center text-sm text-brand-muted">
-              No clients found.
-            </div>
-          ) : (
-            options.map((option) => (
-              <SelectItem key={option.uuid} value={option.uuid}>
-                <div className="flex flex-col items-start">
-                  <span>{formatCustomerName(option)}</span>
-                  <span className="text-xs text-brand-muted">
-                    {option.customer_identifier}
-                    {option.phone_number ? ` · ${option.phone_number}` : ""}
-                  </span>
-                </div>
-              </SelectItem>
-            ))
-          )}
-        </SelectContent>
-      </Select>
+          </SelectItem>
+        ))}
+      </SearchableSelect>
     </div>
   );
 }

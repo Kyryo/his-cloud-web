@@ -92,11 +92,6 @@ export const LANDING_TRUST = {
   ],
 } as const;
 
-export const LANDING_CLINIC_COVER = {
-  imageAlt: "Sigma client details screen with visit and billing history",
-  quote: "Built for the clinics that keep communities healthy. Every day.",
-} as const;
-
 export const LANDING_FEATURES = {
   title: "Run your clinic with confidence",
   description:

@@ -29,6 +29,7 @@ export type SalesOrder = {
   amount_total: string | number | null;
   currency_code: string | null;
   pricelist_id: number | null;
+  pricelist_uuid?: string | null;
   pricelist_name: string | null;
   clinic_id: number | null;
   clinic_name: string | null;
@@ -39,6 +40,7 @@ export type SalesOrder = {
   provider_user_id?: number | null;
   provider_has_user?: boolean;
   insurance_scheme_id: number | null;
+  insurance_scheme_uuid?: string | null;
   insurance_scheme_name: string | null;
   insurance_company: string | null;
   insurance_number: string | null;

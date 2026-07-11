@@ -1,17 +1,23 @@
 "use client";
 
 import { ClipboardList, Maximize2, Plus, Trash2 } from "lucide-react";
-import { useRef, useState } from "react";
+import { useRef, useState, type MutableRefObject } from "react";
 
 import { SecondaryButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { InlineProductCombobox } from "@/features/inventory/components/detail/InlineProductCombobox";
 import {
   fetchInventoryProductPricelists,
   fetchProductTariffCodes,
 } from "@/features/inventory/services/inventory.service";
-import { formatProductLabel } from "@/features/inventory/utils/format-inventory";
+import type {
+  InventoryProductPricelistItem,
+  ProductTariffCode,
+} from "@/features/inventory/types/inventory.types";
+import {
+  SalesOrderLineProductPicker,
+  type SalesOrderLineProductSelection,
+} from "@/features/sales-orders/components/detail/SalesOrderLineProductPicker";
 import { SalesOrderPendingChangesBar } from "@/features/sales-orders/components/detail/SalesOrderPendingChangesBar";
 import { LinePricingBreakdownDialog } from "@/features/sales-orders/components/detail/LinePricingBreakdownDialog";
 import { SalesOrderProviderSelector } from "@/features/sales-orders/components/detail/SalesOrderProviderSelector";
@@ -52,6 +58,124 @@ function formatQuantity(value: number | string | null | undefined): string {
 
 function formatTariffCode(value: string | null | undefined): string {
   return value?.trim() ? value : "—";
+}
+
+function orderHasPricelist(order: SalesOrder): boolean {
+  return Boolean(order.pricelist_id || order.pricelist_uuid);
+}
+
+function findOrderPricelistMembership(
+  order: SalesOrder,
+  memberships: InventoryProductPricelistItem[],
+): InventoryProductPricelistItem | undefined {
+  if (order.pricelist_uuid) {
+    const byUuid = memberships.find(
+      (item) => item.pricelist_uuid === order.pricelist_uuid,
+    );
+    if (byUuid) {
+      return byUuid;
+    }
+  }
+
+  const pricelistName = order.pricelist_name?.trim();
+  if (pricelistName) {
+    return memberships.find(
+      (item) => item.pricelist_name?.trim() === pricelistName,
+    );
+  }
+
+  return undefined;
+}
+
+function handleSalesOrderLineProductSelect(
+  lineKey: string,
+  selection: SalesOrderLineProductSelection,
+  options: {
+    order: SalesOrder;
+    selectionTokenByLineKeyRef: MutableRefObject<Map<string, number>>;
+    updateLine: (
+      key: string,
+      patch: Partial<SalesOrderLineDraft>,
+    ) => void;
+  },
+) {
+  const { order, selectionTokenByLineKeyRef, updateLine } = options;
+  const nextToken = (selectionTokenByLineKeyRef.current.get(lineKey) ?? 0) + 1;
+  selectionTokenByLineKeyRef.current.set(lineKey, nextToken);
+
+  const pricePatch = (() => {
+    const fixedPrice = selection.fixed_price?.trim();
+    if (fixedPrice) {
+      return { price_unit: fixedPrice, priceUnitOverridden: false };
+    }
+
+    const listPrice = selection.list_price;
+    if (listPrice != null && listPrice !== "") {
+      return {
+        price_unit: String(listPrice),
+        priceUnitOverridden: false,
+      };
+    }
+
+    return { price_unit: "", priceUnitOverridden: false };
+  })();
+
+  updateLine(lineKey, {
+    product_uuid: selection.product_uuid,
+    product_id: selection.product_id,
+    productName: selection.productName,
+    tariff_code: null,
+    ...pricePatch,
+  });
+
+  void (async () => {
+    const isStillCurrentSelection = () =>
+      selectionTokenByLineKeyRef.current.get(lineKey) === nextToken;
+
+    const needsPricelistPrice =
+      orderHasPricelist(order) && !selection.fixed_price?.trim();
+
+    try {
+      if (needsPricelistPrice) {
+        const memberships = await fetchInventoryProductPricelists(
+          selection.product_uuid,
+        );
+        if (!isStillCurrentSelection()) {
+          return;
+        }
+
+        const membership = findOrderPricelistMembership(order, memberships);
+        const fixedPrice =
+          membership?.fixed_price != null
+            ? String(membership.fixed_price).trim()
+            : "";
+        if (fixedPrice) {
+          updateLine(lineKey, {
+            price_unit: fixedPrice,
+            priceUnitOverridden: false,
+          });
+        }
+      }
+
+      if (!order.insurance_scheme_uuid) {
+        return;
+      }
+
+      const codes = await fetchProductTariffCodes(selection.product_uuid);
+      if (!isStillCurrentSelection()) {
+        return;
+      }
+
+      const match = codes.find(
+        (code: ProductTariffCode) => code.scheme_uuid === order.insurance_scheme_uuid,
+      );
+      if (match?.tariff_code) {
+        updateLine(lineKey, { tariff_code: match.tariff_code });
+      }
+    } catch {
+      // Best-effort prefill only.
+    }
+  })();
 }
 
 function isRowEditing(
@@ -280,77 +404,20 @@ export function SalesOrderLinesEditor({
                     >
                       <td className="px-4 py-3">
                         {isEditing ? (
-                          <InlineProductCombobox
+                          <SalesOrderLineProductPicker
                             id={`so-line-product-${line.key}`}
                             value={line.product_uuid ?? null}
                             displayLabel={line.productName}
-                            autoFocus={line.isNew === true}
+                            pricelistUuid={order.pricelist_uuid}
+                            autoOpen={line.isNew === true}
                             disabled={editor.isSaving}
                             onFocus={() => editor.setActiveRowKey(line.key)}
-                            onSelect={(product) => {
-                              const nextToken =
-                                (selectionTokenByLineKeyRef.current.get(line.key) ?? 0) +
-                                1;
-                              selectionTokenByLineKeyRef.current.set(line.key, nextToken);
-
-                              editor.updateLine(line.key, {
-                                product_uuid: product.uuid,
-                                product_id: product.id ?? null,
-                                productName: formatProductLabel(product),
-                                // Reset computed fields when switching products to avoid
-                                // stale values carrying over unnoticed.
-                                tariff_code: null,
-                                price_unit: "",
-                                priceUnitOverridden: false,
+                            onSelect={(selection) => {
+                              handleSalesOrderLineProductSelect(line.key, selection, {
+                                order,
+                                selectionTokenByLineKeyRef,
+                                updateLine: editor.updateLine,
                               });
-
-                              void (async () => {
-                                const isStillCurrentSelection = () =>
-                                  selectionTokenByLineKeyRef.current.get(line.key) ===
-                                  nextToken;
-
-                                // Prefill unit price from the order's pricelist (if available).
-                                if (order.pricelist_id) {
-                                  try {
-                                    const items = await fetchInventoryProductPricelists(
-                                      product.uuid,
-                                    );
-                                    if (!isStillCurrentSelection()) {
-                                      return;
-                                    }
-                                    // Legacy numeric pricelist_id cannot match UUID memberships yet.
-                                    void items;
-                                  } catch {
-                                    // Best-effort prefill only.
-                                  }
-                                }
-
-                                if (order.insurance_scheme_id) {
-                                  try {
-                                    const codes = await fetchProductTariffCodes(
-                                      product.uuid,
-                                    );
-                                    if (!isStillCurrentSelection()) {
-                                      return;
-                                    }
-                                    // Legacy insurance_scheme_id cannot match scheme_uuid yet.
-                                    void codes;
-                                  } catch {
-                                    // Best-effort prefill only.
-                                  }
-                                }
-                              })();
-                            }}
-                            onKeyDown={(event) => {
-                              if (event.key === "Escape") {
-                                event.preventDefault();
-                                if (line.isNew) {
-                                  editor.discardNewLine(line.key);
-                                } else {
-                                  editor.setEditingRowKey(null);
-                                  editor.setActiveRowKey(null);
-                                }
-                              }
                             }}
                           />
                         ) : (

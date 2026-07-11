@@ -1,7 +1,9 @@
 import { LandingDottedArcDecor } from "@/features/brand/components/landing/LandingDottedArcDecor";
 import { LandingProductScreenshot } from "@/features/brand/components/landing/LandingProductScreenshot";
-import { LANDING_CLINIC_COVER } from "@/features/brand/constants/landing-home-content";
 
+const LANDING_CLINIC_COVER = {
+  imageAlt: "Sigma in practice",
+};
 const CLIENT_DETAILS_SCREENSHOT = "/landing/product-screenshots/client-details.png";
 
 export function LandingClinicQuoteSection() {
@@ -19,9 +21,6 @@ export function LandingClinicQuoteSection() {
           elevated
           className="w-full max-w-4xl sm:max-w-5xl lg:max-w-6xl"
         />
-        <blockquote className="landing-display max-w-4xl text-[clamp(1.5rem,3vw,2.25rem)] font-extrabold leading-snug text-[color:var(--landing-ink)]">
-          {LANDING_CLINIC_COVER.quote}
-        </blockquote>
       </div>
     </section>
   );
