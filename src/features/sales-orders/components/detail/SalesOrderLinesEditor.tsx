@@ -14,6 +14,7 @@ import type {
   InventoryProductPricelistItem,
   ProductTariffCode,
 } from "@/features/inventory/types/inventory.types";
+import { LineNonPayableBadge } from "@/features/sales-orders/components/detail/LineNonPayableBadge";
 import {
   SalesOrderLineProductPicker,
   type SalesOrderLineProductSelection,
@@ -31,6 +32,11 @@ import {
   formatSalesOrderAmount,
   formatSalesOrderCurrency,
 } from "@/features/sales-orders/utils/format-sales-order";
+import {
+  isSalesOrderLineNonPayable,
+  orderHasPricelist,
+  resolveInitialLineIsPayable,
+} from "@/features/sales-orders/utils/sales-order-line-payability";
 import { canEditSalesOrderLines } from "@/features/sales-orders/utils/sales-order-status";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
@@ -58,10 +64,6 @@ function formatQuantity(value: number | string | null | undefined): string {
 
 function formatTariffCode(value: string | null | undefined): string {
   return value?.trim() ? value : "—";
-}
-
-function orderHasPricelist(order: SalesOrder): boolean {
-  return Boolean(order.pricelist_id || order.pricelist_uuid);
 }
 
 function findOrderPricelistMembership(
@@ -120,11 +122,17 @@ function handleSalesOrderLineProductSelect(
     return { price_unit: "", priceUnitOverridden: false };
   })();
 
+  const initialIsPayable = resolveInitialLineIsPayable(
+    order,
+    Boolean(selection.fixed_price?.trim()),
+  );
+
   updateLine(lineKey, {
     product_uuid: selection.product_uuid,
     product_id: selection.product_id,
     productName: selection.productName,
     tariff_code: null,
+    ...(initialIsPayable !== undefined ? { is_payable: initialIsPayable } : {}),
     ...pricePatch,
   });
 
@@ -149,12 +157,15 @@ function handleSalesOrderLineProductSelect(
           membership?.fixed_price != null
             ? String(membership.fixed_price).trim()
             : "";
-        if (fixedPrice) {
-          updateLine(lineKey, {
-            price_unit: fixedPrice,
-            priceUnitOverridden: false,
-          });
-        }
+        updateLine(lineKey, {
+          ...(fixedPrice
+            ? {
+                price_unit: fixedPrice,
+                priceUnitOverridden: false,
+                is_payable: true,
+              }
+            : { is_payable: false }),
+        });
       }
 
       if (!order.insurance_scheme_uuid) {
@@ -286,7 +297,14 @@ export function SalesOrderLinesEditor({
             <tbody className="divide-y divide-brand-border">
               {lines.map((line) => (
                 <tr key={line.id}>
-                  <td className="px-4 py-3 text-sm text-brand-navy">{line.name}</td>
+                  <td className="px-4 py-3 text-sm text-brand-navy">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <span>{line.name}</span>
+                      {isSalesOrderLineNonPayable(order, line) ? (
+                        <LineNonPayableBadge />
+                      ) : null}
+                    </div>
+                  </td>
                   <td className="px-4 py-3 text-sm font-mono text-brand-slate">
                     {formatTariffCode(line.tariff_code)}
                   </td>
@@ -403,28 +421,33 @@ export function SalesOrderLinesEditor({
                       }}
                     >
                       <td className="px-4 py-3">
-                        {isEditing ? (
-                          <SalesOrderLineProductPicker
-                            id={`so-line-product-${line.key}`}
-                            value={line.product_uuid ?? null}
-                            displayLabel={line.productName}
-                            pricelistUuid={order.pricelist_uuid}
-                            autoOpen={line.isNew === true}
-                            disabled={editor.isSaving}
-                            onFocus={() => editor.setActiveRowKey(line.key)}
-                            onSelect={(selection) => {
-                              handleSalesOrderLineProductSelect(line.key, selection, {
-                                order,
-                                selectionTokenByLineKeyRef,
-                                updateLine: editor.updateLine,
-                              });
-                            }}
-                          />
-                        ) : (
-                          <span className="text-sm font-medium text-brand-navy">
-                            {line.productName ?? "—"}
-                          </span>
-                        )}
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {isEditing ? (
+                            <SalesOrderLineProductPicker
+                              id={`so-line-product-${line.key}`}
+                              value={line.product_uuid ?? null}
+                              displayLabel={line.productName}
+                              pricelistUuid={order.pricelist_uuid}
+                              autoOpen={line.isNew === true}
+                              disabled={editor.isSaving}
+                              onFocus={() => editor.setActiveRowKey(line.key)}
+                              onSelect={(selection) => {
+                                handleSalesOrderLineProductSelect(line.key, selection, {
+                                  order,
+                                  selectionTokenByLineKeyRef,
+                                  updateLine: editor.updateLine,
+                                });
+                              }}
+                            />
+                          ) : (
+                            <span className="text-sm font-medium text-brand-navy">
+                              {line.productName ?? "—"}
+                            </span>
+                          )}
+                          {isSalesOrderLineNonPayable(order, line) ? (
+                            <LineNonPayableBadge />
+                          ) : null}
+                        </div>
                       </td>
                       <td className="px-4 py-3">
                         <span className="font-mono text-sm text-brand-slate">

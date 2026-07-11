@@ -2,6 +2,7 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { LineExcessBadge } from "@/features/sales-orders/components/detail/LineExcessBadge";
+import { LineNonPayableBadge } from "@/features/sales-orders/components/detail/LineNonPayableBadge";
 import { LinePricingBreakdownDialog } from "@/features/sales-orders/components/detail/LinePricingBreakdownDialog";
 import type { SalesOrderLine } from "@/features/sales-orders/types/sales-order.types";
 
@@ -18,6 +19,13 @@ describe("LineExcessBadge", () => {
   it("shows a dash when hasExcess is false", () => {
     render(<LineExcessBadge hasExcess={false} />);
     expect(screen.getByText("—")).toBeInTheDocument();
+  });
+});
+
+describe("LineNonPayableBadge", () => {
+  it("shows a non-payable badge", () => {
+    render(<LineNonPayableBadge />);
+    expect(screen.getByText("Non-payable")).toBeInTheDocument();
   });
 });
 
