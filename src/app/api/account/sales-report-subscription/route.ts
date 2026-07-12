@@ -1,8 +1,5 @@
 import { SALES_REPORT_SUBSCRIPTION_API_PATHS } from "@/constants/sales-report-subscription-api";
-import {
-  unsubscribeSalesReportsBodySchema,
-  updateSalesReportSubscriptionBodySchema,
-} from "@/features/notifications/schemas/sales-report-subscription.schema";
+import { updateSalesReportSubscriptionBodySchema } from "@/features/notifications/schemas/sales-report-subscription.schema";
 import type { SalesReportSubscription } from "@/features/notifications/types/sales-report-subscription.types";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
 import { hmisApiRequest } from "@/lib/server/hmis-api";
