@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 
 import { StatusBanner } from "@/components/ui/status-banner";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import {
   blockUserSalesReports,
@@ -205,13 +204,15 @@ export function UpdateUserSalesReportsPanel({
         ) : null}
       </div>
 
-      {loadError ? <StatusBanner variant="error">{loadError}</StatusBanner> : null}
+      {loadError ? (
+        <StatusBanner variant="error" message={loadError} />
+      ) : null}
 
       {!emailConfigurationQuery.isLoading && !tenantReportsEnabled ? (
-        <StatusBanner variant="info">
-          Sales report emails are not enabled for this organization. Turn them on
-          under Settings → Integrations → Email.
-        </StatusBanner>
+        <StatusBanner
+          variant="info"
+          message="Sales report emails are not enabled for this organization. Turn them on under Settings → Integrations → Email."
+        />
       ) : null}
 
       {subscription ? (

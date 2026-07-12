@@ -128,16 +128,17 @@ export function AccountSalesReportsSection() {
       </CardHeader>
       <CardContent className="space-y-4">
         {subscriptionQuery.isError ? (
-          <StatusBanner variant="error">
-            Could not load your sales report preferences. Try again later.
-          </StatusBanner>
+          <StatusBanner
+            variant="error"
+            message="Could not load your sales report preferences. Try again later."
+          />
         ) : null}
 
         {!emailConfigurationQuery.isLoading && !tenantReportsEnabled ? (
-          <StatusBanner variant="info">
-            Your organization has not enabled sales report emails yet. Ask a
-            tenant admin to turn this on under Settings → Integrations → Email.
-          </StatusBanner>
+          <StatusBanner
+            variant="info"
+            message="Your organization has not enabled sales report emails yet. Ask a tenant admin to turn this on under Settings → Integrations → Email."
+          />
         ) : null}
 
         {subscriptionQuery.isLoading ? (

@@ -63,14 +63,20 @@ function UnsubscribeSalesReportsContent() {
           <p className="text-sm text-brand-muted">Processing your request...</p>
         ) : null}
         {status === "success" ? (
-          <StatusBanner variant="success">
-            {message ?? "You have been unsubscribed from sales report emails."}
-          </StatusBanner>
+          <StatusBanner
+            variant="success"
+            message={
+              message ?? "You have been unsubscribed from sales report emails."
+            }
+          />
         ) : null}
         {status === "error" ? (
-          <StatusBanner variant="error">
-            {message ?? "We could not process your unsubscribe request."}
-          </StatusBanner>
+          <StatusBanner
+            variant="error"
+            message={
+              message ?? "We could not process your unsubscribe request."
+            }
+          />
         ) : null}
       </div>
     </div>
