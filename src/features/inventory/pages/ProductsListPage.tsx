@@ -118,7 +118,7 @@ export function ProductsListPage() {
         onSearchChange={setSearch}
         onSearchSubmit={handleSearchSubmit}
         onClearSearch={handleClearSearch}
-        searchPlaceholder="Search by name, code, or barcode..."
+        searchPlaceholder="Search by name, code, barcode, or tariff code..."
         data-testid="add-product-button"
       />
 
@@ -132,7 +132,7 @@ export function ProductsListPage() {
         <ListPageDataSectionsStack>
           <InventoryListToolbar
             search={search}
-            searchPlaceholder="Search by name, code, or barcode..."
+            searchPlaceholder="Search by name, code, barcode, or tariff code..."
             isLoading={isRefreshing}
             onSearchChange={setSearch}
             onSearchSubmit={handleSearchSubmit}

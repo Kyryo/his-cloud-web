@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { User } from "@/features/auth/types/auth.types";
 import { AccountAppointmentsSection } from "@/features/settings/components/AccountAppointmentsSection";
+import { AccountSalesReportsSection } from "@/features/settings/components/AccountSalesReportsSection";
 import { AssignedClinicsTable } from "@/features/settings/components/AssignedClinicsTable";
 import { updateProfile } from "@/features/settings/services/settings.service";
 import { useToast } from "@/providers/toast-provider";
@@ -346,6 +347,8 @@ export function AccountProfileSettings({ user }: AccountProfileSettingsProps) {
           </Card>
 
           <AccountAppointmentsSection />
+
+          <AccountSalesReportsSection />
 
           <Card className="border-brand-border shadow-sm">
             <CardHeader>

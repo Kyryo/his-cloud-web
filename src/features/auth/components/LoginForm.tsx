@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTheme } from "next-themes";
 
+import { StatusBanner } from "@/components/ui/status-banner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -233,11 +234,9 @@ export function LoginForm() {
                 </div>
               </div>
 
-              {submitError && (
-                <p role="alert" className="text-sm text-destructive">
-                  {submitError}
-                </p>
-              )}
+              {submitError ? (
+                <StatusBanner variant="error" message={submitError} />
+              ) : null}
 
               <Button
                 type="submit"

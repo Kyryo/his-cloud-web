@@ -297,6 +297,8 @@ export type OrganizationUser = {
     name: string;
     code: string;
   } | null;
+  sales_report_is_blocked?: boolean;
+  sales_report_is_subscribed?: boolean;
 };
 
 export type OrganizationUserDetail = OrganizationUser & {
@@ -411,6 +413,7 @@ export type TenantEmailConfiguration = {
   tenant: number;
   is_active: boolean;
   appointment_emails_enabled: boolean;
+  sales_report_emails_enabled: boolean;
   smtp_host: string;
   smtp_port: number;
   smtp_username: string;
@@ -430,6 +433,7 @@ export type TenantEmailConfiguration = {
 export type CreateTenantEmailConfigurationPayload = {
   is_active?: boolean;
   appointment_emails_enabled?: boolean;
+  sales_report_emails_enabled?: boolean;
   smtp_host: string;
   smtp_port: number;
   smtp_username: string;
@@ -445,6 +449,7 @@ export type CreateTenantEmailConfigurationPayload = {
 export type UpdateTenantEmailConfigurationPayload = {
   is_active?: boolean;
   appointment_emails_enabled?: boolean;
+  sales_report_emails_enabled?: boolean;
   smtp_host?: string;
   smtp_port?: number;
   smtp_username?: string;

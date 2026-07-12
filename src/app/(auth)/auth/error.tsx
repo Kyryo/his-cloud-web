@@ -1,9 +1,23 @@
 "use client";
 
-export default function Error({ reset }: { error: Error; reset: () => void }) {
+import { StatusBanner } from "@/components/ui/status-banner";
+
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error;
+  reset: () => void;
+}) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-4 px-4">
-      <h2 className="text-lg font-semibold">Unable to load sign in</h2>
+      <div className="w-full max-w-md">
+        <StatusBanner
+          variant="error"
+          message="Unable to load sign in"
+          description={error.message || "Something went wrong. Try again later."}
+        />
+      </div>
       <button
         type="button"
         onClick={reset}

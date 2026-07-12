@@ -27,6 +27,7 @@ import {
 } from "@/components/ui/select";
 import { UpdateUserClinicsPanel } from "@/features/settings/components/UpdateUserClinicsPanel";
 import { UpdateUserLocationsPanel } from "@/features/settings/components/UpdateUserLocationsPanel";
+import { UpdateUserSalesReportsPanel } from "@/features/settings/components/UpdateUserSalesReportsPanel";
 import { UpdateUserTabLoader } from "@/features/settings/components/UpdateUserTabLoader";
 import {
   ORGANIZATION_USER_ROLE_OPTIONS,
@@ -57,13 +58,14 @@ type UpdateUserDialogProps = {
   onUpdated: (user: OrganizationUser) => void;
 };
 
-type UpdateUserDialogTab = "general" | "role" | "clinics" | "locations";
+type UpdateUserDialogTab = "general" | "role" | "clinics" | "locations" | "reports";
 
 const tabs = [
   { id: "general", label: "General" },
   { id: "role", label: "Role" },
   { id: "clinics", label: "Clinics" },
   { id: "locations", label: "Locations" },
+  { id: "reports", label: "Reports" },
 ] as const satisfies ReadonlyArray<{ id: UpdateUserDialogTab; label: string }>;
 
 const UNASSIGNED_ROLE_VALUE = "__unassigned__";
@@ -229,7 +231,7 @@ export function UpdateUserDialog({
     generalForm.formState.isSubmitting || roleForm.formState.isSubmitting;
 
   function renderFooter() {
-    if (activeTab === "clinics" || activeTab === "locations") {
+    if (activeTab === "clinics" || activeTab === "locations" || activeTab === "reports") {
       return (
         <SecondaryButton type="button" onClick={() => onOpenChange(false)}>
           Close
@@ -281,7 +283,8 @@ export function UpdateUserDialog({
           tabId === "general" ||
           tabId === "role" ||
           tabId === "clinics" ||
-          tabId === "locations"
+          tabId === "locations" ||
+          tabId === "reports"
         ) {
           setActiveTab(tabId);
         }
@@ -439,6 +442,15 @@ export function UpdateUserDialog({
         <UpdateUserLocationsPanel
           userId={user.id}
           isActive={activeTab === "locations"}
+          onChanged={() => void refreshUserSummary()}
+        />
+      ) : null}
+
+      {activeTab === "reports" ? (
+        <UpdateUserSalesReportsPanel
+          userId={user.id}
+          userName={currentUser.name}
+          isActive={activeTab === "reports"}
           onChanged={() => void refreshUserSummary()}
         />
       ) : null}

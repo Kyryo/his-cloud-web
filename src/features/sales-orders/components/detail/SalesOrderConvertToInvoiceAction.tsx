@@ -77,7 +77,6 @@ export function SalesOrderConvertToInvoiceAction({
     <>
       <PrimaryButton
         type="button"
-        size="sm"
         className={cn(className)}
         disabled={!canConvert || isConverting}
         title={disabledReason ?? undefined}

@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 
 import { VerificationCodeInput } from "@/components/verification-code";
 import { useCountdown } from "@/components/verification-code/use-countdown";
+import { StatusBanner } from "@/components/ui/status-banner";
 import { Button } from "@/components/ui/button";
 import { maskEmail } from "@/lib/mask-email";
 import { cn } from "@/lib/utils";
@@ -172,30 +173,26 @@ export function AuthOtpStep({
       </div>
 
       <div className="mt-8">
+        {displayError ? (
+          <StatusBanner variant="error" message={displayError} className="mb-4" />
+        ) : null}
         <VerificationCodeInput
           data-testid={codeTestId}
           value={code}
           disabled={disabled || isResending || isExpiryExpired}
-          error={displayError ?? undefined}
           success={success}
           onChange={handleCodeChange}
           onComplete={onCodeComplete}
         />
       </div>
 
-      {resendMessage && (
-        <p
-          role="status"
-          className={cn(
-            "mt-4 text-center text-sm",
-            resendMessage.includes("sent")
-              ? "text-emerald-600"
-              : "text-destructive",
-          )}
-        >
-          {resendMessage}
-        </p>
-      )}
+      {resendMessage ? (
+        <StatusBanner
+          variant={resendMessage.includes("sent") ? "success" : "error"}
+          message={resendMessage}
+          className="mt-4"
+        />
+      ) : null}
 
       <Button
         type="button"

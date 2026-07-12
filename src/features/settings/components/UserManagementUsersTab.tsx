@@ -41,6 +41,26 @@ function formatGroups(groups: string[]) {
   );
 }
 
+function formatReportStatus(user: OrganizationUser) {
+  if (user.sales_report_is_blocked) {
+    return (
+      <Badge variant="warning" className="font-normal">
+        Reports blocked
+      </Badge>
+    );
+  }
+
+  if (user.sales_report_is_subscribed) {
+    return (
+      <Badge variant="success" className="font-normal">
+        Reports subscribed
+      </Badge>
+    );
+  }
+
+  return null;
+}
+
 export function UserManagementUsersTab({ isActive }: UserManagementUsersTabProps) {
   const [users, setUsers] = useState<OrganizationUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -156,9 +176,12 @@ export function UserManagementUsersTab({ isActive }: UserManagementUsersTabProps
                       </Badge>
                     </td>
                     <td className="px-6 py-3.5">
-                      <Badge variant={user.is_active ? "success" : "outline"}>
-                        {user.is_active ? "Active" : "Inactive"}
-                      </Badge>
+                      <div className="flex flex-col items-start gap-1.5">
+                        <Badge variant={user.is_active ? "success" : "outline"}>
+                          {user.is_active ? "Active" : "Inactive"}
+                        </Badge>
+                        {formatReportStatus(user)}
+                      </div>
                     </td>
                     <td className="px-6 py-3.5">{formatGroups(user.groups)}</td>
                     <td className="px-6 py-3.5 text-sm text-brand-navy">
