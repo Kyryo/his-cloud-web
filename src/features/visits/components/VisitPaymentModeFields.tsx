@@ -20,7 +20,7 @@ import type { CustomerInsurance } from "@/features/customers/types/customer-insu
 
 type VisitPaymentModeFieldValues = FieldValues & {
   mode_of_payment: "cash" | "insurance";
-  insurance_scheme?: string;
+  insurance_scheme?: string | null;
 };
 
 type VisitPaymentModeFieldsProps<T extends VisitPaymentModeFieldValues> = {

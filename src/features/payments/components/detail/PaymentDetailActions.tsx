@@ -1,9 +1,9 @@
 "use client";
 
 import { FileDown, Loader2, Mail, MoreVertical, Pencil } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
-import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
+import { PrimaryButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,12 +11,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { fetchInvoice } from "@/features/invoices/services/invoices.service";
 import { getInvoiceOutstandingBalance } from "@/features/invoices/utils/sum-invoice-billing";
 import { EditPaymentDialog } from "@/features/payments/components/EditPaymentDialog";
@@ -49,7 +43,7 @@ export function PaymentDetailActions({
   const paymentCancelled = String(payment.state || "").toLowerCase() === "cancel";
   const canEdit = Boolean(payment.invoice_id) && !invoiceCancelled && !paymentCancelled;
 
-  const editBlockReason = useMemo(() => {
+  const editBlockReason = (() => {
     if (!payment.invoice_id) {
       return "This payment is not linked to an invoice.";
     }
@@ -59,8 +53,8 @@ export function PaymentDetailActions({
     if (paymentCancelled) {
       return "Cancelled payments cannot be edited.";
     }
-    return null;
-  }, [invoiceCancelled, payment.invoice_id, paymentCancelled]);
+    return undefined;
+  })();
 
   useEffect(() => {
     if (!editOpen || !payment.invoice_id) {
@@ -137,6 +131,7 @@ export function PaymentDetailActions({
             </DropdownMenuItem>
             <DropdownMenuItem
               disabled={!canEdit}
+              title={editBlockReason}
               onClick={() => setEditOpen(true)}
               data-testid="payment-edit-menu-item"
             >
