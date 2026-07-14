@@ -7,6 +7,7 @@ import type {
   FetchCustomerVisitsOptions,
   FetchVisitsOptions,
   StartVisitFromAppointmentPayload,
+  UpdateVisitPaymentModePayload,
   VisitDetail,
   VisitEncounter,
   VisitEncounterCreatePayload,
@@ -81,8 +82,24 @@ export async function closeVisit(uuid: string): Promise<VisitDetail> {
   });
 }
 
+export async function reopenVisit(uuid: string): Promise<VisitDetail> {
+  return bffRequest<VisitDetail>(BFF_VISITS_ROUTES.reopen(uuid), {
+    method: "POST",
+  });
+}
+
 export async function fetchVisit(uuid: string): Promise<VisitDetail> {
   return bffRequest<VisitDetail>(BFF_VISITS_ROUTES.detail(uuid));
+}
+
+export async function updateVisitPaymentMode(
+  uuid: string,
+  payload: UpdateVisitPaymentModePayload,
+): Promise<VisitDetail> {
+  return bffRequest<VisitDetail>(BFF_VISITS_ROUTES.modeOfPayment(uuid), {
+    method: "PATCH",
+    body: payload,
+  });
 }
 
 export async function fetchVisitEncounters(uuid: string): Promise<VisitEncounter[]> {

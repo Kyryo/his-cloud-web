@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import type { ClinicalDepartment } from "@/features/clinical/types/clinical-catalog.types";
 import type { CustomerInsurance } from "@/features/customers/types/customer-insurance.types";
+import { VisitPaymentModeFields } from "@/features/visits/components/VisitPaymentModeFields";
 import type { StartVisitFormValues } from "@/features/visits/schemas/start-visit.schema";
 import type { ConsultationServiceCatalogItem } from "@/features/visits/types/visit.types";
 
@@ -160,69 +161,10 @@ export function StartVisitFormFields({
 
   return (
     <div className="space-y-4">
-      <FormField
-        control={form.control}
-        name="mode_of_payment"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>
-              Mode of payment <span className="text-red-500">*</span>
-            </FormLabel>
-            <Select value={field.value} onValueChange={field.onChange}>
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value="cash">Cash</SelectItem>
-                <SelectItem value="insurance">Insurance</SelectItem>
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      <VisitPaymentModeFields form={form} insuranceSchemes={insuranceSchemes} />
 
       {modeOfPayment === "insurance" ? (
         <>
-          <FormField
-            control={form.control}
-            name="insurance_scheme"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Insurance scheme</FormLabel>
-                <Select
-                  value={field.value}
-                  onValueChange={field.onChange}
-                  disabled={insuranceSchemes.length === 0}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select insurance scheme" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {insuranceSchemes.map((scheme) => (
-                      <SelectItem key={scheme.uuid} value={scheme.uuid}>
-                        {scheme.scheme_name}
-                        {scheme.insurance_company_name
-                          ? ` · ${scheme.insurance_company_name}`
-                          : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {insuranceSchemes.length === 0 ? (
-                  <p className="text-xs text-brand-muted">
-                    This client has no insurance schemes on file.
-                  </p>
-                ) : null}
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           <FormField
             control={form.control}
             name="requires_pre_authorization"

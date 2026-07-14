@@ -5,6 +5,7 @@ import type {
   PaymentListResponse,
   CreatePaymentPayload,
   SendPaymentReceiptPayload,
+  UpdatePaymentPayload,
 } from "@/features/payments/types/payment.types";
 import { bffRequest } from "@/lib/bff-client";
 
@@ -60,6 +61,21 @@ export async function createPayment(payload: CreatePaymentPayload): Promise<Paym
     method: "POST",
     body: {
       invoice_id: payload.invoiceId,
+      amount: payload.amount,
+      payment_method: payload.paymentMethod,
+      payment_date: payload.paymentDate,
+      note: payload.note,
+    },
+  });
+}
+
+export async function updatePayment(
+  paymentId: number | string,
+  payload: UpdatePaymentPayload,
+): Promise<Payment> {
+  return bffRequest<Payment>(BFF_PAYMENTS_ROUTES.detail(paymentId), {
+    method: "PATCH",
+    body: {
       amount: payload.amount,
       payment_method: payload.paymentMethod,
       payment_date: payload.paymentDate,

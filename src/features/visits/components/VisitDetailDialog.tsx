@@ -1,12 +1,13 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { Loader2, Pencil } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { StatusBanner } from "@/components/ui/status-banner";
 import {
   DestructiveButton,
+  PrimaryButton,
   SecondaryButton,
 } from "@/components/ui/app-buttons";
 import { Badge } from "@/components/ui/badge";
@@ -20,14 +21,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { TabbedDialog } from "@/components/ui/tabbed-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ROUTES } from "@/constants/routes";
 import { CustomerVisitStatusBadge } from "@/features/customers/components/CustomerVisitStatusBadge";
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { formatVisitStartedBy } from "@/features/customers/utils/format-visit-started-by";
+import { EditVisitPaymentDialog } from "@/features/visits/components/EditVisitPaymentDialog";
 import { OpenEncountersCloseNotice } from "@/features/visits/components/OpenEncountersCloseNotice";
 import {
   closeVisit,
   fetchVisit,
+  reopenVisit,
   runVisitEncounterAction,
 } from "@/features/visits/services/visits.service";
 import type { VisitDetail, VisitEncounter } from "@/features/visits/types/visit.types";
@@ -77,6 +86,15 @@ function canRunEncounterAction(
   return ["waiting", "in_progress"].includes(encounter.status);
 }
 
+function formatPaymentModeLabel(visit: VisitDetail): string {
+  const modeLabel =
+    visit.mode_of_payment === "insurance" ? "Insurance" : "Cash";
+  if (visit.mode_of_payment === "insurance" && visit.insurance_scheme_name) {
+    return `${modeLabel} · ${visit.insurance_scheme_name}`;
+  }
+  return modeLabel;
+}
+
 export function VisitDetailDialog({
   visitUuid,
   open,
@@ -92,6 +110,10 @@ export function VisitDetailDialog({
   const [isClosingVisit, setIsClosingVisit] = useState(false);
   const [closeConfirmOpen, setCloseConfirmOpen] = useState(false);
   const [closeError, setCloseError] = useState<string | null>(null);
+  const [isReopeningVisit, setIsReopeningVisit] = useState(false);
+  const [reopenConfirmOpen, setReopenConfirmOpen] = useState(false);
+  const [reopenError, setReopenError] = useState<string | null>(null);
+  const [editPaymentOpen, setEditPaymentOpen] = useState(false);
 
   const loadVisit = useCallback(async () => {
     if (!visitUuid) {
@@ -118,7 +140,10 @@ export function VisitDetailDialog({
 
     setActiveTab("overview");
     setCloseConfirmOpen(false);
+    setReopenConfirmOpen(false);
+    setEditPaymentOpen(false);
     setCloseError(null);
+    setReopenError(null);
     void loadVisit();
   }, [loadVisit, open, visitUuid]);
 
@@ -188,6 +213,42 @@ export function VisitDetailDialog({
     }
   };
 
+  const handleReopenVisit = async () => {
+    if (!visit || !visit.can_reopen_visit) {
+      return;
+    }
+
+    setIsReopeningVisit(true);
+    setReopenError(null);
+
+    try {
+      await reopenVisit(visit.uuid);
+      toast({
+        variant: "success",
+        title: "Visit reopened",
+        description: "The visit is active again.",
+      });
+      setReopenConfirmOpen(false);
+      await loadVisit();
+      onVisitUpdated?.();
+    } catch (err) {
+      const message =
+        err instanceof BffError
+          ? formatBffErrorMessage(err.message, err.errors)
+          : err instanceof Error
+            ? err.message
+            : "Try again.";
+      setReopenError(message);
+      toast({
+        variant: "error",
+        title: "Could not reopen visit",
+        description: message,
+      });
+    } finally {
+      setIsReopeningVisit(false);
+    }
+  };
+
   const dialogTitle = visit ? (
     <Link
       href={ROUTES.customerDetail(visit.customer)}
@@ -223,7 +284,7 @@ export function VisitDetailDialog({
           <>
             <SecondaryButton
               type="button"
-              disabled={isClosingVisit}
+              disabled={isClosingVisit || isReopeningVisit}
               onClick={() => onOpenChange(false)}
             >
               Close
@@ -236,6 +297,31 @@ export function VisitDetailDialog({
               >
                 Close visit
               </DestructiveButton>
+            ) : null}
+            {visit?.status === "completed" ? (
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex">
+                      <PrimaryButton
+                        type="button"
+                        disabled={
+                          !visit.can_reopen_visit ||
+                          isReopeningVisit ||
+                          isLoading
+                        }
+                        onClick={() => setReopenConfirmOpen(true)}
+                        data-testid="visit-reopen-button"
+                      >
+                        Reopen visit
+                      </PrimaryButton>
+                    </span>
+                  </TooltipTrigger>
+                  {visit.reopen_block_reason ? (
+                    <TooltipContent>{visit.reopen_block_reason}</TooltipContent>
+                  ) : null}
+                </Tooltip>
+              </TooltipProvider>
             ) : null}
           </>
         }
@@ -281,8 +367,32 @@ export function VisitDetailDialog({
                   </div>
                   <div>
                     <dt className="text-xs text-brand-muted">Payment</dt>
-                    <dd className="mt-1 text-sm font-medium capitalize text-brand-navy">
-                      {visit.mode_of_payment}
+                    <dd className="mt-1 flex items-center gap-1.5 text-sm font-medium text-brand-navy">
+                      <span>{formatPaymentModeLabel(visit)}</span>
+                      <TooltipProvider delayDuration={200}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex">
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="size-7 text-brand-muted hover:text-brand-navy"
+                                disabled={!visit.can_edit_mode_of_payment}
+                                onClick={() => setEditPaymentOpen(true)}
+                                aria-label="Edit payment mode"
+                              >
+                                <Pencil className="size-3.5" aria-hidden="true" />
+                              </Button>
+                            </span>
+                          </TooltipTrigger>
+                          {visit.mode_of_payment_edit_block_reason ? (
+                            <TooltipContent>
+                              {visit.mode_of_payment_edit_block_reason}
+                            </TooltipContent>
+                          ) : null}
+                        </Tooltip>
+                      </TooltipProvider>
                     </dd>
                   </div>
                   <div>
@@ -425,6 +535,74 @@ export function VisitDetailDialog({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <Dialog
+        open={reopenConfirmOpen}
+        onOpenChange={(nextOpen) => {
+          setReopenConfirmOpen(nextOpen);
+          if (!nextOpen) {
+            setReopenError(null);
+          }
+        }}
+      >
+        <DialogContent className={cn("sm:max-w-md", appFont.className)}>
+          <DialogHeader>
+            <DialogTitle>Reopen this visit?</DialogTitle>
+            <DialogDescription>
+              {visit
+                ? `This will set ${visit.customer_name}'s visit back to active.`
+                : "This will set the visit back to active."}{" "}
+              The appointment and encounters will stay as they are.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            {visit?.reopen_block_reason ? (
+              <StatusBanner variant="error" message={visit.reopen_block_reason} />
+            ) : null}
+            {reopenError ? (
+              <StatusBanner variant="error" message={reopenError} />
+            ) : null}
+          </div>
+
+          <DialogFooter>
+            <SecondaryButton
+              type="button"
+              disabled={isReopeningVisit}
+              onClick={() => setReopenConfirmOpen(false)}
+            >
+              Keep closed
+            </SecondaryButton>
+            <PrimaryButton
+              type="button"
+              disabled={!visit?.can_reopen_visit || isReopeningVisit}
+              onClick={() => void handleReopenVisit()}
+              data-testid="visit-reopen-confirm-button"
+            >
+              {isReopeningVisit ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                  Reopening...
+                </>
+              ) : (
+                "Reopen visit"
+              )}
+            </PrimaryButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {visit ? (
+        <EditVisitPaymentDialog
+          visit={visit}
+          open={editPaymentOpen}
+          onOpenChange={setEditPaymentOpen}
+          onUpdated={(updatedVisit) => {
+            setVisit(updatedVisit);
+            onVisitUpdated?.();
+          }}
+        />
+      ) : null}
     </>
   );
 }

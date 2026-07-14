@@ -17,8 +17,13 @@ export type CustomerEncounterAction =
   | "ORDER_CANCELLED"
   | "ORDER_CONFIRMED"
   | "ORDER_INVOICED"
+  | "ORDER_REOPENED"
   | "INVOICE_CREATED"
+  | "INVOICE_UPDATED"
+  | "INVOICE_CANCELLED"
   | "PAYMENT_RECORDED"
+  | "PAYMENT_UPDATED"
+  | "PAYMENT_CANCELLED"
   | "OTHER"
   | string;
 

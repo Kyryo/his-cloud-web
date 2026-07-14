@@ -30,7 +30,7 @@ const patrickHand = Patrick_Hand({
 });
 
 const HEADLINE =
-  "Sigma keeps your clinic running every day, not just on paper.";
+  "The clinic management system for patient records, billing, inventory, and insurance claims.";
 
 const REGISTER_ROWS = [
   "Paracetamol 500mg — qty ???",

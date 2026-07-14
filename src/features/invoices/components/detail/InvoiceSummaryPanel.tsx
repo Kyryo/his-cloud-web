@@ -108,7 +108,7 @@ export function InvoiceSummaryPanel({
           "mt-3 rounded-xl border p-4",
           hasBalance
             ? "border-red-200 bg-red-50/70"
-            : "border-brand-border bg-slate-50/60",
+            : "border-emerald-200 bg-emerald-50/80",
         )}
       >
         <dl className="space-y-2.5">
@@ -186,6 +186,12 @@ export function InvoiceSummaryPanel({
           <DetailPageAsideSummaryField
             label="Origin"
             value={invoice.invoice_origin}
+          />
+        ) : null}
+        {invoice.internal_reference ? (
+          <DetailPageAsideSummaryField
+            label="Internal reference"
+            value={invoice.internal_reference}
           />
         ) : null}
         {hasInsuranceDetails ? (

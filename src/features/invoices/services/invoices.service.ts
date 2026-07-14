@@ -3,6 +3,7 @@ import type {
   Invoice,
   InvoiceListFilters,
   InvoiceListResponse,
+  UpdateInvoiceInternalReferencePayload,
 } from "@/features/invoices/types/invoice.types";
 import { bffRequest } from "@/lib/bff-client";
 
@@ -48,4 +49,22 @@ export async function fetchInvoices(
 
 export async function fetchInvoice(invoiceId: number | string): Promise<Invoice> {
   return bffRequest<Invoice>(BFF_INVOICES_ROUTES.detail(invoiceId));
+}
+
+export async function updateInvoiceInternalReference(
+  invoiceId: number | string,
+  payload: UpdateInvoiceInternalReferencePayload,
+): Promise<Invoice> {
+  return bffRequest<Invoice>(BFF_INVOICES_ROUTES.internalReference(invoiceId), {
+    method: "PATCH",
+    body: payload,
+  });
+}
+
+export async function cancelInvoice(
+  invoiceId: number | string,
+): Promise<Invoice> {
+  return bffRequest<Invoice>(BFF_INVOICES_ROUTES.cancel(invoiceId), {
+    method: "POST",
+  });
 }

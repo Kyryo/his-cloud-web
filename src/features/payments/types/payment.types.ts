@@ -11,6 +11,7 @@ export type Payment = {
   customer_name: string | null;
   invoice_id?: number | null;
   invoice_name?: string | null;
+  invoice_state?: string | null;
   amount: string | number;
   payment_date: string | null;
   payment_method?: string | null;
@@ -39,6 +40,13 @@ export type SendPaymentReceiptPayload = {
 
 export type CreatePaymentPayload = {
   invoiceId: number;
+  amount: string;
+  paymentMethod?: string;
+  paymentDate?: string;
+  note?: string;
+};
+
+export type UpdatePaymentPayload = {
   amount: string;
   paymentMethod?: string;
   paymentDate?: string;

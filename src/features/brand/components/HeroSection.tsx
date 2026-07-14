@@ -31,13 +31,12 @@ export function HeroSection() {
         <div className="grid flex-1 grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-14">
           <div className="flex flex-col justify-center text-left">
             <h1 className="landing-display max-w-[18ch] text-[clamp(2rem,5vw,3.25rem)] font-extrabold leading-[1.08] text-balance">
-              Sigma keeps your clinic running every day, not just on paper.
+              Turn paper clinics into digital ones, without the cost of heavy IT.
             </h1>
 
             <p className="landing-body mt-5 max-w-xl text-base leading-relaxed text-[color:var(--landing-ledger-ink)] sm:text-lg sm:leading-[1.65]">
-              Paper can&apos;t warn you about low stock, rejected claims, or unpaid bills.
-              Sigma can, and shows you how your clinic is really doing, every day.
-              That&apos;s why 200+ clinics have switched, and never looked back.
+            Sigma gives clinics a complete digital operating system for patient care and operations, 
+            without expensive hardware, large ICT teams, or complex implementations.
             </p>
 
             <div className="mt-8 flex flex-col gap-5 sm:mt-10">

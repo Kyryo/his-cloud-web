@@ -9,6 +9,7 @@ import {
 import { InvoiceDetailActions } from "@/features/invoices/components/detail/InvoiceDetailActions";
 import { InvoiceDetailHeader } from "@/features/invoices/components/detail/InvoiceDetailHeader";
 import { InvoiceDetailTabs } from "@/features/invoices/components/detail/InvoiceDetailTabs";
+import { InvoiceInternalReferenceDialog } from "@/features/invoices/components/detail/InvoiceInternalReferenceDialog";
 import { fetchInvoice } from "@/features/invoices/services/invoices.service";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 import { RecordPaymentDialog } from "@/features/payments/components/RecordPaymentDialog";
@@ -32,6 +33,7 @@ export function InvoiceDetailPage({ invoiceId }: InvoiceDetailPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+  const [internalReferenceOpen, setInternalReferenceOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<InvoiceDetailTabId>("lines");
 
   useAppBreadcrumb(invoice?.name || (invoice ? `Invoice #${invoice.id}` : null));
@@ -96,7 +98,12 @@ export function InvoiceDetailPage({ invoiceId }: InvoiceDetailPageProps) {
           <InvoiceDetailActions
             invoice={invoice}
             onRecordPayment={() => setRecordPaymentOpen(true)}
+            onInternalReference={() => setInternalReferenceOpen(true)}
             onClaimInvoice={() => setActiveTab("claim")}
+            onInvoiceCancelled={(updated) => {
+              setInvoice(updated);
+              void loadInvoice();
+            }}
           />
         }
       />
@@ -111,6 +118,15 @@ export function InvoiceDetailPage({ invoiceId }: InvoiceDetailPageProps) {
         open={recordPaymentOpen}
         onOpenChange={setRecordPaymentOpen}
         onRecorded={() => {
+          void loadInvoice();
+        }}
+      />
+      <InvoiceInternalReferenceDialog
+        invoice={invoice}
+        open={internalReferenceOpen}
+        onOpenChange={setInternalReferenceOpen}
+        onSaved={(updated) => {
+          setInvoice(updated);
           void loadInvoice();
         }}
       />

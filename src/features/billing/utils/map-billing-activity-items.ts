@@ -18,9 +18,14 @@ const ACTION_ICONS: Record<string, LucideIcon> = {
   ORDER_CANCELLED: Ban,
   ORDER_CONFIRMED: CheckCircle2,
   ORDER_INVOICED: Receipt,
+  ORDER_REOPENED: ShoppingCart,
   ORDER_PROVIDER_UPDATED: UserRound,
   INVOICE_CREATED: FileText,
+  INVOICE_UPDATED: FileText,
+  INVOICE_CANCELLED: Ban,
   PAYMENT_RECORDED: Wallet,
+  PAYMENT_UPDATED: Wallet,
+  PAYMENT_CANCELLED: Ban,
 };
 
 function formatActivitySummary(record: BillingActivityRecord): string {

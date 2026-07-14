@@ -22,9 +22,16 @@ import { formatVisitStartedBy } from "@/features/customers/utils/format-visit-st
 import {
   closeVisit,
   fetchVisit,
+  reopenVisit,
   runVisitEncounterAction,
 } from "@/features/visits/services/visits.service";
 import type { VisitDetail, VisitEncounter } from "@/features/visits/types/visit.types";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useToast } from "@/providers/toast-provider";
 
 type VisitDetailPageProps = {
@@ -131,6 +138,28 @@ export function VisitDetailPage({ visitUuid }: VisitDetailPageProps) {
     }
   };
 
+  const handleReopenVisit = async () => {
+    if (!visit || !visit.can_reopen_visit) {
+      return;
+    }
+
+    try {
+      await reopenVisit(visit.uuid);
+      toast({
+        variant: "success",
+        title: "Visit reopened",
+        description: "The visit is active again.",
+      });
+      await loadVisit();
+    } catch (err) {
+      toast({
+        variant: "error",
+        title: "Could not reopen visit",
+        description: err instanceof Error ? err.message : "Try again.",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className={PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS}>
@@ -166,6 +195,26 @@ export function VisitDetailPage({ visitUuid }: VisitDetailPageProps) {
               <Button variant="destructive" onClick={() => void handleCloseVisit()}>
                 Close visit
               </Button>
+            ) : null}
+            {visit.status === "completed" ? (
+              <TooltipProvider delayDuration={200}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className="inline-flex">
+                      <Button
+                        disabled={!visit.can_reopen_visit}
+                        onClick={() => void handleReopenVisit()}
+                        data-testid="visit-reopen-button"
+                      >
+                        Reopen visit
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  {visit.reopen_block_reason ? (
+                    <TooltipContent>{visit.reopen_block_reason}</TooltipContent>
+                  ) : null}
+                </Tooltip>
+              </TooltipProvider>
             ) : null}
           </div>
         </div>

@@ -43,6 +43,7 @@ export type Invoice = {
   amount_total: string | number | null;
   invoice_date: string | null;
   invoice_origin?: string | null;
+  internal_reference?: string | null;
   sales_order_id?: number | null;
   sales_order_name?: string | null;
   pricelist_id?: number | null;
@@ -60,6 +61,8 @@ export type Invoice = {
   has_diagnosis?: boolean;
   can_initiate_claim?: boolean;
   claim_status?: string | null;
+  can_cancel?: boolean;
+  cancel_block_reason?: string | null;
   service_provider_code?: string | null;
   has_practitioner_mapping?: boolean;
   visit_uuid?: string | null;
@@ -80,3 +83,7 @@ export type InvoiceListFilters = {
 };
 
 export type InvoiceListResponse = PaginatedListResponse<Invoice>;
+
+export type UpdateInvoiceInternalReferencePayload = {
+  internal_reference: string;
+};

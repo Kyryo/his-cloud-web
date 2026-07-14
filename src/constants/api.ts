@@ -39,7 +39,9 @@ export const BFF_VISITS_ROUTES = {
   list: "/api/visits",
   create: "/api/visits",
   detail: (uuid: string) => `/api/visits/${uuid}`,
+  modeOfPayment: (uuid: string) => `/api/visits/${uuid}/mode-of-payment`,
   end: (uuid: string) => `/api/visits/${uuid}/end`,
+  reopen: (uuid: string) => `/api/visits/${uuid}/reopen`,
   fromAppointment: (appointmentUuid: string) =>
     `/api/visits/from-appointment/${appointmentUuid}`,
   encounters: (uuid: string) => `/api/visits/${uuid}/encounters`,
@@ -116,6 +118,9 @@ export const BFF_SALES_ORDER_ACTIVITY_ROUTES = {
 export const BFF_INVOICES_ROUTES = {
   list: "/api/invoices",
   detail: (invoiceId: number | string) => `/api/invoices/${invoiceId}`,
+  cancel: (invoiceId: number | string) => `/api/invoices/${invoiceId}/cancel`,
+  internalReference: (invoiceId: number | string) =>
+    `/api/invoices/${invoiceId}/internal-reference`,
   activity: (invoiceId: number | string) => `/api/invoices/${invoiceId}/activity`,
 } as const;
 

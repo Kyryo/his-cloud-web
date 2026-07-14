@@ -33,6 +33,12 @@ export type VisitDetail = {
   mark_for_completion: boolean;
   mode_of_payment: "cash" | "insurance";
   insurance_scheme: string | null;
+  insurance_scheme_name: string | null;
+  linked_sales_order_state: string | null;
+  can_edit_mode_of_payment: boolean;
+  mode_of_payment_edit_block_reason: string | null;
+  can_reopen_visit?: boolean;
+  reopen_block_reason?: string | null;
   requires_pre_authorization: boolean;
   pre_authorization_number: string;
   pre_authorization_comments: string;
@@ -77,6 +83,11 @@ export type CreateVisitPayload = {
 export type StartVisitFromAppointmentPayload = {
   consultation_service?: string | null;
   mode_of_payment?: "cash" | "insurance";
+  insurance_scheme?: string | null;
+};
+
+export type UpdateVisitPaymentModePayload = {
+  mode_of_payment: "cash" | "insurance";
   insurance_scheme?: string | null;
 };
 

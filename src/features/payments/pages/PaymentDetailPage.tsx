@@ -76,7 +76,12 @@ export function PaymentDetailPage({ paymentId }: PaymentDetailPageProps) {
     <DetailPageLayout data-testid="payment-detail-page">
       <PaymentDetailHeader
         payment={payment}
-        actions={<PaymentDetailActions payment={payment} />}
+        actions={
+          <PaymentDetailActions
+            payment={payment}
+            onPaymentUpdated={setPayment}
+          />
+        }
       />
       <PaymentDetailTabs payment={payment} />
     </DetailPageLayout>
