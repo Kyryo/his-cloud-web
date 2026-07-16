@@ -38,6 +38,7 @@ import {
   resolveInitialLineIsPayable,
 } from "@/features/sales-orders/utils/sales-order-line-payability";
 import { canEditSalesOrderLines } from "@/features/sales-orders/utils/sales-order-status";
+import { useEnterEscapeShortcuts } from "@/hooks/use-enter-escape-shortcuts";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
@@ -241,6 +242,14 @@ export function SalesOrderLinesEditor({
     onError: (message) => {
       toast({ variant: "error", title: "Could not update line items", description: message });
     },
+  });
+
+  useEnterEscapeShortcuts({
+    enabled: isActive && canEdit && editor.hasPendingChanges,
+    isBusy: editor.isSaving,
+    ignoreWhenDialogOpen: true,
+    onEnter: editor.saveChanges,
+    onEscape: editor.discardChanges,
   });
 
   const breakdownLine =
@@ -469,23 +478,6 @@ export function SalesOrderLinesEditor({
                                 quantity: event.target.value,
                               })
                             }
-                            onKeyDown={(event) => {
-                              if (event.key === "Enter") {
-                                event.preventDefault();
-                                editor.confirmRow(line.key, {
-                                  addAnother: line.isNew,
-                                });
-                              }
-                              if (event.key === "Escape") {
-                                event.preventDefault();
-                                if (line.isNew) {
-                                  editor.discardNewLine(line.key);
-                                } else {
-                                  editor.setEditingRowKey(null);
-                                  editor.setActiveRowKey(null);
-                                }
-                              }
-                            }}
                           />
                         ) : (
                           <span className="text-sm text-brand-slate">
@@ -509,23 +501,6 @@ export function SalesOrderLinesEditor({
                                 priceUnitOverridden: true,
                               })
                             }
-                            onKeyDown={(event) => {
-                              if (event.key === "Enter") {
-                                event.preventDefault();
-                                editor.confirmRow(line.key, {
-                                  addAnother: line.isNew,
-                                });
-                              }
-                              if (event.key === "Escape" && line.isNew) {
-                                event.preventDefault();
-                                editor.discardNewLine(line.key);
-                              }
-                              if (event.key === "Escape" && !line.isNew) {
-                                event.preventDefault();
-                                editor.setEditingRowKey(null);
-                                editor.setActiveRowKey(null);
-                              }
-                            }}
                           />
                         ) : (
                           <span className="text-sm text-brand-slate">

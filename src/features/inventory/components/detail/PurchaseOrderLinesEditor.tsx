@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { SecondaryButton } from "@/components/ui/app-buttons";
 import { Input } from "@/components/ui/input";
-import { InlineProductCombobox } from "@/features/inventory/components/detail/InlineProductCombobox";
+import { ProductSearchSelect } from "@/features/inventory/components/ProductSearchSelect";
 import { PurchaseOrderBatchTrackingNotice } from "@/features/inventory/components/detail/PurchaseOrderBatchTrackingNotice";
 import { PurchaseOrderLineBatchButton } from "@/features/inventory/components/detail/PurchaseOrderLineBatchButton";
 import { PurchaseOrderLineBatchDialog } from "@/features/inventory/components/detail/PurchaseOrderLineBatchDialog";
@@ -17,6 +17,7 @@ import {
   calculateLineDraftTotal,
   countLinesWithValidationIssues,
   countSavedLineDrafts,
+  draftHasProduct,
   getLineValidationIssues,
   lineMissingBatchOrExpiry,
   type PurchaseOrderLineDraft,
@@ -27,6 +28,7 @@ import {
   formatInventoryQuantity,
   formatProductLabel,
 } from "@/features/inventory/utils/format-inventory";
+import { useEnterEscapeShortcuts } from "@/hooks/use-enter-escape-shortcuts";
 import { cn } from "@/lib/utils";
 
 type PurchaseOrderLinesEditorProps = {
@@ -73,6 +75,14 @@ export function PurchaseOrderLinesEditor({
     autoAddLine,
     onUpdated,
     onError,
+  });
+
+  useEnterEscapeShortcuts({
+    enabled: canEdit && editor.hasPendingChanges,
+    isBusy: editor.isSaving,
+    ignoreWhenDialogOpen: true,
+    onEnter: editor.saveChanges,
+    onEscape: editor.discardChanges,
   });
 
   const batchDialogLine = useMemo(
@@ -221,7 +231,7 @@ export function PurchaseOrderLinesEditor({
           />
           <p className="mt-4 text-sm font-medium text-brand-navy">No items yet</p>
           <p className="mt-2 text-sm text-brand-muted">
-            No items yet — click Add line item to get started
+            No items yet. Click Add line item to get started
           </p>
           <SecondaryButton
             type="button"
@@ -280,7 +290,7 @@ export function PurchaseOrderLinesEditor({
                     const lineTotal = calculateLineDraftTotal(line);
                     const isHighlighted = highlightedLineKeys.has(line.key);
                     const batchComplete = Boolean(
-                      line.product_id &&
+                      draftHasProduct(line) &&
                         !lineMissingBatchOrExpiry(line, batchValidationOptions),
                     );
 
@@ -314,23 +324,19 @@ export function PurchaseOrderLinesEditor({
                         <td className="px-3 py-3 text-sm text-brand-muted">{index + 1}</td>
                         <td className="px-4 py-3">
                           {isEditing ? (
-                            <InlineProductCombobox
+                            <ProductSearchSelect
                               id={`po-line-product-${line.key}`}
                               value={line.product_uuid ?? null}
                               displayLabel={line.productName}
-                              autoFocus={line.isNew === true}
+                              autoOpen={line.isNew === true}
+                              disabled={editor.isSaving}
                               onFocus={() => editor.setActiveRowKey(line.key)}
                               onSelect={(product) => {
                                 editor.updateLine(line.key, {
                                   product_uuid: product.uuid,
+                                  product_id: product.id ?? null,
                                   productName: formatProductLabel(product),
                                 });
-                              }}
-                              onKeyDown={(event) => {
-                                if (event.key === "Escape" && line.isNew) {
-                                  event.preventDefault();
-                                  editor.discardNewLine(line.key);
-                                }
                               }}
                             />
                           ) : (
@@ -338,7 +344,7 @@ export function PurchaseOrderLinesEditor({
                               <span className="text-sm font-medium text-brand-navy">
                                 {line.productName ?? `Product #${line.product_id ?? "?"}`}
                               </span>
-                              {line.product_id && batchTrackingEnabled ? (
+                              {draftHasProduct(line) && batchTrackingEnabled ? (
                                 <p
                                   className={cn(
                                     "mt-0.5 text-xs",
@@ -369,10 +375,6 @@ export function PurchaseOrderLinesEditor({
                               }
                               onBlur={() => editor.setActiveRowKey(line.key)}
                               onKeyDown={(event) => {
-                                if (event.key === "Enter") {
-                                  event.preventDefault();
-                                  editor.confirmRow(line.key, { addAnother: true });
-                                }
                                 if (event.key === "Escape" && line.isNew) {
                                   event.preventDefault();
                                   editor.discardNewLine(line.key);
@@ -398,10 +400,6 @@ export function PurchaseOrderLinesEditor({
                                 editor.updateLine(line.key, { unit_cost: event.target.value })
                               }
                               onKeyDown={(event) => {
-                                if (event.key === "Enter") {
-                                  event.preventDefault();
-                                  editor.confirmRow(line.key, { addAnother: true });
-                                }
                                 if (event.key === "Escape" && line.isNew) {
                                   event.preventDefault();
                                   editor.discardNewLine(line.key);
@@ -419,7 +417,7 @@ export function PurchaseOrderLinesEditor({
                         </td>
                         {batchTrackingEnabled ? (
                           <td className="px-3 py-3">
-                            {line.product_id ? (
+                            {draftHasProduct(line) ? (
                               <PurchaseOrderLineBatchButton
                                 isComplete={batchComplete}
                                 data-testid={`purchase-order-line-batch-button-${line.key}`}

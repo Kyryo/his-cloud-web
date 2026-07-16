@@ -7,6 +7,7 @@ import { updatePurchaseOrder } from "@/features/inventory/services/purchase-orde
 import type { PurchaseOrder } from "@/features/inventory/types/inventory.types";
 import {
   createEmptyPurchaseOrderLineDraft,
+  draftHasProduct,
   draftsToPurchaseOrderLines,
   linesMissingProductName,
   purchaseOrderLineToDraft,
@@ -76,7 +77,7 @@ export function usePurchaseOrderLinesEditor({
 
         setDraftLines((current) =>
           current.map((line) => {
-            if (!line.product_id || line.productName) {
+            if (!draftHasProduct(line) || line.productName) {
               return line;
             }
 
@@ -92,8 +93,8 @@ export function usePurchaseOrderLinesEditor({
         if (!cancelled) {
           setDraftLines((current) =>
             current.map((line) =>
-              line.product_id && !line.productName
-                ? { ...line, productName: `Product #${line.product_id}` }
+              draftHasProduct(line) && !line.productName
+                ? { ...line, productName: `Product #${line.product_id ?? "?"}` }
                 : line,
             ),
           );
@@ -161,7 +162,7 @@ export function usePurchaseOrderLinesEditor({
   const confirmRow = useCallback(
     (key: string, options?: { addAnother?: boolean }) => {
       const line = draftLines.find((item) => item.key === key);
-      if (!line?.product_id) {
+      if (!line || !draftHasProduct(line)) {
         onError("Choose a product before confirming this line.");
         return;
       }
@@ -199,6 +200,7 @@ export function usePurchaseOrderLinesEditor({
     const restored = JSON.parse(savedSnapshot) as Array<{
       id: number | null;
       product_id: number | null;
+      product_uuid?: string | null;
       productName?: string | null;
       quantity: string;
       unit_cost: string;
@@ -216,6 +218,7 @@ export function usePurchaseOrderLinesEditor({
         key: crypto.randomUUID(),
         id: line.id ?? undefined,
         product_id: line.product_id,
+        product_uuid: line.product_uuid ?? null,
         productName:
           line.productName ??
           (line.product_id ? `Product #${line.product_id}` : null),

@@ -84,6 +84,14 @@ export async function updatePayment(
   });
 }
 
+export async function cancelPayment(
+  paymentId: number | string,
+): Promise<Payment> {
+  return bffRequest<Payment>(BFF_PAYMENTS_ROUTES.cancel(paymentId), {
+    method: "POST",
+  });
+}
+
 export async function sendPaymentReceipt(
   paymentId: number | string,
   payload: SendPaymentReceiptPayload,

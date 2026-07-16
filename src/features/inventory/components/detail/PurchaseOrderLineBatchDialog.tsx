@@ -116,7 +116,7 @@ export function PurchaseOrderLineBatchDialog({
   }, [form, line, open, vendorName]);
 
   const handleSubmit = form.handleSubmit(async (values) => {
-    if (!line?.product_id) {
+    if (!line || (!line.product_id && !line.product_uuid)) {
       toast({
         variant: "error",
         title: "Product required",
@@ -136,9 +136,12 @@ export function PurchaseOrderLineBatchDialog({
     }
 
     try {
+      const productRef = line.product_uuid
+        ? { product_uuid: line.product_uuid }
+        : { product_id: line.product_id! };
       const batchPayload = {
         tenant: tenantId,
-        product_id: line.product_id,
+        ...productRef,
         batch_number: values.batch_number.trim(),
         expiry_date: values.expiry_date.trim(),
         manufacture_date: values.manufacture_date?.trim() || null,
@@ -176,7 +179,9 @@ export function PurchaseOrderLineBatchDialog({
   });
 
   const isSubmitting = form.formState.isSubmitting;
-  const productLabel = line?.productName ?? (line?.product_id ? `Product #${line.product_id}` : "Line item");
+  const productLabel =
+    line?.productName ??
+    (line?.product_id ? `Product #${line.product_id}` : "Line item");
   const tabs = [
     { id: "batch", label: "Batch" },
     { id: "details", label: "Details" },

@@ -1,4 +1,5 @@
 import type { PurchaseOrderLine } from "@/features/inventory/types/inventory.types";
+import type { PurchaseOrderLinePayload } from "@/features/inventory/services/purchase-orders.service";
 
 export type PurchaseOrderLineDraft = {
   key: string;
@@ -18,10 +19,18 @@ export type PurchaseOrderLineDraft = {
   isNew?: boolean;
 };
 
+export function draftHasProduct(line: {
+  product_id: number | null;
+  product_uuid?: string | null;
+}): boolean {
+  return Boolean(line.product_uuid || line.product_id);
+}
+
 export function createEmptyPurchaseOrderLineDraft(): PurchaseOrderLineDraft {
   return {
     key: crypto.randomUUID(),
     product_id: null,
+    product_uuid: null,
     productName: null,
     quantity: "1",
     unit_cost: "0",
@@ -38,6 +47,7 @@ export function purchaseOrderLineToDraft(line: PurchaseOrderLine): PurchaseOrder
     key: crypto.randomUUID(),
     id: line.id,
     product_id: line.product_id,
+    product_uuid: null,
     productName: line.product_name?.trim() || null,
     quantity: String(line.quantity),
     unit_cost: String(line.unit_cost),
@@ -50,7 +60,7 @@ export function purchaseOrderLineToDraft(line: PurchaseOrderLine): PurchaseOrder
 }
 
 export function linesMissingProductName(lines: PurchaseOrderLineDraft[]): boolean {
-  return lines.some((line) => line.product_id && !line.productName);
+  return lines.some((line) => draftHasProduct(line) && !line.productName);
 }
 
 export type BatchValidationOptions = {
@@ -60,12 +70,13 @@ export type BatchValidationOptions = {
 export function lineMissingBatchOrExpiry(
   line: {
     product_id: number | null;
+    product_uuid?: string | null;
     batch?: number | null;
     expiry_date?: string | null;
   },
   options: BatchValidationOptions = {},
 ): boolean {
-  if (!options.batchTrackingEnabled || !line.product_id) {
+  if (!options.batchTrackingEnabled || !draftHasProduct(line)) {
     return false;
   }
 
@@ -75,6 +86,7 @@ export function lineMissingBatchOrExpiry(
 export function countLinesMissingBatchOrExpiry(
   lines: Array<{
     product_id: number | null;
+    product_uuid?: string | null;
     batch?: number | null;
     expiry_date?: string | null;
   }>,
@@ -87,7 +99,7 @@ export function getLineValidationIssues(
   line: PurchaseOrderLineDraft,
   options: BatchValidationOptions = {},
 ): string[] {
-  if (!line.product_id) {
+  if (!draftHasProduct(line)) {
     return [];
   }
 
@@ -113,7 +125,7 @@ export function countLinesWithValidationIssues(
 
 export function calculateDraftsTotalQuantity(lines: PurchaseOrderLineDraft[]): number {
   return lines
-    .filter((line) => line.product_id)
+    .filter(draftHasProduct)
     .reduce((sum, line) => sum + parseDraftNumber(line.quantity), 0);
 }
 
@@ -128,28 +140,32 @@ export function calculateLineDraftTotal(line: PurchaseOrderLineDraft): number {
 
 export function calculateDraftsTotal(lines: PurchaseOrderLineDraft[]): number {
   return lines
-    .filter((line) => line.product_id)
+    .filter(draftHasProduct)
     .reduce((sum, line) => sum + calculateLineDraftTotal(line), 0);
 }
 
 export function countSavedLineDrafts(lines: PurchaseOrderLineDraft[]): number {
-  return lines.filter((line) => line.product_id).length;
+  return lines.filter(draftHasProduct).length;
 }
 
 export function draftsToPurchaseOrderLines(
   drafts: PurchaseOrderLineDraft[],
-): PurchaseOrderLine[] {
-  return drafts
-    .filter((line) => line.product_id)
-    .map((line) => ({
+): PurchaseOrderLinePayload[] {
+  return drafts.filter(draftHasProduct).map((line) => {
+    const productRef = line.product_uuid
+      ? { product_uuid: line.product_uuid }
+      : { product_id: line.product_id! };
+
+    return {
       id: line.id,
-      product_id: line.product_id!,
+      ...productRef,
       quantity: line.quantity,
       unit_cost: line.unit_cost,
       batch: line.batch ?? null,
       expiry_date: line.expiry_date?.trim() || null,
       notes: line.notes?.trim() || null,
-    }));
+    };
+  });
 }
 
 export function serializeDraftLines(lines: PurchaseOrderLineDraft[]): string {
@@ -157,6 +173,7 @@ export function serializeDraftLines(lines: PurchaseOrderLineDraft[]): string {
     lines.map((line) => ({
       id: line.id ?? null,
       product_id: line.product_id,
+      product_uuid: line.product_uuid ?? null,
       productName: line.productName,
       quantity: line.quantity,
       unit_cost: line.unit_cost,
@@ -172,7 +189,7 @@ export function serializeDraftLines(lines: PurchaseOrderLineDraft[]): string {
 }
 
 export function hasInvalidLineDraft(line: PurchaseOrderLineDraft): boolean {
-  if (!line.product_id) {
+  if (!draftHasProduct(line)) {
     return false;
   }
 
@@ -184,7 +201,7 @@ export function hasInvalidLineDraft(line: PurchaseOrderLineDraft): boolean {
 export function validatePurchaseOrderLinesForSubmit(
   lines: PurchaseOrderLineDraft[],
 ): string | null {
-  const savedLines = lines.filter((line) => line.product_id);
+  const savedLines = lines.filter(draftHasProduct);
 
   if (savedLines.length === 0) {
     return "Add at least one line item before submitting.";

@@ -17,6 +17,7 @@ import {
 } from "@/features/inventory/schemas/purchase-order.schema";
 import { updatePurchaseOrder } from "@/features/inventory/services/purchase-orders.service";
 import type { PurchaseOrder } from "@/features/inventory/types/inventory.types";
+import { useEnterEscapeShortcuts } from "@/hooks/use-enter-escape-shortcuts";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
@@ -91,6 +92,15 @@ export function UpdatePurchaseOrderDialog({
   });
 
   const isSubmitting = form.formState.isSubmitting;
+
+  // Enter saves like the primary footer button; Escape closes via the dialog
+  // primitive itself.
+  useEnterEscapeShortcuts({
+    enabled: open,
+    isBusy: isSubmitting,
+    onEnter: () => void handleSubmit(),
+  });
+
   const tabs = [
     { id: "details", label: "Details" },
     { id: "references", label: "References" },

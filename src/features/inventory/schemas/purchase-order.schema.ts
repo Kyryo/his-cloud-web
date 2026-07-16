@@ -2,12 +2,39 @@ import { z } from "zod";
 
 import type { PurchaseOrder } from "@/features/inventory/types/inventory.types";
 
+export const PURCHASE_ORDER_DELIVERY_DATE_FUTURE_MESSAGE =
+  "Delivery date cannot be in the future.";
+
+/** Today's date formatted for a native date input, in the user's timezone. */
+export function todayDateInputValue(): string {
+  const now = new Date();
+  now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+  return now.toISOString().slice(0, 10);
+}
+
+function isFutureDate(value: string): boolean {
+  const parsed = new Date(`${value}T00:00:00`);
+  if (Number.isNaN(parsed.getTime())) {
+    return false;
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return parsed > today;
+}
+
 export const updatePurchaseOrderSchema = z.object({
   vendor_name: z.string().trim().min(1, "Vendor name is required."),
   receiving_location: z.coerce.number().int().positive("Receiving location is required."),
   lpo_number: z.string().trim().optional(),
   grn_number: z.string().trim().optional(),
-  delivery_date: z.string().trim().optional(),
+  delivery_date: z
+    .string()
+    .trim()
+    .optional()
+    .refine((value) => !value || !isFutureDate(value), {
+      message: PURCHASE_ORDER_DELIVERY_DATE_FUTURE_MESSAGE,
+    }),
   invoice_number: z.string().trim().optional(),
   invoice_date: z.string().trim().optional(),
   notes: z.string().trim().optional(),

@@ -24,7 +24,11 @@ type SupplierComboboxProps = {
   value: string;
   disabled?: boolean;
   className?: string;
+  placeholder?: string;
+  /** Word used in the free-text hint, e.g. "supplier" or "vendor". */
+  noun?: string;
   onChange: (value: string) => void;
+  onBlur?: () => void;
 };
 
 function toSupplierOption(name: string): SupplierOption {
@@ -37,7 +41,10 @@ export function SupplierCombobox({
   value,
   disabled = false,
   className,
+  placeholder = "Search suppliers or enter a name...",
+  noun = "supplier",
   onChange,
+  onBlur,
 }: SupplierComboboxProps) {
   const [options, setOptions] = useState<SupplierOption[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -118,12 +125,13 @@ export function SupplierCombobox({
         <ComboboxInput
           id={id}
           disabled={disabled}
-          placeholder="Search suppliers or enter a name..."
+          placeholder={placeholder}
           showClear={Boolean(value.trim())}
           className="w-full"
           aria-busy={isSearching}
           onBlur={() => {
             isTypingRef.current = false;
+            onBlur?.();
           }}
         />
         <ComboboxContent className="min-w-[var(--anchor-width)]">
@@ -133,8 +141,8 @@ export function SupplierCombobox({
               : isSearching
                 ? "Searching..."
                 : showFreeTextHint
-                  ? `Use "${inputValue.trim()}" as supplier name.`
-                  : "No matching suppliers found."}
+                  ? `Use "${inputValue.trim()}" as ${noun} name.`
+                  : `No matching ${noun}s found.`}
           </ComboboxEmpty>
           <ComboboxList>
             {(option) => (

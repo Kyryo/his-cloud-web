@@ -162,7 +162,7 @@ export function StockAdjustmentLinesEditor({
           <ClipboardList className="mx-auto size-10 text-brand-muted/70" aria-hidden="true" />
           <p className="mt-4 text-sm font-medium text-brand-navy">No items yet</p>
           <p className="mt-2 text-sm text-brand-muted">
-            No items yet — click Add line item to get started
+            No items yet. Click Add line item to get started
           </p>
           <SecondaryButton
             type="button"

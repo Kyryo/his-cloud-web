@@ -2,11 +2,21 @@ import { BFF_INVENTORY_ROUTES } from "@/constants/api";
 import type {
   InventoryListFilters,
   PurchaseOrder,
-  PurchaseOrderLine,
   PurchaseOrderListResponse,
 } from "@/features/inventory/types/inventory.types";
 import { buildInventoryQuery } from "@/features/inventory/utils/inventory-query";
 import { bffRequest } from "@/lib/bff-client";
+
+export type PurchaseOrderLinePayload = {
+  id?: number;
+  product_id?: number;
+  product_uuid?: string;
+  batch?: number | null;
+  quantity: string | number;
+  unit_cost: string | number;
+  expiry_date?: string | null;
+  notes?: string | null;
+};
 
 export type PurchaseOrderPayload = {
   vendor_name: string;
@@ -18,7 +28,7 @@ export type PurchaseOrderPayload = {
   invoice_date?: string | null;
   receiving_location: number;
   notes?: string | null;
-  lines?: PurchaseOrderLine[];
+  lines?: PurchaseOrderLinePayload[];
   is_active?: boolean;
 };
 

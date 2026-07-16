@@ -5,7 +5,13 @@ import type { UseFormReturn } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { InventoryLocationSelect } from "@/features/inventory/components/InventoryLocationSelect";
-import type { UpdatePurchaseOrderFormValues } from "@/features/inventory/schemas/purchase-order.schema";
+import { SupplierCombobox } from "@/features/inventory/components/SupplierCombobox";
+import {
+  PURCHASE_ORDER_DELIVERY_DATE_FUTURE_MESSAGE,
+  todayDateInputValue,
+  type UpdatePurchaseOrderFormValues,
+} from "@/features/inventory/schemas/purchase-order.schema";
+import { validateDateInput } from "@/lib/validate-date-input";
 
 type PurchaseOrderFormTab = "details" | "references";
 
@@ -20,6 +26,18 @@ export function PurchaseOrderFormTabContent({
   activeTab,
   locationSelectId,
 }: PurchaseOrderFormTabContentProps) {
+  function handleDeliveryDateChange(value: string) {
+    const error = validateDateInput(value, {
+      futureMessage: PURCHASE_ORDER_DELIVERY_DATE_FUTURE_MESSAGE,
+    });
+
+    if (error) {
+      form.setError("delivery_date", { type: "manual", message: error });
+    } else {
+      form.clearErrors("delivery_date");
+    }
+  }
+
   if (activeTab === "details") {
     return (
       <>
@@ -29,9 +47,15 @@ export function PurchaseOrderFormTabContent({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Vendor name</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Supplier name" />
-              </FormControl>
+              <SupplierCombobox
+                id={`${locationSelectId}-vendor-name`}
+                label=""
+                noun="vendor"
+                placeholder="Search vendors or enter a name..."
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+              />
               <FormMessage />
             </FormItem>
           )}
@@ -58,7 +82,19 @@ export function PurchaseOrderFormTabContent({
             <FormItem>
               <FormLabel>Delivery date</FormLabel>
               <FormControl>
-                <Input {...field} type="date" />
+                <Input
+                  {...field}
+                  type="date"
+                  max={todayDateInputValue()}
+                  onChange={(event) => {
+                    field.onChange(event);
+                    handleDeliveryDateChange(event.target.value);
+                  }}
+                  onBlur={(event) => {
+                    field.onBlur();
+                    handleDeliveryDateChange(event.target.value);
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>

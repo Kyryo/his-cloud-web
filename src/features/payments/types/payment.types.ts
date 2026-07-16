@@ -18,6 +18,8 @@ export type Payment = {
   note?: string | null;
   recorded_by_name?: string | null;
   recorded_by_email?: string | null;
+  can_cancel?: boolean;
+  cancel_block_reason?: string | null;
 };
 
 export type PaymentListFilters = {

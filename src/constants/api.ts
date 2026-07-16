@@ -157,6 +157,7 @@ export const BFF_CLINICAL_DIAGNOSIS_ROUTES = {
 export const BFF_PAYMENTS_ROUTES = {
   list: "/api/payments",
   detail: (paymentId: number | string) => `/api/payments/${paymentId}`,
+  cancel: (paymentId: number | string) => `/api/payments/${paymentId}/cancel`,
   sendReceipt: (paymentId: number | string) => `/api/payments/${paymentId}/send-receipt`,
 } as const;
 
