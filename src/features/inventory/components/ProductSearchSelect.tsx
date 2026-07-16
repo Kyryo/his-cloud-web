@@ -8,6 +8,13 @@ import type { InventoryProduct } from "@/features/inventory/types/inventory.type
 import { formatProductLabel } from "@/features/inventory/utils/format-inventory";
 import { cn } from "@/lib/utils";
 
+export type ProductSearchSelection = {
+  product_uuid: string;
+  product_id: number | null;
+  productName: string;
+  list_price?: string | number | null;
+};
+
 type ProductSearchSelectProps = {
   id: string;
   value: string | null;
@@ -15,17 +22,25 @@ type ProductSearchSelectProps = {
   disabled?: boolean;
   autoOpen?: boolean;
   className?: string;
-  onSelect: (product: InventoryProduct) => void;
+  onSelect: (selection: ProductSearchSelection) => void;
   onFocus?: () => void;
 };
+
+function productToSelection(product: InventoryProduct): ProductSearchSelection {
+  return {
+    product_uuid: product.uuid,
+    product_id: product.id ?? null,
+    productName: formatProductLabel(product),
+    list_price: product.list_price,
+  };
+}
 
 /**
  * Searchable product select for inline line-item editing.
  *
- * Same component pattern as the Sales Order Details product picker
- * (`SalesOrderLineProductPicker`) and the Appointments client picker
- * (`CustomerAppointmentPicker`): a `SearchableSelect` with a debounced
- * search-as-you-type input.
+ * Mirrors `SalesOrderLineProductPicker`: SearchableSelect + debounced search,
+ * and always returns an explicit `productName` so the parent never has to
+ * fall back to "Product #N" fillers after selection.
  */
 export function ProductSearchSelect({
   id,
@@ -41,12 +56,17 @@ export function ProductSearchSelect({
   const [search, setSearch] = useState("");
   const [options, setOptions] = useState<InventoryProduct[]>([]);
   const [isLoadingResults, setIsLoadingResults] = useState(false);
+  const [selectedLabel, setSelectedLabel] = useState(displayLabel ?? "");
 
   useEffect(() => {
     if (autoOpen) {
       setOpen(true);
     }
   }, [autoOpen]);
+
+  useEffect(() => {
+    setSelectedLabel(displayLabel ?? "");
+  }, [displayLabel, value]);
 
   useEffect(() => {
     if (!open) {
@@ -90,10 +110,14 @@ export function ProductSearchSelect({
 
   function handleValueChange(selectedUuid: string) {
     const match = options.find((option) => option.uuid === selectedUuid);
-    if (match) {
-      onSelect(match);
-      setOpen(false);
+    if (!match) {
+      return;
     }
+
+    const selection = productToSelection(match);
+    setSelectedLabel(selection.productName);
+    onSelect(selection);
+    setOpen(false);
   }
 
   return (
@@ -105,7 +129,7 @@ export function ProductSearchSelect({
       onOpenChange={handleOpenChange}
       disabled={disabled}
       placeholder="Select a product"
-      displayValue={displayLabel ?? undefined}
+      displayValue={selectedLabel || displayLabel || undefined}
       searchValue={search}
       onSearchChange={setSearch}
       searchPlaceholder="Search products..."
@@ -118,9 +142,7 @@ export function ProductSearchSelect({
           <div className="flex flex-col items-start">
             <span>{formatProductLabel(option)}</span>
             {option.default_code ? (
-              <span className="text-xs text-brand-muted">
-                {option.default_code}
-              </span>
+              <span className="text-xs text-brand-muted">{option.default_code}</span>
             ) : null}
           </div>
         </SelectItem>

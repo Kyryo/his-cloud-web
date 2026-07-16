@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   Combobox,
@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 
 type SupplierOption = {
   name: string;
+  isFreeText?: boolean;
 };
 
 type SupplierComboboxProps = {
@@ -31,8 +32,8 @@ type SupplierComboboxProps = {
   onBlur?: () => void;
 };
 
-function toSupplierOption(name: string): SupplierOption {
-  return { name };
+function toSupplierOption(name: string, isFreeText = false): SupplierOption {
+  return { name, isFreeText };
 }
 
 export function SupplierCombobox({
@@ -48,24 +49,14 @@ export function SupplierCombobox({
 }: SupplierComboboxProps) {
   const [options, setOptions] = useState<SupplierOption[]>([]);
   const [isSearching, setIsSearching] = useState(false);
-  const [inputValue, setInputValue] = useState(value);
-  const [selectedOption, setSelectedOption] = useState<SupplierOption | null>(null);
-  const isTypingRef = useRef(false);
-
-  useEffect(() => {
-    if (!isTypingRef.current) {
-      setInputValue(value);
-      if (value.trim()) {
-        setSelectedOption(toSupplierOption(value));
-      } else {
-        setSelectedOption(null);
-      }
-    }
-  }, [value]);
+  const inputValue = value;
+  const selectedOption = useMemo(
+    () => (value.trim() ? toSupplierOption(value.trim()) : null),
+    [value],
+  );
 
   useEffect(() => {
     if (inputValue.trim().length < 2) {
-      setOptions([]);
       return;
     }
 
@@ -74,7 +65,7 @@ export function SupplierCombobox({
         setIsSearching(true);
         try {
           const results = await searchInventorySuppliers(inputValue.trim());
-          setOptions(results.map(toSupplierOption));
+          setOptions(results.map((name) => toSupplierOption(name)));
         } catch {
           setOptions([]);
         } finally {
@@ -86,18 +77,45 @@ export function SupplierCombobox({
     return () => window.clearTimeout(handle);
   }, [inputValue]);
 
-  const showFreeTextHint =
-    inputValue.trim().length >= 2 &&
-    !isSearching &&
-    !options.some(
-      (option) => option.name.toLowerCase() === inputValue.trim().toLowerCase(),
+  const trimmedInput = inputValue.trim();
+
+  const freeTextOption = useMemo(() => {
+    if (trimmedInput.length < 2 || isSearching) {
+      return null;
+    }
+
+    const matchesExisting = options.some(
+      (option) => option.name.toLowerCase() === trimmedInput.toLowerCase(),
     );
+    const matchesValue = value.toLowerCase() === trimmedInput.toLowerCase();
+
+    if (matchesExisting || matchesValue) {
+      return null;
+    }
+
+    return toSupplierOption(trimmedInput, true);
+  }, [isSearching, options, trimmedInput, value]);
+
+  const comboboxItems = useMemo(
+    () => (freeTextOption ? [freeTextOption, ...options] : options),
+    [freeTextOption, options],
+  );
+
+  function commitValue(nextValue: string) {
+    const trimmed = nextValue.trim();
+    if (trimmed) {
+      onChange(trimmed);
+      return;
+    }
+
+    onChange("");
+  }
 
   return (
     <div className={cn("space-y-2", className)}>
       {label ? <Label htmlFor={id}>{label}</Label> : null}
       <Combobox
-        items={options}
+        items={comboboxItems}
         filter={null}
         value={selectedOption}
         inputValue={inputValue}
@@ -110,15 +128,9 @@ export function SupplierCombobox({
           if (!option) {
             return;
           }
-          isTypingRef.current = false;
-          setSelectedOption(option);
-          setInputValue(option.name);
-          onChange(option.name);
+          commitValue(option.name);
         }}
         onInputValueChange={(nextValue) => {
-          isTypingRef.current = true;
-          setInputValue(nextValue);
-          setSelectedOption(null);
           onChange(nextValue);
         }}
       >
@@ -130,24 +142,24 @@ export function SupplierCombobox({
           className="w-full"
           aria-busy={isSearching}
           onBlur={() => {
-            isTypingRef.current = false;
+            if (trimmedInput) {
+              commitValue(trimmedInput);
+            }
             onBlur?.();
           }}
         />
         <ComboboxContent className="min-w-[var(--anchor-width)]">
           <ComboboxEmpty>
-            {inputValue.trim().length < 2
+            {trimmedInput.length < 2
               ? "Type at least 2 characters to search."
               : isSearching
                 ? "Searching..."
-                : showFreeTextHint
-                  ? `Use "${inputValue.trim()}" as ${noun} name.`
-                  : `No matching ${noun}s found.`}
+                : `No matching ${noun}s found.`}
           </ComboboxEmpty>
           <ComboboxList>
             {(option) => (
               <ComboboxItem key={option.name} value={option}>
-                {option.name}
+                {option.isFreeText ? `Use "${option.name}"` : option.name}
               </ComboboxItem>
             )}
           </ComboboxList>

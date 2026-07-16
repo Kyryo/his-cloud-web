@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { SecondaryButton } from "@/components/ui/app-buttons";
 import { Input } from "@/components/ui/input";
+import { StatusBanner } from "@/components/ui/status-banner";
 import { ProductSearchSelect } from "@/features/inventory/components/ProductSearchSelect";
 import { PurchaseOrderBatchTrackingNotice } from "@/features/inventory/components/detail/PurchaseOrderBatchTrackingNotice";
 import { PurchaseOrderLineBatchButton } from "@/features/inventory/components/detail/PurchaseOrderLineBatchButton";
@@ -20,13 +21,13 @@ import {
   draftHasProduct,
   getLineValidationIssues,
   lineMissingBatchOrExpiry,
+  PURCHASE_ORDER_UNIT_COST_REQUIRED_MESSAGE,
   type PurchaseOrderLineDraft,
 } from "@/features/inventory/types/purchase-order-line-draft";
 import {
   formatDisplayDate,
   formatInventoryAmount,
   formatInventoryQuantity,
-  formatProductLabel,
 } from "@/features/inventory/utils/format-inventory";
 import { useEnterEscapeShortcuts } from "@/hooks/use-enter-escape-shortcuts";
 import { cn } from "@/lib/utils";
@@ -65,7 +66,10 @@ export function PurchaseOrderLinesEditor({
   onError,
   onStateChange,
 }: PurchaseOrderLinesEditorProps) {
-  const batchValidationOptions = { batchTrackingEnabled };
+  const batchValidationOptions = useMemo(
+    () => ({ batchTrackingEnabled }),
+    [batchTrackingEnabled],
+  );
   const [batchDialogLineKey, setBatchDialogLineKey] = useState<string | null>(null);
   const [highlightedLineKeys, setHighlightedLineKeys] = useState<Set<string>>(new Set());
 
@@ -183,7 +187,7 @@ export function PurchaseOrderLinesEditor({
                   <td className="px-4 py-3 text-sm text-brand-muted">{index + 1}</td>
                   <td className="px-4 py-3">
                     <div className="text-sm font-medium text-brand-navy">
-                      {line.product_name ?? `Product #${line.product_id}`}
+                      {line.product_name?.trim() || "—"}
                     </div>
                     {batchTrackingEnabled ? (
                       <p className="mt-0.5 text-xs text-brand-muted">
@@ -197,10 +201,13 @@ export function PurchaseOrderLinesEditor({
                     {formatInventoryQuantity(line.quantity)}
                   </td>
                   <td className="px-4 py-3 text-right text-sm text-brand-slate">
-                    {formatInventoryAmount(line.unit_cost, currency)}
+                    {formatInventoryAmount(line.unit_cost)}
                   </td>
                   <td className="px-4 py-3 text-right text-sm font-medium text-brand-navy">
-                    {formatInventoryAmount(line.total_cost, currency)}
+                    {formatInventoryAmount(line.total_cost, "", {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                    })}
                   </td>
                 </tr>
               ))}
@@ -209,7 +216,10 @@ export function PurchaseOrderLinesEditor({
               <tr className="border-t border-brand-border bg-slate-50/80 font-semibold text-brand-navy">
                 <td className="px-4 py-3" colSpan={4} />
                 <td className="px-4 py-3 text-right text-sm">
-                  {formatInventoryAmount(order.total_value, currency)}
+                  {formatInventoryAmount(order.total_value, "", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </td>
               </tr>
             </tfoot>
@@ -251,6 +261,14 @@ export function PurchaseOrderLinesEditor({
               lines={editor.draftLines}
               batchTrackingEnabled
               onReviewItems={handleReviewItems}
+            />
+          ) : null}
+
+          {editor.unitCostErrorKeys.size > 0 ? (
+            <StatusBanner
+              variant="error"
+              message={PURCHASE_ORDER_UNIT_COST_REQUIRED_MESSAGE}
+              className="mb-4"
             />
           ) : null}
 
@@ -331,18 +349,18 @@ export function PurchaseOrderLinesEditor({
                               autoOpen={line.isNew === true}
                               disabled={editor.isSaving}
                               onFocus={() => editor.setActiveRowKey(line.key)}
-                              onSelect={(product) => {
+                              onSelect={(selection) => {
                                 editor.updateLine(line.key, {
-                                  product_uuid: product.uuid,
-                                  product_id: product.id ?? null,
-                                  productName: formatProductLabel(product),
+                                  product_uuid: selection.product_uuid,
+                                  product_id: selection.product_id,
+                                  productName: selection.productName,
                                 });
                               }}
                             />
                           ) : (
                             <div>
                               <span className="text-sm font-medium text-brand-navy">
-                                {line.productName ?? `Product #${line.product_id ?? "?"}`}
+                                {line.productName?.trim() || "—"}
                               </span>
                               {draftHasProduct(line) && batchTrackingEnabled ? (
                                 <p
@@ -394,10 +412,17 @@ export function PurchaseOrderLinesEditor({
                               min="0"
                               step="any"
                               value={line.unit_cost}
-                              className="ml-auto h-9 w-28 text-right"
+                              aria-invalid={editor.unitCostErrorKeys.has(line.key)}
+                              className={cn(
+                                "ml-auto h-9 w-28 text-right",
+                                editor.unitCostErrorKeys.has(line.key) &&
+                                  "border-destructive focus-visible:ring-destructive/30",
+                              )}
                               onFocus={() => editor.setActiveRowKey(line.key)}
                               onChange={(event) =>
-                                editor.updateLine(line.key, { unit_cost: event.target.value })
+                                editor.updateLine(line.key, {
+                                  unit_cost: event.target.value,
+                                })
                               }
                               onKeyDown={(event) => {
                                 if (event.key === "Escape" && line.isNew) {
@@ -408,12 +433,15 @@ export function PurchaseOrderLinesEditor({
                             />
                           ) : (
                             <span className="text-sm text-brand-slate">
-                              {formatInventoryAmount(line.unit_cost, currency)}
+                              {formatInventoryAmount(line.unit_cost)}
                             </span>
                           )}
                         </td>
                         <td className="px-4 py-3 text-right text-sm font-medium text-brand-navy">
-                          {formatInventoryAmount(lineTotal, currency)}
+                          {formatInventoryAmount(lineTotal, "", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
                         </td>
                         {batchTrackingEnabled ? (
                           <td className="px-3 py-3">
@@ -451,7 +479,10 @@ export function PurchaseOrderLinesEditor({
                   <tr className="border-t border-brand-border bg-slate-50/80 font-semibold text-brand-navy">
                     <td className="px-3 py-3" colSpan={4} />
                     <td className="px-4 py-3 text-right text-sm">
-                      {formatInventoryAmount(totalValue, currency)}
+                      {formatInventoryAmount(totalValue, "", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </td>
                     <td colSpan={batchTrackingEnabled ? 2 : 1} />
                   </tr>

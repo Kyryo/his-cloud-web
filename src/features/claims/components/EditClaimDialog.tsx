@@ -36,10 +36,6 @@ const editClaimSchema = z.object({
   membership_number: z.string().trim().min(1, "Membership number is required"),
   practitioner_number: z.string().trim().optional(),
   service_provider_code: z.string().trim().optional(),
-  height: z.string().trim().optional(),
-  weight: z.string().trim().optional(),
-  systolic_pressure: z.string().trim().optional(),
-  diastolic_pressure: z.string().trim().optional(),
 });
 
 type EditClaimFormValues = z.infer<typeof editClaimSchema>;
@@ -52,27 +48,11 @@ type EditClaimDialogProps = {
 };
 
 function toFormValues(claim: ClaimDetail): EditClaimFormValues {
-  const vitals = claim.vitals ?? {};
   return {
     membership_number: claim.membership_number ?? "",
     practitioner_number: claim.practitioner_number ?? "",
     service_provider_code: claim.service_provider_code ?? "",
-    height: vitals.height != null ? String(vitals.height) : "",
-    weight: vitals.weight != null ? String(vitals.weight) : "",
-    systolic_pressure:
-      vitals.systolic_pressure != null ? String(vitals.systolic_pressure) : "",
-    diastolic_pressure:
-      vitals.diastolic_pressure != null ? String(vitals.diastolic_pressure) : "",
   };
-}
-
-function parseOptionalNumber(value: string | undefined): number | undefined {
-  const trimmed = value?.trim();
-  if (!trimmed) {
-    return undefined;
-  }
-  const parsed = Number(trimmed);
-  return Number.isFinite(parsed) ? parsed : undefined;
 }
 
 export function EditClaimDialog({
@@ -99,12 +79,6 @@ export function EditClaimDialog({
         membership_number: values.membership_number.trim(),
         practitioner_number: values.practitioner_number?.trim() || undefined,
         service_provider_code: values.service_provider_code?.trim() || undefined,
-        vitals: {
-          height: parseOptionalNumber(values.height),
-          weight: parseOptionalNumber(values.weight),
-          systolic_pressure: parseOptionalNumber(values.systolic_pressure),
-          diastolic_pressure: parseOptionalNumber(values.diastolic_pressure),
-        },
       });
 
       toast({
@@ -139,7 +113,7 @@ export function EditClaimDialog({
         <DialogHeader>
           <DialogTitle>Edit draft claim</DialogTitle>
           <DialogDescription>
-            Update membership, practitioner, and vitals before submitting to MASM.
+            Update membership and practitioner details before submitting to MASM.
           </DialogDescription>
         </DialogHeader>
 
@@ -186,61 +160,6 @@ export function EditClaimDialog({
                 </FormItem>
               )}
             />
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="height"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Height (cm)</FormLabel>
-                    <FormControl>
-                      <Input {...field} inputMode="decimal" autoComplete="off" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="weight"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Weight (kg)</FormLabel>
-                    <FormControl>
-                      <Input {...field} inputMode="decimal" autoComplete="off" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="systolic_pressure"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Systolic pressure</FormLabel>
-                    <FormControl>
-                      <Input {...field} inputMode="numeric" autoComplete="off" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="diastolic_pressure"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Diastolic pressure</FormLabel>
-                    <FormControl>
-                      <Input {...field} inputMode="numeric" autoComplete="off" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
 
             <DialogFooter>
               <SecondaryButton

@@ -59,6 +59,69 @@ export function purchaseOrderLineToDraft(line: PurchaseOrderLine): PurchaseOrder
   };
 }
 
+/** Keep display names from the editor when the API omits product_name. */
+export function preserveProductNamesInDrafts(
+  nextDrafts: PurchaseOrderLineDraft[],
+  previousDrafts: PurchaseOrderLineDraft[],
+): PurchaseOrderLineDraft[] {
+  const namesByProductId = new Map<number, string>();
+  const namesByProductUuid = new Map<string, string>();
+  const previousWithProduct = previousDrafts.filter(draftHasProduct);
+
+  for (const line of previousDrafts) {
+    const name = line.productName?.trim();
+    if (!name) {
+      continue;
+    }
+    if (line.product_id != null) {
+      namesByProductId.set(line.product_id, name);
+    }
+    if (line.product_uuid) {
+      namesByProductUuid.set(line.product_uuid, name);
+    }
+  }
+
+  let productIndex = 0;
+
+  return nextDrafts.map((draft) => {
+    const existingName = draft.productName?.trim();
+    if (existingName) {
+      if (draftHasProduct(draft)) {
+        productIndex += 1;
+      }
+      return draft;
+    }
+
+    const byId =
+      draft.product_id != null ? namesByProductId.get(draft.product_id) : undefined;
+    const byUuid = draft.product_uuid
+      ? namesByProductUuid.get(draft.product_uuid)
+      : undefined;
+    // After save the API returns product_id but not product_uuid, so also
+    // fall back to the same ordinal among product-bearing lines.
+    const byIndex = draftHasProduct(draft)
+      ? previousWithProduct[productIndex]?.productName?.trim()
+      : undefined;
+
+    if (draftHasProduct(draft)) {
+      productIndex += 1;
+    }
+
+    const preserved = byId ?? byUuid ?? byIndex;
+    if (!preserved) {
+      return draft;
+    }
+
+    const previousMatch = previousWithProduct[productIndex - 1];
+
+    return {
+      ...draft,
+      productName: preserved,
+      product_uuid: draft.product_uuid ?? previousMatch?.product_uuid ?? null,
+    };
+  });
+}
+
 export function linesMissingProductName(lines: PurchaseOrderLineDraft[]): boolean {
   return lines.some((line) => draftHasProduct(line) && !line.productName);
 }
@@ -188,6 +251,9 @@ export function serializeDraftLines(lines: PurchaseOrderLineDraft[]): string {
   );
 }
 
+export const PURCHASE_ORDER_UNIT_COST_REQUIRED_MESSAGE =
+  "Unit cost is required and can't be zero.";
+
 export function hasInvalidLineDraft(line: PurchaseOrderLineDraft): boolean {
   if (!draftHasProduct(line)) {
     return false;
@@ -198,18 +264,52 @@ export function hasInvalidLineDraft(line: PurchaseOrderLineDraft): boolean {
   );
 }
 
+export function lineHasInvalidUnitCost(line: PurchaseOrderLineDraft): boolean {
+  if (!draftHasProduct(line)) {
+    return false;
+  }
+
+  return parseDraftNumber(line.unit_cost) <= 0;
+}
+
+export function validatePurchaseOrderLinesForSave(
+  lines: PurchaseOrderLineDraft[],
+): string | null {
+  if (lines.length === 0) {
+    return "Add at least one line item before saving.";
+  }
+
+  for (const line of lines) {
+    if (!draftHasProduct(line)) {
+      return "Each line item must have a product selected.";
+    }
+
+    if (!line.productName?.trim() && !line.product_uuid && line.product_id == null) {
+      return "Each line item must have a product selected.";
+    }
+
+    const quantity = parseDraftNumber(line.quantity);
+    if (quantity <= 0) {
+      return "Each line item must have a quantity greater than zero.";
+    }
+
+    if (lineHasInvalidUnitCost(line)) {
+      return PURCHASE_ORDER_UNIT_COST_REQUIRED_MESSAGE;
+    }
+  }
+
+  return null;
+}
+
 export function validatePurchaseOrderLinesForSubmit(
   lines: PurchaseOrderLineDraft[],
 ): string | null {
-  const savedLines = lines.filter(draftHasProduct);
-
-  if (savedLines.length === 0) {
-    return "Add at least one line item before submitting.";
-  }
-
-  const invalidLine = savedLines.find(hasInvalidLineDraft);
-  if (invalidLine) {
-    return "Each line item must have a quantity and unit cost greater than zero.";
+  const saveError = validatePurchaseOrderLinesForSave(lines);
+  if (saveError) {
+    if (saveError === "Add at least one line item before saving.") {
+      return "Add at least one line item before submitting.";
+    }
+    return saveError;
   }
 
   return null;

@@ -27,7 +27,10 @@ export function InventoryNoLocationsAlert({
   return (
     <Alert
       variant="warning"
-      className={cn(className)}
+      className={cn(
+        "flex items-start gap-3 [&>svg]:static [&>svg]:shrink-0 [&>svg~*]:pl-0",
+        className,
+      )}
       data-testid="inventory-no-locations-alert"
     >
       <AlertTriangle className="size-4" aria-hidden="true" />

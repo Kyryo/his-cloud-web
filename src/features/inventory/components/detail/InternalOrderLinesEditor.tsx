@@ -59,7 +59,7 @@ export function InternalOrderLinesEditor({
 }: InternalOrderLinesEditorProps) {
   const [batchDialogLineKey, setBatchDialogLineKey] = useState<string | null>(null);
   const [highlightedLineKeys, setHighlightedLineKeys] = useState<Set<string>>(new Set());
-  const [isNoticeDismissed, setIsNoticeDismissed] = useState(false);
+  const [dismissNoticeForCount, setDismissNoticeForCount] = useState<number | null>(null);
 
   const editor = useInternalOrderLinesEditor({
     order,
@@ -69,7 +69,10 @@ export function InternalOrderLinesEditor({
     onError,
   });
 
-  const batchValidationOptions = { batchTrackingEnabled };
+  const batchValidationOptions = useMemo(
+    () => ({ batchTrackingEnabled }),
+    [batchTrackingEnabled],
+  );
   const batchDialogLine = useMemo(
     () => editor.draftLines.find((line) => line.key === batchDialogLineKey) ?? null,
     [batchDialogLineKey, editor.draftLines],
@@ -92,6 +95,8 @@ export function InternalOrderLinesEditor({
         : 0,
     [batchTrackingEnabled, editor.draftLines],
   );
+  const isNoticeDismissed =
+    dismissNoticeForCount !== null && dismissNoticeForCount === missingBatchCount;
 
   const handleReviewItems = useCallback(() => {
     const offendingKeys = editor.draftLines
@@ -119,12 +124,6 @@ export function InternalOrderLinesEditor({
       validationIssueCount,
     });
   }, [editor.draftLines, editor.isDirty, lineCount, onStateChange, validationIssueCount]);
-
-  useEffect(() => {
-    if (missingBatchCount === 0) {
-      setIsNoticeDismissed(false);
-    }
-  }, [missingBatchCount]);
 
   if (!canEdit && order.lines.length === 0) {
     return (
@@ -215,7 +214,7 @@ export function InternalOrderLinesEditor({
                     type="button"
                     size="sm"
                     aria-label="Dismiss warning"
-                    onClick={() => setIsNoticeDismissed(true)}
+                    onClick={() => setDismissNoticeForCount(missingBatchCount)}
                   >
                     <X className="size-4" aria-hidden="true" />
                   </SecondaryButton>

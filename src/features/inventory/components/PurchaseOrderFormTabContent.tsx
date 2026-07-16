@@ -5,7 +5,7 @@ import type { UseFormReturn } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { InventoryLocationSelect } from "@/features/inventory/components/InventoryLocationSelect";
-import { SupplierCombobox } from "@/features/inventory/components/SupplierCombobox";
+import { InventorySupplierPicker } from "@/features/inventory/components/InventorySupplierPicker";
 import {
   PURCHASE_ORDER_DELIVERY_DATE_FUTURE_MESSAGE,
   todayDateInputValue,
@@ -46,15 +46,22 @@ export function PurchaseOrderFormTabContent({
           name="vendor_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Vendor name</FormLabel>
-              <SupplierCombobox
+              <InventorySupplierPicker
                 id={`${locationSelectId}-vendor-name`}
-                label=""
-                noun="vendor"
-                placeholder="Search vendors or enter a name..."
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
+                label="Vendor name"
+                required
+                supplier={field.value}
+                onSupplierChange={(vendorName) => {
+                  field.onChange(vendorName);
+                  if (vendorName.trim()) {
+                    form.clearErrors("vendor_name");
+                  }
+                }}
+                invalid={Boolean(form.formState.errors.vendor_name)}
+                helperText="Search existing vendors or enter a new name."
+                placeholder="Select a vendor"
+                searchPlaceholder="Search vendors..."
+                emptyMessage="No vendors found."
               />
               <FormMessage />
             </FormItem>

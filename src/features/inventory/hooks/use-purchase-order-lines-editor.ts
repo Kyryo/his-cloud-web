@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { searchInventoryProducts } from "@/features/inventory/services/inventory.service";
 import { updatePurchaseOrder } from "@/features/inventory/services/purchase-orders.service";
@@ -9,9 +9,13 @@ import {
   createEmptyPurchaseOrderLineDraft,
   draftHasProduct,
   draftsToPurchaseOrderLines,
+  lineHasInvalidUnitCost,
   linesMissingProductName,
+  preserveProductNamesInDrafts,
   purchaseOrderLineToDraft,
+  PURCHASE_ORDER_UNIT_COST_REQUIRED_MESSAGE,
   serializeDraftLines,
+  validatePurchaseOrderLinesForSave,
   type PurchaseOrderLineDraft,
 } from "@/features/inventory/types/purchase-order-line-draft";
 import { formatProductLabel } from "@/features/inventory/utils/format-inventory";
@@ -46,16 +50,28 @@ export function usePurchaseOrderLinesEditor({
   const [draggingKey, setDraggingKey] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [hasAutoAdded, setHasAutoAdded] = useState(false);
+  const [unitCostErrorKeys, setUnitCostErrorKeys] = useState<Set<string>>(new Set());
+  const draftLinesRef = useRef(draftLines);
+
+  useEffect(() => {
+    draftLinesRef.current = draftLines;
+  }, [draftLines]);
 
   const serverLinesSnapshot = serializeDraftLines(buildInitialDrafts(order.lines));
 
   useEffect(() => {
-    const nextDrafts = buildInitialDrafts(order.lines);
-    setDraftLines(nextDrafts);
-    setSavedSnapshot(serializeDraftLines(nextDrafts));
+    const merged = preserveProductNamesInDrafts(
+      buildInitialDrafts(order.lines),
+      draftLinesRef.current,
+    );
+    setDraftLines(merged);
+    setSavedSnapshot(serializeDraftLines(merged));
     setEditingRowKey(null);
     setActiveRowKey(null);
-  }, [order.uuid, serverLinesSnapshot, order.lines]);
+    // Content fingerprint only — `order.lines` referential changes must not
+    // wipe in-progress draft product names.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- serverLinesSnapshot
+  }, [order.uuid, serverLinesSnapshot]);
 
   useEffect(() => {
     let cancelled = false;
@@ -71,34 +87,32 @@ export function usePurchaseOrderLinesEditor({
           return;
         }
 
-        const labels = new Map(
+        const labelsByUuid = new Map(
           products.map((product) => [product.uuid, formatProductLabel(product)]),
+        );
+        const labelsById = new Map(
+          products
+            .filter((product) => product.id != null)
+            .map((product) => [product.id!, formatProductLabel(product)]),
         );
 
         setDraftLines((current) =>
           current.map((line) => {
-            if (!draftHasProduct(line) || line.productName) {
+            if (!draftHasProduct(line) || line.productName?.trim()) {
               return line;
             }
 
             return {
               ...line,
               productName:
-                labels.get(line.product_uuid ?? "") ??
-                (line.product_id ? `Product #${line.product_id}` : null),
+                (line.product_uuid ? labelsByUuid.get(line.product_uuid) : undefined) ??
+                (line.product_id != null ? labelsById.get(line.product_id) : undefined) ??
+                null,
             };
           }),
         );
       } catch {
-        if (!cancelled) {
-          setDraftLines((current) =>
-            current.map((line) =>
-              draftHasProduct(line) && !line.productName
-                ? { ...line, productName: `Product #${line.product_id ?? "?"}` }
-                : line,
-            ),
-          );
-        }
+        // Leave productName unset; the UI shows the selected label or "—".
       }
     }
 
@@ -107,7 +121,8 @@ export function usePurchaseOrderLinesEditor({
     return () => {
       cancelled = true;
     };
-  }, [order.uuid, serverLinesSnapshot, order.lines]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- serverLinesSnapshot
+  }, [order.uuid, serverLinesSnapshot]);
 
   useEffect(() => {
     if (!canEdit || !autoAddLine || hasAutoAdded || draftLines.length > 0) {
@@ -138,6 +153,16 @@ export function usePurchaseOrderLinesEditor({
       setDraftLines((current) =>
         current.map((line) => (line.key === key ? { ...line, ...patch } : line)),
       );
+      if (Object.prototype.hasOwnProperty.call(patch, "unit_cost")) {
+        setUnitCostErrorKeys((current) => {
+          if (!current.has(key)) {
+            return current;
+          }
+          const next = new Set(current);
+          next.delete(key);
+          return next;
+        });
+      }
     },
     [],
   );
@@ -221,7 +246,7 @@ export function usePurchaseOrderLinesEditor({
         product_uuid: line.product_uuid ?? null,
         productName:
           line.productName ??
-          (line.product_id ? `Product #${line.product_id}` : null),
+          null,
         quantity: line.quantity,
         unit_cost: line.unit_cost,
         batch: line.batch ?? null,
@@ -239,14 +264,30 @@ export function usePurchaseOrderLinesEditor({
 
   const persistDraftLines = useCallback(
     async (lines: PurchaseOrderLineDraft[]) => {
-      const payloadLines = draftsToPurchaseOrderLines(lines);
-      if (payloadLines.length === 0) {
-        onError("Add at least one line item before saving.");
+      const invalidUnitCostKeys = lines
+        .filter(lineHasInvalidUnitCost)
+        .map((line) => line.key);
+      if (invalidUnitCostKeys.length > 0) {
+        setUnitCostErrorKeys(new Set(invalidUnitCostKeys));
+        setEditingRowKey(invalidUnitCostKeys[0] ?? null);
+        setActiveRowKey(invalidUnitCostKeys[0] ?? null);
+        onError(PURCHASE_ORDER_UNIT_COST_REQUIRED_MESSAGE);
         return;
       }
 
+      const validationError = validatePurchaseOrderLinesForSave(lines);
+      if (validationError) {
+        onError(validationError);
+        return;
+      }
+
+      setUnitCostErrorKeys(new Set());
+      const payloadLines = draftsToPurchaseOrderLines(lines);
       const updated = await updatePurchaseOrder(order.uuid, { lines: payloadLines });
-      const nextDrafts = buildInitialDrafts(updated.lines);
+      const nextDrafts = preserveProductNamesInDrafts(
+        buildInitialDrafts(updated.lines),
+        lines,
+      );
       setDraftLines(nextDrafts);
       setSavedSnapshot(serializeDraftLines(nextDrafts));
       setEditingRowKey(null);
@@ -257,6 +298,23 @@ export function usePurchaseOrderLinesEditor({
   );
 
   const saveChanges = useCallback(async () => {
+    const invalidUnitCostKeys = draftLines
+      .filter(lineHasInvalidUnitCost)
+      .map((line) => line.key);
+    if (invalidUnitCostKeys.length > 0) {
+      setUnitCostErrorKeys(new Set(invalidUnitCostKeys));
+      setEditingRowKey(invalidUnitCostKeys[0] ?? null);
+      setActiveRowKey(invalidUnitCostKeys[0] ?? null);
+      onError(PURCHASE_ORDER_UNIT_COST_REQUIRED_MESSAGE);
+      return;
+    }
+
+    const validationError = validatePurchaseOrderLinesForSave(draftLines);
+    if (validationError) {
+      onError(validationError);
+      return;
+    }
+
     setIsSaving(true);
     try {
       await persistDraftLines(draftLines);
@@ -266,6 +324,11 @@ export function usePurchaseOrderLinesEditor({
       setIsSaving(false);
     }
   }, [draftLines, onError, persistDraftLines]);
+
+  const linesAreComplete = useMemo(
+    () => validatePurchaseOrderLinesForSave(draftLines) === null,
+    [draftLines],
+  );
 
   const saveLineBatchDetails = useCallback(
     async (key: string, patch: Partial<PurchaseOrderLineDraft>) => {
@@ -299,6 +362,8 @@ export function usePurchaseOrderLinesEditor({
     hasPendingChanges,
     isEditingLines,
     isSaving,
+    linesAreComplete,
+    unitCostErrorKeys,
     canEdit,
     setEditingRowKey,
     setActiveRowKey,

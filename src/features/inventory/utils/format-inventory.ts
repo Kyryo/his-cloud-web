@@ -10,6 +10,10 @@ import type {
 export function formatInventoryAmount(
   value: string | number | null | undefined,
   currency = "",
+  options?: {
+    minimumFractionDigits?: number;
+    maximumFractionDigits?: number;
+  },
 ): string {
   if (value === null || value === undefined || value === "") {
     return "—";
@@ -21,8 +25,8 @@ export function formatInventoryAmount(
   }
 
   const formatted = numeric.toLocaleString(undefined, {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
+    minimumFractionDigits: options?.minimumFractionDigits ?? 0,
+    maximumFractionDigits: options?.maximumFractionDigits ?? 2,
   });
 
   return currency ? `${currency} ${formatted}` : formatted;
