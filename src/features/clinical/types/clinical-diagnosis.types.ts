@@ -1,3 +1,5 @@
+export type EncounterDiagnosisSourcePlatform = "CLINICAL" | "INVOICE";
+
 export type EncounterDiagnosis = {
   uuid: string;
   encounter_uuid: string;
@@ -7,6 +9,7 @@ export type EncounterDiagnosis = {
   description: string;
   status: string;
   source: string;
+  source_platform: EncounterDiagnosisSourcePlatform;
   is_primary: boolean;
   is_active: boolean;
   created_at: string;
@@ -25,6 +28,7 @@ export type CreateEncounterDiagnosisPayload = {
   standard?: string;
   status?: string;
   source?: string;
+  source_platform?: EncounterDiagnosisSourcePlatform;
   is_primary?: boolean;
 };
 

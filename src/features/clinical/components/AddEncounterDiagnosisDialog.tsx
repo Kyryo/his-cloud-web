@@ -18,7 +18,7 @@ import {
   createEncounterDiagnosis,
   searchDiagnosisCatalog,
 } from "@/features/clinical/services/clinical-diagnosis.service";
-import type { DiagnosisCatalogItem } from "@/features/clinical/types/clinical-diagnosis.types";
+import type { DiagnosisCatalogItem, EncounterDiagnosisSourcePlatform } from "@/features/clinical/types/clinical-diagnosis.types";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
@@ -29,6 +29,7 @@ type AddEncounterDiagnosisDialogProps = {
   visitUuid: string;
   encounterUuid: string;
   isPrimaryDefault?: boolean;
+  sourcePlatform?: EncounterDiagnosisSourcePlatform;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void | Promise<void>;
@@ -38,6 +39,7 @@ type AddEncounterDiagnosisFormProps = {
   visitUuid: string;
   encounterUuid: string;
   isPrimaryDefault: boolean;
+  sourcePlatform: EncounterDiagnosisSourcePlatform;
   onCancel: () => void;
   onSuccess?: () => void | Promise<void>;
 };
@@ -46,6 +48,7 @@ function AddEncounterDiagnosisForm({
   visitUuid,
   encounterUuid,
   isPrimaryDefault,
+  sourcePlatform,
   onCancel,
   onSuccess,
 }: AddEncounterDiagnosisFormProps) {
@@ -58,11 +61,20 @@ function AddEncounterDiagnosisForm({
   const [isSaving, setIsSaving] = useState(false);
 
   const trimmedSearchTerm = searchTerm.trim();
+  const selectedDisplayLabel = selectedCode
+    ? `${selectedCode} — ${selectedDescription}`.trim()
+    : "";
+  const hasConfirmedSelection =
+    selectedCode.length > 0 && trimmedSearchTerm === selectedDisplayLabel;
   const visibleSearchResults =
-    trimmedSearchTerm.length >= 2 ? searchResults : [];
+    !hasConfirmedSelection && trimmedSearchTerm.length >= 2 ? searchResults : [];
 
   useEffect(() => {
     if (trimmedSearchTerm.length < 2) {
+      return;
+    }
+
+    if (hasConfirmedSelection) {
       return;
     }
 
@@ -94,7 +106,19 @@ function AddEncounterDiagnosisForm({
       cancelled = true;
       clearTimeout(timeout);
     };
-  }, [trimmedSearchTerm]);
+  }, [hasConfirmedSelection, trimmedSearchTerm]);
+
+  function handleSearchTermChange(value: string) {
+    setSearchTerm(value);
+    if (
+      selectedCode &&
+      value.trim() !== `${selectedCode} — ${selectedDescription}`.trim()
+    ) {
+      setSelectedCode("");
+      setSelectedDescription("");
+      setSearchResults([]);
+    }
+  }
 
   function selectCatalogItem(item: DiagnosisCatalogItem) {
     setSelectedCode(item.code);
@@ -115,6 +139,9 @@ function AddEncounterDiagnosisForm({
         description: selectedDescription.trim(),
         standard: "ICD10",
         is_primary: isPrimaryDefault,
+        // Always send an explicit value — JSON.stringify drops `undefined`, and the
+        // API defaults missing source_platform to CLINICAL (which enforces visit status).
+        source_platform: sourcePlatform === "INVOICE" ? "INVOICE" : "CLINICAL",
       });
       toast({
         variant: "success",
@@ -149,7 +176,7 @@ function AddEncounterDiagnosisForm({
           </label>
           <Input
             value={searchTerm}
-            onChange={(event) => setSearchTerm(event.target.value)}
+            onChange={(event) => handleSearchTermChange(event.target.value)}
             placeholder="Search by code or description"
             className="mt-1.5"
             autoComplete="off"
@@ -206,6 +233,7 @@ export function AddEncounterDiagnosisDialog({
   visitUuid,
   encounterUuid,
   isPrimaryDefault = false,
+  sourcePlatform = "CLINICAL",
   open,
   onOpenChange,
   onSuccess,
@@ -222,10 +250,11 @@ export function AddEncounterDiagnosisDialog({
 
         {open ? (
           <AddEncounterDiagnosisForm
-            key={`${visitUuid}-${encounterUuid}-${isPrimaryDefault}`}
+            key={`${visitUuid}-${encounterUuid}-${isPrimaryDefault}-${sourcePlatform}`}
             visitUuid={visitUuid}
             encounterUuid={encounterUuid}
             isPrimaryDefault={isPrimaryDefault}
+            sourcePlatform={sourcePlatform}
             onCancel={() => onOpenChange(false)}
             onSuccess={onSuccess}
           />

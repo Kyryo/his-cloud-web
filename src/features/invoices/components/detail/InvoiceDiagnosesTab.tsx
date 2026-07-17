@@ -30,6 +30,7 @@ export function InvoiceDiagnosesTab({
       <EncounterDiagnosisPanel
         visitUuid={invoice.visit_uuid ?? null}
         encounterUuid={encounterUuid}
+        sourcePlatform="INVOICE"
         onDiagnosesChanged={onInvoiceRefresh}
       />
     </section>
