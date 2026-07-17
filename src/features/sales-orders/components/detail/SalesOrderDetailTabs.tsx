@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 type SalesOrderDetailTabsProps = {
   order: SalesOrder;
   onOrderUpdated: (order: SalesOrder) => void;
+  onSplitMismatchChange?: (hasMismatch: boolean) => void;
 };
 
 type DetailTabId = "lines" | "visit" | "client" | "activity";
@@ -36,6 +37,7 @@ const tabs: Array<{ id: DetailTabId; label: string }> = [
 export function SalesOrderDetailTabs({
   order,
   onOrderUpdated,
+  onSplitMismatchChange,
 }: SalesOrderDetailTabsProps) {
   const [activeTab, setActiveTab] = useState<DetailTabId>("lines");
   const [showSummaryPanel, setShowSummaryPanel] = useState(false);
@@ -62,6 +64,7 @@ export function SalesOrderDetailTabs({
             order={order}
             isActive={activeTab === "lines"}
             onOrderUpdated={onOrderUpdated}
+            onSplitMismatchChange={onSplitMismatchChange}
           />
           <SalesOrderDetailVisitTab
             order={order}

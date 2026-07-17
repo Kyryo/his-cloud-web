@@ -1,4 +1,5 @@
 import type { SalesOrderLine } from "@/features/sales-orders/types/sales-order.types";
+import type { PricingRuleSnapshot } from "@/features/sales-orders/types/line-payment-split.types";
 
 export type SalesOrderLineDraft = {
   key: string;
@@ -13,7 +14,20 @@ export type SalesOrderLineDraft = {
   is_payable?: boolean;
   priceUnitOverridden?: boolean;
   isNew?: boolean;
+  client_due?: string;
+  insurer_due?: string;
+  isCoPayment?: boolean;
+  originalPriceUnit?: string;
+  adjustedClientDue?: string;
+  adjustedInsurerDue?: string;
 };
+
+function isCoPaymentPricingSnapshot(
+  snapshot?: PricingRuleSnapshot | Record<string, unknown> | null,
+): boolean {
+  const ruleTypes = (snapshot as PricingRuleSnapshot | undefined)?.rule_types;
+  return Array.isArray(ruleTypes) && ruleTypes.includes("CO_PAYMENT");
+}
 
 export function createEmptySalesOrderLineDraft(): SalesOrderLineDraft {
   return {
@@ -37,6 +51,11 @@ export function salesOrderLineToDraft(line: SalesOrderLine): SalesOrderLineDraft
     price_unit: line.price_unit != null ? String(line.price_unit) : "",
     price_total: line.price_total,
     is_payable: line.is_payable,
+    client_due: line.client_due != null ? String(line.client_due) : undefined,
+    insurer_due: line.insurer_due != null ? String(line.insurer_due) : undefined,
+    isCoPayment: isCoPaymentPricingSnapshot(line.pricing_rule_snapshot),
+    originalPriceUnit:
+      line.price_unit != null ? String(line.price_unit) : undefined,
   };
 }
 
@@ -65,6 +84,12 @@ export function serializeSalesOrderDraftLines(lines: SalesOrderLineDraft[]): str
       quantity: line.quantity,
       price_unit: line.price_unit,
       price_total: line.price_total ?? null,
+      client_due: line.client_due ?? null,
+      insurer_due: line.insurer_due ?? null,
+      isCoPayment: line.isCoPayment ?? false,
+      originalPriceUnit: line.originalPriceUnit ?? null,
+      adjustedClientDue: line.adjustedClientDue ?? null,
+      adjustedInsurerDue: line.adjustedInsurerDue ?? null,
     })),
   );
 }

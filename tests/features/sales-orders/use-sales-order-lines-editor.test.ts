@@ -2,7 +2,10 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useSalesOrderLinesEditor } from "@/features/sales-orders/hooks/use-sales-order-lines-editor";
-import { addSalesOrderLine } from "@/features/sales-orders/services/sales-orders.service";
+import {
+  addSalesOrderLine,
+  updateSalesOrderLinePrice,
+} from "@/features/sales-orders/services/sales-orders.service";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
 
 vi.mock("@/features/sales-orders/services/sales-orders.service", () => ({
@@ -90,6 +93,7 @@ describe("useSalesOrderLinesEditor", () => {
         productName: "Consultation",
         quantity: "1",
         price_unit: "10",
+        priceUnitOverridden: true,
         isNew: false,
       });
     });
@@ -156,6 +160,7 @@ describe("useSalesOrderLinesEditor", () => {
         productName: "Consultation",
         quantity: "1",
         price_unit: "10",
+        priceUnitOverridden: true,
       });
     });
 
@@ -213,5 +218,204 @@ describe("useSalesOrderLinesEditor", () => {
     );
     expect(addSalesOrderLine).not.toHaveBeenCalled();
     expect(onOrderUpdated).not.toHaveBeenCalled();
+  });
+
+  it("blocks save when a co-payment line split no longer matches the edited total", async () => {
+    const orderWithCoPaymentLine: SalesOrder = {
+      ...baseOrder,
+      lines: [
+        {
+          id: 55,
+          name: "Consultation",
+          product_id: 12,
+          product_name: "Consultation",
+          quantity: "1.0000",
+          price_unit: "100.0000",
+          price_total: "100.00",
+          client_due: "20.00",
+          insurer_due: "80.00",
+          pricing_rule_snapshot: { rule_types: ["CO_PAYMENT"] },
+        },
+      ],
+    };
+
+    const onOrderUpdated = vi.fn();
+    const onError = vi.fn();
+
+    const { result } = renderHook(() =>
+      useSalesOrderLinesEditor({
+        order: orderWithCoPaymentLine,
+        canEdit: true,
+        onOrderUpdated,
+        onError,
+      }),
+    );
+
+    const lineKey = result.current.draftLines[0]?.key;
+    expect(lineKey).toBeTruthy();
+
+    act(() => {
+      result.current.updateLine(lineKey, { price_unit: "120" });
+    });
+
+    expect(result.current.splitMismatchKeys.size).toBe(1);
+
+    await act(async () => {
+      await result.current.saveChanges();
+    });
+
+    expect(onError).toHaveBeenCalledWith(
+      "Please fix the client/insurance amount mismatch before continuing.",
+    );
+    expect(updateSalesOrderLinePrice).not.toHaveBeenCalled();
+    expect(onOrderUpdated).not.toHaveBeenCalled();
+  });
+
+  it("includes adjusted split values in the price update payload", async () => {
+    const orderWithCoPaymentLine: SalesOrder = {
+      ...baseOrder,
+      lines: [
+        {
+          id: 55,
+          name: "Consultation",
+          product_id: 12,
+          product_name: "Consultation",
+          quantity: "1.0000",
+          price_unit: "100.0000",
+          price_total: "100.00",
+          client_due: "20.00",
+          insurer_due: "80.00",
+          pricing_rule_snapshot: { rule_types: ["CO_PAYMENT"] },
+        },
+      ],
+    };
+
+    const updatedOrder: SalesOrder = {
+      ...orderWithCoPaymentLine,
+      lines: [
+        {
+          ...orderWithCoPaymentLine.lines![0]!,
+          price_unit: "120.0000",
+          price_total: "120.00",
+          client_due: "40.00",
+          insurer_due: "80.00",
+        },
+      ],
+    };
+
+    vi.mocked(updateSalesOrderLinePrice).mockResolvedValueOnce(updatedOrder);
+
+    const onOrderUpdated = vi.fn();
+    const onError = vi.fn();
+
+    const { result } = renderHook(() =>
+      useSalesOrderLinesEditor({
+        order: orderWithCoPaymentLine,
+        canEdit: true,
+        onOrderUpdated,
+        onError,
+      }),
+    );
+
+    const lineKey = result.current.draftLines[0]?.key;
+    expect(lineKey).toBeTruthy();
+
+    act(() => {
+      result.current.updateLine(lineKey, {
+        price_unit: "120",
+        adjustedClientDue: "40",
+        adjustedInsurerDue: "80",
+      });
+    });
+
+    await act(async () => {
+      await result.current.saveChanges();
+    });
+
+    await waitFor(() => {
+      expect(updateSalesOrderLinePrice).toHaveBeenCalledWith(4, 55, {
+        price_unit: "120.0000",
+        client_due: "40.00",
+        insurer_due: "80.00",
+      });
+    });
+
+    expect(onError).not.toHaveBeenCalled();
+    expect(onOrderUpdated).toHaveBeenCalledWith(updatedOrder);
+  });
+
+  it("saves a reconciled split immediately via saveLineSplitAdjustment", async () => {
+    const orderWithCoPaymentLine: SalesOrder = {
+      ...baseOrder,
+      lines: [
+        {
+          id: 55,
+          name: "Consultation",
+          product_id: 12,
+          product_name: "Consultation",
+          quantity: "1.0000",
+          price_unit: "100.0000",
+          price_total: "100.00",
+          client_due: "20.00",
+          insurer_due: "80.00",
+          pricing_rule_snapshot: { rule_types: ["CO_PAYMENT"] },
+        },
+      ],
+    };
+
+    const updatedOrder: SalesOrder = {
+      ...orderWithCoPaymentLine,
+      amount_total: "120.00",
+      lines: [
+        {
+          ...orderWithCoPaymentLine.lines![0]!,
+          price_unit: "120.0000",
+          price_total: "120.00",
+          client_due: "40.00",
+          insurer_due: "80.00",
+        },
+      ],
+    };
+
+    vi.mocked(updateSalesOrderLinePrice).mockResolvedValueOnce(updatedOrder);
+
+    const onOrderUpdated = vi.fn();
+    const onError = vi.fn();
+
+    const { result } = renderHook(() =>
+      useSalesOrderLinesEditor({
+        order: orderWithCoPaymentLine,
+        canEdit: true,
+        onOrderUpdated,
+        onError,
+      }),
+    );
+
+    const lineKey = result.current.draftLines[0]?.key;
+    expect(lineKey).toBeTruthy();
+
+    act(() => {
+      result.current.updateLine(lineKey, { price_unit: "120" });
+    });
+
+    expect(result.current.splitMismatchKeys.size).toBe(1);
+
+    let saved = false;
+    await act(async () => {
+      saved = await result.current.saveLineSplitAdjustment(lineKey, {
+        adjustedClientDue: "40",
+        adjustedInsurerDue: "80",
+      });
+    });
+
+    expect(saved).toBe(true);
+    expect(updateSalesOrderLinePrice).toHaveBeenCalledWith(4, 55, {
+      price_unit: "120.0000",
+      client_due: "40.00",
+      insurer_due: "80.00",
+    });
+    expect(onOrderUpdated).toHaveBeenCalledWith(updatedOrder);
+    expect(result.current.splitMismatchKeys.size).toBe(0);
+    expect(onError).not.toHaveBeenCalled();
   });
 });

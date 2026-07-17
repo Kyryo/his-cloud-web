@@ -40,7 +40,7 @@ import { useToast } from "@/providers/toast-provider";
 
 const startFromAppointmentSchema = z
   .object({
-    consultation_service: z.string().min(1, "Select a consultation service"),
+    consultation_service: z.string().optional(),
     mode_of_payment: z.enum(["cash", "insurance"]),
     insurance_scheme: z.string().optional(),
     requires_pre_authorization: z.boolean(),
@@ -152,7 +152,7 @@ export function StartVisitFromAppointmentDialog({
   const handleSubmit = form.handleSubmit(async (values) => {
     try {
       const visit = await startVisitFromAppointment(appointment.uuid, {
-        consultation_service: values.consultation_service,
+        consultation_service: values.consultation_service || null,
         mode_of_payment: values.mode_of_payment,
         insurance_scheme:
           values.mode_of_payment === "insurance"
@@ -274,9 +274,7 @@ export function StartVisitFromAppointmentDialog({
                 name="consultation_service"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>
-                      Consultation service <span className="text-red-500">*</span>
-                    </FormLabel>
+                    <FormLabel>Consultation service</FormLabel>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <FormControl>
                         <SelectTrigger>

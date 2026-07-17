@@ -3,19 +3,51 @@
 import { Loader2 } from "lucide-react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 type SalesOrderPendingChangesBarProps = {
   isSaving: boolean;
   onSave: () => void;
   onDiscard: () => void;
+  saveDisabled?: boolean;
+  saveDisabledReason?: string | null;
 };
 
 export function SalesOrderPendingChangesBar({
   isSaving,
   onSave,
   onDiscard,
+  saveDisabled = false,
+  saveDisabledReason,
 }: SalesOrderPendingChangesBarProps) {
+  const isSaveDisabled = isSaving || saveDisabled;
+
+  const saveButton = (
+    <PrimaryButton
+      type="button"
+      size="sm"
+      disabled={isSaveDisabled}
+      title={saveDisabled ? (saveDisabledReason ?? undefined) : undefined}
+      onClick={onSave}
+      data-testid="sales-order-save-lines-button"
+    >
+      {isSaving ? (
+        <>
+          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+          Saving...
+        </>
+      ) : (
+        "Save changes"
+      )}
+    </PrimaryButton>
+  );
+
   return (
     <div
       className={cn(
@@ -46,22 +78,18 @@ export function SalesOrderPendingChangesBar({
           >
             Discard
           </SecondaryButton>
-          <PrimaryButton
-            type="button"
-            size="sm"
-            disabled={isSaving}
-            onClick={onSave}
-            data-testid="sales-order-save-lines-button"
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                Saving...
-              </>
-            ) : (
-              "Save changes"
-            )}
-          </PrimaryButton>
+          {saveDisabled && saveDisabledReason ? (
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex">{saveButton}</span>
+                </TooltipTrigger>
+                <TooltipContent>{saveDisabledReason}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : (
+            saveButton
+          )}
         </div>
       </div>
     </div>

@@ -26,6 +26,10 @@ import {
   parseSalesOrderLineSnapshot,
   type SavedSalesOrderLineSnapshot,
 } from "@/features/sales-orders/utils/sales-order-lines-save";
+import {
+  getLineSplitMismatch,
+  getSalesOrderSplitMismatchKeys,
+} from "@/features/sales-orders/utils/sales-order-line-split-mismatch";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 
@@ -134,17 +138,39 @@ export function useSalesOrderLinesEditor({
 
   const hasPendingChanges = isDirty || isEditingLines;
 
+  const splitMismatchKeys = useMemo(
+    () => getSalesOrderSplitMismatchKeys(draftLines),
+    [draftLines],
+  );
+
   const updateLine = useCallback(
     (key: string, patch: Partial<SalesOrderLineDraft>) => {
       setDraftLines((current) =>
-        current.map((line) => (line.key === key ? { ...line, ...patch } : line)),
+        current.map((line) => {
+          if (line.key !== key) {
+            return line;
+          }
+
+          const next = { ...line, ...patch };
+          if (
+            patch.price_unit !== undefined &&
+            patch.price_unit !== line.price_unit &&
+            patch.adjustedClientDue === undefined &&
+            patch.adjustedInsurerDue === undefined
+          ) {
+            next.adjustedClientDue = undefined;
+            next.adjustedInsurerDue = undefined;
+          }
+
+          return next;
+        }),
       );
     },
     [],
   );
 
   const addLine = useCallback(() => {
-    if (!canEdit) {
+    if (!canEdit || splitMismatchKeys.size > 0) {
       return;
     }
 
@@ -152,7 +178,7 @@ export function useSalesOrderLinesEditor({
     setDraftLines((current) => [...current, newLine]);
     setEditingRowKey(newLine.key);
     setActiveRowKey(newLine.key);
-  }, [canEdit]);
+  }, [canEdit, splitMismatchKeys]);
 
   const removeLine = useCallback((key: string) => {
     setDraftLines((current) => current.filter((line) => line.key !== key));
@@ -242,6 +268,12 @@ export function useSalesOrderLinesEditor({
         quantity: line.quantity,
         price_unit: line.price_unit,
         price_total: line.price_total,
+        client_due: line.client_due ?? undefined,
+        insurer_due: line.insurer_due ?? undefined,
+        isCoPayment: line.isCoPayment ?? false,
+        originalPriceUnit: line.originalPriceUnit ?? undefined,
+        adjustedClientDue: line.adjustedClientDue ?? undefined,
+        adjustedInsurerDue: line.adjustedInsurerDue ?? undefined,
       })),
     );
     setEditingRowKey(null);
@@ -252,6 +284,11 @@ export function useSalesOrderLinesEditor({
     const validationError = validateSalesOrderLinesForSave(draftLines);
     if (validationError) {
       onError(validationError);
+      return;
+    }
+
+    if (splitMismatchKeys.size > 0) {
+      onError("Please fix the client/insurance amount mismatch before continuing.");
       return;
     }
 
@@ -289,9 +326,27 @@ export function useSalesOrderLinesEditor({
         }
 
         const parsedPrice = Number(line.price_unit);
-        currentOrder = await updateSalesOrderLinePrice(order.id, line.id, {
+        const pricePayload: {
+          price_unit: string;
+          client_due?: string;
+          insurer_due?: string;
+        } = {
           price_unit: parsedPrice.toFixed(4),
-        });
+        };
+
+        if (
+          line.adjustedClientDue !== undefined &&
+          line.adjustedInsurerDue !== undefined
+        ) {
+          pricePayload.client_due = Number(line.adjustedClientDue).toFixed(2);
+          pricePayload.insurer_due = Number(line.adjustedInsurerDue).toFixed(2);
+        }
+
+        currentOrder = await updateSalesOrderLinePrice(
+          order.id,
+          line.id,
+          pricePayload,
+        );
       }
 
       for (const line of draftLines) {
@@ -335,7 +390,111 @@ export function useSalesOrderLinesEditor({
     } finally {
       setIsSaving(false);
     }
-  }, [draftLines, onError, onOrderUpdated, order, savedSnapshot]);
+  }, [draftLines, onError, onOrderUpdated, order, savedSnapshot, splitMismatchKeys]);
+
+  const saveLineSplitAdjustment = useCallback(
+    async (
+      lineKey: string,
+      values: { adjustedClientDue: string; adjustedInsurerDue: string },
+    ): Promise<boolean> => {
+      const line = draftLines.find((item) => item.key === lineKey);
+      if (!line?.id) {
+        onError("Could not save the client/insurance split for this line.");
+        return false;
+      }
+
+      const reconciledLine = {
+        ...line,
+        adjustedClientDue: values.adjustedClientDue,
+        adjustedInsurerDue: values.adjustedInsurerDue,
+      };
+      if (getLineSplitMismatch(reconciledLine)) {
+        onError(
+          "Please fix the client/insurance amount mismatch before continuing.",
+        );
+        return false;
+      }
+
+      const parsedPrice = Number(line.price_unit);
+      if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
+        onError("Enter a unit price of zero or greater.");
+        return false;
+      }
+
+      setIsSaving(true);
+      try {
+        const currentOrder = await updateSalesOrderLinePrice(order.id, line.id, {
+          price_unit: parsedPrice.toFixed(4),
+          client_due: Number(values.adjustedClientDue).toFixed(2),
+          insurer_due: Number(values.adjustedInsurerDue).toFixed(2),
+        });
+
+        const savedLine = currentOrder.lines?.find((item) => item.id === line.id);
+        const nextDraftForLine = savedLine
+          ? { ...salesOrderLineToDraft(savedLine), key: line.key }
+          : {
+              ...line,
+              client_due: values.adjustedClientDue,
+              insurer_due: values.adjustedInsurerDue,
+              originalPriceUnit: line.price_unit,
+              price_total: String(
+                Number(line.quantity) * Number(line.price_unit),
+              ),
+              adjustedClientDue: undefined,
+              adjustedInsurerDue: undefined,
+            };
+
+        setDraftLines((current) =>
+          current.map((draft) =>
+            draft.key === lineKey ? nextDraftForLine : draft,
+          ),
+        );
+
+        setSavedSnapshot((previous) => {
+          const previousLines = parseSnapshot(previous);
+          const nextSnapshotLines = previousLines.map((snapLine) => {
+            if (snapLine.id !== line.id) {
+              return snapLine;
+            }
+
+            return {
+              id: nextDraftForLine.id ?? null,
+              product_id: nextDraftForLine.product_id,
+              productName: nextDraftForLine.productName,
+              tariff_code: nextDraftForLine.tariff_code ?? null,
+              quantity: nextDraftForLine.quantity,
+              price_unit: nextDraftForLine.price_unit,
+              price_total: nextDraftForLine.price_total ?? null,
+              client_due: nextDraftForLine.client_due ?? null,
+              insurer_due: nextDraftForLine.insurer_due ?? null,
+              isCoPayment: nextDraftForLine.isCoPayment ?? false,
+              originalPriceUnit: nextDraftForLine.originalPriceUnit ?? null,
+              adjustedClientDue: null,
+              adjustedInsurerDue: null,
+            };
+          });
+          return JSON.stringify(nextSnapshotLines);
+        });
+
+        setEditingRowKey((current) => (current === lineKey ? null : current));
+        setActiveRowKey((current) => (current === lineKey ? null : current));
+        onOrderUpdated(currentOrder);
+        return true;
+      } catch (error) {
+        onError(
+          error instanceof BffError
+            ? formatBffErrorMessage(error.message, error.errors)
+            : error instanceof Error
+              ? error.message
+              : "Could not save the client/insurance split.",
+        );
+        return false;
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [draftLines, onError, onOrderUpdated, order.id],
+  );
 
   return {
     draftLines,
@@ -343,6 +502,7 @@ export function useSalesOrderLinesEditor({
     activeRowKey,
     isSaving,
     hasPendingChanges,
+    splitMismatchKeys,
     canEdit,
     setEditingRowKey,
     setActiveRowKey,
@@ -353,5 +513,6 @@ export function useSalesOrderLinesEditor({
     confirmRow,
     discardChanges,
     saveChanges,
+    saveLineSplitAdjustment,
   };
 }

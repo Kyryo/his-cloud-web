@@ -3,12 +3,14 @@
 import { Calendar } from "lucide-react";
 import type { ReactNode } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { SalesOrderStateBadge } from "@/features/sales-orders/components/SalesOrderStatusBadge";
 import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
 import {
   formatSalesOrderCustomer,
   formatSalesOrderDateTime,
+  formatSalesOrderPricelist,
 } from "@/features/sales-orders/utils/format-sales-order";
 
 type SalesOrderDetailHeaderProps = {
@@ -22,6 +24,8 @@ export function SalesOrderDetailHeader({
 }: SalesOrderDetailHeaderProps) {
   const orderLabel = order.name || `Order #${order.id}`;
   const clientName = formatSalesOrderCustomer(order);
+  const pricelistLabel = formatSalesOrderPricelist(order);
+  const hasPricelist = Boolean(order.pricelist_name?.trim());
 
   return (
     <DetailPageHeaderSection>
@@ -32,6 +36,13 @@ export function SalesOrderDetailHeader({
               {clientName}
             </h1>
             <SalesOrderStateBadge state={order.state} />
+            <Badge
+              variant={hasPricelist ? "secondary" : "outline"}
+              className="max-w-[14rem] truncate font-normal"
+              title={pricelistLabel}
+            >
+              {pricelistLabel}
+            </Badge>
           </div>
 
           <p className="mt-1 font-mono text-sm text-brand-muted">{orderLabel}</p>

@@ -22,6 +22,7 @@ export function SalesOrderDetailPage({ orderId }: SalesOrderDetailPageProps) {
   const [order, setOrder] = useState<SalesOrder | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hasDraftSplitMismatch, setHasDraftSplitMismatch] = useState(false);
 
   useAppBreadcrumb(order?.name || (order ? `Order #${order.id}` : null));
 
@@ -72,12 +73,14 @@ export function SalesOrderDetailPage({ orderId }: SalesOrderDetailPageProps) {
           <SalesOrderDetailActions
             order={order}
             onOrderUpdated={(updatedOrder) => setOrder(updatedOrder)}
+            hasDraftSplitMismatch={hasDraftSplitMismatch}
           />
         }
       />
       <SalesOrderDetailTabs
         order={order}
         onOrderUpdated={(updatedOrder) => setOrder(updatedOrder)}
+        onSplitMismatchChange={setHasDraftSplitMismatch}
       />
     </DetailPageLayout>
   );

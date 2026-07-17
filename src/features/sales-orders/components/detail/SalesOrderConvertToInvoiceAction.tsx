@@ -28,19 +28,25 @@ type SalesOrderConvertToInvoiceActionProps = {
   order: SalesOrder;
   onOrderUpdated: (order: SalesOrder) => void;
   className?: string;
+  hasDraftSplitMismatch?: boolean;
 };
 
 export function SalesOrderConvertToInvoiceAction({
   order,
   onOrderUpdated,
   className,
+  hasDraftSplitMismatch = false,
 }: SalesOrderConvertToInvoiceActionProps) {
   const { toast } = useToast();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
 
-  const disabledReason = getConvertSalesOrderToInvoiceDisabledReason(order);
-  const canConvert = canConvertSalesOrderToInvoice(order);
+  const disabledReason = getConvertSalesOrderToInvoiceDisabledReason(order, {
+    hasDraftSplitMismatch,
+  });
+  const canConvert = canConvertSalesOrderToInvoice(order, {
+    hasDraftSplitMismatch,
+  });
   const orderLabel = order.name || `Order #${order.id}`;
 
   async function handleConvert() {

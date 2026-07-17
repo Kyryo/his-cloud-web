@@ -102,9 +102,7 @@ export function StartVisitFormFields({
           name="consultation_service"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>
-                Consultation service <span className="text-red-500">*</span>
-              </FormLabel>
+              <FormLabel>Consultation service</FormLabel>
               <Select value={field.value} onValueChange={field.onChange}>
                 <FormControl>
                   <SelectTrigger>

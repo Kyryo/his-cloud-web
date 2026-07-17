@@ -1,11 +1,13 @@
 "use client";
 
 import { ClipboardList, Maximize2, Plus, Trash2 } from "lucide-react";
-import { useRef, useState, type MutableRefObject } from "react";
+import { useRef, useState, useEffect, type MutableRefObject } from "react";
 
 import { SecondaryButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { StatusBanner } from "@/components/ui/status-banner";
+import { AdjustLineSplitDialog } from "@/features/sales-orders/components/detail/AdjustLineSplitDialog";
 import {
   fetchInventoryProductPricelists,
   fetchProductTariffCodes,
@@ -38,6 +40,7 @@ import {
   resolveInitialLineIsPayable,
 } from "@/features/sales-orders/utils/sales-order-line-payability";
 import { canEditSalesOrderLines } from "@/features/sales-orders/utils/sales-order-status";
+import { getLineSplitMismatch } from "@/features/sales-orders/utils/sales-order-line-split-mismatch";
 import { useEnterEscapeShortcuts } from "@/hooks/use-enter-escape-shortcuts";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
@@ -46,6 +49,7 @@ type SalesOrderLinesEditorProps = {
   order: SalesOrder;
   isActive: boolean;
   onOrderUpdated: (order: SalesOrder) => void;
+  onSplitMismatchChange?: (hasMismatch: boolean) => void;
 };
 
 function formatQuantity(value: number | string | null | undefined): string {
@@ -228,12 +232,14 @@ export function SalesOrderLinesEditor({
   order,
   isActive,
   onOrderUpdated,
+  onSplitMismatchChange,
 }: SalesOrderLinesEditorProps) {
   const { toast } = useToast();
   const canEdit = canEditSalesOrderLines(order.state);
   const currency = formatSalesOrderCurrency(order);
   const selectionTokenByLineKeyRef = useRef<Map<string, number>>(new Map());
   const [breakdownLineId, setBreakdownLineId] = useState<number | null>(null);
+  const [splitDialogLineKey, setSplitDialogLineKey] = useState<string | null>(null);
 
   const editor = useSalesOrderLinesEditor({
     order,
@@ -243,6 +249,16 @@ export function SalesOrderLinesEditor({
       toast({ variant: "error", title: "Could not update line items", description: message });
     },
   });
+
+  useEffect(() => {
+    onSplitMismatchChange?.(editor.splitMismatchKeys.size > 0);
+  }, [editor.splitMismatchKeys, onSplitMismatchChange]);
+
+  const splitDialogLine =
+    editor.draftLines.find((line) => line.key === splitDialogLineKey) ?? null;
+  const firstMismatchKey = editor.draftLines.find((line) =>
+    editor.splitMismatchKeys.has(line.key),
+  )?.key;
 
   useEnterEscapeShortcuts({
     enabled: isActive && canEdit && editor.hasPendingChanges,
@@ -370,7 +386,12 @@ export function SalesOrderLinesEditor({
           <SecondaryButton
             type="button"
             className="mt-6"
-            disabled={editor.isSaving}
+            disabled={editor.isSaving || editor.splitMismatchKeys.size > 0}
+            title={
+              editor.splitMismatchKeys.size > 0
+                ? "Resolve client/insurance split mismatch first"
+                : undefined
+            }
             onClick={editor.addLine}
             data-testid="add-sales-order-line-item-button"
           >
@@ -379,7 +400,29 @@ export function SalesOrderLinesEditor({
           </SecondaryButton>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-brand-border bg-white">
+        <>
+          {editor.splitMismatchKeys.size > 0 ? (
+            <StatusBanner
+              variant="warning"
+              message="Client/insurance split doesn't match the new line total."
+              className="mb-4"
+            >
+              <SecondaryButton
+                type="button"
+                size="sm"
+                className="mt-2"
+                onClick={() => {
+                  if (firstMismatchKey) {
+                    setSplitDialogLineKey(firstMismatchKey);
+                  }
+                }}
+              >
+                Adjust split
+              </SecondaryButton>
+            </StatusBanner>
+          ) : null}
+
+          <div className="overflow-hidden rounded-xl border border-brand-border bg-white">
           <div className="overflow-x-auto">
             <table className="min-w-full">
               <thead>
@@ -501,6 +544,11 @@ export function SalesOrderLinesEditor({
                                 priceUnitOverridden: true,
                               })
                             }
+                            onBlur={() => {
+                              if (getLineSplitMismatch(line)) {
+                                setSplitDialogLineKey(line.key);
+                              }
+                            }}
                           />
                         ) : (
                           <span className="text-sm text-brand-slate">
@@ -565,7 +613,12 @@ export function SalesOrderLinesEditor({
           <div className="border-t border-brand-border px-4 py-3">
             <SecondaryButton
               type="button"
-              disabled={editor.isSaving}
+              disabled={editor.isSaving || editor.splitMismatchKeys.size > 0}
+              title={
+                editor.splitMismatchKeys.size > 0
+                  ? "Resolve client/insurance split mismatch first"
+                  : undefined
+              }
               onClick={editor.addLine}
               data-testid="add-sales-order-line-item-button"
             >
@@ -574,15 +627,32 @@ export function SalesOrderLinesEditor({
             </SecondaryButton>
           </div>
         </div>
+        </>
       )}
 
       {editor.hasPendingChanges ? (
         <SalesOrderPendingChangesBar
           isSaving={editor.isSaving}
+          saveDisabled={editor.splitMismatchKeys.size > 0}
+          saveDisabledReason="Resolve client/insurance split mismatch first"
           onSave={() => void editor.saveChanges()}
           onDiscard={editor.discardChanges}
         />
       ) : null}
+
+      <AdjustLineSplitDialog
+        line={splitDialogLine}
+        open={splitDialogLineKey != null}
+        isSaving={editor.isSaving}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSplitDialogLineKey(null);
+          }
+        }}
+        onSave={(lineKey, values) =>
+          editor.saveLineSplitAdjustment(lineKey, values)
+        }
+      />
 
       <LinePricingBreakdownDialog
         line={breakdownLine}

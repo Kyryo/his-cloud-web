@@ -12,6 +12,12 @@ export type SavedSalesOrderLineSnapshot = {
   quantity: string;
   price_unit: string;
   price_total?: string | number | null;
+  client_due?: string | null;
+  insurer_due?: string | null;
+  isCoPayment?: boolean;
+  originalPriceUnit?: string | null;
+  adjustedClientDue?: string | null;
+  adjustedInsurerDue?: string | null;
 };
 
 export function parseSalesOrderLineSnapshot(

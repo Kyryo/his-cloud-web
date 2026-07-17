@@ -136,6 +136,8 @@ export type CreateSalesOrderLinePayload = {
 
 export type UpdateSalesOrderLinePricePayload = {
   price_unit: number | string;
+  client_due?: number | string;
+  insurer_due?: number | string;
 };
 
 export type UpdateSalesOrderLinePayload = {

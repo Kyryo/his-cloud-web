@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 
 type SearchableSelectProps = {
@@ -81,7 +82,7 @@ export function SearchableSelect({
       <SelectTrigger id={id} className={cn("w-full", triggerClassName)}>
         <SelectValue placeholder={placeholder}>{displayValue}</SelectValue>
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className={appFont.className}>
         <div className="border-b border-brand-border p-2">
           <Input
             ref={searchInputRef}

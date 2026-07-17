@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const startVisitSchema = z
   .object({
-    consultation_service: z.string().min(1, "Select a consultation service"),
+    consultation_service: z.string().optional(),
     clinic: z.string().min(1, "Default clinic is required"),
     department: z.string().min(1, "Select a department"),
     visit_date: z.string().min(1, "Visit date is required"),
@@ -61,7 +61,7 @@ export function toCreateVisitPayload(
   customerUuid: string,
   values: StartVisitFormValues,
 ): {
-  consultation_service: string;
+  consultation_service: string | null;
   customer: string;
   clinic: string;
   department: string;
@@ -74,7 +74,7 @@ export function toCreateVisitPayload(
   is_walk_in: boolean;
 } {
   return {
-    consultation_service: values.consultation_service,
+    consultation_service: values.consultation_service || null,
     customer: customerUuid,
     clinic: values.clinic,
     department: values.department,

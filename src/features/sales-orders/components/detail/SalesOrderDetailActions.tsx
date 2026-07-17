@@ -32,12 +32,14 @@ type SalesOrderDetailActionsProps = {
   order: SalesOrder;
   onOrderUpdated: (order: SalesOrder) => void;
   className?: string;
+  hasDraftSplitMismatch?: boolean;
 };
 
 export function SalesOrderDetailActions({
   order,
   onOrderUpdated,
   className,
+  hasDraftSplitMismatch = false,
 }: SalesOrderDetailActionsProps) {
   const { toast } = useToast();
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
@@ -145,6 +147,7 @@ export function SalesOrderDetailActions({
       <SalesOrderConvertToInvoiceAction
         order={order}
         onOrderUpdated={onOrderUpdated}
+        hasDraftSplitMismatch={hasDraftSplitMismatch}
       />
     </div>
   );

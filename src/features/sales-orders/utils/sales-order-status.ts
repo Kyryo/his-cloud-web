@@ -84,8 +84,11 @@ export function canEditSalesOrderLines(state: SalesOrderState): boolean {
   return state === "draft" || state === "sent";
 }
 
+import { hasSavedSplitMismatch } from "@/features/sales-orders/utils/sales-order-line-split-mismatch";
+
 export function getConvertSalesOrderToInvoiceDisabledReason(
   order: Pick<SalesOrder, "state" | "invoice_status" | "lines">,
+  options?: { hasDraftSplitMismatch?: boolean },
 ): string | null {
   if (order.state === "cancel") {
     return "Cancelled orders cannot be converted to an invoice.";
@@ -99,13 +102,20 @@ export function getConvertSalesOrderToInvoiceDisabledReason(
     return "Add at least one line item before converting to an invoice.";
   }
 
+  if (options?.hasDraftSplitMismatch || hasSavedSplitMismatch(order)) {
+    return "Resolve client/insurance split mismatch first.";
+  }
+
   return null;
 }
 
 export function canConvertSalesOrderToInvoice(
   order: Pick<SalesOrder, "state" | "invoice_status" | "lines">,
+  options?: { hasDraftSplitMismatch?: boolean },
 ): boolean {
-  return getConvertSalesOrderToInvoiceDisabledReason(order) === null;
+  return (
+    getConvertSalesOrderToInvoiceDisabledReason(order, options) === null
+  );
 }
 
 export function getCancelSalesOrderDisabledReason(
