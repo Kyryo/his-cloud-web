@@ -107,6 +107,8 @@ export const BFF_SALES_ORDERS_ROUTES = {
   invoice: (orderId: number | string) => `/api/sales-orders/${orderId}/invoice`,
   cancel: (orderId: number | string) => `/api/sales-orders/${orderId}/cancel`,
   activity: (orderId: number | string) => `/api/sales-orders/${orderId}/activity`,
+  paymentSplit: (orderId: number | string) =>
+    `/api/sales-orders/${orderId}/payment-split`,
 } as const;
 
 /** Browser-facing BFF sales order activity routes (same origin). */

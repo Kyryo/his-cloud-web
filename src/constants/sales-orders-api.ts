@@ -9,4 +9,6 @@ export const SALES_ORDERS_API_PATHS = {
     `/sales-orders/${orderId}/lines/${lineId}/`,
   invoice: (orderId: number | string) => `/sales-orders/${orderId}/invoice/`,
   cancel: (orderId: number | string) => `/sales-orders/${orderId}/cancel/`,
+  paymentSplit: (orderId: number | string) =>
+    `/sales-orders/${orderId}/payment-split/`,
 } as const;

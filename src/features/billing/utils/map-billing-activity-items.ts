@@ -20,6 +20,7 @@ const ACTION_ICONS: Record<string, LucideIcon> = {
   ORDER_INVOICED: Receipt,
   ORDER_REOPENED: ShoppingCart,
   ORDER_PROVIDER_UPDATED: UserRound,
+  ORDER_PAYMENT_SPLIT_UPDATED: Wallet,
   ORDER_LINE_ADDED: ShoppingCart,
   ORDER_LINE_UPDATED: ShoppingCart,
   ORDER_LINE_REMOVED: Ban,

@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 
+import { EditButton } from "@/components/ui/edit-button";
 import {
   DetailPageAsidePanelHeader,
   DetailPageAsidePanelSection,
@@ -10,6 +12,8 @@ import {
   DetailPageAsideSummaryHighlight,
   DetailPageAsideSummarySection,
 } from "@/features/app-shell/components/page-layout";
+import { AdjustBillingSplitDialog } from "@/features/sales-orders/components/detail/AdjustBillingSplitDialog";
+import { updateSalesOrderPaymentSplit } from "@/features/sales-orders/services/sales-orders.service";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
 import {
   formatSalesOrderAmount,
@@ -24,7 +28,10 @@ import {
   formatSalesOrderInsuranceLabel,
   formatSalesOrderInsuranceNumber,
 } from "@/features/sales-orders/utils/format-sales-order-insurance";
-import { formatSalesOrderStateLabel } from "@/features/sales-orders/utils/sales-order-status";
+import {
+  canEditSalesOrderLines,
+  formatSalesOrderStateLabel,
+} from "@/features/sales-orders/utils/sales-order-status";
 import {
   formatSalesOrderInsurerDueLabel,
   hasSalesOrderPaymentSplit,
@@ -32,7 +39,10 @@ import {
   sumSalesOrderInsurerDue,
 } from "@/features/sales-orders/utils/sum-sales-order-billing";
 import { ROUTES } from "@/constants/routes";
+import { BffError } from "@/lib/bff-client";
+import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/providers/toast-provider";
 
 type SalesOrderSummaryPanelProps = {
   order: SalesOrder;
@@ -43,7 +53,12 @@ type SalesOrderSummaryPanelProps = {
 export function SalesOrderSummaryPanel({
   order,
   className,
+  onOrderUpdated,
 }: SalesOrderSummaryPanelProps) {
+  const { toast } = useToast();
+  const [editSplitOpen, setEditSplitOpen] = useState(false);
+  const [isSavingSplit, setIsSavingSplit] = useState(false);
+
   const currency = formatSalesOrderCurrency(order);
   const insuranceLabel = formatSalesOrderInsuranceLabel(order);
   const insuranceNumber = formatSalesOrderInsuranceNumber(order);
@@ -52,6 +67,8 @@ export function SalesOrderSummaryPanel({
   const insurerDueTotal = sumSalesOrderInsurerDue(order);
   const clientDueTotal = sumSalesOrderClientDue(order);
   const showPaymentSplit = hasSalesOrderPaymentSplit(order);
+  const canEditSplit = showPaymentSplit && canEditSalesOrderLines(order.state);
+  const insurerDueLabel = formatSalesOrderInsurerDueLabel(order);
 
   const providerValue = order.provider_name?.trim() ? (
     order.provider_has_user && order.provider_user_id ? (
@@ -68,6 +85,37 @@ export function SalesOrderSummaryPanel({
     "—"
   );
 
+  async function handleSaveSplit(values: {
+    client_due: string;
+    insurer_due: string;
+  }): Promise<boolean> {
+    setIsSavingSplit(true);
+    try {
+      const updatedOrder = await updateSalesOrderPaymentSplit(order.id, values);
+      onOrderUpdated?.(updatedOrder);
+      toast({
+        variant: "success",
+        title: "Billing summary updated",
+        description: "The payer and client amounts were saved.",
+      });
+      return true;
+    } catch (error) {
+      toast({
+        variant: "error",
+        title: "Could not update billing summary",
+        description:
+          error instanceof BffError
+            ? formatBffErrorMessage(error.message, error.errors)
+            : error instanceof Error
+              ? error.message
+              : "The payment split could not be saved.",
+      });
+      return false;
+    } finally {
+      setIsSavingSplit(false);
+    }
+  }
+
   return (
     <DetailPageAsidePanelSection className={cn(className)}>
       <DetailPageAsidePanelHeader
@@ -75,12 +123,23 @@ export function SalesOrderSummaryPanel({
         description="Billing totals and order details"
       />
 
-      <DetailPageAsideSummaryHighlight title="Billing summary">
+      <DetailPageAsideSummaryHighlight
+        title="Billing summary"
+        action={
+          canEditSplit ? (
+            <EditButton
+              label="Edit"
+              onClick={() => setEditSplitOpen(true)}
+              data-testid="sales-order-billing-summary-edit-button"
+            />
+          ) : null
+        }
+      >
         <dl className="space-y-2.5">
           {showPaymentSplit ? (
             <>
               <DetailPageAsideSummaryAmountRow
-                label={formatSalesOrderInsurerDueLabel(order)}
+                label={insurerDueLabel}
                 value={formatSalesOrderAmount(insurerDueTotal)}
               />
               <DetailPageAsideSummaryAmountRow
@@ -169,6 +228,17 @@ export function SalesOrderSummaryPanel({
           />
         ) : null}
       </DetailPageAsideSummarySection>
+
+      <AdjustBillingSplitDialog
+        open={editSplitOpen}
+        isSaving={isSavingSplit}
+        orderTotal={Number(order.amount_total) || 0}
+        initialClientDue={clientDueTotal}
+        initialInsurerDue={insurerDueTotal}
+        insurerLabel={insurerDueLabel}
+        onOpenChange={setEditSplitOpen}
+        onSave={handleSaveSplit}
+      />
     </DetailPageAsidePanelSection>
   );
 }

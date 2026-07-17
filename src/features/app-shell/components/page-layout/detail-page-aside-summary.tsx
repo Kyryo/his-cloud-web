@@ -107,12 +107,14 @@ export function DetailPageAsideSummaryAmountRow({
 
 type DetailPageAsideSummaryHighlightProps = {
   title?: string;
+  action?: ReactNode;
   children: ReactNode;
   className?: string;
 };
 
 export function DetailPageAsideSummaryHighlight({
   title,
+  action,
   children,
   className,
 }: DetailPageAsideSummaryHighlightProps) {
@@ -123,12 +125,19 @@ export function DetailPageAsideSummaryHighlight({
         className,
       )}
     >
-      {title ? (
-        <h3 className="text-[11px] font-medium uppercase tracking-wide text-brand-muted">
-          {title}
-        </h3>
+      {title || action ? (
+        <div className="flex items-center justify-between gap-2">
+          {title ? (
+            <h3 className="text-[11px] font-medium uppercase tracking-wide text-brand-muted">
+              {title}
+            </h3>
+          ) : (
+            <span />
+          )}
+          {action}
+        </div>
       ) : null}
-      <div className={title ? "mt-3" : undefined}>{children}</div>
+      <div className={title || action ? "mt-3" : undefined}>{children}</div>
     </div>
   );
 }

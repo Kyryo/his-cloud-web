@@ -140,6 +140,11 @@ export type UpdateSalesOrderLinePricePayload = {
   insurer_due?: number | string;
 };
 
+export type UpdateSalesOrderPaymentSplitPayload = {
+  client_due: number | string;
+  insurer_due: number | string;
+};
+
 export type UpdateSalesOrderLinePayload = {
   tariff_code?: string | null;
 };
