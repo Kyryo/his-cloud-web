@@ -1,12 +1,10 @@
 import type { PaginatedListResponse } from "@/types/api.types";
 
 export type DocumentType =
-  | "PURCHASE_ORDER"
-  | "INTERNAL_ORDER"
-  | "STOCK_ADJUSTMENT"
-  | string;
+  "PURCHASE_ORDER" | "INTERNAL_ORDER" | "STOCK_ADJUSTMENT" | string;
 
-export type PurchaseStatus = "DRAFT" | "SUBMITTED" | "CONFIRMED" | "CANCELLED" | string;
+export type PurchaseStatus =
+  "DRAFT" | "SUBMITTED" | "CONFIRMED" | "CANCELLED" | string;
 
 export type InternalOrderStatus =
   | "DRAFT"
@@ -31,7 +29,8 @@ export type AdjustmentType = "QUANTITY" | "COST" | string;
 
 export type MovementType = string;
 
-export type ApprovalStatus = "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED" | string;
+export type ApprovalStatus =
+  "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED" | string;
 
 export type InventoryStock = {
   id: number;
@@ -75,10 +74,7 @@ export type InventoryMovement = {
 export type InventoryProductType = "product" | "consu" | "service" | string;
 
 export type InventoryProductTypeLabel =
-  | "stockable"
-  | "consumable"
-  | "service"
-  | string;
+  "stockable" | "consumable" | "service" | string;
 
 export type InventoryProductMeta = {
   created_by?: number | null;
@@ -116,6 +112,7 @@ export type InventoryProduct = {
   metadata?: InventoryProductMeta | null;
   created_at?: string;
   updated_at?: string;
+  quantity_available?: string | number;
 };
 
 export type InventoryProductPricelistItem = {
@@ -231,6 +228,7 @@ export type PurchaseOrder = {
   notes: string | null;
   total_value: string | number | null;
   lines: PurchaseOrderLine[];
+  allow_self_approval?: boolean;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -238,11 +236,13 @@ export type PurchaseOrder = {
 
 export type InternalOrderLine = {
   id?: number;
-  product_id: number;
+  product_id?: number;
+  product_uuid?: string;
   product_name?: string | null;
   batch?: number | null;
   batch_number?: string | null;
   quantity: string | number;
+  quantity_available?: string | number | null;
   unit_cost?: string | number | null;
   notes?: string | null;
 };
@@ -253,9 +253,12 @@ export type InternalOrder = {
   tenant: number;
   reference_number: string;
   source_location: number;
+  source_location_name?: string | null;
   destination_location: number;
+  destination_location_name?: string | null;
   status: InternalOrderStatus;
   created_by: number | null;
+  created_by_name?: string | null;
   requested_by: number | null;
   approved_by: number | null;
   dispatched_by: number | null;
@@ -265,6 +268,7 @@ export type InternalOrder = {
   received_at: string | null;
   notes: string | null;
   lines: InternalOrderLine[];
+  allow_self_approval?: boolean;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -287,16 +291,28 @@ export type StockAdjustment = {
   tenant: number;
   reference_number: string;
   location: number;
+  location_name?: string | null;
   adjustment_type: AdjustmentType;
   status: StockAdjustmentStatus;
   reason: string | null;
+  created_by?: number | null;
+  created_by_name?: string | null;
   approved_by: number | null;
   applied_by: number | null;
   approved_at: string | null;
   applied_at: string | null;
   notes: string | null;
   lines: StockAdjustmentLine[];
+  allow_self_approval?: boolean;
   is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type InventoryTenantConfiguration = {
+  uuid: string;
+  tenant: number;
+  allow_self_approval: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -401,13 +417,17 @@ export type InventoryListFilters = {
 };
 
 export type InventoryStockListResponse = PaginatedListResponse<InventoryStock>;
-export type InventoryMovementListResponse = PaginatedListResponse<InventoryMovement>;
+export type InventoryMovementListResponse =
+  PaginatedListResponse<InventoryMovement>;
 export type InventoryBatchListResponse = PaginatedListResponse<InventoryBatch>;
 export type PurchaseOrderListResponse = PaginatedListResponse<PurchaseOrder>;
 export type InternalOrderListResponse = PaginatedListResponse<InternalOrder>;
-export type StockAdjustmentListResponse = PaginatedListResponse<StockAdjustment>;
+export type StockAdjustmentListResponse =
+  PaginatedListResponse<StockAdjustment>;
 export type InventoryClinicConfigurationListResponse =
   PaginatedListResponse<InventoryClinicConfiguration>;
-export type ApprovalWorkflowListResponse = PaginatedListResponse<ApprovalWorkflow>;
-export type ApprovalWorkflowStepListResponse = PaginatedListResponse<ApprovalWorkflowStep>;
+export type ApprovalWorkflowListResponse =
+  PaginatedListResponse<ApprovalWorkflow>;
+export type ApprovalWorkflowStepListResponse =
+  PaginatedListResponse<ApprovalWorkflowStep>;
 export type ApprovalRecordListResponse = PaginatedListResponse<ApprovalRecord>;

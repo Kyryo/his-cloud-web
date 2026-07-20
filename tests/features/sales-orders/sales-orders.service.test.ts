@@ -8,6 +8,7 @@ import {
   fetchSalesOrder,
   fetchSalesOrders,
   removeSalesOrderLine,
+  updateSalesOrderLine,
   updateSalesOrderLinePrice,
 } from "@/features/sales-orders/services/sales-orders.service";
 import { bffRequest } from "@/lib/bff-client";
@@ -79,6 +80,20 @@ describe("sales-orders.service", () => {
       {
         method: "PATCH",
         body: { price_unit: "18.0000" },
+      },
+    );
+  });
+
+  it("updates sales order lines via the BFF", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({ id: 81, name: "S00081" });
+
+    await updateSalesOrderLine(81, 3, { quantity: "4.0000" });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_SALES_ORDERS_ROUTES.lineDetail(81, 3),
+      {
+        method: "PATCH",
+        body: { quantity: "4.0000" },
       },
     );
   });

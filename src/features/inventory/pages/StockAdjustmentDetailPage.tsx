@@ -27,7 +27,12 @@ import {
 import type { StockAdjustment } from "@/features/inventory/types/inventory.types";
 import type { StockAdjustmentLineDraft } from "@/features/inventory/types/stock-adjustment-line-draft";
 import { validateStockAdjustmentLinesForSubmit } from "@/features/inventory/types/stock-adjustment-line-draft";
+import {
+  getVisibleStockAdjustmentDocumentActions,
+  type StockAdjustmentDocumentActionKey,
+} from "@/features/inventory/utils/stock-adjustment-document-actions";
 import { useToast } from "@/providers/toast-provider";
+import { useUser } from "@/providers/user-provider";
 
 type StockAdjustmentDetailPageProps = {
   adjustmentUuid: string;
@@ -40,46 +45,40 @@ type LinesEditorState = {
   validationIssueCount: number;
 };
 
+const actionLabels: Record<StockAdjustmentDocumentActionKey, string> = {
+  submit: "Submit",
+  approve: "Approve",
+  reject: "Reject",
+  apply: "Apply",
+  cancel: "Cancel",
+};
+
 function getStockAdjustmentActions(
   adjustment: StockAdjustment,
+  userId: number | null | undefined,
   onAction: (action: StockAdjustmentAction) => Promise<void>,
 ): InventoryDocumentAction[] {
-  const actions: InventoryDocumentAction[] = [];
-
-  switch (adjustment.status) {
-    case "DRAFT":
-      actions.push({ key: "submit", label: "Submit", onClick: () => onAction("submit") });
-      break;
-    case "SUBMITTED":
-      actions.push({ key: "approve", label: "Approve", onClick: () => onAction("approve") });
-      actions.push({
-        key: "reject",
-        label: "Reject",
-        variant: "destructive",
-        onClick: () => onAction("reject"),
-      });
-      break;
-    case "APPROVED":
-      actions.push({ key: "apply", label: "Apply", onClick: () => onAction("apply") });
-      break;
-    default:
-      break;
-  }
-
-  if (
-    adjustment.status !== "CANCELLED" &&
-    adjustment.status !== "REJECTED" &&
-    adjustment.status !== "APPLIED"
-  ) {
-    actions.push({
-      key: "cancel",
-      label: "Cancel",
-      variant: "destructive",
-      onClick: () => onAction("cancel"),
-    });
-  }
-
-  return actions;
+  return getVisibleStockAdjustmentDocumentActions(adjustment, userId).map(
+    (key) => ({
+      key,
+      label: actionLabels[key],
+      variant:
+        key === "submit" || key === "approve" || key === "apply"
+          ? "primary"
+          : key === "reject" || key === "cancel"
+            ? "destructive"
+            : undefined,
+      confirmation:
+        key === "cancel"
+          ? {
+              title: "Cancel stock adjustment?",
+              description: `${adjustment.reference_number} will be cancelled and can no longer be edited or submitted.`,
+              confirmLabel: "Cancel adjustment",
+            }
+          : undefined,
+      onClick: () => onAction(key),
+    }),
+  );
 }
 
 const actionSuccessTitles: Record<StockAdjustmentAction, string> = {
@@ -96,38 +95,56 @@ export function StockAdjustmentDetailPage({
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
+  const { userData } = useUser();
   const [adjustment, setAdjustment] = useState<StockAdjustment | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updateOpen, setUpdateOpen] = useState(false);
-  const [linesEditorState, setLinesEditorState] = useState<LinesEditorState | null>(null);
+  const [linesEditorState, setLinesEditorState] =
+    useState<LinesEditorState | null>(null);
   const autoAddLine = searchParams.get("add-lines") === "1";
 
   useAppBreadcrumb(adjustment?.reference_number ?? null);
 
-  const loadAdjustment = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const data = await fetchStockAdjustment(adjustmentUuid);
-      setAdjustment(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load stock adjustment.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [adjustmentUuid]);
-
   useEffect(() => {
+    let cancelled = false;
+
+    async function loadAdjustment() {
+      try {
+        const data = await fetchStockAdjustment(adjustmentUuid);
+        if (!cancelled) {
+          setAdjustment(data);
+          setError(null);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Failed to load stock adjustment.",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
     void loadAdjustment();
-  }, [loadAdjustment]);
+    return () => {
+      cancelled = true;
+    };
+  }, [adjustmentUuid]);
 
   useEffect(() => {
     if (!adjustment || !autoAddLine) {
       return;
     }
 
-    router.replace(ROUTES.inventoryStockAdjustmentDetail(adjustment.uuid), { scroll: false });
+    router.replace(ROUTES.inventoryStockAdjustmentDetail(adjustment.uuid), {
+      scroll: false,
+    });
   }, [adjustment, autoAddLine, router]);
 
   const submitValidationMessage = useMemo(() => {
@@ -146,7 +163,8 @@ export function StockAdjustmentDetailPage({
         product_id: line.product_id,
         productName: line.product_name ?? null,
         quantity_delta: String(line.quantity_delta),
-        new_unit_cost: line.new_unit_cost != null ? String(line.new_unit_cost) : "0",
+        new_unit_cost:
+          line.new_unit_cost != null ? String(line.new_unit_cost) : "0",
       }));
 
     return validateStockAdjustmentLinesForSubmit(
@@ -169,15 +187,27 @@ export function StockAdjustmentDetailPage({
       try {
         const updated = await runStockAdjustmentAction(adjustmentUuid, action);
         setAdjustment(updated);
+        const submitDescription = updated.allow_self_approval
+          ? "You can approve this adjustment yourself, or wait for another team member."
+          : "Awaiting approval from another team member.";
         toast({
-          title: actionSuccessTitles[action],
-          description: `${updated.reference_number} has been updated.`,
+          title:
+            action === "approve" && updated.status === "APPLIED"
+              ? "Stock adjustment approved and applied"
+              : actionSuccessTitles[action],
+          description:
+            action === "submit"
+              ? submitDescription
+              : action === "approve" && updated.status === "APPLIED"
+                ? "The stock changes were applied immediately."
+              : `${updated.reference_number} has been updated.`,
           variant: "success",
         });
       } catch (err) {
         toast({
           title: "Action could not be completed",
-          description: err instanceof Error ? err.message : "Something went wrong.",
+          description:
+            err instanceof Error ? err.message : "Something went wrong.",
           variant: "error",
         });
       }
@@ -197,8 +227,11 @@ export function StockAdjustmentDetailPage({
   );
 
   const actions = useMemo(
-    () => (adjustment ? getStockAdjustmentActions(adjustment, handleAction) : []),
-    [adjustment, handleAction],
+    () =>
+      adjustment
+        ? getStockAdjustmentActions(adjustment, userData?.id, handleAction)
+        : [],
+    [adjustment, handleAction, userData?.id],
   );
 
   if (isLoading) {
@@ -233,7 +266,12 @@ export function StockAdjustmentDetailPage({
       <StockAdjustmentDetailHeader
         adjustment={adjustment}
         onUpdate={canEditLines ? () => setUpdateOpen(true) : undefined}
-        actions={<InventoryDocumentActions actions={actions} />}
+        actions={
+          <InventoryDocumentActions
+            actions={actions}
+            className="[&_button]:rounded-full"
+          />
+        }
       />
 
       <StockAdjustmentDetailTabs

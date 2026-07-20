@@ -34,6 +34,10 @@ export function InternalOrderDetailHeader({
   const [locationLabels, setLocationLabels] = useState<Record<number, string>>({});
 
   useEffect(() => {
+    if (order.source_location_name && order.destination_location_name) {
+      return;
+    }
+
     let cancelled = false;
 
     async function loadLocations() {
@@ -56,7 +60,7 @@ export function InternalOrderDetailHeader({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [order.destination_location_name, order.source_location_name]);
 
   function showComingSoon(feature: string) {
     toast({
@@ -66,9 +70,14 @@ export function InternalOrderDetailHeader({
     });
   }
 
-  const sourceLabel = locationLabels[order.source_location] ?? `Location ${order.source_location}`;
+  const sourceLabel =
+    order.source_location_name?.trim() ||
+    locationLabels[order.source_location] ||
+    `Location ${order.source_location}`;
   const destinationLabel =
-    locationLabels[order.destination_location] ?? `Location ${order.destination_location}`;
+    order.destination_location_name?.trim() ||
+    locationLabels[order.destination_location] ||
+    `Location ${order.destination_location}`;
 
   return (
     <DetailPageHeaderSection>

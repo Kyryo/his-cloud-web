@@ -30,6 +30,32 @@ describe("getVisibleInternalOrderDocumentActions", () => {
     ).toEqual(["reject", "approve"]);
   });
 
+  it("shows approve to the owner when self-approval is enabled", () => {
+    expect(
+      getVisibleInternalOrderDocumentActions(
+        {
+          status: "SUBMITTED",
+          created_by: 3,
+          allow_self_approval: true,
+        },
+        3,
+      ),
+    ).toEqual(["cancel", "approve"]);
+  });
+
+  it("keeps reject hidden for owners even when self-approval is enabled", () => {
+    expect(
+      getVisibleInternalOrderDocumentActions(
+        {
+          status: "SUBMITTED",
+          created_by: 3,
+          allow_self_approval: true,
+        },
+        3,
+      ),
+    ).not.toContain("reject");
+  });
+
   it("shows dispatch and receive at the later workflow stages", () => {
     expect(
       getVisibleInternalOrderDocumentActions(

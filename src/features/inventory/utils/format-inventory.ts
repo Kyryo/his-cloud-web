@@ -147,6 +147,15 @@ export function formatDisplayDate(value: string | null | undefined): string {
     return "—";
   }
 
+  const dateOnly = parseDateOnlyValue(value);
+  if (dateOnly) {
+    return dateOnly.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
+
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
     return value;
@@ -164,6 +173,11 @@ export function formatDisplayDateTime(value: string | null | undefined): string 
     return "—";
   }
 
+  // Date-only values have no clock time; avoid UTC-midnight → local 02:00 AM.
+  if (isDateOnlyValue(value)) {
+    return formatDisplayDate(value);
+  }
+
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
     return value;
@@ -176,6 +190,33 @@ export function formatDisplayDateTime(value: string | null | undefined): string 
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+const DATE_ONLY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+function isDateOnlyValue(value: string): boolean {
+  return DATE_ONLY_PATTERN.test(value.trim());
+}
+
+function parseDateOnlyValue(value: string): Date | null {
+  const match = DATE_ONLY_PATTERN.exec(value.trim());
+  if (!match) {
+    return null;
+  }
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  if (
+    Number.isNaN(date.getTime()) ||
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+  return date;
 }
 
 export function formatProductLabel(

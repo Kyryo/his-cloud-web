@@ -25,6 +25,8 @@ export const INVENTORY_API_PATHS = {
   internalOrders: {
     list: "/inventory/internal-orders/",
     detail: (uuid: string) => `/inventory/internal-orders/${uuid}/`,
+    availableProducts: (uuid: string) =>
+      `/inventory/internal-orders/${uuid}/available-products/`,
     action: (uuid: string, action: string) =>
       `/inventory/internal-orders/${uuid}/${action}/`,
   },
@@ -38,6 +40,7 @@ export const INVENTORY_API_PATHS = {
     list: "/inventory/clinic-configurations/",
     detail: (uuid: string) => `/inventory/clinic-configurations/${uuid}/`,
   },
+  tenantConfiguration: "/inventory/tenant-configuration/",
   workflows: {
     list: "/inventory/workflows/",
     detail: (uuid: string) => `/inventory/workflows/${uuid}/`,
@@ -49,5 +52,21 @@ export const INVENTORY_API_PATHS = {
   approvalRecords: {
     list: "/inventory/approval-records/",
     detail: (uuid: string) => `/inventory/approval-records/${uuid}/`,
+  },
+  dispensations: {
+    queue: {
+      list: "/inventory/dispensations/queue/",
+      detail: (salesOrderUuid: string) =>
+        `/inventory/dispensations/queue/${salesOrderUuid}/`,
+    },
+    list: "/inventory/dispensations/",
+    detail: (uuid: string) => `/inventory/dispensations/${uuid}/`,
+    batch: "/inventory/dispensations/batch/",
+  },
+  dispensationConfigurations: {
+    list: "/inventory/dispensation-configurations/",
+    detail: (uuid: string) => `/inventory/dispensation-configurations/${uuid}/`,
+    forClinic: (clinicId: number) =>
+      `/inventory/dispensation-configurations/for-clinic/${clinicId}/`,
   },
 } as const;

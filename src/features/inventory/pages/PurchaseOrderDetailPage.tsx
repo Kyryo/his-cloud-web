@@ -93,7 +93,9 @@ export function PurchaseOrderDetailPage({ orderUuid }: PurchaseOrderDetailPagePr
         };
 
         const descriptionByAction: Record<PurchaseOrderAction, string> = {
-          submit: "Awaiting approval from another team member.",
+          submit: updated.allow_self_approval
+            ? "You can approve this order yourself, or wait for another team member."
+            : "Awaiting approval from another team member.",
           approve: "Stock has been posted to the receiving location.",
           confirm: "Stock has been posted to the receiving location.",
           reject: "The order has been returned to the owner as cancelled.",

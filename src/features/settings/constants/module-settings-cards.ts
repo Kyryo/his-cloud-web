@@ -31,14 +31,21 @@ const MODULE_DESCRIPTIONS: Record<string, string> = {
 export function getModuleSettingsCards(): ModuleSettingsCard[] {
   return moduleOrder.map((moduleId) => {
     const isInventory = moduleId === "Inventory";
+    const isPharmacy = moduleId === "Dispensation";
 
     return {
       id: moduleId,
       label: getModuleLabel(moduleId),
-      description: MODULE_DESCRIPTIONS[moduleId] ?? `${getModuleLabel(moduleId)} settings.`,
+      description:
+        MODULE_DESCRIPTIONS[moduleId] ??
+        `${getModuleLabel(moduleId)} settings.`,
       icon: getModuleIcon(moduleId),
-      href: isInventory ? ROUTES.settingsModuleInventory : undefined,
-      comingSoon: !isInventory,
+      href: isInventory
+        ? ROUTES.settingsModuleInventory
+        : isPharmacy
+          ? ROUTES.settingsModulePharmacy
+          : undefined,
+      comingSoon: !isInventory && !isPharmacy,
     };
   });
 }

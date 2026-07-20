@@ -9,6 +9,7 @@ import type {
   InventoryClinicConfiguration,
   InventoryClinicConfigurationListResponse,
   InventoryListFilters,
+  InventoryTenantConfiguration,
 } from "@/features/inventory/types/inventory.types";
 import { buildInventoryQuery } from "@/features/inventory/utils/inventory-query";
 import { bffRequest } from "@/lib/bff-client";
@@ -41,6 +42,24 @@ export type WorkflowStepPayload = {
   required_approvals?: number;
   is_active?: boolean;
 };
+
+export async function fetchTenantConfiguration(): Promise<InventoryTenantConfiguration> {
+  return bffRequest<InventoryTenantConfiguration>(
+    BFF_INVENTORY_ROUTES.tenantConfiguration,
+  );
+}
+
+export async function updateTenantConfiguration(
+  allowSelfApproval: boolean,
+): Promise<InventoryTenantConfiguration> {
+  return bffRequest<InventoryTenantConfiguration>(
+    BFF_INVENTORY_ROUTES.tenantConfiguration,
+    {
+      method: "PATCH",
+      body: { allow_self_approval: allowSelfApproval },
+    },
+  );
+}
 
 export async function fetchClinicConfigurations(
   filters: InventoryListFilters = {},

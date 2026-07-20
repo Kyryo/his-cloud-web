@@ -1,18 +1,19 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { updateInternalOrder } from "@/features/inventory/services/internal-orders.service";
-import { searchInventoryProducts } from "@/features/inventory/services/inventory.service";
 import type { InternalOrder } from "@/features/inventory/types/inventory.types";
 import {
   createEmptyInternalOrderLineDraft,
+  draftHasProduct,
   draftsToInternalOrderLines,
   internalOrderLineToDraft,
+  preserveProductNamesInDrafts,
   serializeInternalDraftLines,
+  validateInternalOrderLinesForSave,
   type InternalOrderLineDraft,
 } from "@/features/inventory/types/internal-order-line-draft";
-import { formatProductLabel } from "@/features/inventory/utils/format-inventory";
 
 type UseInternalOrderLinesEditorOptions = {
   order: InternalOrder;
@@ -43,84 +44,53 @@ export function useInternalOrderLinesEditor({
   const [activeRowKey, setActiveRowKey] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [hasAutoAdded, setHasAutoAdded] = useState(false);
+  const draftLinesRef = useRef(draftLines);
+
+  useEffect(() => {
+    draftLinesRef.current = draftLines;
+  }, [draftLines]);
 
   const serverLinesSnapshot = serializeInternalDraftLines(buildInitialDrafts(order.lines));
 
   useEffect(() => {
-    const nextDrafts = buildInitialDrafts(order.lines);
-    setDraftLines(nextDrafts);
-    setSavedSnapshot(serializeInternalDraftLines(nextDrafts));
+    const merged = preserveProductNamesInDrafts(
+      buildInitialDrafts(order.lines),
+      draftLinesRef.current,
+    );
+    setDraftLines(merged);
+    setSavedSnapshot(serializeInternalDraftLines(merged));
     setEditingRowKey(null);
     setActiveRowKey(null);
-  }, [order.uuid, serverLinesSnapshot, order.lines]);
+    // Content fingerprint only — `order.lines` referential changes must not
+    // wipe in-progress draft product names.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- serverLinesSnapshot
+  }, [order.uuid, serverLinesSnapshot]);
 
   useEffect(() => {
     if (!canEdit || !autoAddLine || hasAutoAdded || draftLines.length > 0) {
       return;
     }
 
-    const newLine = createEmptyInternalOrderLineDraft();
-    setDraftLines([newLine]);
-    setEditingRowKey(newLine.key);
-    setActiveRowKey(newLine.key);
-    setHasAutoAdded(true);
-  }, [autoAddLine, canEdit, draftLines.length, hasAutoAdded]);
-
-  useEffect(() => {
     let cancelled = false;
 
-    async function hydrateProductNames() {
-      const initialDrafts = buildInitialDrafts(order.lines);
-      const needsNames = initialDrafts.some(
-        (line) => line.product_id && !line.productName,
-      );
-      if (!needsNames) {
+    async function addInitialLine() {
+      await Promise.resolve();
+      if (cancelled) {
         return;
       }
 
-      try {
-        const products = await searchInventoryProducts({ active: true });
-        if (cancelled) {
-          return;
-        }
-
-        const labels = new Map(
-          products.map((product) => [product.uuid, formatProductLabel(product)]),
-        );
-
-        setDraftLines((current) =>
-          current.map((line) => {
-            if (!line.product_id || line.productName) {
-              return line;
-            }
-
-            return {
-              ...line,
-              productName:
-                labels.get(line.product_uuid ?? "") ??
-                (line.product_id ? `Product #${line.product_id}` : null),
-            };
-          }),
-        );
-      } catch {
-        if (!cancelled) {
-          setDraftLines((current) =>
-            current.map((line) =>
-              line.product_id && !line.productName
-                ? { ...line, productName: `Product #${line.product_id}` }
-                : line,
-            ),
-          );
-        }
-      }
+      const newLine = createEmptyInternalOrderLineDraft();
+      setDraftLines([newLine]);
+      setEditingRowKey(newLine.key);
+      setActiveRowKey(newLine.key);
+      setHasAutoAdded(true);
     }
 
-    void hydrateProductNames();
-
+    void addInitialLine();
     return () => {
       cancelled = true;
     };
-  }, [order.uuid, serverLinesSnapshot, order.lines]);
+  }, [autoAddLine, canEdit, draftLines.length, hasAutoAdded]);
 
   const isDirty = useMemo(
     () => serializeInternalDraftLines(draftLines) !== savedSnapshot,
@@ -163,7 +133,7 @@ export function useInternalOrderLinesEditor({
   const confirmRow = useCallback(
     (key: string, options?: { addAnother?: boolean }) => {
       const line = draftLines.find((item) => item.key === key);
-      if (!line?.product_id) {
+      if (!line || !draftHasProduct(line)) {
         onError("Choose a product before confirming this line.");
         return;
       }
@@ -182,8 +152,10 @@ export function useInternalOrderLinesEditor({
     const restored = JSON.parse(savedSnapshot) as Array<{
       id: number | null;
       product_id: number | null;
+      product_uuid?: string | null;
       productName?: string | null;
       quantity: string;
+      quantityAvailable?: string | number | null;
       batch?: number | null;
       batchNumber?: string | null;
       notes?: string | null;
@@ -194,10 +166,10 @@ export function useInternalOrderLinesEditor({
         key: crypto.randomUUID(),
         id: line.id ?? undefined,
         product_id: line.product_id,
-        productName:
-          line.productName ??
-          (line.product_id ? `Product #${line.product_id}` : null),
+        product_uuid: line.product_uuid ?? null,
+        productName: line.productName ?? null,
         quantity: line.quantity,
+        quantityAvailable: line.quantityAvailable ?? null,
         batch: line.batch ?? null,
         batchNumber: line.batchNumber ?? null,
         notes: line.notes ?? null,
@@ -209,14 +181,18 @@ export function useInternalOrderLinesEditor({
 
   const persistDraftLines = useCallback(
     async (lines: InternalOrderLineDraft[]) => {
-      const payloadLines = draftsToInternalOrderLines(lines);
-      if (payloadLines.length === 0) {
-        onError("Add at least one line item before saving.");
+      const validationError = validateInternalOrderLinesForSave(lines);
+      if (validationError) {
+        onError(validationError);
         return;
       }
 
+      const payloadLines = draftsToInternalOrderLines(lines);
       const updated = await updateInternalOrder(order.uuid, { lines: payloadLines });
-      const nextDrafts = buildInitialDrafts(updated.lines);
+      const nextDrafts = preserveProductNamesInDrafts(
+        buildInitialDrafts(updated.lines),
+        lines,
+      );
       setDraftLines(nextDrafts);
       setSavedSnapshot(serializeInternalDraftLines(nextDrafts));
       setEditingRowKey(null);
@@ -275,6 +251,7 @@ export function useInternalOrderLinesEditor({
     setActiveRowKey,
     updateLine,
     addLine,
+    removeLine,
     discardNewLine,
     confirmRow,
     discardChanges,

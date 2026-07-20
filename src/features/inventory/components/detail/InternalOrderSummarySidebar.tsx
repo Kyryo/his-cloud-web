@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { EditButton } from "@/components/ui/edit-button";
 import { Progress } from "@/components/ui/progress";
 import { InternalOrderStatusStepper } from "@/features/inventory/components/detail/InternalOrderStatusStepper";
 import { InventorySummaryPanel } from "@/features/inventory/components/InventorySummaryPanel";
@@ -12,6 +12,7 @@ import type { InternalOrderLineDraft } from "@/features/inventory/types/internal
 import {
   countLinesMissingBatch,
   countSavedInternalLineDrafts,
+  draftHasProduct,
 } from "@/features/inventory/types/internal-order-line-draft";
 import {
   formatDisplayDateTime,
@@ -40,9 +41,11 @@ function calculateOrderCompletionPercent(
     draftLines ??
     order.lines.map((line) => ({
       key: String(line.id ?? line.product_id),
-      product_id: line.product_id,
+      product_id: line.product_id ?? null,
+      product_uuid: line.product_uuid ?? null,
       productName: line.product_name ?? null,
       quantity: String(line.quantity),
+      quantityAvailable: line.quantity_available ?? null,
       batch: line.batch ?? null,
     }));
 
@@ -53,7 +56,7 @@ function calculateOrderCompletionPercent(
 
   if (!batchTrackingEnabled) {
     const invalidCount = savedDrafts.filter(
-      (line) => line.product_id && Number.parseFloat(line.quantity) <= 0,
+      (line) => draftHasProduct(line) && Number.parseFloat(line.quantity) <= 0,
     ).length;
     return Math.round(((savedCount - invalidCount) / savedCount) * 100);
   }
@@ -80,6 +83,10 @@ export function InternalOrderSummarySidebar({
   const showReadiness = order.status === "DRAFT";
 
   useEffect(() => {
+    if (order.source_location_name && order.destination_location_name) {
+      return;
+    }
+
     let cancelled = false;
 
     async function loadLocations() {
@@ -105,21 +112,24 @@ export function InternalOrderSummarySidebar({
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [order.destination_location_name, order.source_location_name]);
 
-  const editAction =
-    onEditClick ? (
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        className="h-7 px-2 text-brand-primary hover:text-brand-navy"
-        onClick={onEditClick}
-        data-testid="internal-order-sidebar-update-button"
-      >
-        Edit details
-      </Button>
-    ) : null;
+  const sourceLabel =
+    order.source_location_name?.trim() ||
+    locationLabels[order.source_location] ||
+    order.source_location;
+  const destinationLabel =
+    order.destination_location_name?.trim() ||
+    locationLabels[order.destination_location] ||
+    order.destination_location;
+
+  const editAction = onEditClick ? (
+    <EditButton
+      label="Edit details"
+      onClick={onEditClick}
+      data-testid="internal-order-sidebar-update-button"
+    />
+  ) : null;
 
   return (
     <div className={cn(className)}>
@@ -150,15 +160,8 @@ export function InternalOrderSummarySidebar({
             fields: [
               { label: "Reference", value: order.reference_number },
               { label: "Status", value: formatInternalOrderStatusLabel(order.status) },
-              {
-                label: "Source",
-                value: locationLabels[order.source_location] ?? order.source_location,
-              },
-              {
-                label: "Destination",
-                value:
-                  locationLabels[order.destination_location] ?? order.destination_location,
-              },
+              { label: "Source", value: sourceLabel },
+              { label: "Destination", value: destinationLabel },
               { label: "Approved", value: formatDisplayDateTime(order.approved_at) },
               { label: "Dispatched", value: formatDisplayDateTime(order.dispatched_at) },
               { label: "Received", value: formatDisplayDateTime(order.received_at) },

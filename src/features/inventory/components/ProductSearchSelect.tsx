@@ -13,6 +13,7 @@ export type ProductSearchSelection = {
   product_id: number | null;
   productName: string;
   list_price?: string | number | null;
+  quantity_available?: string | number;
 };
 
 type ProductSearchSelectProps = {
@@ -24,6 +25,7 @@ type ProductSearchSelectProps = {
   className?: string;
   onSelect: (selection: ProductSearchSelection) => void;
   onFocus?: () => void;
+  searchProducts?: (query: string) => Promise<InventoryProduct[]>;
 };
 
 function productToSelection(product: InventoryProduct): ProductSearchSelection {
@@ -32,6 +34,7 @@ function productToSelection(product: InventoryProduct): ProductSearchSelection {
     product_id: product.id ?? null,
     productName: formatProductLabel(product),
     list_price: product.list_price,
+    quantity_available: product.quantity_available,
   };
 }
 
@@ -51,33 +54,25 @@ export function ProductSearchSelect({
   className,
   onSelect,
   onFocus,
+  searchProducts,
 }: ProductSearchSelectProps) {
   const [open, setOpen] = useState(autoOpen);
   const [search, setSearch] = useState("");
   const [options, setOptions] = useState<InventoryProduct[]>([]);
   const [isLoadingResults, setIsLoadingResults] = useState(false);
-  const [selectedLabel, setSelectedLabel] = useState(displayLabel ?? "");
-
-  useEffect(() => {
-    if (autoOpen) {
-      setOpen(true);
-    }
-  }, [autoOpen]);
-
-  useEffect(() => {
-    setSelectedLabel(displayLabel ?? "");
-  }, [displayLabel, value]);
+  const [selected, setSelected] = useState<{
+    uuid: string;
+    label: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!open) {
-      setSearch("");
       return;
     }
 
     onFocus?.();
 
     if (search.trim().length < 2) {
-      setOptions([]);
       return;
     }
 
@@ -85,10 +80,12 @@ export function ProductSearchSelect({
       void (async () => {
         setIsLoadingResults(true);
         try {
-          const products = await searchInventoryProducts({
-            q: search.trim(),
-            active: true,
-          });
+          const products = searchProducts
+            ? await searchProducts(search.trim())
+            : await searchInventoryProducts({
+                q: search.trim(),
+                active: true,
+              });
           setOptions(products);
         } catch {
           setOptions([]);
@@ -99,12 +96,19 @@ export function ProductSearchSelect({
     }, 250);
 
     return () => window.clearTimeout(handle);
-  }, [onFocus, open, search]);
+  }, [onFocus, open, search, searchProducts]);
 
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
     if (!nextOpen) {
       setSearch("");
+    }
+  }
+
+  function handleSearchChange(nextSearch: string) {
+    setSearch(nextSearch);
+    if (nextSearch.trim().length < 2) {
+      setOptions([]);
     }
   }
 
@@ -115,7 +119,10 @@ export function ProductSearchSelect({
     }
 
     const selection = productToSelection(match);
-    setSelectedLabel(selection.productName);
+    setSelected({
+      uuid: selection.product_uuid,
+      label: selection.productName,
+    });
     onSelect(selection);
     setOpen(false);
   }
@@ -129,9 +136,11 @@ export function ProductSearchSelect({
       onOpenChange={handleOpenChange}
       disabled={disabled}
       placeholder="Select a product"
-      displayValue={selectedLabel || displayLabel || undefined}
+      displayValue={
+        (selected?.uuid === value ? selected.label : displayLabel) || undefined
+      }
       searchValue={search}
-      onSearchChange={setSearch}
+      onSearchChange={handleSearchChange}
       searchPlaceholder="Search products..."
       isLoading={isLoadingResults}
       noResultsMessage="No products found."
@@ -143,6 +152,11 @@ export function ProductSearchSelect({
             <span>{formatProductLabel(option)}</span>
             {option.default_code ? (
               <span className="text-xs text-brand-muted">{option.default_code}</span>
+            ) : null}
+            {option.quantity_available != null ? (
+              <span className="text-xs text-brand-muted">
+                {option.quantity_available} available
+              </span>
             ) : null}
           </div>
         </SelectItem>

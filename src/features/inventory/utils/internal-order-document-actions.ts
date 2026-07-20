@@ -16,10 +16,11 @@ export function isInternalOrderOwner(
 }
 
 export function getVisibleInternalOrderDocumentActions(
-  order: Pick<InternalOrder, "status" | "created_by">,
+  order: Pick<InternalOrder, "status" | "created_by" | "allow_self_approval">,
   userId: number | null | undefined,
 ): InternalOrderDocumentActionKey[] {
   const owner = isInternalOrderOwner(order, userId);
+  const allowSelfApproval = Boolean(order.allow_self_approval);
 
   if (order.status === "DRAFT" && owner) {
     return ["cancel", "submit"];
@@ -27,9 +28,9 @@ export function getVisibleInternalOrderDocumentActions(
 
   if (order.status === "SUBMITTED") {
     if (owner) {
-      return ["cancel"];
+      return allowSelfApproval ? ["cancel", "approve"] : ["cancel"];
     }
-    if (!owner && order.created_by != null) {
+    if (order.created_by != null) {
       return ["reject", "approve"];
     }
   }

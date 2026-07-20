@@ -1,64 +1,119 @@
 "use client";
 
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 
-import { Badge } from "@/components/ui/badge";
 import { getModuleSettingsCards } from "@/features/settings/constants/module-settings-cards";
 import { cn } from "@/lib/utils";
 
 export function ModuleSettingsGrid() {
   const modules = getModuleSettingsCards();
 
+  const configurable = modules.filter((m) => m.href);
+  const upcoming = modules.filter((m) => !m.href);
+
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
-      {modules.map((module) => {
-        const Icon = module.icon;
-        const content = (
-          <div
-            className={cn(
-              "flex h-full flex-col rounded-xl border border-brand-border bg-white p-5 transition-colors",
-              module.href && "hover:border-brand-primary hover:bg-brand-tint/40",
-              module.comingSoon && "opacity-80",
-            )}
-          >
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex size-10 items-center justify-center rounded-lg bg-brand-tint text-brand-primary">
-                <Icon className="size-5" aria-hidden="true" />
-              </div>
-              {module.comingSoon ? (
-                <Badge variant="secondary" className="font-normal">
-                  Coming soon
-                </Badge>
-              ) : null}
-            </div>
-            <h2 className="mt-4 text-base font-semibold text-brand-navy">
-              {module.label}
+    <div className="w-full max-w-[75%] space-y-8">
+      {configurable.length > 0 ? (
+        <section aria-labelledby="modules-active-heading">
+          <div className="mb-3">
+            <h2
+              id="modules-active-heading"
+              className="text-sm font-semibold text-brand-navy"
+            >
+              Active modules
             </h2>
-            <p className="mt-2 flex-1 text-sm leading-6 text-brand-muted">
-              {module.description}
+            <p className="mt-0.5 text-xs text-brand-muted">
+              Modules that are enabled and configurable.
             </p>
-            {module.href ? (
-              <p className="mt-4 text-sm font-medium text-brand-primary">
-                Configure module →
-              </p>
-            ) : null}
           </div>
-        );
 
-        if (module.href) {
-          return (
-            <Link key={module.id} href={module.href} className="block h-full">
-              {content}
-            </Link>
-          );
-        }
+          <div className="space-y-2">
+            {configurable.map((module) => {
+              const Icon = module.icon;
+              return (
+                <Link
+                  key={module.id}
+                  href={module.href!}
+                  className="group block"
+                >
+                  <div
+                    className={cn(
+                      "flex items-center gap-3 rounded-lg border border-brand-border bg-white px-4 py-3 transition-colors",
+                      "hover:border-brand-primary/40 hover:bg-brand-tint/30",
+                    )}
+                  >
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-brand-tint text-brand-primary">
+                      <Icon className="size-4" aria-hidden="true" />
+                    </div>
 
-        return (
-          <div key={module.id} className="h-full" aria-disabled="true">
-            {content}
+                    <div className="min-w-0 flex-1">
+                      <h3 className="truncate text-sm font-medium text-brand-navy">
+                        {module.label}
+                      </h3>
+                      <p className="mt-0.5 line-clamp-1 text-xs text-brand-muted">
+                        {module.description}
+                      </p>
+                    </div>
+
+                    <ChevronRight
+                      className="size-4 shrink-0 text-brand-muted transition-transform group-hover:translate-x-0.5 group-hover:text-brand-primary"
+                      aria-hidden="true"
+                    />
+                  </div>
+                </Link>
+              );
+            })}
           </div>
-        );
-      })}
+        </section>
+      ) : null}
+
+      {upcoming.length > 0 ? (
+        <section aria-labelledby="modules-upcoming-heading">
+          <div className="mb-3">
+            <h2
+              id="modules-upcoming-heading"
+              className="text-sm font-semibold text-brand-navy"
+            >
+              Coming soon
+            </h2>
+            <p className="mt-0.5 text-xs text-brand-muted">
+              Additional modules will become available here over time.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            {upcoming.map((module) => {
+              const Icon = module.icon;
+              return (
+                <div
+                  key={module.id}
+                  className="flex items-center gap-3 rounded-lg border border-brand-border bg-white px-4 py-3 opacity-60"
+                  aria-disabled="true"
+                >
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-slate-100 text-brand-muted">
+                    <Icon className="size-4" aria-hidden="true" />
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <h3 className="truncate text-sm font-medium text-brand-navy">
+                        {module.label}
+                      </h3>
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide text-brand-muted">
+                        Coming soon
+                      </span>
+                    </div>
+                    <p className="mt-0.5 line-clamp-1 text-xs text-brand-muted">
+                      {module.description}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      ) : null}
     </div>
   );
 }

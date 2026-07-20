@@ -117,6 +117,22 @@ export const navigation: NavigationItem[] = [
     enabledInWebNew: true,
   },
   {
+    name: "Pharmacy queue",
+    href: ROUTES.pharmacyQueue,
+    icon: Pill,
+    requiredGroup: "Dispensation",
+    moduleName: "Dispensation",
+    enabledInWebNew: true,
+  },
+  {
+    name: "Dispensation history",
+    href: ROUTES.pharmacyHistory,
+    icon: ClipboardList,
+    requiredGroup: "Dispensation",
+    moduleName: "Dispensation",
+    enabledInWebNew: true,
+  },
+  {
     name: "Products",
     href: ROUTES.inventoryProducts,
     icon: Package,

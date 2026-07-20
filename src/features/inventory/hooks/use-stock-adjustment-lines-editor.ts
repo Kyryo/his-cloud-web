@@ -1,18 +1,20 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { updateStockAdjustment } from "@/features/inventory/services/stock-adjustments.service";
-import { searchInventoryProducts } from "@/features/inventory/services/inventory.service";
-import type { AdjustmentType, StockAdjustment } from "@/features/inventory/types/inventory.types";
+import type {
+  AdjustmentType,
+  StockAdjustment,
+} from "@/features/inventory/types/inventory.types";
 import {
   createEmptyStockAdjustmentLineDraft,
   draftsToStockAdjustmentLines,
+  preserveStockAdjustmentProductNames,
   serializeStockAdjustmentDraftLines,
   stockAdjustmentLineToDraft,
   type StockAdjustmentLineDraft,
 } from "@/features/inventory/types/stock-adjustment-line-draft";
-import { formatProductLabel } from "@/features/inventory/utils/format-inventory";
 
 type UseStockAdjustmentLinesEditorOptions = {
   adjustment: StockAdjustment;
@@ -22,7 +24,9 @@ type UseStockAdjustmentLinesEditorOptions = {
   onError: (message: string) => void;
 };
 
-function buildInitialDrafts(lines: StockAdjustment["lines"]): StockAdjustmentLineDraft[] {
+function buildInitialDrafts(
+  lines: StockAdjustment["lines"],
+): StockAdjustmentLineDraft[] {
   return lines.map(stockAdjustmentLineToDraft);
 }
 
@@ -43,86 +47,64 @@ export function useStockAdjustmentLinesEditor({
   const [activeRowKey, setActiveRowKey] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [hasAutoAdded, setHasAutoAdded] = useState(false);
+  const draftLinesRef = useRef(draftLines);
+
+  useEffect(() => {
+    draftLinesRef.current = draftLines;
+  }, [draftLines]);
 
   const serverLinesSnapshot = serializeStockAdjustmentDraftLines(
     buildInitialDrafts(adjustment.lines),
   );
 
   useEffect(() => {
-    const nextDrafts = buildInitialDrafts(adjustment.lines);
-    setDraftLines(nextDrafts);
-    setSavedSnapshot(serializeStockAdjustmentDraftLines(nextDrafts));
-    setEditingRowKey(null);
-    setActiveRowKey(null);
-  }, [adjustment.uuid, serverLinesSnapshot, adjustment.lines]);
+    let cancelled = false;
+
+    async function synchronizeServerLines() {
+      await Promise.resolve();
+      if (cancelled) {
+        return;
+      }
+      const nextDrafts = preserveStockAdjustmentProductNames(
+        buildInitialDrafts(adjustment.lines),
+        draftLinesRef.current,
+      );
+      setDraftLines(nextDrafts);
+      setSavedSnapshot(serializeStockAdjustmentDraftLines(nextDrafts));
+      setEditingRowKey(null);
+      setActiveRowKey(null);
+    }
+
+    void synchronizeServerLines();
+    return () => {
+      cancelled = true;
+    };
+  }, [adjustment.lines, adjustment.uuid, serverLinesSnapshot]);
 
   useEffect(() => {
     if (!canEdit || !autoAddLine || hasAutoAdded || draftLines.length > 0) {
       return;
     }
 
-    const newLine = createEmptyStockAdjustmentLineDraft();
-    setDraftLines([newLine]);
-    setEditingRowKey(newLine.key);
-    setActiveRowKey(newLine.key);
-    setHasAutoAdded(true);
-  }, [autoAddLine, canEdit, draftLines.length, hasAutoAdded]);
-
-  useEffect(() => {
     let cancelled = false;
 
-    async function hydrateProductNames() {
-      const initialDrafts = buildInitialDrafts(adjustment.lines);
-      const needsNames = initialDrafts.some(
-        (line) => line.product_id && !line.productName,
-      );
-      if (!needsNames) {
+    async function addInitialLine() {
+      await Promise.resolve();
+      if (cancelled) {
         return;
       }
-
-      try {
-        const products = await searchInventoryProducts({ active: true });
-        if (cancelled) {
-          return;
-        }
-
-        const labels = new Map(
-          products.map((product) => [product.uuid, formatProductLabel(product)]),
-        );
-
-        setDraftLines((current) =>
-          current.map((line) => {
-            if (!line.product_id || line.productName) {
-              return line;
-            }
-
-            return {
-              ...line,
-              productName:
-                labels.get(line.product_uuid ?? "") ??
-                (line.product_id ? `Product #${line.product_id}` : null),
-            };
-          }),
-        );
-      } catch {
-        if (!cancelled) {
-          setDraftLines((current) =>
-            current.map((line) =>
-              line.product_id && !line.productName
-                ? { ...line, productName: `Product #${line.product_id}` }
-                : line,
-            ),
-          );
-        }
-      }
+      const newLine = createEmptyStockAdjustmentLineDraft();
+      setDraftLines([newLine]);
+      setEditingRowKey(newLine.key);
+      setActiveRowKey(newLine.key);
+      setHasAutoAdded(true);
     }
 
-    void hydrateProductNames();
-
+    void addInitialLine();
     return () => {
       cancelled = true;
     };
-  }, [adjustment.uuid, serverLinesSnapshot, adjustment.lines]);
+  }, [autoAddLine, canEdit, draftLines.length, hasAutoAdded]);
 
   const isDirty = useMemo(
     () => serializeStockAdjustmentDraftLines(draftLines) !== savedSnapshot,
@@ -136,11 +118,16 @@ export function useStockAdjustmentLinesEditor({
 
   const hasPendingChanges = isDirty || isEditingLines;
 
-  const updateLine = useCallback((key: string, patch: Partial<StockAdjustmentLineDraft>) => {
-    setDraftLines((current) =>
-      current.map((line) => (line.key === key ? { ...line, ...patch } : line)),
-    );
-  }, []);
+  const updateLine = useCallback(
+    (key: string, patch: Partial<StockAdjustmentLineDraft>) => {
+      setDraftLines((current) =>
+        current.map((line) =>
+          line.key === key ? { ...line, ...patch } : line,
+        ),
+      );
+    },
+    [],
+  );
 
   const addLine = useCallback(() => {
     const newLine = createEmptyStockAdjustmentLineDraft();
@@ -154,31 +141,6 @@ export function useStockAdjustmentLinesEditor({
     setEditingRowKey((current) => (current === key ? null : current));
     setActiveRowKey((current) => (current === key ? null : current));
   }, []);
-
-  const discardNewLine = useCallback(
-    (key: string) => {
-      removeLine(key);
-    },
-    [removeLine],
-  );
-
-  const confirmRow = useCallback(
-    (key: string, options?: { addAnother?: boolean }) => {
-      const line = draftLines.find((item) => item.key === key);
-      if (!line?.product_uuid && !line?.product_id) {
-        onError("Choose a product before confirming this line.");
-        return;
-      }
-
-      updateLine(key, { isNew: false });
-      setEditingRowKey(null);
-
-      if (options?.addAnother) {
-        addLine();
-      }
-    },
-    [addLine, draftLines, onError, updateLine],
-  );
 
   const discardChanges = useCallback(() => {
     const restored = JSON.parse(savedSnapshot) as Array<{
@@ -196,9 +158,7 @@ export function useStockAdjustmentLinesEditor({
         id: line.id ?? undefined,
         product_id: line.product_id,
         product_uuid: line.product_uuid ?? null,
-        productName:
-          line.productName ??
-          (line.product_id ? `Product #${line.product_id}` : null),
+        productName: line.productName ?? null,
         quantity_delta: line.quantity_delta,
         new_unit_cost: line.new_unit_cost,
       })),
@@ -209,21 +169,24 @@ export function useStockAdjustmentLinesEditor({
 
   const persistDraftLines = useCallback(
     async (lines: StockAdjustmentLineDraft[]) => {
-      const payloadLines = draftsToStockAdjustmentLines(lines, adjustment.adjustment_type);
-      if (payloadLines.length === 0) {
-        onError("Add at least one line item before saving.");
-        return;
-      }
-
-      const updated = await updateStockAdjustment(adjustment.uuid, { lines: payloadLines });
-      const nextDrafts = buildInitialDrafts(updated.lines);
+      const payloadLines = draftsToStockAdjustmentLines(
+        lines,
+        adjustment.adjustment_type,
+      );
+      const updated = await updateStockAdjustment(adjustment.uuid, {
+        lines: payloadLines,
+      });
+      const nextDrafts = preserveStockAdjustmentProductNames(
+        buildInitialDrafts(updated.lines),
+        lines,
+      );
       setDraftLines(nextDrafts);
       setSavedSnapshot(serializeStockAdjustmentDraftLines(nextDrafts));
       setEditingRowKey(null);
       setActiveRowKey(null);
       onUpdated(updated);
     },
-    [adjustment.adjustment_type, adjustment.uuid, onError, onUpdated],
+    [adjustment.adjustment_type, adjustment.uuid, onUpdated],
   );
 
   const saveChanges = useCallback(async () => {
@@ -231,7 +194,9 @@ export function useStockAdjustmentLinesEditor({
     try {
       await persistDraftLines(draftLines);
     } catch (error) {
-      onError(error instanceof Error ? error.message : "Could not save line items.");
+      onError(
+        error instanceof Error ? error.message : "Could not save line items.",
+      );
     } finally {
       setIsSaving(false);
     }
@@ -249,8 +214,7 @@ export function useStockAdjustmentLinesEditor({
     setActiveRowKey,
     updateLine,
     addLine,
-    discardNewLine,
-    confirmRow,
+    removeLine,
     discardChanges,
     saveChanges,
     adjustmentType: adjustment.adjustment_type as AdjustmentType,

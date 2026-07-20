@@ -4,7 +4,6 @@ import { ClipboardList } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
-import { AddActionButton } from "@/components/ui/app-buttons";
 import { FabButton } from "@/components/ui/fab-button";
 import { ROUTES } from "@/constants/routes";
 import {
@@ -88,7 +87,9 @@ export function StockAdjustmentsListPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
         onCreated={(adjustment) =>
-          router.push(`${ROUTES.inventoryStockAdjustmentDetail(adjustment.uuid)}?add-lines=1`)
+          router.push(
+            `${ROUTES.inventoryStockAdjustmentDetail(adjustment.uuid)}?add-lines=1`,
+          )
         }
       />
 
@@ -121,20 +122,14 @@ export function StockAdjustmentsListPage() {
             onSearchChange={setSearch}
             onSearchSubmit={handleSearchSubmit}
             onClearSearch={handleClearSearch}
-            onRefresh={() => void reload()}
             filters={
               <InventoryFiltersSheet
                 variant="stock-adjustments"
                 filters={sheetFilters}
                 isLoading={isRefreshing}
-                onApply={(filters) => handleFiltersApply(filters as typeof sheetFilters)}
-              />
-            }
-            primaryAction={
-              <AddActionButton
-                label="New adjustment"
-                className="hidden sm:inline-flex"
-                onClick={handleCreate}
+                onApply={(filters) =>
+                  handleFiltersApply(filters as typeof sheetFilters)
+                }
               />
             }
           />
@@ -160,7 +155,10 @@ export function StockAdjustmentsListPage() {
         isFilteredEmpty={isFilteredEmpty}
         filteredEmptyTitle="No matching stock adjustments"
       >
-        <StockAdjustmentsTable adjustments={items} onRowClick={handleRowClick} />
+        <StockAdjustmentsTable
+          adjustments={items}
+          onRowClick={handleRowClick}
+        />
         <InventoryListPagination
           page={page}
           pageSize={pageSize}

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  formatDisplayDate,
+  formatDisplayDateTime,
   formatDocumentTypeLabel,
   formatInternalOrderStatusLabel,
   formatInventoryAmount,
@@ -31,6 +33,18 @@ describe("format-inventory", () => {
   it("formats inventory amounts", () => {
     expect(formatInventoryAmount("1250.5", "KES")).toContain("KES");
     expect(formatInventoryAmount(null)).toBe("—");
+  });
+
+  it("formats date-only values without inventing a local clock time", () => {
+    expect(formatDisplayDate("2026-07-19")).toMatch(/Jul/);
+    expect(formatDisplayDateTime("2026-07-19")).toBe(formatDisplayDate("2026-07-19"));
+    expect(formatDisplayDateTime("2026-07-19")).not.toMatch(/02:00|2:00/);
+  });
+
+  it("formats full timestamps with local clock time", () => {
+    const formatted = formatDisplayDateTime("2026-07-19T14:35:00Z");
+    expect(formatted).toMatch(/Jul/);
+    expect(formatted).toMatch(/\d/);
   });
 });
 

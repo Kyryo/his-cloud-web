@@ -14,10 +14,11 @@ export function isPurchaseOrderOwner(
 }
 
 export function getVisiblePurchaseOrderDocumentActions(
-  order: Pick<PurchaseOrder, "status" | "created_by">,
+  order: Pick<PurchaseOrder, "status" | "created_by" | "allow_self_approval">,
   userId: number | null | undefined,
 ): PurchaseOrderDocumentActionKey[] {
   const owner = isPurchaseOrderOwner(order, userId);
+  const allowSelfApproval = Boolean(order.allow_self_approval);
 
   if (order.status === "DRAFT" && owner) {
     return ["cancel", "submit"];
@@ -25,10 +26,10 @@ export function getVisiblePurchaseOrderDocumentActions(
 
   if (order.status === "SUBMITTED") {
     if (owner) {
-      return ["cancel"];
+      return allowSelfApproval ? ["cancel", "approve"] : ["cancel"];
     }
 
-    if (!owner && order.created_by != null) {
+    if (order.created_by != null) {
       return ["reject", "approve"];
     }
   }

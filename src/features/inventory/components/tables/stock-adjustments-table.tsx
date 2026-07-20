@@ -1,5 +1,6 @@
 "use client";
 
+import { TableEntityCell } from "@/components/table-text-cell";
 import { StockAdjustmentStatusBadge } from "@/features/inventory/components/InventoryStatusBadge";
 import {
   InventoryListTable,
@@ -29,14 +30,25 @@ const columns: InventoryListTableColumn<StockAdjustment>[] = [
     render: (item) => <StockAdjustmentStatusBadge status={item.status} />,
   },
   {
-    key: "reason",
-    label: "Reason",
-    render: (item) => item.reason ?? "—",
+    key: "location",
+    label: "Location",
+    render: (item) => item.location_name?.trim() || `Location ${item.location}`,
   },
   {
-    key: "updated",
-    label: "Updated",
-    render: (item) => formatDisplayDateTime(item.updated_at),
+    key: "created_by",
+    label: "Created by",
+    render: (item) => {
+      const creatorName = item.created_by_name?.trim();
+      if (!creatorName) {
+        return <TableEntityCell name="" unassigned unassignedLabel="Unknown" />;
+      }
+      return <TableEntityCell name={creatorName} />;
+    },
+  },
+  {
+    key: "created_at",
+    label: "Created at",
+    render: (item) => formatDisplayDateTime(item.created_at),
   },
 ];
 

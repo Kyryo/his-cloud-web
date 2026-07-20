@@ -18,6 +18,7 @@ import {
 } from "@/features/inventory/schemas/internal-order.schema";
 import { createInternalOrder } from "@/features/inventory/services/internal-orders.service";
 import type { InternalOrder } from "@/features/inventory/types/inventory.types";
+import { useEnterEscapeShortcuts } from "@/hooks/use-enter-escape-shortcuts";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
@@ -86,6 +87,15 @@ export function CreateInternalOrderDialog({
 
   const isSubmitting = form.formState.isSubmitting;
 
+  // Enter submits like the primary footer button; Escape closes via the dialog.
+  useEnterEscapeShortcuts({
+    enabled: open,
+    isBusy: isSubmitting,
+    onEnter: () => {
+      void handleSubmit();
+    },
+  });
+
   return (
     <TabbedDialog
       open={open}
@@ -115,10 +125,10 @@ export function CreateInternalOrderDialog({
             {isSubmitting ? (
               <>
                 <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                Creating...
+                Saving...
               </>
             ) : (
-              "Create internal order"
+              "Save"
             )}
           </PrimaryButton>
         </>

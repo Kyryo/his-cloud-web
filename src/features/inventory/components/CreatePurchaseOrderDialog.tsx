@@ -201,10 +201,10 @@ export function CreatePurchaseOrderDialog({
               {isSubmitting ? (
                 <>
                   <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                  Creating...
+                  Saving...
                 </>
               ) : (
-                "Create purchase order"
+                "Save"
               )}
             </PrimaryButton>
           )}

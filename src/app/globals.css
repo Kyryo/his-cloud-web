@@ -68,6 +68,13 @@
     @apply bg-background font-sans text-foreground antialiased;
   }
 
+  /* Radix portals (Select, Dialog, Popover) render outside the (app) layout div.
+     When --font-dm-sans is loaded, use it so portaled UI matches the dashboard. */
+  [data-radix-popper-content-wrapper],
+  [data-radix-select-viewport] {
+    font-family: var(--font-dm-sans, inherit);
+  }
+
   a[href],
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]) {

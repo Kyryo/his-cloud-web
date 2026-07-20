@@ -46,8 +46,10 @@ const actionSuccessTitles: Record<InternalOrderAction, string> = {
   cancel: "Internal order cancelled",
 };
 
-const actionSuccessDescriptions: Record<InternalOrderAction, string> = {
-  submit: "Awaiting approval from another team member.",
+const actionSuccessDescriptions: Record<
+  Exclude<InternalOrderAction, "submit">,
+  string
+> = {
   approve: "This order can now be dispatched.",
   reject: "The order has been returned to the owner as rejected.",
   dispatch: "Stock has been marked as dispatched from the source location.",
@@ -55,7 +57,9 @@ const actionSuccessDescriptions: Record<InternalOrderAction, string> = {
   cancel: "This order can no longer be edited or submitted.",
 };
 
-export function InternalOrderDetailPage({ orderUuid }: InternalOrderDetailPageProps) {
+export function InternalOrderDetailPage({
+  orderUuid,
+}: InternalOrderDetailPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { toast } = useToast();
@@ -63,34 +67,51 @@ export function InternalOrderDetailPage({ orderUuid }: InternalOrderDetailPagePr
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updateOpen, setUpdateOpen] = useState(false);
-  const [linesEditorState, setLinesEditorState] = useState<LinesEditorState | null>(null);
+  const [linesEditorState, setLinesEditorState] =
+    useState<LinesEditorState | null>(null);
   const autoAddLine = searchParams.get("add-lines") === "1";
 
   useAppBreadcrumb(order?.reference_number ?? null);
 
-  const loadOrder = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const data = await fetchInternalOrder(orderUuid);
-      setOrder(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load internal order.");
-    } finally {
-      setIsLoading(false);
-    }
-  }, [orderUuid]);
-
   useEffect(() => {
+    let cancelled = false;
+
+    async function loadOrder() {
+      try {
+        const data = await fetchInternalOrder(orderUuid);
+        if (!cancelled) {
+          setOrder(data);
+          setError(null);
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(
+            err instanceof Error
+              ? err.message
+              : "Failed to load internal order.",
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
     void loadOrder();
-  }, [loadOrder]);
+    return () => {
+      cancelled = true;
+    };
+  }, [orderUuid]);
 
   useEffect(() => {
     if (!order || !autoAddLine) {
       return;
     }
 
-    router.replace(ROUTES.inventoryInternalOrderDetail(order.uuid), { scroll: false });
+    router.replace(ROUTES.inventoryInternalOrderDetail(order.uuid), {
+      scroll: false,
+    });
   }, [autoAddLine, order, router]);
 
   const handleAction = useCallback(
@@ -98,15 +119,27 @@ export function InternalOrderDetailPage({ orderUuid }: InternalOrderDetailPagePr
       try {
         const updated = await runInternalOrderAction(orderUuid, action);
         setOrder(updated);
+        const description =
+          action === "submit"
+            ? updated.allow_self_approval
+              ? "You can approve this order yourself, or wait for another team member."
+              : "Awaiting approval from another team member."
+            : action === "approve" && updated.status === "RECEIVED"
+              ? "Stock was dispatched and received at the destination location."
+              : actionSuccessDescriptions[action];
         toast({
-          title: actionSuccessTitles[action],
-          description: actionSuccessDescriptions[action],
+          title:
+            action === "approve" && updated.status === "RECEIVED"
+              ? "Internal order approved and received"
+              : actionSuccessTitles[action],
+          description,
           variant: "success",
         });
       } catch (err) {
         toast({
           title: "Action could not be completed",
-          description: err instanceof Error ? err.message : "Something went wrong.",
+          description:
+            err instanceof Error ? err.message : "Something went wrong.",
           variant: "error",
         });
       }
@@ -127,16 +160,21 @@ export function InternalOrderDetailPage({ orderUuid }: InternalOrderDetailPagePr
       linesEditorState?.draftLines ??
       order.lines.map((line) => ({
         key: String(line.id ?? line.product_id),
-        product_id: line.product_id,
+        product_id: line.product_id ?? null,
+        product_uuid: line.product_uuid ?? null,
         productName: line.product_name ?? null,
         quantity: String(line.quantity),
+        quantityAvailable: line.quantity_available ?? null,
         batch: line.batch ?? null,
       }));
 
     return validateInternalOrderLinesForSubmit(linesToValidate);
   }, [linesEditorState, order]);
 
-  const handleBeforeSubmit = useCallback(() => submitValidationMessage, [submitValidationMessage]);
+  const handleBeforeSubmit = useCallback(
+    () => submitValidationMessage,
+    [submitValidationMessage],
+  );
 
   const handleLinesError = useCallback(
     (message: string) => {

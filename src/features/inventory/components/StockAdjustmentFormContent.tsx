@@ -76,7 +76,7 @@ export function StockAdjustmentFormContent({
                 {...field}
                 id="sa-reason"
                 rows={2}
-                placeholder="Optional reason for this adjustment"
+                placeholder="Reason for this adjustment"
               />
             </FormControl>
             <FormMessage />

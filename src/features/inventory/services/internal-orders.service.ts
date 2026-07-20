@@ -1,10 +1,11 @@
 import { BFF_INVENTORY_ROUTES } from "@/constants/api";
 import type {
   InternalOrder,
-  InternalOrderLine,
   InternalOrderListResponse,
+  InventoryProduct,
   InventoryListFilters,
 } from "@/features/inventory/types/inventory.types";
+import type { InternalOrderLinePayload } from "@/features/inventory/types/internal-order-line-draft";
 import { buildInventoryQuery } from "@/features/inventory/utils/inventory-query";
 import { bffRequest } from "@/lib/bff-client";
 
@@ -12,7 +13,7 @@ export type InternalOrderPayload = {
   source_location: number;
   destination_location: number;
   notes?: string | null;
-  lines?: InternalOrderLine[];
+  lines?: InternalOrderLinePayload[];
   is_active?: boolean;
 };
 
@@ -35,6 +36,20 @@ export async function fetchInternalOrders(
 export async function fetchInternalOrder(uuid: string): Promise<InternalOrder> {
   return bffRequest<InternalOrder>(
     BFF_INVENTORY_ROUTES.internalOrders.detail(uuid),
+  );
+}
+
+export async function searchInternalOrderAvailableProducts(
+  uuid: string,
+  query: string,
+): Promise<InventoryProduct[]> {
+  const params = new URLSearchParams();
+  if (query.trim()) {
+    params.set("q", query.trim());
+  }
+  const suffix = params.size ? `?${params.toString()}` : "";
+  return bffRequest<InventoryProduct[]>(
+    `${BFF_INVENTORY_ROUTES.internalOrders.availableProducts(uuid)}${suffix}`,
   );
 }
 

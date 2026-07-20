@@ -146,5 +146,7 @@ export type UpdateSalesOrderPaymentSplitPayload = {
 };
 
 export type UpdateSalesOrderLinePayload = {
+  quantity?: number | string;
+  name?: string;
   tariff_code?: string | null;
 };

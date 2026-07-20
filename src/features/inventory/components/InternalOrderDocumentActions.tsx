@@ -39,13 +39,14 @@ type InternalOrderDocumentActionsProps = {
 function getConfirmCopy(
   action: PendingAction,
   referenceNumber: string,
+  isSelfApproval: boolean,
 ): { title: string; description: string; confirmLabel: string } {
   switch (action) {
     case "submit":
       return {
         title: "Submit internal order?",
         description: `Submit ${referenceNumber} for review. Line items cannot be edited after submitting.`,
-        confirmLabel: "Submit order",
+        confirmLabel: "Yes, submit",
       };
     case "cancel":
       return {
@@ -54,10 +55,17 @@ function getConfirmCopy(
         confirmLabel: "Cancel order",
       };
     case "approve":
+      if (isSelfApproval) {
+        return {
+          title: "Approve and complete internal order?",
+          description: `Approve ${referenceNumber}, dispatch its stock, and confirm receipt at the destination location.`,
+          confirmLabel: "Approve and complete",
+        };
+      }
       return {
         title: "Approve internal order?",
         description: `Approve ${referenceNumber} so it can be dispatched.`,
-        confirmLabel: "Approve order",
+        confirmLabel: "Yes, approve",
       };
     case "reject":
       return {
@@ -69,13 +77,13 @@ function getConfirmCopy(
       return {
         title: "Dispatch internal order?",
         description: `Mark stock as dispatched from the source location for ${referenceNumber}.`,
-        confirmLabel: "Dispatch order",
+        confirmLabel: "Yes, dispatch",
       };
     case "receive":
       return {
         title: "Receive internal order?",
         description: `Post stock into the destination location for ${referenceNumber}.`,
-        confirmLabel: "Receive order",
+        confirmLabel: "Yes, receive",
       };
   }
 }
@@ -88,8 +96,11 @@ export function InternalOrderDocumentActions({
 }: InternalOrderDocumentActionsProps) {
   const { toast } = useToast();
   const { userData } = useUser();
-  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
-  const [loadingAction, setLoadingAction] = useState<InternalOrderAction | null>(null);
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(
+    null,
+  );
+  const [loadingAction, setLoadingAction] =
+    useState<InternalOrderAction | null>(null);
 
   const visibleActions = useMemo(
     () => getVisibleInternalOrderDocumentActions(order, userData?.id),
@@ -111,8 +122,13 @@ export function InternalOrderDocumentActions({
   }
 
   const isBusy = loadingAction !== null;
+  const isSelfApproval =
+    pendingAction === "approve" &&
+    order.allow_self_approval === true &&
+    order.created_by != null &&
+    order.created_by === userData?.id;
   const pendingCopy = pendingAction
-    ? getConfirmCopy(pendingAction, order.reference_number)
+    ? getConfirmCopy(pendingAction, order.reference_number, isSelfApproval)
     : null;
 
   function openPendingAction(action: PendingAction) {
@@ -245,7 +261,7 @@ export function InternalOrderDocumentActions({
               disabled={isBusy}
               onClick={() => setPendingAction(null)}
             >
-              Keep editing
+              No, keep editing
             </SecondaryButton>
             {pendingAction === "cancel" || pendingAction === "reject" ? (
               <DestructiveButton

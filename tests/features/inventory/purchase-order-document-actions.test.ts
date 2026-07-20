@@ -43,6 +43,32 @@ describe("getVisiblePurchaseOrderDocumentActions", () => {
     ).toEqual(["cancel"]);
   });
 
+  it("shows approve to the owner when self-approval is enabled", () => {
+    expect(
+      getVisiblePurchaseOrderDocumentActions(
+        {
+          status: "SUBMITTED",
+          created_by: 7,
+          allow_self_approval: true,
+        },
+        7,
+      ),
+    ).toEqual(["cancel", "approve"]);
+  });
+
+  it("keeps reject hidden for owners even when self-approval is enabled", () => {
+    expect(
+      getVisiblePurchaseOrderDocumentActions(
+        {
+          status: "SUBMITTED",
+          created_by: 7,
+          allow_self_approval: true,
+        },
+        7,
+      ),
+    ).not.toContain("reject");
+  });
+
   it("shows approve and reject to non-owners when submitted", () => {
     expect(
       getVisiblePurchaseOrderDocumentActions(

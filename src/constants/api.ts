@@ -229,6 +229,8 @@ export const BFF_INVENTORY_ROUTES = {
   internalOrders: {
     list: "/api/inventory/internal-orders",
     detail: (uuid: string) => `/api/inventory/internal-orders/${uuid}`,
+    availableProducts: (uuid: string) =>
+      `/api/inventory/internal-orders/${uuid}/available-products`,
     action: (uuid: string, action: string) =>
       `/api/inventory/internal-orders/${uuid}/${action}`,
   },
@@ -242,6 +244,7 @@ export const BFF_INVENTORY_ROUTES = {
     list: "/api/inventory/clinic-configurations",
     detail: (uuid: string) => `/api/inventory/clinic-configurations/${uuid}`,
   },
+  tenantConfiguration: "/api/inventory/tenant-configuration",
   workflows: {
     list: "/api/inventory/workflows",
     detail: (uuid: string) => `/api/inventory/workflows/${uuid}`,
@@ -255,6 +258,24 @@ export const BFF_INVENTORY_ROUTES = {
     detail: (uuid: string) => `/api/inventory/approval-records/${uuid}`,
   },
   locations: "/api/inventory/locations",
+} as const;
+
+/** Browser-facing BFF pharmacy/dispensation routes. */
+export const BFF_DISPENSATION_ROUTES = {
+  queue: {
+    list: "/api/dispensations/queue",
+    detail: (salesOrderUuid: string) =>
+      `/api/dispensations/queue/${salesOrderUuid}`,
+  },
+  list: "/api/dispensations",
+  detail: (uuid: string) => `/api/dispensations/${uuid}`,
+  batch: "/api/dispensations/batch",
+  configurations: {
+    list: "/api/dispensation-configurations",
+    detail: (uuid: string) => `/api/dispensation-configurations/${uuid}`,
+    forClinic: (clinicId: number) =>
+      `/api/dispensation-configurations/for-clinic/${clinicId}`,
+  },
 } as const;
 
 /** Browser-facing BFF onboarding routes (same origin). */
