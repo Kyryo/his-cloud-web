@@ -80,7 +80,7 @@ export function DispenseSelectedDialog({
     async function loadLocations() {
       setIsLoadingLocations(true);
       try {
-        const response = await fetchInventoryLocations(clinicId);
+        const response = await fetchInventoryLocations(clinicId ?? undefined);
         if (!cancelled) {
           setLocations(response.results);
         }
