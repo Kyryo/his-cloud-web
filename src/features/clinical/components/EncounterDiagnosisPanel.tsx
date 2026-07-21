@@ -19,7 +19,7 @@ import {
   deleteEncounterDiagnosis,
   fetchEncounterDiagnoses,
 } from "@/features/clinical/services/clinical-diagnosis.service";
-import type { EncounterDiagnosis } from "@/features/clinical/types/clinical-diagnosis.types";
+import type { EncounterDiagnosis, EncounterDiagnosisSourcePlatform } from "@/features/clinical/types/clinical-diagnosis.types";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
@@ -29,6 +29,7 @@ import { useToast } from "@/providers/toast-provider";
 type EncounterDiagnosisPanelProps = {
   visitUuid: string | null;
   encounterUuid: string | null;
+  sourcePlatform?: EncounterDiagnosisSourcePlatform;
   onDiagnosesChanged?: () => void | Promise<void>;
   className?: string;
 };
@@ -36,6 +37,7 @@ type EncounterDiagnosisPanelProps = {
 export function EncounterDiagnosisPanel({
   visitUuid,
   encounterUuid,
+  sourcePlatform = "CLINICAL",
   onDiagnosesChanged,
   className,
 }: EncounterDiagnosisPanelProps) {
@@ -230,6 +232,7 @@ export function EncounterDiagnosisPanel({
         visitUuid={visitUuid}
         encounterUuid={encounterUuid}
         isPrimaryDefault={diagnoses.length === 0}
+        sourcePlatform={sourcePlatform}
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
         onSuccess={handleDiagnosesChanged}

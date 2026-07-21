@@ -27,7 +27,10 @@ export async function createEncounterDiagnosis(
     BFF_CLINICAL_DIAGNOSIS_ROUTES.encounterDiagnoses(visitUuid, encounterUuid),
     {
       method: "POST",
-      body: payload,
+      body: {
+        ...payload,
+        source_platform: payload.source_platform ?? "CLINICAL",
+      },
     },
   );
   return data.diagnosis;
