@@ -40,6 +40,7 @@ export const BFF_VISITS_ROUTES = {
   create: "/api/visits",
   detail: (uuid: string) => `/api/visits/${uuid}`,
   modeOfPayment: (uuid: string) => `/api/visits/${uuid}/mode-of-payment`,
+  preAuthorization: (uuid: string) => `/api/visits/${uuid}/pre-authorization`,
   end: (uuid: string) => `/api/visits/${uuid}/end`,
   reopen: (uuid: string) => `/api/visits/${uuid}/reopen`,
   fromAppointment: (appointmentUuid: string) =>

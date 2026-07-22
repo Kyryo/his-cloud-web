@@ -91,6 +91,12 @@ export type UpdateVisitPaymentModePayload = {
   insurance_scheme?: string | null;
 };
 
+export type UpdateVisitPreAuthorizationPayload = {
+  requires_pre_authorization: boolean;
+  pre_authorization_number: string;
+  pre_authorization_comments: string;
+};
+
 export type VisitEncounterCreatePayload = {
   department: string;
   location?: string | null;

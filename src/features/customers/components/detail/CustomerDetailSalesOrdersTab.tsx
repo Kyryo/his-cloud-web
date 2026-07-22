@@ -21,16 +21,9 @@ import {
 } from "@/features/customers/services/customer-billing.service";
 import type { CustomerSalesOrderRecord } from "@/features/customers/types/customer-billing.types";
 import type { Customer } from "@/features/customers/types/customer.types";
-import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
-import {
-  SalesOrderInvoiceStatusBadge,
-  SalesOrderStateBadge,
-} from "@/features/sales-orders/components/SalesOrderStatusBadge";
 import { formatSalesOrderAmount } from "@/features/sales-orders/utils/format-sales-order";
-import type {
-  SalesOrderInvoiceStatus,
-  SalesOrderState,
-} from "@/features/sales-orders/types/sales-order.types";
+import { formatSalesOrderStateLabel } from "@/features/sales-orders/utils/sales-order-status";
+import type { SalesOrderState } from "@/features/sales-orders/types/sales-order.types";
 import { formatCompactNumber } from "@/utils/format-compact-number";
 
 const SALES_ORDERS_PAGE_SIZE = 20;
@@ -39,22 +32,28 @@ const STAT_CARD_CLASS = "border-brand-border bg-white shadow-none";
 type CustomerDetailSalesOrdersTabProps = {
   customer: Customer;
   isActive: boolean;
+  refreshKey?: number;
 };
 
+function formatSalesOrderTitle(order: CustomerSalesOrderRecord) {
+  const statusLabel = formatSalesOrderStateLabel(order.state as SalesOrderState);
+  return `${statusLabel} order number ${order.name}`;
+}
+
 function formatSalesOrderMeta(order: CustomerSalesOrderRecord) {
-  return [
-    formatSalesOrderAmount(order.amount_total, "MWK"),
-    order.invoice_status
-      ? order.invoice_status.replace(/_/g, " ")
-      : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
+  const statusLabel = formatSalesOrderStateLabel(order.state as SalesOrderState);
+  return (
+    <>
+      <p>{formatSalesOrderAmount(order.amount_total, "MWK")}</p>
+      <p>{statusLabel}</p>
+    </>
+  );
 }
 
 export function CustomerDetailSalesOrdersTab({
   customer,
   isActive,
+  refreshKey = 0,
 }: CustomerDetailSalesOrdersTabProps) {
   const router = useRouter();
   const [orders, setOrders] = useState<CustomerSalesOrderRecord[]>([]);
@@ -101,12 +100,12 @@ export function CustomerDetailSalesOrdersTab({
   );
 
   useEffect(() => {
-    if (!isActive || hasLoaded) {
+    if (!isActive) {
       return;
     }
 
     void loadOrders(0, false);
-  }, [hasLoaded, isActive, loadOrders]);
+  }, [isActive, loadOrders, refreshKey]);
 
   if (!isActive) {
     return null;
@@ -184,28 +183,23 @@ export function CustomerDetailSalesOrdersTab({
             ) : null
           }
         >
-          {orders.map((order) => (
-            <CustomerDetailRecordListItem
-              key={order.id}
-              compact
-              title={order.name}
-              badges={
-                <>
-                  <SalesOrderStateBadge state={order.state as SalesOrderState} />
-                  {order.invoice_status ? (
-                    <SalesOrderInvoiceStatusBadge
-                      status={order.invoice_status as SalesOrderInvoiceStatus}
-                    />
-                  ) : null}
-                </>
-              }
-              description={formatSalesOrderMeta(order)}
-              dateTime={formatDisplayDateTime(order.date_order)}
-              onUpdate={() => router.push(ROUTES.salesOrderDetail(order.id))}
-              updateLabel="View order"
-              data-testid={`customer-sales-order-${order.id}`}
-            />
-          ))}
+          {orders.map((order) => {
+            const openOrder = () => router.push(ROUTES.salesOrderDetail(order.id));
+
+            return (
+              <CustomerDetailRecordListItem
+                key={order.id}
+                compact
+                title={formatSalesOrderTitle(order)}
+                description={formatSalesOrderMeta(order)}
+                dateTime={order.date_order}
+                onRowClick={openOrder}
+                onUpdate={openOrder}
+                updateLabel="View order"
+                data-testid={`customer-sales-order-${order.id}`}
+              />
+            );
+          })}
         </CustomerDetailRecordList>
       )}
 

@@ -95,7 +95,12 @@ export function DetailRecordListItem({
                 </div>
               ) : null}
             </div>
-            <div className="flex shrink-0 items-start gap-1">
+            <div className="flex shrink-0 items-center gap-1.5">
+              <RecordCreatedByMeta
+                dateTime={dateTime}
+                createdByName={createdByName}
+                createdByEmail={createdByEmail}
+              />
               {onUpdate && !menuActions?.length ? (
                 <SecondaryButton
                   type="button"
@@ -109,11 +114,6 @@ export function DetailRecordListItem({
                   {updateLabel}
                 </SecondaryButton>
               ) : null}
-              <RecordCreatedByMeta
-                dateTime={dateTime}
-                createdByName={createdByName}
-                createdByEmail={createdByEmail}
-              />
               {menuActions?.length ? (
                 <div onClick={(event) => event.stopPropagation()}>
                   <DetailRecordRowMenu actions={menuActions} />

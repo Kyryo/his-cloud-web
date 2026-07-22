@@ -8,6 +8,7 @@ import type {
   FetchVisitsOptions,
   StartVisitFromAppointmentPayload,
   UpdateVisitPaymentModePayload,
+  UpdateVisitPreAuthorizationPayload,
   VisitDetail,
   VisitEncounter,
   VisitEncounterCreatePayload,
@@ -97,6 +98,16 @@ export async function updateVisitPaymentMode(
   payload: UpdateVisitPaymentModePayload,
 ): Promise<VisitDetail> {
   return bffRequest<VisitDetail>(BFF_VISITS_ROUTES.modeOfPayment(uuid), {
+    method: "PATCH",
+    body: payload,
+  });
+}
+
+export async function updateVisitPreAuthorization(
+  uuid: string,
+  payload: UpdateVisitPreAuthorizationPayload,
+): Promise<VisitDetail> {
+  return bffRequest<VisitDetail>(BFF_VISITS_ROUTES.preAuthorization(uuid), {
     method: "PATCH",
     body: payload,
   });

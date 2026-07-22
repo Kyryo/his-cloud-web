@@ -68,6 +68,12 @@
     @apply bg-background font-sans text-foreground antialiased;
   }
 
+  /* Native controls: brand teal instead of browser-default blue */
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--color-brand-primary);
+  }
+
   /* Radix portals (Select, Dialog, Popover) render outside the (app) layout div.
      When --font-dm-sans is loaded, use it so portaled UI matches the dashboard. */
   [data-radix-popper-content-wrapper],

@@ -33,6 +33,7 @@ import { formatDisplayDateTime } from "@/features/customers/utils/format-custome
 import { formatVisitStartedBy } from "@/features/customers/utils/format-visit-started-by";
 import { EditVisitPaymentDialog } from "@/features/visits/components/EditVisitPaymentDialog";
 import { OpenEncountersCloseNotice } from "@/features/visits/components/OpenEncountersCloseNotice";
+import { VisitPreAuthorizationTab } from "@/features/visits/components/VisitPreAuthorizationTab";
 import {
   closeVisit,
   fetchVisit,
@@ -53,10 +54,11 @@ type VisitDetailDialogProps = {
   onVisitUpdated?: () => void;
 };
 
-type VisitDetailTab = "overview" | "encounters";
+type VisitDetailTab = "overview" | "preauth" | "encounters";
 
 const TABS = [
   { id: "overview" as const, label: "Overview" },
+  { id: "preauth" as const, label: "Preauth" },
   { id: "encounters" as const, label: "Encounters" },
 ];
 
@@ -404,6 +406,15 @@ export function VisitDetailDialog({
                 </dl>
               </section>
             </div>
+          ) : activeTab === "preauth" ? (
+            <VisitPreAuthorizationTab
+              key={visit.uuid}
+              visit={visit}
+              onUpdated={(updatedVisit) => {
+                setVisit(updatedVisit);
+                onVisitUpdated?.();
+              }}
+            />
           ) : (
             <section className="overflow-hidden rounded-xl border border-brand-border bg-white">
               <div className="border-b border-brand-border px-4 py-3">

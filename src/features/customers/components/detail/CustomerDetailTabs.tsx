@@ -89,6 +89,7 @@ export function CustomerDetailTabs({
           <CustomerDetailSalesOrdersTab
             customer={customer}
             isActive={activeTab === "orders"}
+            refreshKey={visitsRefreshKey}
           />
           <CustomerDetailInvoicesTab
             customer={customer}
