@@ -16,6 +16,7 @@ import {
   formatSalesOrderInsuranceLabel,
   formatSalesOrderInsuranceNumber,
 } from "@/features/sales-orders/utils/format-sales-order-insurance";
+import { formatSalesOrderProvidersLabel } from "@/features/sales-orders/utils/sales-order-provider";
 import { formatSalesOrderStateLabel } from "@/features/sales-orders/utils/sales-order-status";
 import {
   formatSalesOrderInsurerDueLabel,
@@ -231,8 +232,8 @@ export async function downloadSalesOrderPdf(order: SalesOrder): Promise<void> {
   const orderDetails: string[] = [
     `Pricelist: ${order.pricelist_name?.trim() || "—"}`,
   ];
-  if (order.provider_name?.trim()) {
-    orderDetails.push(`Provider: ${order.provider_name}`);
+  if (order.provider_name?.trim() || (order.providers && order.providers.length > 0)) {
+    orderDetails.push(`Provider: ${formatSalesOrderProvidersLabel(order)}`);
   }
   if (order.client_order_ref?.trim()) {
     orderDetails.push(`Reference: ${order.client_order_ref}`);

@@ -40,14 +40,15 @@ const columns = [
 ] as const;
 
 function SalesOrderProviderCell({ order }: { order: SalesOrder }) {
-  const providerName = order.provider_name?.trim();
+  const label = formatSalesOrderProvider(order);
+  const unassigned = label === "Unassigned";
 
   return (
     <TableEntityCell
-      name={providerName ?? "?"}
-      label={providerName ?? undefined}
-      unassigned={!providerName}
-      unassignedLabel={formatSalesOrderProvider(order)}
+      name={unassigned ? "?" : label}
+      label={unassigned ? undefined : label}
+      unassigned={unassigned}
+      unassignedLabel={label}
     />
   );
 }

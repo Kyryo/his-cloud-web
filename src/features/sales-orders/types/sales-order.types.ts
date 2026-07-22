@@ -15,6 +15,14 @@ export type SalesOrderInvoiceStatus =
   | "upselling"
   | string;
 
+export type SalesOrderProviderAssociation = {
+  id: number;
+  name: string;
+  user_id?: number | null;
+  has_user?: boolean;
+  is_primary: boolean;
+};
+
 export type SalesOrder = {
   id: number;
   name: string;
@@ -39,6 +47,7 @@ export type SalesOrder = {
   provider_name: string | null;
   provider_user_id?: number | null;
   provider_has_user?: boolean;
+  providers?: SalesOrderProviderAssociation[];
   insurance_scheme_id: number | null;
   insurance_scheme_uuid?: string | null;
   insurance_scheme_name: string | null;
@@ -74,6 +83,8 @@ export type SalesOrderLine = {
   has_excess?: boolean;
   excess_amount?: string | number | null;
   pricing_rule_snapshot?: Record<string, unknown> | null;
+  provider_id?: number | null;
+  provider_name?: string | null;
 };
 
 export type SalesOrderInvoice = {
@@ -123,6 +134,7 @@ export type CreateSalesOrderPayload = {
 
 export type UpdateSalesOrderPayload = {
   provider_id?: number | null;
+  provider_ids?: number[];
 };
 
 export type CreateSalesOrderLinePayload = {
@@ -132,6 +144,7 @@ export type CreateSalesOrderLinePayload = {
   price_unit?: number | string;
   name?: string;
   tariff_code?: string | null;
+  provider_id?: number | null;
 };
 
 export type UpdateSalesOrderLinePricePayload = {
@@ -149,4 +162,5 @@ export type UpdateSalesOrderLinePayload = {
   quantity?: number | string;
   name?: string;
   tariff_code?: string | null;
+  provider_id?: number | null;
 };

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 
 import { EditButton } from "@/components/ui/edit-button";
@@ -23,6 +22,7 @@ import {
   formatSalesOrderDate,
   formatSalesOrderDateTime,
   formatSalesOrderPricelist,
+  formatSalesOrderProvider,
 } from "@/features/sales-orders/utils/format-sales-order";
 import {
   formatSalesOrderInsuranceLabel,
@@ -38,7 +38,6 @@ import {
   sumSalesOrderClientDue,
   sumSalesOrderInsurerDue,
 } from "@/features/sales-orders/utils/sum-sales-order-billing";
-import { ROUTES } from "@/constants/routes";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { cn } from "@/lib/utils";
@@ -70,20 +69,7 @@ export function SalesOrderSummaryPanel({
   const canEditSplit = showPaymentSplit && canEditSalesOrderLines(order.state);
   const insurerDueLabel = formatSalesOrderInsurerDueLabel(order);
 
-  const providerValue = order.provider_name?.trim() ? (
-    order.provider_has_user && order.provider_user_id ? (
-      <Link
-        href={ROUTES.settingsUserManagement}
-        className="text-brand-primary hover:underline"
-      >
-        {order.provider_name}
-      </Link>
-    ) : (
-      order.provider_name
-    )
-  ) : (
-    "—"
-  );
+  const providerValue = formatSalesOrderProvider(order);
 
   async function handleSaveSplit(values: {
     client_due: string;

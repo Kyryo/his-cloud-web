@@ -1,4 +1,5 @@
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
+import { formatSalesOrderProvidersLabel } from "@/features/sales-orders/utils/sales-order-provider";
 
 export function formatOptionalString(
   value: string | number | null | undefined,
@@ -28,10 +29,8 @@ export function formatSalesOrderPricelist(
   return formatOptionalString(order.pricelist_name, "No pricelist");
 }
 
-export function formatSalesOrderProvider(
-  order: Pick<SalesOrder, "provider_name">,
-): string {
-  return formatOptionalString(order.provider_name, "Unassigned");
+export function formatSalesOrderProvider(order: SalesOrder): string {
+  return formatSalesOrderProvidersLabel(order);
 }
 
 export function formatAmountNumber(
