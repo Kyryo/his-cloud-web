@@ -28,7 +28,10 @@ type CustomerDetailTabsProps = {
   customer: Customer;
   onUpdateClick: () => void;
   visitsRefreshKey?: number;
+  billingRefreshKey?: number;
   onVisitChanged?: () => void;
+  onOpeningBalanceUpdated?: (customer: Customer) => void;
+  onBillingUpdated?: () => void;
 };
 
 type DetailTabId =
@@ -61,7 +64,10 @@ export function CustomerDetailTabs({
   customer,
   onUpdateClick,
   visitsRefreshKey = 0,
+  billingRefreshKey = 0,
   onVisitChanged,
+  onOpeningBalanceUpdated,
+  onBillingUpdated,
 }: CustomerDetailTabsProps) {
   const [activeTab, setActiveTab] = useState<DetailTabId>("summary");
   const [showSummaryPanel, setShowSummaryPanel] = useState(false);
@@ -85,6 +91,7 @@ export function CustomerDetailTabs({
           <CustomerDetailSummaryTab
             customer={customer}
             isActive={activeTab === "summary"}
+            billingRefreshKey={billingRefreshKey}
           />
           <CustomerDetailSalesOrdersTab
             customer={customer}
@@ -127,6 +134,9 @@ export function CustomerDetailTabs({
         <CustomerSummaryPanel
           customer={customer}
           onUpdateClick={onUpdateClick}
+          billingRefreshKey={billingRefreshKey}
+          onOpeningBalanceUpdated={onOpeningBalanceUpdated}
+          onBillingUpdated={onBillingUpdated}
           className={cn(!showSummaryPanel && "hidden xl:block")}
         />
       </DetailPageMainAsideGrid>

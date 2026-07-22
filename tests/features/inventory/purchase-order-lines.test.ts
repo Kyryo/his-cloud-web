@@ -263,7 +263,7 @@ describe("purchase-order-line-draft utils", () => {
           unit_cost: "0",
         },
       ]),
-    ).toContain("greater than zero");
+    ).toContain("Unit cost is required and can't be zero.");
   });
 
   it("requires at least one line item before submit", () => {

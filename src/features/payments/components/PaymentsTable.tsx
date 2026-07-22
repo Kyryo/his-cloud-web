@@ -10,6 +10,7 @@ import {
   formatPaymentCustomer,
   formatPaymentDate,
   formatPaymentMethod,
+  formatPaymentAllocationLabel,
 } from "@/features/payments/utils/format-payment";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
@@ -23,7 +24,7 @@ type PaymentsTableProps = {
 const columns = [
   { key: "payment", label: "Payment" },
   { key: "customer", label: "Customer" },
-  { key: "invoice", label: "Invoice" },
+  { key: "invoice", label: "Allocation" },
   { key: "date", label: "Payment date" },
   { key: "method", label: "Method" },
   { key: "state", label: "State" },
@@ -55,7 +56,7 @@ export function PaymentsTable({ payments, onRowClick, className }: PaymentsTable
             {payments.map((payment) => {
               const paymentLabel = payment.name || `#${payment.id}`;
               const customerName = formatPaymentCustomer(payment);
-              const invoiceLabel = payment.invoice_name || `#${payment.invoice_id}`;
+              const allocationLabel = formatPaymentAllocationLabel(payment);
 
               return (
                 <tr
@@ -85,13 +86,15 @@ export function PaymentsTable({ payments, onRowClick, className }: PaymentsTable
                       <Link
                         href={ROUTES.invoiceDetail(payment.invoice_id)}
                         className="block max-w-[12rem] truncate text-sm text-brand-slate hover:text-brand-primary hover:underline"
-                        title={invoiceLabel}
+                        title={allocationLabel}
                         onClick={(event) => event.stopPropagation()}
                       >
-                        {invoiceLabel}
+                        {allocationLabel}
                       </Link>
                     ) : (
-                      <TableTextCell className="text-brand-slate">—</TableTextCell>
+                      <TableTextCell className="text-brand-slate">
+                        {allocationLabel}
+                      </TableTextCell>
                     )}
                   </td>
                   <td className="px-4 py-3">

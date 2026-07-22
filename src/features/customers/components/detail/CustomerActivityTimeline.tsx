@@ -6,6 +6,7 @@ import {
   NotebookPen,
   Shield,
   UserRound,
+  Wallet,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 
@@ -28,6 +29,7 @@ const ACTION_ICONS: Record<string, LucideIcon> = {
   CUSTOMER_CREATED: UserRound,
   CUSTOMER_UPDATED: UserRound,
   CUSTOMER_ARCHIVED: UserRound,
+  OPENING_BALANCE_UPDATED: Wallet,
   INSURANCE_ADDED: Shield,
   INSURANCE_UPDATED: Shield,
   INSURANCE_ARCHIVED: Shield,

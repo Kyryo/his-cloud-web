@@ -27,6 +27,7 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [visitsRefreshKey, setVisitsRefreshKey] = useState(0);
+  const [billingRefreshKey, setBillingRefreshKey] = useState(0);
 
   useAppBreadcrumb(customer ? formatCustomerName(customer) : null);
 
@@ -100,7 +101,12 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
         customer={customer}
         onUpdateClick={() => setUpdateDialogOpen(true)}
         visitsRefreshKey={visitsRefreshKey}
+        billingRefreshKey={billingRefreshKey}
         onVisitChanged={() => setVisitsRefreshKey((current) => current + 1)}
+        onOpeningBalanceUpdated={handleCustomerUpdated}
+        onBillingUpdated={() =>
+          setBillingRefreshKey((current) => current + 1)
+        }
       />
       <UpdateCustomerDialog
         customer={customer}

@@ -24,7 +24,7 @@ describe("sales order list filters", () => {
     ).toEqual({
       page: 1,
       pageSize: 20,
-      name: "S00081",
+      search: "S00081",
       state: "sale",
       invoiceStatus: "invoiced",
       dateFrom: "2024-01-01",

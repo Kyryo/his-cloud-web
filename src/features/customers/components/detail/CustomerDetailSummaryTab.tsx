@@ -34,6 +34,7 @@ const SUMMARY_STAT_CARD_CLASS = "border-brand-border bg-white shadow-none";
 type CustomerDetailSummaryTabProps = {
   customer: Customer;
   isActive: boolean;
+  billingRefreshKey?: number;
 };
 
 type SummaryStats = {
@@ -119,6 +120,7 @@ function StatCardCurrencyValue({
 export function CustomerDetailSummaryTab({
   customer,
   isActive,
+  billingRefreshKey = 0,
 }: CustomerDetailSummaryTabProps) {
   const [stats, setStats] = useState<SummaryStats | null>(null);
   const [encounters, setEncounters] = useState<CustomerEncounter[]>([]);
@@ -251,6 +253,42 @@ export function CustomerDetailSummaryTab({
       cancelled = true;
     };
   }, [customer.uuid, hasLoaded, isActive, stats?.isBillingLoading]);
+
+  useEffect(() => {
+    if (!isActive || !hasLoaded || billingRefreshKey === 0) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      const billingResult = await fetchCustomerBillingSummary(customer.uuid).catch(
+        () => null,
+      );
+
+      if (cancelled || !billingResult) {
+        return;
+      }
+
+      const billingCounts = extractCustomerBillingCounts(billingResult);
+      setStats((current) =>
+        current
+          ? {
+              ...current,
+              salesOrders: billingCounts.salesOrders,
+              invoices: billingCounts.invoices,
+              totals: billingResult.totals,
+              billingUnavailable: false,
+              isBillingLoading: false,
+            }
+          : current,
+      );
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [billingRefreshKey, customer.uuid, hasLoaded, isActive]);
 
   if (!isActive) {
     return null;

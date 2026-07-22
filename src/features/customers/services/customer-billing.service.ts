@@ -7,6 +7,7 @@ import type {
   CustomerSalesOrdersResponse,
   FetchCustomerBillingListOptions,
 } from "@/features/customers/types/customer-billing.types";
+import type { Customer } from "@/features/customers/types/customer.types";
 import { bffRequest } from "@/lib/bff-client";
 
 const SUMMARY_BILLING_QUERY =
@@ -20,6 +21,16 @@ export async function fetchCustomerBillingSummary(
   return bffRequest<CustomerBillingSummary>(
     `${BFF_CUSTOMERS_ROUTES.billing(customerUuid)}${SUMMARY_BILLING_QUERY}`,
   );
+}
+
+export async function updateCustomerOpeningBalance(
+  customerUuid: string,
+  openingBalance: string,
+): Promise<Customer> {
+  return bffRequest<Customer>(BFF_CUSTOMERS_ROUTES.openingBalance(customerUuid), {
+    method: "PATCH",
+    body: { opening_balance: openingBalance },
+  });
 }
 
 function buildBillingQuery(

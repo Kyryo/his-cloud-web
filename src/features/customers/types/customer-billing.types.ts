@@ -28,6 +28,9 @@ export type CustomerSalesOrderRecord = {
 };
 
 export type CustomerBillingTotals = {
+  opening_balance: number | string;
+  opening_balance_paid?: number | string;
+  opening_balance_remaining?: number | string;
   total_sales: number | string;
   total_invoiced: number | string;
   total_paid: number | string;
@@ -54,6 +57,9 @@ export type CustomerPaymentRecord = {
   payment_method?: string | null;
   customer_id?: number;
   customer_name?: string | null;
+  invoice_id?: number | null;
+  invoice_name?: string | null;
+  applies_to_opening_balance?: boolean;
 };
 
 export type CustomerBillingSummary = {

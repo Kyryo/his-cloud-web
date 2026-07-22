@@ -48,6 +48,12 @@ describe("sales-order-line-draft", () => {
           quantity: "1",
           price_unit: "10",
           price_total: null,
+          client_due: null,
+          insurer_due: null,
+          isCoPayment: false,
+          originalPriceUnit: null,
+          adjustedClientDue: null,
+          adjustedInsurerDue: null,
         },
       ]),
     );

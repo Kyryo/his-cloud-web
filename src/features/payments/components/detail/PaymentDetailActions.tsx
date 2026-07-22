@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { fetchInvoice } from "@/features/invoices/services/invoices.service";
 import { getInvoiceOutstandingBalance } from "@/features/invoices/utils/sum-invoice-billing";
+import { fetchCustomerBillingSummary } from "@/features/customers/services/customer-billing.service";
 import { EditPaymentDialog } from "@/features/payments/components/EditPaymentDialog";
 import { SendReceiptEmailDialog } from "@/features/payments/components/SendReceiptEmailDialog";
 import { cancelPayment } from "@/features/payments/services/payments.service";
@@ -52,21 +53,25 @@ export function PaymentDetailActions({
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [sendReceiptOpen, setSendReceiptOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
-  const [invoiceResidual, setInvoiceResidual] = useState<number | null>(null);
+  const [maxEditableAmount, setMaxEditableAmount] = useState<number | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
 
   const invoiceCancelled =
     String(payment.invoice_state || "").toLowerCase() === "cancel";
   const paymentCancelled = String(payment.state || "").toLowerCase() === "cancel";
-  const canEdit = Boolean(payment.invoice_id) && !invoiceCancelled && !paymentCancelled;
+  const isOpeningBalancePayment = Boolean(payment.applies_to_opening_balance);
+  const canEdit =
+    (Boolean(payment.invoice_id) || isOpeningBalancePayment) &&
+    !invoiceCancelled &&
+    !paymentCancelled;
 
   const canCancel = payment.can_cancel ?? !paymentCancelled;
   const cancelBlockReason = payment.cancel_block_reason ?? undefined;
 
   const editBlockReason = (() => {
-    if (!payment.invoice_id) {
-      return "This payment is not linked to an invoice.";
+    if (!payment.invoice_id && !isOpeningBalancePayment) {
+      return "This payment is not linked to an invoice or opening balance.";
     }
     if (invoiceCancelled) {
       return "Payments on cancelled invoices cannot be edited.";
@@ -78,7 +83,7 @@ export function PaymentDetailActions({
   })();
 
   useEffect(() => {
-    if (!editOpen || !payment.invoice_id) {
+    if (!editOpen) {
       return;
     }
 
@@ -86,13 +91,39 @@ export function PaymentDetailActions({
 
     void (async () => {
       try {
-        const invoice = await fetchInvoice(payment.invoice_id!);
+        if (isOpeningBalancePayment) {
+          if (!payment.customer_uuid) {
+            if (!cancelled) {
+              setMaxEditableAmount(Number(payment.amount || 0));
+            }
+            return;
+          }
+          const billing = await fetchCustomerBillingSummary(payment.customer_uuid);
+          const remaining = Number(billing.totals.opening_balance_remaining ?? 0);
+          if (!cancelled) {
+            setMaxEditableAmount(
+              (Number.isFinite(remaining) ? remaining : 0) + Number(payment.amount || 0),
+            );
+          }
+          return;
+        }
+
+        if (!payment.invoice_id) {
+          if (!cancelled) {
+            setMaxEditableAmount(Number(payment.amount || 0));
+          }
+          return;
+        }
+
+        const invoice = await fetchInvoice(payment.invoice_id);
         if (!cancelled) {
-          setInvoiceResidual(getInvoiceOutstandingBalance(invoice));
+          setMaxEditableAmount(
+            getInvoiceOutstandingBalance(invoice) + Number(payment.amount || 0),
+          );
         }
       } catch {
         if (!cancelled) {
-          setInvoiceResidual(0);
+          setMaxEditableAmount(Number(payment.amount || 0));
         }
       }
     })();
@@ -100,10 +131,15 @@ export function PaymentDetailActions({
     return () => {
       cancelled = true;
     };
-  }, [editOpen, payment.invoice_id]);
+  }, [
+    editOpen,
+    isOpeningBalancePayment,
+    payment.amount,
+    payment.customer_uuid,
+    payment.invoice_id,
+  ]);
 
-  const maxAmount =
-    (invoiceResidual ?? 0) + Number(payment.amount || 0);
+  const maxAmount = maxEditableAmount ?? Number(payment.amount || 0);
 
   async function handleDownloadReceipt() {
     setIsDownloadingPdf(true);

@@ -67,3 +67,18 @@ export function toRecordPaymentPayload(
     note: values.note.trim() || undefined,
   };
 }
+
+export function toRecordOpeningBalancePaymentPayload(
+  customer: { id: number; uuid: string },
+  values: RecordPaymentFormValues,
+) {
+  return {
+    customerId: customer.id,
+    customerUuid: customer.uuid,
+    appliesToOpeningBalance: true as const,
+    amount: values.amount.trim(),
+    paymentMethod: values.paymentMethod.trim(),
+    paymentDate: values.paymentDate,
+    note: values.note.trim() || undefined,
+  };
+}

@@ -31,7 +31,7 @@ describe("sales-orders.service", () => {
     await fetchSalesOrders({
       page: 2,
       pageSize: 20,
-      name: "S00081",
+      search: "S00081",
       state: "sale",
       invoiceStatus: "to invoice",
       dateFrom: "2024-01-01",
@@ -39,7 +39,7 @@ describe("sales-orders.service", () => {
     });
 
     expect(bffRequest).toHaveBeenCalledWith(
-      `${BFF_SALES_ORDERS_ROUTES.list}?page=2&page_size=20&name=S00081&state=sale&invoice_status=to+invoice&date_from=2024-01-01&date_to=2024-12-31`,
+      `${BFF_SALES_ORDERS_ROUTES.list}?page=2&page_size=20&search=S00081&state=sale&invoice_status=to+invoice&date_from=2024-01-01&date_to=2024-12-31`,
     );
   });
 

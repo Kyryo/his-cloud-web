@@ -13,6 +13,7 @@ import {
 import type { Payment } from "@/features/payments/types/payment.types";
 import {
   formatPaymentAmount,
+  formatPaymentAllocationLabel,
   formatPaymentCustomer,
   formatPaymentDate,
   formatPaymentMethod,
@@ -67,19 +68,21 @@ export function PaymentSummaryPanel({
         {payment.note?.trim() ? (
           <DetailPageAsideSummaryField label="Notes" value={payment.note} />
         ) : null}
-        {payment.invoice_id ? (
-          <DetailPageAsideSummaryField
-            label="Invoice"
-            value={
+        <DetailPageAsideSummaryField
+          label="Allocation"
+          value={
+            payment.invoice_id ? (
               <Link
                 href={ROUTES.invoiceDetail(payment.invoice_id)}
                 className="text-brand-primary hover:underline"
               >
-                {payment.invoice_name || `#${payment.invoice_id}`}
+                {formatPaymentAllocationLabel(payment)}
               </Link>
-            }
-          />
-        ) : null}
+            ) : (
+              formatPaymentAllocationLabel(payment)
+            )
+          }
+        />
       </DetailPageAsideSummarySection>
     </DetailPageAsidePanelSection>
   );

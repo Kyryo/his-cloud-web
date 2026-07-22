@@ -147,6 +147,9 @@ export function CustomerDetailPaymentsTab({
               badges={<PaymentStatusBadge state={payment.state as PaymentState} />}
               description={[
                 formatInvoiceAmount(payment.amount),
+                payment.applies_to_opening_balance
+                  ? "Opening balance"
+                  : payment.invoice_name || null,
                 payment.payment_method,
               ]
                 .filter(Boolean)

@@ -1,8 +1,10 @@
 "use client";
 
+import { AddActionButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
+  ListPageHeaderActions,
   ListPageHeaderMobileSearch,
   ListPageHeaderSection,
   ListPageHeaderTitleBlock,
@@ -15,6 +17,9 @@ type PaymentsPageHeaderProps = {
   onSearchChange: (value: string) => void;
   onSearchSubmit: () => void;
   onClearSearch: () => void;
+  onRecordPayment?: () => void;
+  isRecordPaymentDisabled?: boolean;
+  recordPaymentDisabledReason?: string;
 };
 
 export function PaymentsPageHeader({
@@ -23,6 +28,9 @@ export function PaymentsPageHeader({
   onSearchChange,
   onSearchSubmit,
   onClearSearch,
+  onRecordPayment,
+  isRecordPaymentDisabled = false,
+  recordPaymentDisabledReason,
 }: PaymentsPageHeaderProps) {
   return (
     <ListPageHeaderSection>
@@ -31,6 +39,22 @@ export function PaymentsPageHeader({
           title="Payments"
           description="Review customer payments recorded against invoices."
         />
+
+        {onRecordPayment ? (
+          <ListPageHeaderActions>
+            <AddActionButton
+              label="Record payment"
+              showIcon={false}
+              className="hidden shrink-0 self-start sm:inline-flex"
+              disabled={isRecordPaymentDisabled}
+              title={
+                isRecordPaymentDisabled ? recordPaymentDisabledReason : undefined
+              }
+              onClick={onRecordPayment}
+              data-testid="payments-record-payment-button"
+            />
+          </ListPageHeaderActions>
+        ) : null}
       </ListPageHeaderTopRow>
       <ListPageHeaderMobileSearch>
         <Input
@@ -53,6 +77,19 @@ export function PaymentsPageHeader({
           <Button type="button" variant="outline" className="w-full" disabled={isSearchDisabled} onClick={onClearSearch}>
             Clear
           </Button>
+        ) : null}
+        {onRecordPayment ? (
+          <AddActionButton
+            label="Record payment"
+            showIcon={false}
+            className="w-full sm:hidden"
+            disabled={isRecordPaymentDisabled}
+            title={
+              isRecordPaymentDisabled ? recordPaymentDisabledReason : undefined
+            }
+            onClick={onRecordPayment}
+            data-testid="payments-record-payment-button-mobile"
+          />
         ) : null}
       </ListPageHeaderMobileSearch>
     </ListPageHeaderSection>

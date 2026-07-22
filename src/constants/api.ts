@@ -22,6 +22,7 @@ export const BFF_CUSTOMERS_ROUTES = {
   insuranceDetail: (customerUuid: string, insuranceUuid: string) =>
     `/api/customers/${customerUuid}/insurance/${insuranceUuid}`,
   billing: (uuid: string) => `/api/customers/${uuid}/billing`,
+  openingBalance: (uuid: string) => `/api/customers/${uuid}/opening-balance`,
   visits: (uuid: string, query?: { limit?: number }) => {
     const params = new URLSearchParams();
     if (query?.limit) {

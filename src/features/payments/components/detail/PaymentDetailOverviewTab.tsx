@@ -6,6 +6,7 @@ import { PaymentStatusBadge } from "@/features/payments/components/PaymentStatus
 import type { Payment } from "@/features/payments/types/payment.types";
 import {
   formatPaymentAmount,
+  formatPaymentAllocationLabel,
   formatPaymentCustomer,
   formatPaymentDate,
   formatPaymentMethod,
@@ -35,7 +36,7 @@ export function PaymentDetailOverviewTab({
             <PaymentStatusBadge state={payment.state} />
           </div>
           <p className="mt-0.5 text-xs text-brand-muted">
-            Reference, amount, and linked invoice for this payment.
+            Reference, amount, and allocation for this payment.
           </p>
         </div>
         <div className="p-4">
@@ -51,16 +52,16 @@ export function PaymentDetailOverviewTab({
                 value: payment.note?.trim() ? payment.note : "—",
               },
               {
-                label: "Invoice",
+                label: "Allocation",
                 value: payment.invoice_id ? (
                   <Link
                     href={ROUTES.invoiceDetail(payment.invoice_id)}
                     className="text-brand-primary hover:underline"
                   >
-                    {payment.invoice_name || `#${payment.invoice_id}`}
+                    {formatPaymentAllocationLabel(payment)}
                   </Link>
                 ) : (
-                  "—"
+                  formatPaymentAllocationLabel(payment)
                 ),
               },
             ]}

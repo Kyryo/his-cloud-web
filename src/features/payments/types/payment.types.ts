@@ -16,6 +16,7 @@ export type Payment = {
   payment_date: string | null;
   payment_method?: string | null;
   note?: string | null;
+  applies_to_opening_balance?: boolean;
   recorded_by_name?: string | null;
   recorded_by_email?: string | null;
   can_cancel?: boolean;
@@ -41,7 +42,10 @@ export type SendPaymentReceiptPayload = {
 };
 
 export type CreatePaymentPayload = {
-  invoiceId: number;
+  invoiceId?: number;
+  customerId?: number;
+  customerUuid?: string;
+  appliesToOpeningBalance?: boolean;
   amount: string;
   paymentMethod?: string;
   paymentDate?: string;

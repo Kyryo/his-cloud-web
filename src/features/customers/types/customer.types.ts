@@ -18,6 +18,7 @@ export type Customer = {
   dob: string;
   dob_is_estimated: boolean;
   age: number;
+  opening_balance?: number | string;
   has_synced_to_openmrs: boolean;
   is_active: boolean;
   visit_status: CustomerVisitStatus;

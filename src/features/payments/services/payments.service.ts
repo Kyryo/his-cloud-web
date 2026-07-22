@@ -61,6 +61,9 @@ export async function createPayment(payload: CreatePaymentPayload): Promise<Paym
     method: "POST",
     body: {
       invoice_id: payload.invoiceId,
+      customer_id: payload.customerId,
+      customer_uuid: payload.customerUuid,
+      applies_to_opening_balance: payload.appliesToOpeningBalance,
       amount: payload.amount,
       payment_method: payload.paymentMethod,
       payment_date: payload.paymentDate,

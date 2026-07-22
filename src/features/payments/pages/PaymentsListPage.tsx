@@ -4,6 +4,9 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { PageLoader } from "@/components/page-loader";
+import { RecordOpeningBalancePaymentDialog } from "@/features/customers/components/detail/RecordOpeningBalancePaymentDialog";
+import { fetchCustomerBillingSummary } from "@/features/customers/services/customer-billing.service";
+import type { Customer } from "@/features/customers/types/customer.types";
 import { PaymentListToolbar } from "@/features/payments/components/PaymentListToolbar";
 import { PaymentsPageHeader } from "@/features/payments/components/PaymentsPageHeader";
 import {
@@ -24,11 +27,23 @@ import {
   ListPageLayout,
   ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
+import { useUser } from "@/providers/user-provider";
 
 const DEFAULT_PAGE_SIZE = 20;
 
+function parseBillingAmount(value: number | string | null | undefined): number {
+  if (value === null || value === undefined || value === "") {
+    return 0;
+  }
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount : 0;
+}
+
 export function PaymentsListPage() {
   const router = useRouter();
+  const { userData } = useUser();
+  const isBillingUser = (userData?.groups ?? []).includes("Billing");
+
   const [payments, setPayments] = useState<Payment[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
@@ -40,6 +55,10 @@ export function PaymentsListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [remainingOpeningBalance, setRemainingOpeningBalance] = useState(0);
+  const [isLoadingRemaining, setIsLoadingRemaining] = useState(false);
 
   const listFilters = useMemo(
     () =>
@@ -51,6 +70,21 @@ export function PaymentsListPage() {
       }),
     [activeSearch, filters, page],
   );
+
+  const reloadPayments = useCallback(async () => {
+    setIsRefreshing(true);
+    setError(null);
+    try {
+      const response = await fetchPayments(listFilters);
+      setPayments(response.results);
+      setTotalCount(response.pagination?.count ?? response.results.length);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load payments.");
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  }, [listFilters]);
 
   useEffect(() => {
     let cancelled = false;
@@ -81,6 +115,41 @@ export function PaymentsListPage() {
     };
   }, [listFilters]);
 
+  useEffect(() => {
+    if (!recordPaymentOpen || !selectedCustomer) {
+      setRemainingOpeningBalance(0);
+      setIsLoadingRemaining(false);
+      return;
+    }
+
+    let cancelled = false;
+    setIsLoadingRemaining(true);
+
+    void (async () => {
+      try {
+        const billing = await fetchCustomerBillingSummary(selectedCustomer.uuid);
+        if (cancelled) {
+          return;
+        }
+        setRemainingOpeningBalance(
+          parseBillingAmount(billing.totals?.opening_balance_remaining),
+        );
+      } catch {
+        if (!cancelled) {
+          setRemainingOpeningBalance(0);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingRemaining(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [recordPaymentOpen, selectedCustomer]);
+
   const handleSearchSubmit = useCallback(() => {
     setIsRefreshing(true);
     setActiveSearch(search.trim());
@@ -93,6 +162,15 @@ export function PaymentsListPage() {
     setActiveSearch("");
     setPage(1);
   }, []);
+
+  function handleRecordPaymentOpenChange(open: boolean) {
+    setRecordPaymentOpen(open);
+    if (!open) {
+      setSelectedCustomer(null);
+      setRemainingOpeningBalance(0);
+      setIsLoadingRemaining(false);
+    }
+  }
 
   if (isLoading) {
     return <PageLoader message="Loading payments..." />;
@@ -110,6 +188,7 @@ export function PaymentsListPage() {
         onSearchChange={setSearch}
         onSearchSubmit={handleSearchSubmit}
         onClearSearch={handleClearSearch}
+        onRecordPayment={() => setRecordPaymentOpen(true)}
       />
 
       {!hasNoRecords ? (
@@ -162,6 +241,20 @@ export function PaymentsListPage() {
           </>
         )}
       </ListPageTableSection>
+
+      <RecordOpeningBalancePaymentDialog
+        customer={selectedCustomer}
+        remainingBalance={remainingOpeningBalance}
+        open={recordPaymentOpen}
+        canRecord={isBillingUser}
+        showCustomerPicker
+        isLoadingRemaining={isLoadingRemaining}
+        onCustomerChange={setSelectedCustomer}
+        onOpenChange={handleRecordPaymentOpenChange}
+        onRecorded={() => {
+          void reloadPayments();
+        }}
+      />
     </ListPageLayout>
   );
 }

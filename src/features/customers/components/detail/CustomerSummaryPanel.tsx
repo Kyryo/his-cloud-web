@@ -7,6 +7,7 @@ import {
   DetailPageAsideSummaryField,
   DetailPageAsideSummarySection,
 } from "@/features/app-shell/components/page-layout";
+import { CustomerAccountSummaryCard } from "@/features/customers/components/detail/CustomerAccountSummaryCard";
 import type { Customer } from "@/features/customers/types/customer.types";
 import {
   formatAdaptiveAge,
@@ -17,12 +18,18 @@ import {
 type CustomerSummaryPanelProps = {
   customer: Customer;
   onUpdateClick: () => void;
+  billingRefreshKey?: number;
+  onOpeningBalanceUpdated?: (customer: Customer) => void;
+  onBillingUpdated?: () => void;
   className?: string;
 };
 
 export function CustomerSummaryPanel({
   customer,
   onUpdateClick,
+  billingRefreshKey = 0,
+  onOpeningBalanceUpdated,
+  onBillingUpdated,
   className,
 }: CustomerSummaryPanelProps) {
   const fullName = formatCustomerName(customer);
@@ -32,7 +39,14 @@ export function CustomerSummaryPanel({
     <DetailPageAsidePanelSection className={className}>
       <DetailPageAsidePanelHeader
         title="Client Summary"
-        description="Client profile details"
+        description="Account and profile details"
+      />
+
+      <CustomerAccountSummaryCard
+        customer={customer}
+        refreshKey={billingRefreshKey}
+        onOpeningBalanceUpdated={onOpeningBalanceUpdated}
+        onBillingUpdated={onBillingUpdated}
       />
 
       <DetailPageAsideSummarySection
