@@ -13,7 +13,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { fetchClinicalClinics } from "@/features/clinical/services/clinical-catalog.service";
+import { fetchInsuranceSchemes } from "@/features/customers/services/insurance-schemes.service";
 import type { InsightsFilters, InsightsPeriod } from "@/features/reports/types/insights.types";
+import {
+  paymentSourceFilterToFilters,
+  paymentSourceFilterValue,
+} from "@/features/reports/utils/insights-filters";
 
 type OverviewPeriodFiltersProps = {
   filters: InsightsFilters;
@@ -28,6 +33,14 @@ export function OverviewPeriodFilters({
     Array<{ value: string; label: string }>
   >([{ value: "all", label: "All clinics" }]);
   const [isLoadingClinics, setIsLoadingClinics] = useState(true);
+  const [paymentSourceOptions, setPaymentSourceOptions] = useState<
+    Array<{ value: string; label: string }>
+  >([
+    { value: "all", label: "All sources" },
+    { value: "cash", label: "Cash" },
+    { value: "insurance", label: "All insurance" },
+  ]);
+  const [isLoadingSchemes, setIsLoadingSchemes] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,6 +65,46 @@ export function OverviewPeriodFilters({
       } finally {
         if (!cancelled) {
           setIsLoadingClinics(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const schemes = await fetchInsuranceSchemes();
+        if (cancelled) {
+          return;
+        }
+        setPaymentSourceOptions([
+          { value: "all", label: "All sources" },
+          { value: "cash", label: "Cash" },
+          { value: "insurance", label: "All insurance" },
+          ...schemes.map((scheme) => ({
+            value: scheme.uuid,
+            label: scheme.insurance_company_name
+              ? `${scheme.name} · ${scheme.insurance_company_name}`
+              : scheme.name,
+          })),
+        ]);
+      } catch {
+        if (!cancelled) {
+          setPaymentSourceOptions([
+            { value: "all", label: "All sources" },
+            { value: "cash", label: "Cash" },
+            { value: "insurance", label: "All insurance" },
+          ]);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingSchemes(false);
         }
       }
     })();
@@ -116,6 +169,19 @@ export function OverviewPeriodFilters({
               ...filters,
               clinicUuid: value === "all" ? undefined : value,
             })
+          }
+        />
+      </div>
+      <div className="w-64">
+        <FilterSelectField
+          id="insights-payment-source"
+          label="Payment source"
+          value={paymentSourceFilterValue(filters)}
+          disabled={isLoadingSchemes}
+          placeholder={isLoadingSchemes ? "Loading sources..." : "All sources"}
+          options={paymentSourceOptions}
+          onValueChange={(value) =>
+            onChange(paymentSourceFilterToFilters(filters, value))
           }
         />
       </div>

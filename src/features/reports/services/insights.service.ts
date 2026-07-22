@@ -7,7 +7,10 @@ import type {
 } from "@/features/reports/types/insights.types";
 import { bffRequest } from "@/lib/bff-client";
 
-function buildInsightsQuery(filters: InsightsFilters, extra?: Record<string, string>): string {
+function buildInsightsQuery(
+  filters: InsightsFilters,
+  extra?: Record<string, string>,
+): string {
   const params = new URLSearchParams();
   params.set("date_from", filters.dateFrom);
   params.set("date_to", filters.dateTo);
@@ -16,6 +19,12 @@ function buildInsightsQuery(filters: InsightsFilters, extra?: Record<string, str
   }
   if (filters.clinicUuid) {
     params.set("clinic_uuid", filters.clinicUuid);
+  }
+  if (filters.paymentMode) {
+    params.set("payment_mode", filters.paymentMode);
+  }
+  if (filters.insuranceSchemeUuid) {
+    params.set("insurance_scheme_uuid", filters.insuranceSchemeUuid);
   }
   if (extra) {
     for (const [key, value] of Object.entries(extra)) {

@@ -8,7 +8,8 @@ const FORWARDED_KEYS = [
   "date_to",
   "period",
   "clinic_uuid",
-  "limit",
+  "payment_mode",
+  "insurance_scheme_uuid",
 ] as const;
 
 function buildQuery(request: Request): string {

@@ -44,7 +44,7 @@ export function AppointmentsListToolbar({
         <Input
           id="appointments-search"
           type="search"
-          placeholder="Search by client, clinic, or department..."
+          placeholder="Search by name, ID, phone, clinic, or department..."
           value={search}
           disabled={isLoading}
           className="w-full sm:max-w-md"

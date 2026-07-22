@@ -1,10 +1,16 @@
 export type InsightsPeriod = "day" | "week" | "month";
 
+export type InsightsPaymentMode = "cash" | "insurance";
+
 export type InsightsFilters = {
   dateFrom: string;
   dateTo: string;
   period?: InsightsPeriod;
   clinicUuid?: string;
+  /** Cash / insurance / scheme filter shared by all overview charts. */
+  paymentMode?: InsightsPaymentMode;
+  /** Specific payer scheme filter shared by all overview charts. */
+  insuranceSchemeUuid?: string;
 };
 
 export type SalesActivityPoint = {

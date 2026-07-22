@@ -1,13 +1,12 @@
 "use client";
 
-import { Building2, Plus, Search } from "lucide-react";
+import { Plus, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { PageLoader } from "@/components/page-loader";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -31,7 +30,6 @@ import {
   ListPageHeaderTopRow,
   ListPageLayout,
   ListPagePagination,
-  ListPageStatsSection,
   ListPageTableSection,
   ListPageToolbarActions,
   ListPageToolbarSearch,
@@ -40,15 +38,12 @@ import {
 import { PlatformAdminStatusBadge } from "@/features/platform-admin/components/PlatformAdminStatusBadge";
 import { PlatformAdminStatusDialog } from "@/features/platform-admin/components/PlatformAdminStatusDialog";
 import { PlatformAdminTenantDialog } from "@/features/platform-admin/components/PlatformAdminTenantDialog";
-import { PlatformAdminUsageBadge } from "@/features/platform-admin/components/PlatformAdminUsageBadge";
 import {
   createPlatformAdminTenant,
-  fetchPlatformAdminDashboard,
   fetchPlatformAdminTenants,
   updatePlatformAdminTenantStatus,
 } from "@/features/platform-admin/services/platform-admin.service";
 import type {
-  PlatformAdminDashboard,
   PlatformAdminTenant,
   PlatformAdminTenantPayload,
   PlatformAdminTenantStatus,
@@ -60,7 +55,6 @@ type ActionStatus = Exclude<PlatformAdminTenantStatus, "PENDING">;
 
 export function PlatformAdminTenantsPage() {
   const router = useRouter();
-  const [dashboard, setDashboard] = useState<PlatformAdminDashboard | null>(null);
   const [tenants, setTenants] = useState<PlatformAdminTenant[]>([]);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
@@ -70,6 +64,7 @@ export function PlatformAdminTenantsPage() {
   const [activeSearch, setActiveSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -90,11 +85,7 @@ export function PlatformAdminTenantsPage() {
   const load = useCallback(async () => {
     setError(null);
     try {
-      const [dashboardData, tenantData] = await Promise.all([
-        fetchPlatformAdminDashboard(),
-        fetchPlatformAdminTenants(listOptions),
-      ]);
-      setDashboard(dashboardData);
+      const tenantData = await fetchPlatformAdminTenants(listOptions);
       setTenants(tenantData.results);
       setTotalCount(tenantData.pagination?.count ?? tenantData.results.length);
       setHasNext(Boolean(tenantData.pagination?.next));
@@ -103,6 +94,7 @@ export function PlatformAdminTenantsPage() {
       setError(err instanceof Error ? err.message : "Unable to load tenants.");
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
     }
   }, [listOptions]);
 
@@ -132,6 +124,7 @@ export function PlatformAdminTenantsPage() {
       toast.success("Tenant status updated");
       setStatusTenant(null);
       setNextStatus(null);
+      setIsRefreshing(true);
       await load();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Unable to update status.");
@@ -141,7 +134,7 @@ export function PlatformAdminTenantsPage() {
   }
 
   if (isLoading) {
-    return <PageLoader message="Loading platform admin..." />;
+    return <PageLoader message="Loading tenants..." />;
   }
 
   return (
@@ -150,7 +143,7 @@ export function PlatformAdminTenantsPage() {
         <ListPageHeaderTopRow>
           <ListPageHeaderTitleBlock
             title="Tenants"
-            description="Tenant operations, lifecycle controls, and system health."
+            description="Tenant operations and lifecycle controls."
           />
           <ListPageHeaderActions>
             <Button onClick={() => setCreateOpen(true)}>
@@ -161,31 +154,6 @@ export function PlatformAdminTenantsPage() {
         </ListPageHeaderTopRow>
       </ListPageHeaderSection>
 
-      <ListPageStatsSection>
-        <div className="grid gap-3 md:grid-cols-4">
-          <MetricCard
-            icon={Building2}
-            label="Tenants"
-            value={dashboard?.total_tenants ?? 0}
-          />
-          <MetricCard
-            icon={Building2}
-            label="Clinics"
-            value={dashboard?.total_clinics ?? 0}
-          />
-          <MetricCard
-            icon={Building2}
-            label="Active"
-            value={dashboard?.active_tenants ?? 0}
-          />
-          <MetricCard
-            icon={Building2}
-            label="Suspended"
-            value={dashboard?.suspended_tenants ?? 0}
-          />
-        </div>
-      </ListPageStatsSection>
-
       <ListPageToolbarSection>
         <ListPageToolbarSearch>
           <div className="relative max-w-md flex-1">
@@ -194,6 +162,7 @@ export function PlatformAdminTenantsPage() {
               className="pl-9"
               value={search}
               placeholder="Search tenants"
+              disabled={isRefreshing}
               onChange={(event) => setSearch(event.target.value)}
               onKeyDown={(event) => {
                 if (event.key === "Enter") {
@@ -205,6 +174,7 @@ export function PlatformAdminTenantsPage() {
           </div>
           <Button
             variant="outline"
+            disabled={isRefreshing}
             onClick={() => {
               setPage(1);
               setActiveSearch(search.trim());
@@ -246,7 +216,6 @@ export function PlatformAdminTenantsPage() {
               <ListPageDataTableHeaderCell>Country</ListPageDataTableHeaderCell>
               <ListPageDataTableHeaderCell>Clinics</ListPageDataTableHeaderCell>
               <ListPageDataTableHeaderCell>Locations</ListPageDataTableHeaderCell>
-              <ListPageDataTableHeaderCell>Usage</ListPageDataTableHeaderCell>
               <ListPageDataTableHeaderCell>Users</ListPageDataTableHeaderCell>
               <ListPageDataTableHeaderCell>Actions</ListPageDataTableHeaderCell>
             </ListPageDataTableHeaderRow>
@@ -273,9 +242,6 @@ export function PlatformAdminTenantsPage() {
                 <ListPageDataTableCell>{tenant.country || "Not set"}</ListPageDataTableCell>
                 <ListPageDataTableCell>{tenant.clinic_count}</ListPageDataTableCell>
                 <ListPageDataTableCell>{tenant.location_count}</ListPageDataTableCell>
-                <ListPageDataTableCell>
-                  <PlatformAdminUsageBadge level={tenant.usage_level} />
-                </ListPageDataTableCell>
                 <ListPageDataTableCell>{tenant.user_count}</ListPageDataTableCell>
                 <ListPageDataTableCell>
                   <div className="flex flex-wrap gap-2">
@@ -337,29 +303,5 @@ export function PlatformAdminTenantsPage() {
         onConfirm={handleStatusConfirm}
       />
     </ListPageLayout>
-  );
-}
-
-function MetricCard({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof Building2;
-  label: string;
-  value: number;
-}) {
-  return (
-    <Card className="rounded-lg">
-      <CardContent className="flex items-center gap-3 p-4">
-        <div className="flex size-10 items-center justify-center rounded-md bg-brand-tint text-brand-primary">
-          <Icon className="size-5" />
-        </div>
-        <div>
-          <p className="text-xs font-medium uppercase text-brand-muted">{label}</p>
-          <p className="text-2xl font-semibold text-brand-navy">{value}</p>
-        </div>
-      </CardContent>
-    </Card>
   );
 }
