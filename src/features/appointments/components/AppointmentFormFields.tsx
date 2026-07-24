@@ -321,49 +321,51 @@ export function AppointmentFormFields({
           render={() => (
             <FormItem>
               <FormLabel>
-                End <RequiredFieldMarker />
+                Duration (minutes) <RequiredFieldMarker />
               </FormLabel>
-              <Select
-                value={durationSelectValue}
-                disabled={lockScheduleFields}
-                onValueChange={(value) =>
-                  handleDurationSelectChange(value as AppointmentDurationSelectValue)
-                }
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Duration" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {APPOINTMENT_DURATION_PRESETS.map((minutes) => (
-                    <SelectItem key={minutes} value={String(minutes)}>
-                      {minutes}
-                    </SelectItem>
-                  ))}
-                  <SelectItem value="other">Other</SelectItem>
-                </SelectContent>
-              </Select>
-              {durationSelectValue === "other" ? (
-                <FormControl>
-                  <Input
-                    type="number"
-                    min={1}
-                    max={1440}
-                    inputMode="numeric"
-                    placeholder="Minutes"
-                    className="mt-2"
-                    disabled={lockScheduleFields}
-                    value={
-                      customDurationMinutes ||
-                      (forceCustomDuration ? "" : String(derivedDurationMinutes))
-                    }
-                    onChange={(event) =>
-                      handleCustomDurationChange(event.target.value)
-                    }
-                  />
-                </FormControl>
-              ) : null}
+              <div className="flex items-start gap-2">
+                <Select
+                  value={durationSelectValue}
+                  disabled={lockScheduleFields}
+                  onValueChange={(value) =>
+                    handleDurationSelectChange(value as AppointmentDurationSelectValue)
+                  }
+                >
+                  <FormControl>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Duration" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {APPOINTMENT_DURATION_PRESETS.map((minutes) => (
+                      <SelectItem key={minutes} value={String(minutes)}>
+                        {minutes}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                {durationSelectValue === "other" ? (
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={1440}
+                      inputMode="numeric"
+                      placeholder="Minutes"
+                      className="w-24 shrink-0"
+                      disabled={lockScheduleFields}
+                      value={
+                        customDurationMinutes ||
+                        (forceCustomDuration ? "" : String(derivedDurationMinutes))
+                      }
+                      onChange={(event) =>
+                        handleCustomDurationChange(event.target.value)
+                      }
+                    />
+                  </FormControl>
+                ) : null}
+              </div>
               <FormMessage />
             </FormItem>
           )}
