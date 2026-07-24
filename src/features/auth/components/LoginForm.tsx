@@ -8,6 +8,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useTheme } from "next-themes";
 
+import { PasswordInput } from "@/components/password-input";
 import { StatusBanner } from "@/components/ui/status-banner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -217,10 +218,9 @@ export function LoginForm() {
                 </div>
                 <div>
                   <Label htmlFor="password">Password</Label>
-                  <Input
+                  <PasswordInput
                     id="password"
                     data-testid="login-password"
-                    type="password"
                     autoComplete="current-password"
                     className="mt-1.5 h-11"
                     disabled={credentialsForm.formState.isSubmitting}
