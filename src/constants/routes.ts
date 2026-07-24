@@ -77,6 +77,9 @@ export const ROUTES = {
     "/settings/integrations/masm-eclaims?tab=practitioners",
   reportsOverview: "/reports/overview",
   reportsAnalytics: "/reports/analytics",
+  privacy: "/privacy",
+  terms: "/terms",
+  company: "/company",
   reportsExports: "/reports",
   reportsExportHistory: "/reports/history",
   reportsExportWithType: (type: string) => `/reports?type=${encodeURIComponent(type)}`,
@@ -116,6 +119,9 @@ export const WEB_NEW_ROUTE_PREFIXES = [
   ROUTES.about,
   ROUTES.features,
   ROUTES.services,
+  ROUTES.privacy,
+  ROUTES.terms,
+  ROUTES.company,
 ] as const;
 
 export const PUBLIC_ROUTES = [
@@ -127,6 +133,9 @@ export const PUBLIC_ROUTES = [
   ROUTES.about,
   ROUTES.features,
   ROUTES.services,
+  ROUTES.privacy,
+  ROUTES.terms,
+  ROUTES.company,
 ] as const;
 
 export const AUTH_ROUTES = [ROUTES.auth, ROUTES.signup] as const;

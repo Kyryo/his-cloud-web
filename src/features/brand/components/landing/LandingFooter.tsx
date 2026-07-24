@@ -5,8 +5,8 @@ import { LandingLogo } from "@/features/brand/components/landing/LandingLogo";
 import { BRAND_NAV_LINKS } from "@/features/brand/constants/nav-links";
 
 const LEGAL_LINKS = [
-  { label: "Privacy", href: "/privacy" },
-  { label: "Terms", href: "/terms" },
+  { label: "Privacy Policy", href: ROUTES.privacy },
+  { label: "Terms of Service", href: ROUTES.terms },
 ] as const;
 
 export function LandingFooter() {
@@ -15,7 +15,7 @@ export function LandingFooter() {
   return (
     <footer className="border-t border-[color:var(--landing-border)] bg-white">
       <div className="mx-auto max-w-6xl px-6 py-14 sm:px-10 sm:py-16 lg:px-12">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr] lg:gap-12">
+        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:gap-10">
           <div className="space-y-4 sm:col-span-2 lg:col-span-1">
             <LandingLogo linked={false} imageClassName="h-10 w-auto sm:h-12" />
             <p className="landing-body max-w-sm text-sm leading-[1.7] text-[color:var(--landing-ledger-ink)]">
@@ -77,6 +77,14 @@ export function LandingFooter() {
                   Sign in
                 </Link>
               </li>
+            </ul>
+          </div>
+
+          <div>
+            <p className="landing-body text-sm font-semibold text-[color:var(--landing-ink)]">
+              Legal
+            </p>
+            <ul className="mt-4 space-y-2.5">
               {LEGAL_LINKS.map((link) => (
                 <li key={link.href}>
                   <Link
