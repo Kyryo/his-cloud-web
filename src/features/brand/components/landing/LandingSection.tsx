@@ -3,21 +3,14 @@ import type { ReactNode } from "react";
 import { LandingDottedArcDecor } from "@/features/brand/components/landing/LandingDottedArcDecor";
 import { cn } from "@/lib/utils";
 
-export type LandingSectionVariant =
-  | "clay"
-  | "warm"
-  | "green"
-  | "brandGreen"
-  | "ink"
-  | "white";
+export type LandingSectionVariant = "white" | "muted" | "clay" | "warm";
 
 const VARIANT_CLASSES: Record<LandingSectionVariant, string> = {
-  clay: "bg-[color:var(--landing-clay)]",
-  warm: "bg-[color:var(--landing-warm)]",
-  green: "bg-[color:var(--landing-green-tint)]",
-  brandGreen: "bg-[color:var(--landing-green)] text-white",
-  ink: "bg-[color:var(--landing-ink)] text-white",
   white: "bg-white",
+  muted: "bg-[color:var(--landing-warm)]",
+  /** Aliases kept for older call sites */
+  clay: "bg-[color:var(--landing-warm)]",
+  warm: "bg-white",
 };
 
 type LandingSectionProps = {
@@ -31,7 +24,7 @@ type LandingSectionProps = {
 
 export function LandingSection({
   children,
-  variant = "clay",
+  variant = "white",
   className,
   id,
   withDottedPattern = false,
@@ -40,14 +33,16 @@ export function LandingSection({
     <section
       id={id}
       className={cn(
-        "relative py-20 lg:py-28",
+        "relative py-24 sm:py-28 lg:py-32",
         withDottedPattern && "overflow-hidden",
         VARIANT_CLASSES[variant],
         className,
       )}
     >
       {withDottedPattern ? <LandingDottedArcDecor /> : null}
-      <div className="relative z-10 mx-auto max-w-7xl px-6 sm:px-12">{children}</div>
+      <div className="relative z-10 mx-auto max-w-6xl px-6 sm:px-10 lg:px-12">
+        {children}
+      </div>
     </section>
   );
 }

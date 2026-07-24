@@ -1,79 +1,59 @@
 "use client";
 
 import Link from "next/link";
-import { TbCircleCheck } from "react-icons/tb";
 
-import { LedgerSplitHero } from "@/features/brand/components/landing/LedgerSplitHero";
-import { LandingStatRow } from "@/features/brand/components/landing/LandingStatRow";
+import { LandingProductScreenshot } from "@/features/brand/components/landing/LandingProductScreenshot";
 import { useLandingReveal } from "@/features/brand/hooks/useLandingReveal";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 
-const TRUST_NOTES = [
-  "No card required",
-  "Free setup call included",
-  "Cancel anytime",
-] as const;
+const HERO_SCREENSHOT = "/landing/product-screenshots/client-details.png";
 
 export function HeroSection() {
-  const { ref, isVisible } = useLandingReveal<HTMLElement>({ threshold: 0.08 });
+  const { ref, isVisible } = useLandingReveal<HTMLElement>({ threshold: 0.05 });
 
   return (
     <section
       ref={ref}
       className={cn(
-        "landing-hero-ground relative flex min-h-[auto] flex-col pt-[4.5rem] lg:min-h-[85vh]",
+        "landing-hero-ground relative flex flex-col pt-20",
         "landing-reveal",
         isVisible && "is-visible",
       )}
     >
-      <div className="mx-auto flex w-full max-w-7xl flex-1 flex-col px-6 pb-16 pt-10 sm:px-12 sm:pb-20 sm:pt-14 lg:pb-24">
-        <div className="grid flex-1 grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-14">
-          <div className="flex flex-col justify-center text-left">
-            <h1 className="landing-display max-w-[18ch] text-[clamp(2rem,5vw,3.25rem)] font-extrabold leading-[1.08] text-balance">
-              Turn paper clinics into digital ones, without the cost of heavy IT.
-            </h1>
+      <div className="mx-auto flex w-full max-w-6xl flex-col items-center px-6 pb-8 pt-14 text-center sm:px-10 sm:pb-10 sm:pt-16 lg:px-12 lg:pt-20">
+        <h1 className="landing-display max-w-[18ch] text-[clamp(2rem,5vw,3.75rem)] font-semibold tracking-[-0.045em] text-balance sm:max-w-none sm:whitespace-nowrap">
+          Stop losing revenue after patient care
+        </h1>
 
-            <p className="landing-body mt-5 max-w-xl text-base leading-relaxed text-[color:var(--landing-ledger-ink)] sm:text-lg sm:leading-[1.65]">
-            Sigma gives clinics a complete digital operating system for patient care and operations, 
-            without expensive hardware, large ICT teams, or complex implementations.
-            </p>
+        <p className="landing-body mx-auto mt-6 max-w-[34rem] text-[1.05rem] leading-[1.7] text-[color:var(--landing-ledger-ink)] sm:text-lg sm:leading-[1.7]">
+          Sigma connects patient billing, insurance claims, and payments so you
+          always know where your money stands.
+        </p>
 
-            <div className="mt-8 flex flex-col gap-5 sm:mt-10">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-                <Link
-                  href={ROUTES.signup}
-                  className="landing-focus landing-btn-primary inline-flex min-h-11 items-center justify-center rounded-full px-7 py-3.5 text-sm font-semibold transition-colors sm:text-base"
-                >
-                  Start for free
-                </Link>
-                <Link
-                  href={ROUTES.contacts}
-                  className="landing-focus landing-btn-secondary inline-flex min-h-11 items-center justify-center rounded-full border-[1.5px] bg-transparent px-7 py-3.5 text-sm font-semibold transition-colors sm:text-base"
-                >
-                  Book a demo
-                </Link>
-              </div>
+        <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-3">
+          <Link
+            href={ROUTES.signup}
+            className="landing-focus landing-btn-primary inline-flex min-h-11 items-center justify-center rounded-full px-7 py-3 text-sm font-semibold sm:text-[15px]"
+          >
+            Start for free
+          </Link>
+          <Link
+            href={ROUTES.contacts}
+            className="landing-focus landing-btn-secondary inline-flex min-h-11 items-center justify-center rounded-full border px-7 py-3 text-sm font-semibold sm:text-[15px]"
+          >
+            Book a demo
+          </Link>
+        </div>
 
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-[color:var(--landing-ledger-ink)] sm:text-sm">
-                {TRUST_NOTES.map((note) => (
-                  <span key={note} className="inline-flex items-center gap-1.5">
-                    <TbCircleCheck
-                      className="landing-text-teal size-3.5 shrink-0"
-                      aria-hidden="true"
-                    />
-                    {note}
-                  </span>
-                ))}
-              </div>
-
-              <LandingStatRow compact className="mt-2 border-t border-[color:var(--landing-ink)]/10 pt-6" />
-            </div>
-          </div>
-
-          <div className="w-full lg:max-w-none">
-            <LedgerSplitHero />
-          </div>
+        <div className="mt-14 w-full max-w-5xl sm:mt-16 lg:mt-20">
+          <LandingProductScreenshot
+            src={HERO_SCREENSHOT}
+            alt="Sigma patient account overview showing billing and visit history"
+            elevated
+            priority
+            className="w-full"
+          />
         </div>
       </div>
     </section>

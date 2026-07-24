@@ -13,10 +13,10 @@ export const LANDING = {
   liveTealTint: BRAND.tealTint,
   matureGreen: BRAND.green,
   matureGreenTint: BRAND.greenTint,
-  shadow: "0 8px 24px rgba(31, 42, 36, 0.06)",
-  shadowHover: "0 12px 32px rgba(31, 42, 36, 0.1)",
-  cardRadius: "14px",
-  iconRadius: "10px",
+  shadow: "0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.04)",
+  shadowHover: "0 2px 4px rgba(15, 23, 42, 0.04), 0 16px 40px rgba(15, 23, 42, 0.08)",
+  cardRadius: "20px",
+  iconRadius: "12px",
 } as const;
 
 export const LANDING_PROOF_STATS = [

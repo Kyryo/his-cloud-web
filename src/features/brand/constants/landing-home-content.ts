@@ -1,246 +1,135 @@
 import { ROUTES } from "@/constants/routes";
 
 export const LANDING_PROBLEM = {
-  eyebrow: "The Problem",
-  title: "What paper records are really costing you",
+  title: "Your clinic did the work. Did you get paid?",
   description:
-    "Paper doesn't fail all at once. It fails one entry at a time, until the small mistakes become costly problems.",
+    "Every patient visit creates revenue, but too often that revenue gets stuck between billing, insurance submissions, and payment reconciliation.",
   items: [
     {
-      title: "Stock disappears",
+      title: "Claims get rejected",
       description:
-        "Medicines leave the shelf, but no one notices until supplies run out and patients can't get the treatment they need.",
+        "Claims are rejected because billing rules were missed.",
     },
     {
-      title: "Insurance and billing become difficult to manage",
+      title: "Payments lose their trail",
       description:
-        "Claims are rejected because billing rules were missed. Reconciling insurance payments takes hours of manual work. Staff struggle to see which invoices have been paid, which are still outstanding, and which services have already been provided without payment.",
+        "Payments arrive without a clear link to the original claim.",
     },
     {
-      title: "Patient records are lost",
+      title: "Staff chase spreadsheets",
       description:
-        "A misplaced file, damaged notebook, or missing page can erase critical patient history when it's needed most.",
+        "Staff spend hours checking spreadsheets to find what is outstanding.",
+    },
+    {
+      title: "Managers fly blind",
+      description:
+        "Managers cannot easily see how much money is pending from insurers.",
     },
   ],
-  summary:
-    "Every missing entry, rejected claim, and lost record costs your clinic time, money, and trust.",
   closing:
-    "Sigma brings your entire clinic together in one secure platform: patients, billing, insurance, inventory, and finances, from day one.",
+    "Every rejected claim and missed payment is revenue your clinic already earned but cannot collect.",
 } as const;
 
-export const LANDING_TRUST = {
-  title: "Why clinics trust Sigma with the switch",
+export const LANDING_SOLUTION = {
+  title: "Know where every claim stands",
   description:
-    "If you've tried software before and gone back to paper, you're not alone. Most clinic software is built for hospitals with an IT department, not a team of three running a single site.",
-  closing: "200+ clinics have made the switch. None have gone back.",
-  rows: [
-    {
-      title: "No IT team required",
-      description:
-        "Sigma is configured for you and works from any browser. No server, no installation, no dedicated staff to maintain it.",
-      screen: "browser-setup" as const,
-      screenshotNeeded:
-        "Browser sign-in or dashboard landing screen — any clinic tenant, real UI.",
-    },
-    {
-      title: "Live in under 8 hours",
-      description:
-        "Most clinics are trained and running the same day they sign up.",
-      screen: "onboarding-checklist" as const,
-      screenshotNeeded:
-        "Onboarding or settings screen showing clinic setup progress (services, staff, billing rules).",
-    },
-    {
-      title: "Built for unreliable connectivity",
-      description:
-        "Sigma is designed to keep working through the connectivity conditions clinics actually have.",
-      screen: "connectivity-sync" as const,
-      screenshotNeeded:
-        "Any screen that shows sync status, low-bandwidth behaviour, or offline-capable workflow once available.",
-    },
-    {
-      title: "You're never on your own",
-      description:
-        "Free setup support, and a team that answers when something breaks.",
-      screen: "support-help" as const,
-      screenshotNeeded:
-        "Support/help panel, contact options, or in-app guidance — real Sigma UI.",
-    },
-  ],
-  /** @deprecated Use rows — kept for reference during migration */
+    "Sigma gives your team one place to manage the complete journey from patient billing to payment.",
   items: [
     {
-      title: "No IT team required",
+      title: "Create accurate claims",
       description:
-        "Sigma is configured for you and works from any browser. No server, no installation, no dedicated staff to maintain it.",
+        "Billing rules and scheme requirements are built into your workflow, helping your team submit cleaner claims the first time.",
     },
     {
-      title: "Live in under 8 hours",
+      title: "Track every claim",
       description:
-        "Most clinics are trained and running the same day they sign up.",
+        "Know which claims are submitted, approved, rejected, or waiting for action.",
     },
     {
-      title: "Built for unreliable connectivity",
+      title: "Reconcile every payment",
       description:
-        "Sigma is designed to keep working through the connectivity conditions clinics actually have.",
-    },
-    {
-      title: "You're never on your own",
-      description:
-        "Free setup support, and a team that answers when something breaks.",
+        "Match insurer payments back to the exact patient visits and claims they belong to.",
     },
   ],
 } as const;
 
+export const LANDING_COMPARISON = {
+  title: "Stop chasing insurance payments",
+  before: {
+    label: "Before Sigma",
+    items: [
+      "Did we submit this claim?",
+      "Why was it rejected?",
+      "Has the insurer paid?",
+      "Which invoices are still outstanding?",
+    ],
+  },
+  after: {
+    label: "With Sigma",
+    items: [
+      "Every claim has a status",
+      "Every payment has a source",
+      "Every outstanding amount is visible",
+      "Your team knows what needs attention",
+    ],
+  },
+} as const;
+
+export const LANDING_REVENUE = {
+  title: "Your clinic's financial health, at a glance",
+  description: "See the numbers that matter without waiting for a report.",
+  items: [
+    "Total billed revenue",
+    "Claims submitted",
+    "Claims awaiting payment",
+    "Rejected claims requiring action",
+    "Payments received",
+    "Outstanding insurer balances",
+  ],
+  closing:
+    "No more waiting for someone to compile reports. Sigma gives you the information you need, when you need it.",
+} as const;
+
+export const LANDING_WHY = {
+  title: "Built for clinics, not IT departments",
+  description:
+    "Most clinic software is built for large hospitals with dedicated IT teams. Sigma is built for clinics that need to start quickly and run without infrastructure headaches.",
+  items: [
+    {
+      title: "No servers to maintain",
+      description: "Works from any browser. No clinic IT stack required.",
+    },
+    {
+      title: "No complex setup",
+      description: "Get running quickly without a lengthy implementation project.",
+    },
+    {
+      title: "No spreadsheets to manage billing",
+      description: "Claims, payments, and balances stay in one system.",
+    },
+    {
+      title: "No guessing where your money went",
+      description: "Every claim and payment stays linked and visible.",
+    },
+  ],
+} as const;
+
+/** @deprecated Kept for any remaining references during migration */
+export const LANDING_TRUST = LANDING_WHY;
+
+/** @deprecated Kept for any remaining references during migration */
 export const LANDING_FEATURES = {
-  title: "Run your clinic with confidence",
-  description:
-    "Stop waiting for someone to compile spreadsheets or count stock by hand. Sigma gives you the information you need, when you need it.",
-  closing:
-    "With Sigma, you spend less time searching for information and more time delivering quality patient care, while running a healthier, more profitable clinic.",
-  rows: [
-    {
-      title: "See your revenue at a glance",
-      description:
-        "Track sales by day, week, month, or year so you always know how your clinic is performing.",
-      supporting:
-        "Instantly see how much revenue comes from cash, insurance, or other payment methods — no end-of-month spreadsheet.",
-      screen: "dashboard-revenue" as const,
-      screenshotNeeded:
-        "Finance or dashboard screen with revenue totals and payment-method breakdown.",
-    },
-    {
-      title: "Monitor insurance claims",
-      description:
-        "Track submitted, approved, paid, pending, and rejected claims so you can follow up quickly and improve collections.",
-      screen: "insurance-claims" as const,
-      screenshotNeeded:
-        "Claims list showing status filters (submitted, approved, paid, pending, rejected).",
-    },
-    {
-      title: "Measure provider performance",
-      description:
-        "See the services delivered and revenue generated by each doctor, nurse, or care provider.",
-      screen: "provider-performance" as const,
-      screenshotNeeded:
-        "Provider or service report showing visits and revenue by staff member.",
-    },
-    {
-      title: "Stay in control of your inventory",
-      description:
-        "Know what stock has been dispensed, what is running low, and what needs to be reordered.",
-      supporting:
-        "Get visibility into medicines approaching expiry and which items move fast vs. sit on the shelf — before they become a loss.",
-      screen: "inventory-stock" as const,
-      screenshotNeeded:
-        "Inventory or pharmacy screen with stock levels, low-stock alerts, and expiry dates.",
-    },
-  ],
-  /** @deprecated Use rows — kept for reference during migration */
-  items: [
-    {
-      title: "See your revenue at a glance",
-      description:
-        "Track sales by day, week, month, or year so you always know how your clinic is performing.",
-    },
-    {
-      title: "Understand where your income comes from",
-      description:
-        "Instantly see how much revenue comes from cash, insurance, or other payment methods.",
-    },
-    {
-      title: "Monitor insurance claims",
-      description:
-        "Track submitted, approved, paid, pending, and rejected claims so you can follow up quickly and improve collections.",
-    },
-    {
-      title: "Measure provider performance",
-      description:
-        "See the services delivered and revenue generated by each doctor, nurse, or care provider.",
-    },
-    {
-      title: "Stay in control of your inventory",
-      description:
-        "Know what stock has been dispensed, what is running low, and what needs to be reordered.",
-    },
-    {
-      title: "Prevent expired stock",
-      description:
-        "Get visibility into medicines and supplies approaching their expiry dates before they become a loss.",
-    },
-    {
-      title: "Identify fast and slow moving items",
-      description:
-        "Understand which products need frequent replenishment and which are tying up valuable cash on your shelves.",
-    },
-  ],
+  title: LANDING_COMPARISON.title,
+  description: LANDING_SOLUTION.description,
+  closing: LANDING_REVENUE.closing,
+  rows: [],
+  items: [],
 } as const;
 
+/** @deprecated Kept for any remaining references during migration */
 export const LANDING_HOW_IT_WORKS = {
   title: "How it works",
-  steps: [
-    {
-      title: "Book a free setup call",
-      description:
-        "We learn your workflow: patient flow, billing, stock, insurance.",
-    },
-    {
-      title: "We configure Sigma for your clinic",
-      description:
-        "Your services, staff roles, billing rules, and inventory, set up for you.",
-    },
-    {
-      title: "Your team is trained the same day",
-      description:
-        "No manual required. Most staff are comfortable within an hour.",
-    },
-    {
-      title: "You're live in under 8 hours",
-      description:
-        "Most clinics see fewer billing disputes and clearer stock visibility within the first week.",
-    },
-  ],
-} as const;
-
-/** Sharper header alternatives — review options; live page uses titles above. */
-export const LANDING_HEADER_ALTERNATIVES = {
-  problem: {
-    current: {
-      eyebrow: LANDING_PROBLEM.eyebrow,
-      title: LANDING_PROBLEM.title,
-    },
-    options: [
-      {
-        eyebrow: "The cost of paper",
-        title: "Every missing entry becomes a bill you can't collect",
-      },
-      {
-        eyebrow: "What paper hides",
-        title: "Stock gaps, rejected claims, and lost records don't show up until it's too late",
-      },
-    ],
-  },
-  trust: {
-    current: { title: LANDING_TRUST.title },
-    options: [
-      { title: "Software that fits a three-person clinic, not a hospital IT department" },
-      { title: "Built for clinics that tried software once and went back to paper" },
-    ],
-  },
-  features: {
-    current: { title: LANDING_FEATURES.title },
-    options: [
-      { title: "Know what's happening in your clinic before it becomes a problem" },
-      { title: "Billing, stock, and claims — visible the same day, not at month-end" },
-    ],
-  },
-  howItWorks: {
-    current: { title: LANDING_HOW_IT_WORKS.title },
-    options: [
-      { title: "Live in one day, not one quarter" },
-      { title: "From setup call to first patient record in under 8 hours" },
-    ],
-  },
+  steps: [],
 } as const;
 
 export const LANDING_PRICING = {
@@ -259,7 +148,7 @@ export const LANDING_PRICING = {
         "Basic billing",
         "Email support",
       ],
-      cta: "Get started",
+      cta: "Start for free",
       href: ROUTES.signup,
       highlighted: false,
     },
@@ -275,7 +164,7 @@ export const LANDING_PRICING = {
         "Free onboarding call",
         "WhatsApp support",
       ],
-      cta: "Start free trial",
+      cta: "Start for free",
       href: ROUTES.signup,
       highlighted: true,
     },
@@ -289,7 +178,7 @@ export const LANDING_PRICING = {
         "API & DHIS2 integration",
         "Dedicated account manager",
       ],
-      cta: "Talk to us",
+      cta: "Book a demo",
       href: ROUTES.contacts,
       highlighted: false,
     },
@@ -308,7 +197,7 @@ export const LANDING_FAQ = {
     {
       question: "What if our internet goes down?",
       answer:
-        "Sigma is cloud-based and works on any connection — including slow 3G. Most clinic workflows use very little data. We're also building offline capability, which will be available to all existing customers when it launches.",
+        "Sigma is cloud-based and works on any connection, including slow 3G. Most clinic workflows use very little data. We're also building offline capability, which will be available to all existing customers when it launches.",
     },
     {
       question: "We already have paper records going back years. What happens to them?",
@@ -329,9 +218,8 @@ export const LANDING_FAQ = {
 } as const;
 
 export const LANDING_FINAL_CTA = {
-  title: "Your clinic deserves software that actually works here",
-  description:
-    "Join 200+ clinics across Africa, Asia, and the Americas who replaced paper chaos with a system built for their reality — not someone else's.",
-  primaryCta: { label: "Start your free 30-day trial", href: ROUTES.signup },
-  secondaryCta: { label: "Book a demo call", href: ROUTES.contacts },
+  title: "Stop losing money after delivering care",
+  description: "Start tracking every claim and payment with Sigma.",
+  primaryCta: { label: "Start for free", href: ROUTES.signup },
+  secondaryCta: { label: "Book a demo", href: ROUTES.contacts },
 } as const;

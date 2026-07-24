@@ -16,8 +16,8 @@ export function Navigation() {
   const showNavLinks = pathname !== ROUTES.home;
 
   return (
-    <nav className="fixed top-0 z-50 w-full border-b border-[color:var(--landing-ink)]/5 bg-[color:var(--landing-clay)]/90 backdrop-blur-md">
-      <div className="mx-auto h-[4.5rem] max-w-7xl px-6 sm:px-12">
+    <nav className="fixed top-0 z-50 w-full border-b border-[color:var(--landing-border)] bg-white/80 backdrop-blur-xl">
+      <div className="mx-auto h-16 max-w-6xl px-6 sm:px-10 lg:px-12">
         <div
           className={cn(
             "grid h-full items-center gap-4",
@@ -40,7 +40,7 @@ export function Navigation() {
                       "transition-colors",
                       isActive
                         ? "landing-text-ink"
-                        : "text-brand-muted hover:text-[color:var(--landing-ink)]",
+                        : "text-[color:var(--landing-ledger-ink)] hover:text-[color:var(--landing-ink)]",
                     )}
                   >
                     {link.name}
@@ -50,16 +50,16 @@ export function Navigation() {
             </div>
           ) : null}
 
-          <div className="hidden items-center justify-self-end gap-3 lg:flex">
+          <div className="hidden items-center justify-self-end gap-2 lg:flex">
             <Link
               href={ROUTES.auth}
-              className="landing-focus inline-flex min-h-11 items-center justify-center rounded-full border border-transparent px-5 py-2.5 text-sm font-semibold text-brand-slate transition-colors hover:border-brand-border hover:bg-[color:var(--landing-teal-tint)] hover:text-[color:var(--landing-ink)]"
+              className="landing-focus inline-flex min-h-10 items-center justify-center rounded-full px-4 py-2 text-sm font-semibold text-[color:var(--landing-ledger-ink)] transition-colors hover:bg-[color:var(--landing-warm)] hover:text-[color:var(--landing-ink)]"
             >
               Sign In
             </Link>
             <Link
               href={ROUTES.signup}
-              className="landing-focus landing-btn-primary inline-flex min-h-11 items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold transition-colors"
+              className="landing-focus landing-btn-primary inline-flex min-h-10 items-center justify-center rounded-full px-5 py-2 text-sm font-semibold"
             >
               Start for free
             </Link>
@@ -68,28 +68,28 @@ export function Navigation() {
           <button
             type="button"
             onClick={() => setIsOpen((open) => !open)}
-            className="landing-focus flex size-11 items-center justify-center justify-self-end rounded-full border border-[color:var(--landing-ink)]/10 bg-white/60 text-[color:var(--landing-ink)] transition-colors hover:bg-white lg:hidden"
+            className="landing-focus flex size-10 items-center justify-center justify-self-end rounded-full border border-[color:var(--landing-border)] bg-white text-[color:var(--landing-ink)] transition-colors hover:bg-[color:var(--landing-warm)] lg:hidden"
             aria-label={isOpen ? "Close menu" : "Open menu"}
             aria-expanded={isOpen}
           >
             {isOpen ? (
-              <X className="size-6" strokeWidth={2} aria-hidden="true" />
+              <X className="size-5" strokeWidth={1.75} aria-hidden="true" />
             ) : (
-              <Menu className="size-6" strokeWidth={2} aria-hidden="true" />
+              <Menu className="size-5" strokeWidth={1.75} aria-hidden="true" />
             )}
           </button>
         </div>
       </div>
 
-      {isOpen && (
-        <div className="absolute left-0 right-0 top-[4.5rem] border-t border-[color:var(--landing-ink)]/5 bg-[color:var(--landing-clay)]/95 backdrop-blur-md lg:hidden">
+      {isOpen ? (
+        <div className="absolute left-0 right-0 top-16 border-b border-[color:var(--landing-border)] bg-white/95 backdrop-blur-xl lg:hidden">
           <div className="space-y-1 px-6 py-4">
             {showNavLinks
               ? BRAND_NAV_LINKS.map((link) => (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="landing-focus block rounded-md px-2 py-2.5 text-sm text-brand-slate hover:bg-[color:var(--landing-teal-tint)]"
+                    className="landing-focus block rounded-lg px-2 py-2.5 text-sm text-[color:var(--landing-ledger-ink)] hover:bg-[color:var(--landing-warm)]"
                     onClick={() => setIsOpen(false)}
                   >
                     {link.name}
@@ -99,12 +99,12 @@ export function Navigation() {
             <div
               className={cn(
                 "flex flex-col gap-2",
-                showNavLinks && "border-t border-brand-border pt-3",
+                showNavLinks && "border-t border-[color:var(--landing-border)] pt-3",
               )}
             >
               <Link
                 href={ROUTES.auth}
-                className="landing-focus inline-flex min-h-11 items-center justify-center rounded-full border border-transparent px-5 py-2.5 text-center text-sm font-semibold text-brand-slate transition-colors hover:bg-[color:var(--landing-teal-tint)] hover:text-[color:var(--landing-ink)]"
+                className="landing-focus inline-flex min-h-11 items-center justify-center rounded-full px-5 py-2.5 text-center text-sm font-semibold text-[color:var(--landing-ledger-ink)] transition-colors hover:bg-[color:var(--landing-warm)]"
                 onClick={() => setIsOpen(false)}
               >
                 Sign In
@@ -119,7 +119,7 @@ export function Navigation() {
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </nav>
   );
 }

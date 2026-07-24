@@ -4,8 +4,6 @@ type LandingSectionHeaderProps = {
   description?: string;
   align?: "left" | "center";
   className?: string;
-  inverted?: boolean;
-  accent?: "teal" | "green";
 };
 
 export function LandingSectionHeader({
@@ -14,40 +12,30 @@ export function LandingSectionHeader({
   description,
   align = "left",
   className = "",
-  inverted = false,
-  accent = "teal",
 }: LandingSectionHeaderProps) {
   const isCenter = align === "center";
-  const accentClass =
-    accent === "green"
-      ? "text-[color:var(--landing-green)]"
-      : "text-[color:var(--landing-teal)]";
 
   return (
     <div
       className={`max-w-3xl ${isCenter ? "mx-auto text-center" : ""} ${className}`.trim()}
     >
       {eyebrow ? (
-        <p
-          className={`landing-body text-[11px] font-semibold uppercase tracking-[0.14em] ${
-            inverted ? "text-white/70" : accentClass
-          }`}
-        >
+        <p className="landing-body text-[13px] font-medium text-[color:var(--landing-teal)]">
           {eyebrow}
         </p>
       ) : null}
       <h2
-        className={`landing-display text-[clamp(1.75rem,3vw,2.5rem)] font-extrabold ${
+        className={`landing-display text-[clamp(1.85rem,3.4vw,2.75rem)] font-semibold tracking-[-0.04em] ${
           eyebrow ? "mt-3" : ""
-        } ${inverted ? "!text-white" : ""}`}
+        }`}
       >
         {title}
       </h2>
       {description ? (
         <p
-          className={`landing-body mt-4 text-base leading-relaxed sm:text-lg ${
-            inverted ? "text-white/75" : "text-[color:var(--landing-ledger-ink)]"
-          } ${isCenter ? "mx-auto" : ""}`}
+          className={`landing-body mt-5 max-w-[42rem] text-[1.05rem] leading-[1.7] text-[color:var(--landing-ledger-ink)] ${
+            isCenter ? "mx-auto" : ""
+          }`}
         >
           {description}
         </p>

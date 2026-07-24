@@ -13,13 +13,13 @@ export function LandingFooter() {
   const year = new Date().getFullYear();
 
   return (
-    <footer className="border-t border-[color:var(--landing-ink)]/10 bg-[color:var(--landing-clay)]">
-      <div className="mx-auto max-w-7xl px-6 py-12 sm:px-12 sm:py-14">
+    <footer className="border-t border-[color:var(--landing-border)] bg-white">
+      <div className="mx-auto max-w-6xl px-6 py-14 sm:px-10 sm:py-16 lg:px-12">
         <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr] lg:gap-12">
           <div className="space-y-4 sm:col-span-2 lg:col-span-1">
-            <LandingLogo linked={false} imageClassName="h-12 w-auto sm:h-14" />
-            <p className="landing-body max-w-sm text-sm leading-relaxed text-[color:var(--landing-ledger-ink)] sm:text-[15px]">
-              Clinic software that works where you work — patients, billing,
+            <LandingLogo linked={false} imageClassName="h-10 w-auto sm:h-12" />
+            <p className="landing-body max-w-sm text-sm leading-[1.7] text-[color:var(--landing-ledger-ink)]">
+              Clinic software that works where you work: patients, billing,
               stock, and insurance in one place.
             </p>
             <Link
@@ -31,7 +31,7 @@ export function LandingFooter() {
           </div>
 
           <div>
-            <p className="landing-body text-[11px] font-semibold uppercase tracking-[0.14em] text-[color:var(--landing-teal)]">
+            <p className="landing-body text-sm font-semibold text-[color:var(--landing-ink)]">
               Explore
             </p>
             <ul className="mt-4 space-y-2.5">
@@ -39,7 +39,7 @@ export function LandingFooter() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="landing-focus landing-body text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-ink)]"
+                    className="landing-focus landing-body text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-teal)]"
                   >
                     {link.name}
                   </Link>
@@ -48,7 +48,7 @@ export function LandingFooter() {
               <li>
                 <Link
                   href={ROUTES.features}
-                  className="landing-focus landing-body text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-ink)]"
+                  className="landing-focus landing-body text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-teal)]"
                 >
                   Features
                 </Link>
@@ -57,14 +57,14 @@ export function LandingFooter() {
           </div>
 
           <div>
-            <p className="landing-body text-[11px] font-semibold uppercase tracking-[0.14em] text-[color:var(--landing-teal)]">
+            <p className="landing-body text-sm font-semibold text-[color:var(--landing-ink)]">
               Support
             </p>
             <ul className="mt-4 space-y-2.5">
               <li>
                 <Link
                   href={ROUTES.contacts}
-                  className="landing-focus landing-body text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-ink)]"
+                  className="landing-focus landing-body text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-teal)]"
                 >
                   Contact us
                 </Link>
@@ -72,7 +72,7 @@ export function LandingFooter() {
               <li>
                 <Link
                   href={ROUTES.auth}
-                  className="landing-focus landing-body text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-ink)]"
+                  className="landing-focus landing-body text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-teal)]"
                 >
                   Sign in
                 </Link>
@@ -81,7 +81,7 @@ export function LandingFooter() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="landing-focus landing-body text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-ink)]"
+                    className="landing-focus landing-body text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-teal)]"
                   >
                     {link.label}
                   </Link>
@@ -91,13 +91,13 @@ export function LandingFooter() {
           </div>
         </div>
 
-        <div className="mt-10 flex flex-col gap-3 border-t border-[color:var(--landing-ink)]/10 pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-12 flex flex-col gap-3 border-t border-[color:var(--landing-border)] pt-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="landing-body text-xs text-[color:var(--landing-ledger-ink)] sm:text-sm">
             © {year} Sigma Health. Built for clinics across Africa, Asia, and
             the Americas.
           </p>
           <p className="landing-body text-xs text-[color:var(--landing-ledger-ink)]/80">
-            Paper registers to live clinic data — in under a day.
+            Paper registers to live clinic data in under a day.
           </p>
         </div>
       </div>

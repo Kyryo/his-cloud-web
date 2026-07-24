@@ -95,8 +95,8 @@
 
 @layer components {
   [data-brand-page] {
-    --landing-clay: var(--color-brand-paper);
-    --landing-warm: var(--color-brand-warm);
+    --landing-clay: #ffffff;
+    --landing-warm: #f8f9fb;
     --landing-ink: var(--color-brand-navy);
     --landing-ledger-ink: var(--color-brand-slate);
     --landing-amber: var(--color-brand-amber);
@@ -106,10 +106,15 @@
     --landing-teal-tint: var(--color-brand-tint);
     --landing-green: var(--color-brand-green);
     --landing-green-tint: var(--color-brand-green-tint);
-    --landing-shadow: 0 8px 24px rgba(31, 42, 36, 0.06);
-    --landing-shadow-hover: 0 12px 32px rgba(31, 42, 36, 0.1);
+    --landing-border: rgb(15 23 42 / 0.08);
+    --landing-shadow: 0 1px 2px rgb(15 23 42 / 0.04), 0 8px 24px rgb(15 23 42 / 0.04);
+    --landing-shadow-hover: 0 2px 4px rgb(15 23 42 / 0.04), 0 16px 40px rgb(15 23 42 / 0.08);
+    --landing-shadow-hero: 0 24px 64px rgb(15 23 42 / 0.1), 0 8px 24px rgb(15 23 42 / 0.04);
+    --landing-radius: 20px;
+    --landing-radius-sm: 12px;
     font-family: var(--font-landing-body), ui-sans-serif, system-ui, sans-serif;
     color: var(--landing-ledger-ink);
+    background-color: var(--landing-clay);
   }
 
   [data-brand-page] .landing-body {
@@ -118,8 +123,8 @@
 
   [data-brand-page] .landing-display {
     font-family: var(--font-display);
-    letter-spacing: -0.03em;
-    line-height: 1.05;
+    letter-spacing: -0.04em;
+    line-height: 1.08;
     color: var(--landing-ink);
     text-wrap: balance;
   }
@@ -135,22 +140,43 @@
   [data-brand-page] .landing-btn-primary {
     background-color: var(--landing-teal);
     color: #ffffff;
+    box-shadow: 0 1px 2px rgb(15 23 42 / 0.08);
   }
 
   [data-brand-page] .landing-btn-primary:hover {
     background-color: var(--landing-teal-hover);
+    box-shadow: 0 4px 12px rgb(15 23 42 / 0.12);
   }
 
   [data-brand-page] .landing-btn-secondary {
-    border-color: var(--landing-ink);
+    border-color: var(--landing-border);
     color: var(--landing-ink);
+    background-color: #ffffff;
   }
 
   [data-brand-page] .landing-btn-secondary:hover {
-    background-color: var(--landing-teal-tint);
+    background-color: var(--landing-warm);
+    border-color: rgb(15 23 42 / 0.14);
+  }
+
+  [data-brand-page] .landing-btn-primary,
+  [data-brand-page] .landing-btn-secondary {
+    transition:
+      background-color 180ms ease,
+      border-color 180ms ease,
+      box-shadow 180ms ease,
+      transform 180ms ease;
+  }
+
+  [data-brand-page] .landing-btn-primary:active,
+  [data-brand-page] .landing-btn-secondary:active {
+    transform: scale(0.98);
   }
 
   [data-brand-page] .landing-card {
+    background-color: #ffffff;
+    border: 1px solid var(--landing-border);
+    border-radius: var(--landing-radius);
     box-shadow: var(--landing-shadow);
   }
 
@@ -178,16 +204,12 @@
   }
 
   [data-brand-page] .landing-hero-ground {
-    background-color: var(--landing-clay);
-    background-image:
-      radial-gradient(circle at 20% 10%, rgb(255 255 255 / 0.35), transparent 45%),
-      repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 27px,
-        rgb(90 77 66 / 0.04) 27px,
-        rgb(90 77 66 / 0.04) 28px
-      );
+    background-color: #ffffff;
+    background-image: radial-gradient(
+      ellipse 80% 55% at 50% -15%,
+      color-mix(in srgb, var(--landing-teal) 10%, white),
+      transparent 65%
+    );
   }
 
   [data-brand-page] .landing-paper-panel {
@@ -227,10 +249,10 @@
 
     [data-brand-page] .landing-reveal {
       opacity: 0;
-      transform: translateY(16px);
+      transform: translateY(12px);
       transition:
-        opacity 400ms ease,
-        transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+        opacity 480ms cubic-bezier(0.16, 1, 0.3, 1),
+        transform 480ms cubic-bezier(0.16, 1, 0.3, 1);
     }
 
     [data-brand-page] .landing-reveal.is-visible {

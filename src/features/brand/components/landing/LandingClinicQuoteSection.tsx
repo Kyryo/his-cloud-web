@@ -9,12 +9,12 @@ const CLIENT_DETAILS_SCREENSHOT = "/landing/product-screenshots/client-details.p
 export function LandingClinicQuoteSection() {
   return (
     <section
-      className="relative overflow-hidden bg-white py-14 lg:py-24"
+      className="relative overflow-hidden bg-white py-16 lg:py-28"
       aria-label="Sigma in practice"
     >
       <LandingDottedArcDecor />
 
-      <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-center gap-10 px-6 text-center sm:px-12 lg:gap-12">
+      <div className="relative z-10 mx-auto flex max-w-7xl flex-col items-center px-6 sm:px-12">
         <LandingProductScreenshot
           src={CLIENT_DETAILS_SCREENSHOT}
           alt={LANDING_CLINIC_COVER.imageAlt}

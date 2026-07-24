@@ -8,6 +8,7 @@ type LandingProductScreenshotProps = {
   alt: string;
   title?: string;
   elevated?: boolean;
+  priority?: boolean;
   className?: string;
 };
 
@@ -16,6 +17,7 @@ export function LandingProductScreenshot({
   alt,
   title = "app.sigmahmis.com",
   elevated = false,
+  priority = false,
   className,
 }: LandingProductScreenshotProps) {
   return (
@@ -25,8 +27,9 @@ export function LandingProductScreenshot({
         alt={alt}
         width={1440}
         height={900}
+        priority={priority}
         className={cn("h-auto w-full object-cover object-top")}
-        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 600px"
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1100px"
       />
     </LandingProductMockupFrame>
   );
