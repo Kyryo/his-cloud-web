@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { BarChart3, Settings, Shield } from "lucide-react";
+import { BarChart3, BookOpen, Settings, Shield } from "lucide-react";
 
 import {
   canAccessReports,
@@ -136,6 +136,23 @@ export function buildSidebarNavItems(
           isActive:
             isNavItemActive(pathname, ROUTES.platformAdminTenants) ||
             pathname.startsWith(`${ROUTES.platformAdminTenants}/`),
+        },
+      ],
+    });
+
+    items.push({
+      title: "Resources",
+      url: ROUTES.platformAdminResourcesSales,
+      icon: BookOpen,
+      isActive:
+        pathname.startsWith(`${ROUTES.platformAdmin}/resources`),
+      items: [
+        {
+          title: "Sales",
+          url: ROUTES.platformAdminResourcesSales,
+          isActive:
+            isNavItemActive(pathname, ROUTES.platformAdminResourcesSales) ||
+            pathname.startsWith(`${ROUTES.platformAdminResourcesSales}/`),
         },
       ],
     });

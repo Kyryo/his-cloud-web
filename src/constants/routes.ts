@@ -7,6 +7,8 @@ export const ROUTES = {
   platformAdminTenants: "/platform-admin/tenants",
   platformAdminTenant: (tenantUuid: string) =>
     `/platform-admin/tenants/${tenantUuid}`,
+  platformAdminResourcesSales: "/platform-admin/resources/sales",
+  platformAdminSalesPlaybook: "/platform-admin/resources/sales/playbook",
   customers: "/customers",
   /** Default destination after successful sign-in / sign-up. */
   postAuth: "/customers",

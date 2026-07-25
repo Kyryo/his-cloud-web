@@ -399,7 +399,7 @@ The purpose of discovery is to understand the clinic, not to qualify every detai
 
 Avoid arguing. Stay curious.
 
-> "That's great to hear. Out of curiosity, how are you currently managing your clinic operations? Are you using an HMIS or another system?"
+> "That's great to hear. Out of curiosity, how are you currently managing your clinic operations? Are you using any system?"
 
 If they have software: "That's good to know. What do you like most about your current system? If there was one thing you could improve about it, what would it be?" Almost every customer has something they'd like to improve.
 

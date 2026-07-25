@@ -259,12 +259,67 @@
       opacity: 1;
       transform: translateY(0);
     }
+
+    [data-brand-page] .company-float {
+      animation: company-float 8s ease-in-out infinite;
+    }
+
+    [data-brand-page] .company-float-delayed {
+      animation: company-float 9.5s ease-in-out 1.2s infinite;
+    }
+  }
+
+  @keyframes company-float {
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  [data-brand-page] .company-grain {
+    position: relative;
+    isolation: isolate;
+  }
+
+  [data-brand-page] .company-grain::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    opacity: 0.045;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  [data-brand-page] .company-dot-grid {
+    background-image: radial-gradient(
+      color-mix(in srgb, var(--landing-ink) 10%, transparent) 1px,
+      transparent 1px
+    );
+    background-size: 18px 18px;
+  }
+
+  [data-brand-page] .company-mesh {
+    background:
+      radial-gradient(ellipse 50% 40% at 15% 20%, color-mix(in srgb, var(--landing-teal) 14%, transparent), transparent 60%),
+      radial-gradient(ellipse 45% 35% at 85% 15%, color-mix(in srgb, var(--landing-amber) 16%, transparent), transparent 55%),
+      radial-gradient(ellipse 40% 45% at 70% 85%, color-mix(in srgb, var(--landing-green) 12%, transparent), transparent 60%),
+      #ffffff;
   }
 
   @media (prefers-reduced-motion: reduce) {
     [data-brand-page] .landing-reveal {
       opacity: 1;
       transform: none;
+    }
+
+    [data-brand-page] .company-float,
+    [data-brand-page] .company-float-delayed {
+      animation: none;
     }
   }
 

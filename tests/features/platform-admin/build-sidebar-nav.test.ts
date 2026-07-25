@@ -17,6 +17,15 @@ describe("buildSidebarNavItems platform admin", () => {
     expect(platformNav?.items?.[1]?.url).toBe(ROUTES.platformAdminTenants);
   });
 
+  it("adds a Resources menu with Sales for platform admins", () => {
+    const items = buildSidebarNavItems([], ROUTES.platformAdmin, false, true);
+    const resourcesNav = items.find((item) => item.title === "Resources");
+
+    expect(resourcesNav).toBeDefined();
+    expect(resourcesNav?.items?.map((item) => item.title)).toEqual(["Sales"]);
+    expect(resourcesNav?.items?.[0]?.url).toBe(ROUTES.platformAdminResourcesSales);
+  });
+
   it("marks Overview active only on the overview route", () => {
     const overviewItems = buildSidebarNavItems(
       [],
@@ -37,5 +46,27 @@ describe("buildSidebarNavItems platform admin", () => {
     expect(platformOverview?.items?.[1]?.isActive).toBe(false);
     expect(platformTenants?.items?.[0]?.isActive).toBe(false);
     expect(platformTenants?.items?.[1]?.isActive).toBe(true);
+  });
+
+  it("marks Sales active on sales resource routes", () => {
+    const salesItems = buildSidebarNavItems(
+      [],
+      ROUTES.platformAdminResourcesSales,
+      false,
+      true,
+    );
+    const playbookItems = buildSidebarNavItems(
+      [],
+      ROUTES.platformAdminSalesPlaybook,
+      false,
+      true,
+    );
+    const salesNav = salesItems.find((item) => item.title === "Resources");
+    const playbookNav = playbookItems.find((item) => item.title === "Resources");
+
+    expect(salesNav?.isActive).toBe(true);
+    expect(salesNav?.items?.[0]?.isActive).toBe(true);
+    expect(playbookNav?.isActive).toBe(true);
+    expect(playbookNav?.items?.[0]?.isActive).toBe(true);
   });
 });

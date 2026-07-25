@@ -2,9 +2,9 @@ import Link from "next/link";
 
 import { ROUTES } from "@/constants/routes";
 import { LandingLogo } from "@/features/brand/components/landing/LandingLogo";
-import { BRAND_NAV_LINKS } from "@/features/brand/constants/nav-links";
 
-const LEGAL_LINKS = [
+const FOOTER_LINKS = [
+  { label: "Home", href: ROUTES.home },
   { label: "Privacy Policy", href: ROUTES.privacy },
   { label: "Terms of Service", href: ROUTES.terms },
 ] as const;
@@ -14,98 +14,38 @@ export function LandingFooter() {
 
   return (
     <footer className="border-t border-[color:var(--landing-border)] bg-white">
-      <div className="mx-auto max-w-6xl px-6 py-14 sm:px-10 sm:py-16 lg:px-12">
-        <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr] lg:gap-10">
-          <div className="space-y-4 sm:col-span-2 lg:col-span-1">
-            <LandingLogo linked={false} imageClassName="h-10 w-auto sm:h-12" />
-            <p className="landing-body max-w-sm text-sm leading-[1.7] text-[color:var(--landing-ledger-ink)]">
-              Clinic software that works where you work: patients, billing,
-              stock, and insurance in one place.
-            </p>
-            <Link
-              href={ROUTES.signup}
-              className="landing-focus landing-btn-primary inline-flex min-h-10 items-center justify-center rounded-full px-5 py-2.5 text-sm font-semibold"
-            >
-              Start for free
-            </Link>
-          </div>
+      <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-10 sm:px-10 sm:py-12 lg:px-12">
+        <div className="flex flex-col items-start justify-between gap-8 sm:flex-row sm:items-center">
+          <LandingLogo linked imageClassName="h-9 w-auto sm:h-10" />
 
-          <div>
-            <p className="landing-body text-sm font-semibold text-[color:var(--landing-ink)]">
-              Explore
-            </p>
-            <ul className="mt-4 space-y-2.5">
-              {BRAND_NAV_LINKS.map((link) => (
-                <li key={link.href}>
+          <nav aria-label="Footer">
+            <ul className="flex flex-wrap items-center gap-x-1 gap-y-2">
+              {FOOTER_LINKS.map((link, index) => (
+                <li key={link.href} className="flex items-center">
+                  {index > 0 ? (
+                    <span
+                      className="mx-3 hidden h-1 w-1 rounded-full bg-[color:var(--landing-border)] sm:mx-4 sm:inline-block"
+                      aria-hidden="true"
+                    />
+                  ) : null}
                   <Link
                     href={link.href}
-                    className="landing-focus landing-body text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-teal)]"
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-              <li>
-                <Link
-                  href={ROUTES.features}
-                  className="landing-focus landing-body text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-teal)]"
-                >
-                  Features
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <p className="landing-body text-sm font-semibold text-[color:var(--landing-ink)]">
-              Support
-            </p>
-            <ul className="mt-4 space-y-2.5">
-              <li>
-                <Link
-                  href={ROUTES.contacts}
-                  className="landing-focus landing-body text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-teal)]"
-                >
-                  Contact us
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href={ROUTES.auth}
-                  className="landing-focus landing-body text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-teal)]"
-                >
-                  Sign in
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <p className="landing-body text-sm font-semibold text-[color:var(--landing-ink)]">
-              Legal
-            </p>
-            <ul className="mt-4 space-y-2.5">
-              {LEGAL_LINKS.map((link) => (
-                <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="landing-focus landing-body text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-teal)]"
+                    className="landing-focus landing-body rounded-md px-1 py-1 text-sm text-[color:var(--landing-ledger-ink)] transition-colors hover:text-[color:var(--landing-teal)]"
                   >
                     {link.label}
                   </Link>
                 </li>
               ))}
             </ul>
-          </div>
+          </nav>
         </div>
 
-        <div className="mt-12 flex flex-col gap-3 border-t border-[color:var(--landing-border)] pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-2 border-t border-[color:var(--landing-border)] pt-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="landing-body text-xs text-[color:var(--landing-ledger-ink)] sm:text-sm">
-            © {year} Sigma Health. Built for clinics across Africa, Asia, and
-            the Americas.
+            © {year} Sigma Health. All rights reserved.
           </p>
-          <p className="landing-body text-xs text-[color:var(--landing-ledger-ink)]/80">
-            Paper registers to live clinic data in under a day.
+          <p className="landing-body text-xs text-[color:var(--landing-ledger-ink)]/75">
+            Built for clinics that want clearer operations.
           </p>
         </div>
       </div>

@@ -4,16 +4,16 @@ import { siteConfig } from "@/constants/site";
 import { BrandCompanyPage } from "@/features/brand/pages/BrandCompanyPage";
 
 export const metadata: Metadata = {
-  title: "Company | Sigma Health HMIS",
+  title: "Company | Sigma Health",
   description:
-    "Learn why Sigma Health exists, our mission to simplify clinic operations, what we believe, and how we're building the future of healthcare software.",
+    "Healthcare software shouldn't create more work. Learn why Sigma exists and how we help clinics close the gaps between care and payment.",
   alternates: {
     canonical: `${siteConfig.url}/company`,
   },
   openGraph: {
-    title: "Company | Sigma Health HMIS",
+    title: "Company | Sigma Health",
     description:
-      "Learn why Sigma Health exists, our mission to simplify clinic operations, what we believe, and how we're building the future of healthcare software.",
+      "Healthcare software shouldn't create more work. Learn why Sigma exists and how we help clinics close the gaps between care and payment.",
     url: `${siteConfig.url}/company`,
     siteName: siteConfig.name,
     type: "website",
