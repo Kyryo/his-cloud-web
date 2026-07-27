@@ -185,6 +185,14 @@ export const LANDING_PRICING = {
   ],
 } as const;
 
+export type LandingFaqItem = {
+  question: string;
+  answer?: string;
+  answerTitle?: string;
+  answerParagraphs?: readonly string[];
+  answerBullets?: readonly string[];
+};
+
 export const LANDING_FAQ = {
   eyebrow: "Common questions",
   title: "Things clinics usually ask us",
@@ -227,8 +235,8 @@ export const LANDING_FAQ = {
       ],
       answerBullets: [],
     },
-  ],
-} as const;
+  ] satisfies readonly LandingFaqItem[],
+};
 
 export const LANDING_FINAL_CTA = {
   title: "Stop losing money after delivering care",
