@@ -99,9 +99,36 @@ function LandingFaqAccordion() {
               aria-labelledby={`landing-faq-trigger-${index}`}
               hidden={!isOpen}
             >
-              <p className="landing-body max-w-[65ch] pb-6 text-base leading-[1.7] text-[color:var(--landing-ledger-ink)]">
-                {item.answer}
-              </p>
+              <div className="max-w-[65ch] pb-6">
+                {item.answerTitle ? (
+                  <p className="landing-body text-base font-semibold leading-[1.7] text-[color:var(--landing-ink)]">
+                    {item.answerTitle}
+                  </p>
+                ) : null}
+
+                {item.answer ? (
+                  <p className="landing-body text-base leading-[1.7] text-[color:var(--landing-ledger-ink)]">
+                    {item.answer}
+                  </p>
+                ) : null}
+
+                {item.answerParagraphs?.map((paragraph) => (
+                  <p
+                    key={paragraph}
+                    className="landing-body mt-4 text-base leading-[1.7] text-[color:var(--landing-ledger-ink)]"
+                  >
+                    {paragraph}
+                  </p>
+                ))}
+
+                {item.answerBullets?.length ? (
+                  <ul className="mt-4 space-y-2 pl-5 text-base leading-[1.7] text-[color:var(--landing-ledger-ink)] marker:text-[color:var(--landing-teal)]">
+                    {item.answerBullets.map((bullet) => (
+                      <li key={bullet}>{bullet}</li>
+                    ))}
+                  </ul>
+                ) : null}
+              </div>
             </div>
           </div>
         );

@@ -214,6 +214,19 @@ export const LANDING_FAQ = {
       answer:
         "Full access to all Clinic plan features for 30 days. No credit card required. Your onboarding call is included. If you decide not to continue, we'll export all your data so you never lose anything.",
     },
+    {
+      question:
+        "Our insurer already has a claims system. Why do we need Sigma?",
+      answerTitle: "You still need a source of truth.",
+      answerParagraphs: [
+        "The insurer's claims portal is designed to receive claims. Sigma is the system that creates, tracks, and reconciles them.",
+        "When Sigma submits a claim through its integration, the insurer sends back an electronic response confirming what happened. That response might tell you the claim was received or not. Sigma stores these responses alongside the original claim, creating a complete history.",
+        "Imagine you submit a claim worth 500,000, but the insurer only pays 420,000. Or they tell you they never received the claim.",
+        "If you submitted the claim manually through the insurer's portal, you may have little or no record of what was sent or how the insurer responded.",
+        "This gives your finance team a clear audit trail and the evidence they need when following up with insurers. Instead of saying, \"We think we submitted this claim,\" they can confidently say, \"Here is the claim, here is the insurer's response, and here is the difference that still needs to be resolved.\"",
+      ],
+      answerBullets: [],
+    },
   ],
 } as const;
 
