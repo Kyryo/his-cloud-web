@@ -160,7 +160,11 @@ function ParallaxImage({
     target: ref,
     offset: ["start end", "end start"],
   });
-  const y = useTransform(scrollYProgress, [0, 1], reduce ? [0, 0] : ["-6%", "6%"]);
+  const y = useTransform(
+    scrollYProgress,
+    [0, 1],
+    reduce ? ["0%", "0%"] : ["-6%", "6%"],
+  );
 
   return (
     <div ref={ref} className={cn("relative overflow-hidden", className)}>
