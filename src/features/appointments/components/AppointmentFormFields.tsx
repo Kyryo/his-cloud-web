@@ -11,6 +11,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
 import {
   Select,
   SelectContent,
@@ -22,6 +23,14 @@ import { DateTimeLocalInput } from "@/components/ui/datetime-local-input";
 import { Textarea } from "@/components/ui/textarea";
 import { CareProviderCombobox } from "@/features/appointments/components/CareProviderCombobox";
 import type { CreateAppointmentFormValues } from "@/features/appointments/schemas/appointment.schema";
+import {
+  APPOINTMENT_DURATION_PRESETS,
+  addMinutesToLocalDateTime,
+  getDurationMinutesBetween,
+  parseCustomDurationMinutes,
+  resolveDurationSelectValue,
+  type AppointmentDurationSelectValue,
+} from "@/features/appointments/utils/appointment-duration";
 import type {
   ClinicalClinic,
   ClinicalDepartment,
@@ -56,6 +65,65 @@ export function AppointmentFormFields({
   const [clinicSearch, setClinicSearch] = useState("");
   const [departmentOpen, setDepartmentOpen] = useState(false);
   const [departmentSearch, setDepartmentSearch] = useState("");
+  const [forceCustomDuration, setForceCustomDuration] = useState(false);
+  const [customDurationMinutes, setCustomDurationMinutes] = useState("");
+
+  const scheduledStart = form.watch("scheduled_start");
+  const scheduledEnd = form.watch("scheduled_end");
+  const durationSelectValue = resolveDurationSelectValue(
+    scheduledStart,
+    scheduledEnd,
+    forceCustomDuration,
+  );
+  const derivedDurationMinutes =
+    getDurationMinutesBetween(scheduledStart, scheduledEnd) ?? 30;
+
+  function applyDurationMinutes(startValue: string, minutes: number): void {
+    if (!startValue || minutes < 1) {
+      return;
+    }
+
+    form.setValue(
+      "scheduled_end",
+      addMinutesToLocalDateTime(startValue, minutes),
+      { shouldDirty: true, shouldValidate: true },
+    );
+  }
+
+  function resolveActiveDurationMinutes(): number {
+    if (durationSelectValue === "other") {
+      return (
+        parseCustomDurationMinutes(customDurationMinutes) ??
+        derivedDurationMinutes
+      );
+    }
+
+    return Number.parseInt(durationSelectValue, 10);
+  }
+
+  function handleDurationSelectChange(value: AppointmentDurationSelectValue): void {
+    if (value === "other") {
+      setForceCustomDuration(true);
+      setCustomDurationMinutes(String(derivedDurationMinutes));
+      return;
+    }
+
+    setForceCustomDuration(false);
+    setCustomDurationMinutes("");
+    applyDurationMinutes(scheduledStart, Number.parseInt(value, 10));
+  }
+
+  function handleCustomDurationChange(rawValue: string): void {
+    setCustomDurationMinutes(rawValue);
+    setForceCustomDuration(true);
+
+    const minutes = parseCustomDurationMinutes(rawValue);
+    if (minutes === null) {
+      return;
+    }
+
+    applyDurationMinutes(scheduledStart, minutes);
+  }
 
   const filteredClinics = useMemo(() => {
     const term = clinicSearch.trim().toLowerCase();
@@ -230,10 +298,18 @@ export function AppointmentFormFields({
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                Start <span className="text-red-500">*</span>
+                Start <RequiredFieldMarker />
               </FormLabel>
               <FormControl>
-                <DateTimeLocalInput {...field} disabled={lockScheduleFields} />
+                <DateTimeLocalInput
+                  {...field}
+                  disabled={lockScheduleFields}
+                  onChange={(event) => {
+                    const nextStart = event.target.value;
+                    field.onChange(nextStart);
+                    applyDurationMinutes(nextStart, resolveActiveDurationMinutes());
+                  }}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -242,14 +318,54 @@ export function AppointmentFormFields({
         <FormField
           control={form.control}
           name="scheduled_end"
-          render={({ field }) => (
+          render={() => (
             <FormItem>
               <FormLabel>
-                End <span className="text-red-500">*</span>
+                Duration (minutes) <RequiredFieldMarker />
               </FormLabel>
-              <FormControl>
-                <DateTimeLocalInput {...field} disabled={lockScheduleFields} />
-              </FormControl>
+              <div className="flex items-start gap-2">
+                <Select
+                  value={durationSelectValue}
+                  disabled={lockScheduleFields}
+                  onValueChange={(value) =>
+                    handleDurationSelectChange(value as AppointmentDurationSelectValue)
+                  }
+                >
+                  <FormControl>
+                    <SelectTrigger className="flex-1">
+                      <SelectValue placeholder="Duration" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {APPOINTMENT_DURATION_PRESETS.map((minutes) => (
+                      <SelectItem key={minutes} value={String(minutes)}>
+                        {minutes}
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+                {durationSelectValue === "other" ? (
+                  <FormControl>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={1440}
+                      inputMode="numeric"
+                      placeholder="Minutes"
+                      className="w-24 shrink-0"
+                      disabled={lockScheduleFields}
+                      value={
+                        customDurationMinutes ||
+                        (forceCustomDuration ? "" : String(derivedDurationMinutes))
+                      }
+                      onChange={(event) =>
+                        handleCustomDurationChange(event.target.value)
+                      }
+                    />
+                  </FormControl>
+                ) : null}
+              </div>
               <FormMessage />
             </FormItem>
           )}
