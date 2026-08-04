@@ -35,6 +35,8 @@ type AuthOtpStepProps = {
   expirySeconds?: number;
   resendDelay?: number;
   embedded?: boolean;
+  /** When true, omit primary/back buttons (parent shell owns navigation). */
+  hideActions?: boolean;
 };
 
 export function AuthOtpStep({
@@ -58,6 +60,7 @@ export function AuthOtpStep({
   expirySeconds = DEFAULT_EXPIRY_SECONDS,
   resendDelay = DEFAULT_RESEND_DELAY_SECONDS,
   embedded = false,
+  hideActions = false,
 }: AuthOtpStepProps) {
   const [isResending, setIsResending] = useState(false);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
@@ -211,26 +214,33 @@ export function AuthOtpStep({
         />
       ) : null}
 
-      <Button
-        type="button"
-        data-testid={submitTestId}
-        aria-busy={isSubmitting}
-        className="mt-8 h-12 w-full rounded-full bg-brand-primary text-white hover:bg-brand-primary-hover"
-        onClick={handleSubmitClick}
-      >
-        {isSubmitting ? (
-          <span className="inline-flex items-center gap-2">
-            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            {submittingLabel ?? `${submitLabel}...`}
-          </span>
-        ) : (
-          submitLabel
-        )}
-      </Button>
+      {!hideActions ? (
+        <Button
+          type="button"
+          data-testid={submitTestId}
+          aria-busy={isSubmitting}
+          className="mt-8 h-12 w-full rounded-full bg-brand-primary text-white hover:bg-brand-primary-hover"
+          onClick={handleSubmitClick}
+        >
+          {isSubmitting ? (
+            <span className="inline-flex items-center gap-2">
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              {submittingLabel ?? `${submitLabel}...`}
+            </span>
+          ) : (
+            submitLabel
+          )}
+        </Button>
+      ) : null}
 
-      {(onBack || onResend) && (
-        <div className="mt-6 flex items-center justify-center gap-6 text-sm">
-          {onBack && (
+      {(onBack && !hideActions) || onResend ? (
+        <div
+          className={cn(
+            "flex items-center gap-6 text-sm",
+            hideActions ? "mt-5 justify-start" : "mt-6 justify-center",
+          )}
+        >
+          {onBack && !hideActions ? (
             <button
               type="button"
               onClick={onBack}
@@ -239,9 +249,9 @@ export function AuthOtpStep({
             >
               Back
             </button>
-          )}
+          ) : null}
 
-          {onResend && (
+          {onResend ? (
             isResending ? (
               <span className="inline-flex items-center gap-2 text-brand-muted">
                 <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
@@ -262,9 +272,9 @@ export function AuthOtpStep({
                 Resend in {resendFormatted}
               </span>
             )
-          )}
+          ) : null}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

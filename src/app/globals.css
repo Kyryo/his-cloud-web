@@ -693,12 +693,22 @@
     }
   }
 
-  /* Signup onboarding atmosphere */
+  /* Signup onboarding atmosphere — cool clinical mist (not warm cream). */
   .auth-signup-page-bg {
     background:
-      radial-gradient(ellipse 55% 45% at 12% 18%, color-mix(in srgb, var(--color-brand-primary) 10%, transparent), transparent 60%),
-      radial-gradient(ellipse 40% 35% at 88% 12%, color-mix(in srgb, var(--color-brand-amber) 10%, transparent), transparent 55%),
-      #faf8f5;
+      radial-gradient(ellipse 70% 55% at 15% 10%, color-mix(in srgb, var(--color-brand-primary) 12%, transparent), transparent 62%),
+      radial-gradient(ellipse 55% 45% at 90% 20%, color-mix(in srgb, var(--color-brand-navy) 6%, transparent), transparent 58%),
+      radial-gradient(ellipse 50% 40% at 50% 100%, color-mix(in srgb, var(--color-brand-green) 8%, transparent), transparent 55%),
+      #f3f6f9;
+  }
+
+  .auth-signup-atmosphere {
+    pointer-events: none;
+    background-image:
+      radial-gradient(circle at 20% 80%, color-mix(in srgb, var(--color-brand-primary) 5%, transparent) 0 1px, transparent 1.5px),
+      radial-gradient(circle at 75% 25%, color-mix(in srgb, var(--color-brand-navy) 4%, transparent) 0 1px, transparent 1.5px);
+    background-size: 48px 48px, 64px 64px;
+    opacity: 0.7;
   }
 
   .auth-signup-mesh {
@@ -706,12 +716,12 @@
       radial-gradient(ellipse 50% 40% at 20% 25%, color-mix(in srgb, var(--color-brand-primary) 16%, transparent), transparent 62%),
       radial-gradient(ellipse 45% 35% at 80% 18%, color-mix(in srgb, var(--color-brand-amber) 12%, transparent), transparent 58%),
       radial-gradient(ellipse 40% 45% at 70% 88%, color-mix(in srgb, var(--color-brand-green) 12%, transparent), transparent 60%),
-      linear-gradient(165deg, #fdfaf6 0%, #f3ebe0 100%);
+      linear-gradient(165deg, #f7fafc 0%, #eef3f7 100%);
   }
 
   .auth-signup-grain {
     pointer-events: none;
-    opacity: 0.04;
+    opacity: 0.035;
     mix-blend-mode: multiply;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }

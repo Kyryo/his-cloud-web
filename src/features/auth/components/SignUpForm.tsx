@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { motion, useReducedMotion } from "framer-motion";
-import { Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -45,30 +45,29 @@ import { maskEmail } from "@/lib/mask-email";
 import { cn } from "@/lib/utils";
 
 const WIZARD_STEPS: AuthWizardStep[] = [
-  { number: 1, label: "Account", description: "Email and password" },
-  { number: 2, label: "Verify", description: "Confirm your inbox" },
-  { number: 3, label: "Clinic", description: "Workspace details" },
-  { number: 4, label: "Modules", description: "Choose your features" },
+  { number: 1, label: "Workspace" },
+  { number: 2, label: "Verify" },
+  { number: 3, label: "Modules" },
 ];
 
 const STEP_COPY = {
   1: {
-    title: "Your work email",
-    subtitle: "We’ll send a one-time code to verify it’s you.",
+    title: "Set up your clinic workspace",
+    subtitle:
+      "Create your Sigma workspace to manage patients, billing, claims, and operations in one place.",
   },
   2: {
-    title: "Confirm it’s you",
+    title: "Confirm your email",
     subtitle: "Enter the 6-digit code we sent to",
   },
   3: {
-    title: "Name your clinic workspace",
-    subtitle: "We’ll use this to personalize your Sigma workspace.",
-  },
-  4: {
-    title: "Choose what to run on day one",
-    subtitle: "Add more modules anytime from settings.",
+    title: "Choose what to run first",
+    subtitle: "Start with the essentials — you can add more modules anytime.",
   },
 } as const;
+
+const fieldClassName =
+  "mt-1.5 h-12 rounded-xl border-slate-200 bg-white px-3.5 text-[15px] shadow-none transition-[box-shadow,border-color] focus-visible:border-brand-primary focus-visible:ring-brand-primary/20";
 
 function FormErrorShake({
   message,
@@ -90,21 +89,85 @@ function FormErrorShake({
   );
 }
 
+function WizardFooter({
+  onBack,
+  backLabel = "Back",
+  continueLabel,
+  continueTestId,
+  onContinue,
+  isBusy,
+  continueDisabled,
+  continueType = "button",
+  formId,
+}: {
+  onBack?: () => void;
+  backLabel?: string;
+  continueLabel: string;
+  continueTestId: string;
+  onContinue?: () => void;
+  isBusy?: boolean;
+  continueDisabled?: boolean;
+  continueType?: "button" | "submit";
+  formId?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      {onBack ? (
+        <Button
+          type="button"
+          variant="ghost"
+          className="h-11 gap-1.5 px-3 text-brand-muted hover:bg-transparent hover:text-brand-navy"
+          onClick={onBack}
+          disabled={isBusy}
+        >
+          <ArrowLeft className="size-4" aria-hidden="true" />
+          {backLabel}
+        </Button>
+      ) : (
+        <span />
+      )}
+      <Button
+        type={continueType}
+        form={formId}
+        data-testid={continueTestId}
+        className="h-11 min-w-[9.5rem] gap-1.5 rounded-full bg-brand-primary px-5 text-[15px] font-semibold hover:bg-brand-primary-hover"
+        onClick={continueType === "button" ? onContinue : undefined}
+        disabled={isBusy || continueDisabled}
+        aria-busy={isBusy}
+      >
+        {isBusy ? (
+          <span className="inline-flex items-center gap-2">
+            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            Working…
+          </span>
+        ) : (
+          <>
+            {continueLabel}
+            <ArrowRight className="size-4" aria-hidden="true" />
+          </>
+        )}
+      </Button>
+    </div>
+  );
+}
+
 export function SignUpForm() {
   const router = useRouter();
   const reduceMotion = useReducedMotion();
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
   const [verificationToken, setVerificationToken] = useState<string | null>(null);
   const [selectedModuleIds, setSelectedModuleIds] = useState<string[]>([
     "registration",
+    "billing",
+    "clinical",
   ]);
   const [otpCode, setOtpCode] = useState("");
   const [countryCode, setCountryCode] = useState("MW");
   const [isFinalizing, setIsFinalizing] = useState(false);
-  const emailInputRef = useRef<HTMLInputElement | null>(null);
-  const nameInputRef = useRef<HTMLInputElement | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const clinicInputRef = useRef<HTMLInputElement | null>(null);
 
   const prioritizedCountries = useMemo(() => getPrioritizedCountryCodes(), []);
 
@@ -129,24 +192,23 @@ export function SignUpForm() {
   const passwordValue = credentialsForm.watch("password");
   const stepCopy = STEP_COPY[currentStep];
   const isSubmitting =
-    credentialsForm.formState.isSubmitting ||
-    otpForm.formState.isSubmitting ||
-    isFinalizing;
+    credentialsForm.formState.isSubmitting || isVerifying || isFinalizing;
 
   useEffect(() => {
     if (currentStep === 1) {
-      emailInputRef.current?.focus();
-    } else if (currentStep === 3) {
-      nameInputRef.current?.focus();
+      clinicInputRef.current?.focus();
     }
   }, [currentStep]);
 
-  async function handleCredentialsNext() {
+  async function handleWorkspaceContinue() {
     setSubmitError(null);
     setInfoMessage(null);
 
-    const isValid = await credentialsForm.trigger();
-    if (!isValid) return;
+    const [credentialsValid, profileValid] = await Promise.all([
+      credentialsForm.trigger(),
+      profileForm.trigger(),
+    ]);
+    if (!credentialsValid || !profileValid) return;
 
     const values = credentialsForm.getValues();
 
@@ -173,6 +235,7 @@ export function SignUpForm() {
   }
 
   async function handleVerifyEmailSubmit() {
+    if (isVerifying) return;
     setSubmitError(null);
 
     const credentialsValid = await credentialsForm.trigger();
@@ -187,6 +250,7 @@ export function SignUpForm() {
     const credentials = credentialsForm.getValues();
     const otp = otpForm.getValues();
 
+    setIsVerifying(true);
     try {
       const response = await verifySignupEmail({
         email: credentials.email,
@@ -194,7 +258,7 @@ export function SignUpForm() {
         code: otp.code,
       });
       setVerificationToken(response.verification_token);
-      setInfoMessage("Email verified. Continue setting up your clinic.");
+      setInfoMessage("Email verified.");
       setCurrentStep(3);
     } catch (error) {
       setOtpCode("");
@@ -202,16 +266,9 @@ export function SignUpForm() {
       setSubmitError(
         error instanceof Error ? error.message : "Email verification failed.",
       );
+    } finally {
+      setIsVerifying(false);
     }
-  }
-
-  async function handleProfileNext() {
-    setSubmitError(null);
-
-    const isValid = await profileForm.trigger();
-    if (!isValid) return;
-
-    setCurrentStep(4);
   }
 
   async function handleCreateWorkspace() {
@@ -221,13 +278,8 @@ export function SignUpForm() {
     const credentialsValid = await credentialsForm.trigger();
     const profileValid = await profileForm.trigger();
 
-    if (!credentialsValid) {
+    if (!credentialsValid || !profileValid) {
       setCurrentStep(1);
-      setIsFinalizing(false);
-      return;
-    }
-    if (!profileValid) {
-      setCurrentStep(3);
       setIsFinalizing(false);
       return;
     }
@@ -286,15 +338,14 @@ export function SignUpForm() {
     setSubmitError(null);
   }
 
-  const emailRegister = credentialsForm.register("email");
-  const nameRegister = profileForm.register("name");
+  const clinicRegister = profileForm.register("clinic_name");
 
   const stepSubtitle =
     currentStep === 2
       ? `${stepCopy.subtitle} ${maskEmail(signupEmail)}.`
       : stepCopy.subtitle;
 
-  const signInFooter = (
+  const belowCard = (
     <p className="text-sm text-brand-muted">
       Already have an account?{" "}
       <Link href={ROUTES.auth} className="font-medium text-brand-primary hover:underline">
@@ -303,24 +354,92 @@ export function SignUpForm() {
     </p>
   );
 
+  const footer =
+    currentStep === 1 ? (
+      <WizardFooter
+        continueType="submit"
+        formId="signup-workspace-form"
+        continueLabel="Continue"
+        continueTestId="signup-continue"
+        isBusy={credentialsForm.formState.isSubmitting}
+      />
+    ) : currentStep === 2 ? (
+      <WizardFooter
+        onBack={() => setCurrentStep(1)}
+        continueLabel="Continue"
+        continueTestId="signup-verify-email"
+        onContinue={() => void handleVerifyEmailSubmit()}
+        isBusy={isVerifying}
+      />
+    ) : (
+      <WizardFooter
+        onBack={() => setCurrentStep(2)}
+        continueLabel="Start workspace"
+        continueTestId="signup-submit"
+        onContinue={() => void handleCreateWorkspace()}
+        isBusy={isFinalizing}
+        continueDisabled={selectedModuleIds.length === 0}
+      />
+    );
+
   return (
     <AuthWizardShell
       steps={WIZARD_STEPS}
       currentStep={currentStep}
       title={stepCopy.title}
       subtitle={stepSubtitle}
-      footer={currentStep === 1 ? signInFooter : undefined}
+      footer={footer}
+      belowCard={currentStep === 1 ? belowCard : undefined}
     >
       {currentStep === 1 ? (
         <form
+          id="signup-workspace-form"
           method="post"
-          className="space-y-5"
+          className="flex flex-1 flex-col space-y-4"
           data-testid="signup-credentials-form"
           onSubmit={(event) => {
             event.preventDefault();
-            void handleCredentialsNext();
+            void handleWorkspaceContinue();
           }}
         >
+          <div>
+            <Label htmlFor="clinic_name">Clinic name</Label>
+            <Input
+              id="clinic_name"
+              data-testid="signup-clinic-name"
+              autoComplete="organization"
+              placeholder="Lakeview Clinic"
+              className={fieldClassName}
+              {...clinicRegister}
+              ref={(element) => {
+                clinicRegister.ref(element);
+                clinicInputRef.current = element;
+              }}
+            />
+            {profileForm.formState.errors.clinic_name ? (
+              <p className="mt-1.5 text-sm text-destructive">
+                {profileForm.formState.errors.clinic_name.message}
+              </p>
+            ) : null}
+          </div>
+
+          <div>
+            <Label htmlFor="name">Your name</Label>
+            <Input
+              id="name"
+              data-testid="signup-name"
+              autoComplete="name"
+              placeholder="Jane Banda"
+              className={fieldClassName}
+              {...profileForm.register("name")}
+            />
+            {profileForm.formState.errors.name ? (
+              <p className="mt-1.5 text-sm text-destructive">
+                {profileForm.formState.errors.name.message}
+              </p>
+            ) : null}
+          </div>
+
           <div>
             <Label htmlFor="email">Work email</Label>
             <Input
@@ -332,12 +451,8 @@ export function SignUpForm() {
               autoCapitalize="none"
               spellCheck={false}
               placeholder="you@clinic.org"
-              className="mt-1.5 h-12 rounded-xl border-brand-border bg-white px-3.5 text-[15px] shadow-none transition-[box-shadow,border-color] focus-visible:border-brand-primary focus-visible:ring-brand-primary/20"
-              {...emailRegister}
-              ref={(element) => {
-                emailRegister.ref(element);
-                emailInputRef.current = element;
-              }}
+              className={fieldClassName}
+              {...credentialsForm.register("email")}
             />
             {credentialsForm.formState.errors.email ? (
               <p className="mt-1.5 text-sm text-destructive">
@@ -353,7 +468,7 @@ export function SignUpForm() {
               data-testid="signup-password"
               autoComplete="new-password"
               placeholder="At least 8 characters"
-              className="mt-1.5 h-12 rounded-xl border-brand-border bg-white px-3.5 text-[15px] shadow-none transition-[box-shadow,border-color] focus-visible:border-brand-primary focus-visible:ring-brand-primary/20"
+              className={fieldClassName}
               {...credentialsForm.register("password")}
             />
             <PasswordStrengthMeter password={passwordValue ?? ""} />
@@ -364,125 +479,8 @@ export function SignUpForm() {
             ) : null}
           </div>
 
-          {submitError ? (
-            <FormErrorShake message={submitError} reduceMotion={reduceMotion} />
-          ) : null}
-
-          <Button
-            type="submit"
-            data-testid="signup-continue"
-            className="mt-1 h-12 w-full rounded-full bg-brand-primary text-[15px] font-semibold hover:bg-brand-primary-hover"
-            disabled={credentialsForm.formState.isSubmitting}
-            aria-busy={credentialsForm.formState.isSubmitting}
-          >
-            {credentialsForm.formState.isSubmitting ? (
-              <span className="inline-flex items-center gap-2">
-                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                Sending code…
-              </span>
-            ) : (
-              "Continue"
-            )}
-          </Button>
-        </form>
-      ) : null}
-
-      {currentStep === 2 ? (
-        <form
-          className="space-y-4"
-          data-testid="signup-otp-form"
-          onSubmit={(event) => event.preventDefault()}
-        >
-          {infoMessage ? (
-            <p role="status" className="text-sm text-emerald-700">
-              {infoMessage}
-            </p>
-          ) : null}
-
-          <AuthOtpStep
-            embedded
-            title="Confirm it’s you"
-            description="Enter the 6-digit code we sent to"
-            email={signupEmail}
-            codeTestId="signup-otp"
-            code={otpCode}
-            disabled={isSubmitting}
-            error={submitError ?? otpForm.formState.errors.code?.message}
-            onCodeChange={syncOtpCode}
-            onCodeComplete={(code) => {
-              syncOtpCode(code);
-              void handleVerifyEmailSubmit();
-            }}
-            onResend={handleResendOtp}
-            onBack={() => setCurrentStep(1)}
-            submitLabel="Verify email"
-            submittingLabel="Verifying…"
-            submitTestId="signup-verify-email"
-            isSubmitting={otpForm.formState.isSubmitting}
-            onSubmit={() => void handleVerifyEmailSubmit()}
-          />
-        </form>
-      ) : null}
-
-      {currentStep === 3 ? (
-        <form
-          method="post"
-          className="space-y-5"
-          data-testid="signup-profile-form"
-          onSubmit={(event) => {
-            event.preventDefault();
-            void handleProfileNext();
-          }}
-        >
-          {infoMessage ? (
-            <p role="status" className="text-sm text-emerald-700">
-              {infoMessage}
-            </p>
-          ) : null}
-
-          <div>
-            <Label htmlFor="name">Your full name</Label>
-            <Input
-              id="name"
-              data-testid="signup-name"
-              autoComplete="name"
-              placeholder="Jane Banda"
-              className="mt-1.5 h-12 rounded-xl border-brand-border bg-white px-3.5 text-[15px] shadow-none focus-visible:border-brand-primary focus-visible:ring-brand-primary/20"
-              {...nameRegister}
-              ref={(element) => {
-                nameRegister.ref(element);
-                nameInputRef.current = element;
-              }}
-            />
-            {profileForm.formState.errors.name ? (
-              <p className="mt-1.5 text-sm text-destructive">
-                {profileForm.formState.errors.name.message}
-              </p>
-            ) : null}
-          </div>
-
-          <div>
-            <Label htmlFor="clinic_name">Clinic or organization</Label>
-            <Input
-              id="clinic_name"
-              data-testid="signup-clinic-name"
-              autoComplete="organization"
-              placeholder="Lakeview Clinic"
-              className="mt-1.5 h-12 rounded-xl border-brand-border bg-white px-3.5 text-[15px] shadow-none focus-visible:border-brand-primary focus-visible:ring-brand-primary/20"
-              {...profileForm.register("clinic_name")}
-            />
-            {profileForm.formState.errors.clinic_name ? (
-              <p className="mt-1.5 text-sm text-destructive">
-                {profileForm.formState.errors.clinic_name.message}
-              </p>
-            ) : null}
-          </div>
-
           <div>
             <Label htmlFor="country">Country</Label>
-            <p className="mt-0.5 text-xs text-brand-muted">
-              Used to prepare regional defaults for your workspace.
-            </p>
             <div className={cn("mt-1.5 [&_button]:h-12 [&_button]:rounded-xl")}>
               <ReactFlagsSelect
                 selected={countryCode}
@@ -500,34 +498,46 @@ export function SignUpForm() {
           {submitError ? (
             <FormErrorShake message={submitError} reduceMotion={reduceMotion} />
           ) : null}
-
-          <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-between">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-12 rounded-full border-brand-border"
-              onClick={() => setCurrentStep(2)}
-            >
-              Back
-            </Button>
-            <Button
-              type="submit"
-              data-testid="signup-profile-continue"
-              className="h-12 min-w-[10rem] rounded-full bg-brand-primary font-semibold hover:bg-brand-primary-hover"
-            >
-              Continue
-            </Button>
-          </div>
         </form>
       ) : null}
 
-      {currentStep === 4 ? (
+      {currentStep === 2 ? (
+        <div className="flex flex-1 flex-col" data-testid="signup-otp-form">
+          {infoMessage ? (
+            <p role="status" className="mb-4 text-sm text-emerald-700">
+              {infoMessage}
+            </p>
+          ) : null}
+
+          <AuthOtpStep
+            embedded
+            hideActions
+            title="Confirm your email"
+            description="Enter the 6-digit code we sent to"
+            email={signupEmail}
+            codeTestId="signup-otp"
+            code={otpCode}
+            disabled={isSubmitting}
+            error={submitError ?? otpForm.formState.errors.code?.message}
+            onCodeChange={syncOtpCode}
+            onCodeComplete={(code) => {
+              syncOtpCode(code);
+              void handleVerifyEmailSubmit();
+            }}
+            onResend={handleResendOtp}
+            submitLabel="Continue"
+            submittingLabel="Verifying…"
+            submitTestId="signup-verify-email-inner"
+            isSubmitting={isVerifying}
+            onSubmit={() => void handleVerifyEmailSubmit()}
+          />
+        </div>
+      ) : null}
+
+      {currentStep === 3 ? (
         <SignupModulesStep
           selectedModuleIds={selectedModuleIds}
           onSelectedModuleIdsChange={setSelectedModuleIds}
-          onBack={() => setCurrentStep(3)}
-          onSubmit={handleCreateWorkspace}
-          isSubmitting={isFinalizing}
           error={submitError}
         />
       ) : null}
