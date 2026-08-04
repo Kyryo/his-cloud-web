@@ -32,6 +32,7 @@ type SearchableSelectProps = {
   noResultsMessage?: string;
   autoFocusSearch?: boolean;
   triggerClassName?: string;
+  contentClassName?: string;
   children: ReactNode;
 };
 
@@ -53,11 +54,13 @@ export function SearchableSelect({
   noResultsMessage = "No results found.",
   autoFocusSearch = true,
   triggerClassName,
+  contentClassName,
   children,
 }: SearchableSelectProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const trimmedSearch = searchValue.trim();
   const hasResults = Children.count(children) > 0;
+  const needsSearch = trimmedSearch.length < minSearchLength;
 
   useEffect(() => {
     if (!open || !autoFocusSearch) {
@@ -82,8 +85,15 @@ export function SearchableSelect({
       <SelectTrigger id={id} className={cn("w-full", triggerClassName)}>
         <SelectValue placeholder={placeholder}>{displayValue}</SelectValue>
       </SelectTrigger>
-      <SelectContent className={appFont.className}>
-        <div className="border-b border-brand-border p-2">
+      <SelectContent
+        className={cn(
+          "max-h-80 overflow-hidden p-0",
+          "[&_[data-radix-select-viewport]]:h-auto [&_[data-radix-select-viewport]]:max-h-80",
+          appFont.className,
+          contentClassName,
+        )}
+      >
+        <div className="sticky top-0 z-10 border-b border-brand-border bg-popover p-2">
           <Input
             ref={searchInputRef}
             value={searchValue}
@@ -94,22 +104,24 @@ export function SearchableSelect({
           />
         </div>
 
-        {isLoading ? (
-          <div className="flex items-center justify-center gap-2 px-3 py-6 text-sm text-brand-muted">
-            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            Searching...
-          </div>
-        ) : trimmedSearch.length < minSearchLength ? (
-          <div className="px-3 py-6 text-center text-sm text-brand-muted">
-            {emptySearchMessage}
-          </div>
-        ) : !hasResults ? (
-          <div className="px-3 py-6 text-center text-sm text-brand-muted">
-            {noResultsMessage}
-          </div>
-        ) : (
-          children
-        )}
+        <div className="max-h-60 overflow-y-auto overscroll-contain p-1">
+          {isLoading ? (
+            <div className="flex items-center justify-center gap-2 px-3 py-6 text-sm text-brand-muted">
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              Searching...
+            </div>
+          ) : needsSearch ? (
+            <div className="px-3 py-6 text-center text-sm text-brand-muted">
+              {emptySearchMessage}
+            </div>
+          ) : !hasResults ? (
+            <div className="px-3 py-6 text-center text-sm text-brand-muted">
+              {noResultsMessage}
+            </div>
+          ) : (
+            children
+          )}
+        </div>
       </SelectContent>
     </Select>
   );

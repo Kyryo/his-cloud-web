@@ -23,12 +23,11 @@ export function HeroSection() {
     >
       <div className="mx-auto flex w-full max-w-6xl flex-col items-center px-6 pb-8 pt-14 text-center sm:px-10 sm:pb-10 sm:pt-16 lg:px-12 lg:pt-20">
         <h1 className="landing-display max-w-[18ch] text-[clamp(2rem,5vw,3.75rem)] font-semibold tracking-[-0.045em] text-balance sm:max-w-none sm:whitespace-nowrap">
-          Stop losing revenue after patient care
+          Stop losing revenue after every patient visit
         </h1>
 
         <p className="landing-body mx-auto mt-6 max-w-[34rem] text-[1.05rem] leading-[1.7] text-[color:var(--landing-ledger-ink)] sm:text-lg sm:leading-[1.7]">
-          Sigma connects patient billing, insurance claims, and payments so you
-          always know where your money stands.
+        Sigma bills patients, submits insurance claims automatically, and tracks every payment until you&apos;re paid fully.
         </p>
 
         <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-3">

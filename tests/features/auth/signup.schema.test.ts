@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { getPasswordStrength } from "@/features/auth/components/PasswordStrengthMeter";
 import {
   signupCredentialsSchema,
   signupOtpSchema,
@@ -7,14 +8,30 @@ import {
 } from "@/features/auth/schemas/signup.schema";
 
 describe("signupCredentialsSchema", () => {
-  it("rejects mismatched passwords", () => {
+  it("accepts email and password without confirmation", () => {
     const result = signupCredentialsSchema.safeParse({
       email: "jane@example.com",
       password: "password123",
-      password2: "different",
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects short passwords", () => {
+    const result = signupCredentialsSchema.safeParse({
+      email: "jane@example.com",
+      password: "short",
     });
 
     expect(result.success).toBe(false);
+  });
+});
+
+describe("getPasswordStrength", () => {
+  it("scores empty, weak, and strong passphrases", () => {
+    expect(getPasswordStrength("")).toBe("empty");
+    expect(getPasswordStrength("abcdefg")).toBe("weak");
+    expect(getPasswordStrength("Str0ng-Passphrase-123!")).toBe("strong");
   });
 });
 

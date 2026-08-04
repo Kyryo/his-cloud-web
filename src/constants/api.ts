@@ -126,6 +126,8 @@ export const BFF_INVOICES_ROUTES = {
   internalReference: (invoiceId: number | string) =>
     `/api/invoices/${invoiceId}/internal-reference`,
   activity: (invoiceId: number | string) => `/api/invoices/${invoiceId}/activity`,
+  syncLineTariffCode: (invoiceId: number | string, lineId: number | string) =>
+    `/api/invoices/${invoiceId}/lines/${lineId}/sync-tariff-code`,
 } as const;
 
 /** Browser-facing BFF invoice activity routes (same origin). */
@@ -142,10 +144,21 @@ export const BFF_CLAIMS_ROUTES = {
   byInvoice: (invoiceId: number | string) => `/api/claims/by-invoice/${invoiceId}`,
   verifyMember: "/api/claims/verify-member",
   submit: (claimId: number | string) => `/api/claims/${claimId}/submit`,
+  advisorEvaluate: (claimId: number | string) =>
+    `/api/claims/${claimId}/advisor/evaluate`,
+  advisorEvaluations: (claimId: number | string) =>
+    `/api/claims/${claimId}/advisor/evaluations`,
+  advisorOverride: (claimId: number | string) =>
+    `/api/claims/${claimId}/advisor/override`,
   masmIntegration: "/api/integrations/eclaims/masm",
+  clinicPayerIntegration: (clinicId: number | string) =>
+    `/api/integrations/eclaims/masm/clinics/${clinicId}`,
+  clinicPortalCredentials: (clinicId: number | string) =>
+    `/api/integrations/eclaims/masm/clinics/${clinicId}/portal-credentials`,
   practitionerMappings: "/api/integrations/eclaims/practitioner-mappings",
   practitionerMappingsUpsert:
     "/api/integrations/eclaims/practitioner-mappings/upsert",
+  tariffCategories: "/api/claims/tariff-categories",
 } as const;
 
 /** Browser-facing BFF clinical diagnosis routes (same origin). */
@@ -333,6 +346,10 @@ export const BFF_SETTINGS_ROUTES = {
   emailConfigurationDetail: (id: number | string) =>
     `/api/integrations/email-configuration/${id}`,
   masmIntegration: "/api/integrations/eclaims/masm",
+  clinicPayerIntegration: (clinicId: number | string) =>
+    `/api/integrations/eclaims/masm/clinics/${clinicId}`,
+  clinicPortalCredentials: (clinicId: number | string) =>
+    `/api/integrations/eclaims/masm/clinics/${clinicId}/portal-credentials`,
   eclaimsPractitionerMappings: "/api/integrations/eclaims/practitioner-mappings",
   eclaimsPractitionerMappingsUpsert:
     "/api/integrations/eclaims/practitioner-mappings/upsert",
@@ -365,6 +382,12 @@ export const BFF_PLATFORM_ADMIN_ROUTES = {
     `/api/platform-admin/tenants/${tenantUuid}/audit-events`,
   tenantUsage: (tenantUuid: string) =>
     `/api/platform-admin/tenants/${tenantUuid}/usage`,
+  tenantWebhooks: (tenantUuid: string) =>
+    `/api/platform-admin/tenants/${tenantUuid}/webhooks`,
+  tenantWebhookDetail: (tenantUuid: string, jobId: number | string) =>
+    `/api/platform-admin/tenants/${tenantUuid}/webhooks/${jobId}`,
+  tenantWebhookResend: (tenantUuid: string, jobId: number | string) =>
+    `/api/platform-admin/tenants/${tenantUuid}/webhooks/${jobId}/resend`,
 } as const;
 
 /** Browser-facing BFF report job routes (same origin). */

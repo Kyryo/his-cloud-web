@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, ShieldCheck } from "lucide-react";
+import { FilePlus2, Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
@@ -12,16 +12,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
 import {
   createClaimFromInvoice,
-  extractVerificationToken,
-  verifyClaimMember,
+  evaluateClaimAdvisories,
 } from "@/features/claims/services/claims.service";
+import type { ClaimDetail } from "@/features/claims/types/claims.types";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 import { BffError } from "@/lib/bff-client";
-import { coerceToOptionalString } from "@/lib/coerce-string";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
@@ -31,10 +28,8 @@ type PostClaimDialogProps = {
   invoice: Invoice;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void | Promise<void>;
+  onSuccess?: (claim: ClaimDetail) => void | Promise<void>;
 };
-
-type Step = "verify" | "creating" | "success";
 
 export function PostClaimDialog({
   invoice,
@@ -43,74 +38,58 @@ export function PostClaimDialog({
   onSuccess,
 }: PostClaimDialogProps) {
   const { toast } = useToast();
-  const [step, setStep] = useState<Step>("verify");
-  const [membershipNumber, setMembershipNumber] = useState("");
-  const [serviceProviderCode, setServiceProviderCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (!open) {
-      setStep("verify");
       setError(null);
       setIsSubmitting(false);
-      return;
     }
+  }, [open]);
 
-    setMembershipNumber(coerceToOptionalString(invoice.insurance_number));
-    setServiceProviderCode(coerceToOptionalString(invoice.service_provider_code));
-  }, [invoice, open]);
-
-  async function handleVerifyAndCreate() {
-    const membership = membershipNumber.trim();
-    const providerCode = serviceProviderCode.trim();
-
-    if (!membership || !providerCode) {
-      setError("Membership number and service provider code are required.");
-      return;
-    }
-
+  async function handleCreateClaim() {
     setError(null);
     setIsSubmitting(true);
 
     try {
-      const verification = await verifyClaimMember({
-        membership_number: membership,
-        service_provider_code: providerCode,
-      });
-
-      const token =
-        verification.token?.trim() ||
-        extractVerificationToken(verification.member) ||
-        "";
-
-      if (!token) {
-        setError("Member verification succeeded but no verification token was returned.");
-        return;
-      }
-
-      setStep("creating");
-      await createClaimFromInvoice(invoice.id, {
-        verification_token: token,
+      const claim = await createClaimFromInvoice(invoice.id, {
         payer_code: "MASM",
       });
 
-      setStep("success");
+      try {
+        await evaluateClaimAdvisories(claim.id);
+      } catch (evaluateError) {
+        toast({
+          variant: "error",
+          title: "Claim created, but advisories failed",
+          description:
+            evaluateError instanceof BffError
+              ? formatBffErrorMessage(
+                  evaluateError.message,
+                  evaluateError.errors,
+                )
+              : evaluateError instanceof Error
+                ? evaluateError.message
+                : "Something went wrong while evaluating advisories.",
+        });
+      }
+
       toast({
         variant: "success",
-        title: "Claim initiated",
+        title: "Claim created",
         description: "A draft claim was created for this invoice.",
       });
-      await onSuccess?.();
+      await onSuccess?.(claim);
+      onOpenChange(false);
     } catch (err) {
       const message =
         err instanceof BffError
           ? formatBffErrorMessage(err.message, err.errors)
           : err instanceof Error
             ? err.message
-            : "Could not initiate claim.";
+            : "Could not create claim.";
       setError(message);
-      setStep("verify");
     } finally {
       setIsSubmitting(false);
     }
@@ -124,91 +103,48 @@ export function PostClaimDialog({
       >
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <ShieldCheck className="size-5 text-brand-primary" aria-hidden="true" />
-            Initiate insurance claim
+            <FilePlus2 className="size-5 text-brand-primary" aria-hidden="true" />
+            Create insurance claim
           </DialogTitle>
           <DialogDescription>
-            Verify the member with MASM, then create a draft claim for{" "}
-            {invoice.name || `invoice #${invoice.id}`}.
+            Create a draft claim for {invoice.name || `invoice #${invoice.id}`}{" "}
+            and run advisories. Member verification with the insurer happens later
+            at submit.
           </DialogDescription>
         </DialogHeader>
 
-        {step === "success" ? (
-          <div className="space-y-4 py-2">
-            <p className="text-sm text-brand-navy">
-              The claim draft is ready. Review the details and submit when you are ready.
+        <div className="space-y-4">
+          {error ? (
+            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {error}
             </p>
-            <DialogFooter>
-              <PrimaryButton type="button" onClick={() => onOpenChange(false)}>
-                Done
-              </PrimaryButton>
-            </DialogFooter>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium text-brand-navy">
-                Membership number <RequiredFieldMarker />
-              </label>
-              <Input
-                value={membershipNumber}
-                onChange={(event) => setMembershipNumber(event.target.value)}
-                className="mt-1.5"
-                autoComplete="off"
-                disabled={isSubmitting}
-              />
-            </div>
+          ) : null}
 
-            <div>
-              <label className="text-sm font-medium text-brand-navy">
-                Service provider code <RequiredFieldMarker />
-              </label>
-              <Input
-                value={serviceProviderCode}
-                onChange={(event) => setServiceProviderCode(event.target.value)}
-                className="mt-1.5"
-                autoComplete="off"
-                disabled={isSubmitting}
-              />
-              {!serviceProviderCode.trim() ? (
-                <p className="mt-1 text-xs text-brand-muted">
-                  Configure a practitioner mapping under settings → integrations → insurance →
-                  MASM if this is missing.
-                </p>
-              ) : null}
-            </div>
-
-            {error ? (
-              <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                {error}
-              </p>
-            ) : null}
-
-            <DialogFooter>
-              <SecondaryButton
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </SecondaryButton>
-              <PrimaryButton
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => void handleVerifyAndCreate()}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                    {step === "creating" ? "Creating claim..." : "Verifying..."}
-                  </>
-                ) : (
-                  "Verify and initiate"
-                )}
-              </PrimaryButton>
-            </DialogFooter>
-          </div>
-        )}
+          <DialogFooter>
+            <SecondaryButton
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </SecondaryButton>
+            <PrimaryButton
+              type="button"
+              disabled={isSubmitting}
+              onClick={() => void handleCreateClaim()}
+              data-testid="post-claim-confirm-button"
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                  Creating claim...
+                </>
+              ) : (
+                "Create claim"
+              )}
+            </PrimaryButton>
+          </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

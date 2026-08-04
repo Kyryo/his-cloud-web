@@ -1,17 +1,16 @@
 "use client";
 
-import {
-  AlertCircle,
-  CheckCircle2,
-  ChevronDown,
-  Loader2,
-} from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
-import { EditClaimDialog } from "@/features/claims/components/EditClaimDialog";
-import { PostClaimDialog } from "@/features/claims/components/PostClaimDialog";
 import {
+  isClaimSubmitBlockedByAdvisories,
+} from "@/features/claims/components/ClaimAdvisoriesPanel";
+import { ClaimWorkflowCard } from "@/features/claims/components/ClaimWorkflowCard";
+import {
+  createClaimFromInvoice,
+  evaluateClaimAdvisories,
+  fetchClaim,
   fetchClaimByInvoice,
   isInsuranceInvoice,
   submitClaim,
@@ -23,152 +22,36 @@ import {
   invoiceHasNonPayableLines,
 } from "@/features/invoices/utils/invoice-line-payability";
 import {
+  getClaimRequirementCheckItems,
   getInvoiceClaimReadinessItems,
-  type InvoiceClaimReadinessItem,
+  getInvoiceClaimSystemReadinessItems,
 } from "@/features/invoices/utils/invoice-claim-readiness";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
-import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
 type InvoiceClaimsTabProps = {
   invoice: Invoice;
   isActive: boolean;
   onInvoiceRefresh?: () => void | Promise<void>;
+  onClaimIndicatorChange?: (hasIssues: boolean) => void;
 };
-
-function ReadinessList({ items }: { items: InvoiceClaimReadinessItem[] }) {
-  return (
-    <ul className="space-y-2">
-      {items.map((item) => (
-        <li key={item.label} className="flex items-start gap-2 text-sm">
-          {item.met ? (
-            <CheckCircle2
-              className="mt-0.5 size-4 shrink-0 text-emerald-600"
-              aria-hidden="true"
-            />
-          ) : (
-            <AlertCircle
-              className="mt-0.5 size-4 shrink-0 text-amber-600"
-              aria-hidden="true"
-            />
-          )}
-          <div>
-            <p className={cn("text-brand-navy", !item.met && "text-brand-muted")}>
-              {item.label}
-            </p>
-            {item.hint ? (
-              <p className="text-xs text-brand-muted">{item.hint}</p>
-            ) : null}
-          </div>
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function ReadinessSection({ items }: { items: InvoiceClaimReadinessItem[] }) {
-  const [detailsOpen, setDetailsOpen] = useState(false);
-  const allMet = items.every((item) => item.met);
-  const metCount = items.filter((item) => item.met).length;
-  const remainingCount = items.length - metCount;
-
-  const barStyles = allMet
-    ? {
-        container: "border-emerald-200 bg-emerald-50/80",
-        divider: "border-emerald-200/80",
-        icon: "text-emerald-600",
-        label: "text-emerald-800",
-        toggle: "text-emerald-700 hover:text-emerald-900",
-      }
-    : {
-        container: "border-amber-200 bg-amber-50/80",
-        divider: "border-amber-200/80",
-        icon: "text-amber-600",
-        label: "text-amber-900",
-        toggle: "text-amber-800 hover:text-amber-950",
-      };
-
-  const summaryLabel = allMet
-    ? `All ${items.length} checks passed`
-    : `${remainingCount} of ${items.length} checks remaining`;
-
-  const StatusIcon = allMet ? CheckCircle2 : AlertCircle;
-
-  return (
-    <div className={cn("rounded-lg border", barStyles.container)}>
-      <div className="flex items-center justify-between gap-3 px-3 py-2.5">
-        <div className="flex items-center gap-2">
-          <StatusIcon
-            className={cn("size-4 shrink-0", barStyles.icon)}
-            aria-hidden="true"
-          />
-          <span className={cn("text-sm font-medium", barStyles.label)}>
-            {summaryLabel}
-          </span>
-        </div>
-        <button
-          type="button"
-          onClick={() => setDetailsOpen((open) => !open)}
-          className={cn(
-            "inline-flex items-center gap-1 text-xs font-medium",
-            barStyles.toggle,
-          )}
-          aria-expanded={detailsOpen}
-        >
-          Details
-          <ChevronDown
-            className={cn(
-              "size-3.5 transition-transform",
-              detailsOpen && "rotate-180",
-            )}
-            aria-hidden="true"
-          />
-        </button>
-      </div>
-      {detailsOpen ? (
-        <div className={cn("border-t px-3 py-2.5", barStyles.divider)}>
-          <ReadinessList items={items} />
-        </div>
-      ) : null}
-    </div>
-  );
-}
 
 export function InvoiceClaimsTab({
   invoice,
   isActive,
   onInvoiceRefresh,
+  onClaimIndicatorChange,
 }: InvoiceClaimsTabProps) {
   const { toast } = useToast();
   const [claim, setClaim] = useState<ClaimDetail | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [postDialogOpen, setPostDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-
-  const loadClaim = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const existingClaim = await fetchClaimByInvoice(invoice.id);
-      setClaim(existingClaim);
-    } catch (error) {
-      if (!(error instanceof BffError) || error.status !== 404) {
-        toast({
-          variant: "error",
-          title: "Could not load claim",
-          description:
-            error instanceof Error ? error.message : "Something went wrong.",
-        });
-      }
-      setClaim(null);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [invoice.id, toast]);
 
   useEffect(() => {
-    if (!isActive) {
+    if (!isInsuranceInvoice(invoice)) {
+      setClaim(null);
       return;
     }
 
@@ -210,14 +93,75 @@ export function InvoiceClaimsTab({
     return () => {
       cancelled = true;
     };
-  }, [isActive, invoice.id, toast]);
+  }, [invoice.id, invoice.claim_status]);
 
-  async function handleRefresh() {
-    await Promise.all([loadClaim(), onInvoiceRefresh?.()]);
+  useEffect(() => {
+    if (!onClaimIndicatorChange) {
+      return;
+    }
+
+    if (claim) {
+      onClaimIndicatorChange(isClaimSubmitBlockedByAdvisories(claim));
+      return;
+    }
+
+    onClaimIndicatorChange(
+      getInvoiceClaimReadinessItems(invoice, null).some((item) => !item.met),
+    );
+  }, [claim, invoice, onClaimIndicatorChange]);
+
+  async function handleCreateClaim() {
+    setIsCreating(true);
+    try {
+      const created = await createClaimFromInvoice(invoice.id, {
+        payer_code: "MASM",
+      });
+
+      let evaluatedClaim = created;
+      try {
+        await evaluateClaimAdvisories(created.id);
+        evaluatedClaim = await fetchClaim(created.id);
+      } catch (evaluateError) {
+        toast({
+          variant: "error",
+          title: "Claim created, but advisories failed",
+          description:
+            evaluateError instanceof BffError
+              ? formatBffErrorMessage(
+                  evaluateError.message,
+                  evaluateError.errors,
+                )
+              : evaluateError instanceof Error
+                ? evaluateError.message
+                : "Something went wrong while evaluating advisories.",
+        });
+      }
+
+      setClaim(evaluatedClaim);
+      toast({
+        variant: "success",
+        title: "Claim created",
+        description: "A draft claim was created. Review advisories before submit.",
+      });
+      await onInvoiceRefresh?.();
+    } catch (error) {
+      toast({
+        variant: "error",
+        title: "Could not create claim",
+        description:
+          error instanceof BffError
+            ? formatBffErrorMessage(error.message, error.errors)
+            : error instanceof Error
+              ? error.message
+              : "Something went wrong.",
+      });
+    } finally {
+      setIsCreating(false);
+    }
   }
 
   async function handleSubmitClaim() {
-    if (!claim) {
+    if (!claim || isClaimSubmitBlockedByAdvisories(claim)) {
       return;
     }
 
@@ -261,121 +205,45 @@ export function InvoiceClaimsTab({
     );
   }
 
-  const claimStatus = claim?.status ?? invoice.claim_status ?? null;
-  const isDraft = String(claimStatus ?? "").toLowerCase() === "draft";
-  const readinessItems = getInvoiceClaimReadinessItems(invoice, claim);
+  const readinessItems = getInvoiceClaimSystemReadinessItems(invoice, claim);
+  const requirementItems = getClaimRequirementCheckItems(invoice, claim);
   const claimableLineCount = getInvoiceClaimableLines(invoice.lines).length;
   const hasExcludedLines = invoiceHasNonPayableLines(invoice.lines);
 
-  return (
-    <div className="space-y-6" data-testid="invoice-claims-tab">
-      <div className="rounded-xl border border-brand-border bg-white p-6">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold text-brand-navy">Insurance claim</h2>
-          </div>
-          <p className="mt-1 text-sm text-brand-muted">
-            Verify the member, create a draft claim, then submit to MASM. Only payable
-            line items are sent to insurance; non-payable items are billed to the client.
-          </p>
-          {hasExcludedLines ? (
-            <p
-              className="mt-3 rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2 text-sm text-amber-900"
-              data-testid="invoice-claim-non-payable-notice"
-            >
-              {claimableLineCount} payable item{claimableLineCount === 1 ? "" : "s"}{" "}
-              will be included in the claim. Non-payable items on this invoice are
-              excluded because they are paid by the customer.
-            </p>
-          ) : null}
-        </div>
+  const nonPayableNotice = hasExcludedLines ? (
+    <p
+      className="rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2 text-sm text-amber-900"
+      data-testid="invoice-claim-non-payable-notice"
+    >
+      {claimableLineCount} payable item{claimableLineCount === 1 ? "" : "s"}{" "}
+      will be included in the claim. Non-payable items on this invoice are
+      excluded because they are paid by the customer.
+    </p>
+  ) : null;
 
-        {isLoading ? (
-          <div className="mt-6 flex items-center gap-2 text-sm text-brand-muted">
+  return (
+    <div className="space-y-4" data-testid="invoice-claims-tab">
+      {isLoading ? (
+        <div className="rounded-xl border border-brand-border bg-white p-6">
+          <div className="flex items-center gap-2 text-sm text-brand-muted">
             <Loader2 className="size-4 animate-spin" aria-hidden="true" />
             Loading claim...
           </div>
-        ) : (
-          <>
-            <div className="mt-6">
-              <ReadinessSection items={readinessItems} />
-            </div>
-
-            <div className="mt-6 flex flex-wrap gap-2">
-              {!claim ? (
-                <PrimaryButton type="button" onClick={() => setPostDialogOpen(true)}>
-                  Create claim
-                </PrimaryButton>
-              ) : null}
-
-              {claim && isDraft ? (
-                <>
-                  <PrimaryButton
-                    type="button"
-                    disabled={isSubmitting}
-                    onClick={() => void handleSubmitClaim()}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                        Submitting...
-                      </>
-                    ) : (
-                      "Submit"
-                    )}
-                  </PrimaryButton>
-                  <SecondaryButton type="button" onClick={() => setEditDialogOpen(true)}>
-                    Edit draft
-                  </SecondaryButton>
-                </>
-              ) : null}
-            </div>
-
-            {claim ? (
-              <dl className="mt-6 grid gap-3 border-t border-brand-border pt-6 sm:grid-cols-2">
-                <div>
-                  <dt className="text-xs text-brand-muted">Membership number</dt>
-                  <dd className="text-sm text-brand-navy">{claim.membership_number}</dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-brand-muted">Practitioner number</dt>
-                  <dd className="text-sm text-brand-navy">
-                    {claim.practitioner_number || "—"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-brand-muted">Service provider code</dt>
-                  <dd className="text-sm text-brand-navy">
-                    {claim.service_provider_code || "—"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs text-brand-muted">Claim reference</dt>
-                  <dd className="text-sm text-brand-navy">
-                    {claim.claim_reference_number || claim.external_claim_id || "—"}
-                  </dd>
-                </div>
-              </dl>
-            ) : null}
-          </>
-        )}
-      </div>
-
-      <PostClaimDialog
-        invoice={invoice}
-        open={postDialogOpen}
-        onOpenChange={setPostDialogOpen}
-        onSuccess={handleRefresh}
-      />
-
-      {claim ? (
-        <EditClaimDialog
+        </div>
+      ) : (
+        <ClaimWorkflowCard
           claim={claim}
-          open={editDialogOpen}
-          onOpenChange={setEditDialogOpen}
-          onSuccess={handleRefresh}
+          readinessItems={readinessItems}
+          requirementItems={requirementItems}
+          onClaimUpdated={setClaim}
+          notice={nonPayableNotice}
+          onCreateClaim={() => void handleCreateClaim()}
+          isCreating={isCreating}
+          onSubmit={() => void handleSubmitClaim()}
+          isSubmitting={isSubmitting}
+          showSubmitInQueue
         />
-      ) : null}
+      )}
     </div>
   );
 }

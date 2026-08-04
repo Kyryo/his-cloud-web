@@ -68,3 +68,13 @@ export async function cancelInvoice(
     method: "POST",
   });
 }
+
+export async function syncInvoiceLineTariffCode(
+  invoiceId: number | string,
+  lineId: number | string,
+): Promise<Invoice> {
+  return bffRequest<Invoice>(
+    BFF_INVOICES_ROUTES.syncLineTariffCode(invoiceId, lineId),
+    { method: "POST" },
+  );
+}

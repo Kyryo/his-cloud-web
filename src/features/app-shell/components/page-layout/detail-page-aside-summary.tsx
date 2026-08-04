@@ -105,6 +105,31 @@ export function DetailPageAsideSummaryAmountRow({
   );
 }
 
+type DetailPageAsideSummaryTotalRowProps = {
+  value: ReactNode;
+  label?: string;
+  showDivider?: boolean;
+};
+
+/** Emphasized total row for aside billing summaries, with optional top divider. */
+export function DetailPageAsideSummaryTotalRow({
+  value,
+  label = "Total",
+  showDivider = false,
+}: DetailPageAsideSummaryTotalRowProps) {
+  return (
+    <>
+      {showDivider ? (
+        <div
+          className="border-t border-brand-border pt-2.5"
+          role="presentation"
+        />
+      ) : null}
+      <DetailPageAsideSummaryAmountRow label={label} value={value} emphasized />
+    </>
+  );
+}
+
 type DetailPageAsideSummaryHighlightProps = {
   title?: string;
   action?: ReactNode;

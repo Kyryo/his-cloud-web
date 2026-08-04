@@ -6,4 +6,6 @@ export const INVOICES_API_PATHS = {
   internalReference: (invoiceId: number | string) =>
     `/invoices/${invoiceId}/internal-reference/`,
   activity: (invoiceId: number | string) => `/invoices/${invoiceId}/activity/`,
+  syncLineTariffCode: (invoiceId: number | string, lineId: number | string) =>
+    `/invoices/${invoiceId}/lines/${lineId}/sync-tariff-code/`,
 } as const;

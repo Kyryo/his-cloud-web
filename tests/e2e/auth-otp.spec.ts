@@ -33,7 +33,6 @@ test.describe("OTP auth flow", () => {
 
     await page.getByTestId("signup-email").fill("user@example.com");
     await page.getByTestId("signup-password").fill("Str0ng-Passphrase-123!");
-    await page.getByLabel("Confirm password").fill("Str0ng-Passphrase-123!");
     await page.getByTestId("signup-continue").click();
 
     await expect(page.getByTestId("signup-otp-form")).toBeVisible();

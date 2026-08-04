@@ -23,4 +23,10 @@ export const PLATFORM_ADMIN_API_PATHS = {
     `/platform-admin/tenants/${tenantUuid}/audit-events/`,
   tenantUsage: (tenantUuid: string) =>
     `/platform-admin/tenants/${tenantUuid}/usage/`,
+  tenantWebhooks: (tenantUuid: string) =>
+    `/platform-admin/tenants/${tenantUuid}/webhooks/`,
+  tenantWebhookDetail: (tenantUuid: string, jobId: number | string) =>
+    `/platform-admin/tenants/${tenantUuid}/webhooks/${jobId}/`,
+  tenantWebhookResend: (tenantUuid: string, jobId: number | string) =>
+    `/platform-admin/tenants/${tenantUuid}/webhooks/${jobId}/resend/`,
 } as const;

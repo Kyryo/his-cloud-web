@@ -39,8 +39,9 @@ export function InvoiceDetailTabs({
   onInvoiceRefresh,
 }: InvoiceDetailTabsProps) {
   const showClaimTab = isInsuranceInvoice(invoice);
-  const showClaimReadinessIndicator =
-    showClaimTab && hasInvoiceClaimReadinessIssues(invoice);
+  const [claimTabHasIssues, setClaimTabHasIssues] = useState(
+    () => showClaimTab && hasInvoiceClaimReadinessIssues(invoice),
+  );
 
   const tabs = useMemo(() => {
     const items: Array<{ id: DetailTabId; label: string }> = [
@@ -84,10 +85,10 @@ export function InvoiceDetailTabs({
             <span className="relative inline-flex items-center gap-2">
               {tab.label}
               {tab.id === "lines" && lineCount > 0 ? ` (${lineCount})` : ""}
-              {tab.id === "claim" && showClaimReadinessIndicator ? (
+              {tab.id === "claim" && claimTabHasIssues ? (
                 <span
                   className="size-2 rounded-full bg-red-500"
-                  aria-label="Claim readiness issues"
+                  aria-label="Claim issues"
                 />
               ) : null}
             </span>
@@ -97,13 +98,18 @@ export function InvoiceDetailTabs({
 
       <DetailPageMainAsideGrid>
         <DetailPageMainSection>
-          <InvoiceDetailLinesTab invoice={invoice} isActive={activeTab === "lines"} />
+          <InvoiceDetailLinesTab
+            invoice={invoice}
+            isActive={activeTab === "lines"}
+            onInvoiceRefresh={onInvoiceRefresh}
+          />
           <InvoiceDetailClientTab invoice={invoice} isActive={activeTab === "client"} />
           {showClaimTab ? (
             <InvoiceClaimsTab
               invoice={invoice}
               isActive={activeTab === "claim"}
               onInvoiceRefresh={onInvoiceRefresh}
+              onClaimIndicatorChange={setClaimTabHasIssues}
             />
           ) : null}
           <InvoiceDetailPaymentsTab

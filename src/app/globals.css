@@ -495,6 +495,36 @@
     }
   }
 
+  @keyframes collapsible-down {
+    from {
+      height: 0;
+      opacity: 0;
+    }
+    to {
+      height: var(--radix-collapsible-content-height);
+      opacity: 1;
+    }
+  }
+
+  @keyframes collapsible-up {
+    from {
+      height: var(--radix-collapsible-content-height);
+      opacity: 1;
+    }
+    to {
+      height: 0;
+      opacity: 0;
+    }
+  }
+
+  .animate-collapsible-down {
+    animation: collapsible-down 200ms ease-out;
+  }
+
+  .animate-collapsible-up {
+    animation: collapsible-up 160ms ease-out;
+  }
+
   .dialog-overlay[data-state="open"] {
     animation: dialog-overlay-show 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
@@ -661,5 +691,28 @@
       --ld-warning-border: #b45309;
       --ld-warning-text: #fcd34d;
     }
+  }
+
+  /* Signup onboarding atmosphere */
+  .auth-signup-page-bg {
+    background:
+      radial-gradient(ellipse 55% 45% at 12% 18%, color-mix(in srgb, var(--color-brand-primary) 10%, transparent), transparent 60%),
+      radial-gradient(ellipse 40% 35% at 88% 12%, color-mix(in srgb, var(--color-brand-amber) 10%, transparent), transparent 55%),
+      #faf8f5;
+  }
+
+  .auth-signup-mesh {
+    background:
+      radial-gradient(ellipse 50% 40% at 20% 25%, color-mix(in srgb, var(--color-brand-primary) 16%, transparent), transparent 62%),
+      radial-gradient(ellipse 45% 35% at 80% 18%, color-mix(in srgb, var(--color-brand-amber) 12%, transparent), transparent 58%),
+      radial-gradient(ellipse 40% 45% at 70% 88%, color-mix(in srgb, var(--color-brand-green) 12%, transparent), transparent 60%),
+      linear-gradient(165deg, #fdfaf6 0%, #f3ebe0 100%);
+  }
+
+  .auth-signup-grain {
+    pointer-events: none;
+    opacity: 0.04;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 }

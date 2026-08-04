@@ -4,6 +4,7 @@ import {
   Activity,
   ClipboardList,
   FlaskConical,
+  Loader2,
   Pill,
   Scan,
   Smile,
@@ -122,10 +123,10 @@ export function SignupModulesStep({
               disabled={isSubmitting}
               onClick={() => toggleModule(module.id)}
               className={cn(
-                "flex items-start gap-3 rounded-xl border p-4 text-left transition-colors",
+                "flex items-start gap-3 rounded-xl border p-4 text-left transition-all duration-200",
                 isSelected
-                  ? "border-brand-primary bg-brand-tint/40"
-                  : "border-brand-border bg-white hover:border-brand-primary/40 hover:bg-slate-50/80",
+                  ? "border-brand-primary bg-brand-tint/50 shadow-sm shadow-brand-primary/10"
+                  : "border-brand-border bg-white hover:border-brand-primary/40 hover:bg-brand-warm/40",
                 isSubmitting && "cursor-not-allowed opacity-60",
               )}
               data-testid={`signup-module-${module.id}`}
@@ -177,7 +178,7 @@ export function SignupModulesStep({
         <Button
           type="button"
           variant="outline"
-          className="h-11"
+          className="h-12 rounded-full border-brand-border"
           disabled={isSubmitting}
           onClick={onBack}
         >
@@ -186,10 +187,18 @@ export function SignupModulesStep({
         <Button
           type="submit"
           data-testid="signup-submit"
-          className="h-11 min-w-[10rem] bg-brand-primary hover:bg-brand-primary-hover"
+          className="h-12 min-w-[10rem] rounded-full bg-brand-primary font-semibold hover:bg-brand-primary-hover"
           disabled={isSubmitting || selectedModuleIds.length === 0}
+          aria-busy={isSubmitting}
         >
-          {isSubmitting ? "Creating workspace..." : "Create workspace"}
+          {isSubmitting ? (
+            <span className="inline-flex items-center gap-2">
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              Creating workspace…
+            </span>
+          ) : (
+            "Create workspace"
+          )}
         </Button>
       </div>
     </form>

@@ -141,38 +141,55 @@ export function AuthOtpStep({
           : "w-full max-w-md rounded-2xl border-[1.5px] border-brand-border bg-white px-8 py-10 sm:px-10 sm:py-12",
       )}
     >
-      <div className={cn("flex flex-col", embedded ? "text-left" : "items-center text-center")}>
-        <div
-          className="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-brand-tint text-brand-primary"
-          aria-hidden="true"
-        >
-          <Mail className="h-5 w-5" strokeWidth={1.75} />
+      {!embedded ? (
+        <div className="flex flex-col items-center text-center">
+          <div
+            className="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-brand-tint text-brand-primary"
+            aria-hidden="true"
+          >
+            <Mail className="h-5 w-5" strokeWidth={1.75} />
+          </div>
+
+          <h1 className="font-[family-name:var(--font-bricolage)] text-2xl font-extrabold tracking-tight text-brand-navy">
+            {title}
+          </h1>
+          <p className="mt-2 text-sm leading-relaxed text-brand-muted">
+            {description}
+          </p>
+          <p className="mt-1 text-sm font-medium text-brand-slate">
+            {maskEmail(email)}
+          </p>
+
+          <p
+            className={cn(
+              "mt-4 text-sm tabular-nums",
+              isExpiryExpired || isExpiryUrgent
+                ? "font-medium text-destructive"
+                : "text-brand-muted",
+            )}
+            aria-live="polite"
+          >
+            {isExpiryExpired ? "Code expired" : `Code expires in ${expiryFormatted}`}
+          </p>
         </div>
+      ) : (
+        <div className="mb-6">
+          <p className="text-sm font-medium text-brand-navy">{maskEmail(email)}</p>
+          <p
+            className={cn(
+              "mt-2 text-sm tabular-nums",
+              isExpiryExpired || isExpiryUrgent
+                ? "font-medium text-destructive"
+                : "text-brand-muted",
+            )}
+            aria-live="polite"
+          >
+            {isExpiryExpired ? "Code expired" : `Code expires in ${expiryFormatted}`}
+          </p>
+        </div>
+      )}
 
-        <h1 className="font-[family-name:var(--font-bricolage)] text-2xl font-extrabold tracking-tight text-brand-navy">
-          {title}
-        </h1>
-        <p className="mt-2 text-sm leading-relaxed text-brand-muted">
-          {description}
-        </p>
-        <p className="mt-1 text-sm font-medium text-brand-slate">
-          {maskEmail(email)}
-        </p>
-
-        <p
-          className={cn(
-            "mt-4 text-sm tabular-nums",
-            isExpiryExpired || isExpiryUrgent
-              ? "font-medium text-destructive"
-              : "text-brand-muted",
-          )}
-          aria-live="polite"
-        >
-          {isExpiryExpired ? "Code expired" : `Code expires in ${expiryFormatted}`}
-        </p>
-      </div>
-
-      <div className="mt-8">
+      <div className={cn(!embedded && "mt-8")}>
         {displayError ? (
           <StatusBanner variant="error" message={displayError} className="mb-4" />
         ) : null}
@@ -201,7 +218,14 @@ export function AuthOtpStep({
         className="mt-8 h-12 w-full rounded-full bg-brand-primary text-white hover:bg-brand-primary-hover"
         onClick={handleSubmitClick}
       >
-        {isSubmitting ? (submittingLabel ?? `${submitLabel}...`) : submitLabel}
+        {isSubmitting ? (
+          <span className="inline-flex items-center gap-2">
+            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+            {submittingLabel ?? `${submitLabel}...`}
+          </span>
+        ) : (
+          submitLabel
+        )}
       </Button>
 
       {(onBack || onResend) && (

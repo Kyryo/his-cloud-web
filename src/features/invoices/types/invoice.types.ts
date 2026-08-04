@@ -61,6 +61,7 @@ export type Invoice = {
   has_diagnosis?: boolean;
   can_initiate_claim?: boolean;
   claim_status?: string | null;
+  claim_payer_code?: string | null;
   can_cancel?: boolean;
   cancel_block_reason?: string | null;
   service_provider_code?: string | null;

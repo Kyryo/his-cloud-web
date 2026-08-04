@@ -30,6 +30,40 @@ export type ClaimLineItem = {
   updated_at: string;
 };
 
+export type AdvisorFinding = {
+  code: string;
+  name: string;
+  severity: "info" | "warning" | "rejection_risk" | string;
+  category: string;
+  message: string;
+  recommended_action?: string;
+  requires_ai_review?: boolean;
+  evidence?: Record<string, unknown>;
+};
+
+export type AdvisorEvaluation = {
+  id: number;
+  public_id: string;
+  claim: number;
+  status: string;
+  selected_validation_codes: string[];
+  deterministic_findings: AdvisorFinding[];
+  ai_findings: unknown[];
+  deterministic_count: number;
+  ai_count: number;
+  evaluated_by: number | null;
+  created_at: string;
+};
+
+export type ClaimAdvisoryOverride = {
+  id: number;
+  uuid: string;
+  claim: number;
+  note: string;
+  created_by: number | null;
+  created_at: string;
+};
+
 export type ClaimInvoice = {
   id: number;
   uuid: string;
@@ -74,6 +108,7 @@ export type ClaimDetail = {
   visit_uuid: string;
   invoice: number;
   invoice_id: number;
+  invoice_name?: string | null;
   payer_code: string;
   status: ClaimStatus;
   vitals: ClaimVitals;
@@ -83,11 +118,16 @@ export type ClaimDetail = {
   verification_token: string;
   claim_reference_number: string | null;
   external_claim_id: string | null;
+  customer_name?: string | null;
+  customer_uuid?: string | null;
   submitted_at: string | null;
   created_by: number | null;
   submitted_by: number | null;
   diagnoses: ClaimDiagnosis[];
   claim_invoices: ClaimInvoice[];
+  latest_advisor_evaluation?: AdvisorEvaluation | null;
+  has_blocking_advisories?: boolean;
+  has_advisory_override?: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -144,6 +184,7 @@ export type UpdateClaimPayload = {
 export type MasmPayerIntegration = {
   uuid: string;
   tenant: number;
+  clinic: number;
   payer_code: string;
   is_enabled: boolean;
   client_key: string;
@@ -162,6 +203,27 @@ export type UpdateMasmPayerIntegrationPayload = {
   client_secret?: string;
   sso_url?: string;
   api_base_url?: string;
+  is_active?: boolean;
+};
+
+export type MasmPortalCredential = {
+  uuid: string;
+  tenant: number;
+  clinic: number;
+  payer_code: string;
+  operator_email: string;
+  has_password?: boolean;
+  is_enabled: boolean;
+  is_active: boolean;
+  last_connected_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type UpdateMasmPortalCredentialPayload = {
+  operator_email?: string;
+  password?: string;
+  is_enabled?: boolean;
   is_active?: boolean;
 };
 
@@ -192,3 +254,30 @@ export type UpsertEClaimPractitionerMappingPayload = {
 
 export type EClaimPractitionerMappingListResponse =
   PaginatedListResponse<EClaimPractitionerMapping>;
+
+export type TariffCategory = {
+  id: number;
+  public_id: string;
+  code: string;
+  name: string;
+  description: string;
+  country_code: string;
+  payer_code: string;
+  scheme_code: string;
+  service_group: string;
+  quantity_policy: string;
+  max_units_per_line: number | null;
+  allowed_patient_genders: string[];
+  min_age_years: number | null;
+  max_age_years: number | null;
+  is_active: boolean;
+};
+
+export type TariffCategoryListFilters = {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+};
+
+export type TariffCategoryListResponse =
+  PaginatedListResponse<TariffCategory>;

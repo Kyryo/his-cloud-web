@@ -6,8 +6,19 @@ export const CLAIMS_API_PATHS = {
   byInvoice: (invoiceId: number | string) => `/eclaims/by-invoice/${invoiceId}/`,
   verifyMember: "/eclaims/verify-member/",
   submit: (claimId: number | string) => `/eclaims/${claimId}/submit/`,
+  advisorEvaluate: (claimId: number | string) =>
+    `/eclaims/${claimId}/advisor/evaluate/`,
+  advisorEvaluations: (claimId: number | string) =>
+    `/eclaims/${claimId}/advisor/evaluations/`,
+  advisorOverride: (claimId: number | string) =>
+    `/eclaims/${claimId}/advisor/override/`,
   practitionerMappings: "/eclaims/practitioner-mappings/",
   practitionerMappingDetail: (uuid: string) => `/eclaims/practitioner-mappings/${uuid}/`,
   practitionerMappingsUpsert: "/eclaims/practitioner-mappings/upsert/",
   masmIntegration: "/eclaims/integrations/payers/masm/",
+  clinicPayerIntegration: (payer: string, clinicId: number | string) =>
+    `/eclaims/integrations/payers/${payer}/clinics/${clinicId}/`,
+  clinicPortalCredentials: (payer: string, clinicId: number | string) =>
+    `/eclaims/integrations/payers/${payer}/clinics/${clinicId}/portal-credentials/`,
+  tariffCategories: "/claims-rules/tariff-categories/",
 } as const;

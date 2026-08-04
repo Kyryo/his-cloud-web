@@ -18,6 +18,9 @@ type ToastInput = {
   description?: string;
   variant: ToastVariant;
   id?: string | number;
+  /** Defaults to Infinity for loading, otherwise 5000ms. Pass Infinity to keep until dismissed. */
+  duration?: number;
+  closeButton?: boolean;
 };
 
 type ToastVariantInput = {
@@ -51,8 +54,12 @@ function showToast(input: ToastInput): string | number {
   const message = title || description || "Something went wrong.";
   const options = {
     ...(title && description ? { description } : {}),
-    duration: input.variant === "loading" ? Infinity : 5000,
+    duration:
+      input.duration ?? (input.variant === "loading" ? Infinity : 5000),
     id: input.id,
+    ...(input.closeButton !== undefined
+      ? { closeButton: input.closeButton }
+      : {}),
   };
 
   switch (input.variant) {

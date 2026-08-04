@@ -21,6 +21,7 @@ import {
   ListPageDataTableRow,
 } from "@/features/app-shell/components/page-layout";
 import { PlatformAdminTenantUsageTab } from "@/features/platform-admin/components/PlatformAdminTenantUsageTab";
+import { PlatformAdminTenantWebhooksTab } from "@/features/platform-admin/components/PlatformAdminTenantWebhooksTab";
 import { PlatformAdminStatusBadge } from "@/features/platform-admin/components/PlatformAdminStatusBadge";
 import { PlatformAdminStatusDialog } from "@/features/platform-admin/components/PlatformAdminStatusDialog";
 import { PlatformAdminTenantDialog } from "@/features/platform-admin/components/PlatformAdminTenantDialog";
@@ -54,6 +55,7 @@ type TenantDetailTab =
   | "structure"
   | "users"
   | "configuration"
+  | "webhooks"
   | "audit";
 type ActionStatus = Exclude<PlatformAdminTenantStatus, "PENDING">;
 
@@ -237,6 +239,9 @@ export function PlatformAdminTenantDetailPage({
         {activeTab === "configuration" ? (
           <ConfigurationTab configuration={configuration} />
         ) : null}
+        {activeTab === "webhooks" ? (
+          <PlatformAdminTenantWebhooksTab tenantUuid={tenantUuid} />
+        ) : null}
         {activeTab === "audit" ? <AuditTab events={auditEvents} /> : null}
       </div>
 
@@ -266,6 +271,7 @@ const TABS: Array<{ id: TenantDetailTab; label: string }> = [
   { id: "structure", label: "Structure" },
   { id: "users", label: "Users" },
   { id: "configuration", label: "Configuration" },
+  { id: "webhooks", label: "Webhooks" },
   { id: "audit", label: "Audit" },
 ];
 

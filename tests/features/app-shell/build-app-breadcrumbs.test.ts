@@ -62,6 +62,21 @@ describe("buildAppBreadcrumbs", () => {
     ]);
   });
 
+  it("returns billing and claims for the claims list", () => {
+    expect(buildAppBreadcrumbs(ROUTES.claims)).toEqual([
+      { label: "Billing" },
+      { label: "Claims" },
+    ]);
+  });
+
+  it("returns billing, claims link, and detail label for a claim page", () => {
+    expect(buildAppBreadcrumbs("/claims/42")).toEqual([
+      { label: "Billing" },
+      { label: "Claims", href: ROUTES.claims },
+      { label: "Claim details" },
+    ]);
+  });
+
   it("returns billing, sales orders link, and detail label for an order page", () => {
     expect(buildAppBreadcrumbs("/sales-orders/81")).toEqual([
       { label: "Billing" },

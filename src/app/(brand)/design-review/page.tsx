@@ -180,7 +180,7 @@ export default function DesignReviewPage() {
                 className="mt-4 font-[family-name:var(--review-bricolage)] text-2xl font-extrabold"
                 style={{ color: "#2F5E46" }}
               >
-                200+
+                47
               </p>
               <p className="landing-body text-sm text-[color:var(--landing-ledger-ink)]">
                 Hero stat numbers in mature green (one distinctive accent use)

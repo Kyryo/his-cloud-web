@@ -1,6 +1,12 @@
+"use client";
+
+import { motion, useReducedMotion } from "framer-motion";
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { StepIndicator } from "@/features/auth/components/StepIndicator";
+import { SignupBrandPanel } from "@/features/auth/components/SignupBrandPanel";
+import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 
 export type AuthWizardStep = {
@@ -28,66 +34,100 @@ export function AuthWizardShell({
   footer,
   className,
 }: AuthWizardShellProps) {
+  const reduceMotion = useReducedMotion();
+
   return (
     <div
       className={cn(
-        "flex min-h-screen items-center justify-center bg-[#fafbfc] px-4 py-8 sm:py-10",
+        "relative flex min-h-screen flex-col lg:flex-row",
         className,
       )}
+      data-testid="signup-wizard-shell"
     >
-      <div className="w-full max-w-5xl">
-        <div className="overflow-hidden rounded-2xl border border-brand-border bg-white shadow-sm">
-          <div className="flex flex-col lg:flex-row">
-            <div className="flex-1 p-6 sm:p-8 lg:p-10">
-              <div className="mb-8">
-                <p className="mb-2 inline-flex items-center rounded-full bg-brand-tint px-3 py-1 text-xs font-semibold text-brand-primary">
+      <div className="auth-signup-page-bg absolute inset-0 -z-10" aria-hidden="true" />
+
+      {/* Desktop brand plane */}
+      <aside className="relative hidden w-[44%] shrink-0 border-r border-brand-border/70 lg:flex lg:flex-col">
+        <SignupBrandPanel />
+      </aside>
+
+      {/* Action plane */}
+      <div className="flex flex-1 flex-col justify-center px-4 py-8 sm:px-8 sm:py-12 lg:px-12 lg:py-16">
+        <div className="mx-auto w-full max-w-md space-y-6 lg:max-w-lg">
+          <div className="lg:hidden">
+            <SignupBrandPanel compact />
+          </div>
+
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+            className="overflow-hidden rounded-[20px] border border-brand-border/80 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04),0_12px_32px_rgba(15,23,42,0.06)]"
+            data-testid="signup-form-card"
+          >
+            <div className="border-b border-brand-border/70 px-5 py-4 sm:px-7 sm:py-5">
+              <StepIndicator
+                currentStep={currentStep}
+                steps={steps}
+                orientation="horizontal"
+                compact
+              />
+            </div>
+
+            <div className="px-5 py-6 sm:px-7 sm:py-8">
+              <div className="mb-6">
+                <p className="mb-2 text-xs font-semibold tracking-wide text-brand-primary">
                   Step {currentStep} of {steps.length}
                 </p>
-                <h1 className="font-[family-name:var(--font-bricolage)] text-2xl font-extrabold tracking-tight text-brand-navy sm:text-3xl">
+                <h2 className="font-[family-name:var(--font-bricolage)] text-2xl font-extrabold tracking-tight text-brand-navy sm:text-[1.75rem]">
                   {title}
-                </h1>
-                <p className="mt-2 text-sm leading-relaxed text-brand-muted sm:text-base">
+                </h2>
+                <p className="mt-2 text-sm leading-relaxed text-brand-muted sm:text-[0.9375rem]">
                   {subtitle}
                 </p>
               </div>
 
-              {children}
+              <motion.div
+                key={currentStep}
+                initial={reduceMotion ? false : { opacity: 0, x: 8 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+              >
+                {children}
+              </motion.div>
             </div>
+          </motion.div>
 
-            <aside className="border-t border-brand-border bg-slate-50/60 p-6 sm:p-8 lg:w-72 lg:border-l lg:border-t-0">
-              <div className="lg:sticky lg:top-8">
-                <h2 className="text-sm font-semibold text-brand-navy">Setup progress</h2>
-                <p className="mt-1 text-xs text-brand-muted">
-                  A few quick steps to launch your clinic workspace.
-                </p>
-                <div className="mt-6">
-                  <StepIndicator
-                    currentStep={currentStep}
-                    steps={steps}
-                    orientation="vertical"
-                  />
-                </div>
-              </div>
-            </aside>
+          {footer ? <div className="text-center">{footer}</div> : null}
+
+          <p className="text-center text-xs text-brand-muted">
+            By continuing you agree to our{" "}
+            <Link href={ROUTES.terms} className="underline-offset-2 hover:underline">
+              Terms
+            </Link>{" "}
+            and{" "}
+            <Link href={ROUTES.privacy} className="underline-offset-2 hover:underline">
+              Privacy Policy
+            </Link>
+            .
+          </p>
+
+          {/* Mobile progress dots */}
+          <div className="flex items-center justify-center gap-2 lg:hidden" aria-hidden="true">
+            {steps.map((step) => (
+              <div
+                key={step.number}
+                className={cn(
+                  "h-1.5 rounded-full transition-all duration-300",
+                  currentStep >= step.number
+                    ? currentStep === step.number
+                      ? "w-6 bg-brand-primary"
+                      : "w-1.5 bg-emerald-500"
+                    : "w-1.5 bg-brand-border",
+                )}
+              />
+            ))}
           </div>
-        </div>
-
-        {footer ? <div className="mt-6 text-center">{footer}</div> : null}
-
-        <div className="mt-4 flex items-center justify-center gap-2 lg:hidden">
-          {steps.map((step) => (
-            <div
-              key={step.number}
-              className={cn(
-                "h-2 rounded-full transition-all",
-                currentStep >= step.number
-                  ? currentStep === step.number
-                    ? "w-6 bg-brand-primary"
-                    : "w-2 bg-emerald-500"
-                  : "w-2 bg-brand-border",
-              )}
-            />
-          ))}
         </div>
       </div>
     </div>

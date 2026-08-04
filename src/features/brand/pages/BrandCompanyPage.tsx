@@ -414,7 +414,7 @@ export function BrandCompanyPage() {
                 <Reveal delay={0.12}>
                   <div className="rounded-[24px] border border-[color:var(--landing-border)] bg-[color:var(--landing-warm)] p-6 shadow-[var(--landing-shadow)] sm:p-7">
                     <p className="font-[family-name:var(--font-bricolage)] text-2xl font-semibold tracking-tight text-[color:var(--landing-ink)]">
-                      200+
+                      47
                     </p>
                     <p className="mt-2 text-sm leading-[1.6]">
                       Clinics running daily operations on Sigma across Africa,
@@ -527,7 +527,7 @@ export function BrandCompanyPage() {
           />
           <div className="relative z-10 mx-auto grid max-w-6xl gap-10 px-6 sm:grid-cols-3 sm:px-10 lg:px-12">
             {[
-              { value: "200+", label: "Clinics live on Sigma" },
+              { value: "47", label: "Clinics live on Sigma" },
               { value: "Millions", label: "Patient visits managed" },
               { value: "<8 hrs", label: "Average setup time" },
             ].map((stat, index) => (

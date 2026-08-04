@@ -14,6 +14,7 @@ export {
   DetailPageAsideSummaryField,
   DetailPageAsideSummaryHighlight,
   DetailPageAsideSummarySection,
+  DetailPageAsideSummaryTotalRow,
 } from "@/features/app-shell/components/page-layout/detail-page-aside-summary";
 export { ListPageLayout } from "@/features/app-shell/components/page-layout/list-page-layout";
 export {

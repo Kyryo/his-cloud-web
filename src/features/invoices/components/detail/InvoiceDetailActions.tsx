@@ -1,6 +1,6 @@
 "use client";
 
-import { FileDown, Loader2, MoreVertical, Shield, StickyNote, Wallet, XCircle } from "lucide-react";
+import { FileDown, Loader2, MoreVertical, StickyNote, Wallet, XCircle } from "lucide-react";
 import { useState } from "react";
 
 import { DestructiveButton, PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
@@ -39,7 +39,6 @@ type InvoiceDetailActionsProps = {
   invoice: Invoice;
   onRecordPayment?: () => void;
   onInternalReference?: () => void;
-  onClaimInvoice?: () => void;
   onInvoiceCancelled?: (invoice: Invoice) => void;
   className?: string;
 };
@@ -48,7 +47,6 @@ export function InvoiceDetailActions({
   invoice,
   onRecordPayment,
   onInternalReference,
-  onClaimInvoice,
   onInvoiceCancelled,
   className,
 }: InvoiceDetailActionsProps) {
@@ -60,7 +58,6 @@ export function InvoiceDetailActions({
   const isInsurance = isInsuranceInvoice(invoice);
   const isPosted = String(invoice.state).toLowerCase() === "posted";
   const canRecordPayment = hasInvoiceBalance(invoice);
-  const showPrimaryClaim = isInsurance && isPosted && Boolean(onClaimInvoice);
   const showPrimaryPayment = !isInsurance && isPosted && Boolean(onRecordPayment);
   const showMenuRecordPayment = isInsurance && isPosted && Boolean(onRecordPayment);
   const cancelDisabledReason = getCancelInvoiceDisabledReason(invoice);
@@ -184,17 +181,6 @@ export function InvoiceDetailActions({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
-        {showPrimaryClaim ? (
-          <PrimaryButton
-            type="button"
-            onClick={onClaimInvoice}
-            data-testid="claim-invoice-button"
-          >
-            <Shield className="size-4" aria-hidden="true" />
-            Claim invoice
-          </PrimaryButton>
-        ) : null}
 
         {showPrimaryPayment ? (
           <PrimaryButton

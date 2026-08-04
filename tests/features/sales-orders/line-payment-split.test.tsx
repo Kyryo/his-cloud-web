@@ -1,5 +1,5 @@
-import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { LineExcessBadge } from "@/features/sales-orders/components/detail/LineExcessBadge";
 import { LineNonPayableBadge } from "@/features/sales-orders/components/detail/LineNonPayableBadge";
@@ -61,8 +61,10 @@ describe("LinePricingBreakdownDialog", () => {
       />,
     );
 
-    expect(screen.getByText("Pricing breakdown")).toBeInTheDocument();
+    expect(screen.getByText("Consultation")).toBeInTheDocument();
     expect(screen.getByText(/Snapshot · Corporate co-pay ·/)).toBeInTheDocument();
+    expect(screen.getByTestId("tabbed-dialog-tab-pricing")).toBeInTheDocument();
+    expect(screen.getByTestId("tabbed-dialog-tab-tariff-code")).toBeInTheDocument();
     expect(screen.getByText("Pricing inputs")).toBeInTheDocument();
     expect(screen.getByText("Payment split")).toBeInTheDocument();
     expect(screen.queryByText("Co-payment")).not.toBeInTheDocument();
@@ -80,33 +82,43 @@ describe("LinePricingBreakdownDialog", () => {
     expect(screen.queryByText("Excess")).not.toBeInTheDocument();
   });
 
-  it("degrades gracefully for list-price-only lines", () => {
-    const listPriceLine: SalesOrderLine = {
-      id: 2,
-      name: "Sundry item",
-      product_id: 10,
-      quantity: "1",
-      price_unit: "50.00",
-      price_total: "50.00",
-      is_payable: false,
-      list_price_at_order: "50.00",
-      insurer_due: "0.00",
-      client_due: "50.00",
-      pricing_rule_snapshot: {},
+  it("shows sync when a tariff code already exists", () => {
+    const onSync = vi.fn();
+    const lineWithTariff: SalesOrderLine = {
+      ...line,
+      tariff_code: "21129",
     };
 
     render(
       <LinePricingBreakdownDialog
-        line={listPriceLine}
+        line={lineWithTariff}
         open
         onOpenChange={() => undefined}
+        onSyncTariffCode={onSync}
       />,
     );
 
-    expect(screen.getByText(/Snapshot · List price/)).toBeInTheDocument();
-    expect(screen.getByText("List price")).toBeInTheDocument();
-    expect(screen.queryByText("Insurer due")).not.toBeInTheDocument();
-    expect(screen.getByText("Client due")).toBeInTheDocument();
-    expect(screen.getAllByText("50.00").length).toBeGreaterThanOrEqual(1);
+    fireEvent.click(screen.getByTestId("tabbed-dialog-tab-tariff-code"));
+    expect(screen.getByTestId("line-tariff-code-input")).toHaveValue("21129");
+    fireEvent.click(screen.getByTestId("sync-line-tariff-code-button"));
+    expect(onSync).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows sync in the empty tariff state", () => {
+    const onSync = vi.fn();
+
+    render(
+      <LinePricingBreakdownDialog
+        line={line}
+        open
+        onOpenChange={() => undefined}
+        onSyncTariffCode={onSync}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId("tabbed-dialog-tab-tariff-code"));
+    expect(screen.getByTestId("line-tariff-code-empty")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("sync-line-tariff-code-button"));
+    expect(onSync).toHaveBeenCalledTimes(1);
   });
 });

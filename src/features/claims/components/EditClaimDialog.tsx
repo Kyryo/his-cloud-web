@@ -44,7 +44,7 @@ type EditClaimDialogProps = {
   claim: ClaimDetail;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void | Promise<void>;
+  onSuccess?: (claim: ClaimDetail) => void | Promise<void>;
 };
 
 function toFormValues(claim: ClaimDetail): EditClaimFormValues {
@@ -75,7 +75,7 @@ export function EditClaimDialog({
 
   async function handleSubmit(values: EditClaimFormValues) {
     try {
-      await updateClaim(claim.id, {
+      const updated = await updateClaim(claim.id, {
         membership_number: values.membership_number.trim(),
         practitioner_number: values.practitioner_number?.trim() || undefined,
         service_provider_code: values.service_provider_code?.trim() || undefined,
@@ -86,7 +86,7 @@ export function EditClaimDialog({
         title: "Claim updated",
         description: "Draft claim details were saved.",
       });
-      await onSuccess?.();
+      await onSuccess?.(updated);
       onOpenChange(false);
     } catch (error) {
       toast({
@@ -107,81 +107,92 @@ export function EditClaimDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={cn("max-h-[90vh] overflow-y-auto sm:max-w-lg", appFont.className)}
+        className={cn(
+          "flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg",
+          appFont.className,
+        )}
         data-testid="edit-claim-dialog"
       >
-        <DialogHeader>
-          <DialogTitle>Edit draft claim</DialogTitle>
-          <DialogDescription>
-            Update membership and practitioner details before submitting to MASM.
-          </DialogDescription>
-        </DialogHeader>
+        <div className="flex min-h-0 flex-1 flex-col">
+          <DialogHeader className="border-b border-brand-border px-6 py-5">
+            <DialogTitle>Edit draft claim</DialogTitle>
+            <DialogDescription>
+              Update membership and practitioner details before submitting to
+              MASM.
+            </DialogDescription>
+          </DialogHeader>
 
-        <Form {...form}>
-          <form className="space-y-4" onSubmit={form.handleSubmit(handleSubmit)}>
-            <FormField
-              control={form.control}
-              name="membership_number"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Membership number</FormLabel>
-                  <FormControl>
-                    <Input {...field} autoComplete="off" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <Form {...form}>
+            <form
+              className="flex min-h-0 flex-1 flex-col"
+              onSubmit={form.handleSubmit(handleSubmit)}
+            >
+              <div className="flex-1 space-y-4 overflow-y-auto px-6 py-6">
+                <FormField
+                  control={form.control}
+                  name="membership_number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Membership number</FormLabel>
+                      <FormControl>
+                        <Input {...field} autoComplete="off" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="practitioner_number"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Practitioner number</FormLabel>
-                  <FormControl>
-                    <Input {...field} autoComplete="off" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="practitioner_number"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Practitioner number</FormLabel>
+                      <FormControl>
+                        <Input {...field} autoComplete="off" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-            <FormField
-              control={form.control}
-              name="service_provider_code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Service provider code</FormLabel>
-                  <FormControl>
-                    <Input {...field} autoComplete="off" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <FormField
+                  control={form.control}
+                  name="service_provider_code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Service provider code</FormLabel>
+                      <FormControl>
+                        <Input {...field} autoComplete="off" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
 
-            <DialogFooter>
-              <SecondaryButton
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </SecondaryButton>
-              <PrimaryButton type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                    Saving...
-                  </>
-                ) : (
-                  "Save changes"
-                )}
-              </PrimaryButton>
-            </DialogFooter>
-          </form>
-        </Form>
+              <DialogFooter className="mt-0 border-t border-brand-border px-6 py-5">
+                <SecondaryButton
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={() => onOpenChange(false)}
+                >
+                  Cancel
+                </SecondaryButton>
+                <PrimaryButton type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save changes"
+                  )}
+                </PrimaryButton>
+              </DialogFooter>
+            </form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );

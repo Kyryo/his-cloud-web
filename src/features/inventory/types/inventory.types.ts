@@ -89,6 +89,9 @@ export type InventoryProductMeta = {
   ipd_only_procedure?: boolean;
   physio_only_procedure?: boolean;
   clinic_wide_procedure?: boolean;
+  claims_tariff_category?: string;
+  tariff_category?: string;
+  claim_category?: string;
   [key: string]: unknown;
 };
 

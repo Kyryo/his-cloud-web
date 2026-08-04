@@ -10,6 +10,7 @@ import {
   DetailPageAsideSummaryField,
   DetailPageAsideSummaryHighlight,
   DetailPageAsideSummarySection,
+  DetailPageAsideSummaryTotalRow,
 } from "@/features/app-shell/components/page-layout";
 import { AdjustBillingSplitDialog } from "@/features/sales-orders/components/detail/AdjustBillingSplitDialog";
 import { updateSalesOrderPaymentSplit } from "@/features/sales-orders/services/sales-orders.service";
@@ -146,10 +147,8 @@ export function SalesOrderSummaryPanel({
             label="Tax"
             value={formatSalesOrderAmount(order.amount_tax)}
           />
-          <DetailPageAsideSummaryAmountRow
-            label="Total"
+          <DetailPageAsideSummaryTotalRow
             value={formatSalesOrderAmount(order.amount_total, currency)}
-            emphasized
           />
         </dl>
       </DetailPageAsideSummaryHighlight>

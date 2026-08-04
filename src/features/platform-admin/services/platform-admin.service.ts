@@ -21,6 +21,10 @@ import type {
   PlatformAdminUsageFilters,
   PlatformAdminUsageResponse,
   PlatformAdminUser,
+  PlatformAdminWebhookJob,
+  PlatformAdminWebhookJobDetail,
+  PlatformAdminWebhookListOptions,
+  PlatformAdminWebhookResendResult,
 } from "@/features/platform-admin/types/platform-admin.types";
 
 export type PlatformAdminListOptions = {
@@ -164,6 +168,47 @@ export async function fetchPlatformAdminTenantUsage(
 ): Promise<PlatformAdminUsageResponse> {
   return bffRequest<PlatformAdminUsageResponse>(
     `${BFF_PLATFORM_ADMIN_ROUTES.tenantUsage(tenantUuid)}${buildUsageQuery(filters)}`,
+  );
+}
+
+function buildWebhookQuery(options: PlatformAdminWebhookListOptions = {}): string {
+  const params = new URLSearchParams();
+  if (options.page) params.set("page", String(options.page));
+  if (options.pageSize) params.set("page_size", String(options.pageSize));
+  if (options.deliveryStatus) {
+    params.set("delivery_status", options.deliveryStatus);
+  }
+  if (options.status) params.set("status", options.status);
+  if (options.type) params.set("type", options.type);
+  const query = params.toString();
+  return query ? `?${query}` : "";
+}
+
+export async function fetchPlatformAdminTenantWebhooks(
+  tenantUuid: string,
+  options: PlatformAdminWebhookListOptions = {},
+): Promise<PlatformAdminListResponse<PlatformAdminWebhookJob>> {
+  return bffRequest<PlatformAdminListResponse<PlatformAdminWebhookJob>>(
+    `${BFF_PLATFORM_ADMIN_ROUTES.tenantWebhooks(tenantUuid)}${buildWebhookQuery(options)}`,
+  );
+}
+
+export async function fetchPlatformAdminTenantWebhook(
+  tenantUuid: string,
+  jobId: number,
+): Promise<PlatformAdminWebhookJobDetail> {
+  return bffRequest<PlatformAdminWebhookJobDetail>(
+    BFF_PLATFORM_ADMIN_ROUTES.tenantWebhookDetail(tenantUuid, jobId),
+  );
+}
+
+export async function resendPlatformAdminTenantWebhook(
+  tenantUuid: string,
+  jobId: number,
+): Promise<PlatformAdminWebhookResendResult> {
+  return bffRequest<PlatformAdminWebhookResendResult>(
+    BFF_PLATFORM_ADMIN_ROUTES.tenantWebhookResend(tenantUuid, jobId),
+    { method: "POST", body: {} },
   );
 }
 

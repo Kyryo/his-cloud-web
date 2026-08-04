@@ -15,6 +15,7 @@ import { ProductDetailAvailabilityTab } from "@/features/inventory/components/de
 import { ProductDetailBillingTab } from "@/features/inventory/components/detail/ProductDetailBillingTab";
 import { ProductDetailPricelistsTab } from "@/features/inventory/components/detail/ProductDetailPricelistsTab";
 import { ProductDetailSummaryTab } from "@/features/inventory/components/detail/ProductDetailSummaryTab";
+import { ProductDetailTariffCategoryTab } from "@/features/inventory/components/detail/ProductDetailTariffCategoryTab";
 import { ProductDetailTariffCodesTab } from "@/features/inventory/components/detail/ProductDetailTariffCodesTab";
 import { ProductSummaryPanel } from "@/features/inventory/components/detail/ProductSummaryPanel";
 import type { InventoryProduct } from "@/features/inventory/types/inventory.types";
@@ -25,11 +26,18 @@ type ProductDetailTabsProps = {
   onProductUpdated?: (product: InventoryProduct) => void;
 };
 
-type DetailTabId = "summary" | "billing" | "tariff-codes" | "pricelists" | "locations";
+type DetailTabId =
+  | "summary"
+  | "billing"
+  | "tariff-codes"
+  | "tariff-category"
+  | "pricelists"
+  | "locations";
 
 const tabs: Array<{ id: DetailTabId; label: string }> = [
   { id: "summary", label: "Summary" },
   { id: "tariff-codes", label: "Tariff codes" },
+  { id: "tariff-category", label: "Tariff category" },
   { id: "pricelists", label: "Pricelists" },
   { id: "locations", label: "Locations" },
   { id: "billing", label: "Billing" },
@@ -66,6 +74,12 @@ export function ProductDetailTabs({
             product={product}
             isActive={activeTab === "tariff-codes"}
           />
+          <ProductDetailTariffCategoryTab
+            key={product.uuid}
+            product={product}
+            isActive={activeTab === "tariff-category"}
+            onProductUpdated={onProductUpdated}
+          />
           <ProductDetailPricelistsTab
             product={product}
             isActive={activeTab === "pricelists"}
@@ -75,7 +89,7 @@ export function ProductDetailTabs({
             isActive={activeTab === "locations"}
           />
           <ProductDetailBillingTab
-            key={product.uuid}
+            key={`billing-${product.uuid}`}
             product={product}
             isActive={activeTab === "billing"}
             onProductUpdated={onProductUpdated}

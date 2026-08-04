@@ -110,14 +110,21 @@ describe("claims.service", () => {
         integration: { uuid: "int-1", payer_code: "MASM", is_enabled: false },
       });
 
-    const integration = await fetchMasemPayerIntegration();
-    const updated = await updateMasemPayerIntegration({ is_enabled: false });
+    const integration = await fetchMasemPayerIntegration(12);
+    const updated = await updateMasemPayerIntegration(12, { is_enabled: false });
 
-    expect(bffRequest).toHaveBeenNthCalledWith(1, BFF_CLAIMS_ROUTES.masmIntegration);
-    expect(bffRequest).toHaveBeenNthCalledWith(2, BFF_CLAIMS_ROUTES.masmIntegration, {
-      method: "PATCH",
-      body: { is_enabled: false },
-    });
+    expect(bffRequest).toHaveBeenNthCalledWith(
+      1,
+      BFF_CLAIMS_ROUTES.clinicPayerIntegration(12),
+    );
+    expect(bffRequest).toHaveBeenNthCalledWith(
+      2,
+      BFF_CLAIMS_ROUTES.clinicPayerIntegration(12),
+      {
+        method: "PATCH",
+        body: { is_enabled: false },
+      },
+    );
     expect(integration.is_enabled).toBe(true);
     expect(updated.is_enabled).toBe(false);
   });

@@ -99,7 +99,6 @@ export function InvoiceDetailPage({ invoiceId }: InvoiceDetailPageProps) {
             invoice={invoice}
             onRecordPayment={() => setRecordPaymentOpen(true)}
             onInternalReference={() => setInternalReferenceOpen(true)}
-            onClaimInvoice={() => setActiveTab("claim")}
             onInvoiceCancelled={(updated) => {
               setInvoice(updated);
               void loadInvoice();

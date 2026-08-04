@@ -400,3 +400,39 @@ export type PlatformAdminCashSnapshotPayload = {
   amount: string;
   currency_code?: string;
 };
+
+export type PlatformAdminWebhookJob = {
+  id: number;
+  type: string;
+  status: string;
+  tenant_uuid: string | null;
+  delivery_status: string;
+  delivery_error: string | null;
+  delivery_attempts: number;
+  delivered_at: string | null;
+  created_at: string;
+  updated_at: string;
+  has_outbound_snapshot: boolean;
+};
+
+export type PlatformAdminWebhookJobDetail = PlatformAdminWebhookJob & {
+  payload: Record<string, unknown>;
+  outbound_snapshot: Record<string, unknown> | null;
+};
+
+export type PlatformAdminWebhookResendResult = {
+  id: number;
+  delivery_status: string;
+  delivery_error: string | null;
+  delivery_attempts: number;
+  delivered_at: string | null;
+  outbound_snapshot: Record<string, unknown>;
+};
+
+export type PlatformAdminWebhookListOptions = {
+  page?: number;
+  pageSize?: number;
+  deliveryStatus?: string;
+  status?: string;
+  type?: string;
+};

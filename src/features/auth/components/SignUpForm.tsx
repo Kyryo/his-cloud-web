@@ -1,12 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { motion, useReducedMotion } from "framer-motion";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import ReactFlagsSelect from "react-flags-select";
 
+import { PasswordInput } from "@/components/password-input";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,6 +19,7 @@ import {
   AuthWizardShell,
   type AuthWizardStep,
 } from "@/features/auth/components/AuthWizardShell";
+import { PasswordStrengthMeter } from "@/features/auth/components/PasswordStrengthMeter";
 import { SignupModulesStep } from "@/features/auth/components/SignupModulesStep";
 import {
   getCountryNameFromCode,
@@ -37,35 +41,58 @@ import {
   type SignupOtpValues,
   type SignupProfileValues,
 } from "@/features/auth/schemas/signup.schema";
+import { maskEmail } from "@/lib/mask-email";
+import { cn } from "@/lib/utils";
 
 const WIZARD_STEPS: AuthWizardStep[] = [
   { number: 1, label: "Account", description: "Email and password" },
-  { number: 2, label: "Verify email", description: "Confirm your inbox" },
+  { number: 2, label: "Verify", description: "Confirm your inbox" },
   { number: 3, label: "Clinic", description: "Workspace details" },
   { number: 4, label: "Modules", description: "Choose your features" },
 ];
 
 const STEP_COPY = {
   1: {
-    title: "Create your Sigma account",
-    subtitle: "Start with your credentials. We'll send a verification code next.",
+    title: "Your work email",
+    subtitle: "We’ll send a one-time code to verify it’s you.",
   },
   2: {
-    title: "Verify your email",
-    subtitle: "Enter the 6-digit code we sent to confirm it's really you.",
+    title: "Confirm it’s you",
+    subtitle: "Enter the 6-digit code we sent to",
   },
   3: {
-    title: "Set up your clinic",
-    subtitle: "Tell us about your organization so we can prepare your workspace.",
+    title: "Name your clinic workspace",
+    subtitle: "We’ll use this to personalize your Sigma workspace.",
   },
   4: {
-    title: "Choose your modules",
-    subtitle: "Pick the areas you want to run on day one. You can add more later.",
+    title: "Choose what to run on day one",
+    subtitle: "Add more modules anytime from settings.",
   },
 } as const;
 
+function FormErrorShake({
+  message,
+  reduceMotion,
+}: {
+  message: string;
+  reduceMotion: boolean | null;
+}) {
+  return (
+    <motion.p
+      role="alert"
+      className="text-sm text-destructive"
+      initial={reduceMotion ? false : { x: 0 }}
+      animate={reduceMotion ? undefined : { x: [0, -6, 6, -4, 4, 0] }}
+      transition={{ duration: 0.35 }}
+    >
+      {message}
+    </motion.p>
+  );
+}
+
 export function SignUpForm() {
   const router = useRouter();
+  const reduceMotion = useReducedMotion();
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [infoMessage, setInfoMessage] = useState<string | null>(null);
@@ -76,17 +103,21 @@ export function SignUpForm() {
   const [otpCode, setOtpCode] = useState("");
   const [countryCode, setCountryCode] = useState("MW");
   const [isFinalizing, setIsFinalizing] = useState(false);
+  const emailInputRef = useRef<HTMLInputElement | null>(null);
+  const nameInputRef = useRef<HTMLInputElement | null>(null);
 
   const prioritizedCountries = useMemo(() => getPrioritizedCountryCodes(), []);
 
   const credentialsForm = useForm<SignupCredentialsValues>({
     resolver: zodResolver(signupCredentialsSchema),
-    defaultValues: { email: "", password: "", password2: "" },
+    defaultValues: { email: "", password: "" },
+    mode: "onBlur",
   });
 
   const profileForm = useForm<SignupProfileValues>({
     resolver: zodResolver(signupProfileSchema),
     defaultValues: { name: "", clinic_name: "", country: "" },
+    mode: "onBlur",
   });
 
   const otpForm = useForm<SignupOtpValues>({
@@ -95,11 +126,20 @@ export function SignUpForm() {
   });
 
   const signupEmail = credentialsForm.watch("email");
+  const passwordValue = credentialsForm.watch("password");
   const stepCopy = STEP_COPY[currentStep];
   const isSubmitting =
     credentialsForm.formState.isSubmitting ||
     otpForm.formState.isSubmitting ||
     isFinalizing;
+
+  useEffect(() => {
+    if (currentStep === 1) {
+      emailInputRef.current?.focus();
+    } else if (currentStep === 3) {
+      nameInputRef.current?.focus();
+    }
+  }, [currentStep]);
 
   async function handleCredentialsNext() {
     setSubmitError(null);
@@ -246,6 +286,14 @@ export function SignUpForm() {
     setSubmitError(null);
   }
 
+  const emailRegister = credentialsForm.register("email");
+  const nameRegister = profileForm.register("name");
+
+  const stepSubtitle =
+    currentStep === 2
+      ? `${stepCopy.subtitle} ${maskEmail(signupEmail)}.`
+      : stepCopy.subtitle;
+
   const signInFooter = (
     <p className="text-sm text-brand-muted">
       Already have an account?{" "}
@@ -260,13 +308,13 @@ export function SignUpForm() {
       steps={WIZARD_STEPS}
       currentStep={currentStep}
       title={stepCopy.title}
-      subtitle={stepCopy.subtitle}
+      subtitle={stepSubtitle}
       footer={currentStep === 1 ? signInFooter : undefined}
     >
       {currentStep === 1 ? (
         <form
           method="post"
-          className="space-y-4"
+          className="space-y-5"
           data-testid="signup-credentials-form"
           onSubmit={(event) => {
             event.preventDefault();
@@ -274,14 +322,22 @@ export function SignUpForm() {
           }}
         >
           <div>
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">Work email</Label>
             <Input
               id="email"
               data-testid="signup-email"
               type="email"
+              inputMode="email"
               autoComplete="email"
-              className="mt-1.5 h-11"
-              {...credentialsForm.register("email")}
+              autoCapitalize="none"
+              spellCheck={false}
+              placeholder="you@clinic.org"
+              className="mt-1.5 h-12 rounded-xl border-brand-border bg-white px-3.5 text-[15px] shadow-none transition-[box-shadow,border-color] focus-visible:border-brand-primary focus-visible:ring-brand-primary/20"
+              {...emailRegister}
+              ref={(element) => {
+                emailRegister.ref(element);
+                emailInputRef.current = element;
+              }}
             />
             {credentialsForm.formState.errors.email ? (
               <p className="mt-1.5 text-sm text-destructive">
@@ -292,14 +348,15 @@ export function SignUpForm() {
 
           <div>
             <Label htmlFor="password">Password</Label>
-            <Input
+            <PasswordInput
               id="password"
               data-testid="signup-password"
-              type="password"
               autoComplete="new-password"
-              className="mt-1.5 h-11"
+              placeholder="At least 8 characters"
+              className="mt-1.5 h-12 rounded-xl border-brand-border bg-white px-3.5 text-[15px] shadow-none transition-[box-shadow,border-color] focus-visible:border-brand-primary focus-visible:ring-brand-primary/20"
               {...credentialsForm.register("password")}
             />
+            <PasswordStrengthMeter password={passwordValue ?? ""} />
             {credentialsForm.formState.errors.password ? (
               <p className="mt-1.5 text-sm text-destructive">
                 {credentialsForm.formState.errors.password.message}
@@ -307,35 +364,25 @@ export function SignUpForm() {
             ) : null}
           </div>
 
-          <div>
-            <Label htmlFor="password2">Confirm password</Label>
-            <Input
-              id="password2"
-              type="password"
-              autoComplete="new-password"
-              className="mt-1.5 h-11"
-              {...credentialsForm.register("password2")}
-            />
-            {credentialsForm.formState.errors.password2 ? (
-              <p className="mt-1.5 text-sm text-destructive">
-                {credentialsForm.formState.errors.password2.message}
-              </p>
-            ) : null}
-          </div>
-
           {submitError ? (
-            <p role="alert" className="text-sm text-destructive">
-              {submitError}
-            </p>
+            <FormErrorShake message={submitError} reduceMotion={reduceMotion} />
           ) : null}
 
           <Button
             type="submit"
             data-testid="signup-continue"
-            className="mt-2 h-11 w-full bg-brand-primary hover:bg-brand-primary-hover sm:w-auto sm:min-w-[12rem]"
+            className="mt-1 h-12 w-full rounded-full bg-brand-primary text-[15px] font-semibold hover:bg-brand-primary-hover"
             disabled={credentialsForm.formState.isSubmitting}
+            aria-busy={credentialsForm.formState.isSubmitting}
           >
-            {credentialsForm.formState.isSubmitting ? "Sending code..." : "Continue"}
+            {credentialsForm.formState.isSubmitting ? (
+              <span className="inline-flex items-center gap-2">
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                Sending code…
+              </span>
+            ) : (
+              "Continue"
+            )}
           </Button>
         </form>
       ) : null}
@@ -347,15 +394,15 @@ export function SignUpForm() {
           onSubmit={(event) => event.preventDefault()}
         >
           {infoMessage ? (
-            <p role="status" className="text-sm text-emerald-600">
+            <p role="status" className="text-sm text-emerald-700">
               {infoMessage}
             </p>
           ) : null}
 
           <AuthOtpStep
             embedded
-            title="Check your inbox"
-            description="We sent a verification code to"
+            title="Confirm it’s you"
+            description="Enter the 6-digit code we sent to"
             email={signupEmail}
             codeTestId="signup-otp"
             code={otpCode}
@@ -368,8 +415,8 @@ export function SignUpForm() {
             }}
             onResend={handleResendOtp}
             onBack={() => setCurrentStep(1)}
-            submitLabel="Continue"
-            submittingLabel="Verifying..."
+            submitLabel="Verify email"
+            submittingLabel="Verifying…"
             submitTestId="signup-verify-email"
             isSubmitting={otpForm.formState.isSubmitting}
             onSubmit={() => void handleVerifyEmailSubmit()}
@@ -380,7 +427,7 @@ export function SignUpForm() {
       {currentStep === 3 ? (
         <form
           method="post"
-          className="space-y-4"
+          className="space-y-5"
           data-testid="signup-profile-form"
           onSubmit={(event) => {
             event.preventDefault();
@@ -388,19 +435,24 @@ export function SignUpForm() {
           }}
         >
           {infoMessage ? (
-            <p role="status" className="text-sm text-emerald-600">
+            <p role="status" className="text-sm text-emerald-700">
               {infoMessage}
             </p>
           ) : null}
 
           <div>
-            <Label htmlFor="name">Full name</Label>
+            <Label htmlFor="name">Your full name</Label>
             <Input
               id="name"
               data-testid="signup-name"
               autoComplete="name"
-              className="mt-1.5 h-11"
-              {...profileForm.register("name")}
+              placeholder="Jane Banda"
+              className="mt-1.5 h-12 rounded-xl border-brand-border bg-white px-3.5 text-[15px] shadow-none focus-visible:border-brand-primary focus-visible:ring-brand-primary/20"
+              {...nameRegister}
+              ref={(element) => {
+                nameRegister.ref(element);
+                nameInputRef.current = element;
+              }}
             />
             {profileForm.formState.errors.name ? (
               <p className="mt-1.5 text-sm text-destructive">
@@ -410,11 +462,13 @@ export function SignUpForm() {
           </div>
 
           <div>
-            <Label htmlFor="clinic_name">Clinic name</Label>
+            <Label htmlFor="clinic_name">Clinic or organization</Label>
             <Input
               id="clinic_name"
               data-testid="signup-clinic-name"
-              className="mt-1.5 h-11"
+              autoComplete="organization"
+              placeholder="Lakeview Clinic"
+              className="mt-1.5 h-12 rounded-xl border-brand-border bg-white px-3.5 text-[15px] shadow-none focus-visible:border-brand-primary focus-visible:ring-brand-primary/20"
               {...profileForm.register("clinic_name")}
             />
             {profileForm.formState.errors.clinic_name ? (
@@ -426,7 +480,10 @@ export function SignUpForm() {
 
           <div>
             <Label htmlFor="country">Country</Label>
-            <div className="mt-1.5">
+            <p className="mt-0.5 text-xs text-brand-muted">
+              Used to prepare regional defaults for your workspace.
+            </p>
+            <div className={cn("mt-1.5 [&_button]:h-12 [&_button]:rounded-xl")}>
               <ReactFlagsSelect
                 selected={countryCode}
                 onSelect={setCountryCode}
@@ -441,16 +498,14 @@ export function SignUpForm() {
           </div>
 
           {submitError ? (
-            <p role="alert" className="text-sm text-destructive">
-              {submitError}
-            </p>
+            <FormErrorShake message={submitError} reduceMotion={reduceMotion} />
           ) : null}
 
-          <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:justify-between">
+          <div className="flex flex-col-reverse gap-3 pt-1 sm:flex-row sm:justify-between">
             <Button
               type="button"
               variant="outline"
-              className="h-11"
+              className="h-12 rounded-full border-brand-border"
               onClick={() => setCurrentStep(2)}
             >
               Back
@@ -458,7 +513,7 @@ export function SignUpForm() {
             <Button
               type="submit"
               data-testid="signup-profile-continue"
-              className="h-11 min-w-[10rem] bg-brand-primary hover:bg-brand-primary-hover"
+              className="h-12 min-w-[10rem] rounded-full bg-brand-primary font-semibold hover:bg-brand-primary-hover"
             >
               Continue
             </Button>

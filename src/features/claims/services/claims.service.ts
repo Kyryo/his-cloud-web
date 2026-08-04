@@ -1,5 +1,7 @@
 import { BFF_CLAIMS_ROUTES } from "@/constants/api";
 import type {
+  AdvisorEvaluation,
+  ClaimAdvisoryOverride,
   ClaimDetail,
   ClaimListFilters,
   ClaimListResponse,
@@ -7,13 +9,18 @@ import type {
   EClaimPractitionerMapping,
   EClaimPractitionerMappingListResponse,
   MasmPayerIntegration,
+  MasmPortalCredential,
   UpdateClaimPayload,
   UpdateMasmPayerIntegrationPayload,
+  UpdateMasmPortalCredentialPayload,
   UpsertEClaimPractitionerMappingPayload,
   VerifyMemberPayload,
   VerifyMemberResponse,
+  TariffCategoryListFilters,
+  TariffCategoryListResponse,
 } from "@/features/claims/types/claims.types";
 import { BffError, bffRequest } from "@/lib/bff-client";
+import { coerceToOptionalString } from "@/lib/coerce-string";
 
 function buildClaimsQuery(filters: ClaimListFilters = {}): string {
   const params = new URLSearchParams();
@@ -29,6 +36,23 @@ function buildClaimsQuery(filters: ClaimListFilters = {}): string {
   }
   if (filters.membershipNumber) {
     params.set("membership_number", filters.membershipNumber);
+  }
+
+  const query = params.toString();
+  return query ? `?${query}` : "";
+}
+
+function buildTariffCategoryQuery(filters: TariffCategoryListFilters = {}): string {
+  const params = new URLSearchParams();
+
+  if (filters.page) {
+    params.set("page", String(filters.page));
+  }
+  if (filters.pageSize) {
+    params.set("page_size", String(filters.pageSize));
+  }
+  if (filters.search?.trim()) {
+    params.set("search", filters.search.trim());
   }
 
   const query = params.toString();
@@ -97,24 +121,82 @@ export async function submitClaim(claimId: number | string): Promise<ClaimDetail
   });
 }
 
-export async function fetchMasemPayerIntegration(): Promise<MasmPayerIntegration> {
+export async function evaluateClaimAdvisories(
+  claimId: number | string,
+): Promise<AdvisorEvaluation> {
+  return bffRequest(BFF_CLAIMS_ROUTES.advisorEvaluate(claimId), {
+    method: "POST",
+  });
+}
+
+export async function fetchClaimAdvisorEvaluations(
+  claimId: number | string,
+): Promise<AdvisorEvaluation[]> {
+  return bffRequest(BFF_CLAIMS_ROUTES.advisorEvaluations(claimId));
+}
+
+export async function fetchTariffCategories(
+  filters: TariffCategoryListFilters = {},
+): Promise<TariffCategoryListResponse> {
+  return bffRequest(
+    `${BFF_CLAIMS_ROUTES.tariffCategories}${buildTariffCategoryQuery(filters)}`,
+  );
+}
+
+export async function createClaimAdvisoryOverride(
+  claimId: number | string,
+  note: string,
+): Promise<ClaimAdvisoryOverride> {
+  return bffRequest(BFF_CLAIMS_ROUTES.advisorOverride(claimId), {
+    method: "POST",
+    body: { note },
+  });
+}
+
+export async function fetchMasemPayerIntegration(
+  clinicId: number,
+): Promise<MasmPayerIntegration> {
   const data = await bffRequest<{ integration: MasmPayerIntegration }>(
-    BFF_CLAIMS_ROUTES.masmIntegration,
+    BFF_CLAIMS_ROUTES.clinicPayerIntegration(clinicId),
   );
   return data.integration;
 }
 
 export async function updateMasemPayerIntegration(
+  clinicId: number,
   payload: UpdateMasmPayerIntegrationPayload,
 ): Promise<MasmPayerIntegration> {
   const data = await bffRequest<{ integration: MasmPayerIntegration }>(
-    BFF_CLAIMS_ROUTES.masmIntegration,
+    BFF_CLAIMS_ROUTES.clinicPayerIntegration(clinicId),
     {
       method: "PATCH",
       body: payload,
     },
   );
   return data.integration;
+}
+
+export async function fetchMasmPortalCredential(
+  clinicId: number,
+): Promise<MasmPortalCredential> {
+  const data = await bffRequest<{ credential: MasmPortalCredential }>(
+    BFF_CLAIMS_ROUTES.clinicPortalCredentials(clinicId),
+  );
+  return data.credential;
+}
+
+export async function updateMasmPortalCredential(
+  clinicId: number,
+  payload: UpdateMasmPortalCredentialPayload,
+): Promise<MasmPortalCredential> {
+  const data = await bffRequest<{ credential: MasmPortalCredential }>(
+    BFF_CLAIMS_ROUTES.clinicPortalCredentials(clinicId),
+    {
+      method: "PATCH",
+      body: payload,
+    },
+  );
+  return data.credential;
 }
 
 export async function fetchEClaimPractitionerMappings(options?: {
@@ -167,8 +249,6 @@ export function extractVerificationToken(
 export function isClaimNotFoundError(error: unknown): boolean {
   return error instanceof BffError && error.status === 404;
 }
-
-import { coerceToOptionalString } from "@/lib/coerce-string";
 
 export function isInsuranceInvoice(invoice: {
   insurance_scheme_id?: number | null;

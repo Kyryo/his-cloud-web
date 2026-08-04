@@ -9,6 +9,7 @@ import {
   DetailPageAsideSummaryField,
   DetailPageAsideSummaryHighlight,
   DetailPageAsideSummarySection,
+  DetailPageAsideSummaryTotalRow,
 } from "@/features/app-shell/components/page-layout";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 import {
@@ -95,10 +96,8 @@ export function InvoiceSummaryPanel({
             label="Tax"
             value={formatInvoiceAmount(invoice.amount_tax)}
           />
-          <DetailPageAsideSummaryAmountRow
-            label="Total"
+          <DetailPageAsideSummaryTotalRow
             value={formatInvoiceAmount(invoice.amount_total)}
-            emphasized
           />
         </dl>
       </DetailPageAsideSummaryHighlight>
