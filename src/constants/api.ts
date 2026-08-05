@@ -144,6 +144,9 @@ export const BFF_CLAIMS_ROUTES = {
   byInvoice: (invoiceId: number | string) => `/api/claims/by-invoice/${invoiceId}`,
   verifyMember: "/api/claims/verify-member",
   submit: (claimId: number | string) => `/api/claims/${claimId}/submit`,
+  diagnoses: (claimId: number | string) => `/api/claims/${claimId}/diagnoses`,
+  lineItemDental: (claimId: number | string, lineItemId: number | string) =>
+    `/api/claims/${claimId}/line-items/${lineItemId}/dental`,
   advisorEvaluate: (claimId: number | string) =>
     `/api/claims/${claimId}/advisor/evaluate`,
   advisorEvaluations: (claimId: number | string) =>

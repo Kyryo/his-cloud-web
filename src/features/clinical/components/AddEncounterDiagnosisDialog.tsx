@@ -1,9 +1,10 @@
 "use client";
 
-import { Loader2, Plus } from "lucide-react";
+import { Info, Loader2, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {
   Dialog,
   DialogContent,
@@ -14,22 +15,37 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
+import { Switch } from "@/components/ui/switch";
 import {
   createEncounterDiagnosis,
   searchDiagnosisCatalog,
 } from "@/features/clinical/services/clinical-diagnosis.service";
-import type { DiagnosisCatalogItem, EncounterDiagnosisSourcePlatform } from "@/features/clinical/types/clinical-diagnosis.types";
+import type {
+  DiagnosisCatalogItem,
+  EncounterDiagnosisSourcePlatform,
+} from "@/features/clinical/types/clinical-diagnosis.types";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
+export type AddClaimDiagnosisPayload = {
+  code: string;
+  description: string;
+  standard: "ICD10";
+};
+
 type AddEncounterDiagnosisDialogProps = {
   visitUuid: string;
-  encounterUuid: string;
+  encounterUuid: string | null;
   isPrimaryDefault?: boolean;
   sourcePlatform?: EncounterDiagnosisSourcePlatform;
+  /** When set, shows encounter-save alert + switch and claim-only save path. */
+  alsoSaveAsEncounter?: {
+    defaultChecked?: boolean;
+    onSaveClaimOnly: (payload: AddClaimDiagnosisPayload) => Promise<void>;
+  };
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void | Promise<void>;
@@ -37,9 +53,10 @@ type AddEncounterDiagnosisDialogProps = {
 
 type AddEncounterDiagnosisFormProps = {
   visitUuid: string;
-  encounterUuid: string;
+  encounterUuid: string | null;
   isPrimaryDefault: boolean;
   sourcePlatform: EncounterDiagnosisSourcePlatform;
+  alsoSaveAsEncounter?: AddEncounterDiagnosisDialogProps["alsoSaveAsEncounter"];
   onCancel: () => void;
   onSuccess?: () => void | Promise<void>;
 };
@@ -49,6 +66,7 @@ function AddEncounterDiagnosisForm({
   encounterUuid,
   isPrimaryDefault,
   sourcePlatform,
+  alsoSaveAsEncounter,
   onCancel,
   onSuccess,
 }: AddEncounterDiagnosisFormProps) {
@@ -59,6 +77,9 @@ function AddEncounterDiagnosisForm({
   const [selectedCode, setSelectedCode] = useState("");
   const [selectedDescription, setSelectedDescription] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [alsoSaveToEncounter, setAlsoSaveToEncounter] = useState(
+    Boolean(encounterUuid) && (alsoSaveAsEncounter?.defaultChecked ?? true),
+  );
 
   const trimmedSearchTerm = searchTerm.trim();
   const selectedDisplayLabel = selectedCode
@@ -68,6 +89,8 @@ function AddEncounterDiagnosisForm({
     selectedCode.length > 0 && trimmedSearchTerm === selectedDisplayLabel;
   const visibleSearchResults =
     !hasConfirmedSelection && trimmedSearchTerm.length >= 2 ? searchResults : [];
+  const claimMode = Boolean(alsoSaveAsEncounter);
+  const canSaveToEncounter = Boolean(visitUuid && encounterUuid);
 
   useEffect(() => {
     if (trimmedSearchTerm.length < 2) {
@@ -134,20 +157,42 @@ function AddEncounterDiagnosisForm({
 
     setIsSaving(true);
     try {
-      await createEncounterDiagnosis(visitUuid, encounterUuid, {
+      const payload: AddClaimDiagnosisPayload = {
         code: selectedCode.trim(),
         description: selectedDescription.trim(),
         standard: "ICD10",
-        is_primary: isPrimaryDefault,
-        // Always send an explicit value — JSON.stringify drops `undefined`, and the
-        // API defaults missing source_platform to CLINICAL (which enforces visit status).
-        source_platform: sourcePlatform === "INVOICE" ? "INVOICE" : "CLINICAL",
-      });
-      toast({
-        variant: "success",
-        title: "Diagnosis added",
-        description: `${selectedCode} was recorded for this encounter.`,
-      });
+      };
+
+      if (claimMode && !alsoSaveToEncounter) {
+        await alsoSaveAsEncounter!.onSaveClaimOnly(payload);
+        toast({
+          variant: "success",
+          title: "Diagnosis added",
+          description: `${selectedCode} was added to this claim.`,
+        });
+      } else {
+        if (!encounterUuid) {
+          throw new Error(
+            "An encounter is required to save this as an encounter diagnosis.",
+          );
+        }
+        await createEncounterDiagnosis(visitUuid, encounterUuid, {
+          code: payload.code,
+          description: payload.description,
+          standard: "ICD10",
+          is_primary: isPrimaryDefault,
+          // Always send an explicit value — JSON.stringify drops `undefined`, and the
+          // API defaults missing source_platform to CLINICAL (which enforces visit status).
+          source_platform: sourcePlatform === "INVOICE" ? "INVOICE" : "CLINICAL",
+        });
+        toast({
+          variant: "success",
+          title: "Diagnosis added",
+          description: claimMode
+            ? `${selectedCode} was recorded on the encounter and synced to this claim.`
+            : `${selectedCode} was recorded for this encounter.`,
+        });
+      }
       await onSuccess?.();
       onCancel();
     } catch (error) {
@@ -169,7 +214,7 @@ function AddEncounterDiagnosisForm({
 
   return (
     <>
-      <div className="space-y-3">
+      <div className="flex-1 space-y-4 overflow-y-auto px-6 py-6">
         <div>
           <label className="text-sm font-medium text-brand-navy">
             Search ICD-10 <RequiredFieldMarker />
@@ -201,10 +246,44 @@ function AddEncounterDiagnosisForm({
             </ul>
           ) : null}
         </div>
+
+        {claimMode ? (
+          <Alert variant="warning">
+            <Info className="size-4" aria-hidden="true" />
+            <AlertTitle>Encounter diagnosis</AlertTitle>
+            <AlertDescription>
+              <div className="flex items-start justify-between gap-3">
+                <p>
+                  {alsoSaveToEncounter
+                    ? "This diagnosis will also be saved as an encounter diagnosis on the visit."
+                    : "This diagnosis will be saved on the claim only. It will not be added to the clinical encounter."}
+                </p>
+                <div className="flex shrink-0 items-center gap-2 pt-0.5">
+                  <label
+                    htmlFor="also-save-encounter-diagnosis"
+                    className={cn(
+                      "text-xs font-medium",
+                      canSaveToEncounter ? "text-amber-950" : "text-amber-800/60",
+                    )}
+                  >
+                    Also save
+                  </label>
+                  <Switch
+                    id="also-save-encounter-diagnosis"
+                    checked={alsoSaveToEncounter && canSaveToEncounter}
+                    disabled={!canSaveToEncounter}
+                    onCheckedChange={setAlsoSaveToEncounter}
+                    data-testid="claim-diagnosis-also-save-encounter"
+                  />
+                </div>
+              </div>
+            </AlertDescription>
+          </Alert>
+        ) : null}
       </div>
 
-      <DialogFooter>
-        <SecondaryButton type="button" onClick={onCancel}>
+      <DialogFooter className="mt-0 border-t border-brand-border px-6 py-5">
+        <SecondaryButton type="button" onClick={onCancel} disabled={isSaving}>
           Cancel
         </SecondaryButton>
         <PrimaryButton
@@ -234,31 +313,42 @@ export function AddEncounterDiagnosisDialog({
   encounterUuid,
   isPrimaryDefault = false,
   sourcePlatform = "CLINICAL",
+  alsoSaveAsEncounter,
   open,
   onOpenChange,
   onSuccess,
 }: AddEncounterDiagnosisDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn("sm:max-w-lg", appFont.className)}>
-        <DialogHeader>
-          <DialogTitle>Add diagnosis</DialogTitle>
-          <DialogDescription>
-            Search the ICD-10 catalog and record a diagnosis for this encounter.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent
+        className={cn(
+          "flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg",
+          appFont.className,
+        )}
+      >
+        <div className="flex min-h-0 flex-1 flex-col">
+          <DialogHeader className="border-b border-brand-border px-6 py-5">
+            <DialogTitle>Add diagnosis</DialogTitle>
+            <DialogDescription>
+              {alsoSaveAsEncounter
+                ? "Search the ICD-10 catalog and add a diagnosis to this claim."
+                : "Search the ICD-10 catalog and record a diagnosis for this encounter."}
+            </DialogDescription>
+          </DialogHeader>
 
-        {open ? (
-          <AddEncounterDiagnosisForm
-            key={`${visitUuid}-${encounterUuid}-${isPrimaryDefault}-${sourcePlatform}`}
-            visitUuid={visitUuid}
-            encounterUuid={encounterUuid}
-            isPrimaryDefault={isPrimaryDefault}
-            sourcePlatform={sourcePlatform}
-            onCancel={() => onOpenChange(false)}
-            onSuccess={onSuccess}
-          />
-        ) : null}
+          {open ? (
+            <AddEncounterDiagnosisForm
+              key={`${visitUuid}-${encounterUuid ?? "none"}-${isPrimaryDefault}-${sourcePlatform}-${alsoSaveAsEncounter ? "claim" : "encounter"}`}
+              visitUuid={visitUuid}
+              encounterUuid={encounterUuid}
+              isPrimaryDefault={isPrimaryDefault}
+              sourcePlatform={sourcePlatform}
+              alsoSaveAsEncounter={alsoSaveAsEncounter}
+              onCancel={() => onOpenChange(false)}
+              onSuccess={onSuccess}
+            />
+          ) : null}
+        </div>
       </DialogContent>
     </Dialog>
   );

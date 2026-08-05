@@ -18,6 +18,11 @@ export type ClaimDiagnosis = {
   updated_at: string;
 };
 
+export type ClaimLineItemDental = {
+  id: number;
+  tooth_number: number;
+};
+
 export type ClaimLineItem = {
   id: number;
   uuid: string;
@@ -26,6 +31,7 @@ export type ClaimLineItem = {
   quantity: string;
   date_created: string;
   sales_order_line: number | null;
+  dental?: ClaimLineItemDental[];
   created_at: string;
   updated_at: string;
 };
@@ -128,6 +134,8 @@ export type ClaimDetail = {
   latest_advisor_evaluation?: AdvisorEvaluation | null;
   has_blocking_advisories?: boolean;
   has_advisory_override?: boolean;
+  /** True when the visit has an active dental-department encounter. */
+  has_dental_encounter?: boolean;
   created_at: string;
   updated_at: string;
 };

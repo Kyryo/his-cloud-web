@@ -1,0 +1,23 @@
+.claim-odontogram-chart {
+  --dark-blue: #0b6e6e;
+  --base-blue: #8aaca9;
+  --light-blue: #9fd4d4;
+}
+
+.claim-odontogram-chart .Odontogram,
+.claim-odontogram-chart .Odontogram svg {
+  display: block;
+  width: 100% !important;
+  max-width: 240px !important;
+  height: auto !important;
+  max-height: 240px !important;
+  margin-inline: auto;
+}
+
+.claim-odontogram-chart .Odontogram g.selected path:nth-of-type(2) {
+  fill: #9fd4d4 !important;
+}
+
+.claim-odontogram-chart .Odontogram g.selected path:first-of-type {
+  stroke: #0b6e6e !important;
+}

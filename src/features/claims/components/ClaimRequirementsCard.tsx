@@ -4,7 +4,10 @@ import { AlertCircle, CheckCircle2, ChevronDown } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
-import type { InvoiceClaimReadinessItem } from "@/features/invoices/utils/invoice-claim-readiness";
+import {
+  getBlockingRequirementItems,
+  type InvoiceClaimReadinessItem,
+} from "@/features/invoices/utils/invoice-claim-readiness";
 import { cn } from "@/lib/utils";
 
 export type ClaimRequirementsCardProps = {
@@ -22,9 +25,13 @@ export function ClaimRequirementsCard({
   className,
 }: ClaimRequirementsCardProps) {
   const [detailsOpen, setDetailsOpen] = useState(true);
-  const unmet = items.filter((item) => !item.met);
-  const metCount = items.length - unmet.length;
-  const allClear = unmet.length === 0;
+  const blockingItems = getBlockingRequirementItems(items);
+  const unmetBlocking = blockingItems.filter((item) => !item.met);
+  const metBlockingCount = blockingItems.length - unmetBlocking.length;
+  const allClear = unmetBlocking.length === 0;
+  const openWarnings = items.filter(
+    (item) => item.blocksProgress === false && !item.met,
+  );
 
   return (
     <div
@@ -45,11 +52,18 @@ export function ClaimRequirementsCard({
               <span className="text-sm font-medium text-emerald-800">
                 All requirements met
               </span>
+              {openWarnings.length > 0 ? (
+                <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">
+                  <span className="size-1.5 rounded-full bg-amber-500" aria-hidden="true" />
+                  {openWarnings.length} warning
+                  {openWarnings.length === 1 ? "" : "s"}
+                </span>
+              ) : null}
             </>
           ) : (
             <>
               <span className="text-sm font-medium text-brand-navy">
-                {unmet.length} remaining
+                {unmetBlocking.length} remaining
               </span>
               <span className="hidden text-brand-border sm:inline" aria-hidden="true">
                 ·
@@ -57,11 +71,11 @@ export function ClaimRequirementsCard({
               <div className="flex flex-wrap items-center gap-1.5">
                 <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">
                   <span className="size-1.5 rounded-full bg-amber-500" aria-hidden="true" />
-                  {unmet.length} open
+                  {unmetBlocking.length} open
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800">
                   <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
-                  {metCount} met
+                  {metBlockingCount} met
                 </span>
               </div>
             </>

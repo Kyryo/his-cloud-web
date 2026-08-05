@@ -96,17 +96,20 @@ export function ClaimsListPage() {
   }, [listFilters]);
 
   function handleSearchSubmit() {
+    setIsRefreshing(true);
     setPage(1);
     setActiveSearch(search.trim());
   }
 
   function handleClearSearch() {
+    setIsRefreshing(true);
     setSearch("");
     setActiveSearch("");
     setPage(1);
   }
 
   function handleFiltersApply(next: ClaimListFilterState) {
+    setIsRefreshing(true);
     setFilters(next);
     setPage(1);
   }

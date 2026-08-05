@@ -8,7 +8,25 @@ export type InvoiceClaimReadinessItem = {
   label: string;
   met: boolean;
   hint?: string;
+  /**
+   * When false, the item is shown in the Requirements card but does not
+   * block create/submit or mark the Requirements stage incomplete.
+   * Defaults to true.
+   */
+  blocksProgress?: boolean;
 };
+
+export function isBlockingRequirementItem(
+  item: InvoiceClaimReadinessItem,
+): boolean {
+  return item.blocksProgress !== false;
+}
+
+export function getBlockingRequirementItems(
+  items: InvoiceClaimReadinessItem[],
+): InvoiceClaimReadinessItem[] {
+  return items.filter(isBlockingRequirementItem);
+}
 
 function payerConnectionLabel(invoice: Invoice): string {
   const payer = coerceToOptionalString(invoice.claim_payer_code)?.toUpperCase();
@@ -66,7 +84,7 @@ export function getClaimRequirementCheckItems(
     Boolean(invoice?.has_diagnosis) ||
     (claim?.diagnoses?.length ?? 0) > 0;
 
-  return [
+  const items: InvoiceClaimReadinessItem[] = [
     {
       label: "All line items have tariff codes",
       met: allLinesHaveTariff,
@@ -92,6 +110,19 @@ export function getClaimRequirementCheckItems(
         : "Ensure the client insurance membership number is on the invoice.",
     },
   ];
+
+  if (claim?.has_dental_encounter) {
+    const hasTeeth = !claimHasMissingDentalTeeth(claim);
+    items.push({
+      label: "Tooth/teeth related to the claim",
+      met: hasTeeth,
+      hint:
+        "Open the Odontogram tab to select teeth for each claim line. You can still submit without them.",
+      blocksProgress: false,
+    });
+  }
+
+  return items;
 }
 
 /**
@@ -153,12 +184,34 @@ export function hasInvoiceClaimReadinessIssues(
   invoice: Invoice,
   claim?: ClaimDetail | null,
 ): boolean {
-  return getInvoiceClaimReadinessItems(invoice, claim).some((item) => !item.met);
+  return getInvoiceClaimReadinessItems(invoice, claim).some(
+    (item) => isBlockingRequirementItem(item) && !item.met,
+  );
 }
 
 export function hasClaimRequirementIssues(
   invoice: Invoice,
   claim?: ClaimDetail | null,
 ): boolean {
-  return getClaimRequirementCheckItems(invoice, claim).some((item) => !item.met);
+  return getClaimRequirementCheckItems(invoice, claim).some(
+    (item) => isBlockingRequirementItem(item) && !item.met,
+  );
+}
+
+/**
+ * Non-blocking: dental visit claim with at least one line that has no teeth.
+ */
+export function claimHasMissingDentalTeeth(
+  claim?: ClaimDetail | null,
+): boolean {
+  if (!claim?.has_dental_encounter) {
+    return false;
+  }
+  const lines = getClaimLineItems(claim);
+  if (lines.length === 0) {
+    return true;
+  }
+  return lines.some(
+    (line) => !(line.dental ?? []).some((row) => row.tooth_number > 0),
+  );
 }

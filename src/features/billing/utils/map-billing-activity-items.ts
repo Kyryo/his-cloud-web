@@ -1,10 +1,13 @@
 import {
+  Activity,
   Ban,
   CheckCircle2,
   FileText,
   History,
   Receipt,
+  ShieldAlert,
   ShoppingCart,
+  Stethoscope,
   UserRound,
   Wallet,
 } from "lucide-react";
@@ -30,13 +33,29 @@ const ACTION_ICONS: Record<string, LucideIcon> = {
   PAYMENT_RECORDED: Wallet,
   PAYMENT_UPDATED: Wallet,
   PAYMENT_CANCELLED: Ban,
+  CLAIM_CREATED: FileText,
+  CLAIM_SUBMITTED: CheckCircle2,
+  CLAIM_UPDATED: FileText,
+  CLAIM_VITALS_UPDATED: Activity,
+  CLAIM_DIAGNOSIS_ADDED: Stethoscope,
+  CLAIM_DIAGNOSES_SYNCED: Stethoscope,
+  CLAIM_ADVISORIES_EVALUATED: ShieldAlert,
+  CLAIM_ADVISORY_OVERRIDE: ShieldAlert,
 };
 
 function formatActivitySummary(record: BillingActivityRecord): string {
   const details = record.details;
+  const claimCode =
+    typeof details.code === "string" && details.code.trim() ? details.code : null;
+  if (record.action === "CLAIM_DIAGNOSIS_ADDED" && claimCode) {
+    return `${record.summary} (${claimCode})`;
+  }
   const orderName = details.order_name ?? details.invoice_name ?? details.payment_name;
   if (typeof orderName === "string" && orderName.trim()) {
     return `${record.summary} (${orderName})`;
+  }
+  if (typeof details.claim_id === "number" || typeof details.claim_id === "string") {
+    return `${record.summary} (claim #${details.claim_id})`;
   }
   return record.summary;
 }

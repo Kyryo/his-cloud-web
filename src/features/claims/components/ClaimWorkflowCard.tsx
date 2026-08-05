@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import { PrimaryButton } from "@/components/ui/app-buttons";
@@ -19,7 +19,10 @@ import {
 } from "@/features/claims/components/ClaimRequirementsCard";
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
 import { getClaimWorkflowStageStates } from "@/features/claims/utils/claim-workflow-stages";
-import type { InvoiceClaimReadinessItem } from "@/features/invoices/utils/invoice-claim-readiness";
+import {
+  isBlockingRequirementItem,
+  type InvoiceClaimReadinessItem,
+} from "@/features/invoices/utils/invoice-claim-readiness";
 
 export type ClaimWorkflowCardProps = {
   claim: ClaimDetail | null;
@@ -60,8 +63,12 @@ export function ClaimWorkflowCard({
   const advisory = stageStates.find((stage) => stage.id === "advisory")!;
   const queue = stageStates.find((stage) => stage.id === "queue")!;
 
-  const allSystemReady = readinessItems.every((item) => item.met);
-  const allRequirementsMet = requirementItems.every((item) => item.met);
+  const allSystemReady = readinessItems
+    .filter(isBlockingRequirementItem)
+    .every((item) => item.met);
+  const allRequirementsMet = requirementItems
+    .filter(isBlockingRequirementItem)
+    .every((item) => item.met);
   const isDraft = String(claim?.status ?? "").toLowerCase() === "draft";
   const canSubmit =
     Boolean(claim) &&
@@ -155,9 +162,21 @@ export function ClaimWorkflowCard({
             </p>
           ) : null}
           {queue.status === "completed" ? (
-            <p className="text-sm leading-relaxed text-emerald-800">
-              This claim has left the draft queue.
-            </p>
+            <div
+              className="rounded-lg border border-dashed border-brand-border bg-slate-50/80 px-4 py-10 text-center"
+              data-testid="claim-workflow-submitted-empty"
+            >
+              <CheckCircle2
+                className="mx-auto size-8 text-emerald-600"
+                aria-hidden="true"
+              />
+              <p className="mt-3 text-sm font-medium text-brand-navy">
+                This claim has been submitted
+              </p>
+              <p className="mx-auto mt-1 max-w-sm text-sm text-brand-muted">
+                It has left the draft queue and was sent to the payer.
+              </p>
+            </div>
           ) : null}
           {queue.status === "failed" ? (
             <p className="text-sm leading-relaxed text-red-800">

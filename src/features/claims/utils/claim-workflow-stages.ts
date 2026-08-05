@@ -1,6 +1,9 @@
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
 import { isClaimSubmitBlockedByAdvisories } from "@/features/claims/components/ClaimAdvisoriesPanel";
-import type { InvoiceClaimReadinessItem } from "@/features/invoices/utils/invoice-claim-readiness";
+import {
+  getBlockingRequirementItems,
+  type InvoiceClaimReadinessItem,
+} from "@/features/invoices/utils/invoice-claim-readiness";
 import type { WorkflowStageStatus } from "@/components/ui/workflow-card";
 
 export type ClaimWorkflowStageId =
@@ -18,14 +21,15 @@ function requirementsState(
   requirementItems: InvoiceClaimReadinessItem[],
   claim: ClaimDetail | null,
 ): ClaimWorkflowStageState {
-  const unmet = requirementItems.filter((item) => !item.met);
+  const blockingItems = getBlockingRequirementItems(requirementItems);
+  const unmet = blockingItems.filter((item) => !item.met);
   const allMet = unmet.length === 0;
 
   if (!allMet) {
     return {
       id: "requirements",
       status: "blocked",
-      summary: `${unmet.length} of ${requirementItems.length} checks remaining`,
+      summary: `${unmet.length} of ${blockingItems.length} checks remaining`,
     };
   }
 
@@ -33,14 +37,14 @@ function requirementsState(
     return {
       id: "requirements",
       status: "completed",
-      summary: `All ${requirementItems.length} checks passed`,
+      summary: `All ${blockingItems.length} checks passed`,
     };
   }
 
   return {
     id: "requirements",
     status: "current",
-    summary: `All ${requirementItems.length} checks passed — create a draft claim`,
+    summary: `All ${blockingItems.length} checks passed — create a draft claim`,
   };
 }
 

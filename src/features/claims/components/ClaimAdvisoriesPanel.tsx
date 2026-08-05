@@ -285,9 +285,19 @@ export function ClaimAdvisoriesCard({
 
         <div className={cn(!embedded || hasOverride ? "mt-6" : undefined)}>
           {!evaluation ? (
-            <div className="rounded-lg border border-brand-border bg-slate-50/80 px-4 py-6 text-center">
-              <p className="text-sm text-brand-muted">
-                No evaluation yet. Run an evaluation to check this claim against
+            <div
+              className="rounded-lg border border-dashed border-brand-border bg-slate-50/80 px-4 py-10 text-center"
+              data-testid="claim-advisory-empty"
+            >
+              <ShieldAlert
+                className="mx-auto size-8 text-brand-muted"
+                aria-hidden="true"
+              />
+              <p className="mt-3 text-sm font-medium text-brand-navy">
+                No advisory evaluation yet
+              </p>
+              <p className="mx-auto mt-1 max-w-sm text-sm text-brand-muted">
+                Run an evaluation to check this claim against the insurer&apos;s
                 validation packs.
               </p>
               <div className="mt-4 flex flex-wrap items-center justify-center gap-2">

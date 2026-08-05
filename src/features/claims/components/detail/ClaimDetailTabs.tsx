@@ -16,8 +16,10 @@ import { ClaimDetailAdvisoriesTab } from "@/features/claims/components/detail/Cl
 import { ClaimDetailClaimedItemsTab } from "@/features/claims/components/detail/ClaimDetailClaimedItemsTab";
 import { ClaimDetailClientTab } from "@/features/claims/components/detail/ClaimDetailClientTab";
 import { ClaimDetailClinicalTab } from "@/features/claims/components/detail/ClaimDetailClinicalTab";
+import { ClaimDetailOdontogramTab } from "@/features/claims/components/detail/ClaimDetailOdontogramTab";
 import { ClaimSummaryPanel } from "@/features/claims/components/detail/ClaimSummaryPanel";
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
+import { shouldShowClaimOdontogramTab } from "@/features/claims/utils/claim-odontogram-tab";
 import { VisitDetailDialog } from "@/features/visits/components/VisitDetailDialog";
 import { cn } from "@/lib/utils";
 
@@ -30,14 +32,16 @@ type DetailTabId =
   | "claimed-items"
   | "client-visit"
   | "clinical"
+  | "odontogram"
   | "advisories"
   | "activity";
 
-const tabs: Array<{ id: DetailTabId; label: string }> = [
-  { id: "advisories", label: "Advisories" },
+const ALL_TABS: Array<{ id: DetailTabId; label: string }> = [
+  { id: "advisories", label: "Claim Workflow" },
   { id: "claimed-items", label: "Claimed Items" },
   { id: "client-visit", label: "Client & Visit" },
   { id: "clinical", label: "Clinical Info" },
+  { id: "odontogram", label: "Odontogram" },
   { id: "activity", label: "Activity" },
 ];
 
@@ -45,6 +49,10 @@ export function ClaimDetailTabs({
   claim,
   onClaimUpdated,
 }: ClaimDetailTabsProps) {
+  const showOdontogram = shouldShowClaimOdontogramTab(claim);
+  const tabs = ALL_TABS.filter(
+    (tab) => tab.id !== "odontogram" || showOdontogram,
+  );
   const [activeTab, setActiveTab] = useState<DetailTabId>("advisories");
   const [showSummaryPanel, setShowSummaryPanel] = useState(false);
   const [visitDialogOpen, setVisitDialogOpen] = useState(false);
@@ -57,6 +65,8 @@ export function ClaimDetailTabs({
     ) ?? 0;
   const findingCount =
     claim.latest_advisor_evaluation?.deterministic_count ?? 0;
+  const resolvedActiveTab =
+    activeTab === "odontogram" && !showOdontogram ? "advisories" : activeTab;
 
   return (
     <DetailPageTabsSection>
@@ -70,7 +80,7 @@ export function ClaimDetailTabs({
         {tabs.map((tab) => (
           <DetailPageTabNavItem
             key={tab.id}
-            isActive={activeTab === tab.id}
+            isActive={resolvedActiveTab === tab.id}
             onClick={() => setActiveTab(tab.id)}
           >
             <span className="relative inline-flex items-center gap-2">
@@ -94,24 +104,32 @@ export function ClaimDetailTabs({
         <DetailPageMainSection>
           <ClaimDetailAdvisoriesTab
             claim={claim}
-            isActive={activeTab === "advisories"}
+            isActive={resolvedActiveTab === "advisories"}
             onClaimUpdated={onClaimUpdated}
           />
           <ClaimDetailClaimedItemsTab
             claim={claim}
-            isActive={activeTab === "claimed-items"}
+            isActive={resolvedActiveTab === "claimed-items"}
           />
           <ClaimDetailClientTab
             claim={claim}
-            isActive={activeTab === "client-visit"}
+            isActive={resolvedActiveTab === "client-visit"}
           />
           <ClaimDetailClinicalTab
             claim={claim}
-            isActive={activeTab === "clinical"}
+            isActive={resolvedActiveTab === "clinical"}
+            onClaimUpdated={onClaimUpdated}
           />
+          {showOdontogram ? (
+            <ClaimDetailOdontogramTab
+              claim={claim}
+              isActive={resolvedActiveTab === "odontogram"}
+              onClaimUpdated={onClaimUpdated}
+            />
+          ) : null}
           <ClaimDetailActivityTab
             invoiceId={invoiceId}
-            isActive={activeTab === "activity"}
+            isActive={resolvedActiveTab === "activity"}
           />
         </DetailPageMainSection>
 

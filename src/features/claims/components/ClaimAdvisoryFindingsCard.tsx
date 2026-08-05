@@ -337,6 +337,59 @@ export function ClaimAdvisoryFindingsCard({
   const showFooter =
     Boolean(onReEvaluate) || Boolean(footerActions) || Boolean(footerContent);
 
+  if (allClear) {
+    return (
+      <div className={cn("space-y-4", className)} data-testid="claim-advisory-findings">
+        <div
+          className="rounded-lg border border-dashed border-brand-border bg-slate-50/80 px-4 py-10 text-center"
+          data-testid="claim-advisory-findings-empty"
+        >
+          <CheckCircle2
+            className="mx-auto size-8 text-emerald-600"
+            aria-hidden="true"
+          />
+          <p className="mt-3 text-sm font-medium text-brand-navy">
+            We did not find any advisory issues on this claim
+          </p>
+          <p className="mx-auto mt-1 max-w-sm text-sm text-brand-muted">
+            Validation packs returned no rejection risks or warnings for the
+            current claim data.
+          </p>
+          {onReEvaluate ? (
+            <div className="mt-4 flex justify-center">
+              <SecondaryButton
+                type="button"
+                size="sm"
+                className="h-9 px-4"
+                disabled={isReEvaluating}
+                onClick={() => onReEvaluate()}
+                data-testid="claim-evaluate-advisories-empty-button"
+              >
+                {isReEvaluating ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                    Running advisories…
+                  </>
+                ) : (
+                  "Run advisories again"
+                )}
+              </SecondaryButton>
+            </div>
+          ) : null}
+        </div>
+
+        {footerActions || footerContent ? (
+          <div className="space-y-3">
+            {footerActions ? (
+              <div className="flex flex-wrap items-center gap-2">{footerActions}</div>
+            ) : null}
+            {footerContent}
+          </div>
+        ) : null}
+      </div>
+    );
+  }
+
   return (
     <div
       className={cn(
@@ -347,66 +400,50 @@ export function ClaimAdvisoryFindingsCard({
     >
       <div className="flex items-center justify-between gap-3 px-4 py-3">
         <div className="min-w-0 flex flex-wrap items-center gap-2">
-          {allClear ? (
-            <>
-              <CheckCircle2
-                className="size-4 shrink-0 text-emerald-600"
-                aria-hidden="true"
-              />
-              <span className="text-sm font-medium text-emerald-800">
-                No advisory findings
+          <span className="text-sm font-medium text-brand-navy">
+            {findings.length} finding{findings.length === 1 ? "" : "s"}
+          </span>
+          <span className="hidden text-brand-border sm:inline" aria-hidden="true">
+            ·
+          </span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            {rejectionCount > 0 ? (
+              <span className="inline-flex items-center gap-1 rounded-md bg-red-50 px-1.5 py-0.5 text-[11px] font-medium text-red-700">
+                <span className="size-1.5 rounded-full bg-red-500" aria-hidden="true" />
+                {rejectionCount} rejection-risk
               </span>
-            </>
-          ) : (
-            <>
-              <span className="text-sm font-medium text-brand-navy">
-                {findings.length} finding{findings.length === 1 ? "" : "s"}
+            ) : null}
+            {warningCount > 0 ? (
+              <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">
+                <span className="size-1.5 rounded-full bg-amber-500" aria-hidden="true" />
+                {warningCount} warning{warningCount === 1 ? "" : "s"}
               </span>
-              <span className="hidden text-brand-border sm:inline" aria-hidden="true">
-                ·
+            ) : null}
+            {otherCount > 0 ? (
+              <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-brand-slate">
+                {otherCount} other
               </span>
-              <div className="flex flex-wrap items-center gap-1.5">
-                {rejectionCount > 0 ? (
-                  <span className="inline-flex items-center gap-1 rounded-md bg-red-50 px-1.5 py-0.5 text-[11px] font-medium text-red-700">
-                    <span className="size-1.5 rounded-full bg-red-500" aria-hidden="true" />
-                    {rejectionCount} rejection-risk
-                  </span>
-                ) : null}
-                {warningCount > 0 ? (
-                  <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">
-                    <span className="size-1.5 rounded-full bg-amber-500" aria-hidden="true" />
-                    {warningCount} warning{warningCount === 1 ? "" : "s"}
-                  </span>
-                ) : null}
-                {otherCount > 0 ? (
-                  <span className="inline-flex items-center gap-1 rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-brand-slate">
-                    {otherCount} other
-                  </span>
-                ) : null}
-              </div>
-            </>
-          )}
+            ) : null}
+          </div>
         </div>
-        {!allClear ? (
-          <button
-            type="button"
-            onClick={() => setDetailsOpen((open) => !open)}
-            className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-brand-muted hover:text-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/25"
-            aria-expanded={detailsOpen}
-          >
-            {detailsOpen ? "Hide" : "Show"}
-            <ChevronDown
-              className={cn(
-                "size-3.5 transition-transform",
-                detailsOpen && "rotate-180",
-              )}
-              aria-hidden="true"
-            />
-          </button>
-        ) : null}
+        <button
+          type="button"
+          onClick={() => setDetailsOpen((open) => !open)}
+          className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-brand-muted hover:text-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/25"
+          aria-expanded={detailsOpen}
+        >
+          {detailsOpen ? "Hide" : "Show"}
+          <ChevronDown
+            className={cn(
+              "size-3.5 transition-transform",
+              detailsOpen && "rotate-180",
+            )}
+            aria-hidden="true"
+          />
+        </button>
       </div>
 
-      {detailsOpen && !allClear ? (
+      {detailsOpen ? (
         <div className="border-t border-brand-border">
           <FindingsList findings={findings} />
         </div>

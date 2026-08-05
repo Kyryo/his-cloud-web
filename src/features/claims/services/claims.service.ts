@@ -122,6 +122,34 @@ export async function submitClaim(claimId: number | string): Promise<ClaimDetail
   });
 }
 
+export async function addClaimDiagnosis(
+  claimId: number | string,
+  payload: {
+    code: string;
+    description: string;
+    standard?: string;
+  },
+): Promise<ClaimDetail> {
+  return bffRequest<ClaimDetail>(BFF_CLAIMS_ROUTES.diagnoses(claimId), {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export async function setClaimLineDentalTeeth(
+  claimId: number | string,
+  lineItemId: number | string,
+  toothNumbers: number[],
+): Promise<ClaimDetail> {
+  return bffRequest<ClaimDetail>(
+    BFF_CLAIMS_ROUTES.lineItemDental(claimId, lineItemId),
+    {
+      method: "PUT",
+      body: { tooth_numbers: toothNumbers },
+    },
+  );
+}
+
 export async function evaluateClaimAdvisories(
   claimId: number | string,
 ): Promise<AdvisorEvaluation> {

@@ -6,6 +6,9 @@ export const CLAIMS_API_PATHS = {
   byInvoice: (invoiceId: number | string) => `/eclaims/by-invoice/${invoiceId}/`,
   verifyMember: "/eclaims/verify-member/",
   submit: (claimId: number | string) => `/eclaims/${claimId}/submit/`,
+  diagnoses: (claimId: number | string) => `/eclaims/${claimId}/diagnoses/`,
+  lineItemDental: (claimId: number | string, lineItemId: number | string) =>
+    `/eclaims/${claimId}/line-items/${lineItemId}/dental/`,
   advisorEvaluate: (claimId: number | string) =>
     `/eclaims/${claimId}/advisor/evaluate/`,
   advisorEvaluations: (claimId: number | string) =>
