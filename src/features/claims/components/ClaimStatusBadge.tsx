@@ -2,9 +2,9 @@
 
 import {
   Ban,
+  Check,
   CheckCircle2,
   FileEdit,
-  Send,
   Shield,
   XCircle,
 } from "lucide-react";
@@ -18,7 +18,7 @@ const STATUS_CONFIG: Record<
   { variant: StatusPillVariant; icon: LucideIcon; label: string }
 > = {
   draft: { variant: "outline", icon: FileEdit, label: "Draft" },
-  submitted: { variant: "default", icon: Send, label: "Submitted" },
+  submitted: { variant: "default", icon: Check, label: "Submitted" },
   approved: { variant: "success", icon: CheckCircle2, label: "Approved" },
   rejected: { variant: "destructive", icon: XCircle, label: "Rejected" },
   cancelled: { variant: "outline", icon: Ban, label: "Cancelled" },

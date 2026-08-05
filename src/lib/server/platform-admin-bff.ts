@@ -22,6 +22,7 @@ const DEFAULT_QUERY_KEYS = [
   "period",
   "delivery_status",
   "type",
+  "target",
 ] as const;
 
 export function buildPlatformAdminQuery(request: Request): string {

@@ -34,8 +34,9 @@ function buildClaimsQuery(filters: ClaimListFilters = {}): string {
   if (filters.status) {
     params.set("status", filters.status);
   }
-  if (filters.membershipNumber) {
-    params.set("membership_number", filters.membershipNumber);
+  const search = filters.search?.trim() || filters.membershipNumber?.trim();
+  if (search) {
+    params.set("search", search);
   }
 
   const query = params.toString();

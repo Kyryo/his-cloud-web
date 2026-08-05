@@ -4,7 +4,7 @@ import { bffError, bffSuccess } from "@/lib/server/bff-response";
 import { hmisApiRequestWithMeta } from "@/lib/server/hmis-api";
 import { requireAccessToken } from "@/lib/server/require-access-token";
 
-const FORWARDED_QUERY_KEYS = ["page", "page_size", "status", "membership_number"] as const;
+const FORWARDED_QUERY_KEYS = ["page", "page_size", "status", "search", "membership_number"] as const;
 
 function buildUpstreamQuery(request: Request): string {
   const incoming = new URL(request.url).searchParams;

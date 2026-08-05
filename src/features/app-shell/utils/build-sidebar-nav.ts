@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { BarChart3, BookOpen, Settings, Shield } from "lucide-react";
+import { BarChart3, BookOpen, HardDrive, Settings, Shield } from "lucide-react";
 
 import {
   canAccessReports,
@@ -118,12 +118,12 @@ export function buildSidebarNavItems(
 
   if (isPlatformAdmin) {
     items.push({
-      title: "Platform",
+      title: "Tenant operations",
       url: ROUTES.platformAdmin,
       icon: Shield,
       isActive:
-        isNavItemActive(pathname, ROUTES.platformAdmin) ||
-        pathname.startsWith(`${ROUTES.platformAdmin}/`),
+        pathname === ROUTES.platformAdmin ||
+        pathname.startsWith(`${ROUTES.platformAdminTenants}`),
       items: [
         {
           title: "Overview",
@@ -136,6 +136,22 @@ export function buildSidebarNavItems(
           isActive:
             isNavItemActive(pathname, ROUTES.platformAdminTenants) ||
             pathname.startsWith(`${ROUTES.platformAdminTenants}/`),
+        },
+      ],
+    });
+
+    items.push({
+      title: "Platform",
+      url: ROUTES.platformAdminBackups,
+      icon: HardDrive,
+      isActive: pathname.startsWith(`${ROUTES.platformAdmin}/backups`),
+      items: [
+        {
+          title: "Backups",
+          url: ROUTES.platformAdminBackups,
+          isActive:
+            pathname === ROUTES.platformAdminBackups ||
+            pathname.startsWith(`${ROUTES.platformAdminBackups}/`),
         },
       ],
     });

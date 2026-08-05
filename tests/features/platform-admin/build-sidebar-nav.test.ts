@@ -4,17 +4,30 @@ import { ROUTES } from "@/constants/routes";
 import { buildSidebarNavItems } from "@/features/app-shell/utils/build-sidebar-nav";
 
 describe("buildSidebarNavItems platform admin", () => {
-  it("shows Overview before Tenants for platform admins", () => {
+  it("shows Tenant operations with Overview before Tenants", () => {
     const items = buildSidebarNavItems([], ROUTES.platformAdmin, false, true);
-    const platformNav = items.find((item) => item.title === "Platform");
+    const tenantOpsNav = items.find((item) => item.title === "Tenant operations");
 
-    expect(platformNav).toBeDefined();
-    expect(platformNav?.items?.map((item) => item.title)).toEqual([
+    expect(tenantOpsNav).toBeDefined();
+    expect(tenantOpsNav?.items?.map((item) => item.title)).toEqual([
       "Overview",
       "Tenants",
     ]);
-    expect(platformNav?.items?.[0]?.url).toBe(ROUTES.platformAdmin);
-    expect(platformNav?.items?.[1]?.url).toBe(ROUTES.platformAdminTenants);
+    expect(tenantOpsNav?.items?.[0]?.url).toBe(ROUTES.platformAdmin);
+    expect(tenantOpsNav?.items?.[1]?.url).toBe(ROUTES.platformAdminTenants);
+  });
+
+  it("adds a Platform menu with Backups above Resources", () => {
+    const items = buildSidebarNavItems([], ROUTES.platformAdmin, false, true);
+    const titles = items.map((item) => item.title);
+    const platformIndex = titles.indexOf("Platform");
+    const resourcesIndex = titles.indexOf("Resources");
+    const platformNav = items.find((item) => item.title === "Platform");
+
+    expect(platformIndex).toBeGreaterThan(-1);
+    expect(resourcesIndex).toBeGreaterThan(platformIndex);
+    expect(platformNav?.items?.map((item) => item.title)).toEqual(["Backups"]);
+    expect(platformNav?.items?.[0]?.url).toBe(ROUTES.platformAdminBackups);
   });
 
   it("adds a Resources menu with Sales for platform admins", () => {
@@ -39,13 +52,43 @@ describe("buildSidebarNavItems platform admin", () => {
       false,
       true,
     );
-    const platformOverview = overviewItems.find((item) => item.title === "Platform");
-    const platformTenants = tenantsItems.find((item) => item.title === "Platform");
+    const overviewNav = overviewItems.find(
+      (item) => item.title === "Tenant operations",
+    );
+    const tenantsNav = tenantsItems.find(
+      (item) => item.title === "Tenant operations",
+    );
 
-    expect(platformOverview?.items?.[0]?.isActive).toBe(true);
-    expect(platformOverview?.items?.[1]?.isActive).toBe(false);
-    expect(platformTenants?.items?.[0]?.isActive).toBe(false);
-    expect(platformTenants?.items?.[1]?.isActive).toBe(true);
+    expect(overviewNav?.items?.[0]?.isActive).toBe(true);
+    expect(overviewNav?.items?.[1]?.isActive).toBe(false);
+    expect(tenantsNav?.items?.[0]?.isActive).toBe(false);
+    expect(tenantsNav?.items?.[1]?.isActive).toBe(true);
+  });
+
+  it("marks Backups active on backup hub and service routes", () => {
+    const hubItems = buildSidebarNavItems(
+      [],
+      ROUTES.platformAdminBackups,
+      false,
+      true,
+    );
+    const hmisItems = buildSidebarNavItems(
+      [],
+      ROUTES.platformAdminBackupsHmis,
+      false,
+      true,
+    );
+    const hubNav = hubItems.find((item) => item.title === "Platform");
+    const hmisNav = hmisItems.find((item) => item.title === "Platform");
+    const tenantOpsOnBackup = hubItems.find(
+      (item) => item.title === "Tenant operations",
+    );
+
+    expect(hubNav?.isActive).toBe(true);
+    expect(hubNav?.items?.[0]?.isActive).toBe(true);
+    expect(hmisNav?.isActive).toBe(true);
+    expect(hmisNav?.items?.[0]?.isActive).toBe(true);
+    expect(tenantOpsOnBackup?.isActive).toBe(false);
   });
 
   it("marks Sales active on sales resource routes", () => {

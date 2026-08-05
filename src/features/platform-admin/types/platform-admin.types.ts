@@ -436,3 +436,50 @@ export type PlatformAdminWebhookListOptions = {
   status?: string;
   type?: string;
 };
+
+export type PlatformAdminBackupTargetCode = "hmis" | "claims_engine" | string;
+
+export type PlatformAdminBackupTarget = {
+  code: PlatformAdminBackupTargetCode;
+  display_name: string;
+};
+
+export type PlatformAdminBackupStatus =
+  | "queued"
+  | "running"
+  | "completed"
+  | "failed"
+  | "expired";
+
+export type PlatformAdminBackupTrigger = "scheduled" | "manual";
+
+export type PlatformAdminBackupJob = {
+  uuid: string;
+  target: PlatformAdminBackupTargetCode;
+  status: PlatformAdminBackupStatus;
+  trigger: PlatformAdminBackupTrigger;
+  initiated_by: number | null;
+  initiated_by_email: string | null;
+  started_at: string | null;
+  finished_at: string | null;
+  size_bytes: number;
+  checksum_sha256: string;
+  r2_bucket: string;
+  r2_key: string;
+  error_message: string;
+  expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PlatformAdminBackupDownload = {
+  download_url: string;
+  expires_in: number;
+};
+
+export type PlatformAdminBackupListOptions = {
+  target: PlatformAdminBackupTargetCode;
+  page?: number;
+  pageSize?: number;
+  status?: string;
+};

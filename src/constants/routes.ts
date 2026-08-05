@@ -7,6 +7,9 @@ export const ROUTES = {
   platformAdminTenants: "/platform-admin/tenants",
   platformAdminTenant: (tenantUuid: string) =>
     `/platform-admin/tenants/${tenantUuid}`,
+  platformAdminBackups: "/platform-admin/backups",
+  platformAdminBackupsHmis: "/platform-admin/backups/hmis",
+  platformAdminBackupsClaimsEngine: "/platform-admin/backups/claims-engine",
   platformAdminResourcesSales: "/platform-admin/resources/sales",
   platformAdminSalesPlaybook: "/platform-admin/resources/sales/playbook",
   customers: "/customers",

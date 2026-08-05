@@ -38,7 +38,7 @@ export function ClaimListToolbar(props: ClaimListToolbarProps) {
         <Input
           id="claim-search"
           type="search"
-          placeholder="Search by membership number..."
+          placeholder="Search membership, patient, invoice, claim #, payer…"
           value={search}
           disabled={isLoading}
           className="w-full sm:max-w-md"
@@ -51,7 +51,13 @@ export function ClaimListToolbar(props: ClaimListToolbarProps) {
           data-testid="claims-search"
         />
         <ListPageToolbarActions>
-          <Button type="button" variant="outline" disabled={isLoading} onClick={onSearchSubmit}>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isLoading}
+            onClick={onSearchSubmit}
+            data-testid="claims-search-submit"
+          >
             Search
           </Button>
           {search ? (

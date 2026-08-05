@@ -388,6 +388,10 @@ export const BFF_PLATFORM_ADMIN_ROUTES = {
     `/api/platform-admin/tenants/${tenantUuid}/webhooks/${jobId}`,
   tenantWebhookResend: (tenantUuid: string, jobId: number | string) =>
     `/api/platform-admin/tenants/${tenantUuid}/webhooks/${jobId}/resend`,
+  backupTargets: "/api/platform-admin/backups/targets",
+  backups: "/api/platform-admin/backups",
+  backupDownload: (backupUuid: string) =>
+    `/api/platform-admin/backups/${backupUuid}/download`,
 } as const;
 
 /** Browser-facing BFF report job routes (same origin). */

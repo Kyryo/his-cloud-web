@@ -1,10 +1,8 @@
 "use client";
 
-import { AddActionButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  ListPageHeaderActions,
   ListPageHeaderMobileSearch,
   ListPageHeaderSection,
   ListPageHeaderTitleBlock,
@@ -17,7 +15,6 @@ type ClaimsPageHeaderProps = {
   onSearchChange: (value: string) => void;
   onSearchSubmit: () => void;
   onClearSearch: () => void;
-  onCreateClaim?: () => void;
 };
 
 export function ClaimsPageHeader({
@@ -26,7 +23,6 @@ export function ClaimsPageHeader({
   onSearchChange,
   onSearchSubmit,
   onClearSearch,
-  onCreateClaim,
 }: ClaimsPageHeaderProps) {
   return (
     <ListPageHeaderSection>
@@ -35,24 +31,12 @@ export function ClaimsPageHeader({
           title="Claims"
           description="Track insurance claims from draft through submission."
         />
-
-        {onCreateClaim ? (
-          <ListPageHeaderActions>
-            <AddActionButton
-              label="Create claim"
-              showIcon={false}
-              className="hidden shrink-0 self-start sm:inline-flex"
-              onClick={onCreateClaim}
-              data-testid="claims-create-button"
-            />
-          </ListPageHeaderActions>
-        ) : null}
       </ListPageHeaderTopRow>
       <ListPageHeaderMobileSearch>
         <Input
           id="claim-search-mobile"
           type="search"
-          placeholder="Search by membership number..."
+          placeholder="Search membership, patient, invoice, claim #, payer…"
           value={search}
           disabled={isSearchDisabled}
           onChange={(event) => onSearchChange(event.target.value)}
@@ -61,6 +45,7 @@ export function ClaimsPageHeader({
               onSearchSubmit();
             }
           }}
+          data-testid="claims-search-mobile"
         />
         <Button
           type="button"
@@ -68,6 +53,7 @@ export function ClaimsPageHeader({
           className="w-full"
           disabled={isSearchDisabled}
           onClick={onSearchSubmit}
+          data-testid="claims-search-submit-mobile"
         >
           Search
         </Button>
@@ -81,15 +67,6 @@ export function ClaimsPageHeader({
           >
             Clear
           </Button>
-        ) : null}
-        {onCreateClaim ? (
-          <AddActionButton
-            label="Create claim"
-            showIcon={false}
-            className="w-full sm:hidden"
-            onClick={onCreateClaim}
-            data-testid="claims-create-button-mobile"
-          />
         ) : null}
       </ListPageHeaderMobileSearch>
     </ListPageHeaderSection>

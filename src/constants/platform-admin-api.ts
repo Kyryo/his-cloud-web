@@ -29,4 +29,8 @@ export const PLATFORM_ADMIN_API_PATHS = {
     `/platform-admin/tenants/${tenantUuid}/webhooks/${jobId}/`,
   tenantWebhookResend: (tenantUuid: string, jobId: number | string) =>
     `/platform-admin/tenants/${tenantUuid}/webhooks/${jobId}/resend/`,
+  backupTargets: "/platform-admin/backups/targets/",
+  backups: "/platform-admin/backups/",
+  backupDownload: (backupUuid: string) =>
+    `/platform-admin/backups/${backupUuid}/download/`,
 } as const;

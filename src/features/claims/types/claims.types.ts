@@ -136,6 +136,8 @@ export type ClaimListFilters = {
   page?: number;
   pageSize?: number;
   status?: string;
+  search?: string;
+  /** @deprecated Prefer `search`. Kept for older callers. */
   membershipNumber?: string;
 };
 

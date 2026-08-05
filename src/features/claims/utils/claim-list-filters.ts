@@ -17,7 +17,7 @@ export const DEFAULT_CLAIM_LIST_FILTERS: ClaimListFilterState = {
 };
 
 export function buildClaimListFilters(input: {
-  membershipNumber: string;
+  search: string;
   page: number;
   pageSize: number;
   filters: ClaimListFilterState;
@@ -27,9 +27,9 @@ export function buildClaimListFilters(input: {
     pageSize: input.pageSize,
   };
 
-  const trimmedMembership = input.membershipNumber.trim();
-  if (trimmedMembership) {
-    result.membershipNumber = trimmedMembership;
+  const trimmedSearch = input.search.trim();
+  if (trimmedSearch) {
+    result.search = trimmedSearch;
   }
 
   if (input.filters.status !== "all") {

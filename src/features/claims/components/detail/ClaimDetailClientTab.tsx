@@ -14,10 +14,14 @@ import type { Customer } from "@/features/customers/types/customer.types";
 import {
   formatAdaptiveAge,
   formatCustomerName,
+  formatDisplayDateTime,
 } from "@/features/customers/utils/format-customer";
 import { formatCustomerVisitStatusLabel } from "@/features/customers/utils/customer-visit-status";
+import { formatVisitStartedBy } from "@/features/customers/utils/format-visit-started-by";
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
 import { SalesOrderLinkedDetailsTable } from "@/features/sales-orders/components/detail/SalesOrderLinkedDetailsTable";
+import { fetchVisit } from "@/features/visits/services/visits.service";
+import type { VisitDetail } from "@/features/visits/types/visit.types";
 import { ROUTES } from "@/constants/routes";
 
 type ClaimDetailClientTabProps = {
@@ -25,64 +29,111 @@ type ClaimDetailClientTabProps = {
   isActive: boolean;
 };
 
+function visitDetailRows(visit: VisitDetail | null) {
+  return [
+    {
+      label: "Visit date",
+      value: visit?.visit_date ? formatDisplayDateTime(visit.visit_date) : "—",
+    },
+    {
+      label: "Clinic",
+      value: visit?.clinic_name || "—",
+    },
+    {
+      label: "Started by",
+      value: visit ? formatVisitStartedBy(visit) : "—",
+    },
+  ];
+}
+
 export function ClaimDetailClientTab({
   claim,
   isActive,
 }: ClaimDetailClientTabProps) {
   const [customer, setCustomer] = useState<Customer | null>(null);
+  const [visit, setVisit] = useState<VisitDetail | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
+
+  const customerUuid = claim.customer_uuid?.trim() || "";
+  const visitUuid = claim.visit_uuid?.trim() || "";
 
   useEffect(() => {
     if (!isActive) {
       return;
     }
 
-    const customerUuid = claim.customer_uuid?.trim();
-    if (!customerUuid) {
-      return;
-    }
-
     let cancelled = false;
+    setHasLoaded(false);
 
     void (async () => {
       setIsLoading(true);
       setLoadError(null);
 
-      try {
-        const record = await fetchCustomer(customerUuid);
-        if (!cancelled) {
-          setCustomer(record);
-        }
-      } catch (error) {
-        if (!cancelled) {
-          setCustomer(null);
-          setLoadError(
-            error instanceof Error ? error.message : "Failed to load client details.",
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-        }
+      const customerPromise = customerUuid
+        ? fetchCustomer(customerUuid)
+            .then((record) => ({ ok: true as const, record }))
+            .catch((error: unknown) => ({
+              ok: false as const,
+              message:
+                error instanceof Error
+                  ? error.message
+                  : "Failed to load client details.",
+            }))
+        : Promise.resolve(null);
+
+      const visitPromise = visitUuid
+        ? fetchVisit(visitUuid)
+            .then((record) => record)
+            .catch(() => null)
+        : Promise.resolve(null);
+
+      const [customerResult, visitResult] = await Promise.all([
+        customerPromise,
+        visitPromise,
+      ]);
+
+      if (cancelled) {
+        return;
       }
+
+      if (customerResult === null) {
+        setCustomer(null);
+        setLoadError(null);
+      } else if (customerResult.ok) {
+        setCustomer(customerResult.record);
+        setLoadError(null);
+      } else {
+        setCustomer(null);
+        setLoadError(customerResult.message);
+      }
+
+      setVisit(visitResult);
+      setIsLoading(false);
+      setHasLoaded(true);
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [isActive, claim.customer_uuid]);
+  }, [isActive, customerUuid, visitUuid]);
 
   if (!isActive) {
     return null;
   }
 
-  if (!claim.customer_uuid?.trim()) {
+  if (isLoading || !hasLoaded) {
+    return <CustomerTabSkeleton rows={7} />;
+  }
+
+  if (!customerUuid) {
     return (
-      <div className="space-y-4" data-testid="claim-detail-client-tab">
+      <div className="space-y-4" data-testid="claim-detail-client-visit-tab">
         <SalesOrderLinkedDetailsTable
           rows={[
             { label: "Client", value: claim.customer_name || "—" },
+            ...visitDetailRows(visit),
           ]}
         />
         <CustomerDetailTabEmptyState
@@ -95,28 +146,27 @@ export function ClaimDetailClientTab({
     );
   }
 
-  if (isLoading || (!customer && !loadError)) {
-    return <CustomerTabSkeleton rows={4} />;
-  }
-
   if (loadError || !customer) {
     return (
-      <CustomerDetailTabEmptyState
-        icon={UserRound}
-        title="Client unavailable"
-        description={
-          loadError ??
-          "The linked client could not be loaded. The record may have been removed or you may not have access."
-        }
-        data-testid="claim-detail-client-unavailable-state"
-      />
+      <div className="space-y-4" data-testid="claim-detail-client-visit-tab">
+        <SalesOrderLinkedDetailsTable rows={visitDetailRows(visit)} />
+        <CustomerDetailTabEmptyState
+          icon={UserRound}
+          title="Client unavailable"
+          description={
+            loadError ??
+            "The linked client could not be loaded. The record may have been removed or you may not have access."
+          }
+          data-testid="claim-detail-client-unavailable-state"
+        />
+      </div>
     );
   }
 
   const fullName = formatCustomerName(customer);
 
   return (
-    <div className="space-y-4" data-testid="claim-detail-client-tab">
+    <div className="space-y-4" data-testid="claim-detail-client-visit-tab">
       <div className="flex items-center gap-4 rounded-xl border border-brand-border bg-white p-5">
         <ClientAvatar name={fullName} className="size-12 text-sm" />
         <div className="min-w-0 flex-1">
@@ -151,6 +201,7 @@ export function ClaimDetailClientTab({
             label: "Visit status",
             value: formatCustomerVisitStatusLabel(customer.visit_status),
           },
+          ...visitDetailRows(visit),
         ]}
       />
     </div>

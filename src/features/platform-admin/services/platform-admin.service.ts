@@ -2,6 +2,10 @@ import { BFF_PLATFORM_ADMIN_ROUTES } from "@/constants/api";
 import { bffRequest } from "@/lib/bff-client";
 import type {
   PlatformAdminAuditEvent,
+  PlatformAdminBackupDownload,
+  PlatformAdminBackupJob,
+  PlatformAdminBackupListOptions,
+  PlatformAdminBackupTarget,
   PlatformAdminCashSnapshot,
   PlatformAdminCashSnapshotPayload,
   PlatformAdminClinic,
@@ -241,5 +245,49 @@ export async function createPlatformAdminCashSnapshot(
   return bffRequest<PlatformAdminCashSnapshot>(
     BFF_PLATFORM_ADMIN_ROUTES.financeCashSnapshots,
     { method: "POST", body: payload },
+  );
+}
+
+export async function listPlatformAdminBackupTargets(): Promise<
+  PlatformAdminBackupTarget[]
+> {
+  return bffRequest<PlatformAdminBackupTarget[]>(
+    BFF_PLATFORM_ADMIN_ROUTES.backupTargets,
+  );
+}
+
+export async function listPlatformAdminBackups(
+  options: PlatformAdminBackupListOptions,
+): Promise<PlatformAdminListResponse<PlatformAdminBackupJob>> {
+  const params = new URLSearchParams();
+  params.set("target", options.target);
+  if (options.page) {
+    params.set("page", String(options.page));
+  }
+  if (options.pageSize) {
+    params.set("page_size", String(options.pageSize));
+  }
+  if (options.status) {
+    params.set("status", options.status);
+  }
+  return bffRequest<PlatformAdminListResponse<PlatformAdminBackupJob>>(
+    `${BFF_PLATFORM_ADMIN_ROUTES.backups}?${params.toString()}`,
+  );
+}
+
+export async function createPlatformAdminBackup(
+  target: string,
+): Promise<PlatformAdminBackupJob> {
+  return bffRequest<PlatformAdminBackupJob>(BFF_PLATFORM_ADMIN_ROUTES.backups, {
+    method: "POST",
+    body: { target },
+  });
+}
+
+export async function getPlatformAdminBackupDownload(
+  backupUuid: string,
+): Promise<PlatformAdminBackupDownload> {
+  return bffRequest<PlatformAdminBackupDownload>(
+    BFF_PLATFORM_ADMIN_ROUTES.backupDownload(backupUuid),
   );
 }

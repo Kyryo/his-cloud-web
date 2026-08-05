@@ -5,6 +5,7 @@ import {
   createClaimFromInvoice,
   extractVerificationToken,
   fetchClaimByInvoice,
+  fetchClaims,
   fetchMasemPayerIntegration,
   isInsuranceInvoice,
   submitClaim,
@@ -30,6 +31,19 @@ vi.mock("@/lib/bff-client", () => ({
 describe("claims.service", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("lists claims with comprehensive search query", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      results: [],
+      pagination: { count: 0, page: 1, page_size: 20 },
+    });
+
+    await fetchClaims({ search: "  MEM-100  ", status: "draft", page: 1, pageSize: 20 });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      `${BFF_CLAIMS_ROUTES.list}?page=1&page_size=20&status=draft&search=MEM-100`,
+    );
   });
 
   it("fetches claim by invoice from wrapped BFF response", async () => {

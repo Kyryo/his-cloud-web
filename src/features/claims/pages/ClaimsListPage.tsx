@@ -16,7 +16,6 @@ import {
   ClaimsPagination,
   ClaimsTable,
 } from "@/features/claims/components/ClaimsTable";
-import { CreateClaimFromInvoiceDialog } from "@/features/claims/components/CreateClaimFromInvoiceDialog";
 import { fetchClaims } from "@/features/claims/services/claims.service";
 import type { ClaimListItem } from "@/features/claims/types/claims.types";
 import {
@@ -40,12 +39,11 @@ export function ClaimsListPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [createOpen, setCreateOpen] = useState(false);
 
   const listFilters = useMemo(
     () =>
       buildClaimListFilters({
-        membershipNumber: activeSearch,
+        search: activeSearch,
         page,
         pageSize: DEFAULT_PAGE_SIZE,
         filters,
@@ -121,7 +119,6 @@ export function ClaimsListPage() {
         onSearchChange={setSearch}
         onSearchSubmit={handleSearchSubmit}
         onClearSearch={handleClearSearch}
-        onCreateClaim={() => setCreateOpen(true)}
       />
 
       <ListPageDataSectionsStack>
@@ -172,15 +169,6 @@ export function ClaimsListPage() {
           )}
         </ListPageTableSection>
       </ListPageDataSectionsStack>
-
-      <CreateClaimFromInvoiceDialog
-        open={createOpen}
-        onOpenChange={setCreateOpen}
-        onClaimCreated={(claimId) => {
-          setCreateOpen(false);
-          router.push(ROUTES.claimDetail(claimId));
-        }}
-      />
     </ListPageLayout>
   );
 }

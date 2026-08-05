@@ -16,7 +16,6 @@ import { ClaimDetailAdvisoriesTab } from "@/features/claims/components/detail/Cl
 import { ClaimDetailClaimedItemsTab } from "@/features/claims/components/detail/ClaimDetailClaimedItemsTab";
 import { ClaimDetailClientTab } from "@/features/claims/components/detail/ClaimDetailClientTab";
 import { ClaimDetailClinicalTab } from "@/features/claims/components/detail/ClaimDetailClinicalTab";
-import { ClaimDetailVisitTab } from "@/features/claims/components/detail/ClaimDetailVisitTab";
 import { ClaimSummaryPanel } from "@/features/claims/components/detail/ClaimSummaryPanel";
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
 import { VisitDetailDialog } from "@/features/visits/components/VisitDetailDialog";
@@ -29,8 +28,7 @@ type ClaimDetailTabsProps = {
 
 type DetailTabId =
   | "claimed-items"
-  | "client"
-  | "visit"
+  | "client-visit"
   | "clinical"
   | "advisories"
   | "activity";
@@ -38,8 +36,7 @@ type DetailTabId =
 const tabs: Array<{ id: DetailTabId; label: string }> = [
   { id: "advisories", label: "Advisories" },
   { id: "claimed-items", label: "Claimed Items" },
-  { id: "client", label: "Client" },
-  { id: "visit", label: "Visit" },
+  { id: "client-visit", label: "Client & Visit" },
   { id: "clinical", label: "Clinical Info" },
   { id: "activity", label: "Activity" },
 ];
@@ -106,12 +103,7 @@ export function ClaimDetailTabs({
           />
           <ClaimDetailClientTab
             claim={claim}
-            isActive={activeTab === "client"}
-          />
-          <ClaimDetailVisitTab
-            visitUuid={visitUuid}
-            isActive={activeTab === "visit"}
-            onOpenVisit={() => setVisitDialogOpen(true)}
+            isActive={activeTab === "client-visit"}
           />
           <ClaimDetailClinicalTab
             claim={claim}

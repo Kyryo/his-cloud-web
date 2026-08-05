@@ -9,10 +9,10 @@ import { isClaimableInvoice } from "@/features/claims/utils/is-claimable-invoice
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 
 describe("claim-list-filters", () => {
-  it("builds membership and status query filters", () => {
+  it("builds search and status query filters", () => {
     expect(
       buildClaimListFilters({
-        membershipNumber: "  MEM-100  ",
+        search: "  MEM-100  ",
         page: 2,
         pageSize: 20,
         filters: { status: "draft" },
@@ -20,15 +20,15 @@ describe("claim-list-filters", () => {
     ).toEqual({
       page: 2,
       pageSize: 20,
-      membershipNumber: "MEM-100",
+      search: "MEM-100",
       status: "draft",
     });
   });
 
-  it("omits empty membership and all status", () => {
+  it("omits empty search and all status", () => {
     expect(
       buildClaimListFilters({
-        membershipNumber: "   ",
+        search: "   ",
         page: 1,
         pageSize: 20,
         filters: DEFAULT_CLAIM_LIST_FILTERS,
