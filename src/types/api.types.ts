@@ -26,6 +26,12 @@ export type V1Envelope<T> = {
       next: string | null;
       previous: string | null;
     };
+    stats?: {
+      todays_visits: number;
+      todays_active_visits: number;
+      todays_completed_visits: number;
+      total_visits: number;
+    };
   };
   errors: V1ApiError[];
 };

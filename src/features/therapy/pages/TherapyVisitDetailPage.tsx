@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { CalendarClock, Link2, Pin, Settings } from "lucide-react";
+import { CalendarClock, Link2, Pin, Settings, StickyNote } from "lucide-react";
 
 import { ClientAvatar } from "@/components/client-avatar";
 import { SpinnerGlyph } from "@/components/loading-spinner";
@@ -79,6 +79,11 @@ export function TherapyVisitDetailPage({
   const loadTreatmentGoals = useCallback(async () => {
     const data = await fetchTherapyVisitTreatmentGoals(discipline, visitUuid);
     setTreatmentGoals(data);
+  }, [discipline, visitUuid]);
+
+  const loadVisit = useCallback(async () => {
+    const record = await fetchTherapyVisitDetails(discipline, visitUuid);
+    setVisit(record);
   }, [discipline, visitUuid]);
 
   async function createAssessment() {
@@ -196,12 +201,22 @@ export function TherapyVisitDetailPage({
                 {visit.consultation_service_name ? (
                   <span className="inline-flex items-center gap-1.5 text-sm text-brand-muted">
                     <span
-                      className="size-2 rounded-full bg-indigo-300"
+                      className="size-2 rounded-full bg-brand-primary"
                       aria-hidden="true"
                     />
                     {visit.consultation_service_name}
                   </span>
                 ) : null}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 gap-1.5 px-2 text-sm text-brand-muted hover:text-brand-navy"
+                  onClick={() => setActiveTab("client-notes")}
+                >
+                  <StickyNote className="size-4" aria-hidden="true" />
+                  Notes
+                </Button>
               </div>
               <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-brand-muted">
                 <span>
@@ -212,9 +227,6 @@ export function TherapyVisitDetailPage({
                 <span className="font-mono text-sm text-brand-slate">
                   {visit.customer_identifier}
                 </span>
-                <Badge variant="outline">
-                  {visit.mode_of_payment === "insurance" ? "Insurance" : "Cash"}
-                </Badge>
                 <Badge
                   variant="outline"
                   className="border-emerald-200 bg-emerald-50 text-emerald-700"
@@ -284,6 +296,7 @@ export function TherapyVisitDetailPage({
           visit={visit}
           treatmentGoals={treatmentGoals}
           onTreatmentGoalsChanged={loadTreatmentGoals}
+          onVisitChanged={loadVisit}
           onSessionCountChanged={setSessionCount}
           onActivityCountChanged={setActivityCount}
           onAssessmentChanged={setAssessment}

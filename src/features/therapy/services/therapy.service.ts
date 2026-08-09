@@ -8,6 +8,8 @@ import type {
   CreateTherapyTreatmentGoalPayload,
   TherapyFutureAppointment,
   TherapyGoalProgress,
+  TherapyInterimReport,
+  TherapyClientNote,
   TherapySession,
   TherapySessionActivitiesResponse,
   TherapySessionActivity,
@@ -275,5 +277,69 @@ export async function fetchTherapyVisits({
 
   return bffRequest<TherapyVisitListResponse>(
     `${BFF_THERAPY_ROUTES.visits}?${params.toString()}`,
+  );
+}
+
+export async function fetchTherapyVisitInterimReports(
+  discipline: TherapyDiscipline,
+  visitUuid: string,
+): Promise<TherapyInterimReport[]> {
+  return bffRequest<TherapyInterimReport[]>(
+    BFF_THERAPY_ROUTES.interimReports(discipline, visitUuid),
+  );
+}
+
+export async function createTherapyVisitInterimReport(
+  discipline: TherapyDiscipline,
+  visitUuid: string,
+  report: string,
+): Promise<TherapyInterimReport> {
+  return bffRequest<TherapyInterimReport>(
+    BFF_THERAPY_ROUTES.interimReports(discipline, visitUuid),
+    { method: "POST", body: { report } },
+  );
+}
+
+export async function updateTherapyVisitInterimReport(
+  discipline: TherapyDiscipline,
+  visitUuid: string,
+  reportUuid: string,
+  report: string,
+): Promise<TherapyInterimReport> {
+  return bffRequest<TherapyInterimReport>(
+    BFF_THERAPY_ROUTES.interimReport(discipline, visitUuid, reportUuid),
+    { method: "PUT", body: { report } },
+  );
+}
+
+export async function fetchTherapyVisitClientNotes(
+  discipline: TherapyDiscipline,
+  visitUuid: string,
+): Promise<TherapyClientNote[]> {
+  return bffRequest<TherapyClientNote[]>(
+    BFF_THERAPY_ROUTES.clientNotes(discipline, visitUuid),
+  );
+}
+
+export async function createTherapyVisitClientNote(
+  discipline: TherapyDiscipline,
+  visitUuid: string,
+  note: string,
+): Promise<TherapyClientNote> {
+  return bffRequest<TherapyClientNote>(
+    BFF_THERAPY_ROUTES.clientNotes(discipline, visitUuid),
+    { method: "POST", body: { note } },
+  );
+}
+
+export async function updateTherapyVisitClientNote(
+  discipline: TherapyDiscipline,
+  visitUuid: string,
+  noteUuid: string,
+  note: string,
+): Promise<TherapyClientNote> {
+  return bffRequest<TherapyClientNote>(
+    BFF_THERAPY_ROUTES.clientNote(discipline, visitUuid, noteUuid),
+    { method: "PUT", body: { note } },
   );
 }

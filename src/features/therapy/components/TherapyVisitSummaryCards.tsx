@@ -1,44 +1,34 @@
 import { StatsCard1, StatsCard1Grid } from "@/components/stats-card1";
-import type { TherapyVisit } from "@/features/therapy/types/therapy.types";
+import type { TherapyVisitQueueStats } from "@/features/therapy/types/therapy.types";
 
-type TherapyVisitSummaryCardsProps = {
-  visits: TherapyVisit[];
+const EMPTY_STATS: TherapyVisitQueueStats = {
+  todays_visits: 0,
+  todays_active_visits: 0,
+  todays_completed_visits: 0,
+  total_visits: 0,
 };
 
-function getLocalDateKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
+type TherapyVisitSummaryCardsProps = {
+  stats: TherapyVisitQueueStats | null;
+};
 
 export function TherapyVisitSummaryCards({
-  visits,
+  stats,
 }: TherapyVisitSummaryCardsProps) {
-  const today = getLocalDateKey(new Date());
-  const activeVisits = visits.filter((visit) => visit.status === "active");
+  const values = stats ?? EMPTY_STATS;
 
   return (
     <StatsCard1Grid>
+      <StatsCard1 title="Today's visits" value={values.todays_visits} />
       <StatsCard1
-        title="Today's visits"
-        value={visits.filter((visit) => visit.visit_date.slice(0, 10) === today).length}
-      />
-      <StatsCard1 title="Active visits" value={activeVisits.length} />
-      <StatsCard1
-        title="Cash visits (active)"
-        value={
-          activeVisits.filter((visit) => visit.mode_of_payment === "cash").length
-        }
+        title="Today's active visits"
+        value={values.todays_active_visits}
       />
       <StatsCard1
-        title="Insurance visits (active)"
-        value={
-          activeVisits.filter((visit) => visit.mode_of_payment === "insurance")
-            .length
-        }
+        title="Today's completed visits"
+        value={values.todays_completed_visits}
       />
+      <StatsCard1 title="Total visits" value={values.total_visits} />
     </StatsCard1Grid>
   );
 }

@@ -35,12 +35,14 @@ export function SessionsTab({
   hasTreatmentPlan,
   isReadOnly,
   onSessionCountChanged,
+  onVisitChanged,
 }: {
   discipline: TherapyDiscipline;
   visitUuid: string;
   hasTreatmentPlan: boolean;
   isReadOnly: boolean;
   onSessionCountChanged: (count: number) => void;
+  onVisitChanged: () => Promise<void>;
 }) {
   const { toast } = useToast();
   const [sessions, setSessions] = useState<TherapySession[]>([]);
@@ -133,7 +135,7 @@ export function SessionsTab({
           setIsFormOpen(false);
         }}
         onSaved={async () => {
-          await loadSessions();
+          await Promise.all([loadSessions(), onVisitChanged()]);
           setEditing(null);
           setIsFormOpen(false);
         }}

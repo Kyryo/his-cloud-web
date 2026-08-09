@@ -1,12 +1,13 @@
 "use client";
 
-import { CheckCircle2, ClipboardPlus } from "lucide-react";
+import { CheckCircle2, ClipboardPlus, Layers } from "lucide-react";
 import { useState } from "react";
 
 import {
   AddActionButton,
   SecondaryButton,
 } from "@/components/ui/app-buttons";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -15,6 +16,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { DetailPageAsidePanelSection } from "@/features/app-shell/components/page-layout";
 import { GoalProgressForm } from "@/features/therapy/components/GoalProgressForm";
 import { TreatmentGoalForm } from "@/features/therapy/components/TreatmentGoalForm";
@@ -23,6 +30,13 @@ import type {
   TherapyTreatmentGoal,
   TherapyVisitTreatmentGoals,
 } from "@/features/therapy/types/therapy.types";
+import {
+  displayedBooleanResponse,
+  displayedCurrentValue,
+  displayedProgressPercentage,
+  type GoalProgressView,
+} from "@/features/therapy/utils/goalProgressDisplay";
+import { cn } from "@/lib/utils";
 
 type TreatmentGoalsPanelProps = {
   discipline: TherapyDiscipline;
@@ -56,6 +70,7 @@ export function TreatmentGoalsPanel({
   const [progressGoal, setProgressGoal] =
     useState<TherapyTreatmentGoal | null>(null);
   const [visibleNotes, setVisibleNotes] = useState<Set<string>>(new Set());
+  const [progressView, setProgressView] = useState<GoalProgressView>("visit");
 
   function toggleNotes(goalUuid: string) {
     setVisibleNotes((current) => {
@@ -65,6 +80,11 @@ export function TreatmentGoalsPanel({
       return next;
     });
   }
+
+  const overallSelected = progressView === "overall";
+  const toggleLabel = overallSelected
+    ? "Show this visit's progress"
+    : "Show overall progress";
 
   return (
     <DetailPageAsidePanelSection className="min-h-full px-0 py-0 xl:px-0">
@@ -85,18 +105,48 @@ export function TreatmentGoalsPanel({
             </span>
           </div>
         </div>
-        <AddActionButton
-          label="Add"
-          size="sm"
-          disabled={isReadOnly}
-          onClick={() => {
-            if (!data.treatment_plan) {
-              onRequestTreatmentPlan();
-              return;
-            }
-            setShowForm(true);
-          }}
-        />
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          <AddActionButton
+            label="Add"
+            size="sm"
+            disabled={isReadOnly}
+            onClick={() => {
+              if (!data.treatment_plan) {
+                onRequestTreatmentPlan();
+                return;
+              }
+              setShowForm(true);
+            }}
+          />
+          {data.goals.length > 0 ? (
+            <TooltipProvider delayDuration={200}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                      "size-8 text-brand-muted hover:text-brand-navy",
+                      overallSelected &&
+                        "bg-brand-primary text-white hover:bg-brand-primary hover:text-white",
+                    )}
+                    aria-label={toggleLabel}
+                    aria-pressed={overallSelected}
+                    onClick={() =>
+                      setProgressView((current) =>
+                        current === "visit" ? "overall" : "visit",
+                      )
+                    }
+                  >
+                    <Layers className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{toggleLabel}</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ) : null}
+        </div>
       </div>
 
       {showForm && data.treatment_plan ? (
@@ -108,22 +158,31 @@ export function TreatmentGoalsPanel({
         />
       ) : data.goals.length > 0 ? (
         <div className="divide-y divide-brand-border px-4 sm:px-5">
-          {data.goals.map((goal) => (
-            <div key={goal.uuid} className="py-4">
-              <div className="min-w-0">
-                <div className="flex min-w-0 items-start justify-between gap-2">
-                  <p
-                    className="min-w-0 flex-1 truncate text-sm font-medium text-brand-navy"
-                    title={goal.description}
-                  >
-                    {goal.description}
-                  </p>
-                  {goal.is_achieved ? (
-                    <CheckCircle2
-                      className="mt-0.5 size-4 shrink-0 text-emerald-600"
-                      aria-label="Goal achieved"
-                    />
-                  ) : (
+          {data.goals.map((goal) => {
+            const progressPercentage = displayedProgressPercentage(
+              goal,
+              progressView,
+            );
+            const currentValue = displayedCurrentValue(goal, progressView);
+
+            return (
+              <div key={goal.uuid} className="py-4">
+                <div className="min-w-0">
+                  <div className="flex min-w-0 items-start justify-between gap-2">
+                    <div className="flex min-w-0 flex-1 items-start gap-1.5">
+                      <p
+                        className="min-w-0 flex-1 truncate text-sm font-medium text-brand-navy"
+                        title={goal.description}
+                      >
+                        {goal.description}
+                      </p>
+                      {goal.is_achieved ? (
+                        <CheckCircle2
+                          className="mt-0.5 size-4 shrink-0 text-emerald-600"
+                          aria-label="Goal achieved"
+                        />
+                      ) : null}
+                    </div>
                     <SecondaryButton
                       type="button"
                       size="sm"
@@ -133,37 +192,44 @@ export function TreatmentGoalsPanel({
                     >
                       + progress
                     </SecondaryButton>
-                  )}
-                </div>
+                  </div>
                   {goal.unit === "boolean" ? (
                     <p className="mt-1 text-xs text-brand-muted">
                       Response:{" "}
-                      {goal.boolean_value === null
-                        ? "Not recorded"
-                        : goal.boolean_value
-                          ? "Yes"
-                          : "No"}
+                      {displayedBooleanResponse(goal, progressView)}
                     </p>
                   ) : goal.target_value ? (
                     <p className="mt-1 truncate text-xs text-brand-muted">
                       Target: {formatDecimal(goal.target_value)} {goalUnit(goal)}
                     </p>
                   ) : null}
-                  {goal.progress_percentage !== null ? (
+                  {goal.unit !== "boolean" &&
+                  progressView === "visit" &&
+                  !goal.visit_has_progress ? (
+                    <p className="mt-3 text-xs text-brand-muted">
+                      No progress recorded for this visit
+                    </p>
+                  ) : goal.unit !== "boolean" &&
+                    progressPercentage !== null ? (
                     <div className="mt-3">
                       <div className="mb-1.5 flex justify-between text-[11px] text-brand-muted">
                         <span>
                           {formatDecimal(goal.baseline_value)} start
                         </span>
                         <span>
-                          {formatDecimal(
-                            goal.current_value ?? goal.baseline_value,
-                          )}{" "}
-                          / {formatDecimal(goal.target_value)}
+                          {formatDecimal(currentValue)} /{" "}
+                          {formatDecimal(goal.target_value)}
                         </span>
                       </div>
-                      <Progress value={goal.progress_percentage} />
+                      <Progress value={progressPercentage} />
+                      <p className="mt-1.5 text-[11px] text-brand-muted">
+                        {progressView === "visit" ? "This visit" : "Overall"}
+                      </p>
                     </div>
+                  ) : goal.unit === "boolean" ? (
+                    <p className="mt-1.5 text-[11px] text-brand-muted">
+                      {progressView === "visit" ? "This visit" : "Overall"}
+                    </p>
                   ) : null}
                   {goal.notes ? (
                     <div className="mt-2">
@@ -183,9 +249,10 @@ export function TreatmentGoalsPanel({
                       ) : null}
                     </div>
                   ) : null}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       ) : (
         <div className="px-4 py-10 text-center sm:px-5">

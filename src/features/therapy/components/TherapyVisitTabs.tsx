@@ -4,8 +4,10 @@ import {
   CalendarClock,
   ClipboardList,
   Dumbbell,
+  FilePlus2,
   FileText,
   NotepadText,
+  StickyNote,
   Workflow,
 } from "lucide-react";
 
@@ -20,6 +22,8 @@ import { TreatmentGoalsPanel } from "@/features/therapy/components/TreatmentGoal
 import { TreatmentPlanTab } from "@/features/therapy/components/TreatmentPlanTab";
 import { VisitDetailsTab } from "@/features/therapy/components/VisitDetailsTab";
 import { FutureAppointmentsTab } from "@/features/therapy/components/FutureAppointmentsTab";
+import { ClientNotesTab } from "@/features/therapy/components/ClientNotesTab";
+import { InterimReportsTab } from "@/features/therapy/components/InterimReportsTab";
 import { SessionsTab } from "@/features/therapy/components/SessionsTab";
 import { SessionActivityTab } from "@/features/therapy/components/SessionActivityTab";
 import { AssessmentSessionTab } from "@/features/therapy/components/AssessmentSessionTab";
@@ -34,6 +38,7 @@ const TABS = [
   { id: "sessions", label: "Sessions", icon: Workflow },
   { id: "session-activity", label: "Session Activity", icon: Dumbbell },
   { id: "treatment-plan", label: "Treatment plan", icon: ClipboardList },
+  { id: "interim-report", label: "Interim report", icon: FilePlus2 },
   { id: "visit-details", label: "Visit Details", icon: FileText },
   {
     id: "future-appointments",
@@ -48,9 +53,16 @@ const ASSESSMENT_TAB = {
   icon: NotepadText,
 } as const;
 
+const CLIENT_NOTES_TAB = {
+  id: "client-notes",
+  label: "Notes",
+  icon: StickyNote,
+} as const;
+
 export type TherapyVisitTabId =
   | (typeof TABS)[number]["id"]
-  | typeof ASSESSMENT_TAB.id;
+  | typeof ASSESSMENT_TAB.id
+  | typeof CLIENT_NOTES_TAB.id;
 
 type TherapyVisitTabsProps = {
   discipline: TherapyDiscipline;
@@ -59,6 +71,7 @@ type TherapyVisitTabsProps = {
   treatmentGoals: TherapyVisitTreatmentGoals;
   visit: TherapyVisit;
   onTreatmentGoalsChanged: () => Promise<void>;
+  onVisitChanged: () => Promise<void>;
   onSessionCountChanged: (count: number) => void;
   onActivityCountChanged: (count: number) => void;
   onAssessmentChanged: (assessment: TherapyAssessment) => void;
@@ -74,6 +87,7 @@ export function TherapyVisitTabs({
   treatmentGoals,
   visit,
   onTreatmentGoalsChanged,
+  onVisitChanged,
   onSessionCountChanged,
   onActivityCountChanged,
   onAssessmentChanged,
@@ -87,7 +101,9 @@ export function TherapyVisitTabs({
     treatmentGoals.treatment_plan?.status === "discontinued";
   const visibleTabs = assessment ? [ASSESSMENT_TAB, ...TABS] : TABS;
   const activeTabConfig =
-    visibleTabs.find((tab) => tab.id === activeTab) ?? visibleTabs[0];
+    activeTab === CLIENT_NOTES_TAB.id
+      ? CLIENT_NOTES_TAB
+      : (visibleTabs.find((tab) => tab.id === activeTab) ?? visibleTabs[0]);
   const ActiveTabIcon = activeTabConfig.icon;
 
   return (
@@ -117,6 +133,12 @@ export function TherapyVisitTabs({
               onAssessmentChanged={onAssessmentChanged}
               isReadOnly={isReadOnly}
             />
+          ) : activeTab === "interim-report" ? (
+            <InterimReportsTab
+              discipline={discipline}
+              visitUuid={visitUuid}
+              isReadOnly={isReadOnly}
+            />
           ) : activeTab === "treatment-plan" ? (
             <TreatmentPlanTab
               discipline={discipline}
@@ -132,6 +154,7 @@ export function TherapyVisitTabs({
               hasTreatmentPlan={Boolean(treatmentGoals.treatment_plan)}
               isReadOnly={isReadOnly}
               onSessionCountChanged={onSessionCountChanged}
+              onVisitChanged={onVisitChanged}
             />
           ) : activeTab === "session-activity" ? (
             <SessionActivityTab
@@ -143,6 +166,8 @@ export function TherapyVisitTabs({
             />
           ) : activeTab === "visit-details" ? (
             <VisitDetailsTab visit={visit} />
+          ) : activeTab === "client-notes" ? (
+            <ClientNotesTab discipline={discipline} visitUuid={visitUuid} />
           ) : activeTab === "future-appointments" ? (
             <FutureAppointmentsTab
               discipline={discipline}

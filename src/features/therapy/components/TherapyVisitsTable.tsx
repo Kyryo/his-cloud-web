@@ -1,7 +1,6 @@
 import { CalendarClock } from "lucide-react";
 
 import { ClientAvatar } from "@/components/client-avatar";
-import { Badge } from "@/components/ui/badge";
 import {
   ListPageDataTable,
   ListPageDataTableBody,
@@ -30,7 +29,6 @@ const COLUMNS = [
   "Gender",
   "Visit date",
   "Service",
-  "Payment",
   "Visit status",
 ] as const;
 
@@ -99,13 +97,6 @@ export function TherapyVisitsTable({
               </ListPageDataTableCell>
               <ListPageDataTableCell className="text-sm text-brand-slate">
                 {visit.consultation_service_name || "Therapy visit"}
-              </ListPageDataTableCell>
-              <ListPageDataTableCell>
-                <Badge variant="outline">
-                  {visit.mode_of_payment === "insurance"
-                    ? "Insurance"
-                    : "Cash"}
-                </Badge>
               </ListPageDataTableCell>
               <ListPageDataTableCell>
                 <TherapyVisitStatusBadge status={visit.status} />
