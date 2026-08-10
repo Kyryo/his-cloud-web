@@ -199,7 +199,7 @@ export function NonPayableLineDialog({
         </DialogHeader>
 
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-5">
-          {error ? <StatusBanner variant="error">{error}</StatusBanner> : null}
+          {error ? <StatusBanner variant="error" message={error} /> : null}
 
           <div className="rounded-xl border border-brand-border bg-slate-50/80 px-4 py-3">
             <p className="text-xs font-medium uppercase tracking-wide text-brand-muted">

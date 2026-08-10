@@ -26,6 +26,7 @@ import { Input } from "@/components/ui/input";
 import {
   organizationGroupSchema,
   toUpdateOrganizationGroupPayload,
+  type OrganizationGroupFormInput,
   type OrganizationGroupFormValues,
 } from "@/features/settings/schemas/organization-group.schema";
 import { updateOrganizationGroup } from "@/features/settings/services/user-management.service";
@@ -50,7 +51,11 @@ export function UpdateGroupDialog({
   onUpdated,
 }: UpdateGroupDialogProps) {
   const { toast } = useToast();
-  const form = useForm<OrganizationGroupFormValues>({
+  const form = useForm<
+    OrganizationGroupFormInput,
+    unknown,
+    OrganizationGroupFormValues
+  >({
     resolver: zodResolver(organizationGroupSchema),
     defaultValues: { name: group.name },
   });
@@ -78,7 +83,7 @@ export function UpdateGroupDialog({
       if (error instanceof BffError) {
         const fieldErrors = mapBffErrorsToForm(error.errors);
         for (const [field, message] of Object.entries(fieldErrors)) {
-          form.setError(field as keyof OrganizationGroupFormValues, { message });
+          form.setError(field as keyof OrganizationGroupFormInput, { message });
         }
         toast({
           variant: "error",

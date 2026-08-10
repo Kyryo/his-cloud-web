@@ -337,11 +337,12 @@ export function SalesOrderLinesEditor({
                       <span>{line.name}</span>
                       {isSalesOrderLineNonPayable(order, line) ? (
                         <LineNonPayableBadge
-                          onClick={
-                            line.id
-                              ? () => setNonPayableLineId(line.id)
-                              : undefined
-                          }
+                          onClick={(() => {
+                            const lineId = line.id;
+                            return lineId != null
+                              ? () => setNonPayableLineId(lineId)
+                              : undefined;
+                          })()}
                         />
                       ) : null}
                     </div>
@@ -514,11 +515,12 @@ export function SalesOrderLinesEditor({
                           )}
                           {isSalesOrderLineNonPayable(order, line) ? (
                             <LineNonPayableBadge
-                              onClick={
-                                line.id
-                                  ? () => setNonPayableLineId(line.id)
-                                  : undefined
-                              }
+                              onClick={(() => {
+                                const lineId = line.id;
+                                return lineId != null
+                                  ? () => setNonPayableLineId(lineId)
+                                  : undefined;
+                              })()}
                             />
                           ) : null}
                         </div>

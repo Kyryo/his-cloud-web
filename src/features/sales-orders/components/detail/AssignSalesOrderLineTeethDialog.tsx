@@ -92,7 +92,7 @@ export function AssignSalesOrderLineTeethDialog({
         </DialogHeader>
 
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-6 py-4">
-          {error ? <StatusBanner variant="error">{error}</StatusBanner> : null}
+          {error ? <StatusBanner variant="error" message={error} /> : null}
 
           <ClaimLineOdontogramPicker
             value={selectedTeeth}

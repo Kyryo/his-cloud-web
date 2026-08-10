@@ -15,10 +15,15 @@ export const organizationGroupSchema = z.object({
     }),
 });
 
-export type OrganizationGroupFormValues = z.infer<typeof organizationGroupSchema>;
+/** Form state before refine narrows `name` to PortalGroupName. */
+export type OrganizationGroupFormInput = z.input<typeof organizationGroupSchema>;
+/** Validated values after refine. */
+export type OrganizationGroupFormValues = z.output<
+  typeof organizationGroupSchema
+>;
 
-export const organizationGroupDefaultValues: OrganizationGroupFormValues = {
-  name: "" as PortalGroupName,
+export const organizationGroupDefaultValues: OrganizationGroupFormInput = {
+  name: "",
 };
 
 export function toCreateOrganizationGroupPayload(

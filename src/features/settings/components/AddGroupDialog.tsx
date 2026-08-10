@@ -34,6 +34,7 @@ import {
   organizationGroupDefaultValues,
   organizationGroupSchema,
   toCreateOrganizationGroupPayload,
+  type OrganizationGroupFormInput,
   type OrganizationGroupFormValues,
 } from "@/features/settings/schemas/organization-group.schema";
 import { createOrganizationGroup } from "@/features/settings/services/user-management.service";
@@ -58,7 +59,11 @@ export function AddGroupDialog({
   existingGroupNames = [],
 }: AddGroupDialogProps) {
   const { toast } = useToast();
-  const form = useForm<OrganizationGroupFormValues>({
+  const form = useForm<
+    OrganizationGroupFormInput,
+    unknown,
+    OrganizationGroupFormValues
+  >({
     resolver: zodResolver(organizationGroupSchema),
     defaultValues: organizationGroupDefaultValues,
   });
@@ -93,7 +98,7 @@ export function AddGroupDialog({
         const fieldErrors = mapBffErrorsToForm(error.errors);
         for (const [field, message] of Object.entries(fieldErrors)) {
           if (field in organizationGroupDefaultValues) {
-            form.setError(field as keyof OrganizationGroupFormValues, {
+            form.setError(field as keyof OrganizationGroupFormInput, {
               message,
             });
           }
