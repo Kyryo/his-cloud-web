@@ -6,10 +6,6 @@ import { cn } from "@/lib/utils";
 
 export type LandingFeatureGridCardSize = "primary" | "secondary";
 
-/** Light cream card surface — shared across all feature cards. */
-const FEATURE_CARD_SURFACE =
-  "border border-brand-border/80 bg-[color:var(--landing-warm)] shadow-[var(--landing-shadow)]";
-
 export type LandingFeatureGridCardProps = {
   /** Bold lead phrase, e.g. "Stock alerts" */
   headlineBold: string;
@@ -35,8 +31,12 @@ export function LandingFeatureGridCard({
   return (
     <article
       className={cn(
-        "flex flex-col rounded-[18px]",
-        FEATURE_CARD_SURFACE,
+        "group relative flex flex-col overflow-hidden rounded-[22px]",
+        "border border-[color:var(--landing-border)] bg-white",
+        "shadow-[var(--landing-shadow)]",
+        "transition-[transform,box-shadow,border-color] duration-300 ease-out",
+        "motion-safe:hover:-translate-y-1 hover:border-[color:var(--landing-teal)]/25",
+        "hover:shadow-[var(--landing-shadow-hover)]",
         isPrimary ? "p-6 sm:p-7 lg:p-8" : "p-5 sm:p-6",
         className,
       )}
@@ -48,20 +48,33 @@ export function LandingFeatureGridCard({
             isPrimary ? "text-lg sm:text-xl" : "text-base sm:text-[17px]",
           )}
         >
-          <span className="font-bold text-[color:var(--landing-ink)]">{headlineBold}</span>{" "}
+          <span className="font-bold text-[color:var(--landing-ink)]">
+            {headlineBold}
+          </span>{" "}
           <span className="font-normal text-brand-muted">{headlineRest}</span>
         </h3>
         <Link
           href={href}
           aria-label={`Learn more about ${headlineBold}`}
-          className="landing-focus flex size-9 shrink-0 items-center justify-center rounded-lg border border-brand-border bg-white text-brand-navy transition-colors hover:border-[color:var(--landing-teal)]/40 hover:bg-[color:var(--landing-teal-tint)]/30"
+          className={cn(
+            "landing-focus flex size-9 shrink-0 items-center justify-center rounded-xl",
+            "border border-[color:var(--landing-border)] bg-white text-brand-navy",
+            "transition-[color,background-color,border-color,transform] duration-200",
+            "group-hover:border-[color:var(--landing-teal)]/35 group-hover:bg-[color:var(--landing-teal-tint)]/50",
+            "group-hover:text-[color:var(--landing-teal)]",
+          )}
         >
-          <ArrowUpRight className="size-4" aria-hidden="true" />
+          <ArrowUpRight
+            className="size-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+            aria-hidden="true"
+          />
         </Link>
       </div>
 
-      <div className={cn("relative mt-5 min-w-0", isPrimary ? "mt-6" : "mt-4")}>
-        {mockup}
+      <div className={cn("min-w-0", isPrimary ? "mt-6" : "mt-4")}>
+        <div className="overflow-hidden rounded-xl ring-1 ring-[color:var(--landing-border)] ring-inset">
+          {mockup}
+        </div>
       </div>
     </article>
   );
@@ -87,7 +100,9 @@ export function LandingFeatureGrid({
       {intro}
       <div className="mt-12 space-y-4 lg:mt-14 lg:space-y-5">
         <div className="grid gap-4 lg:grid-cols-2 lg:gap-5">{primary}</div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">{secondary}</div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5">
+          {secondary}
+        </div>
       </div>
       {closing ? <div className="mt-12 lg:mt-14">{closing}</div> : null}
     </div>

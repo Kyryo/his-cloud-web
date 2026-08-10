@@ -14,12 +14,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ROUTES } from "@/constants/routes";
-import { AuthOtpStep } from "@/features/auth/components/AuthOtpStep";
-import {
-  AuthWizardShell,
-  type AuthWizardStep,
-} from "@/features/auth/components/AuthWizardShell";
+import { AuthWizardShell, type AuthWizardStep } from "@/features/auth/components/AuthWizardShell";
 import { PasswordStrengthMeter } from "@/features/auth/components/PasswordStrengthMeter";
+import { SignupEmailConfirmStep } from "@/features/auth/components/SignupEmailConfirmStep";
 import { SignupModulesStep } from "@/features/auth/components/SignupModulesStep";
 import {
   getCountryNameFromCode,
@@ -41,7 +38,6 @@ import {
   type SignupOtpValues,
   type SignupProfileValues,
 } from "@/features/auth/schemas/signup.schema";
-import { maskEmail } from "@/lib/mask-email";
 import { cn } from "@/lib/utils";
 
 const WIZARD_STEPS: AuthWizardStep[] = [
@@ -58,7 +54,8 @@ const STEP_COPY = {
   },
   2: {
     title: "Confirm your email",
-    subtitle: "Enter the 6-digit code we sent to",
+    subtitle:
+      "We sent a 6-digit code to your inbox. Enter it below to verify ownership.",
   },
   3: {
     title: "Choose what to run first",
@@ -340,11 +337,6 @@ export function SignUpForm() {
 
   const clinicRegister = profileForm.register("clinic_name");
 
-  const stepSubtitle =
-    currentStep === 2
-      ? `${stepCopy.subtitle} ${maskEmail(signupEmail)}.`
-      : stepCopy.subtitle;
-
   const belowCard = (
     <p className="text-sm text-brand-muted">
       Already have an account?{" "}
@@ -387,7 +379,7 @@ export function SignUpForm() {
       steps={WIZARD_STEPS}
       currentStep={currentStep}
       title={stepCopy.title}
-      subtitle={stepSubtitle}
+      subtitle={stepCopy.subtitle}
       footer={footer}
       belowCard={currentStep === 1 ? belowCard : undefined}
     >
@@ -502,34 +494,25 @@ export function SignUpForm() {
       ) : null}
 
       {currentStep === 2 ? (
-        <div className="flex flex-1 flex-col" data-testid="signup-otp-form">
+        <div className="flex flex-1 flex-col">
           {infoMessage ? (
             <p role="status" className="mb-4 text-sm text-emerald-700">
               {infoMessage}
             </p>
           ) : null}
 
-          <AuthOtpStep
-            embedded
-            hideActions
-            title="Confirm your email"
-            description="Enter the 6-digit code we sent to"
+          <SignupEmailConfirmStep
             email={signupEmail}
-            codeTestId="signup-otp"
             code={otpCode}
             disabled={isSubmitting}
             error={submitError ?? otpForm.formState.errors.code?.message}
             onCodeChange={syncOtpCode}
-            onCodeComplete={(code) => {
-              syncOtpCode(code);
+            onCodeComplete={(nextCode) => {
+              syncOtpCode(nextCode);
               void handleVerifyEmailSubmit();
             }}
             onResend={handleResendOtp}
-            submitLabel="Continue"
-            submittingLabel="Verifying…"
-            submitTestId="signup-verify-email-inner"
             isSubmitting={isVerifying}
-            onSubmit={() => void handleVerifyEmailSubmit()}
           />
         </div>
       ) : null}

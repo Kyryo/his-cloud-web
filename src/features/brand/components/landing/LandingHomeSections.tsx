@@ -6,22 +6,19 @@ import {
   ChevronDown,
   CircleDollarSign,
   ClipboardList,
-  FileWarning,
-  Link2,
-  ServerOff,
-  Sheet,
   ShieldCheck,
-  Sparkles,
-  Timer,
 } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
 import { LandingFooter } from "@/features/brand/components/landing/LandingFooter";
-import { LandingProductScreenshot } from "@/features/brand/components/landing/LandingProductScreenshot";
+import { LandingProblemFeatureCards } from "@/features/brand/components/landing/LandingProblemFeatureCards";
+import { LandingRevenueMetricsVisual } from "@/features/brand/components/landing/LandingRevenueMetricsVisual";
 import { LandingSection } from "@/features/brand/components/landing/LandingSection";
 import { LandingSectionHeader } from "@/features/brand/components/landing/LandingSectionHeader";
+import { LandingSolutionMetricsVisual } from "@/features/brand/components/landing/LandingSolutionMetricsVisual";
+import { LandingWhyFeatureCards } from "@/features/brand/components/landing/LandingWhyFeatureCards";
 import {
   LANDING_COMPARISON,
   LANDING_FAQ,
@@ -34,12 +31,7 @@ import {
 import { useLandingReveal } from "@/features/brand/hooks/useLandingReveal";
 import { cn } from "@/lib/utils";
 
-const PROBLEM_ICONS = [FileWarning, Link2, Sheet, CircleDollarSign] as const;
 const SOLUTION_ICONS = [ShieldCheck, ClipboardList, CircleDollarSign] as const;
-const WHY_ICONS = [ServerOff, Timer, Sheet, CircleDollarSign] as const;
-
-const CLAIMS_SCREENSHOT = "/landing/product-screenshots/insurance-claims.png";
-const REPORTS_SCREENSHOT = "/landing/product-screenshots/reports-insights.png";
 
 function LandingReveal({
   children,
@@ -147,24 +139,7 @@ export function LandingHomeSections() {
             align="center"
             className="mx-auto"
           />
-          <ul className="mx-auto mt-16 grid max-w-5xl gap-5 sm:grid-cols-2">
-            {LANDING_PROBLEM.items.map((item, index) => {
-              const Icon = PROBLEM_ICONS[index] ?? FileWarning;
-              return (
-                <li key={item.title} className="landing-card p-7 sm:p-8">
-                  <div className="flex size-10 items-center justify-center rounded-[12px] bg-[color:var(--landing-warm)] text-[color:var(--landing-teal)]">
-                    <Icon className="size-5" strokeWidth={1.75} aria-hidden="true" />
-                  </div>
-                  <h3 className="landing-text-ink mt-5 font-[family-name:var(--font-bricolage)] text-lg font-semibold tracking-tight">
-                    {item.title}
-                  </h3>
-                  <p className="landing-body mt-2 text-base leading-[1.7] text-[color:var(--landing-ledger-ink)]">
-                    {item.description}
-                  </p>
-                </li>
-              );
-            })}
-          </ul>
+          <LandingProblemFeatureCards />
           <p className="landing-body landing-text-ink mx-auto mt-12 max-w-2xl text-center text-base font-medium leading-[1.7] sm:text-lg">
             {LANDING_PROBLEM.closing}
           </p>
@@ -204,11 +179,7 @@ export function LandingHomeSections() {
                 })}
               </ul>
             </div>
-            <LandingProductScreenshot
-              src={CLAIMS_SCREENSHOT}
-              alt="Sigma insurance claims list with statuses"
-              elevated
-            />
+            <LandingSolutionMetricsVisual />
           </div>
         </LandingReveal>
       </LandingSection>
@@ -268,12 +239,7 @@ export function LandingHomeSections() {
       <LandingSection variant="muted">
         <LandingReveal>
           <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-            <LandingProductScreenshot
-              src={REPORTS_SCREENSHOT}
-              alt="Sigma reports and revenue insights dashboard"
-              elevated
-              className="order-2 lg:order-1"
-            />
+            <LandingRevenueMetricsVisual className="order-2 lg:order-1" />
             <div className="order-1 lg:order-2">
               <LandingSectionHeader
                 title={LANDING_REVENUE.title}
@@ -303,24 +269,7 @@ export function LandingHomeSections() {
             align="center"
             className="mx-auto"
           />
-          <ul className="mx-auto mt-16 grid max-w-5xl gap-5 sm:grid-cols-2">
-            {LANDING_WHY.items.map((item, index) => {
-              const Icon = WHY_ICONS[index] ?? Sparkles;
-              return (
-                <li key={item.title} className="landing-card p-7 sm:p-8">
-                  <div className="flex size-10 items-center justify-center rounded-[12px] bg-[color:var(--landing-warm)] text-[color:var(--landing-teal)]">
-                    <Icon className="size-5" strokeWidth={1.75} aria-hidden="true" />
-                  </div>
-                  <h3 className="landing-text-ink mt-5 font-[family-name:var(--font-bricolage)] text-lg font-semibold tracking-tight">
-                    {item.title}
-                  </h3>
-                  <p className="landing-body mt-2 text-base leading-[1.7] text-[color:var(--landing-ledger-ink)]">
-                    {item.description}
-                  </p>
-                </li>
-              );
-            })}
-          </ul>
+          <LandingWhyFeatureCards />
         </LandingReveal>
       </LandingSection>
 

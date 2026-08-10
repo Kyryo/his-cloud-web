@@ -8,12 +8,12 @@ export const LANDING_PROBLEM = {
     {
       title: "Claims get rejected",
       description:
-        "Claims are rejected because billing rules were missed.",
+        "Claims bounce for missed billing rules — auth numbers, scheme codes, diagnosis mismatches.",
     },
     {
       title: "Payments lose their trail",
       description:
-        "Payments arrive without a clear link to the original claim.",
+        "Bank deposits land with no claim ID. Finance spends days matching remittances by hand.",
     },
     {
       title: "Staff chase spreadsheets",
@@ -23,7 +23,7 @@ export const LANDING_PROBLEM = {
     {
       title: "Managers fly blind",
       description:
-        "Managers cannot easily see how much money is pending from insurers.",
+        "No single view of how much each insurer owes, or how old the balances are.",
     },
   ],
   closing:
