@@ -1,6 +1,5 @@
 import type { LucideIcon } from "lucide-react";
 import {
-  BadgeDollarSign,
   Building2,
   CalendarClock,
   CircleDot,
@@ -118,15 +117,6 @@ export function VisitDetailsTab({ visit }: { visit: TherapyVisit }) {
         "General therapy visit",
       ),
       icon: ClipboardPlus,
-    },
-    {
-      label: "Payment method",
-      value: (
-        <Badge variant="outline" className="capitalize">
-          {visit.mode_of_payment}
-        </Badge>
-      ),
-      icon: BadgeDollarSign,
     },
     {
       label: "Visit source",

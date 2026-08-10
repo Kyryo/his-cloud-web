@@ -55,6 +55,13 @@ export type TherapyDepartment = {
   is_active: boolean;
 };
 
+export type TherapyVisitQueueStats = {
+  todays_visits: number;
+  todays_active_visits: number;
+  todays_completed_visits: number;
+  total_visits: number;
+};
+
 export type TherapyVisitListResponse = {
   results: TherapyVisit[];
   pagination: {
@@ -62,6 +69,7 @@ export type TherapyVisitListResponse = {
     next: string | null;
     previous: string | null;
   } | null;
+  stats: TherapyVisitQueueStats;
 };
 
 export type TherapyTreatmentPlan = {
@@ -104,6 +112,10 @@ export type TherapyTreatmentGoal = {
   notes: string;
   current_value: number | null;
   progress_percentage: number | null;
+  visit_measured_value: string | null;
+  visit_current_value: number | null;
+  visit_progress_percentage: number | null;
+  visit_has_progress: boolean;
   progress_logs: TherapyGoalProgress[];
 };
 
@@ -112,6 +124,23 @@ export type TherapyGoalProgress = {
   measured_value: string;
   notes: string;
   created_at: string;
+};
+
+export type TherapyInterimReport = {
+  uuid: string;
+  report: string;
+  created_by_name: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type TherapyClientNote = {
+  uuid: string;
+  note: string;
+  is_edited: boolean;
+  created_by_name: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export type TherapyVisitTreatmentGoals = {

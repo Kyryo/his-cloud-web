@@ -38,6 +38,7 @@ import type {
   TherapyDepartment,
   TherapyDiscipline,
   TherapyVisit,
+  TherapyVisitQueueStats,
 } from "@/features/therapy/types/therapy.types";
 import {
   canAccessTherapyDiscipline,
@@ -60,6 +61,7 @@ export function TherapyVisitsPage({
   const [departments, setDepartments] = useState<TherapyDepartment[]>([]);
   const [departmentUuid, setDepartmentUuid] = useState("");
   const [visits, setVisits] = useState<TherapyVisit[]>([]);
+  const [stats, setStats] = useState<TherapyVisitQueueStats | null>(null);
   const [search, setSearch] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
   const [activeTab, setActiveTab] = useState<TherapyQueueTab>("active");
@@ -114,8 +116,9 @@ export function TherapyVisitsPage({
     let cancelled = false;
     setIsLoadingDepartments(true);
     setError(null);
-    setVisits([]);
-    setPage(1);
+        setVisits([]);
+        setStats(null);
+        setPage(1);
     setTotalCount(0);
     setHasNext(false);
     setHasPrevious(false);
@@ -152,6 +155,7 @@ export function TherapyVisitsPage({
   useEffect(() => {
     if (!hasAccess || !activeClinicId || !departmentUuid) {
       setVisits([]);
+      setStats(null);
       return;
     }
 
@@ -171,6 +175,7 @@ export function TherapyVisitsPage({
       .then((response) => {
         if (!cancelled) {
           setVisits(response.results);
+          setStats(response.stats);
           setTotalCount(response.pagination?.count ?? response.results.length);
           setHasNext(Boolean(response.pagination?.next));
           setHasPrevious(Boolean(response.pagination?.previous));
@@ -287,7 +292,7 @@ export function TherapyVisitsPage({
 
       <ListPageDataSectionsStack>
         <ListPageStatsSection>
-          <TherapyVisitSummaryCards visits={visits} />
+          <TherapyVisitSummaryCards stats={stats} />
         </ListPageStatsSection>
         {departments.length > 0 ? (
           <TherapyVisitsToolbar

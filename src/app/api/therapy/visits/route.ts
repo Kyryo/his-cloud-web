@@ -74,6 +74,12 @@ export async function GET(request: Request) {
     return bffSuccess({
       results: data,
       pagination: meta.pagination ?? null,
+      stats: meta.stats ?? {
+        todays_visits: 0,
+        todays_active_visits: 0,
+        todays_completed_visits: 0,
+        total_visits: 0,
+      },
     });
   } catch (error) {
     return bffError(error);
