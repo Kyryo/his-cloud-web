@@ -17,6 +17,7 @@ const QUERY_KEYS = [
   "scheduled_from",
   "scheduled_to",
   "is_active",
+  "include_outstanding_balance",
 ] as const;
 
 export async function GET(request: Request) {

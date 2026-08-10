@@ -1,10 +1,11 @@
 "use client";
 
-import { AlertCircle, CheckCircle2, ChevronDown } from "lucide-react";
+import { AlertCircle, CheckCircle2, ChevronDown, Plus } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
+  CLAIM_REQUIREMENT_DIAGNOSIS_ID,
   getBlockingRequirementItems,
   type InvoiceClaimReadinessItem,
 } from "@/features/invoices/utils/invoice-claim-readiness";
@@ -13,6 +14,7 @@ import { cn } from "@/lib/utils";
 export type ClaimRequirementsCardProps = {
   items: InvoiceClaimReadinessItem[];
   footerActions?: ReactNode;
+  onAddDiagnosis?: () => void;
   className?: string;
 };
 
@@ -22,6 +24,7 @@ export type ClaimRequirementsCardProps = {
 export function ClaimRequirementsCard({
   items,
   footerActions,
+  onAddDiagnosis,
   className,
 }: ClaimRequirementsCardProps) {
   const [detailsOpen, setDetailsOpen] = useState(true);
@@ -104,49 +107,64 @@ export function ClaimRequirementsCard({
             className="divide-y divide-brand-border"
             data-testid="claim-workflow-requirements-list"
           >
-            {items.map((item) => (
-              <li
-                key={item.label}
-                className="flex items-stretch"
-                data-testid={`claim-requirement-${item.met ? "met" : "open"}`}
-              >
-                <span
-                  className={cn(
-                    "w-1 shrink-0",
-                    item.met ? "bg-emerald-500" : "bg-amber-500",
-                  )}
-                  aria-hidden="true"
-                />
-                <div className="flex min-w-0 flex-1 items-start gap-3 px-4 py-3">
-                  {item.met ? (
-                    <CheckCircle2
-                      className="mt-0.5 size-4 shrink-0 text-emerald-600"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <AlertCircle
-                      className="mt-0.5 size-4 shrink-0 text-amber-600"
-                      aria-hidden="true"
-                    />
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p
-                      className={cn(
-                        "text-sm font-medium leading-snug",
-                        item.met ? "text-brand-navy" : "text-brand-navy",
-                      )}
-                    >
-                      {item.label}
-                    </p>
-                    {!item.met && item.hint ? (
-                      <p className="mt-1 text-xs leading-relaxed text-brand-muted">
-                        {item.hint}
+            {items.map((item) => {
+              const showAddDiagnosis =
+                !item.met &&
+                item.id === CLAIM_REQUIREMENT_DIAGNOSIS_ID &&
+                Boolean(onAddDiagnosis);
+
+              return (
+                <li
+                  key={item.id ?? item.label}
+                  className="flex items-stretch"
+                  data-testid={`claim-requirement-${item.met ? "met" : "open"}`}
+                >
+                  <span
+                    className={cn(
+                      "w-1 shrink-0",
+                      item.met ? "bg-emerald-500" : "bg-amber-500",
+                    )}
+                    aria-hidden="true"
+                  />
+                  <div className="flex min-w-0 flex-1 items-start gap-3 px-4 py-3">
+                    {item.met ? (
+                      <CheckCircle2
+                        className="mt-0.5 size-4 shrink-0 text-emerald-600"
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      <AlertCircle
+                        className="mt-0.5 size-4 shrink-0 text-amber-600"
+                        aria-hidden="true"
+                      />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium leading-snug text-brand-navy">
+                        {item.label}
                       </p>
+                      {!item.met && item.hint ? (
+                        <p className="mt-1 text-xs leading-relaxed text-brand-muted">
+                          {item.hint}
+                        </p>
+                      ) : null}
+                    </div>
+                    {showAddDiagnosis ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        className="mt-0.5 size-8 shrink-0 rounded-full"
+                        onClick={onAddDiagnosis}
+                        aria-label="Add diagnosis"
+                        data-testid="claim-requirement-add-diagnosis-button"
+                      >
+                        <Plus className="size-4" aria-hidden="true" />
+                      </Button>
                     ) : null}
                   </div>
-                </div>
-              </li>
-            ))}
+                </li>
+              );
+            })}
           </ul>
         </div>
       ) : null}

@@ -18,6 +18,8 @@ import type {
   PlatformAdminOverview,
   PlatformAdminTenant,
   PlatformAdminTenantConfiguration,
+  PlatformAdminTenantModulesPayload,
+  PlatformAdminTenantModulesResponse,
   PlatformAdminTenantPayload,
   PlatformAdminTenantPayment,
   PlatformAdminTenantPaymentPayload,
@@ -145,6 +147,27 @@ export async function fetchPlatformAdminTenantConfiguration(
 ): Promise<PlatformAdminTenantConfiguration> {
   return bffRequest<PlatformAdminTenantConfiguration>(
     BFF_PLATFORM_ADMIN_ROUTES.tenantConfiguration(tenantUuid),
+  );
+}
+
+export async function fetchPlatformAdminTenantModules(
+  tenantUuid: string,
+): Promise<PlatformAdminTenantModulesResponse> {
+  return bffRequest<PlatformAdminTenantModulesResponse>(
+    BFF_PLATFORM_ADMIN_ROUTES.tenantModules(tenantUuid),
+  );
+}
+
+export async function updatePlatformAdminTenantModules(
+  tenantUuid: string,
+  payload: PlatformAdminTenantModulesPayload,
+): Promise<PlatformAdminTenantModulesResponse> {
+  return bffRequest<PlatformAdminTenantModulesResponse>(
+    BFF_PLATFORM_ADMIN_ROUTES.tenantModules(tenantUuid),
+    {
+      method: "PUT",
+      body: payload,
+    },
   );
 }
 

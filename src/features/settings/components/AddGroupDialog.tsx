@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
@@ -22,7 +22,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { PORTAL_GROUP_OPTIONS } from "@/constants/portal-groups";
 import {
   organizationGroupDefaultValues,
   organizationGroupSchema,
@@ -41,18 +48,27 @@ type AddGroupDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated: (group: OrganizationGroup) => void;
+  existingGroupNames?: string[];
 };
 
 export function AddGroupDialog({
   open,
   onOpenChange,
   onCreated,
+  existingGroupNames = [],
 }: AddGroupDialogProps) {
   const { toast } = useToast();
   const form = useForm<OrganizationGroupFormValues>({
     resolver: zodResolver(organizationGroupSchema),
     defaultValues: organizationGroupDefaultValues,
   });
+
+  const availableOptions = useMemo(() => {
+    const taken = new Set(existingGroupNames.map((name) => name.toLowerCase()));
+    return PORTAL_GROUP_OPTIONS.filter(
+      (option) => !taken.has(option.name.toLowerCase()),
+    );
+  }, [existingGroupNames]);
 
   useEffect(() => {
     if (!open) {
@@ -105,7 +121,7 @@ export function AddGroupDialog({
         <DialogHeader>
           <DialogTitle>Add group</DialogTitle>
           <DialogDescription>
-            Create a permission group to organize access for your team.
+            Choose a portal permission group to make available for your team.
           </DialogDescription>
         </DialogHeader>
 
@@ -116,10 +132,33 @@ export function AddGroupDialog({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Group name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Billing" {...field} />
-                  </FormControl>
+                  <FormLabel>Group</FormLabel>
+                  <Select
+                    value={field.value || undefined}
+                    onValueChange={field.onChange}
+                    disabled={
+                      form.formState.isSubmitting || availableOptions.length === 0
+                    }
+                  >
+                    <FormControl>
+                      <SelectTrigger data-testid="add-group-select">
+                        <SelectValue
+                          placeholder={
+                            availableOptions.length === 0
+                              ? "All portal groups are already added"
+                              : "Select a group"
+                          }
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="max-h-72">
+                      {availableOptions.map((option) => (
+                        <SelectItem key={option.name} value={option.name}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -133,14 +172,19 @@ export function AddGroupDialog({
               >
                 Cancel
               </SecondaryButton>
-              <PrimaryButton type="submit" disabled={form.formState.isSubmitting}>
+              <PrimaryButton
+                type="submit"
+                disabled={
+                  form.formState.isSubmitting || availableOptions.length === 0
+                }
+              >
                 {form.formState.isSubmitting ? (
                   <>
                     <Loader2 className="size-4 animate-spin" aria-hidden="true" />
                     Creating...
                   </>
                 ) : (
-                  "Create group"
+                  "Add group"
                 )}
               </PrimaryButton>
             </DialogFooter>

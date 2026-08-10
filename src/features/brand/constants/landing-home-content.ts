@@ -1,9 +1,9 @@
 import { ROUTES } from "@/constants/routes";
 
 export const LANDING_PROBLEM = {
-  title: "Your clinic did the work. Did you get paid?",
+  title: "Your clinic treated the patient.\nDid you collect what you earned?",
   description:
-    "Every patient visit creates revenue, but too often that revenue gets stuck between billing, insurance submissions, and payment reconciliation.",
+    "Every patient visit should end with revenue in your clinic's account. Instead, money gets stuck between billing, insurance claims, payment reconciliation, and manual follow-up. By the time someone notices, the opportunity to recover it is often gone.",
   items: [
     {
       title: "Claims get rejected",
@@ -31,24 +31,24 @@ export const LANDING_PROBLEM = {
 } as const;
 
 export const LANDING_SOLUTION = {
-  title: "Know where every claim stands",
+  title: "Follow everything from patient visit to payment.",
   description:
-    "Sigma gives your team one place to manage the complete journey from patient billing to payment.",
+    "Sigma connects billing, insurance claims, and payments into one continuous workflow, so your team always knows what has been billed, what has been paid, and what still needs attention.",
   items: [
     {
-      title: "Create accurate claims",
+      title: "Submit cleaner claims",
       description:
-        "Billing rules and scheme requirements are built into your workflow, helping your team submit cleaner claims the first time.",
+        "Built-in billing rules help your team avoid common mistakes before claims leave your clinic.",
     },
     {
       title: "Track every claim",
       description:
-        "Know which claims are submitted, approved, rejected, or waiting for action.",
+        "See exactly where each claim is—submitted, approved, rejected, paid, or waiting for action.",
     },
     {
-      title: "Reconcile every payment",
+      title: "Match every payment",
       description:
-        "Match insurer payments back to the exact patient visits and claims they belong to.",
+        "Every payment is linked back to the patient visit and claim it belongs to, making reconciliation simple.",
     },
   ],
 } as const;
@@ -56,60 +56,78 @@ export const LANDING_SOLUTION = {
 export const LANDING_COMPARISON = {
   title: "Stop chasing insurance payments",
   before: {
-    label: "Before Sigma",
+    label: "Before",
     items: [
-      "Did we submit this claim?",
+      "Did we bill this patient?",
+      "Did we submit the claim?",
       "Why was it rejected?",
       "Has the insurer paid?",
-      "Which invoices are still outstanding?",
+      "Which payments are still missing?",
     ],
   },
   after: {
-    label: "With Sigma",
+    label: "After",
     items: [
-      "Every claim has a status",
-      "Every payment has a source",
-      "Every outstanding amount is visible",
-      "Your team knows what needs attention",
+      "Every patient has been billed.",
+      "Every claim has a status.",
+      "Every payment has a source.",
+      "Every outstanding balance is visible.",
+      "Everyone knows what needs attention next.",
     ],
   },
 } as const;
 
 export const LANDING_REVENUE = {
-  title: "Your clinic's financial health, at a glance",
-  description: "See the numbers that matter without waiting for a report.",
+  title: "Know where your money stands at any moment.",
+  description:
+    "Stop waiting for someone to compile spreadsheets. See what you've billed, what insurers owe, what has been paid, and where revenue is getting stuck.",
   items: [
-    "Total billed revenue",
-    "Claims submitted",
+    "Revenue billed",
     "Claims awaiting payment",
-    "Rejected claims requiring action",
+    "Rejected claims",
     "Payments received",
     "Outstanding insurer balances",
+    "Revenue collected",
+  ],
+} as const;
+
+export const LANDING_WHY_SIGMA = {
+  eyebrow: "Why Sigma",
+  title: "Most clinic systems stop after creating the invoice.",
+  paragraphs: [
+    "They record the patient visit.",
+    "They generate the bill.",
+    "Then they leave your team to manage claims, insurer payments, and reconciliation using spreadsheets.",
+    "Sigma follows the money all the way to payment, so every claim, every payment, and every outstanding balance stays connected.",
   ],
   closing:
-    "No more waiting for someone to compile reports. Sigma gives you the information you need, when you need it.",
+    "Because treating the patient isn't enough, you need to get paid too.",
 } as const;
 
 export const LANDING_WHY = {
-  title: "Built for clinics, not IT departments",
+  title: "Collecting revenue shouldn't require an IT department.",
   description:
-    "Most clinic software is built for large hospitals with dedicated IT teams. Sigma is built for clinics that need to start quickly and run without infrastructure headaches.",
+    "Most healthcare software assumes you have dedicated IT staff and months to implement a new system. Sigma is designed for growing clinics that need to get started quickly, train staff easily, and focus on patients—not infrastructure.",
   items: [
     {
       title: "No servers to maintain",
-      description: "Works from any browser. No clinic IT stack required.",
+      description:
+        "Access Sigma securely from any modern browser.",
     },
     {
-      title: "No complex setup",
-      description: "Get running quickly without a lengthy implementation project.",
+      title: "No lengthy implementation",
+      description:
+        "Most clinics are ready within hours, not months.",
     },
     {
-      title: "No spreadsheets to manage billing",
-      description: "Claims, payments, and balances stay in one system.",
+      title: "No disconnected spreadsheets",
+      description:
+        "Billing, claims, and payments stay connected automatically.",
     },
     {
       title: "No guessing where your money went",
-      description: "Every claim and payment stays linked and visible.",
+      description:
+        "Every claim and payment stays linked from beginning to end.",
     },
   ],
 } as const;
@@ -121,7 +139,7 @@ export const LANDING_TRUST = LANDING_WHY;
 export const LANDING_FEATURES = {
   title: LANDING_COMPARISON.title,
   description: LANDING_SOLUTION.description,
-  closing: LANDING_REVENUE.closing,
+  closing: LANDING_WHY_SIGMA.closing,
   rows: [],
   items: [],
 } as const;
@@ -198,9 +216,11 @@ export const LANDING_FAQ = {
   title: "Things clinics usually ask us",
   items: [
     {
-      question: "Do my staff need to be tech-savvy to use this?",
-      answer:
-        "No. Sigma is built for clinical staff, not IT staff. If your team uses a smartphone, they can use Sigma. The average staff member is comfortable navigating it within two hours.",
+      question: "Do we need an IT team?",
+      answerTitle: "No.",
+      answerParagraphs: [
+        "Sigma is built for clinic staff, not technical specialists. Most teams become comfortable using it within a few hours, and most clinics are up and running in less than a day.",
+      ],
     },
     {
       question: "What if our internet goes down?",
@@ -239,8 +259,9 @@ export const LANDING_FAQ = {
 };
 
 export const LANDING_FINAL_CTA = {
-  title: "Stop losing money after delivering care",
-  description: "Start tracking every claim and payment with Sigma.",
-  primaryCta: { label: "Start for free", href: ROUTES.signup },
-  secondaryCta: { label: "Book a demo", href: ROUTES.contacts },
+  title: "You've already earned the revenue.\nNow make sure you collect it.",
+  description:
+    "Start tracking every claim, payment, and outstanding balance with Sigma.",
+  primaryCta: { label: "Start Free", href: ROUTES.signup },
+  secondaryCta: { label: "Book a Demo", href: ROUTES.contacts },
 } as const;

@@ -50,6 +50,9 @@ function appendAppointmentQueryParams(
   if (options?.isActive !== undefined) {
     params.set("is_active", String(options.isActive));
   }
+  if (options?.includeOutstandingBalance) {
+    params.set("include_outstanding_balance", "true");
+  }
 }
 
 export async function fetchAppointments(

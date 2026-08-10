@@ -45,6 +45,7 @@ export function salesOrderLineToDraft(line: SalesOrderLine): SalesOrderLineDraft
     key: crypto.randomUUID(),
     id: line.id,
     product_id: line.product_id,
+    product_uuid: line.product_uuid ?? null,
     productName: line.product_name?.trim() || line.name?.trim() || null,
     tariff_code: line.tariff_code ?? null,
     quantity: line.quantity != null ? String(line.quantity) : "1",

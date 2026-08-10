@@ -157,6 +157,23 @@ export type PlatformAdminTenantConfiguration = {
   procedure_catalogue: number | null;
 };
 
+export type PlatformAdminTenantModule = {
+  name: string;
+  label: string;
+  is_active: boolean;
+};
+
+export type PlatformAdminTenantModulesResponse = {
+  modules: PlatformAdminTenantModule[];
+};
+
+export type PlatformAdminTenantModulesPayload = {
+  modules: Array<{
+    name: string;
+    is_active: boolean;
+  }>;
+};
+
 export type PlatformAdminAuditEvent = {
   id: number;
   uuid: string;

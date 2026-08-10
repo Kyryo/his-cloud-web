@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Bricolage_Grotesque } from "next/font/google";
 
 import { siteConfig } from "@/constants/site";
+import { appFont } from "@/lib/fonts";
 import { ThemeProvider } from "@/providers/theme-provider";
 
 import "./globals.css";
@@ -35,7 +36,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${bricolage.className} ${bricolage.variable} min-h-screen`}
+        className={`${bricolage.className} ${bricolage.variable} ${appFont.variable} min-h-screen`}
         suppressHydrationWarning
       >
         <ThemeProvider defaultTheme="light" attribute="class" forcedTheme="light">

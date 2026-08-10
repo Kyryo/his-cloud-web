@@ -2,6 +2,7 @@
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { AppBreadcrumbs } from "@/features/app-shell/components/AppBreadcrumbs";
+import { ModuleAccessGate } from "@/features/app-shell/components/ModuleAccessGate";
 import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
@@ -34,7 +35,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </header>
           <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
             <div className="min-h-[100vh] flex-1 bg-white md:min-h-min">
-              {children}
+              <ModuleAccessGate>{children}</ModuleAccessGate>
             </div>
           </div>
         </AppBreadcrumbProvider>

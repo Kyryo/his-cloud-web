@@ -1,19 +1,24 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TabbedDialog } from "@/components/ui/tabbed-dialog";
+import {
+  ClaimLineOdontogramPicker,
+  getPermanentFdiToothNumbers,
+} from "@/features/dental/components/ClaimLineOdontogramPicker";
 import type { PricingBreakdownLine } from "@/features/sales-orders/types/line-payment-split.types";
 import { getLinePricingSnapshot } from "@/features/sales-orders/types/line-payment-split.types";
+import type { SalesOrderLine } from "@/features/sales-orders/types/sales-order.types";
 import { formatSalesOrderAmount } from "@/features/sales-orders/utils/format-sales-order";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 
-type LineDetailsTab = "pricing" | "tariff-code";
+type LineDetailsTab = "pricing" | "tariff-code" | "odontogram";
 
 type LinePricingBreakdownDialogProps = {
   line: PricingBreakdownLine | null;
@@ -22,9 +27,14 @@ type LinePricingBreakdownDialogProps = {
   capturedAt?: string | null;
   onSyncTariffCode?: () => Promise<void> | void;
   isSyncingTariffCode?: boolean;
+  /** Dental visit + procedure line: show Odontogram tab after Tariff code. */
+  showOdontogramTab?: boolean;
+  canEditTeeth?: boolean;
+  onSaveTeeth?: (toothNumbers: number[]) => Promise<void> | void;
+  isSavingTeeth?: boolean;
 };
 
-const TABS: Array<{ id: LineDetailsTab; label: string }> = [
+const BASE_TABS: Array<{ id: LineDetailsTab; label: string }> = [
   { id: "pricing", label: "Pricing" },
   { id: "tariff-code", label: "Tariff code" },
 ];
@@ -87,6 +97,21 @@ function hasDisplayAmount(value: string | number | null | undefined): boolean {
   }
 
   return Number.isFinite(Number(value));
+}
+
+function getLineToothNumbers(line: PricingBreakdownLine): number[] {
+  if (!("dental" in line) || !Array.isArray(line.dental)) {
+    return [];
+  }
+  return line.dental
+    .map((row) => Number(row.tooth_number))
+    .filter((n) => Number.isFinite(n) && n > 0)
+    .sort((a, b) => a - b);
+}
+
+function toothListsEqual(a: number[], b: number[]): boolean {
+  if (a.length !== b.length) return false;
+  return a.every((value, index) => value === b[index]);
 }
 
 function BreakdownRow({
@@ -330,6 +355,41 @@ function TariffCodeTabContent({
   );
 }
 
+function OdontogramTabContent({
+  toothNumbers,
+  canEdit,
+  isSaving,
+  remountToken,
+  onToothNumbersChange,
+}: {
+  toothNumbers: number[];
+  canEdit: boolean;
+  isSaving: boolean;
+  remountToken: number;
+  onToothNumbersChange: (toothNumbers: number[]) => void;
+}) {
+  return (
+    <div data-testid="line-odontogram-tab">
+      <ClaimLineOdontogramPicker
+        value={toothNumbers}
+        remountToken={remountToken}
+        disabled={!canEdit || isSaving}
+        onRequestAssign={(added) => {
+          onToothNumbersChange(
+            [...new Set([...toothNumbers, ...added])].sort((a, b) => a - b),
+          );
+        }}
+        onRemoveTeeth={(removed) => {
+          const remove = new Set(removed);
+          onToothNumbersChange(toothNumbers.filter((n) => !remove.has(n)));
+        }}
+        onSelectAll={() => onToothNumbersChange(getPermanentFdiToothNumbers())}
+        onDeselectAll={() => onToothNumbersChange([])}
+      />
+    </div>
+  );
+}
+
 export function LinePricingBreakdownDialog({
   line,
   open,
@@ -337,14 +397,39 @@ export function LinePricingBreakdownDialog({
   capturedAt,
   onSyncTariffCode,
   isSyncingTariffCode = false,
+  showOdontogramTab = false,
+  canEditTeeth = false,
+  onSaveTeeth,
+  isSavingTeeth = false,
 }: LinePricingBreakdownDialogProps) {
   const [activeTab, setActiveTab] = useState<LineDetailsTab>("pricing");
+  const [draftTeeth, setDraftTeeth] = useState<number[]>([]);
+  const [odontogramRemountToken, setOdontogramRemountToken] = useState(0);
+
+  const persistedTeeth = useMemo(
+    () => (line ? getLineToothNumbers(line) : []),
+    [line],
+  );
+  const teethDirty = !toothListsEqual(draftTeeth, persistedTeeth);
 
   useEffect(() => {
     if (open) {
       setActiveTab("pricing");
+      setDraftTeeth(line ? getLineToothNumbers(line) : []);
+      setOdontogramRemountToken((token) => token + 1);
     }
   }, [open, line?.id]);
+
+  useEffect(() => {
+    if (!open) return;
+    setDraftTeeth(persistedTeeth);
+  }, [open, persistedTeeth.join(",")]);
+
+  useEffect(() => {
+    if (!showOdontogramTab && activeTab === "odontogram") {
+      setActiveTab("pricing");
+    }
+  }, [showOdontogramTab, activeTab]);
 
   if (!line) {
     return null;
@@ -353,6 +438,9 @@ export function LinePricingBreakdownDialog({
   const snapshot = getLinePricingSnapshot(line);
   const tariffCode =
     ("tariff_code" in line ? line.tariff_code : null)?.toString().trim() ?? "";
+  const tabs = showOdontogramTab
+    ? [...BASE_TABS, { id: "odontogram" as const, label: "Odontogram" }]
+    : BASE_TABS;
 
   return (
     <TabbedDialog
@@ -360,26 +448,63 @@ export function LinePricingBreakdownDialog({
       onOpenChange={onOpenChange}
       title={line.name || "Line details"}
       description={buildSubtitle(snapshot, capturedAt)}
-      tabs={TABS}
+      tabs={tabs}
       activeTab={activeTab}
       onTabChange={(tabId) => setActiveTab(tabId as LineDetailsTab)}
-      className={cn("sm:max-w-lg", appFont.className)}
+      className={cn(
+        appFont.className,
+        activeTab === "odontogram" ? "sm:max-w-xl" : "sm:max-w-lg",
+      )}
       data-testid="line-details-dialog"
       footer={
-        <SecondaryButton type="button" onClick={() => onOpenChange(false)}>
-          Close
-        </SecondaryButton>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <SecondaryButton type="button" onClick={() => onOpenChange(false)}>
+            Close
+          </SecondaryButton>
+          {activeTab === "odontogram" && canEditTeeth && onSaveTeeth ? (
+            <PrimaryButton
+              type="button"
+              disabled={isSavingTeeth || !teethDirty}
+              onClick={() => void onSaveTeeth(draftTeeth)}
+              data-testid="line-odontogram-save-button"
+            >
+              {isSavingTeeth ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                  Saving...
+                </>
+              ) : (
+                "Save teeth"
+              )}
+            </PrimaryButton>
+          ) : null}
+        </div>
       }
     >
       {activeTab === "pricing" ? (
         <PricingTabContent line={line} />
-      ) : (
+      ) : activeTab === "tariff-code" ? (
         <TariffCodeTabContent
           tariffCode={tariffCode}
           onSyncTariffCode={onSyncTariffCode}
           isSyncingTariffCode={isSyncingTariffCode}
         />
+      ) : (
+        <OdontogramTabContent
+          toothNumbers={draftTeeth}
+          canEdit={canEditTeeth}
+          isSaving={isSavingTeeth}
+          remountToken={odontogramRemountToken}
+          onToothNumbersChange={setDraftTeeth}
+        />
       )}
     </TabbedDialog>
   );
+}
+
+export function shouldShowLineOdontogramTab(options: {
+  hasDentalEncounter?: boolean;
+  line: Pick<SalesOrderLine, "is_procedure"> | null | undefined;
+}): boolean {
+  return Boolean(options.hasDentalEncounter && options.line?.is_procedure);
 }

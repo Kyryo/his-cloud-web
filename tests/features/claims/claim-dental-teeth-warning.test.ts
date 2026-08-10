@@ -6,7 +6,9 @@ import {
   getClaimRequirementCheckItems,
 } from "@/features/invoices/utils/invoice-claim-readiness";
 
-function line(overrides: Partial<ClaimDetail["claim_invoices"][0]["line_items"][0]> = {}) {
+function line(
+  overrides: Partial<ClaimDetail["claim_invoices"][0]["line_items"][0]> = {},
+) {
   return {
     id: 1,
     uuid: "li-1",
@@ -15,6 +17,7 @@ function line(overrides: Partial<ClaimDetail["claim_invoices"][0]["line_items"][
     quantity: "1",
     date_created: "2026-01-01",
     sales_order_line: null,
+    is_procedure: false,
     dental: [],
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
@@ -83,22 +86,7 @@ describe("claim dental teeth requirement item", () => {
     expect(claimHasMissingDentalTeeth(claim)).toBe(false);
   });
 
-  it("lists unmet teeth as a non-blocking requirements-card item", () => {
-    const claim = dentalClaim();
-    const items = getClaimRequirementCheckItems(null, claim);
-    const teeth = items.find((item) => /tooth/i.test(item.label));
-    expect(teeth).toMatchObject({
-      met: false,
-      blocksProgress: false,
-    });
-    expect(teeth?.hint).toMatch(/Odontogram/i);
-    const blockingUnmet = items.filter(
-      (item) => item.blocksProgress !== false && !item.met,
-    );
-    expect(blockingUnmet).toHaveLength(0);
-  });
-
-  it("marks teeth met when every dental line has teeth", () => {
+  it("marks teeth met when dental claim has no procedure lines", () => {
     const claim = dentalClaim({
       claim_invoices: [
         {
@@ -109,7 +97,79 @@ describe("claim dental teeth requirement item", () => {
           amount: "100",
           currency: "MWK",
           source_invoice: 1,
-          line_items: [line({ dental: [{ id: 1, tooth_number: 16 }] })],
+          line_items: [line({ is_procedure: false, dental: [] })],
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+        },
+      ],
+    });
+    const teeth = getClaimRequirementCheckItems(null, claim).find((item) =>
+      /tooth/i.test(item.label),
+    );
+    expect(teeth).toMatchObject({
+      met: true,
+      blocksProgress: false,
+    });
+    expect(claimHasMissingDentalTeeth(claim)).toBe(false);
+  });
+
+  it("lists unmet teeth when a procedure line has no teeth", () => {
+    const claim = dentalClaim({
+      claim_invoices: [
+        {
+          id: 1,
+          uuid: "ci-1",
+          invoice_number: "INV1",
+          invoice_date: "2026-01-01",
+          amount: "100",
+          currency: "MWK",
+          source_invoice: 1,
+          line_items: [
+            line({ id: 1, uuid: "li-1", is_procedure: false, dental: [] }),
+            line({
+              id: 2,
+              uuid: "li-2",
+              tariff_code: "D2740",
+              is_procedure: true,
+              dental: [],
+            }),
+          ],
+          created_at: "2026-01-01T00:00:00Z",
+          updated_at: "2026-01-01T00:00:00Z",
+        },
+      ],
+    });
+    const teeth = getClaimRequirementCheckItems(null, claim).find((item) =>
+      /tooth/i.test(item.label),
+    );
+    expect(teeth).toMatchObject({
+      met: false,
+      blocksProgress: false,
+    });
+    expect(teeth?.hint).toMatch(/Odontogram/i);
+    expect(claimHasMissingDentalTeeth(claim)).toBe(true);
+  });
+
+  it("marks teeth met when every procedure line has teeth", () => {
+    const claim = dentalClaim({
+      claim_invoices: [
+        {
+          id: 1,
+          uuid: "ci-1",
+          invoice_number: "INV1",
+          invoice_date: "2026-01-01",
+          amount: "100",
+          currency: "MWK",
+          source_invoice: 1,
+          line_items: [
+            line({ id: 1, uuid: "li-1", is_procedure: false, dental: [] }),
+            line({
+              id: 2,
+              uuid: "li-2",
+              is_procedure: true,
+              dental: [{ id: 1, tooth_number: 16 }],
+            }),
+          ],
           created_at: "2026-01-01T00:00:00Z",
           updated_at: "2026-01-01T00:00:00Z",
         },

@@ -28,7 +28,7 @@ export function ClaimsPageHeader({
     <ListPageHeaderSection>
       <ListPageHeaderTopRow>
         <ListPageHeaderTitleBlock
-          title="Claims"
+          title="Submissions"
           description="Track insurance claims from draft through submission."
         />
       </ListPageHeaderTopRow>

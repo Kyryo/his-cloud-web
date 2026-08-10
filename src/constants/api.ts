@@ -106,6 +106,10 @@ export const BFF_SALES_ORDERS_ROUTES = {
     `/api/sales-order-line-prices/${orderId}/${lineId}`,
   lineDetail: (orderId: number | string, lineId: number | string) =>
     `/api/sales-order-lines/${orderId}/${lineId}`,
+  lineDental: (orderId: number | string, lineId: number | string) =>
+    `/api/sales-orders/${orderId}/lines/${lineId}/dental`,
+  lineReprice: (orderId: number | string, lineId: number | string) =>
+    `/api/sales-orders/${orderId}/lines/${lineId}/reprice`,
   invoice: (orderId: number | string) => `/api/sales-orders/${orderId}/invoice`,
   cancel: (orderId: number | string) => `/api/sales-orders/${orderId}/cancel`,
   activity: (orderId: number | string) => `/api/sales-orders/${orderId}/activity`,
@@ -323,6 +327,7 @@ export const BFF_SETTINGS_ROUTES = {
   consultationServiceDetail: (uuid: string) => `/api/consultation-services/${uuid}`,
   insuranceCompanies: "/api/insurance-companies",
   insuranceSchemes: "/api/insurance-schemes",
+  insuranceSchemeDetail: (uuid: string) => `/api/insurance-schemes/${uuid}`,
   pricelists: "/api/pricelists",
   pricelistDetail: (id: number | string) => `/api/pricelists/${id}`,
   pricelistAddProduct: (id: number | string) => `/api/pricelists/${id}/products`,
@@ -381,6 +386,8 @@ export const BFF_PLATFORM_ADMIN_ROUTES = {
     `/api/platform-admin/tenants/${tenantUuid}/users`,
   tenantConfiguration: (tenantUuid: string) =>
     `/api/platform-admin/tenants/${tenantUuid}/configuration`,
+  tenantModules: (tenantUuid: string) =>
+    `/api/platform-admin/tenants/${tenantUuid}/modules`,
   tenantAuditEvents: (tenantUuid: string) =>
     `/api/platform-admin/tenants/${tenantUuid}/audit-events`,
   tenantUsage: (tenantUuid: string) =>

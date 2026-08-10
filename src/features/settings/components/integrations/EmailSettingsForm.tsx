@@ -46,6 +46,7 @@ function toFormValues(
     is_active: configuration.is_active,
     appointment_emails_enabled: configuration.appointment_emails_enabled,
     sales_report_emails_enabled: configuration.sales_report_emails_enabled,
+    appointment_report_emails_enabled: configuration.appointment_report_emails_enabled,
     smtp_host: configuration.smtp_host,
     smtp_port: configuration.smtp_port,
     smtp_username: configuration.smtp_username,
@@ -64,6 +65,7 @@ function toPayload(values: EmailConfigurationFormValues, includePassword: boolea
     is_active: values.is_active,
     appointment_emails_enabled: values.appointment_emails_enabled,
     sales_report_emails_enabled: values.sales_report_emails_enabled,
+    appointment_report_emails_enabled: values.appointment_report_emails_enabled,
     smtp_host: values.smtp_host.trim(),
     smtp_port: values.smtp_port,
     smtp_username: values.smtp_username.trim(),
@@ -202,6 +204,7 @@ function EmailSettingsFormContent({ configuration }: EmailSettingsFormContentPro
         "is_active",
         "appointment_emails_enabled",
         "sales_report_emails_enabled",
+        "appointment_report_emails_enabled",
       ]);
       const hasDeliveryErrors = Object.keys(errors).some((field) =>
         deliveryFields.has(field),
@@ -289,6 +292,23 @@ function EmailSettingsFormContent({ configuration }: EmailSettingsFormContentPro
                       <CheckboxField
                         label="Sales report emails"
                         description="Send scheduled daily, weekly, and monthly sales summaries to users."
+                        checked={field.value}
+                        onChange={field.onChange}
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="appointment_report_emails_enabled"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <CheckboxField
+                        label="Appointments report emails"
+                        description="Send a morning list of today's appointments with outstanding balances."
                         checked={field.value}
                         onChange={field.onChange}
                       />

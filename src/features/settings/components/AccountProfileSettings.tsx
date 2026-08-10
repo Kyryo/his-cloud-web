@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { User } from "@/features/auth/types/auth.types";
 import { AccountAppointmentsSection } from "@/features/settings/components/AccountAppointmentsSection";
+import { AccountAppointmentsReportsSection } from "@/features/settings/components/AccountAppointmentsReportsSection";
 import { AccountSalesReportsSection } from "@/features/settings/components/AccountSalesReportsSection";
 import { AssignedClinicsTable } from "@/features/settings/components/AssignedClinicsTable";
 import { updateProfile } from "@/features/settings/services/settings.service";
@@ -347,6 +348,8 @@ export function AccountProfileSettings({ user }: AccountProfileSettingsProps) {
           </Card>
 
           <AccountAppointmentsSection />
+
+          <AccountAppointmentsReportsSection />
 
           <AccountSalesReportsSection />
 

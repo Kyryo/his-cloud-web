@@ -5,6 +5,7 @@ import { formatInvoiceInsuranceNumber } from "@/features/invoices/utils/format-i
 import { coerceToOptionalString } from "@/lib/coerce-string";
 
 export type InvoiceClaimReadinessItem = {
+  id?: string;
   label: string;
   met: boolean;
   hint?: string;
@@ -15,6 +16,8 @@ export type InvoiceClaimReadinessItem = {
    */
   blocksProgress?: boolean;
 };
+
+export const CLAIM_REQUIREMENT_DIAGNOSIS_ID = "diagnosis";
 
 export function isBlockingRequirementItem(
   item: InvoiceClaimReadinessItem,
@@ -94,10 +97,11 @@ export function getClaimRequirementCheckItems(
           : "Open each line’s details and sync or set the tariff code.",
     },
     {
+      id: CLAIM_REQUIREMENT_DIAGNOSIS_ID,
       label: "At least one diagnosis is recorded",
       met: hasDiagnosis,
       hint: invoice?.visit_uuid
-        ? "Add diagnoses on the Diagnoses tab."
+        ? "Add a diagnosis to clear this requirement."
         : claim
           ? "Add at least one diagnosis on the visit linked to this claim."
           : "Link this invoice to a visit and add a diagnosis.",
@@ -116,8 +120,9 @@ export function getClaimRequirementCheckItems(
     items.push({
       label: "Tooth/teeth related to the claim",
       met: hasTeeth,
-      hint:
-        "Open the Odontogram tab to select teeth for each claim line. You can still submit without them.",
+      hint: hasTeeth
+        ? "All dental procedure lines have tooth selections."
+        : "Open the Odontogram tab to select teeth for each dental procedure line. You can still submit without them.",
       blocksProgress: false,
     });
   }
@@ -199,7 +204,7 @@ export function hasClaimRequirementIssues(
 }
 
 /**
- * Non-blocking: dental visit claim with at least one line that has no teeth.
+ * Non-blocking: dental claim has at least one procedure line without teeth.
  */
 export function claimHasMissingDentalTeeth(
   claim?: ClaimDetail | null,
@@ -207,11 +212,13 @@ export function claimHasMissingDentalTeeth(
   if (!claim?.has_dental_encounter) {
     return false;
   }
-  const lines = getClaimLineItems(claim);
-  if (lines.length === 0) {
-    return true;
+  const procedureLines = getClaimLineItems(claim).filter(
+    (line) => line.is_procedure === true,
+  );
+  if (procedureLines.length === 0) {
+    return false;
   }
-  return lines.some(
+  return procedureLines.some(
     (line) => !(line.dental ?? []).some((row) => row.tooth_number > 0),
   );
 }

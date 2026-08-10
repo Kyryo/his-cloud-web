@@ -11,6 +11,7 @@ import { OrganizationTabSection } from "@/features/settings/components/Organizat
 import { UpdateGroupDialog } from "@/features/settings/components/UpdateGroupDialog";
 import { fetchOrganizationGroups } from "@/features/settings/services/user-management.service";
 import type { OrganizationGroup } from "@/features/settings/types/settings.types";
+import { isPortalGroupName, portalGroupLabel } from "@/constants/portal-groups";
 
 type UserManagementGroupsTabProps = {
   isActive: boolean;
@@ -128,7 +129,7 @@ export function UserManagementGroupsTab({ isActive }: UserManagementGroupsTabPro
                 {groups.map((group) => (
                   <tr key={group.id}>
                     <td className="px-6 py-3.5 text-sm font-medium text-brand-navy">
-                      {group.name}
+                      {portalGroupLabel(group.name)}
                     </td>
                     <td className="px-6 py-3.5">
                       <div className="flex justify-end gap-1">
@@ -141,15 +142,17 @@ export function UserManagementGroupsTab({ isActive }: UserManagementGroupsTabPro
                         >
                           Members
                         </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 text-brand-muted hover:text-brand-navy"
-                          onClick={() => setEditingGroup(group)}
-                        >
-                          Update
-                        </Button>
+                        {!isPortalGroupName(group.name) ? (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 text-brand-muted hover:text-brand-navy"
+                            onClick={() => setEditingGroup(group)}
+                          >
+                            Update
+                          </Button>
+                        ) : null}
                       </div>
                     </td>
                   </tr>
@@ -164,6 +167,7 @@ export function UserManagementGroupsTab({ isActive }: UserManagementGroupsTabPro
         open={addDialogOpen}
         onOpenChange={setAddDialogOpen}
         onCreated={handleGroupCreated}
+        existingGroupNames={groups.map((group) => group.name)}
       />
 
       {editingGroup ? (

@@ -20,10 +20,10 @@ export const LANDING = {
 } as const;
 
 export const LANDING_PROOF_STATS = [
-  { value: "47", label: "Active clinics" },
+  { value: "41+", label: "Active Clinics" },
+  { value: "Millions", label: "in claims tracked" },
   { value: "3", label: "Countries" },
-  { value: "<4 days", label: "Avg setup time" },
-  { value: "40%", label: "Revenue saved" },
+  { value: "<72 Hours", label: "Average Setup" },
 ] as const;
 
 export const LANDING_LOGO_SRC = BRAND_LOGO_SRC;

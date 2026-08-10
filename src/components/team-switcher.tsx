@@ -21,6 +21,8 @@ import {
   readActiveClinicId,
   writeActiveClinicId,
 } from "@/features/app-shell/utils/active-clinic";
+import { appFont } from "@/lib/fonts";
+import { cn } from "@/lib/utils";
 import { useUser } from "@/providers/user-provider";
 
 type UserClinic = NonNullable<User["clinics"]>[number];
@@ -113,7 +115,10 @@ export function TeamSwitcher() {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+            className={cn(
+              "w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg",
+              appFont.className,
+            )}
             align="start"
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}

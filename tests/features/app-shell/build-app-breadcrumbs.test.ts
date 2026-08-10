@@ -62,18 +62,25 @@ describe("buildAppBreadcrumbs", () => {
     ]);
   });
 
-  it("returns billing and claims for the claims list", () => {
+  it("returns claims and submissions for the claims list", () => {
     expect(buildAppBreadcrumbs(ROUTES.claims)).toEqual([
-      { label: "Billing" },
       { label: "Claims" },
+      { label: "Submissions" },
     ]);
   });
 
-  it("returns billing, claims link, and detail label for a claim page", () => {
+  it("returns claims, submissions link, and detail label for a claim page", () => {
     expect(buildAppBreadcrumbs("/claims/42")).toEqual([
-      { label: "Billing" },
-      { label: "Claims", href: ROUTES.claims },
+      { label: "Claims" },
+      { label: "Submissions", href: ROUTES.claims },
       { label: "Claim details" },
+    ]);
+  });
+
+  it("returns claims and remittances for the remittances upgrade page", () => {
+    expect(buildAppBreadcrumbs(ROUTES.claimsRemittances)).toEqual([
+      { label: "Claims" },
+      { label: "Remittances" },
     ]);
   });
 

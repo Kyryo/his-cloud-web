@@ -25,7 +25,7 @@ export function LandingSectionHeader({
         </p>
       ) : null}
       <h2
-        className={`landing-display text-[clamp(1.85rem,3.4vw,2.75rem)] font-semibold tracking-[-0.04em] ${
+        className={`landing-display whitespace-pre-line text-[clamp(1.85rem,3.4vw,2.75rem)] font-semibold tracking-[-0.04em] ${
           eyebrow ? "mt-3" : ""
         }`}
       >

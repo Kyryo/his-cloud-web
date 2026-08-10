@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/sidebar";
 import { ROUTES } from "@/constants/routes";
 import { logout } from "@/features/auth/services/auth.service";
+import { appFont } from "@/lib/fonts";
+import { cn } from "@/lib/utils";
 import { useUser } from "@/providers/user-provider";
 
 export function NavUser() {
@@ -50,7 +52,10 @@ export function NavUser() {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+            className={cn(
+              "w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg",
+              appFont.className,
+            )}
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}
@@ -69,14 +74,17 @@ export function NavUser() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
+            <DropdownMenuItem asChild className="cursor-pointer">
               <Link href={ROUTES.settingsAccount}>
                 <UserRound />
                 Account
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => void logout()}>
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => void logout()}
+            >
               <LogOut />
               Sign out
             </DropdownMenuItem>

@@ -7,6 +7,10 @@ export const SALES_ORDERS_API_PATHS = {
     `/sales-orders/${orderId}/lines/${lineId}/price/`,
   lineDetail: (orderId: number | string, lineId: number | string) =>
     `/sales-orders/${orderId}/lines/${lineId}/`,
+  lineDental: (orderId: number | string, lineId: number | string) =>
+    `/sales-orders/${orderId}/lines/${lineId}/dental/`,
+  lineReprice: (orderId: number | string, lineId: number | string) =>
+    `/sales-orders/${orderId}/lines/${lineId}/reprice/`,
   invoice: (orderId: number | string) => `/sales-orders/${orderId}/invoice/`,
   cancel: (orderId: number | string) => `/sales-orders/${orderId}/cancel/`,
   paymentSplit: (orderId: number | string) =>

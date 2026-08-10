@@ -157,7 +157,7 @@ export function SalesOrderLineProductPicker({
   return (
     <SearchableSelect
       id={id}
-      value={value ?? undefined}
+      value={value ?? ""}
       onValueChange={handleValueChange}
       open={open}
       onOpenChange={handleOpenChange}

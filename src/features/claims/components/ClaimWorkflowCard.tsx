@@ -38,6 +38,7 @@ export type ClaimWorkflowCardProps = {
   isSubmitting?: boolean;
   /** When true, submit lives in this card's Queue stage (invoice tab). */
   showSubmitInQueue?: boolean;
+  onAddDiagnosis?: () => void;
   className?: string;
 };
 
@@ -55,6 +56,7 @@ export function ClaimWorkflowCard({
   onSubmit,
   isSubmitting = false,
   showSubmitInQueue = false,
+  onAddDiagnosis,
   className,
 }: ClaimWorkflowCardProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -118,6 +120,7 @@ export function ClaimWorkflowCard({
           <ClaimRequirementsCard
             items={requirementItems}
             footerActions={requirementsFooter}
+            onAddDiagnosis={onAddDiagnosis}
           />
         </div>
       ),

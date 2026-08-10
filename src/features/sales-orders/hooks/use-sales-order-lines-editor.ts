@@ -7,10 +7,14 @@ import { formatProductLabel } from "@/features/inventory/utils/format-inventory"
 import {
   addSalesOrderLine,
   removeSalesOrderLine,
+  setSalesOrderLineDentalTeeth,
   updateSalesOrderLine,
   updateSalesOrderLinePrice,
 } from "@/features/sales-orders/services/sales-orders.service";
-import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
+import type {
+  SalesOrder,
+  SalesOrderLine,
+} from "@/features/sales-orders/types/sales-order.types";
 import {
   createEmptySalesOrderLineDraft,
   linesMissingProductName,
@@ -30,6 +34,7 @@ import {
   getLineSplitMismatch,
   getSalesOrderSplitMismatchKeys,
 } from "@/features/sales-orders/utils/sales-order-line-split-mismatch";
+import { findSalesOrderLinesNeedingTeethAssignment } from "@/features/sales-orders/utils/sales-order-line-teeth";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 
@@ -63,6 +68,14 @@ export function useSalesOrderLinesEditor({
   const [editingRowKey, setEditingRowKey] = useState<string | null>(null);
   const [activeRowKey, setActiveRowKey] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [teethAssignmentQueue, setTeethAssignmentQueue] = useState<
+    SalesOrderLine[]
+  >([]);
+  const [teethAssignmentTotal, setTeethAssignmentTotal] = useState(0);
+  const [isSavingTeeth, setIsSavingTeeth] = useState(false);
+  const [teethAssignmentError, setTeethAssignmentError] = useState<string | null>(
+    null,
+  );
 
   const orderSnapshot = serializeSalesOrderDraftLines(buildDraftsFromOrder(order));
 
@@ -293,6 +306,9 @@ export function useSalesOrderLinesEditor({
     }
 
     const snapshot = parseSnapshot(savedSnapshot);
+    const previousLineIds = snapshot
+      .map((line) => line.id)
+      .filter((id): id is number => id != null);
     const snapshotById = new Map(
       snapshot.filter((line) => line.id != null).map((line) => [line.id!, line]),
     );
@@ -379,6 +395,14 @@ export function useSalesOrderLinesEditor({
       setEditingRowKey(null);
       setActiveRowKey(null);
       onOrderUpdated(currentOrder);
+
+      const needingTeeth = findSalesOrderLinesNeedingTeethAssignment({
+        order: currentOrder,
+        previousLineIds,
+      });
+      setTeethAssignmentError(null);
+      setTeethAssignmentQueue(needingTeeth);
+      setTeethAssignmentTotal(needingTeeth.length);
     } catch (error) {
       onError(
         error instanceof BffError
@@ -391,6 +415,46 @@ export function useSalesOrderLinesEditor({
       setIsSaving(false);
     }
   }, [draftLines, onError, onOrderUpdated, order, savedSnapshot, splitMismatchKeys]);
+
+  const skipTeethAssignment = useCallback(() => {
+    setTeethAssignmentError(null);
+    setTeethAssignmentQueue((queue) => queue.slice(1));
+  }, []);
+
+  const confirmTeethAssignment = useCallback(
+    async (toothNumbers: number[]) => {
+      const currentLine = teethAssignmentQueue[0];
+      if (!currentLine) {
+        return;
+      }
+
+      setIsSavingTeeth(true);
+      setTeethAssignmentError(null);
+      try {
+        const updatedOrder = await setSalesOrderLineDentalTeeth(
+          order.id,
+          currentLine.id,
+          toothNumbers,
+        );
+        const nextDrafts = buildDraftsFromOrder(updatedOrder);
+        setDraftLines(nextDrafts);
+        setSavedSnapshot(serializeSalesOrderDraftLines(nextDrafts));
+        onOrderUpdated(updatedOrder);
+        setTeethAssignmentQueue((queue) => queue.slice(1));
+      } catch (error) {
+        setTeethAssignmentError(
+          error instanceof BffError
+            ? formatBffErrorMessage(error.message, error.errors)
+            : error instanceof Error
+              ? error.message
+              : "Could not save teeth for this line.",
+        );
+      } finally {
+        setIsSavingTeeth(false);
+      }
+    },
+    [onOrderUpdated, order.id, teethAssignmentQueue],
+  );
 
   const saveLineSplitAdjustment = useCallback(
     async (
@@ -504,6 +568,10 @@ export function useSalesOrderLinesEditor({
     hasPendingChanges,
     splitMismatchKeys,
     canEdit,
+    teethAssignmentQueue,
+    teethAssignmentTotal,
+    isSavingTeeth,
+    teethAssignmentError,
     setEditingRowKey,
     setActiveRowKey,
     updateLine,
@@ -514,5 +582,7 @@ export function useSalesOrderLinesEditor({
     discardChanges,
     saveChanges,
     saveLineSplitAdjustment,
+    skipTeethAssignment,
+    confirmTeethAssignment,
   };
 }

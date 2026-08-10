@@ -27,6 +27,7 @@ export type Appointment = {
   reason: string;
   notes: string;
   is_active: boolean;
+  outstanding_balance?: string;
   created_at: string;
   updated_at: string;
 };
@@ -68,6 +69,7 @@ export type FetchAppointmentsOptions = {
   scheduledFrom?: string;
   scheduledTo?: string;
   isActive?: boolean;
+  includeOutstandingBalance?: boolean;
 };
 
 export type UpdateAppointmentPayload = {

@@ -215,6 +215,10 @@ export type CreateOrganizationPayerSchemePayload = {
   is_active?: boolean;
 };
 
+export type UpdateOrganizationPayerSchemePayload = {
+  is_active: boolean;
+};
+
 export type OrganizationPricelist = {
   uuid: string;
   name: string;
@@ -414,6 +418,7 @@ export type TenantEmailConfiguration = {
   is_active: boolean;
   appointment_emails_enabled: boolean;
   sales_report_emails_enabled: boolean;
+  appointment_report_emails_enabled: boolean;
   smtp_host: string;
   smtp_port: number;
   smtp_username: string;
@@ -434,6 +439,7 @@ export type CreateTenantEmailConfigurationPayload = {
   is_active?: boolean;
   appointment_emails_enabled?: boolean;
   sales_report_emails_enabled?: boolean;
+  appointment_report_emails_enabled?: boolean;
   smtp_host: string;
   smtp_port: number;
   smtp_username: string;
@@ -450,6 +456,7 @@ export type UpdateTenantEmailConfigurationPayload = {
   is_active?: boolean;
   appointment_emails_enabled?: boolean;
   sales_report_emails_enabled?: boolean;
+  appointment_report_emails_enabled?: boolean;
   smtp_host?: string;
   smtp_port?: number;
   smtp_username?: string;

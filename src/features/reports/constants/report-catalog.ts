@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   ArrowLeftRight,
+  CalendarDays,
   FileSpreadsheet,
   FileText,
   Package,
@@ -11,7 +12,7 @@ import {
 
 import type { ReportFilterResource } from "@/features/reports/services/report-filter-options.service";
 
-export type ReportCategory = "sales" | "revenue" | "inventory";
+export type ReportCategory = "sales" | "revenue" | "inventory" | "scheduling";
 
 export type ReportFilterFieldType =
   | "date"
@@ -62,6 +63,10 @@ const REPORT_CATEGORY_META: Record<
   inventory: {
     title: "Inventory",
     description: "Purchasing and internal stock movements.",
+  },
+  scheduling: {
+    title: "Scheduling",
+    description: "Appointment schedules and clinic calendars.",
   },
 };
 
@@ -231,6 +236,33 @@ export const REPORT_CATALOG: ReportCatalogItem[] = [
       { name: "clinic_uuid", label: "Clinic", type: "resource", resource: "clinics" },
     ],
   },
+  {
+    id: "appointments",
+    reportType: "appointments",
+    category: "scheduling",
+    title: "Appointments",
+    description: "Clinic appointments with client outstanding balances.",
+    icon: CalendarDays,
+    filters: [
+      { name: "scheduled_from", label: "From", type: "date" },
+      { name: "scheduled_to", label: "To", type: "date" },
+      {
+        name: "status",
+        label: "Status",
+        type: "select",
+        options: [
+          { value: "scheduled", label: "Scheduled" },
+          { value: "confirmed", label: "Confirmed" },
+          { value: "in_progress", label: "In progress" },
+          { value: "completed", label: "Completed" },
+          { value: "cancelled", label: "Cancelled" },
+          { value: "no_show", label: "No show" },
+          { value: "rescheduled", label: "Rescheduled" },
+        ],
+      },
+      { name: "clinic_uuid", label: "Clinic", type: "resource", resource: "clinics" },
+    ],
+  },
 ];
 
 export function getReportCatalogItem(id: string): ReportCatalogItem | undefined {
@@ -247,7 +279,7 @@ export function getReportTypeLabel(reportType: string): string {
     .replace(/^\w/, (char) => char.toUpperCase());
 }
 
-const REPORT_CATEGORY_ORDER: ReportCategory[] = ["sales", "revenue", "inventory"];
+const REPORT_CATEGORY_ORDER: ReportCategory[] = ["scheduling", "sales", "revenue", "inventory"];
 
 export function getReportCatalogSections(): ReportCatalogSection[] {
   return REPORT_CATEGORY_ORDER.map((category) => ({

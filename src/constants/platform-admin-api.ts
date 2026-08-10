@@ -19,6 +19,8 @@ export const PLATFORM_ADMIN_API_PATHS = {
     `/platform-admin/tenants/${tenantUuid}/users/`,
   tenantConfiguration: (tenantUuid: string) =>
     `/platform-admin/tenants/${tenantUuid}/configuration/`,
+  tenantModules: (tenantUuid: string) =>
+    `/platform-admin/tenants/${tenantUuid}/modules/`,
   tenantAuditEvents: (tenantUuid: string) =>
     `/platform-admin/tenants/${tenantUuid}/audit-events/`,
   tenantUsage: (tenantUuid: string) =>

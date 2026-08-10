@@ -32,7 +32,7 @@ const INVOICE_STATE_OPTIONS = [
 
 const INVOICE_PAYMENT_STATUS_OPTIONS = [
   { value: "all", label: "All payment statuses" },
-  { value: "not_paid", label: "Not paid" },
+  { value: "not_paid", label: "Unpaid" },
   { value: "partially_paid", label: "Partially paid" },
   { value: "paid", label: "Paid" },
   { value: "overpaid", label: "Overpaid" },

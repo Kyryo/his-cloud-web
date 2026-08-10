@@ -20,6 +20,8 @@ export interface User {
   is_active?: boolean;
   location: number | null;
   groups: string[];
+  /** Active portal module names for the user's tenant (TenantGroup.is_active). */
+  enabled_modules?: string[];
   tenant: {
     id: number;
     uuid: string;

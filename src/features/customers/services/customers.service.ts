@@ -69,3 +69,9 @@ export async function updateCustomer(
     body: payload,
   });
 }
+
+export async function voidCustomer(uuid: string): Promise<void> {
+  await bffRequest<null>(BFF_CUSTOMERS_ROUTES.detail(uuid), {
+    method: "DELETE",
+  });
+}

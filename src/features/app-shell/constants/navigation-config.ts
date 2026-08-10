@@ -38,6 +38,7 @@ export const moduleDisplayNames: Record<string, string> = {
   Registration: "Front Desk",
   Dental: "Dental Clinic",
   Billing: "Billing",
+  Claims: "Claims",
   Orders: "Orders",
   Dispensation: "Pharmacy",
   Lab: "Laboratory",
@@ -50,6 +51,7 @@ export const moduleDisplayNames: Record<string, string> = {
 export const moduleIcons: Record<string, LucideIcon> = {
   Registration: User,
   Billing: Wallet,
+  Claims: ShieldCheck,
   Orders: Shuffle,
   Dispensation: Pill,
   Lab: TestTube,
@@ -63,6 +65,7 @@ export const moduleIcons: Record<string, LucideIcon> = {
 export const moduleOrder = [
   "Registration",
   "Billing",
+  "Claims",
   "Orders",
   "Dispensation",
   "Lab",
@@ -111,17 +114,50 @@ export const navigation: NavigationItem[] = [
     enabledInWebNew: true,
   },
   {
-    name: "Claims",
-    href: ROUTES.claims,
-    icon: ShieldCheck,
-    requiredGroup: "Billing",
-    enabledInWebNew: true,
-  },
-  {
     name: "Payments",
     href: ROUTES.payments,
     icon: Wallet,
     requiredGroup: "Billing",
+    enabledInWebNew: true,
+  },
+  {
+    name: "Submissions",
+    href: ROUTES.claims,
+    icon: ShieldCheck,
+    requiredGroup: "Claims",
+    moduleName: "Claims",
+    enabledInWebNew: true,
+  },
+  {
+    name: "Remittances",
+    href: ROUTES.claimsRemittances,
+    icon: ShieldCheck,
+    requiredGroup: "Claims",
+    moduleName: "Claims",
+    enabledInWebNew: true,
+  },
+  {
+    name: "Reconciliations",
+    href: ROUTES.claimsReconciliations,
+    icon: ShieldCheck,
+    requiredGroup: "Claims",
+    moduleName: "Claims",
+    enabledInWebNew: true,
+  },
+  {
+    name: "Rejections",
+    href: ROUTES.claimsRejections,
+    icon: ShieldCheck,
+    requiredGroup: "Claims",
+    moduleName: "Claims",
+    enabledInWebNew: true,
+  },
+  {
+    name: "Appeals",
+    href: ROUTES.claimsAppeals,
+    icon: ShieldCheck,
+    requiredGroup: "Claims",
+    moduleName: "Claims",
     enabledInWebNew: true,
   },
   {
@@ -247,6 +283,22 @@ export function isNavItemActive(pathname: string, itemHref: string) {
   return pathname === itemHref || pathname.startsWith(`${itemHref}/`);
 }
 
+/** Prefer the longest matching href when siblings share a prefix (e.g. /claims vs /claims/remittances). */
+export function isMostSpecificNavItemActive(
+  pathname: string,
+  itemHref: string,
+  siblingHrefs: string[],
+) {
+  const matches = siblingHrefs.filter((href) => isNavItemActive(pathname, href));
+  if (matches.length === 0) {
+    return false;
+  }
+  const mostSpecific = matches.reduce((best, href) =>
+    href.length > best.length ? href : best,
+  );
+  return mostSpecific === itemHref;
+}
+
 export function isSettingsNavActive(pathname: string) {
   return pathname === ROUTES.settings || pathname.startsWith(`${ROUTES.settings}/`);
 }
@@ -262,20 +314,53 @@ export function canAccessReports(userGroups: string[]) {
   return userGroups.includes("Billing") || userGroups.includes("Inventory");
 }
 
-export function hasNavAccess(item: NavigationItem, userGroups: string[]) {
+const PORTAL_NAV_GROUPS = new Set([
+  "Registration",
+  "Billing",
+  "Claims",
+  "Inventory",
+  "Dispensation",
+  "Lab",
+  "Radiology",
+  "Dental",
+  "Clinical",
+]);
+
+export type NavAccessOptions = {
+  isTenantAdmin?: boolean;
+};
+
+export function hasNavAccess(
+  item: NavigationItem,
+  userGroups: string[],
+  options: NavAccessOptions = {},
+) {
   if (!item.enabledInWebNew) {
     return false;
   }
   if (!item.requiredGroup) {
     return true;
   }
-  return userGroups.includes(item.requiredGroup);
+  if (userGroups.includes(item.requiredGroup)) {
+    return true;
+  }
+  // Tenant admins see locked portal modules so they can open upgrade empty states.
+  if (
+    options.isTenantAdmin &&
+    PORTAL_NAV_GROUPS.has(item.moduleName || item.requiredGroup)
+  ) {
+    return true;
+  }
+  return false;
 }
 
-export function filterNavigation(userGroups: string[]) {
+export function filterNavigation(
+  userGroups: string[],
+  options: NavAccessOptions = {},
+) {
   const groups = userGroups.length > 0 ? userGroups : ["Registration"];
 
-  return navigation.filter((item) => hasNavAccess(item, groups));
+  return navigation.filter((item) => hasNavAccess(item, groups, options));
 }
 
 export function groupNavigationByModule(items: NavigationItem[]) {

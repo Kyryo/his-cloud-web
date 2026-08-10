@@ -30,11 +30,23 @@ export function applyPageLabelToCrumbs(
 }
 
 function findNavItemByPathname(pathname: string) {
-  return navigation.find(
-    (item) =>
-      item.enabledInWebNew && isNavItemActive(pathname, item.href),
+  const matches = navigation.filter(
+    (item) => item.enabledInWebNew && isNavItemActive(pathname, item.href),
+  );
+  if (matches.length === 0) {
+    return undefined;
+  }
+  return matches.reduce((best, item) =>
+    item.href.length > best.href.length ? item : best,
   );
 }
+
+const CLAIMS_PLACEHOLDER_ROUTES: Record<string, string> = {
+  [ROUTES.claimsRemittances]: "Remittances",
+  [ROUTES.claimsReconciliations]: "Reconciliations",
+  [ROUTES.claimsRejections]: "Rejections",
+  [ROUTES.claimsAppeals]: "Appeals",
+};
 
 export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
   if (isSettingsNavActive(pathname)) {
@@ -100,6 +112,9 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
     if (pathname === ROUTES.reportsAnalytics) {
       return [{ label: "Reports & Insights" }, { label: "Analytics" }];
     }
+    if (pathname === ROUTES.reportsAppointmentsToday) {
+      return [{ label: "Reports & Insights" }, { label: "Today's appointments" }];
+    }
     if (pathname === ROUTES.reportsExports) {
       return [{ label: "Reports & Insights" }, { label: "Reports" }];
     }
@@ -148,6 +163,25 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
     ];
   }
 
+  if (navItem?.moduleName === "Claims") {
+    if (pathname === ROUTES.claims) {
+      return [{ label: getModuleLabel("Claims") }, { label: "Submissions" }];
+    }
+
+    if (CLAIMS_PLACEHOLDER_ROUTES[pathname]) {
+      return [
+        { label: getModuleLabel("Claims") },
+        { label: CLAIMS_PLACEHOLDER_ROUTES[pathname] },
+      ];
+    }
+
+    return [
+      { label: getModuleLabel("Claims") },
+      { label: "Submissions", href: ROUTES.claims },
+      { label: "Claim details" },
+    ];
+  }
+
   if (navItem?.requiredGroup === "Billing") {
     if (pathname === ROUTES.salesOrders) {
       return [
@@ -168,21 +202,6 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
         { label: getModuleLabel("Billing") },
         { label: "Invoices", href: ROUTES.invoices },
         { label: "Invoice details" },
-      ];
-    }
-
-    if (pathname === ROUTES.claims) {
-      return [
-        { label: getModuleLabel("Billing") },
-        { label: "Claims" },
-      ];
-    }
-
-    if (pathname.startsWith(`${ROUTES.claims}/`)) {
-      return [
-        { label: getModuleLabel("Billing") },
-        { label: "Claims", href: ROUTES.claims },
-        { label: "Claim details" },
       ];
     }
 

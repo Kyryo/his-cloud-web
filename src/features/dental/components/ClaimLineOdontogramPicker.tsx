@@ -16,6 +16,7 @@ import {
   getAllToothNumbersForSystem,
   type ToothNumberingSystem,
 } from "@/features/dental/lib/dental-tooth-validation";
+import { ExpandableToothNumbersSummary } from "@/features/dental/components/ExpandableToothNumbersSummary";
 import { cn } from "@/lib/utils";
 import "react-odontogram/style.css";
 import "./claim-line-odontogram-picker.css";
@@ -175,13 +176,6 @@ export function ClaimLineOdontogramPicker({
               : "Click a tooth to assign it to a claim line"}
           </p>
           <div className="flex flex-wrap items-center gap-2">
-            {value.length > 0 ? (
-              <span className="text-xs font-medium text-brand-navy">
-                {value.length} assigned
-              </span>
-            ) : (
-              <span className="text-xs text-brand-muted">No teeth assigned</span>
-            )}
             {showSelectAll &&
             !disabled &&
             (allTeethSelected ? onDeselectAll : onSelectAll) ? (
@@ -300,6 +294,14 @@ export function ClaimLineOdontogramPicker({
                   }
             }
           />
+        </div>
+      </div>
+      <div className="border-t border-brand-border bg-slate-50/80 px-3 py-2.5">
+        <p className="text-xs font-medium uppercase tracking-wide text-brand-muted">
+          Selected teeth
+        </p>
+        <div className="mt-1">
+          <ExpandableToothNumbersSummary toothNumbers={value} />
         </div>
       </div>
     </div>

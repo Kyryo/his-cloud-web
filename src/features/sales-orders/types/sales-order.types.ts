@@ -61,12 +61,21 @@ export type SalesOrder = {
   commitment_date?: string | null;
   line_ids?: number[];
   lines?: SalesOrderLine[];
+  /** True when the linked visit has an active dental-department encounter. */
+  has_dental_encounter?: boolean;
+};
+
+export type SalesOrderLineDental = {
+  id: number;
+  tooth_number: number;
+  uuid?: string;
 };
 
 export type SalesOrderLine = {
   id: number;
   name: string;
   product_id: number;
+  product_uuid?: string | null;
   product_name?: string | null;
   quantity: string | number;
   price_unit?: string | number | null;
@@ -85,6 +94,8 @@ export type SalesOrderLine = {
   pricing_rule_snapshot?: Record<string, unknown> | null;
   provider_id?: number | null;
   provider_name?: string | null;
+  is_procedure?: boolean;
+  dental?: SalesOrderLineDental[];
 };
 
 export type SalesOrderInvoice = {

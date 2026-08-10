@@ -11,9 +11,9 @@ export function defaultReportFilterValues(reportId: string): Record<string, stri
   const values: Record<string, string> = {};
 
   for (const field of item.filters) {
-    if (field.name === "date_from") {
-      values[field.name] = defaults.dateFrom;
-    } else if (field.name === "date_to") {
+    if (field.name === "date_from" || field.name === "scheduled_from") {
+      values[field.name] = defaults.dateTo;
+    } else if (field.name === "date_to" || field.name === "scheduled_to") {
       values[field.name] = defaults.dateTo;
     } else if (field.name === "as_of_date") {
       values[field.name] = defaults.dateTo;

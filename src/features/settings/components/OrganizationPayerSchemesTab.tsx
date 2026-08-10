@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { AddPayerSchemeDialog } from "@/features/settings/components/AddPayerSchemeDialog";
 import { OrganizationEmptyState } from "@/features/settings/components/OrganizationEmptyState";
 import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
+import { UpdatePayerSchemeStatusDialog } from "@/features/settings/components/UpdatePayerSchemeStatusDialog";
 import {
   fetchOrganizationPayerSchemes,
   fetchOrganizationPayers,
@@ -26,6 +27,7 @@ const schemeColumns = [
   { key: "payer", label: "Payer" },
   { key: "code", label: "Code" },
   { key: "status", label: "Status" },
+  { key: "actions", label: "Actions" },
 ] as const;
 
 export function OrganizationPayerSchemesTab({
@@ -37,6 +39,8 @@ export function OrganizationPayerSchemesTab({
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [addSchemeDialogOpen, setAddSchemeDialogOpen] = useState(false);
+  const [editingScheme, setEditingScheme] =
+    useState<OrganizationPayerScheme | null>(null);
 
   const canAddScheme = payers.length > 0;
 
@@ -92,6 +96,15 @@ export function OrganizationPayerSchemesTab({
     setReloadToken((current) => current + 1);
   }
 
+  function handleSchemeUpdated(updated: OrganizationPayerScheme) {
+    setSchemes((current) =>
+      current.map((scheme) =>
+        scheme.uuid === updated.uuid ? { ...scheme, ...updated } : scheme,
+      ),
+    );
+    setEditingScheme(null);
+  }
+
   const isEmpty = !isLoading && !error && schemes.length === 0;
 
   return (
@@ -132,7 +145,11 @@ export function OrganizationPayerSchemesTab({
                     <th
                       key={column.key}
                       scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-brand-muted"
+                      className={
+                        column.key === "actions"
+                          ? "px-6 py-3 text-right text-xs font-medium text-brand-muted"
+                          : "px-6 py-3 text-left text-xs font-medium text-brand-muted"
+                      }
                     >
                       {column.label}
                     </th>
@@ -143,19 +160,37 @@ export function OrganizationPayerSchemesTab({
                 {schemes.map((scheme) => (
                   <tr key={scheme.uuid}>
                     <td className="px-6 py-3.5">
-                      <div className="text-sm font-medium text-brand-navy">{scheme.name}</div>
+                      <div className="text-sm font-medium text-brand-navy">
+                        {scheme.name}
+                      </div>
                       {scheme.description ? (
-                        <div className="text-xs text-brand-muted">{scheme.description}</div>
+                        <div className="text-xs text-brand-muted">
+                          {scheme.description}
+                        </div>
                       ) : null}
                     </td>
                     <td className="px-6 py-3.5 text-sm text-brand-navy">
                       {scheme.insurance_company_name}
                     </td>
-                    <td className="px-6 py-3.5 text-sm text-brand-navy">{scheme.code || "—"}</td>
+                    <td className="px-6 py-3.5 text-sm text-brand-navy">
+                      {scheme.code || "—"}
+                    </td>
                     <td className="px-6 py-3.5">
                       <Badge variant={scheme.is_active ? "default" : "outline"}>
                         {scheme.is_active ? "Active" : "Inactive"}
                       </Badge>
+                    </td>
+                    <td className="px-6 py-3.5 text-right">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8"
+                        onClick={() => setEditingScheme(scheme)}
+                        data-testid={`payer-scheme-update-${scheme.uuid}`}
+                      >
+                        Update
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -170,6 +205,17 @@ export function OrganizationPayerSchemesTab({
         onOpenChange={setAddSchemeDialogOpen}
         payers={payers}
         onCreated={handleReload}
+      />
+
+      <UpdatePayerSchemeStatusDialog
+        scheme={editingScheme}
+        open={editingScheme != null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingScheme(null);
+          }
+        }}
+        onUpdated={handleSchemeUpdated}
       />
     </>
   );

@@ -1,7 +1,7 @@
 import type { InvoicePaymentStatus } from "@/features/invoices/types/invoice.types";
 
 const PAYMENT_STATUS_LABELS: Record<string, string> = {
-  not_paid: "Not paid",
+  not_paid: "Unpaid",
   partially_paid: "Partially paid",
   paid: "Paid",
   overpaid: "Overpaid",

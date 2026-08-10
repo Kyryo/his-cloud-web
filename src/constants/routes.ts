@@ -27,6 +27,10 @@ export const ROUTES = {
   invoiceDetail: (invoiceId: number | string) => `/invoices/${invoiceId}`,
   claims: "/claims",
   claimDetail: (claimId: number | string) => `/claims/${claimId}`,
+  claimsRemittances: "/claims/remittances",
+  claimsReconciliations: "/claims/reconciliations",
+  claimsRejections: "/claims/rejections",
+  claimsAppeals: "/claims/appeals",
   payments: "/payments",
   paymentDetail: (paymentId: number | string) => `/payments/${paymentId}`,
   therapyPhysio: "/therapy/physio",
@@ -88,6 +92,7 @@ export const ROUTES = {
   terms: "/terms",
   company: "/company",
   reportsExports: "/reports",
+  reportsAppointmentsToday: "/reports/appointments/today",
   reportsExportHistory: "/reports/history",
   reportsExportWithType: (type: string) => `/reports?type=${encodeURIComponent(type)}`,
 } as const;

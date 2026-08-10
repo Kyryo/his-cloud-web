@@ -25,6 +25,7 @@ const emailConfigurationFieldsSchema = z.object({
   is_active: z.boolean(),
   appointment_emails_enabled: z.boolean(),
   sales_report_emails_enabled: z.boolean(),
+  appointment_report_emails_enabled: z.boolean(),
   smtp_host: z.string().trim().min(1, "SMTP host is required."),
   smtp_port: z.coerce
     .number({ invalid_type_error: "SMTP port is required." })
@@ -60,6 +61,7 @@ export const createTenantEmailConfigurationBodySchema = z
     is_active: z.boolean().optional().default(true),
     appointment_emails_enabled: z.boolean().optional().default(false),
     sales_report_emails_enabled: z.boolean().optional().default(false),
+    appointment_report_emails_enabled: z.boolean().optional().default(false),
     smtp_host: z.string().trim().min(1, "SMTP host is required."),
     smtp_port: z.coerce
       .number({ invalid_type_error: "SMTP port is required." })
@@ -92,6 +94,7 @@ export const updateTenantEmailConfigurationBodySchema = z
     is_active: z.boolean().optional(),
     appointment_emails_enabled: z.boolean().optional(),
     sales_report_emails_enabled: z.boolean().optional(),
+    appointment_report_emails_enabled: z.boolean().optional(),
     smtp_host: z.string().trim().min(1, "SMTP host is required.").optional(),
     smtp_port: z.coerce
       .number({ invalid_type_error: "SMTP port is required." })
@@ -142,6 +145,7 @@ export function createEmailConfigurationDefaultValues(): EmailConfigurationFormV
     is_active: true,
     appointment_emails_enabled: false,
     sales_report_emails_enabled: false,
+    appointment_report_emails_enabled: false,
     smtp_host: "",
     smtp_port: 587,
     smtp_username: "",

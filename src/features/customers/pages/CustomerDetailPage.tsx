@@ -6,6 +6,7 @@ import {
   PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS,
   PageLoader,
 } from "@/components/page-loader";
+import { CustomerDetailActions } from "@/features/customers/components/detail/CustomerDetailActions";
 import { CustomerDetailHeader } from "@/features/customers/components/detail/CustomerDetailHeader";
 import { CustomerDetailTabs } from "@/features/customers/components/detail/CustomerDetailTabs";
 import { CustomerVisitActionButton } from "@/features/customers/components/detail/CustomerVisitActionButton";
@@ -91,10 +92,17 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
       <CustomerDetailHeader
         customer={customer}
         actions={
-          <CustomerVisitActionButton
-            customer={customer}
-            onVisitChanged={handleVisitChanged}
-          />
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <CustomerDetailActions
+              customer={customer}
+              onEditDetails={() => setUpdateDialogOpen(true)}
+              onCustomerUpdated={handleCustomerUpdated}
+            />
+            <CustomerVisitActionButton
+              customer={customer}
+              onVisitChanged={handleVisitChanged}
+            />
+          </div>
         }
       />
       <CustomerDetailTabs

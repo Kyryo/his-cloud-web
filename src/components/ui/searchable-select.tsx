@@ -76,7 +76,7 @@ export function SearchableSelect({
 
   return (
     <Select
-      value={value}
+      value={value ?? ""}
       onValueChange={onValueChange}
       open={open}
       onOpenChange={onOpenChange}

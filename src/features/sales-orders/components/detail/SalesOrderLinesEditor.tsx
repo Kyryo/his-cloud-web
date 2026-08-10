@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { StatusBanner } from "@/components/ui/status-banner";
 import { AdjustLineSplitDialog } from "@/features/sales-orders/components/detail/AdjustLineSplitDialog";
+import { AssignSalesOrderLineTeethDialog } from "@/features/sales-orders/components/detail/AssignSalesOrderLineTeethDialog";
 import {
   fetchInventoryProductPricelists,
   fetchProductTariffCodes,
@@ -18,13 +19,18 @@ import type {
 } from "@/features/inventory/types/inventory.types";
 import { LineNonPayableBadge } from "@/features/sales-orders/components/detail/LineNonPayableBadge";
 import {
+  LinePricingBreakdownDialog,
+  shouldShowLineOdontogramTab,
+} from "@/features/sales-orders/components/detail/LinePricingBreakdownDialog";
+import { NonPayableLineDialog } from "@/features/sales-orders/components/detail/NonPayableLineDialog";
+import {
   SalesOrderLineProductPicker,
   type SalesOrderLineProductSelection,
 } from "@/features/sales-orders/components/detail/SalesOrderLineProductPicker";
 import { SalesOrderPendingChangesBar } from "@/features/sales-orders/components/detail/SalesOrderPendingChangesBar";
-import { LinePricingBreakdownDialog } from "@/features/sales-orders/components/detail/LinePricingBreakdownDialog";
 import { SalesOrderProviderSelector } from "@/features/sales-orders/components/detail/SalesOrderProviderSelector";
 import { useSalesOrderLinesEditor } from "@/features/sales-orders/hooks/use-sales-order-lines-editor";
+import { setSalesOrderLineDentalTeeth } from "@/features/sales-orders/services/sales-orders.service";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
 import {
   calculateSalesOrderLineDraftTotal,
@@ -240,6 +246,8 @@ export function SalesOrderLinesEditor({
   const selectionTokenByLineKeyRef = useRef<Map<string, number>>(new Map());
   const [breakdownLineId, setBreakdownLineId] = useState<number | null>(null);
   const [splitDialogLineKey, setSplitDialogLineKey] = useState<string | null>(null);
+  const [isSavingTeeth, setIsSavingTeeth] = useState(false);
+  const [nonPayableLineId, setNonPayableLineId] = useState<number | null>(null);
 
   const editor = useSalesOrderLinesEditor({
     order,
@@ -270,6 +278,8 @@ export function SalesOrderLinesEditor({
 
   const breakdownLine =
     order.lines?.find((line) => line.id === breakdownLineId) ?? null;
+  const nonPayableLine =
+    order.lines?.find((line) => line.id === nonPayableLineId) ?? null;
 
   if (!isActive) {
     return null;
@@ -326,7 +336,13 @@ export function SalesOrderLinesEditor({
                     <div className="flex flex-wrap items-center gap-1.5">
                       <span>{line.name}</span>
                       {isSalesOrderLineNonPayable(order, line) ? (
-                        <LineNonPayableBadge />
+                        <LineNonPayableBadge
+                          onClick={
+                            line.id
+                              ? () => setNonPayableLineId(line.id)
+                              : undefined
+                          }
+                        />
                       ) : null}
                     </div>
                   </td>
@@ -497,7 +513,13 @@ export function SalesOrderLinesEditor({
                             </span>
                           )}
                           {isSalesOrderLineNonPayable(order, line) ? (
-                            <LineNonPayableBadge />
+                            <LineNonPayableBadge
+                              onClick={
+                                line.id
+                                  ? () => setNonPayableLineId(line.id)
+                                  : undefined
+                              }
+                            />
                           ) : null}
                         </div>
                       </td>
@@ -663,6 +685,89 @@ export function SalesOrderLinesEditor({
             setBreakdownLineId(null);
           }
         }}
+        showOdontogramTab={shouldShowLineOdontogramTab({
+          hasDentalEncounter: order.has_dental_encounter,
+          line: breakdownLine,
+        })}
+        canEditTeeth={canEdit}
+        isSavingTeeth={isSavingTeeth}
+        onSaveTeeth={
+          breakdownLineId == null
+            ? undefined
+            : async (toothNumbers) => {
+                setIsSavingTeeth(true);
+                try {
+                  const updated = await setSalesOrderLineDentalTeeth(
+                    order.id,
+                    breakdownLineId,
+                    toothNumbers,
+                  );
+                  onOrderUpdated(updated);
+                  toast({
+                    variant: "success",
+                    title: "Teeth saved",
+                    description: "Tooth assignment updated for this line.",
+                  });
+                } catch (error) {
+                  toast({
+                    variant: "error",
+                    title: "Could not save teeth",
+                    description:
+                      error instanceof Error
+                        ? error.message
+                        : "Something went wrong while saving teeth.",
+                  });
+                } finally {
+                  setIsSavingTeeth(false);
+                }
+              }
+        }
+      />
+
+      <NonPayableLineDialog
+        open={nonPayableLineId != null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setNonPayableLineId(null);
+          }
+        }}
+        order={order}
+        line={nonPayableLine}
+        canEdit={canEdit}
+        onOrderUpdated={(updatedOrder) => {
+          onOrderUpdated(updatedOrder);
+          toast({
+            variant: "success",
+            title: "Line updated",
+            description:
+              "Matching lines were refreshed from the pricelist.",
+          });
+        }}
+      />
+
+      <AssignSalesOrderLineTeethDialog
+        open={editor.teethAssignmentQueue.length > 0}
+        line={editor.teethAssignmentQueue[0] ?? null}
+        queuePosition={
+          editor.teethAssignmentTotal > 1
+            ? {
+                index:
+                  editor.teethAssignmentTotal -
+                  editor.teethAssignmentQueue.length +
+                  1,
+                total: editor.teethAssignmentTotal,
+              }
+            : null
+        }
+        isSaving={editor.isSavingTeeth}
+        error={editor.teethAssignmentError}
+        onOpenChange={(open) => {
+          if (!open) {
+            editor.skipTeethAssignment();
+          }
+        }}
+        onSkip={editor.skipTeethAssignment}
+        onConfirm={editor.confirmTeethAssignment}
       />
     </>
   );

@@ -16,6 +16,8 @@ import {
   submitClaim,
 } from "@/features/claims/services/claims.service";
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
+import { AddEncounterDiagnosisDialog } from "@/features/clinical/components/AddEncounterDiagnosisDialog";
+import { useInvoiceEncounterUuid } from "@/features/invoices/hooks/use-invoice-encounter-uuid";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 import {
   getInvoiceClaimableLines,
@@ -48,6 +50,10 @@ export function InvoiceClaimsTab({
   const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [addDiagnosisOpen, setAddDiagnosisOpen] = useState(false);
+  const encounterUuid = useInvoiceEncounterUuid(invoice, isActive);
+  const visitUuid = invoice.visit_uuid?.trim() || null;
+  const canAddDiagnosis = Boolean(visitUuid);
 
   useEffect(() => {
     if (!isInsuranceInvoice(invoice)) {
@@ -242,8 +248,24 @@ export function InvoiceClaimsTab({
           onSubmit={() => void handleSubmitClaim()}
           isSubmitting={isSubmitting}
           showSubmitInQueue
+          onAddDiagnosis={
+            canAddDiagnosis ? () => setAddDiagnosisOpen(true) : undefined
+          }
         />
       )}
+
+      {canAddDiagnosis && visitUuid ? (
+        <AddEncounterDiagnosisDialog
+          visitUuid={visitUuid}
+          encounterUuid={encounterUuid}
+          sourcePlatform="INVOICE"
+          open={addDiagnosisOpen}
+          onOpenChange={setAddDiagnosisOpen}
+          onSuccess={async () => {
+            await onInvoiceRefresh?.();
+          }}
+        />
+      ) : null}
     </div>
   );
 }

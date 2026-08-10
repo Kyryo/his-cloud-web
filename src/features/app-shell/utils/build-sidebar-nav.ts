@@ -7,6 +7,7 @@ import {
   getModuleIcon,
   getModuleLabel,
   groupNavigationByModule,
+  isMostSpecificNavItemActive,
   isNavItemActive,
   isReportsNavActive,
   isSettingsNavActive,
@@ -32,7 +33,9 @@ export function buildSidebarNavItems(
   isTenantAdmin = false,
   isPlatformAdmin = false,
 ): SidebarNavItem[] {
-  const filtered = isPlatformAdmin ? [] : filterNavigation(userGroups);
+  const filtered = isPlatformAdmin
+    ? []
+    : filterNavigation(userGroups, { isTenantAdmin });
   const modules = groupNavigationByModule(filtered);
   const items: SidebarNavItem[] = [];
 
@@ -51,8 +54,9 @@ export function buildSidebarNavItems(
       continue;
     }
 
+    const siblingHrefs = moduleItems.map((navItem) => navItem.href);
     const activeModuleItem = moduleItems.find((navItem) =>
-      isNavItemActive(pathname, navItem.href),
+      isMostSpecificNavItemActive(pathname, navItem.href, siblingHrefs),
     );
 
     items.push({
@@ -65,7 +69,11 @@ export function buildSidebarNavItems(
       items: moduleItems.map((navItem) => ({
         title: navItem.name,
         url: navItem.href,
-        isActive: isNavItemActive(pathname, navItem.href),
+        isActive: isMostSpecificNavItemActive(
+          pathname,
+          navItem.href,
+          siblingHrefs,
+        ),
       })),
     });
   }
@@ -190,6 +198,11 @@ export function buildSidebarNavItems(
           title: "Analytics",
           url: ROUTES.reportsAnalytics,
           isActive: isNavItemActive(pathname, ROUTES.reportsAnalytics),
+        },
+        {
+          title: "Today's appointments",
+          url: ROUTES.reportsAppointmentsToday,
+          isActive: isNavItemActive(pathname, ROUTES.reportsAppointmentsToday),
         },
         {
           title: "Reports",

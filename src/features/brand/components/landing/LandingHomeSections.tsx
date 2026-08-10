@@ -26,7 +26,6 @@ import {
   LANDING_COMPARISON,
   LANDING_FAQ,
   LANDING_FINAL_CTA,
-  LANDING_PRICING,
   LANDING_PROBLEM,
   LANDING_REVENUE,
   LANDING_SOLUTION,
@@ -37,7 +36,7 @@ import { cn } from "@/lib/utils";
 
 const PROBLEM_ICONS = [FileWarning, Link2, Sheet, CircleDollarSign] as const;
 const SOLUTION_ICONS = [ShieldCheck, ClipboardList, CircleDollarSign] as const;
-const WHY_ICONS = [ServerOff, Timer, Sheet, Sparkles] as const;
+const WHY_ICONS = [ServerOff, Timer, Sheet, CircleDollarSign] as const;
 
 const CLAIMS_SCREENSHOT = "/landing/product-screenshots/insurance-claims.png";
 const REPORTS_SCREENSHOT = "/landing/product-screenshots/reports-insights.png";
@@ -291,9 +290,6 @@ export function LandingHomeSections() {
                   </li>
                 ))}
               </ul>
-              <p className="landing-body mt-8 max-w-[40ch] text-base leading-[1.7] text-[color:var(--landing-ledger-ink)]">
-                {LANDING_REVENUE.closing}
-              </p>
             </div>
           </div>
         </LandingReveal>
@@ -331,71 +327,6 @@ export function LandingHomeSections() {
       <LandingSection variant="white">
         <LandingReveal>
           <LandingSectionHeader
-            title={LANDING_PRICING.title}
-            description={LANDING_PRICING.description}
-            align="center"
-            className="mx-auto"
-          />
-          <div className="mt-14 grid gap-5 lg:grid-cols-3">
-            {LANDING_PRICING.plans.map((plan) => (
-              <article
-                key={plan.name}
-                className={cn(
-                  "landing-card relative flex flex-col p-7 transition-[transform,box-shadow] duration-300 sm:p-8",
-                  plan.highlighted
-                    ? "shadow-[var(--landing-shadow-hover)] ring-1 ring-[color:var(--landing-teal)] lg:-translate-y-1"
-                    : "hover:-translate-y-0.5 hover:shadow-[var(--landing-shadow-hover)]",
-                )}
-              >
-                {"badge" in plan && plan.badge ? (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[color:var(--landing-teal)] px-3 py-1 text-xs font-semibold text-white">
-                    {plan.badge}
-                  </span>
-                ) : null}
-                <h3 className="landing-text-ink font-[family-name:var(--font-bricolage)] text-lg font-semibold tracking-tight">
-                  {plan.name}
-                </h3>
-                <p className="landing-text-ink mt-5 font-[family-name:var(--font-bricolage)] text-4xl font-semibold tracking-tight">
-                  {plan.price}
-                </p>
-                <p className="landing-body mt-1 text-sm text-[color:var(--landing-ledger-ink)]">
-                  {plan.period}
-                </p>
-                <ul className="mt-8 flex-1 space-y-3">
-                  {plan.features.map((feature) => (
-                    <li
-                      key={feature}
-                      className="flex items-start gap-2.5 text-sm leading-relaxed text-[color:var(--landing-ledger-ink)]"
-                    >
-                      <CheckCircle2
-                        className="mt-0.5 size-4 shrink-0 text-[color:var(--landing-teal)]"
-                        strokeWidth={1.75}
-                        aria-hidden="true"
-                      />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-                <Link
-                  href={plan.href}
-                  className={cn(
-                    "landing-focus mt-8 inline-flex min-h-11 items-center justify-center rounded-full px-5 py-3 text-sm font-semibold",
-                    plan.highlighted
-                      ? "landing-btn-primary"
-                      : "landing-btn-secondary border",
-                  )}
-                >
-                  {plan.cta}
-                </Link>
-              </article>
-            ))}
-          </div>
-        </LandingReveal>
-      </LandingSection>
-
-      <LandingSection variant="muted">
-        <LandingReveal>
-          <LandingSectionHeader
             title={LANDING_FAQ.title}
             align="center"
             className="mx-auto"
@@ -406,9 +337,9 @@ export function LandingHomeSections() {
         </LandingReveal>
       </LandingSection>
 
-      <LandingSection variant="white" className="!pt-20 !pb-24 sm:!pt-24 sm:!pb-28">
+      <LandingSection variant="muted" className="!pt-20 !pb-24 sm:!pt-24 sm:!pb-28">
         <LandingReveal>
-          <div className="landing-card mx-auto max-w-3xl px-8 py-14 text-center sm:px-12 sm:py-16">
+          <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
             <LandingSectionHeader
               title={LANDING_FINAL_CTA.title}
               description={LANDING_FINAL_CTA.description}

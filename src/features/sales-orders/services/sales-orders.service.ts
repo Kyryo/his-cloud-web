@@ -168,3 +168,27 @@ export async function cancelSalesOrder(orderId: number | string): Promise<SalesO
     method: "POST",
   });
 }
+
+export async function setSalesOrderLineDentalTeeth(
+  orderId: number | string,
+  lineId: number,
+  toothNumbers: number[],
+): Promise<SalesOrder> {
+  return bffRequest<SalesOrder>(
+    BFF_SALES_ORDERS_ROUTES.lineDental(orderId, lineId),
+    {
+      method: "PUT",
+      body: { tooth_numbers: toothNumbers },
+    },
+  );
+}
+
+export async function repriceSalesOrderLine(
+  orderId: number | string,
+  lineId: number,
+): Promise<SalesOrder> {
+  return bffRequest<SalesOrder>(
+    BFF_SALES_ORDERS_ROUTES.lineReprice(orderId, lineId),
+    { method: "POST" },
+  );
+}

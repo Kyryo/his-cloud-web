@@ -25,6 +25,7 @@ import type {
   UpdateOrganizationContactPayload,
   UpdateOrganizationDepartmentPayload,
   UpdateOrganizationLocationPayload,
+  UpdateOrganizationPayerSchemePayload,
   UpdateOrganizationPricelistPayload,
   SetOrganizationDefaultPricelistPayload,
   UpdateOrganizationServicePayload,
@@ -257,6 +258,19 @@ export async function createOrganizationPayerScheme(
     method: "POST",
     body: payload,
   });
+}
+
+export async function updateOrganizationPayerScheme(
+  uuid: string,
+  payload: UpdateOrganizationPayerSchemePayload,
+): Promise<OrganizationPayerScheme> {
+  return bffRequest<OrganizationPayerScheme>(
+    BFF_SETTINGS_ROUTES.insuranceSchemeDetail(uuid),
+    {
+      method: "PATCH",
+      body: payload,
+    },
+  );
 }
 
 export async function fetchOrganizationPricelists(): Promise<

@@ -31,6 +31,7 @@ export type ClaimLineItem = {
   quantity: string;
   date_created: string;
   sales_order_line: number | null;
+  is_procedure?: boolean;
   dental?: ClaimLineItemDental[];
   created_at: string;
   updated_at: string;

@@ -26,13 +26,14 @@ const userColumns = [
 ] as const;
 
 function formatGroups(groups: string[]) {
-  if (groups.length === 0) {
+  const uniqueGroups = [...new Set(groups)];
+  if (uniqueGroups.length === 0) {
     return <span className="text-sm text-brand-muted">—</span>;
   }
 
   return (
     <div className="flex flex-wrap gap-1.5">
-      {groups.map((group) => (
+      {uniqueGroups.map((group) => (
         <Badge key={group} variant="outline" className="font-normal">
           {group}
         </Badge>

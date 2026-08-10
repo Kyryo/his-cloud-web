@@ -104,21 +104,27 @@ describe("LinePricingBreakdownDialog", () => {
     expect(onSync).toHaveBeenCalledTimes(1);
   });
 
-  it("shows sync in the empty tariff state", () => {
-    const onSync = vi.fn();
+  it("shows an odontogram tab for dental procedure lines", () => {
+    const dentalProcedure: SalesOrderLine = {
+      ...line,
+      is_procedure: true,
+      dental: [{ id: 1, tooth_number: 16 }],
+    };
 
     render(
       <LinePricingBreakdownDialog
-        line={line}
+        line={dentalProcedure}
         open
         onOpenChange={() => undefined}
-        onSyncTariffCode={onSync}
+        showOdontogramTab
+        canEditTeeth
+        onSaveTeeth={async () => undefined}
       />,
     );
 
-    fireEvent.click(screen.getByTestId("tabbed-dialog-tab-tariff-code"));
-    expect(screen.getByTestId("line-tariff-code-empty")).toBeInTheDocument();
-    fireEvent.click(screen.getByTestId("sync-line-tariff-code-button"));
-    expect(onSync).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("tabbed-dialog-tab-odontogram")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("tabbed-dialog-tab-odontogram"));
+    expect(screen.getByTestId("line-odontogram-tab")).toBeInTheDocument();
+    expect(screen.getByTestId("line-odontogram-save-button")).toBeDisabled();
   });
 });

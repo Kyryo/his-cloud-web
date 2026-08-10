@@ -2,4 +2,5 @@
 export const INSURANCE_API_PATHS = {
   companies: "/insurance-companies/",
   schemes: "/insurance-schemes/",
+  schemeDetail: (uuid: string) => `/insurance-schemes/${uuid}/`,
 } as const;
