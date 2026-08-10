@@ -3,15 +3,21 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   assignTherapyVisitTreatmentPlan,
   createTherapyVisitAssessment,
+  createTherapyVisitClientNote,
+  createTherapyVisitInterimReport,
   createTherapyVisitSession,
   fetchTherapyFutureAppointments,
   fetchTherapyDepartments,
   fetchTherapyVisitDetails,
   fetchTherapyVisitAssessment,
+  fetchTherapyVisitClientNotes,
+  fetchTherapyVisitInterimReports,
   fetchTherapyVisitSessions,
   fetchTherapyVisits,
   recordTherapyGoalProgress,
   updateTherapyVisitAssessment,
+  updateTherapyVisitClientNote,
+  updateTherapyVisitInterimReport,
 } from "@/features/therapy/services/therapy.service";
 import { bffRequest } from "@/lib/bff-client";
 
@@ -38,6 +44,12 @@ describe("therapy service", () => {
     vi.mocked(bffRequest).mockResolvedValueOnce({
       results: [],
       pagination: null,
+      stats: {
+        todays_visits: 0,
+        todays_active_visits: 0,
+        todays_completed_visits: 0,
+        total_visits: 0,
+      },
     });
 
     await fetchTherapyVisits({
@@ -70,6 +82,12 @@ describe("therapy service", () => {
     vi.mocked(bffRequest).mockResolvedValueOnce({
       results: [],
       pagination: null,
+      stats: {
+        todays_visits: 0,
+        todays_active_visits: 0,
+        todays_completed_visits: 0,
+        total_visits: 0,
+      },
     });
 
     await fetchTherapyVisits({
@@ -217,6 +235,106 @@ describe("therapy service", () => {
 
     expect(bffRequest).toHaveBeenCalledWith(
       "/api/therapy/occupational/visits/9ca46f31-af4e-4e79-90ac-cf7d62ca76f8/future-appointments",
+    );
+  });
+
+  it("lists interim reports for a visit", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce([]);
+
+    await fetchTherapyVisitInterimReports(
+      "physio",
+      "9ca46f31-af4e-4e79-90ac-cf7d62ca76f8",
+    );
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      "/api/therapy/physio/visits/9ca46f31-af4e-4e79-90ac-cf7d62ca76f8/interim-reports",
+    );
+  });
+
+  it("creates an interim report for a visit", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({});
+
+    await createTherapyVisitInterimReport(
+      "physio",
+      "9ca46f31-af4e-4e79-90ac-cf7d62ca76f8",
+      "<p>Progress update</p>",
+    );
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      "/api/therapy/physio/visits/9ca46f31-af4e-4e79-90ac-cf7d62ca76f8/interim-reports",
+      {
+        method: "POST",
+        body: { report: "<p>Progress update</p>" },
+      },
+    );
+  });
+
+  it("updates an interim report for a visit", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({});
+
+    await updateTherapyVisitInterimReport(
+      "speech",
+      "9ca46f31-af4e-4e79-90ac-cf7d62ca76f8",
+      "3bd6e44a-4724-4dd1-8df0-3528dc92c550",
+      "<p>Revised note</p>",
+    );
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      "/api/therapy/speech/visits/9ca46f31-af4e-4e79-90ac-cf7d62ca76f8/interim-reports/3bd6e44a-4724-4dd1-8df0-3528dc92c550",
+      {
+        method: "PUT",
+        body: { report: "<p>Revised note</p>" },
+      },
+    );
+  });
+
+  it("lists client notes for a visit", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce([]);
+
+    await fetchTherapyVisitClientNotes(
+      "physio",
+      "9ca46f31-af4e-4e79-90ac-cf7d62ca76f8",
+    );
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      "/api/therapy/physio/visits/9ca46f31-af4e-4e79-90ac-cf7d62ca76f8/client-notes",
+    );
+  });
+
+  it("creates a client note for a visit", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({});
+
+    await createTherapyVisitClientNote(
+      "physio",
+      "9ca46f31-af4e-4e79-90ac-cf7d62ca76f8",
+      "Prefers morning sessions",
+    );
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      "/api/therapy/physio/visits/9ca46f31-af4e-4e79-90ac-cf7d62ca76f8/client-notes",
+      {
+        method: "POST",
+        body: { note: "Prefers morning sessions" },
+      },
+    );
+  });
+
+  it("updates a client note for a visit", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({});
+
+    await updateTherapyVisitClientNote(
+      "speech",
+      "9ca46f31-af4e-4e79-90ac-cf7d62ca76f8",
+      "3bd6e44a-4724-4dd1-8df0-3528dc92c550",
+      "Updated preference",
+    );
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      "/api/therapy/speech/visits/9ca46f31-af4e-4e79-90ac-cf7d62ca76f8/client-notes/3bd6e44a-4724-4dd1-8df0-3528dc92c550",
+      {
+        method: "PUT",
+        body: { note: "Updated preference" },
+      },
     );
   });
 });

@@ -22,6 +22,22 @@ export const THERAPY_API_PATHS = {
     `/therapy/${discipline}/visits/${visitUuid}/treatment-goals/`,
   visitTreatmentPlanDischarge: (discipline: string, visitUuid: string) =>
     `/therapy/${discipline}/visits/${visitUuid}/treatment-plan/discharge/`,
+  visitInterimReports: (discipline: string, visitUuid: string) =>
+    `/therapy/${discipline}/visits/${visitUuid}/interim-reports/`,
+  visitInterimReport: (
+    discipline: string,
+    visitUuid: string,
+    reportUuid: string,
+  ) =>
+    `/therapy/${discipline}/visits/${visitUuid}/interim-reports/${reportUuid}/`,
+  visitClientNotes: (discipline: string, visitUuid: string) =>
+    `/therapy/${discipline}/visits/${visitUuid}/client-notes/`,
+  visitClientNote: (
+    discipline: string,
+    visitUuid: string,
+    noteUuid: string,
+  ) =>
+    `/therapy/${discipline}/visits/${visitUuid}/client-notes/${noteUuid}/`,
   goalProgress: (
     discipline: string,
     visitUuid: string,
@@ -54,6 +70,14 @@ export const BFF_THERAPY_ROUTES = {
     `/api/therapy/${discipline}/visits/${uuid}/treatment-goals`,
   treatmentPlanDischarge: (discipline: string, uuid: string) =>
     `/api/therapy/${discipline}/visits/${uuid}/treatment-plan/discharge`,
+  interimReports: (discipline: string, uuid: string) =>
+    `/api/therapy/${discipline}/visits/${uuid}/interim-reports`,
+  interimReport: (discipline: string, visitUuid: string, reportUuid: string) =>
+    `/api/therapy/${discipline}/visits/${visitUuid}/interim-reports/${reportUuid}`,
+  clientNotes: (discipline: string, uuid: string) =>
+    `/api/therapy/${discipline}/visits/${uuid}/client-notes`,
+  clientNote: (discipline: string, visitUuid: string, noteUuid: string) =>
+    `/api/therapy/${discipline}/visits/${visitUuid}/client-notes/${noteUuid}`,
   goalProgress: (discipline: string, visitUuid: string, goalUuid: string) =>
     `/api/therapy/${discipline}/visits/${visitUuid}/treatment-goals/${goalUuid}/progress`,
   futureAppointments: (discipline: string, visitUuid: string) =>
