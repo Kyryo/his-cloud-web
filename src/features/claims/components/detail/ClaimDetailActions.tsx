@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, MoreVertical, Send, Trash2 } from "lucide-react";
+import { Loader2, MoreVertical, RefreshCw, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -22,8 +22,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { isClaimSubmitBlockedByAdvisories } from "@/features/claims/components/ClaimAdvisoriesPanel";
 import {
+  checkClaimPayerStatus,
   deleteClaim,
-  submitClaim,
 } from "@/features/claims/services/claims.service";
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
 import { ROUTES } from "@/constants/routes";
@@ -35,6 +35,7 @@ import { useToast } from "@/providers/toast-provider";
 type ClaimDetailActionsProps = {
   claim: ClaimDetail;
   onClaimUpdated?: (claim: ClaimDetail) => void;
+  onRequestSubmit?: () => void;
   className?: string;
 };
 
@@ -42,19 +43,26 @@ function submitBlockedToastId(claimId: number | string) {
   return `claim-${claimId}-submit-blocked`;
 }
 
+function shouldShowCheckPayerStatus(claim: ClaimDetail): boolean {
+  const status = String(claim.payer_status || "").toLowerCase();
+  return status === "awaiting_payer" || status === "processing" || status === "failed";
+}
+
 export function ClaimDetailActions({
   claim,
   onClaimUpdated,
+  onRequestSubmit,
   className,
 }: ClaimDetailActionsProps) {
   const router = useRouter();
   const { toast, dismiss } = useToast();
   const [deleteOpen, setDeleteOpen] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isCheckingPayer, setIsCheckingPayer] = useState(false);
 
   const isDraft = String(claim.status).toLowerCase() === "draft";
   const submitBlocked = isClaimSubmitBlockedByAdvisories(claim);
+  const showCheckPayerStatus = !isDraft && shouldShowCheckPayerStatus(claim);
 
   useEffect(() => {
     const toastId = submitBlockedToastId(claim.id);
@@ -82,24 +90,23 @@ export function ClaimDetailActions({
     };
   }, [claim.id, dismiss]);
 
-  if (!isDraft) {
-    return null;
-  }
-
-  async function handleSubmit() {
-    setIsSubmitting(true);
+  async function handleCheckPayerStatus() {
+    setIsCheckingPayer(true);
     try {
-      const submitted = await submitClaim(claim.id);
-      onClaimUpdated?.(submitted);
+      const result = await checkClaimPayerStatus(claim.id);
+      onClaimUpdated?.(result.claim);
+      const isFailure =
+        result.action === "applied_webhook" &&
+        String(result.claim.payer_status || "").toLowerCase() === "failed";
       toast({
-        variant: "success",
-        title: "Claim submitted",
-        description: "The claim was sent to the payer successfully.",
+        variant: isFailure ? "warning" : "success",
+        title: "Payer status checked",
+        description: result.message,
       });
     } catch (error) {
       toast({
         variant: "error",
-        title: "Could not submit claim",
+        title: "Could not check payer status",
         description:
           error instanceof BffError
             ? formatBffErrorMessage(error.message, error.errors)
@@ -108,7 +115,7 @@ export function ClaimDetailActions({
               : "Something went wrong.",
       });
     } finally {
-      setIsSubmitting(false);
+      setIsCheckingPayer(false);
     }
   }
 
@@ -139,57 +146,77 @@ export function ClaimDetailActions({
     }
   }
 
+  if (!isDraft && !showCheckPayerStatus) {
+    return null;
+  }
+
   return (
     <>
       <div className={cn("flex shrink-0 flex-wrap items-center justify-end gap-2", className)}>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              size="icon"
-              className="rounded-full"
-              disabled={isSubmitting || isDeleting}
-              aria-label="Claim actions"
-              data-testid="claim-actions-menu-button"
-            >
-              <MoreVertical className="size-4" aria-hidden="true" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              className="text-red-700 focus:text-red-700"
-              onClick={() => setDeleteOpen(true)}
-              data-testid="claim-delete-menu-item"
-            >
-              <Trash2 className="size-4" aria-hidden="true" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {isDraft ? (
+          <>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full"
+                  disabled={isDeleting}
+                  aria-label="Claim actions"
+                  data-testid="claim-actions-menu-button"
+                >
+                  <MoreVertical className="size-4" aria-hidden="true" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  className="text-red-700 focus:text-red-700"
+                  onClick={() => setDeleteOpen(true)}
+                  data-testid="claim-delete-menu-item"
+                >
+                  <Trash2 className="size-4" aria-hidden="true" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
-        <PrimaryButton
-          type="button"
-          disabled={isSubmitting || submitBlocked}
-          title={
-            submitBlocked
-              ? "Resolve rejection-risk advisories or record an override first"
-              : undefined
-          }
-          onClick={() => void handleSubmit()}
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              Submitting...
-            </>
-          ) : (
-            <>
-              <Send className="size-4" aria-hidden="true" />
+            <PrimaryButton
+              type="button"
+              disabled={submitBlocked || !onRequestSubmit}
+              title={
+                submitBlocked
+                  ? "Resolve rejection-risk advisories or record an override first"
+                  : undefined
+              }
+              onClick={() => onRequestSubmit?.()}
+              data-testid="claim-submit-header-button"
+            >
               Submit
-            </>
-          )}
-        </PrimaryButton>
+            </PrimaryButton>
+          </>
+        ) : null}
+
+        {showCheckPayerStatus ? (
+          <PrimaryButton
+            type="button"
+            disabled={isCheckingPayer}
+            onClick={() => void handleCheckPayerStatus()}
+            data-testid="claim-check-payer-status-button"
+          >
+            {isCheckingPayer ? (
+              <>
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                Checking...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="size-4" aria-hidden="true" />
+                Check payer status
+              </>
+            )}
+          </PrimaryButton>
+        ) : null}
       </div>
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>

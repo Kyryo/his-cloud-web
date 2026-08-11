@@ -4,6 +4,7 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import { PrimaryButton } from "@/components/ui/app-buttons";
+import { StatusBanner } from "@/components/ui/status-banner";
 import {
   WorkflowCard,
   type WorkflowStageConfig,
@@ -43,7 +44,7 @@ export type ClaimWorkflowCardProps = {
 };
 
 /**
- * Three-stage claim lifecycle workflow: Requirements → Advisory → Queue.
+ * Claim lifecycle workflow: Requirements → Advisory → Queue → Payer response.
  */
 export function ClaimWorkflowCard({
   claim,
@@ -64,6 +65,8 @@ export function ClaimWorkflowCard({
   const requirements = stageStates.find((stage) => stage.id === "requirements")!;
   const advisory = stageStates.find((stage) => stage.id === "advisory")!;
   const queue = stageStates.find((stage) => stage.id === "queue")!;
+  const payer = stageStates.find((stage) => stage.id === "payer")!;
+  const payerName = claim?.payer_code?.trim() || "the insurer";
 
   const allSystemReady = readinessItems
     .filter(isBlockingRequirementItem)
@@ -153,16 +156,18 @@ export function ClaimWorkflowCard({
       content: (
         <div className="space-y-4">
           {queue.status === "current" && canSubmit ? (
-            <p className="text-sm leading-relaxed text-brand-navy">
-              Advisories are clear. Submit this claim to send it to the payer.
-              Member verification happens at submit.
-            </p>
+            <StatusBanner
+              variant="info"
+              showIcon={false}
+              message="Advisories are clear. Submit this claim to send it to the payer. Member verification happens at submit."
+            />
           ) : null}
           {queue.status === "pending" ? (
-            <p className="text-sm leading-relaxed text-brand-muted">
-              Finish Requirements and clear Advisory blockers before this claim
-              can be queued.
-            </p>
+            <StatusBanner
+              variant="info"
+              showIcon={false}
+              message="Finish Requirements and clear Advisory blockers before this claim can be queued."
+            />
           ) : null}
           {queue.status === "completed" ? (
             <div
@@ -177,14 +182,16 @@ export function ClaimWorkflowCard({
                 This claim has been submitted
               </p>
               <p className="mx-auto mt-1 max-w-sm text-sm text-brand-muted">
-                It has left the draft queue and was sent to the payer.
+                It has left the draft queue and was sent to {payerName}.
               </p>
             </div>
           ) : null}
           {queue.status === "failed" ? (
-            <p className="text-sm leading-relaxed text-red-800">
-              This claim is no longer eligible for submission from this workflow.
-            </p>
+            <StatusBanner
+              variant="warning"
+              showIcon={false}
+              message="This claim is no longer eligible for submission from this workflow."
+            />
           ) : null}
           {showSubmitInQueue && canSubmit ? (
             <PrimaryButton
@@ -201,7 +208,7 @@ export function ClaimWorkflowCard({
                   Submitting...
                 </>
               ) : (
-                "Submit claim"
+                "Submit"
               )}
             </PrimaryButton>
           ) : null}
@@ -212,6 +219,53 @@ export function ClaimWorkflowCard({
             <p className="text-xs text-brand-muted">
               Resolve or override advisory findings to unlock submit.
             </p>
+          ) : null}
+        </div>
+      ),
+    },
+    {
+      id: "payer",
+      title: `${payerName} response`,
+      summary: payer.summary,
+      status: payer.status,
+      disabled: !claim || isDraft,
+      content: (
+        <div className="space-y-3" data-testid="claim-workflow-payer-stage">
+          {payer.status === "pending" ? (
+            <StatusBanner
+              variant="info"
+              showIcon={false}
+              message={`Submit the claim to begin tracking the response from ${payerName}.`}
+            />
+          ) : null}
+          {payer.status === "current" ? (
+            <StatusBanner
+              variant="info"
+              showIcon={false}
+              message={`We're waiting for ${payerName} to confirm the claim outcome. Use Check payer status if the update is taking longer than expected.`}
+            />
+          ) : null}
+          {payer.status === "completed" ? (
+            <div className="rounded-lg border border-dashed border-brand-border bg-slate-50/80 px-4 py-10 text-center">
+              <CheckCircle2
+                className="mx-auto size-8 text-emerald-600"
+                aria-hidden="true"
+              />
+              <p className="mt-3 text-sm font-medium text-brand-navy">
+                {payerName} has closed this claim
+              </p>
+              <p className="mx-auto mt-1 max-w-sm text-sm text-brand-muted">
+                Portal confirmation was received successfully.
+              </p>
+            </div>
+          ) : null}
+          {payer.status === "failed" ? (
+            <StatusBanner
+              variant="warning"
+              showIcon={false}
+              message={`Automatic closing with ${payerName} did not complete. Review the claim in ${payerName} and finish the close manually.`}
+              data-testid="claim-workflow-payer-failed-alert"
+            />
           ) : null}
         </div>
       ),

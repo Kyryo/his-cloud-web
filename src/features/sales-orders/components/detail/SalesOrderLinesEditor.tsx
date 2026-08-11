@@ -480,6 +480,7 @@ export function SalesOrderLinesEditor({
                       key={line.key}
                       className={cn(
                         "group transition-colors",
+                        !isEditing && !line.isNew && "cursor-pointer",
                         isActiveRow && "bg-sky-50/80",
                       )}
                       onClick={() => {
@@ -496,7 +497,6 @@ export function SalesOrderLinesEditor({
                               id={`so-line-product-${line.key}`}
                               value={line.product_uuid ?? null}
                               displayLabel={line.productName}
-                              pricelistUuid={order.pricelist_uuid}
                               autoOpen={line.isNew === true}
                               disabled={editor.isSaving}
                               onFocus={() => editor.setActiveRowKey(line.key)}
@@ -513,6 +513,11 @@ export function SalesOrderLinesEditor({
                               {line.productName ?? "—"}
                             </span>
                           )}
+                          {!isEditing && !line.isNew ? (
+                            <span className="text-xs text-brand-muted opacity-0 transition-opacity group-hover:opacity-100">
+                              Click to edit
+                            </span>
+                          ) : null}
                           {isSalesOrderLineNonPayable(order, line) ? (
                             <LineNonPayableBadge
                               onClick={(() => {

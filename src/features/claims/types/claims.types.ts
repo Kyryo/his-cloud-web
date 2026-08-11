@@ -27,8 +27,12 @@ export type ClaimLineItem = {
   id: number;
   uuid: string;
   tariff_code: string;
+  description?: string | null;
   unit_price: string;
   quantity: string;
+  payer_due?: string | null;
+  client_due?: string | null;
+  total?: string | null;
   date_created: string;
   sales_order_line: number | null;
   is_procedure?: boolean;
@@ -92,11 +96,31 @@ export type ClaimVitals = {
   [key: string]: unknown;
 };
 
+export type ClaimPayerStatus =
+  | "awaiting_payer"
+  | "processing"
+  | "closed"
+  | "failed"
+  | "not_applicable"
+  | string;
+
+export type ClaimPayerReference = {
+  status: ClaimPayerStatus;
+  label: string;
+  job_status?: string | null;
+  portal_claim_id?: string | null;
+  portal_url?: string | null;
+  screenshot_url?: string | null;
+  error_message?: string;
+};
+
 export type ClaimListItem = {
   id: number;
   uuid: string;
   status: ClaimStatus;
   payer_code: string;
+  payer_status?: ClaimPayerStatus;
+  payer_status_label?: string;
   membership_number: string;
   claim_reference_number: string | null;
   external_claim_id: string | null;
@@ -118,6 +142,9 @@ export type ClaimDetail = {
   invoice_name?: string | null;
   payer_code: string;
   status: ClaimStatus;
+  payer_status?: ClaimPayerStatus;
+  payer_status_label?: string;
+  payer_reference?: ClaimPayerReference | null;
   vitals: ClaimVitals;
   membership_number: string;
   practitioner_number: string;
@@ -198,6 +225,7 @@ export type MasmPayerIntegration = {
   clinic: number;
   payer_code: string;
   is_enabled: boolean;
+  send_total_amount: boolean;
   client_key: string;
   client_secret?: string;
   has_client_secret?: boolean;
@@ -210,6 +238,7 @@ export type MasmPayerIntegration = {
 
 export type UpdateMasmPayerIntegrationPayload = {
   is_enabled?: boolean;
+  send_total_amount?: boolean;
   client_key?: string;
   client_secret?: string;
   sso_url?: string;

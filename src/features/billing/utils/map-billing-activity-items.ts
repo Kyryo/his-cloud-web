@@ -41,6 +41,7 @@ const ACTION_ICONS: Record<string, LucideIcon> = {
   CLAIM_DIAGNOSES_SYNCED: Stethoscope,
   CLAIM_ADVISORIES_EVALUATED: ShieldAlert,
   CLAIM_ADVISORY_OVERRIDE: ShieldAlert,
+  CLAIM_PAYER_WEBHOOK_RECEIVED: CheckCircle2,
 };
 
 function formatActivitySummary(record: BillingActivityRecord): string {

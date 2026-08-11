@@ -122,6 +122,23 @@ export async function submitClaim(claimId: number | string): Promise<ClaimDetail
   });
 }
 
+export type CheckPayerStatusResult = {
+  claim: ClaimDetail;
+  action: string;
+  message: string;
+};
+
+export async function checkClaimPayerStatus(
+  claimId: number | string,
+): Promise<CheckPayerStatusResult> {
+  return bffRequest<CheckPayerStatusResult>(
+    BFF_CLAIMS_ROUTES.checkPayerStatus(claimId),
+    {
+      method: "POST",
+    },
+  );
+}
+
 export async function addClaimDiagnosis(
   claimId: number | string,
   payload: {
@@ -146,6 +163,20 @@ export async function setClaimLineDentalTeeth(
     {
       method: "PUT",
       body: { tooth_numbers: toothNumbers },
+    },
+  );
+}
+
+export async function updateClaimLinePaymentSplit(
+  claimId: number | string,
+  lineItemId: number | string,
+  payload: { client_due: string; insurer_due: string },
+): Promise<ClaimDetail> {
+  return bffRequest<ClaimDetail>(
+    BFF_CLAIMS_ROUTES.lineItemPaymentSplit(claimId, lineItemId),
+    {
+      method: "PATCH",
+      body: payload,
     },
   );
 }

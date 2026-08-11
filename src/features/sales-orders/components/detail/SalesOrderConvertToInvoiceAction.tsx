@@ -1,6 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
@@ -12,7 +13,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { createSalesOrderInvoice, fetchSalesOrder } from "@/features/sales-orders/services/sales-orders.service";
+import { ROUTES } from "@/constants/routes";
+import {
+  createSalesOrderInvoice,
+  fetchSalesOrder,
+} from "@/features/sales-orders/services/sales-orders.service";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
 import {
   canConvertSalesOrderToInvoice,
@@ -40,6 +45,8 @@ export function SalesOrderConvertToInvoiceAction({
   const { toast } = useToast();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [isConverting, setIsConverting] = useState(false);
+
+  const invoiceId = order.invoice_id ?? null;
 
   const disabledReason = getConvertSalesOrderToInvoiceDisabledReason(order, {
     hasDraftSplitMismatch,
@@ -77,6 +84,18 @@ export function SalesOrderConvertToInvoiceAction({
     } finally {
       setIsConverting(false);
     }
+  }
+
+  if (order.invoice_status === "invoiced" && invoiceId != null) {
+    return (
+      <SecondaryButton
+        asChild
+        className={cn(className)}
+        data-testid="sales-order-view-invoice-button"
+      >
+        <Link href={ROUTES.invoiceDetail(invoiceId)}>View invoice</Link>
+      </SecondaryButton>
+    );
   }
 
   return (

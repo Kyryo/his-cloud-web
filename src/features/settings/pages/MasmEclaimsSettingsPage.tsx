@@ -1,31 +1,27 @@
 "use client";
 
 import Link from "next/link";
+import { ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 import { PageLoader } from "@/components/page-loader";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DetailPageTabNavItem,
   DetailPageTabsNavSection,
 } from "@/features/app-shell/components/page-layout";
-import {
-  MasmEclaimsSettingsForm,
-  loadMasemClinicSettings,
-} from "@/features/settings/components/integrations/MasmEclaimsSettingsForm";
+import { MasmClinicSettingsSheet } from "@/features/settings/components/integrations/MasmClinicSettingsSheet";
 import { EclaimsPractitionerMappingsPanel } from "@/features/settings/components/integrations/EclaimsPractitionerMappingsPanel";
 import {
   SettingsPageLayout,
   SettingsSection,
 } from "@/features/settings/components/SettingsPageLayout";
 import { ROUTES } from "@/constants/routes";
-import type {
-  MasmPayerIntegration,
-  MasmPortalCredential,
-} from "@/features/claims/types/claims.types";
 import { fetchOrganizationClinics } from "@/features/settings/services/settings.service";
 import type { OrganizationClinic } from "@/features/settings/types/settings.types";
+import { cn } from "@/lib/utils";
 import { useUser } from "@/providers/user-provider";
 
 type MasmTabId = "connection" | "practitioners";
@@ -45,9 +41,9 @@ export function MasmEclaimsSettingsPage() {
   const { userData, isLoading: isUserLoading } = useUser();
   const isTenantAdmin = Boolean(userData?.is_admin);
   const [clinics, setClinics] = useState<OrganizationClinic[]>([]);
-  const [selectedClinicId, setSelectedClinicId] = useState<number | null>(null);
-  const [integration, setIntegration] = useState<MasmPayerIntegration | null>(null);
-  const [credential, setCredential] = useState<MasmPortalCredential | null>(null);
+  const [selectedClinic, setSelectedClinic] =
+    useState<OrganizationClinic | null>(null);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const activeTab = resolveTab(searchParams.get("tab"));
@@ -69,8 +65,6 @@ export function MasmEclaimsSettingsPage() {
           return;
         }
         setClinics(clinicResponse.results);
-        const firstClinicId = clinicResponse.results[0]?.id ?? null;
-        setSelectedClinicId((current) => current ?? firstClinicId);
       } catch (loadError) {
         if (active) {
           setClinics([]);
@@ -92,47 +86,14 @@ export function MasmEclaimsSettingsPage() {
     };
   }, [isTenantAdmin]);
 
-  useEffect(() => {
-    if (!isTenantAdmin || selectedClinicId == null || activeTab !== "connection") {
-      return;
-    }
-
-    let active = true;
-
-    void (async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const data = await loadMasemClinicSettings(selectedClinicId);
-        if (active) {
-          setIntegration(data.integration);
-          setCredential(data.credential);
-        }
-      } catch (loadError) {
-        if (active) {
-          setIntegration(null);
-          setCredential(null);
-          setError(
-            loadError instanceof Error
-              ? loadError.message
-              : "Could not load MASM integration settings.",
-          );
-        }
-      } finally {
-        if (active) {
-          setIsLoading(false);
-        }
-      }
-    })();
-
-    return () => {
-      active = false;
-    };
-  }, [activeTab, isTenantAdmin, selectedClinicId]);
-
   function setActiveTab(tab: MasmTabId) {
     const query = tab === "connection" ? "" : `?tab=${tab}`;
     router.replace(`${ROUTES.settingsIntegrationsMasemEclaims}${query}`);
+  }
+
+  function handleClinicClick(clinic: OrganizationClinic) {
+    setSelectedClinic(clinic);
+    setSheetOpen(true);
   }
 
   if (isUserLoading) {
@@ -164,7 +125,7 @@ export function MasmEclaimsSettingsPage() {
       title="MASM eClaims"
       description="Configure clinic-scoped payer credentials and practitioner mappings for electronic claims in Malawi."
     >
-      <div className="w-full max-w-[75%] overflow-hidden rounded-xl border border-brand-border bg-white">
+      <div className="w-full overflow-hidden rounded-xl border border-brand-border bg-white">
         <DetailPageTabsNavSection aria-label="MASM integration sections">
           {tabs.map((tab) => (
             <DetailPageTabNavItem
@@ -180,27 +141,12 @@ export function MasmEclaimsSettingsPage() {
         <div className="px-6 py-6">
           {activeTab === "connection" ? (
             <div className="space-y-4">
-              <label className="block space-y-2">
-                <span className="text-sm font-medium text-brand-navy">Clinic</span>
-                <select
-                  className="w-full rounded-md border border-brand-border bg-white px-3 py-2 text-sm"
-                  value={selectedClinicId ?? ""}
-                  onChange={(event) =>
-                    setSelectedClinicId(
-                      event.target.value ? Number(event.target.value) : null,
-                    )
-                  }
-                >
-                  {clinics.length === 0 ? (
-                    <option value="">No clinics available</option>
-                  ) : null}
-                  {clinics.map((clinic) => (
-                    <option key={clinic.id} value={clinic.id}>
-                      {clinic.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <div>
+                <h2 className="text-sm font-semibold text-brand-navy">Clinics</h2>
+                <p className="mt-0.5 text-xs text-brand-muted">
+                  Select a clinic to configure its MASM connection settings.
+                </p>
+              </div>
 
               {isLoading ? (
                 <PageLoader />
@@ -208,23 +154,67 @@ export function MasmEclaimsSettingsPage() {
                 <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {error}
                 </div>
-              ) : selectedClinicId && integration ? (
-                <MasmEclaimsSettingsForm
-                  clinicId={selectedClinicId}
-                  integration={integration}
-                  credential={credential}
-                  onUpdated={({ integration: nextIntegration, credential: nextCredential }) => {
-                    setIntegration(nextIntegration);
-                    setCredential(nextCredential);
-                  }}
-                />
-              ) : null}
+              ) : clinics.length === 0 ? (
+                <p className="py-8 text-center text-sm text-brand-muted">
+                  No clinics are available for this organization yet.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {clinics.map((clinic) => (
+                    <button
+                      key={clinic.id}
+                      type="button"
+                      onClick={() => handleClinicClick(clinic)}
+                      className={cn(
+                        "group flex w-full items-center gap-3 rounded-lg border border-brand-border bg-white px-4 py-3 text-left transition-colors",
+                        "hover:border-brand-primary/40 hover:bg-brand-tint/30",
+                      )}
+                      data-testid={`masm-clinic-row-${clinic.id}`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <h3 className="truncate text-sm font-medium text-brand-navy">
+                            {clinic.name}
+                          </h3>
+                          <Badge
+                            variant={clinic.is_active ? "default" : "outline"}
+                            className="capitalize"
+                          >
+                            {clinic.status.replace(/_/g, " ").toLowerCase()}
+                          </Badge>
+                        </div>
+                        <p className="mt-0.5 text-xs text-brand-muted">
+                          {clinic.code}
+                          {clinic.location_count != null
+                            ? ` · ${clinic.location_count} location${clinic.location_count === 1 ? "" : "s"}`
+                            : null}
+                        </p>
+                      </div>
+                      <ChevronRight
+                        className="size-4 shrink-0 text-brand-muted transition-transform group-hover:translate-x-0.5 group-hover:text-brand-primary"
+                        aria-hidden="true"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <EclaimsPractitionerMappingsPanel />
           )}
         </div>
       </div>
+
+      <MasmClinicSettingsSheet
+        clinic={selectedClinic}
+        open={sheetOpen}
+        onOpenChange={(open) => {
+          setSheetOpen(open);
+          if (!open) {
+            setSelectedClinic(null);
+          }
+        }}
+      />
     </SettingsPageLayout>
   );
 }

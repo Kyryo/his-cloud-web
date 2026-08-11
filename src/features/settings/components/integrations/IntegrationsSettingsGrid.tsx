@@ -10,7 +10,7 @@ export function IntegrationsSettingsGrid() {
   const sections = getIntegrationSettingsSections();
 
   return (
-    <div className="w-full max-w-[75%] space-y-8">
+    <div className="w-full space-y-8 lg:max-w-[75%]">
       {sections.map((section) => (
         <section key={section.id} aria-labelledby={`integration-section-${section.id}`}>
           <div className="mb-3">

@@ -3,8 +3,6 @@
 import { useEffect, useState } from "react";
 
 import { SearchableSelect, SelectItem } from "@/components/ui/searchable-select";
-import { fetchCatalogPricelistProducts } from "@/features/catalog/services/catalog.service";
-import type { CatalogPricelistMembership } from "@/features/catalog/types/catalog.types";
 import { searchInventoryProducts } from "@/features/inventory/services/inventory.service";
 import type { InventoryProduct } from "@/features/inventory/types/inventory.types";
 import { formatProductLabel } from "@/features/inventory/utils/format-inventory";
@@ -22,26 +20,12 @@ type SalesOrderLineProductPickerProps = {
   id: string;
   value: string | null;
   displayLabel?: string | null;
-  pricelistUuid?: string | null;
   disabled?: boolean;
   autoOpen?: boolean;
   className?: string;
   onSelect: (selection: SalesOrderLineProductSelection) => void;
   onFocus?: () => void;
 };
-
-function membershipToSelection(
-  membership: CatalogPricelistMembership,
-): SalesOrderLineProductSelection {
-  const productName = membership.product_name?.trim() || membership.product_uuid;
-  return {
-    product_uuid: membership.product_uuid,
-    product_id: null,
-    productName,
-    fixed_price:
-      membership.fixed_price != null ? String(membership.fixed_price) : null,
-  };
-}
 
 function productToSelection(product: InventoryProduct): SalesOrderLineProductSelection {
   const productName = formatProductLabel(product);
@@ -57,7 +41,6 @@ export function SalesOrderLineProductPicker({
   id,
   value,
   displayLabel,
-  pricelistUuid,
   disabled = false,
   autoOpen = false,
   className,
@@ -66,9 +49,6 @@ export function SalesOrderLineProductPicker({
 }: SalesOrderLineProductPickerProps) {
   const [open, setOpen] = useState(autoOpen);
   const [search, setSearch] = useState("");
-  const [pricelistOptions, setPricelistOptions] = useState<
-    CatalogPricelistMembership[]
-  >([]);
   const [productOptions, setProductOptions] = useState<InventoryProduct[]>([]);
   const [isLoadingResults, setIsLoadingResults] = useState(false);
 
@@ -87,7 +67,6 @@ export function SalesOrderLineProductPicker({
     onFocus?.();
 
     if (search.trim().length < 2) {
-      setPricelistOptions([]);
       setProductOptions([]);
       return;
     }
@@ -96,24 +75,14 @@ export function SalesOrderLineProductPicker({
       void (async () => {
         setIsLoadingResults(true);
         try {
-          const term = search.trim();
-          if (pricelistUuid) {
-            const response = await fetchCatalogPricelistProducts(pricelistUuid, {
-              search: term,
-              pageSize: 20,
-            });
-            setPricelistOptions(response.results);
-            setProductOptions([]);
-          } else {
-            const products = await searchInventoryProducts({
-              q: term,
-              active: true,
-            });
-            setProductOptions(products);
-            setPricelistOptions([]);
-          }
+          // Always search all active products. Order pricelist pricing is
+          // resolved after selection in SalesOrderLinesEditor.
+          const products = await searchInventoryProducts({
+            q: search.trim(),
+            active: true,
+          });
+          setProductOptions(products);
         } catch {
-          setPricelistOptions([]);
           setProductOptions([]);
         } finally {
           setIsLoadingResults(false);
@@ -122,7 +91,7 @@ export function SalesOrderLineProductPicker({
     }, 250);
 
     return () => window.clearTimeout(handle);
-  }, [onFocus, open, pricelistUuid, search]);
+  }, [onFocus, open, search]);
 
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
@@ -132,27 +101,12 @@ export function SalesOrderLineProductPicker({
   }
 
   function handleValueChange(selectedUuid: string) {
-    if (pricelistUuid) {
-      const match = pricelistOptions.find(
-        (option) => option.product_uuid === selectedUuid,
-      );
-      if (match) {
-        onSelect(membershipToSelection(match));
-        setOpen(false);
-      }
-      return;
-    }
-
     const match = productOptions.find((option) => option.uuid === selectedUuid);
     if (match) {
       onSelect(productToSelection(match));
       setOpen(false);
     }
   }
-
-  const searchPlaceholder = pricelistUuid
-    ? "Search by name or tariff code..."
-    : "Search products...";
 
   return (
     <SearchableSelect
@@ -166,29 +120,23 @@ export function SalesOrderLineProductPicker({
       displayValue={displayLabel ?? undefined}
       searchValue={search}
       onSearchChange={setSearch}
-      searchPlaceholder={searchPlaceholder}
+      searchPlaceholder="Search products..."
       isLoading={isLoadingResults}
       noResultsMessage="No products found."
       triggerClassName={cn("min-w-[12rem]", className)}
     >
-      {pricelistUuid
-        ? pricelistOptions.map((option) => (
-            <SelectItem key={option.product_uuid} value={option.product_uuid}>
-              <span>{option.product_name?.trim() || option.product_uuid}</span>
-            </SelectItem>
-          ))
-        : productOptions.map((option) => (
-            <SelectItem key={option.uuid} value={option.uuid}>
-              <div className="flex flex-col items-start">
-                <span>{formatProductLabel(option)}</span>
-                {option.default_code ? (
-                  <span className="text-xs text-brand-muted">
-                    {option.default_code}
-                  </span>
-                ) : null}
-              </div>
-            </SelectItem>
-          ))}
+      {productOptions.map((option) => (
+        <SelectItem key={option.uuid} value={option.uuid}>
+          <div className="flex flex-col items-start">
+            <span>{formatProductLabel(option)}</span>
+            {option.default_code ? (
+              <span className="text-xs text-brand-muted">
+                {option.default_code}
+              </span>
+            ) : null}
+          </div>
+        </SelectItem>
+      ))}
     </SearchableSelect>
   );
 }

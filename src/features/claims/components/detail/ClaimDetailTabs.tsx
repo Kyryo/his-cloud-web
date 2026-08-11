@@ -14,9 +14,8 @@ import {
 import { ClaimDetailActivityTab } from "@/features/claims/components/detail/ClaimDetailActivityTab";
 import { ClaimDetailAdvisoriesTab } from "@/features/claims/components/detail/ClaimDetailAdvisoriesTab";
 import { ClaimDetailClaimedItemsTab } from "@/features/claims/components/detail/ClaimDetailClaimedItemsTab";
-import { ClaimDetailClientTab } from "@/features/claims/components/detail/ClaimDetailClientTab";
-import { ClaimDetailClinicalTab } from "@/features/claims/components/detail/ClaimDetailClinicalTab";
 import { ClaimDetailOdontogramTab } from "@/features/claims/components/detail/ClaimDetailOdontogramTab";
+import { ClaimDetailReferenceTab } from "@/features/claims/components/detail/ClaimDetailReferenceTab";
 import { ClaimSummaryPanel } from "@/features/claims/components/detail/ClaimSummaryPanel";
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
 import { shouldShowClaimOdontogramTab } from "@/features/claims/utils/claim-odontogram-tab";
@@ -26,28 +25,28 @@ import { cn } from "@/lib/utils";
 type ClaimDetailTabsProps = {
   claim: ClaimDetail;
   onClaimUpdated?: (claim: ClaimDetail) => void;
+  onRequestSubmit?: () => void;
 };
 
 type DetailTabId =
   | "claimed-items"
-  | "client-visit"
-  | "clinical"
   | "odontogram"
   | "advisories"
+  | "reference"
   | "activity";
 
 const ALL_TABS: Array<{ id: DetailTabId; label: string }> = [
-  { id: "advisories", label: "Claim Workflow" },
-  { id: "claimed-items", label: "Claimed Items" },
-  { id: "client-visit", label: "Client & Visit" },
-  { id: "clinical", label: "Clinical Info" },
+  { id: "advisories", label: "Claim" },
+  { id: "claimed-items", label: "Claimed items" },
   { id: "odontogram", label: "Odontogram" },
+  { id: "reference", label: "Reference" },
   { id: "activity", label: "Activity" },
 ];
 
 export function ClaimDetailTabs({
   claim,
   onClaimUpdated,
+  onRequestSubmit,
 }: ClaimDetailTabsProps) {
   const showOdontogram = shouldShowClaimOdontogramTab(claim);
   const tabs = ALL_TABS.filter(
@@ -106,19 +105,11 @@ export function ClaimDetailTabs({
             claim={claim}
             isActive={resolvedActiveTab === "advisories"}
             onClaimUpdated={onClaimUpdated}
+            onRequestSubmit={onRequestSubmit}
           />
           <ClaimDetailClaimedItemsTab
             claim={claim}
             isActive={resolvedActiveTab === "claimed-items"}
-          />
-          <ClaimDetailClientTab
-            claim={claim}
-            isActive={resolvedActiveTab === "client-visit"}
-          />
-          <ClaimDetailClinicalTab
-            claim={claim}
-            isActive={resolvedActiveTab === "clinical"}
-            onClaimUpdated={onClaimUpdated}
           />
           {showOdontogram ? (
             <ClaimDetailOdontogramTab
@@ -127,6 +118,10 @@ export function ClaimDetailTabs({
               onClaimUpdated={onClaimUpdated}
             />
           ) : null}
+          <ClaimDetailReferenceTab
+            claim={claim}
+            isActive={resolvedActiveTab === "reference"}
+          />
           <ClaimDetailActivityTab
             invoiceId={invoiceId}
             isActive={resolvedActiveTab === "activity"}

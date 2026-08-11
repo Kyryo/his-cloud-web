@@ -8,6 +8,7 @@ import {
 } from "@/components/page-loader";
 import { DetailPageLayout } from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
+import { SubmitClaimDialog } from "@/features/claims/components/SubmitClaimDialog";
 import { ClaimDetailActions } from "@/features/claims/components/detail/ClaimDetailActions";
 import { ClaimDetailHeader } from "@/features/claims/components/detail/ClaimDetailHeader";
 import { ClaimDetailTabs } from "@/features/claims/components/detail/ClaimDetailTabs";
@@ -22,6 +23,7 @@ export function ClaimDetailPage({ claimId }: ClaimDetailPageProps) {
   const [claim, setClaim] = useState<ClaimDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [submitOpen, setSubmitOpen] = useState(false);
 
   useAppBreadcrumb(
     claim?.customer_name?.trim() ||
@@ -80,10 +82,25 @@ export function ClaimDetailPage({ claimId }: ClaimDetailPageProps) {
       <ClaimDetailHeader
         claim={claim}
         actions={
-          <ClaimDetailActions claim={claim} onClaimUpdated={setClaim} />
+          <ClaimDetailActions
+            claim={claim}
+            onClaimUpdated={setClaim}
+            onRequestSubmit={() => setSubmitOpen(true)}
+          />
         }
       />
-      <ClaimDetailTabs claim={claim} onClaimUpdated={setClaim} />
+      <ClaimDetailTabs
+        claim={claim}
+        onClaimUpdated={setClaim}
+        onRequestSubmit={() => setSubmitOpen(true)}
+      />
+      <SubmitClaimDialog
+        claim={claim}
+        open={submitOpen}
+        onOpenChange={setSubmitOpen}
+        onSuccess={setClaim}
+        onClaimUpdated={setClaim}
+      />
     </DetailPageLayout>
   );
 }

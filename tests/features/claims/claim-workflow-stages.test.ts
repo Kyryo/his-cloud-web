@@ -117,5 +117,40 @@ describe("getClaimWorkflowStageStates", () => {
       id: "queue",
       status: "current",
     });
+    expect(stages[3]).toMatchObject({
+      id: "payer",
+      status: "pending",
+    });
+  });
+
+  it("marks payer response current after submission while awaiting", () => {
+    const stages = getClaimWorkflowStageStates(
+      requirements(true),
+      draftClaim({
+        status: "submitted",
+        payer_status: "awaiting_payer",
+      }),
+    );
+    expect(stages[2]).toMatchObject({ id: "queue", status: "completed" });
+    expect(stages[3]).toMatchObject({
+      id: "payer",
+      status: "current",
+      summary: "Awaiting a response from MASM",
+    });
+  });
+
+  it("marks payer response failed when auto-close needs attention", () => {
+    const stages = getClaimWorkflowStageStates(
+      requirements(true),
+      draftClaim({
+        status: "submitted",
+        payer_status: "failed",
+      }),
+    );
+    expect(stages[3]).toMatchObject({
+      id: "payer",
+      status: "failed",
+      summary: "MASM response needs attention",
+    });
   });
 });

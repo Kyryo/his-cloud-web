@@ -7,13 +7,13 @@ import {
   isClaimSubmitBlockedByAdvisories,
 } from "@/features/claims/components/ClaimAdvisoriesPanel";
 import { ClaimWorkflowCard } from "@/features/claims/components/ClaimWorkflowCard";
+import { SubmitClaimDialog } from "@/features/claims/components/SubmitClaimDialog";
 import {
   createClaimFromInvoice,
   evaluateClaimAdvisories,
   fetchClaim,
   fetchClaimByInvoice,
   isInsuranceInvoice,
-  submitClaim,
 } from "@/features/claims/services/claims.service";
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
 import { AddEncounterDiagnosisDialog } from "@/features/clinical/components/AddEncounterDiagnosisDialog";
@@ -49,7 +49,7 @@ export function InvoiceClaimsTab({
   const [claim, setClaim] = useState<ClaimDetail | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitOpen, setSubmitOpen] = useState(false);
   const [addDiagnosisOpen, setAddDiagnosisOpen] = useState(false);
   const encounterUuid = useInvoiceEncounterUuid(invoice, isActive);
   const visitUuid = invoice.visit_uuid?.trim() || null;
@@ -166,35 +166,11 @@ export function InvoiceClaimsTab({
     }
   }
 
-  async function handleSubmitClaim() {
+  async function handleRequestSubmit() {
     if (!claim || isClaimSubmitBlockedByAdvisories(claim)) {
       return;
     }
-
-    setIsSubmitting(true);
-    try {
-      const submitted = await submitClaim(claim.id);
-      setClaim(submitted);
-      toast({
-        variant: "success",
-        title: "Claim submitted",
-        description: "The claim was sent to MASM successfully.",
-      });
-      await onInvoiceRefresh?.();
-    } catch (error) {
-      toast({
-        variant: "error",
-        title: "Could not submit claim",
-        description:
-          error instanceof BffError
-            ? formatBffErrorMessage(error.message, error.errors)
-            : error instanceof Error
-              ? error.message
-              : "Something went wrong.",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+    setSubmitOpen(true);
   }
 
   if (!isActive) {
@@ -245,14 +221,29 @@ export function InvoiceClaimsTab({
           notice={nonPayableNotice}
           onCreateClaim={() => void handleCreateClaim()}
           isCreating={isCreating}
-          onSubmit={() => void handleSubmitClaim()}
-          isSubmitting={isSubmitting}
+          onSubmit={() => void handleRequestSubmit()}
           showSubmitInQueue
           onAddDiagnosis={
             canAddDiagnosis ? () => setAddDiagnosisOpen(true) : undefined
           }
         />
       )}
+
+      {claim ? (
+        <SubmitClaimDialog
+          claim={claim}
+          open={submitOpen}
+          onOpenChange={setSubmitOpen}
+          onSuccess={async (submitted) => {
+            setClaim(submitted);
+            await onInvoiceRefresh?.();
+          }}
+          onClaimUpdated={async (updated) => {
+            setClaim(updated);
+            await onInvoiceRefresh?.();
+          }}
+        />
+      ) : null}
 
       {canAddDiagnosis && visitUuid ? (
         <AddEncounterDiagnosisDialog

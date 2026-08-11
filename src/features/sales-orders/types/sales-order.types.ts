@@ -29,6 +29,7 @@ export type SalesOrder = {
   date_order: string | null;
   state: SalesOrderState;
   invoice_status: SalesOrderInvoiceStatus;
+  invoice_id?: number | null;
   customer_id: number;
   customer_uuid: string | null;
   customer_name: string | null;

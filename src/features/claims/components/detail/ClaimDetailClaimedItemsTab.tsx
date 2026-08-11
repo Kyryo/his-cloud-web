@@ -6,7 +6,7 @@ import Link from "next/link";
 import { DetailTabEmptyState } from "@/components/detail/detail-tab-empty-state";
 import { SecondaryButton } from "@/components/ui/app-buttons";
 import type { ClaimDetail, ClaimLineItem } from "@/features/claims/types/claims.types";
-import { formatInvoiceAmount } from "@/features/invoices/utils/format-invoice";
+import { formatAmountNumber } from "@/features/sales-orders/utils/format-sales-order";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 
@@ -105,10 +105,10 @@ export function ClaimDetailClaimedItemsTab({
                           Qty
                         </th>
                         <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
-                          Unit price
+                          Unit price (MWK)
                         </th>
                         <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
-                          Total
+                          Total (MWK)
                         </th>
                         <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
                           Date
@@ -125,10 +125,10 @@ export function ClaimDetailClaimedItemsTab({
                             {line.quantity}
                           </td>
                           <td className="px-4 py-3 text-right text-sm text-brand-slate">
-                            {formatInvoiceAmount(line.unit_price)}
+                            {formatAmountNumber(line.unit_price)}
                           </td>
                           <td className="px-4 py-3 text-right text-sm font-medium text-brand-navy">
-                            {formatInvoiceAmount(lineTotal(line))}
+                            {formatAmountNumber(lineTotal(line))}
                           </td>
                           <td className="px-4 py-3 text-sm text-brand-slate">
                             {formatLineDate(line.date_created)}

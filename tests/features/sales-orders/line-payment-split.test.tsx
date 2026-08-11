@@ -25,7 +25,7 @@ describe("LineExcessBadge", () => {
 describe("LineNonPayableBadge", () => {
   it("shows a non-payable badge", () => {
     render(<LineNonPayableBadge />);
-    expect(screen.getByLabelText("Non-payable")).toHaveTextContent("NP");
+    expect(screen.getByLabelText(/Non-payable/)).toHaveTextContent("NP");
   });
 });
 

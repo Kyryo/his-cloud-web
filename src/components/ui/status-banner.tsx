@@ -18,8 +18,11 @@ type StatusBannerProps = {
   message: string;
   description?: string;
   icon?: LucideIcon;
+  /** When false, renders text-only alert chrome with no leading icon. */
+  showIcon?: boolean;
   className?: string;
   children?: ReactNode;
+  "data-testid"?: string;
 };
 
 const VARIANT_STYLES: Record<
@@ -64,29 +67,38 @@ export function StatusBanner({
   message,
   description,
   icon,
+  showIcon = true,
   className,
   children,
+  "data-testid": dataTestId,
 }: StatusBannerProps) {
   const styles = VARIANT_STYLES[variant];
   const Icon = icon ?? DEFAULT_ICONS[variant];
 
   return (
     <div
-      role={variant === "error" ? "alert" : "status"}
+      role={variant === "error" || variant === "warning" ? "alert" : "status"}
+      data-testid={dataTestId}
       className={cn(
         "flex gap-3 rounded-lg border px-4 py-3 text-sm",
         styles.container,
         className,
       )}
     >
-      <Icon
-        className={cn("mt-0.5 size-4 shrink-0", styles.icon)}
-        aria-hidden="true"
-      />
-      <div className="min-w-0 space-y-1">
-        <p className={cn("font-medium", styles.message)}>{message}</p>
+      {showIcon ? (
+        <Icon
+          className={cn("mt-0.5 size-4 shrink-0", styles.icon)}
+          aria-hidden="true"
+        />
+      ) : null}
+      <div className="min-w-0 flex-1 space-y-1">
+        <p className={cn("font-medium leading-relaxed", styles.message)}>
+          {message}
+        </p>
         {description ? (
-          <p className={cn("text-sm", styles.description)}>{description}</p>
+          <p className={cn("text-sm leading-relaxed", styles.description)}>
+            {description}
+          </p>
         ) : null}
         {children}
       </div>

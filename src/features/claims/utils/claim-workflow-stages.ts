@@ -9,13 +9,19 @@ import type { WorkflowStageStatus } from "@/components/ui/workflow-card";
 export type ClaimWorkflowStageId =
   | "requirements"
   | "advisory"
-  | "queue";
+  | "queue"
+  | "payer";
 
 export type ClaimWorkflowStageState = {
   id: ClaimWorkflowStageId;
   status: WorkflowStageStatus;
   summary: string;
 };
+
+function payerDisplayName(claim: ClaimDetail | null): string {
+  const code = claim?.payer_code?.trim();
+  return code || "the insurer";
+}
 
 function requirementsState(
   requirementItems: InvoiceClaimReadinessItem[],
@@ -184,8 +190,69 @@ function queueState(claim: ClaimDetail | null): ClaimWorkflowStageState {
   };
 }
 
+function payerResponseState(claim: ClaimDetail | null): ClaimWorkflowStageState {
+  const payerName = payerDisplayName(claim);
+
+  if (!claim) {
+    return {
+      id: "payer",
+      status: "pending",
+      summary: "Available after the claim is submitted",
+    };
+  }
+
+  const claimStatus = String(claim.status).toLowerCase();
+  if (claimStatus === "draft" || claimStatus === "") {
+    return {
+      id: "payer",
+      status: "pending",
+      summary: `Waiting until the claim is submitted to ${payerName}`,
+    };
+  }
+
+  const payerStatus = String(claim.payer_status || "awaiting_payer").toLowerCase();
+
+  if (payerStatus === "closed") {
+    return {
+      id: "payer",
+      status: "completed",
+      summary: `${payerName} confirmed the claim was closed`,
+    };
+  }
+
+  if (payerStatus === "failed") {
+    return {
+      id: "payer",
+      status: "failed",
+      summary: `${payerName} response needs attention`,
+    };
+  }
+
+  if (payerStatus === "processing") {
+    return {
+      id: "payer",
+      status: "current",
+      summary: `${payerName} is processing the claim`,
+    };
+  }
+
+  if (payerStatus === "not_applicable") {
+    return {
+      id: "payer",
+      status: "pending",
+      summary: "Not submitted yet",
+    };
+  }
+
+  return {
+    id: "payer",
+    status: "current",
+    summary: `Awaiting a response from ${payerName}`,
+  };
+}
+
 /**
- * Derive the three claim workflow stage statuses from requirement checks + claim state.
+ * Derive claim workflow stage statuses from requirement checks + claim state.
  */
 export function getClaimWorkflowStageStates(
   requirementItems: InvoiceClaimReadinessItem[],
@@ -195,5 +262,6 @@ export function getClaimWorkflowStageStates(
     requirementsState(requirementItems, claim),
     advisoryState(claim),
     queueState(claim),
+    payerResponseState(claim),
   ];
 }

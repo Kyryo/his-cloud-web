@@ -1,7 +1,8 @@
 "use client";
 
-import { TableTextCell } from "@/components/table-text-cell";
+import { TableEntityCell, TableTextCell } from "@/components/table-text-cell";
 import { Button } from "@/components/ui/button";
+import { ClaimPayerStatusBadge } from "@/features/claims/components/ClaimPayerStatusBadge";
 import { ClaimStatusBadge } from "@/features/claims/components/ClaimStatusBadge";
 import type { ClaimListItem } from "@/features/claims/types/claims.types";
 import { cn } from "@/lib/utils";
@@ -13,11 +14,12 @@ type ClaimsTableProps = {
 };
 
 const columns = [
-  { key: "customer", label: "Customer" },
+  { key: "client", label: "Client" },
   { key: "invoice", label: "Invoice" },
   { key: "payer", label: "Payer" },
   { key: "membership", label: "Membership #" },
   { key: "status", label: "Status" },
+  { key: "payer_status", label: "Payer status" },
   { key: "submitted", label: "Submitted" },
   { key: "created", label: "Created" },
 ] as const;
@@ -56,48 +58,60 @@ export function ClaimsTable({ claims, onRowClick, className }: ClaimsTableProps)
             </tr>
           </thead>
           <tbody className="divide-y divide-brand-border">
-            {claims.map((claim) => (
-              <tr
-                key={claim.id}
-                className={cn(onRowClick && "cursor-pointer hover:bg-slate-50/80")}
-                onClick={() => onRowClick?.(claim)}
-                data-testid={`claim-row-${claim.id}`}
-              >
-                <td className="px-4 py-3">
-                  <TableTextCell className="font-medium text-brand-navy">
-                    {claim.customer_name || "—"}
-                  </TableTextCell>
-                </td>
-                <td className="px-4 py-3">
-                  <TableTextCell className="text-brand-slate">
-                    {claim.invoice_name || "—"}
-                  </TableTextCell>
-                </td>
-                <td className="px-4 py-3">
-                  <TableTextCell className="text-brand-slate">
-                    {claim.payer_code || "—"}
-                  </TableTextCell>
-                </td>
-                <td className="px-4 py-3">
-                  <TableTextCell className="font-mono text-sm text-brand-slate">
-                    {claim.membership_number || "—"}
-                  </TableTextCell>
-                </td>
-                <td className="px-4 py-3 text-sm">
-                  <ClaimStatusBadge status={claim.status} />
-                </td>
-                <td className="px-4 py-3">
-                  <TableTextCell className="text-brand-slate">
-                    {formatClaimDate(claim.submitted_at)}
-                  </TableTextCell>
-                </td>
-                <td className="px-4 py-3">
-                  <TableTextCell className="text-brand-slate">
-                    {formatClaimDate(claim.created_at)}
-                  </TableTextCell>
-                </td>
-              </tr>
-            ))}
+            {claims.map((claim) => {
+              const clientName = claim.customer_name?.trim() || "";
+              return (
+                <tr
+                  key={claim.id}
+                  className={cn(onRowClick && "cursor-pointer hover:bg-slate-50/80")}
+                  onClick={() => onRowClick?.(claim)}
+                  data-testid={`claim-row-${claim.id}`}
+                >
+                  <td className="px-4 py-3">
+                    <TableEntityCell
+                      name={clientName || "Unknown client"}
+                      unassigned={!clientName}
+                      unassignedLabel="—"
+                      className="max-w-[16rem] font-medium text-brand-navy"
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <TableTextCell className="text-brand-slate">
+                      {claim.invoice_name || "—"}
+                    </TableTextCell>
+                  </td>
+                  <td className="px-4 py-3">
+                    <TableTextCell className="text-brand-slate">
+                      {claim.payer_code || "—"}
+                    </TableTextCell>
+                  </td>
+                  <td className="px-4 py-3">
+                    <TableTextCell className="font-mono text-sm text-brand-slate">
+                      {claim.membership_number || "—"}
+                    </TableTextCell>
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    <ClaimStatusBadge status={claim.status} />
+                  </td>
+                  <td className="px-4 py-3 text-sm">
+                    <ClaimPayerStatusBadge
+                      status={claim.payer_status}
+                      label={claim.payer_status_label}
+                    />
+                  </td>
+                  <td className="px-4 py-3">
+                    <TableTextCell className="text-brand-slate">
+                      {formatClaimDate(claim.submitted_at)}
+                    </TableTextCell>
+                  </td>
+                  <td className="px-4 py-3">
+                    <TableTextCell className="text-brand-slate">
+                      {formatClaimDate(claim.created_at)}
+                    </TableTextCell>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
