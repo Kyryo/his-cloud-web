@@ -1,10 +1,11 @@
 "use client";
 
-import { Loader2, Mail } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useCallback, useId, useState } from "react";
 
 import { useCountdown } from "@/components/verification-code/use-countdown";
 import { useOtpInput } from "@/components/verification-code/use-otp-input";
+import { StatusBanner } from "@/components/ui/status-banner";
 import { maskEmail } from "@/lib/mask-email";
 import { cn } from "@/lib/utils";
 
@@ -118,38 +119,10 @@ export function SignupEmailConfirmStep({
 
   return (
     <div className="flex flex-1 flex-col" data-testid="signup-otp-form">
-      {/* Destination — the one distinctive focus of this step */}
-      <div
-        className="inline-flex max-w-full items-center gap-2.5 self-start rounded-xl border border-slate-200 bg-slate-50/80 px-3.5 py-2.5"
-        title={email}
-      >
-        <span
-          className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-white text-brand-primary shadow-[0_0_0_1px_rgba(15,23,42,0.06)]"
-          aria-hidden="true"
-        >
-          <Mail className="size-3.5" strokeWidth={1.75} />
-        </span>
-        <div className="min-w-0">
-          <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-brand-muted">
-            Code sent to
-          </p>
-          <p className="truncate text-sm font-semibold tracking-tight text-brand-navy">
-            {masked}
-          </p>
-        </div>
-      </div>
-
-      <div className="mt-8">
-        <p
-          id={`${groupId}-label`}
-          className="mb-3 text-[13px] font-medium text-brand-navy"
-        >
-          Verification code
-        </p>
-
+      <div className="mt-1">
         <div
           role="group"
-          aria-labelledby={`${groupId}-label`}
+          aria-label={`Verification code sent to ${masked}`}
           aria-describedby={
             displayError
               ? `${groupId}-error`
@@ -157,7 +130,7 @@ export function SignupEmailConfirmStep({
           }
           data-testid={codeTestId}
           className={cn(
-            "grid grid-cols-6 gap-2 sm:gap-2.5",
+            "flex justify-center gap-2 sm:gap-2.5",
             displayError && "animate-otp-shake",
           )}
           key={displayError ?? "valid"}
@@ -183,7 +156,7 @@ export function SignupEmailConfirmStep({
                 value={digit}
                 disabled={disabled || isResending || isExpiryExpired || isSubmitting}
                 className={cn(
-                  "h-12 w-full min-w-0 rounded-xl border bg-white text-center font-[family-name:var(--font-bricolage)] text-xl font-semibold tabular-nums text-brand-navy",
+                  "size-11 shrink-0 rounded-xl border bg-white text-center font-[family-name:var(--font-bricolage)] text-lg font-semibold tabular-nums text-brand-navy sm:size-12 sm:text-xl",
                   "transition-[border-color,box-shadow,background-color] duration-150",
                   "focus-visible:outline-none",
                   "disabled:cursor-not-allowed disabled:opacity-50",
@@ -211,17 +184,18 @@ export function SignupEmailConfirmStep({
         </div>
 
         {displayError ? (
-          <p
+          <StatusBanner
             id={`${groupId}-error`}
-            role="alert"
-            className="mt-3 text-sm text-destructive"
-          >
-            {displayError}
-          </p>
+            variant="error"
+            message={displayError}
+            showIcon={false}
+            className="mt-4"
+            data-testid={`${codeTestId}-error`}
+          />
         ) : null}
       </div>
 
-      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
         <p
           id={`${groupId}-expiry`}
           className={cn(
@@ -263,7 +237,7 @@ export function SignupEmailConfirmStep({
         <p
           role="status"
           className={cn(
-            "mt-4 text-sm",
+            "mt-4 text-center text-sm",
             resendMessage.toLowerCase().includes("sent")
               ? "text-emerald-700"
               : "text-destructive",

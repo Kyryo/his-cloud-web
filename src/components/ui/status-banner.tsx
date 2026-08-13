@@ -22,6 +22,7 @@ type StatusBannerProps = {
   showIcon?: boolean;
   className?: string;
   children?: ReactNode;
+  id?: string;
   "data-testid"?: string;
 };
 
@@ -70,6 +71,7 @@ export function StatusBanner({
   showIcon = true,
   className,
   children,
+  id,
   "data-testid": dataTestId,
 }: StatusBannerProps) {
   const styles = VARIANT_STYLES[variant];
@@ -77,6 +79,7 @@ export function StatusBanner({
 
   return (
     <div
+      id={id}
       role={variant === "error" || variant === "warning" ? "alert" : "status"}
       data-testid={dataTestId}
       className={cn(

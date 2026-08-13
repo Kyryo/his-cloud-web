@@ -4,6 +4,7 @@ import { BFF_SETTINGS_ROUTES } from "@/constants/api";
 import {
   archiveOrganizationPricelist,
   createOrganizationLocation,
+  createOrganizationClinic,
   createOrganizationDepartment,
   createOrganizationPayer,
   createOrganizationPayerScheme,
@@ -83,6 +84,25 @@ describe("settings.service organization", () => {
       `${BFF_SETTINGS_ROUTES.clinics}?page_size=100&ordering=name`,
     );
     expect(response.results).toHaveLength(1);
+  });
+
+  it("creates an organization clinic", async () => {
+    vi.mocked(bffRequest).mockResolvedValueOnce({
+      uuid: "clinic-2",
+      name: "Annex Clinic",
+      code: "ANNEX",
+    });
+
+    const clinic = await createOrganizationClinic({
+      name: "Annex Clinic",
+      code: "annex",
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SETTINGS_ROUTES.clinics, {
+      method: "POST",
+      body: { name: "Annex Clinic", code: "ANNEX" },
+    });
+    expect(clinic.code).toBe("ANNEX");
   });
 
   it("fetches organization locations", async () => {

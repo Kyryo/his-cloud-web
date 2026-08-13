@@ -32,17 +32,15 @@ test.describe("OTP auth flow", () => {
     await page.goto("/signup");
 
     await page.getByTestId("signup-clinic-name").fill("Lakeview Clinic");
+    await page.getByTestId("signup-continue").click();
+
     await page.getByTestId("signup-name").fill("Jane Doe");
     await page.getByTestId("signup-email").fill("user@example.com");
     await page.getByTestId("signup-password").fill("Str0ng-Passphrase-123!");
-    await page.getByTestId("signup-continue").click();
+    await page.getByTestId("signup-account-continue").click();
 
     await expect(page.getByTestId("signup-otp-form")).toBeVisible();
     await fillVerificationCode(page, "signup-otp", "123456");
-    await page.getByTestId("signup-verify-email").click();
-
-    await expect(page.getByTestId("signup-archetype-private-clinic")).toBeVisible();
-    await page.getByTestId("signup-archetype-private-clinic").click();
     await page.getByTestId("signup-submit").click();
 
     await expect(page).toHaveURL(/\/customers$/);

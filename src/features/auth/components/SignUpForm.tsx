@@ -1,28 +1,27 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { motion, useReducedMotion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
-import ReactFlagsSelect from "react-flags-select";
 
-import { PasswordInput } from "@/components/password-input";
+import { CountrySelectField } from "@/components/country-select-field";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { StatusBanner } from "@/components/ui/status-banner";
 import { ROUTES } from "@/constants/routes";
 import { AuthWizardShell, type AuthWizardStep } from "@/features/auth/components/AuthWizardShell";
+import {
+  FloatingLabelInput,
+  FloatingLabelPasswordInput,
+} from "@/features/auth/components/FloatingLabelField";
 import { PasswordStrengthMeter } from "@/features/auth/components/PasswordStrengthMeter";
 import { SignupEmailConfirmStep } from "@/features/auth/components/SignupEmailConfirmStep";
-import { SignupModulesStep } from "@/features/auth/components/SignupModulesStep";
 import {
-  getCountryNameFromCode,
-  getPrioritizedCountryCodes,
-} from "@/features/auth/constants/countries";
-import { moduleIdsToGroupNames } from "@/features/auth/constants/onboarding-modules";
+  DEFAULT_SIGNUP_MODULE_IDS,
+  moduleIdsToGroupNames,
+} from "@/features/auth/constants/onboarding-modules";
 import {
   markAuthenticatedSession,
   requestSignupOtp,
@@ -38,53 +37,34 @@ import {
   type SignupOtpValues,
   type SignupProfileValues,
 } from "@/features/auth/schemas/signup.schema";
-import { cn } from "@/lib/utils";
+
+type SignupStep = 1 | 2 | 3;
 
 const WIZARD_STEPS: AuthWizardStep[] = [
-  { number: 1, label: "Workspace" },
-  { number: 2, label: "Verify" },
-  { number: 3, label: "Modules" },
+  { number: 1, label: "Clinic" },
+  { number: 2, label: "Account" },
+  { number: 3, label: "Verify" },
 ];
 
 const STEP_COPY = {
   1: {
-    title: "Set up your clinic workspace",
+    title: "Tell us about your clinic",
     subtitle:
-      "Create your Sigma workspace to manage patients, billing, claims, and operations in one place.",
+      "A few details so we can set up the right workspace for your team.",
   },
   2: {
+    title: "Create your account",
+    subtitle: "Add your details and work email. You'll confirm it next.",
+  },
+  3: {
     title: "Confirm your email",
     subtitle:
       "We sent a 6-digit code to your inbox. Enter it below to verify ownership.",
   },
-  3: {
-    title: "Choose what to run first",
-    subtitle: "Start with the essentials — you can add more modules anytime.",
-  },
 } as const;
 
-const fieldClassName =
-  "mt-1.5 h-12 rounded-xl border-slate-200 bg-white px-3.5 text-[15px] shadow-none transition-[box-shadow,border-color] focus-visible:border-brand-primary focus-visible:ring-brand-primary/20";
+const DEFAULT_SIGNUP_GROUPS = moduleIdsToGroupNames([...DEFAULT_SIGNUP_MODULE_IDS]);
 
-function FormErrorShake({
-  message,
-  reduceMotion,
-}: {
-  message: string;
-  reduceMotion: boolean | null;
-}) {
-  return (
-    <motion.p
-      role="alert"
-      className="text-sm text-destructive"
-      initial={reduceMotion ? false : { x: 0 }}
-      animate={reduceMotion ? undefined : { x: [0, -6, 6, -4, 4, 0] }}
-      transition={{ duration: 0.35 }}
-    >
-      {message}
-    </motion.p>
-  );
-}
 
 function WizardFooter({
   onBack,
@@ -150,23 +130,12 @@ function WizardFooter({
 
 export function SignUpForm() {
   const router = useRouter();
-  const reduceMotion = useReducedMotion();
-  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
+  const [currentStep, setCurrentStep] = useState<SignupStep>(1);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [infoMessage, setInfoMessage] = useState<string | null>(null);
-  const [verificationToken, setVerificationToken] = useState<string | null>(null);
-  const [selectedModuleIds, setSelectedModuleIds] = useState<string[]>([
-    "registration",
-    "billing",
-    "clinical",
-  ]);
   const [otpCode, setOtpCode] = useState("");
-  const [countryCode, setCountryCode] = useState("MW");
   const [isFinalizing, setIsFinalizing] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
   const clinicInputRef = useRef<HTMLInputElement | null>(null);
-
-  const prioritizedCountries = useMemo(() => getPrioritizedCountryCodes(), []);
+  const nameInputRef = useRef<HTMLInputElement | null>(null);
 
   const credentialsForm = useForm<SignupCredentialsValues>({
     resolver: zodResolver(signupCredentialsSchema),
@@ -176,7 +145,7 @@ export function SignUpForm() {
 
   const profileForm = useForm<SignupProfileValues>({
     resolver: zodResolver(signupProfileSchema),
-    defaultValues: { name: "", clinic_name: "", country: "" },
+    defaultValues: { name: "", clinic_name: "", country: "Malawi" },
     mode: "onBlur",
   });
 
@@ -187,38 +156,47 @@ export function SignUpForm() {
 
   const signupEmail = credentialsForm.watch("email");
   const passwordValue = credentialsForm.watch("password");
+  const countryValue = profileForm.watch("country") ?? "";
   const stepCopy = STEP_COPY[currentStep];
   const isSubmitting =
-    credentialsForm.formState.isSubmitting || isVerifying || isFinalizing;
+    credentialsForm.formState.isSubmitting || isFinalizing;
 
   useEffect(() => {
     if (currentStep === 1) {
       clinicInputRef.current?.focus();
     }
+    if (currentStep === 2) {
+      nameInputRef.current?.focus();
+    }
   }, [currentStep]);
 
-  async function handleWorkspaceContinue() {
+  async function handleClinicContinue() {
     setSubmitError(null);
-    setInfoMessage(null);
 
-    const [credentialsValid, profileValid] = await Promise.all([
+    const profileValid = await profileForm.trigger(["clinic_name", "country"]);
+    if (!profileValid) return;
+    setCurrentStep(2);
+  }
+
+  async function handleAccountContinue() {
+    setSubmitError(null);
+
+    const [credentialsValid, nameValid] = await Promise.all([
       credentialsForm.trigger(),
-      profileForm.trigger(),
+      profileForm.trigger("name"),
     ]);
-    if (!credentialsValid || !profileValid) return;
+    if (!credentialsValid || !nameValid) return;
 
     const values = credentialsForm.getValues();
 
     try {
-      const response = await requestSignupOtp({
+      await requestSignupOtp({
         email: values.email,
         password: values.password,
       });
-      setInfoMessage(response.detail || "Verification code sent.");
       setOtpCode("");
       otpForm.setValue("code", "");
-      setVerificationToken(null);
-      setCurrentStep(2);
+      setCurrentStep(3);
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : "Could not start sign up.",
@@ -231,85 +209,50 @@ export function SignUpForm() {
     otpForm.setValue("code", code, { shouldValidate: code.length === 6 });
   }
 
-  async function handleVerifyEmailSubmit() {
-    if (isVerifying) return;
+  async function handleVerifyAndCreateWorkspace() {
+    if (isFinalizing) return;
     setSubmitError(null);
 
     const credentialsValid = await credentialsForm.trigger();
+    const profileValid = await profileForm.trigger();
     const otpValid = await otpForm.trigger();
 
-    if (!credentialsValid) {
+    if (!profileValid) {
       setCurrentStep(1);
+      return;
+    }
+    if (!credentialsValid) {
+      setCurrentStep(2);
       return;
     }
     if (!otpValid) return;
 
     const credentials = credentialsForm.getValues();
+    const profile = profileForm.getValues();
     const otp = otpForm.getValues();
 
-    setIsVerifying(true);
+    setIsFinalizing(true);
     try {
-      const response = await verifySignupEmail({
+      const verified = await verifySignupEmail({
         email: credentials.email,
         password: credentials.password,
         code: otp.code,
       });
-      setVerificationToken(response.verification_token);
-      setInfoMessage("Email verified.");
-      setCurrentStep(3);
-    } catch (error) {
-      setOtpCode("");
-      otpForm.setValue("code", "");
-      setSubmitError(
-        error instanceof Error ? error.message : "Email verification failed.",
-      );
-    } finally {
-      setIsVerifying(false);
-    }
-  }
 
-  async function handleCreateWorkspace() {
-    setSubmitError(null);
-    setIsFinalizing(true);
-
-    const credentialsValid = await credentialsForm.trigger();
-    const profileValid = await profileForm.trigger();
-
-    if (!credentialsValid || !profileValid) {
-      setCurrentStep(1);
-      setIsFinalizing(false);
-      return;
-    }
-    if (!verificationToken) {
-      setCurrentStep(2);
-      setIsFinalizing(false);
-      setSubmitError("Please verify your email before continuing.");
-      return;
-    }
-
-    const credentials = credentialsForm.getValues();
-    const profile = profileForm.getValues();
-    const groups = moduleIdsToGroupNames(selectedModuleIds);
-
-    if (groups.length === 0) {
-      setSubmitError("Select at least one module to continue.");
-      setIsFinalizing(false);
-      return;
-    }
-
-    try {
       await verifySignup({
         email: credentials.email,
         password: credentials.password,
         name: profile.name,
         clinic_name: profile.clinic_name,
-        country: countryCode ? getCountryNameFromCode(countryCode) : undefined,
-        verification_token: verificationToken,
+        country: profile.country?.trim() || undefined,
+        verification_token: verified.verification_token,
       });
-      await configureOnboardingModules(groups);
+      await configureOnboardingModules(DEFAULT_SIGNUP_GROUPS);
       markAuthenticatedSession();
       router.push(ROUTES.customers);
     } catch (error) {
+      setOtpCode("");
+      otpForm.setValue("code", "");
       setSubmitError(
         error instanceof Error ? error.message : "Sign up failed. Please try again.",
       );
@@ -328,14 +271,16 @@ export function SignUpForm() {
       email: credentials.email,
       password: credentials.password,
     });
-    setInfoMessage(response.detail || "A new verification code has been sent.");
     setOtpCode("");
     otpForm.setValue("code", "");
-    setVerificationToken(null);
     setSubmitError(null);
+    return response;
   }
 
   const clinicRegister = profileForm.register("clinic_name");
+  const nameRegister = profileForm.register("name");
+  const emailRegister = credentialsForm.register("email");
+  const passwordRegister = credentialsForm.register("password");
 
   const belowCard = (
     <p className="text-sm text-brand-muted">
@@ -350,27 +295,26 @@ export function SignUpForm() {
     currentStep === 1 ? (
       <WizardFooter
         continueType="submit"
-        formId="signup-workspace-form"
+        formId="signup-clinic-form"
         continueLabel="Continue"
         continueTestId="signup-continue"
-        isBusy={credentialsForm.formState.isSubmitting}
       />
     ) : currentStep === 2 ? (
       <WizardFooter
         onBack={() => setCurrentStep(1)}
+        continueType="submit"
+        formId="signup-account-form"
         continueLabel="Continue"
-        continueTestId="signup-verify-email"
-        onContinue={() => void handleVerifyEmailSubmit()}
-        isBusy={isVerifying}
+        continueTestId="signup-account-continue"
+        isBusy={credentialsForm.formState.isSubmitting}
       />
     ) : (
       <WizardFooter
         onBack={() => setCurrentStep(2)}
         continueLabel="Start workspace"
         continueTestId="signup-submit"
-        onContinue={() => void handleCreateWorkspace()}
+        onContinue={() => void handleVerifyAndCreateWorkspace()}
         isBusy={isFinalizing}
-        continueDisabled={selectedModuleIds.length === 0}
       />
     );
 
@@ -381,126 +325,126 @@ export function SignUpForm() {
       title={stepCopy.title}
       subtitle={stepCopy.subtitle}
       footer={footer}
-      belowCard={currentStep === 1 ? belowCard : undefined}
+      belowCard={currentStep <= 2 ? belowCard : undefined}
     >
       {currentStep === 1 ? (
         <form
-          id="signup-workspace-form"
+          id="signup-clinic-form"
           method="post"
-          className="flex flex-1 flex-col space-y-4"
-          data-testid="signup-credentials-form"
+          className="flex flex-1 flex-col gap-4"
+          data-testid="signup-clinic-form"
           onSubmit={(event) => {
             event.preventDefault();
-            void handleWorkspaceContinue();
+            void handleClinicContinue();
           }}
         >
-          <div>
-            <Label htmlFor="clinic_name">Clinic name</Label>
-            <Input
-              id="clinic_name"
-              data-testid="signup-clinic-name"
-              autoComplete="organization"
-              placeholder="Lakeview Clinic"
-              className={fieldClassName}
-              {...clinicRegister}
-              ref={(element) => {
-                clinicRegister.ref(element);
-                clinicInputRef.current = element;
-              }}
-            />
-            {profileForm.formState.errors.clinic_name ? (
-              <p className="mt-1.5 text-sm text-destructive">
-                {profileForm.formState.errors.clinic_name.message}
-              </p>
-            ) : null}
-          </div>
+          <FloatingLabelInput
+            id="clinic_name"
+            label="Clinic name"
+            data-testid="signup-clinic-name"
+            autoComplete="organization"
+            error={profileForm.formState.errors.clinic_name?.message}
+            {...clinicRegister}
+            ref={(element) => {
+              clinicRegister.ref(element);
+              clinicInputRef.current = element;
+            }}
+          />
 
-          <div>
-            <Label htmlFor="name">Your name</Label>
-            <Input
-              id="name"
-              data-testid="signup-name"
-              autoComplete="name"
-              placeholder="Jane Banda"
-              className={fieldClassName}
-              {...profileForm.register("name")}
-            />
-            {profileForm.formState.errors.name ? (
-              <p className="mt-1.5 text-sm text-destructive">
-                {profileForm.formState.errors.name.message}
-              </p>
-            ) : null}
-          </div>
-
-          <div>
-            <Label htmlFor="email">Work email</Label>
-            <Input
-              id="email"
-              data-testid="signup-email"
-              type="email"
-              inputMode="email"
-              autoComplete="email"
-              autoCapitalize="none"
-              spellCheck={false}
-              placeholder="you@clinic.org"
-              className={fieldClassName}
-              {...credentialsForm.register("email")}
-            />
-            {credentialsForm.formState.errors.email ? (
-              <p className="mt-1.5 text-sm text-destructive">
-                {credentialsForm.formState.errors.email.message}
-              </p>
-            ) : null}
-          </div>
-
-          <div>
-            <Label htmlFor="password">Password</Label>
-            <PasswordInput
-              id="password"
-              data-testid="signup-password"
-              autoComplete="new-password"
-              placeholder="At least 8 characters"
-              className={fieldClassName}
-              {...credentialsForm.register("password")}
-            />
-            <PasswordStrengthMeter password={passwordValue ?? ""} />
-            {credentialsForm.formState.errors.password ? (
-              <p className="mt-1.5 text-sm text-destructive">
-                {credentialsForm.formState.errors.password.message}
-              </p>
-            ) : null}
-          </div>
-
-          <div>
-            <Label htmlFor="country">Country</Label>
-            <div className={cn("mt-1.5 [&_button]:h-12 [&_button]:rounded-xl")}>
-              <ReactFlagsSelect
-                selected={countryCode}
-                onSelect={setCountryCode}
+          <div className="space-y-1.5">
+            <div className="auth-country-field">
+              <CountrySelectField
+                id="country"
+                data-testid="signup-country"
+                value={countryValue}
+                hasError={Boolean(profileForm.formState.errors.country)}
+                onChange={(value) =>
+                  profileForm.setValue("country", value, {
+                    shouldDirty: true,
+                    shouldValidate: true,
+                  })
+                }
                 placeholder="Select a country"
-                searchable
-                searchPlaceholder="Search countries"
-                countries={prioritizedCountries}
-                showSelectedLabel
-                showOptionLabel
               />
             </div>
+            {profileForm.formState.errors.country ? (
+              <p className="text-sm text-destructive">
+                {profileForm.formState.errors.country.message}
+              </p>
+            ) : null}
           </div>
 
           {submitError ? (
-            <FormErrorShake message={submitError} reduceMotion={reduceMotion} />
+            <StatusBanner
+              variant="error"
+              message={submitError}
+              showIcon={false}
+              data-testid="signup-submit-error"
+            />
           ) : null}
         </form>
       ) : null}
 
       {currentStep === 2 ? (
-        <div className="flex flex-1 flex-col">
-          {infoMessage ? (
-            <p role="status" className="mb-4 text-sm text-emerald-700">
-              {infoMessage}
-            </p>
-          ) : null}
+        <form
+          id="signup-account-form"
+          method="post"
+          className="flex flex-1 flex-col gap-4"
+          data-testid="signup-credentials-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleAccountContinue();
+          }}
+        >
+          <FloatingLabelInput
+            id="name"
+            label="Your name"
+            data-testid="signup-name"
+            autoComplete="name"
+            error={profileForm.formState.errors.name?.message}
+            {...nameRegister}
+            ref={(element) => {
+              nameRegister.ref(element);
+              nameInputRef.current = element;
+            }}
+          />
 
+          <FloatingLabelInput
+            id="email"
+            label="Work email"
+            data-testid="signup-email"
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            autoCapitalize="none"
+            spellCheck={false}
+            error={credentialsForm.formState.errors.email?.message}
+            {...emailRegister}
+          />
+
+          <FloatingLabelPasswordInput
+            id="password"
+            label="Password"
+            data-testid="signup-password"
+            autoComplete="new-password"
+            error={credentialsForm.formState.errors.password?.message}
+            hint={<PasswordStrengthMeter password={passwordValue ?? ""} />}
+            {...passwordRegister}
+          />
+
+          {submitError ? (
+            <StatusBanner
+              variant="error"
+              message={submitError}
+              showIcon={false}
+              data-testid="signup-submit-error"
+            />
+          ) : null}
+        </form>
+      ) : null}
+
+      {currentStep === 3 ? (
+        <div className="flex flex-1 flex-col">
           <SignupEmailConfirmStep
             email={signupEmail}
             code={otpCode}
@@ -509,20 +453,12 @@ export function SignUpForm() {
             onCodeChange={syncOtpCode}
             onCodeComplete={(nextCode) => {
               syncOtpCode(nextCode);
-              void handleVerifyEmailSubmit();
+              void handleVerifyAndCreateWorkspace();
             }}
             onResend={handleResendOtp}
-            isSubmitting={isVerifying}
+            isSubmitting={isFinalizing}
           />
         </div>
-      ) : null}
-
-      {currentStep === 3 ? (
-        <SignupModulesStep
-          selectedModuleIds={selectedModuleIds}
-          onSelectedModuleIdsChange={setSelectedModuleIds}
-          error={submitError}
-        />
       ) : null}
     </AuthWizardShell>
   );

@@ -726,4 +726,59 @@
     mix-blend-mode: multiply;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
+
+  /* Signup country select — same shell as text fields, flag + name (no floating label) */
+  .auth-country-field .country-select-field .country-select-field-button {
+    display: flex !important;
+    height: 3.5rem !important;
+    width: 100% !important;
+    align-items: center !important;
+    gap: 0.625rem !important;
+    border: 1px solid rgb(226 232 240) !important;
+    border-radius: 0.75rem !important;
+    background: #fff !important;
+    padding: 0 2.5rem 0 0.875rem !important;
+    font-size: 0.9375rem !important;
+    line-height: 1.25rem !important;
+    font-weight: 400 !important;
+    color: var(--color-brand-navy, #0f172a) !important;
+    box-shadow: none !important;
+    transition:
+      border-color 150ms ease,
+      box-shadow 150ms ease !important;
+  }
+
+  .auth-country-field .country-select-field .country-select-field-button:focus,
+  .auth-country-field .country-select-field .country-select-field-button:focus-visible {
+    border-color: var(--color-brand-primary) !important;
+    box-shadow: 0 0 0 2px
+      color-mix(in srgb, var(--color-brand-primary) 20%, transparent) !important;
+    outline: none !important;
+  }
+
+  .auth-country-field .country-select-field.has-error .country-select-field-button {
+    border-color: rgb(248 113 113) !important; /* red-400 */
+  }
+
+  .auth-country-field .country-select-field.has-error .country-select-field-button:focus,
+  .auth-country-field .country-select-field.has-error .country-select-field-button:focus-visible {
+    border-color: rgb(239 68 68) !important; /* red-500 */
+    box-shadow: 0 0 0 2px
+      color-mix(in srgb, rgb(239 68 68) 20%, transparent) !important;
+  }
+
+  .auth-country-field .country-select-field .country-select-field-button img,
+  .auth-country-field .country-select-field .country-select-field-button span[class*="flag"] {
+    width: 1.35rem !important;
+    height: auto !important;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .auth-country-field .ReactFlagsSelect-module_selectOptions__3LNBJ,
+  .auth-country-field ul {
+    border-radius: 0.75rem !important;
+    border-color: rgb(226 232 240) !important;
+    margin-top: 0.35rem !important;
+  }
 }

@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { PageLoader } from "@/components/page-loader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { ROUTES } from "@/constants/routes";
 import {
   DetailPageHeaderSection,
@@ -35,6 +36,7 @@ import {
   fetchPlatformAdminTenantLocations,
   fetchPlatformAdminTenantUsers,
   updatePlatformAdminTenant,
+  updatePlatformAdminTenantConfiguration,
   updatePlatformAdminTenantStatus,
 } from "@/features/platform-admin/services/platform-admin.service";
 import type {
@@ -242,7 +244,17 @@ export function PlatformAdminTenantDetailPage({
           <PlatformAdminTenantModulesTab tenantUuid={tenantUuid} />
         ) : null}
         {activeTab === "configuration" ? (
-          <ConfigurationTab configuration={configuration} />
+          <ConfigurationTab
+            configuration={configuration}
+            clinicCount={tenant.clinic_count}
+            tenantUuid={tenantUuid}
+            onUpdated={(next) => {
+              setConfiguration(next);
+              setTenant((current) =>
+                current ? { ...current, max_clinics: next.max_clinics } : current,
+              );
+            }}
+          />
         ) : null}
         {activeTab === "webhooks" ? (
           <PlatformAdminTenantWebhooksTab tenantUuid={tenantUuid} />
@@ -285,6 +297,7 @@ function ProfileTab({ tenant }: { tenant: PlatformAdminTenant }) {
   return (
     <div className="grid gap-4 lg:grid-cols-4">
       <SummaryCard label="Clinics" value={tenant.clinic_count} />
+      <SummaryCard label="Max clinics" value={tenant.max_clinics} />
       <SummaryCard label="Locations" value={tenant.location_count} />
       <SummaryCard label="Products" value={tenant.product_count} />
       <SummaryCard label="Users" value={tenant.user_count} />
@@ -372,10 +385,49 @@ function UsersTab({ users }: { users: PlatformAdminUser[] }) {
 
 function ConfigurationTab({
   configuration,
+  clinicCount,
+  tenantUuid,
+  onUpdated,
 }: {
   configuration: PlatformAdminTenantConfiguration | null;
+  clinicCount: number;
+  tenantUuid: string;
+  onUpdated: (configuration: PlatformAdminTenantConfiguration) => void;
 }) {
+  const [maxClinics, setMaxClinics] = useState(
+    configuration?.max_clinics != null ? String(configuration.max_clinics) : "1",
+  );
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (configuration) {
+      setMaxClinics(String(configuration.max_clinics));
+    }
+  }, [configuration]);
+
   if (!configuration) return <p className="text-sm text-brand-muted">No data.</p>;
+
+  async function handleSaveMaxClinics() {
+    const parsed = Number.parseInt(maxClinics, 10);
+    if (!Number.isFinite(parsed) || parsed < 1) {
+      toast.error("Maximum clinics must be at least 1.");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const updated = await updatePlatformAdminTenantConfiguration(tenantUuid, {
+        max_clinics: parsed,
+      });
+      onUpdated(updated);
+      toast.success("Clinic limit updated.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Unable to update clinic limit.");
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
   return (
     <Card className="rounded-lg">
       <CardHeader>
@@ -387,7 +439,36 @@ function ConfigurationTab({
         <Field label="Identifier digits" value={configuration.customer_identifier_digits} />
         <Field label="Logo URL" value={configuration.branding_logo_url} />
         <Field label="Primary color" value={configuration.branding_primary_color} />
-        <Field label="Dental notes" value={configuration.allow_dental_group_clinical_notes ? "Enabled" : "Disabled"} />
+        <Field
+          label="Dental notes"
+          value={configuration.allow_dental_group_clinical_notes ? "Enabled" : "Disabled"}
+        />
+        <div className="md:col-span-3">
+          <p className="text-xs font-medium uppercase text-brand-muted">Max clinics</p>
+          <p className="mt-1 text-xs text-brand-muted">
+            Currently using {clinicCount} of {configuration.max_clinics} clinic slots.
+          </p>
+          <div className="mt-2 flex flex-wrap items-center gap-3">
+            <Input
+              type="number"
+              min={1}
+              step={1}
+              className="w-28"
+              value={maxClinics}
+              onChange={(event) => setMaxClinics(event.target.value)}
+              aria-label="Maximum clinics"
+            />
+            <Button
+              type="button"
+              onClick={() => {
+                void handleSaveMaxClinics();
+              }}
+              disabled={isSaving}
+            >
+              {isSaving ? "Saving…" : "Save limit"}
+            </Button>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

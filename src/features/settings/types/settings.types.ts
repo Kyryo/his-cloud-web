@@ -15,6 +15,7 @@ export type TenantDetail = {
   status: string;
   is_active: boolean;
   clinic_count: number;
+  max_clinics: number;
   location_count: number;
   created_at: string;
   updated_at: string;
@@ -153,6 +154,11 @@ export type CreateOrganizationLocationPayload = {
   description?: string;
   status?: string;
   is_active?: boolean;
+};
+
+export type CreateOrganizationClinicPayload = {
+  name: string;
+  code: string;
 };
 
 export type UpdateOrganizationClinicPayload = {

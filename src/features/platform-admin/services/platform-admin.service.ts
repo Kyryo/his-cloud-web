@@ -31,6 +31,7 @@ import type {
   PlatformAdminWebhookJobDetail,
   PlatformAdminWebhookListOptions,
   PlatformAdminWebhookResendResult,
+  UpdatePlatformAdminTenantConfigurationPayload,
 } from "@/features/platform-admin/types/platform-admin.types";
 
 export type PlatformAdminListOptions = {
@@ -147,6 +148,19 @@ export async function fetchPlatformAdminTenantConfiguration(
 ): Promise<PlatformAdminTenantConfiguration> {
   return bffRequest<PlatformAdminTenantConfiguration>(
     BFF_PLATFORM_ADMIN_ROUTES.tenantConfiguration(tenantUuid),
+  );
+}
+
+export async function updatePlatformAdminTenantConfiguration(
+  tenantUuid: string,
+  payload: UpdatePlatformAdminTenantConfigurationPayload,
+): Promise<PlatformAdminTenantConfiguration> {
+  return bffRequest<PlatformAdminTenantConfiguration>(
+    BFF_PLATFORM_ADMIN_ROUTES.tenantConfiguration(tenantUuid),
+    {
+      method: "PATCH",
+      body: payload,
+    },
   );
 }
 

@@ -57,6 +57,7 @@ export type PlatformAdminTenant = {
   customer_identifier_suffix: string;
   customer_identifier_start_number: number;
   clinic_count: number;
+  max_clinics: number;
   location_count: number;
   product_count: number;
   user_count: number;
@@ -155,6 +156,11 @@ export type PlatformAdminTenantConfiguration = {
   lab_catalog_id: number | null;
   radiology_catalog_id: number | null;
   procedure_catalogue: number | null;
+  max_clinics: number;
+};
+
+export type UpdatePlatformAdminTenantConfigurationPayload = {
+  max_clinics: number;
 };
 
 export type PlatformAdminTenantModule = {

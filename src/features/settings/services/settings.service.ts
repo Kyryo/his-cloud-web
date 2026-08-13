@@ -1,6 +1,7 @@
 import { BFF_SETTINGS_ROUTES } from "@/constants/api";
 import type { User } from "@/features/auth/types/auth.types";
 import type {
+  CreateOrganizationClinicPayload,
   CreateOrganizationLocationPayload,
   CreateOrganizationDepartmentPayload,
   CreateOrganizationPayerPayload,
@@ -80,6 +81,18 @@ export async function fetchOrganizationClinics(): Promise<
   return bffRequest<OrganizationListResponse<OrganizationClinic>>(
     `${BFF_SETTINGS_ROUTES.clinics}?page_size=100&ordering=name`,
   );
+}
+
+export async function createOrganizationClinic(
+  payload: CreateOrganizationClinicPayload,
+): Promise<OrganizationClinic> {
+  return bffRequest<OrganizationClinic>(BFF_SETTINGS_ROUTES.clinics, {
+    method: "POST",
+    body: {
+      name: payload.name.trim(),
+      code: payload.code.trim().toUpperCase(),
+    },
+  });
 }
 
 export async function updateOrganizationClinic(

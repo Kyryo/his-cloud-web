@@ -5,9 +5,14 @@ import { useEffect, useState } from "react";
 import { PageLoader } from "@/components/page-loader";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { AddClinicDialog } from "@/features/settings/components/AddClinicDialog";
+import { OrganizationEmptyState } from "@/features/settings/components/OrganizationEmptyState";
 import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
 import { UpdateClinicDialog } from "@/features/settings/components/UpdateClinicDialog";
-import { fetchOrganizationClinics } from "@/features/settings/services/settings.service";
+import {
+  fetchOrganization,
+  fetchOrganizationClinics,
+} from "@/features/settings/services/settings.service";
 import type { OrganizationClinic } from "@/features/settings/types/settings.types";
 
 type OrganizationClinicsTabProps = {
@@ -34,13 +39,15 @@ function formatStatus(status: string, isActive: boolean) {
 
 export function OrganizationClinicsTab({ isActive }: OrganizationClinicsTabProps) {
   const [clinics, setClinics] = useState<OrganizationClinic[]>([]);
+  const [maxClinics, setMaxClinics] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [hasLoaded, setHasLoaded] = useState(false);
+  const [reloadToken, setReloadToken] = useState(0);
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editingClinic, setEditingClinic] = useState<OrganizationClinic | null>(null);
 
   useEffect(() => {
-    if (!isActive || hasLoaded) {
+    if (!isActive) {
       return;
     }
 
@@ -51,10 +58,13 @@ export function OrganizationClinicsTab({ isActive }: OrganizationClinicsTabProps
       setError(null);
 
       try {
-        const response = await fetchOrganizationClinics();
+        const [organization, response] = await Promise.all([
+          fetchOrganization(),
+          fetchOrganizationClinics(),
+        ]);
         if (active) {
           setClinics(response.results);
-          setHasLoaded(true);
+          setMaxClinics(organization.max_clinics);
         }
       } catch (loadError) {
         if (active) {
@@ -77,7 +87,7 @@ export function OrganizationClinicsTab({ isActive }: OrganizationClinicsTabProps
     return () => {
       active = false;
     };
-  }, [hasLoaded, isActive]);
+  }, [isActive, reloadToken]);
 
   if (!isActive) {
     return null;
@@ -91,6 +101,15 @@ export function OrganizationClinicsTab({ isActive }: OrganizationClinicsTabProps
     );
   }
 
+  function handleCreated(clinic: OrganizationClinic) {
+    setClinics((current) =>
+      [...current, clinic].sort((left, right) => left.name.localeCompare(right.name)),
+    );
+    setReloadToken((token) => token + 1);
+  }
+
+  const atClinicLimit = clinics.length >= maxClinics;
+  const limitMessage = `Clinic limit reached (${clinics.length}/${maxClinics}). Contact support to increase.`;
   const isEmpty = !isLoading && !error && clinics.length === 0;
 
   return (
@@ -99,6 +118,28 @@ export function OrganizationClinicsTab({ isActive }: OrganizationClinicsTabProps
         title="Clinics"
         description="Configure the clinics within your organization."
         showHeader={!isEmpty}
+        actions={
+          isEmpty ? null : (
+            <div className="flex flex-col items-end gap-1">
+              <Button
+                type="button"
+                onClick={() => setAddDialogOpen(true)}
+                disabled={atClinicLimit}
+              >
+                Add clinic
+              </Button>
+              {atClinicLimit ? (
+                <p className="max-w-xs text-right text-xs text-brand-muted">
+                  {limitMessage}
+                </p>
+              ) : (
+                <p className="text-xs text-brand-muted">
+                  {clinics.length}/{maxClinics} clinics used
+                </p>
+              )}
+            </div>
+          )
+        }
       >
         {isLoading ? (
           <div className="py-16">
@@ -106,10 +147,17 @@ export function OrganizationClinicsTab({ isActive }: OrganizationClinicsTabProps
           </div>
         ) : error ? (
           <p className="py-8 text-sm text-brand-muted">{error}</p>
-        ) : clinics.length === 0 ? (
-          <p className="py-12 text-center text-sm text-brand-muted">
-            No clinics have been set up for this organization yet.
-          </p>
+        ) : isEmpty ? (
+          <OrganizationEmptyState
+            message="No clinics have been set up for this organization yet."
+            actionLabel="Add clinic"
+            onAction={() => setAddDialogOpen(true)}
+            actionDisabled={atClinicLimit}
+          >
+            {atClinicLimit ? (
+              <p className="mt-3 text-xs text-brand-muted">{limitMessage}</p>
+            ) : null}
+          </OrganizationEmptyState>
         ) : (
           <div className="-mx-6 overflow-x-auto">
             <table className="min-w-full">
@@ -160,6 +208,12 @@ export function OrganizationClinicsTab({ isActive }: OrganizationClinicsTabProps
           </div>
         )}
       </OrganizationTabSection>
+
+      <AddClinicDialog
+        open={addDialogOpen}
+        onOpenChange={setAddDialogOpen}
+        onCreated={handleCreated}
+      />
 
       {editingClinic ? (
         <UpdateClinicDialog

@@ -1,7 +1,10 @@
 import { CLINICS_API_PATHS } from "@/constants/clinics-api";
-import type { OrganizationClinic } from "@/features/settings/types/settings.types";
+import type {
+  CreateOrganizationClinicPayload,
+  OrganizationClinic,
+} from "@/features/settings/types/settings.types";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
-import { hmisApiRequestWithMeta } from "@/lib/server/hmis-api";
+import { hmisApiRequest, hmisApiRequestWithMeta } from "@/lib/server/hmis-api";
 import { requireTenantAdmin } from "@/lib/server/require-tenant-admin";
 
 const FORWARDED_QUERY_KEYS = ["page", "page_size", "search", "ordering"] as const;
@@ -42,6 +45,36 @@ export async function GET(request: Request) {
       results: data,
       pagination: meta.pagination ?? null,
     });
+  } catch (error) {
+    return bffError(error);
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    const admin = await requireTenantAdmin();
+    if ("error" in admin) {
+      return admin.error;
+    }
+
+    const body = (await request.json()) as CreateOrganizationClinicPayload;
+    const name = body.name?.trim() ?? "";
+    const code = body.code?.trim().toUpperCase() ?? "";
+
+    if (!name) {
+      return bffSuccess({ message: "Name is required." }, 400);
+    }
+    if (!code) {
+      return bffSuccess({ message: "Code is required." }, 400);
+    }
+
+    const clinic = await hmisApiRequest<OrganizationClinic>(CLINICS_API_PATHS.list, {
+      method: "POST",
+      token: admin.accessToken,
+      body: { name, code },
+    });
+
+    return bffSuccess(clinic, 201);
   } catch (error) {
     return bffError(error);
   }

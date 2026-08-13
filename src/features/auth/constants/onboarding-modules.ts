@@ -20,6 +20,12 @@ export const ONBOARDING_MODULE_OPTIONS: OnboardingModuleOption[] = [
     description: "Invoices, payments, and insurance claims.",
   },
   {
+    id: "claims",
+    name: "Claims",
+    label: "Claims",
+    description: "Payer claims submission and tracking.",
+  },
+  {
     id: "inventory",
     name: "Inventory",
     label: "Inventory",
@@ -58,6 +64,14 @@ export const ONBOARDING_MODULE_OPTIONS: OnboardingModuleOption[] = [
 ] as const;
 
 export const REGISTRATION_MODULE_NAME = "Registration";
+
+/** Default portal modules enabled for new signup workspaces. */
+export const DEFAULT_SIGNUP_MODULE_IDS = [
+  "registration",
+  "billing",
+  "inventory",
+  "claims",
+] as const;
 
 export function moduleIdsToGroupNames(moduleIds: string[]): string[] {
   const lookup = new Map(
