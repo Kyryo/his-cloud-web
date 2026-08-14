@@ -13,7 +13,7 @@ import {
 } from "@/features/customers/schemas/customer-insurance.schema";
 
 describe("customer-insurance.schema", () => {
-  it("requires scheme, membership number, and suffix", () => {
+  it("requires scheme and membership number", () => {
     const result = createCustomerInsuranceSchema.safeParse(
       createCustomerInsuranceDefaultValues,
     );

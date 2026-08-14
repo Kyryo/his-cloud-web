@@ -38,6 +38,7 @@ import type {
   ClinicalClinic,
   ClinicalDepartment,
 } from "@/features/clinical/types/clinical-catalog.types";
+import { resolveDefaultDepartmentUuid } from "@/features/clinical/utils/apply-sole-department";
 import { CustomerAppointmentPicker } from "@/features/customers/components/CustomerAppointmentPicker";
 import type { Customer } from "@/features/customers/types/customer.types";
 import { formatCustomerName } from "@/features/customers/utils/format-customer";
@@ -114,6 +115,7 @@ export function CreateAppointmentDialog({
   const loadDepartments = useCallback(async (clinicId: number) => {
     const nextDepartments = await fetchClinicalDepartments(clinicId);
     setDepartments(nextDepartments);
+    return nextDepartments;
   }, []);
 
   function navigateToErrorTab(errors: FieldErrors<CreateAppointmentFormValues>) {
@@ -174,13 +176,25 @@ export function CreateAppointmentDialog({
 
         const resetClinicUuid = initialSchedule?.clinic ?? primaryClinicUuid;
 
+        const clinicId =
+          clinicList.find((clinic) => clinic.uuid === resetClinicUuid)?.id ?? null;
+
+        let nextDepartments: ClinicalDepartment[] = [];
+        if (clinicId) {
+          nextDepartments = await loadDepartments(clinicId);
+          if (!active) {
+            return;
+          }
+        } else {
+          setDepartments([]);
+        }
+
         const resetValues: Partial<CreateAppointmentFormValues> = {
           clinic: resetClinicUuid,
+          department:
+            initialSchedule?.department ||
+            resolveDefaultDepartmentUuid(nextDepartments),
         };
-
-        if (initialSchedule?.department) {
-          resetValues.department = initialSchedule.department;
-        }
         if (initialSchedule?.clinician !== undefined) {
           resetValues.clinician = initialSchedule.clinician;
         }
@@ -192,13 +206,6 @@ export function CreateAppointmentDialog({
         }
 
         form.reset(createAppointmentDefaultValues(resetValues));
-
-        const clinicId =
-          clinicList.find((clinic) => clinic.uuid === resetClinicUuid)?.id ?? null;
-
-        if (clinicId) {
-          await loadDepartments(clinicId);
-        }
       } catch (error) {
         toast({
           variant: "error",
@@ -385,11 +392,20 @@ export function CreateAppointmentDialog({
                 selectedClinicianName={selectedClinicianName}
                 onClinicianChange={(_, name) => setSelectedClinicianName(name)}
                 onClinicChange={(_, clinicId) => {
-                  if (clinicId) {
-                    void loadDepartments(clinicId);
-                  } else {
+                  if (!clinicId) {
                     setDepartments([]);
+                    form.setValue("department", "");
+                    return;
                   }
+
+                  void (async () => {
+                    const nextDepartments = await loadDepartments(clinicId);
+                    form.setValue(
+                      "department",
+                      resolveDefaultDepartmentUuid(nextDepartments),
+                      { shouldValidate: nextDepartments.length === 1 },
+                    );
+                  })();
                 }}
                 showDetails={false}
                 lockScheduleFields={lockScheduleFields}

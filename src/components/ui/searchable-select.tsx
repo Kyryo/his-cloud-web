@@ -33,6 +33,8 @@ type SearchableSelectProps = {
   autoFocusSearch?: boolean;
   triggerClassName?: string;
   contentClassName?: string;
+  headerExtra?: ReactNode;
+  "data-testid"?: string;
   children: ReactNode;
 };
 
@@ -55,6 +57,8 @@ export function SearchableSelect({
   autoFocusSearch = true,
   triggerClassName,
   contentClassName,
+  headerExtra,
+  "data-testid": dataTestId,
   children,
 }: SearchableSelectProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -82,29 +86,41 @@ export function SearchableSelect({
       onOpenChange={onOpenChange}
       disabled={disabled}
     >
-      <SelectTrigger id={id} className={cn("w-full", triggerClassName)}>
+      <SelectTrigger
+        id={id}
+        className={cn("w-full", triggerClassName)}
+        data-testid={dataTestId}
+      >
         <SelectValue placeholder={placeholder}>{displayValue}</SelectValue>
       </SelectTrigger>
       <SelectContent
         className={cn(
-          "max-h-80 overflow-hidden p-0",
-          "[&_[data-radix-select-viewport]]:h-auto [&_[data-radix-select-viewport]]:max-h-80",
+          "flex w-[var(--radix-select-trigger-width)] max-w-[var(--radix-select-trigger-width)] max-h-96 flex-col overflow-hidden p-0",
+          "[&_[data-radix-select-viewport]]:flex [&_[data-radix-select-viewport]]:h-auto [&_[data-radix-select-viewport]]:max-h-96 [&_[data-radix-select-viewport]]:min-h-0 [&_[data-radix-select-viewport]]:w-full [&_[data-radix-select-viewport]]:flex-col [&_[data-radix-select-viewport]]:overflow-hidden [&_[data-radix-select-viewport]]:p-0",
+          "[&_[data-radix-select-scroll-up-button]]:hidden [&_[data-radix-select-scroll-down-button]]:hidden",
           appFont.className,
           contentClassName,
         )}
       >
-        <div className="sticky top-0 z-10 border-b border-brand-border bg-popover p-2">
-          <Input
-            ref={searchInputRef}
-            value={searchValue}
-            placeholder={searchPlaceholder}
-            className="h-9"
-            onChange={(event) => onSearchChange(event.target.value)}
-            onKeyDown={(event) => event.stopPropagation()}
-          />
+        <div className="shrink-0 border-b border-brand-border bg-popover">
+          <div className="p-2">
+            <Input
+              ref={searchInputRef}
+              value={searchValue}
+              placeholder={searchPlaceholder}
+              className="h-9"
+              onChange={(event) => onSearchChange(event.target.value)}
+              onKeyDown={(event) => event.stopPropagation()}
+            />
+          </div>
+          {headerExtra ? (
+            <div className="max-h-28 overflow-y-auto border-t border-brand-border px-2 py-2">
+              {headerExtra}
+            </div>
+          ) : null}
         </div>
 
-        <div className="max-h-60 overflow-y-auto overscroll-contain p-1">
+        <div className="min-h-36 flex-1 overflow-y-auto overscroll-contain p-1">
           {isLoading ? (
             <div className="flex items-center justify-center gap-2 px-3 py-6 text-sm text-brand-muted">
               <Loader2 className="size-4 animate-spin" aria-hidden="true" />

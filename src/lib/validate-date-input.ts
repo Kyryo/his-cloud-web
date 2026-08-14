@@ -9,6 +9,33 @@ export type ValidateDateInputOptions = {
 const DATE_INPUT_PATTERN = /^\d{0,4}(-\d{0,2}){0,2}(-\d{0,2})?$/;
 const COMPLETE_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
+/**
+ * Formats a partial ISO date as the user types: YYYY → YYYY- → YYYY-MM- → YYYY-MM-DD.
+ * Digits only; max 8. Trailing dashes are added when moving forward past year/month.
+ */
+export function formatPartialIsoDateInput(
+  raw: string,
+  previous = "",
+): string {
+  const digits = raw.replace(/\D/g, "").slice(0, 8);
+  const previousDigits = previous.replace(/\D/g, "").slice(0, 8);
+
+  let formatted = digits;
+  if (digits.length > 4) {
+    formatted = `${digits.slice(0, 4)}-${digits.slice(4)}`;
+  }
+  if (digits.length > 6) {
+    formatted = `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
+  }
+
+  const typingForward = digits.length > previousDigits.length;
+  if (typingForward && (digits.length === 4 || digits.length === 6)) {
+    formatted = `${formatted}-`;
+  }
+
+  return formatted;
+}
+
 function daysInMonth(year: number, month: number): number {
   return new Date(year, month, 0).getDate();
 }

@@ -4,6 +4,7 @@ import type { UseFormReturn } from "react-hook-form";
 
 import { DateOfBirthField } from "@/components/date-of-birth-field";
 import { CustomerInsuranceEmptyState } from "@/features/customers/components/CustomerInsuranceEmptyState";
+import { InsuranceSchemeSearchableSelect } from "@/features/customers/components/InsuranceSchemeSearchableSelect";
 import {
   FormControl,
   FormField,
@@ -79,38 +80,30 @@ export function CustomerInsuranceFormFields({
 
   return (
     <>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <FormField
-          control={form.control}
-          name="insurance_scheme"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>
-                Insurance scheme <RequiredFieldMarker />
-              </FormLabel>
-              <Select
+      <FormField
+        control={form.control}
+        name="insurance_scheme"
+        render={({ field }) => (
+          <FormItem className="w-full">
+            <FormLabel>
+              Insurance scheme <RequiredFieldMarker />
+            </FormLabel>
+            <FormControl>
+              <InsuranceSchemeSearchableSelect
+                id={`${idPrefix}-scheme`}
+                schemes={schemes}
+                value={field.value > 0 ? field.value : null}
+                onChange={field.onChange}
                 disabled={isSubmitting}
-                value={field.value > 0 ? String(field.value) : ""}
-                onValueChange={(value) => field.onChange(Number(value))}
-              >
-                <FormControl>
-                  <SelectTrigger data-testid={`${idPrefix}-scheme`}>
-                    <SelectValue placeholder="Select an insurance scheme" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent className={appFont.className}>
-                  {schemes.map((scheme) => (
-                    <SelectItem key={scheme.id} value={String(scheme.id)}>
-                      {scheme.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                data-testid={`${idPrefix}-scheme`}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
 
+      <div className="grid gap-4 sm:grid-cols-2">
         <FormField
           control={form.control}
           name="membership_number"
@@ -123,24 +116,6 @@ export function CustomerInsuranceFormFields({
                 <Input
                   disabled={isSubmitting}
                   data-testid={`${idPrefix}-membership-number`}
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="suffix"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Suffix</FormLabel>
-              <FormControl>
-                <Input
-                  disabled={isSubmitting}
-                  data-testid={`${idPrefix}-suffix`}
                   {...field}
                 />
               </FormControl>

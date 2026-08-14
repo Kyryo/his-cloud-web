@@ -34,6 +34,7 @@ import type {
   ClinicalClinic,
   ClinicalDepartment,
 } from "@/features/clinical/types/clinical-catalog.types";
+import { resolveDefaultDepartmentUuid } from "@/features/clinical/utils/apply-sole-department";
 import { fetchCustomerInsurance } from "@/features/customers/services/customer-insurance.service";
 import {
   closeCustomerVisit,
@@ -150,11 +151,6 @@ export function CustomerVisitDialog({
     [activeVisit, clinicIdByUuid, userData],
   );
 
-  const loadDepartments = useCallback(async (clinicId: number) => {
-    const nextDepartments = await fetchClinicalDepartments(clinicId);
-    setDepartments(nextDepartments);
-  }, []);
-
   const loadDialogContext = useCallback(async () => {
     setIsLoadingContext(true);
     setCloseError(null);
@@ -184,17 +180,20 @@ export function CustomerVisitDialog({
         : undefined;
       const primaryClinicUuid = matchedClinic?.uuid ?? "";
 
-      form.reset(
-        createStartVisitDefaultValues({
-          clinic: primaryClinicUuid,
-        }),
-      );
-
+      let nextDepartments: ClinicalDepartment[] = [];
       if (primaryClinic) {
-        await loadDepartments(primaryClinic.id);
+        nextDepartments = await fetchClinicalDepartments(primaryClinic.id);
+        setDepartments(nextDepartments);
       } else {
         setDepartments([]);
       }
+
+      form.reset(
+        createStartVisitDefaultValues({
+          clinic: primaryClinicUuid,
+          department: resolveDefaultDepartmentUuid(nextDepartments),
+        }),
+      );
     } catch (error) {
       toast({
         variant: "error",
@@ -205,7 +204,7 @@ export function CustomerVisitDialog({
     } finally {
       setIsLoadingContext(false);
     }
-  }, [customer.uuid, form, loadDepartments, toast, userData?.primary_clinic]);
+  }, [customer.uuid, form, toast, userData?.primary_clinic]);
 
   useEffect(() => {
     if (open) {

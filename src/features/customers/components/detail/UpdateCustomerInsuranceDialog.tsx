@@ -131,50 +131,60 @@ export function UpdateCustomerInsuranceDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
-        className={cn("max-h-[90vh] overflow-y-auto sm:max-w-2xl", appFont.className)}
+        className={cn(
+          "flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl",
+          appFont.className,
+        )}
         data-testid="update-customer-insurance-dialog"
       >
-        <DialogHeader>
-          <DialogTitle>Update insurance</DialogTitle>
-          <DialogDescription>
-            Edit this client&apos;s insurance membership details.
-          </DialogDescription>
-        </DialogHeader>
+        <div className="flex min-h-0 flex-1 flex-col">
+          <DialogHeader className="border-b border-brand-border px-6 py-5">
+            <DialogTitle>Update insurance</DialogTitle>
+            <DialogDescription>
+              Edit this client&apos;s insurance membership details.
+            </DialogDescription>
+          </DialogHeader>
 
-        <Form {...form}>
-          <form className="space-y-4" onSubmit={form.handleSubmit(handleSubmit)}>
-            <CustomerInsuranceFormFields
-              form={form}
-              schemes={schemes}
-              isLoadingSchemes={isLoadingSchemes}
-              isSubmitting={isSubmitting}
-              customerFullName={customerFullName}
-              idPrefix="update-customer-insurance"
-            />
-            <DialogFooter>
-              <SecondaryButton
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </SecondaryButton>
-              <PrimaryButton
-                type="submit"
-                disabled={isSubmitting || schemes.length === 0}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                    Saving...
-                  </>
-                ) : (
-                  "Save changes"
-                )}
-              </PrimaryButton>
-            </DialogFooter>
-          </form>
-        </Form>
+          <Form {...form}>
+            <form
+              className="flex min-h-0 flex-1 flex-col"
+              onSubmit={form.handleSubmit(handleSubmit)}
+            >
+              <div className="flex-1 space-y-4 overflow-y-auto px-6 py-6">
+                <CustomerInsuranceFormFields
+                  form={form}
+                  schemes={schemes}
+                  isLoadingSchemes={isLoadingSchemes}
+                  isSubmitting={isSubmitting}
+                  customerFullName={customerFullName}
+                  idPrefix="update-customer-insurance"
+                />
+              </div>
+              <DialogFooter className="mt-0 border-t border-brand-border px-6 py-5">
+                <SecondaryButton
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={() => onOpenChange(false)}
+                >
+                  Cancel
+                </SecondaryButton>
+                <PrimaryButton
+                  type="submit"
+                  disabled={isSubmitting || schemes.length === 0}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save changes"
+                  )}
+                </PrimaryButton>
+              </DialogFooter>
+            </form>
+          </Form>
+        </div>
       </DialogContent>
     </Dialog>
   );

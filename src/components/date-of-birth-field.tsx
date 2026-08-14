@@ -13,6 +13,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { appFont } from "@/lib/fonts";
+import { formatPartialIsoDateInput } from "@/lib/validate-date-input";
 import { cn } from "@/lib/utils";
 
 type DateOfBirthFieldProps = {
@@ -53,7 +54,7 @@ export function DateOfBirthField({
   const selectedDate = useMemo(() => parseDateValue(value), [value]);
 
   function handleInputChange(nextValue: string) {
-    onChange(nextValue);
+    onChange(formatPartialIsoDateInput(nextValue, value));
   }
 
   function handleCalendarSelect(date: Date | undefined) {

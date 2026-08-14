@@ -33,6 +33,7 @@ import type {
   ClinicalClinic,
   ClinicalDepartment,
 } from "@/features/clinical/types/clinical-catalog.types";
+import { resolveDefaultDepartmentUuid } from "@/features/clinical/utils/apply-sole-department";
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-errors";
@@ -87,6 +88,7 @@ export function AppointmentDetailDialog({
   const loadDepartments = useCallback(async (clinicId: number) => {
     const nextDepartments = await fetchClinicalDepartments(clinicId);
     setDepartments(nextDepartments);
+    return nextDepartments;
   }, []);
 
   const loadAppointment = useCallback(async () => {
@@ -129,11 +131,20 @@ export function AppointmentDetailDialog({
   }, [open, appointmentUuid]);
 
   const handleClinicChange = (_clinicUuid: string, clinicId: number | null) => {
-    if (clinicId) {
-      void loadDepartments(clinicId);
-    } else {
+    if (!clinicId) {
       setDepartments([]);
+      form.setValue("department", "");
+      return;
     }
+
+    void (async () => {
+      const nextDepartments = await loadDepartments(clinicId);
+      form.setValue(
+        "department",
+        resolveDefaultDepartmentUuid(nextDepartments),
+        { shouldValidate: nextDepartments.length === 1 },
+      );
+    })();
   };
 
   const handleSubmit = form.handleSubmit(async (values) => {
