@@ -267,14 +267,13 @@ export function SignUpForm() {
       throw new Error("Session expired. Go back and enter your credentials again.");
     }
 
-    const response = await requestSignupOtp({
+    await requestSignupOtp({
       email: credentials.email,
       password: credentials.password,
     });
     setOtpCode("");
     otpForm.setValue("code", "");
     setSubmitError(null);
-    return response;
   }
 
   const clinicRegister = profileForm.register("clinic_name");
