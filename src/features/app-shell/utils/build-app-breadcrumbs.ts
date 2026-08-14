@@ -54,6 +54,10 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
       return [{ label: "Settings" }, { label: "Account" }];
     }
 
+    if (pathname === ROUTES.settingsSecurity) {
+      return [{ label: "Settings" }, { label: "Security" }];
+    }
+
     if (pathname === ROUTES.settingsOrganization) {
       return [{ label: "Settings" }, { label: "Organization" }];
     }

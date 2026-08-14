@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronsUpDown, LogOut, UserRound } from "lucide-react";
+import { usePathname } from "next/navigation";
+import { ChevronsUpDown, LogOut, Shield, UserRound } from "lucide-react";
 
 import { UserIdenticon } from "@/components/UserIdenticon";
 import {
@@ -19,12 +20,14 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { ROUTES } from "@/constants/routes";
+import { isNavItemActive } from "@/features/app-shell/constants/navigation-config";
 import { logout } from "@/features/auth/services/auth.service";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/providers/user-provider";
 
 export function NavUser() {
+  const pathname = usePathname();
   const { isMobile } = useSidebar();
   const { userData, isLoading } = useUser();
 
@@ -33,6 +36,7 @@ export function NavUser() {
   const clinicName = userData?.primary_clinic?.name;
   const subtitle = clinicName || email || "Signed in";
   const identiconSeed = userData?.email || String(userData?.id ?? "user");
+  const isSecurityActive = isNavItemActive(pathname, ROUTES.settingsSecurity);
 
   return (
     <SidebarMenu>
@@ -80,6 +84,12 @@ export function NavUser() {
                 Account
               </Link>
             </DropdownMenuItem>
+            <DropdownMenuItem asChild className="cursor-pointer">
+              <Link href={ROUTES.settingsSecurity}>
+                <Shield />
+                Security
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="cursor-pointer"
@@ -90,6 +100,18 @@ export function NavUser() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+      </SidebarMenuItem>
+      <SidebarMenuItem>
+        <SidebarMenuButton
+          asChild
+          tooltip="Security"
+          isActive={isSecurityActive}
+        >
+          <Link href={ROUTES.settingsSecurity} data-testid="sidebar-security">
+            <Shield />
+            <span>Security</span>
+          </Link>
+        </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>
   );

@@ -16,13 +16,21 @@ import { Label } from "@/components/ui/label";
 import { BRAND_LOGO_SRC } from "@/constants/brand";
 import { ROUTES } from "@/constants/routes";
 import { AuthOtpStep } from "@/features/auth/components/AuthOtpStep";
+import { LoginMfaMethodPicker, hasAlternateMfaMethods } from "@/features/auth/components/LoginMfaMethodPicker";
+import { LoginRecoveryStep } from "@/features/auth/components/LoginRecoveryStep";
+import { LoginTotpStep } from "@/features/auth/components/LoginTotpStep";
+import { LoginWebAuthnStep } from "@/features/auth/components/LoginWebAuthnStep";
 import { MedicalIllustrations } from "@/features/auth/components/MedicalIllustrations";
 import {
   isAccessTokenValid,
   getCurrentUser,
   markAuthenticatedSession,
   requestSigninOtp,
+  requestSigninWebAuthnOptions,
   verifySignin,
+  verifySigninRecovery,
+  verifySigninTotp,
+  verifySigninWebAuthn,
 } from "@/features/auth/services/auth.service";
 import {
   signinCredentialsSchema,
@@ -30,16 +38,45 @@ import {
   type SigninCredentialsValues,
   type SigninOtpValues,
 } from "@/features/auth/schemas/login.schema";
+import type { MfaSigninMethod, User } from "@/features/auth/types/auth.types";
+import {
+  getWebAuthnAssertion,
+  webAuthnErrorMessage,
+} from "@/features/auth/utils/webauthn";
 
-type LoginStep = "credentials" | "otp";
+type LoginStep =
+  | "credentials"
+  | "otp"
+  | "methods"
+  | "totp"
+  | "webauthn"
+  | "recovery";
+
+function loginStepForMethod(method: MfaSigninMethod): LoginStep {
+  if (method === "email") return "otp";
+  if (method === "recovery_codes") return "recovery";
+  return method;
+}
+
+function destinationForUser(user: User): string {
+  return user.is_superuser && user.tenant === null
+    ? ROUTES.platformAdmin
+    : ROUTES.customers;
+}
 
 export function LoginForm() {
   const router = useRouter();
   const { resolvedTheme } = useTheme();
   const [step, setStep] = useState<LoginStep>("credentials");
   const [pendingEmail, setPendingEmail] = useState("");
+  const [pendingMfaToken, setPendingMfaToken] = useState("");
+  const [methods, setMethods] = useState<MfaSigninMethod[]>(["email"]);
   const [otpCode, setOtpCode] = useState("");
+  const [totpCode, setTotpCode] = useState("");
+  const [recoveryCode, setRecoveryCode] = useState("");
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [isAlternateSubmitting, setIsAlternateSubmitting] = useState(false);
+  const [pickerFrom, setPickerFrom] = useState<MfaSigninMethod>("email");
   const isDark = resolvedTheme === "dark";
 
   const credentialsForm = useForm<SigninCredentialsValues>({
@@ -71,9 +108,11 @@ export function LoginForm() {
     setSubmitError(null);
 
     try {
-      await requestSigninOtp(values);
+      const challenge = await requestSigninOtp(values);
       const email = values.email.trim().toLowerCase();
       setPendingEmail(email);
+      setPendingMfaToken(challenge.pending_mfa_token);
+      setMethods(challenge.methods);
       otpForm.setValue("email", email);
       otpForm.setValue("code", "");
       setOtpCode("");
@@ -89,13 +128,12 @@ export function LoginForm() {
     setSubmitError(null);
 
     try {
-      const result = await verifySignin(values);
+      const result = await verifySignin({
+        ...values,
+        pending_mfa_token: pendingMfaToken,
+      });
       markAuthenticatedSession();
-      router.push(
-        result.user.is_superuser && result.user.tenant === null
-          ? ROUTES.platformAdmin
-          : ROUTES.customers,
-      );
+      router.push(destinationForUser(result.user));
     } catch (error) {
       setOtpCode("");
       otpForm.setValue("code", "");
@@ -111,10 +149,12 @@ export function LoginForm() {
       throw new Error("Session expired. Go back and enter your credentials again.");
     }
 
-    await requestSigninOtp({
+    const challenge = await requestSigninOtp({
       email: pendingEmail,
       password,
     });
+    setPendingMfaToken(challenge.pending_mfa_token);
+    setMethods(challenge.methods);
     setOtpCode("");
     otpForm.setValue("code", "");
     setSubmitError(null);
@@ -123,7 +163,75 @@ export function LoginForm() {
   function handleBack() {
     setSubmitError(null);
     setOtpCode("");
+    setTotpCode("");
+    setRecoveryCode("");
+    setPendingMfaToken("");
+    setMethods(["email"]);
     setStep("credentials");
+  }
+
+  async function completeAlternateSignin(user: User) {
+    markAuthenticatedSession();
+    router.push(destinationForUser(user));
+  }
+
+  async function handleTotpSubmit(code = totpCode) {
+    if (isAlternateSubmitting) return;
+    setSubmitError(null);
+    setIsAlternateSubmitting(true);
+    try {
+      const result = await verifySigninTotp({
+        pending_mfa_token: pendingMfaToken,
+        code,
+      });
+      await completeAlternateSignin(result.user);
+    } catch (error) {
+      setTotpCode("");
+      setSubmitError(
+        error instanceof Error ? error.message : "Incorrect authenticator code.",
+      );
+    } finally {
+      setIsAlternateSubmitting(false);
+    }
+  }
+
+  async function handleRecoverySubmit() {
+    setSubmitError(null);
+    setIsAlternateSubmitting(true);
+    try {
+      const result = await verifySigninRecovery({
+        pending_mfa_token: pendingMfaToken,
+        code: recoveryCode,
+      });
+      await completeAlternateSignin(result.user);
+    } catch (error) {
+      setRecoveryCode("");
+      setSubmitError(
+        error instanceof Error ? error.message : "Incorrect recovery code.",
+      );
+    } finally {
+      setIsAlternateSubmitting(false);
+    }
+  }
+
+  async function handleWebAuthnVerify() {
+    setSubmitError(null);
+    setIsAlternateSubmitting(true);
+    try {
+      const { request_options: requestOptions } = await requestSigninWebAuthnOptions({
+        pending_mfa_token: pendingMfaToken,
+      });
+      const credential = await getWebAuthnAssertion(requestOptions);
+      const result = await verifySigninWebAuthn({
+        pending_mfa_token: pendingMfaToken,
+        credential,
+      });
+      await completeAlternateSignin(result.user);
+    } catch (error) {
+      setSubmitError(webAuthnErrorMessage(error));
+    } finally {
+      setIsAlternateSubmitting(false);
+    }
   }
 
   function syncOtpCode(code: string) {
@@ -140,35 +248,137 @@ export function LoginForm() {
   }
 
   const submitCredentials = credentialsForm.handleSubmit(handleCredentialsSubmit);
-  const isSubmitting = otpForm.formState.isSubmitting;
+  const isSubmitting = otpForm.formState.isSubmitting || isAlternateSubmitting;
+  const showAlternateLink = hasAlternateMfaMethods(methods);
+
+  function tryAnotherMethodLink(from: MfaSigninMethod) {
+    if (!showAlternateLink) return null;
+    return (
+      <div className="mt-4 text-center">
+        <button
+          type="button"
+          data-testid="login-try-another-method"
+          disabled={isSubmitting}
+          onClick={() => {
+            setSubmitError(null);
+            setPickerFrom(from);
+            setStep("methods");
+          }}
+          className="text-sm text-brand-muted transition-colors hover:text-brand-navy hover:underline disabled:opacity-50"
+        >
+          Try another method
+        </button>
+      </div>
+    );
+  }
 
   if (step === "otp") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white px-4 py-10">
-        <form
-          className="w-full max-w-md"
-          data-testid="login-otp-form"
-          onSubmit={(event) => event.preventDefault()}
-        >
-          <AuthOtpStep
-            title="Check your email"
-            description="If an account exists for this email, we've sent a verification code."
-            email={pendingEmail}
-            codeTestId="login-otp"
-            code={otpCode}
+        <div className="w-full max-w-md">
+          <form
+            className="w-full max-w-md"
+            data-testid="login-otp-form"
+            onSubmit={(event) => event.preventDefault()}
+          >
+            <AuthOtpStep
+              title="Check your email"
+              description="If an account exists for this email, we've sent a verification code."
+              email={pendingEmail}
+              codeTestId="login-otp"
+              code={otpCode}
+              disabled={isSubmitting}
+              error={submitError ?? otpForm.formState.errors.code?.message}
+              onCodeChange={syncOtpCode}
+              onCodeComplete={(code) => void submitOtpIfReady(code)}
+              onResend={handleResendOtp}
+              onBack={handleBack}
+              submitLabel="Sign in"
+              submittingLabel="Signing in..."
+              submitTestId="login-submit"
+              isSubmitting={isSubmitting}
+              onSubmit={() => void otpForm.handleSubmit(handleOtpSubmit)()}
+            />
+          </form>
+          {tryAnotherMethodLink("email")}
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "methods") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white px-4 py-10">
+        <LoginMfaMethodPicker
+          methods={methods}
+          currentMethod={pickerFrom}
+          disabled={isSubmitting}
+          onSelect={(method) => {
+            setSubmitError(null);
+            setStep(loginStepForMethod(method));
+          }}
+          onBack={() => setStep(loginStepForMethod(pickerFrom))}
+        />
+      </div>
+    );
+  }
+
+  if (step === "totp") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white px-4 py-10">
+        <div className="w-full max-w-md">
+          <LoginTotpStep
+            code={totpCode}
+            error={submitError ?? undefined}
             disabled={isSubmitting}
-            error={submitError ?? otpForm.formState.errors.code?.message}
-            onCodeChange={syncOtpCode}
-            onCodeComplete={(code) => void submitOtpIfReady(code)}
-            onResend={handleResendOtp}
-            onBack={handleBack}
-            submitLabel="Sign in"
-            submittingLabel="Signing in..."
-            submitTestId="login-submit"
             isSubmitting={isSubmitting}
-            onSubmit={() => void otpForm.handleSubmit(handleOtpSubmit)()}
+            onCodeChange={setTotpCode}
+            onCodeComplete={(code) => {
+              setTotpCode(code);
+              if (code.length === 6) {
+                void handleTotpSubmit(code);
+              }
+            }}
+            onSubmit={() => void handleTotpSubmit()}
+            onBack={() => setStep("methods")}
           />
-        </form>
+          {tryAnotherMethodLink("totp")}
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "recovery") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white px-4 py-10">
+        <div className="w-full max-w-md">
+          <LoginRecoveryStep
+            code={recoveryCode}
+            error={submitError ?? undefined}
+            disabled={isSubmitting}
+            isSubmitting={isSubmitting}
+            onCodeChange={setRecoveryCode}
+            onSubmit={() => void handleRecoverySubmit()}
+            onBack={() => setStep("methods")}
+          />
+          {tryAnotherMethodLink("recovery_codes")}
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "webauthn") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-white px-4 py-10">
+        <div className="w-full max-w-md">
+          <LoginWebAuthnStep
+            error={submitError ?? undefined}
+            isSubmitting={isSubmitting}
+            onVerify={() => void handleWebAuthnVerify()}
+            onBack={() => setStep("methods")}
+          />
+          {tryAnotherMethodLink("webauthn")}
+        </div>
       </div>
     );
   }

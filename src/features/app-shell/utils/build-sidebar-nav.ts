@@ -84,6 +84,11 @@ export function buildSidebarNavItems(
       url: ROUTES.settingsAccount,
       isActive: isNavItemActive(pathname, ROUTES.settingsAccount),
     },
+    {
+      title: "Security",
+      url: ROUTES.settingsSecurity,
+      isActive: isNavItemActive(pathname, ROUTES.settingsSecurity),
+    },
     ...(isTenantAdmin
       ? [
           {

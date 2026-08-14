@@ -35,6 +35,8 @@ type SettingsSectionProps = {
   description?: string;
   children: ReactNode;
   className?: string;
+  /** Edge-to-edge children (for divided rows). */
+  flush?: boolean;
 };
 
 export function SettingsSection({
@@ -42,6 +44,7 @@ export function SettingsSection({
   description,
   children,
   className,
+  flush = false,
 }: SettingsSectionProps) {
   return (
     <section
@@ -56,7 +59,7 @@ export function SettingsSection({
           <p className="mt-1 text-sm text-brand-muted">{description}</p>
         ) : null}
       </div>
-      <div className="px-6 py-5">{children}</div>
+      <div className={cn(!flush && "px-6 py-5")}>{children}</div>
     </section>
   );
 }

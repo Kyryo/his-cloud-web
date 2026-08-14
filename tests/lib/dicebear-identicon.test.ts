@@ -41,6 +41,10 @@ describe("buildSidebarNavItems", () => {
               title: "Account",
               url: ROUTES.settingsAccount,
             }),
+            expect.objectContaining({
+              title: "Security",
+              url: ROUTES.settingsSecurity,
+            }),
           ]),
         }),
       ]),

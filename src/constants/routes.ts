@@ -69,6 +69,7 @@ export const ROUTES = {
   visitDetail: (uuid: string) => `/visits/${uuid}`,
   settings: "/settings",
   settingsAccount: "/settings/account",
+  settingsSecurity: "/settings/security",
   settingsOrganization: "/settings/organization",
   settingsVisitManagement: "/settings/visit-management",
   settingsFinanceOperations: "/settings/finance-operations",

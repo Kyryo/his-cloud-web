@@ -22,5 +22,17 @@ export const signinOtpSchema = z.object({
     .regex(otpCodeRegex, "Enter the 6-digit verification code"),
 });
 
+export const signinTotpSchema = z.object({
+  code: z.string().regex(otpCodeRegex, "Enter the 6-digit authenticator code"),
+});
+
+export const signinRecoverySchema = z.object({
+  code: z
+    .string()
+    .regex(/^\d{8}$/, "Enter the 8-digit recovery code"),
+});
+
 export type SigninCredentialsValues = z.infer<typeof signinCredentialsSchema>;
 export type SigninOtpValues = z.infer<typeof signinOtpSchema>;
+export type SigninTotpValues = z.infer<typeof signinTotpSchema>;
+export type SigninRecoveryValues = z.infer<typeof signinRecoverySchema>;

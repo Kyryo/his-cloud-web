@@ -10,6 +10,7 @@ describe("isAuthBffPath", () => {
   it("identifies auth BFF routes", () => {
     expect(isAuthBffPath("/api/auth/session")).toBe(true);
     expect(isAuthBffPath("/api/auth/signin/request-otp")).toBe(true);
+    expect(isAuthBffPath("/api/auth/mfa")).toBe(true);
     expect(isAuthBffPath("/api/customers")).toBe(false);
   });
 });

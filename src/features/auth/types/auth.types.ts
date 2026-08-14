@@ -95,6 +95,14 @@ export interface OtpRequestResponse {
   detail: string;
 }
 
+export type MfaSigninMethod = "email" | "totp" | "webauthn" | "recovery_codes";
+
+export interface SigninChallengeResponse {
+  detail: string;
+  pending_mfa_token: string;
+  methods: MfaSigninMethod[];
+}
+
 export interface SigninOtpRequest {
   email: string;
   password: string;
@@ -103,6 +111,7 @@ export interface SigninOtpRequest {
 export interface SigninVerifyRequest {
   email: string;
   code: string;
+  pending_mfa_token: string;
 }
 
 export interface SignupOtpRequest {

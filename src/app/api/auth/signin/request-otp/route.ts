@@ -1,7 +1,7 @@
 import { AUTH_API_PATHS } from "@/constants/auth-api";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
 import { hmisApiRequest } from "@/lib/server/hmis-api";
-import type { OtpRequestResponse } from "@/features/auth/types/auth.types";
+import type { SigninChallengeResponse } from "@/features/auth/types/auth.types";
 
 type RequestBody = {
   email?: string;
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const data = await hmisApiRequest<OtpRequestResponse>(
+    const data = await hmisApiRequest<SigninChallengeResponse>(
       AUTH_API_PATHS.signinRequestOtp,
       {
         method: "POST",

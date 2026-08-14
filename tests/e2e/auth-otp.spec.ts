@@ -26,6 +26,33 @@ test.describe("OTP auth flow", () => {
     await expect(page).toHaveURL(/\/customers$/);
   });
 
+  test("hides try another method when only email is available", async ({ page }) => {
+    await mockSigninOtpFlow(page);
+
+    await page.goto("/auth");
+    await page.getByTestId("login-email").fill("user@example.com");
+    await page.getByTestId("login-password").fill("Str0ng-Passphrase-123!");
+    await page.getByTestId("login-continue").click();
+
+    await expect(page.getByTestId("login-otp-form")).toBeVisible();
+    await expect(page.getByTestId("login-try-another-method")).toHaveCount(0);
+  });
+
+  test("shows try another method when totp is enrolled", async ({ page }) => {
+    await mockSigninOtpFlow(page, ["email", "totp", "recovery_codes"]);
+
+    await page.goto("/auth");
+    await page.getByTestId("login-email").fill("user@example.com");
+    await page.getByTestId("login-password").fill("Str0ng-Passphrase-123!");
+    await page.getByTestId("login-continue").click();
+
+    await expect(page.getByTestId("login-otp-form")).toBeVisible();
+    await page.getByTestId("login-try-another-method").click();
+    await expect(page.getByTestId("login-mfa-methods")).toBeVisible();
+    await page.getByTestId("login-mfa-method-totp").click();
+    await expect(page.getByTestId("login-totp-form")).toBeVisible();
+  });
+
   test("sign-up completes with clinic details and OTP", async ({ page }) => {
     await mockSignupOtpFlow(page);
 

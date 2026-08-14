@@ -111,7 +111,10 @@ export async function mockCustomersList(page: Page): Promise<void> {
   });
 }
 
-export async function mockSigninOtpFlow(page: Page): Promise<void> {
+export async function mockSigninOtpFlow(
+  page: Page,
+  methods: string[] = ["email"],
+): Promise<void> {
   let authenticated = false;
 
   await page.route("**/api/auth/session", createSessionRouteHandler(() => authenticated));
@@ -133,7 +136,11 @@ export async function mockSigninOtpFlow(page: Page): Promise<void> {
     await route.fulfill({
       status: 202,
       contentType: "application/json",
-      body: JSON.stringify({ detail: "Verification code sent." }),
+      body: JSON.stringify({
+        detail: "Verification code sent.",
+        pending_mfa_token: "mock-pending-token",
+        methods,
+      }),
     });
   });
 

@@ -3,6 +3,7 @@ import type {
   AuthVerifyResponse,
   OtpRequestResponse,
   SessionResponse,
+  SigninChallengeResponse,
   SigninOtpRequest,
   SigninVerifyRequest,
   SignupOtpRequest,
@@ -24,8 +25,8 @@ export async function isAccessTokenValid(): Promise<boolean> {
 
 export async function requestSigninOtp(
   payload: SigninOtpRequest,
-): Promise<OtpRequestResponse> {
-  return bffRequest<OtpRequestResponse>(BFF_AUTH_ROUTES.signinRequestOtp, {
+): Promise<SigninChallengeResponse> {
+  return bffRequest<SigninChallengeResponse>(BFF_AUTH_ROUTES.signinRequestOtp, {
     method: "POST",
     body: {
       email: payload.email.trim().toLowerCase(),
@@ -42,7 +43,50 @@ export async function verifySignin(
     body: {
       email: payload.email.trim().toLowerCase(),
       code: payload.code,
+      pending_mfa_token: payload.pending_mfa_token,
     },
+  });
+}
+
+export async function verifySigninTotp(payload: {
+  pending_mfa_token: string;
+  code: string;
+}): Promise<AuthVerifyResponse> {
+  return bffRequest<AuthVerifyResponse>(BFF_AUTH_ROUTES.signinTotp, {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export async function verifySigninRecovery(payload: {
+  pending_mfa_token: string;
+  code: string;
+}): Promise<AuthVerifyResponse> {
+  return bffRequest<AuthVerifyResponse>(BFF_AUTH_ROUTES.signinRecovery, {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export async function requestSigninWebAuthnOptions(payload: {
+  pending_mfa_token: string;
+}): Promise<{ request_options: Record<string, unknown> }> {
+  return bffRequest<{ request_options: Record<string, unknown> }>(
+    BFF_AUTH_ROUTES.signinWebAuthnOptions,
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
+}
+
+export async function verifySigninWebAuthn(payload: {
+  pending_mfa_token: string;
+  credential: Record<string, unknown>;
+}): Promise<AuthVerifyResponse> {
+  return bffRequest<AuthVerifyResponse>(BFF_AUTH_ROUTES.signinWebAuthnVerify, {
+    method: "POST",
+    body: payload,
   });
 }
 

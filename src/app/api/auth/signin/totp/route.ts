@@ -8,36 +8,28 @@ import { hmisApiRequest } from "@/lib/server/hmis-api";
 import { persistSigninSession } from "@/lib/server/persist-signin-session";
 
 type RequestBody = {
-  email?: string;
-  code?: string;
   pending_mfa_token?: string;
+  code?: string;
 };
 
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as RequestBody;
 
-    if (!body.email || !body.code || !body.pending_mfa_token) {
+    if (!body.pending_mfa_token || !body.code) {
       return bffSuccess(
-        {
-          message:
-            "Email, verification code, and sign-in session are required.",
-        },
+        { message: "Sign-in session and authenticator code are required." },
         400,
       );
     }
 
-    const session = await hmisApiRequest<AuthSession>(
-      AUTH_API_PATHS.signinVerify,
-      {
-        method: "POST",
-        body: {
-          email: body.email.trim().toLowerCase(),
-          code: body.code,
-          pending_mfa_token: body.pending_mfa_token,
-        },
+    const session = await hmisApiRequest<AuthSession>(AUTH_API_PATHS.signinTotp, {
+      method: "POST",
+      body: {
+        pending_mfa_token: body.pending_mfa_token,
+        code: body.code,
       },
-    );
+    });
 
     const response: AuthVerifyResponse = await persistSigninSession(session);
     return bffSuccess(response);

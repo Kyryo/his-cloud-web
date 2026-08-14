@@ -159,6 +159,13 @@ describe("buildAppBreadcrumbs", () => {
     ]);
   });
 
+  it("returns settings security crumbs", () => {
+    expect(buildAppBreadcrumbs(ROUTES.settingsSecurity)).toEqual([
+      { label: "Settings" },
+      { label: "Security" },
+    ]);
+  });
+
   it("returns reports overview breadcrumbs", () => {
     expect(buildAppBreadcrumbs(ROUTES.reportsOverview)).toEqual([
       { label: "Reports & Insights" },
