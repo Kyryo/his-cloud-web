@@ -96,3 +96,13 @@ export async function regenerateRecoveryCodes(
     { method: "POST", body: { password } },
   );
 }
+
+export async function setPreferredMfaMethod(payload: {
+  password: string;
+  method: "email" | "totp" | "webauthn";
+}): Promise<{ preferred_method: string }> {
+  return bffRequest<{ preferred_method: string }>(BFF_AUTH_ROUTES.mfaPreferred, {
+    method: "POST",
+    body: payload,
+  });
+}

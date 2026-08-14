@@ -26,6 +26,7 @@ import {
   getCurrentUser,
   markAuthenticatedSession,
   requestSigninOtp,
+  sendSigninEmailOtp,
   requestSigninWebAuthnOptions,
   verifySignin,
   verifySigninRecovery,
@@ -71,6 +72,7 @@ export function LoginForm() {
   const [pendingEmail, setPendingEmail] = useState("");
   const [pendingMfaToken, setPendingMfaToken] = useState("");
   const [methods, setMethods] = useState<MfaSigninMethod[]>(["email"]);
+  const [emailOtpSent, setEmailOtpSent] = useState(false);
   const [otpCode, setOtpCode] = useState("");
   const [totpCode, setTotpCode] = useState("");
   const [recoveryCode, setRecoveryCode] = useState("");
@@ -113,10 +115,15 @@ export function LoginForm() {
       setPendingEmail(email);
       setPendingMfaToken(challenge.pending_mfa_token);
       setMethods(challenge.methods);
+      setEmailOtpSent(challenge.email_otp_sent);
       otpForm.setValue("email", email);
       otpForm.setValue("code", "");
       setOtpCode("");
-      setStep("otp");
+      const preferred = challenge.methods.includes(challenge.preferred_method)
+        ? challenge.preferred_method
+        : "email";
+      setPickerFrom(preferred);
+      setStep(loginStepForMethod(preferred));
     } catch (error) {
       setSubmitError(
         error instanceof Error ? error.message : "Sign in failed. Please try again.",
@@ -144,20 +151,34 @@ export function LoginForm() {
   }
 
   async function handleResendOtp() {
-    const password = credentialsForm.getValues("password");
-    if (!pendingEmail || !password) {
+    if (!pendingMfaToken) {
       throw new Error("Session expired. Go back and enter your credentials again.");
     }
 
-    const challenge = await requestSigninOtp({
-      email: pendingEmail,
-      password,
-    });
-    setPendingMfaToken(challenge.pending_mfa_token);
-    setMethods(challenge.methods);
+    await sendSigninEmailOtp({ pending_mfa_token: pendingMfaToken });
+    setEmailOtpSent(true);
     setOtpCode("");
     otpForm.setValue("code", "");
     setSubmitError(null);
+  }
+
+  async function selectSigninMethod(method: MfaSigninMethod) {
+    setSubmitError(null);
+    if (method === "email" && !emailOtpSent) {
+      try {
+        await sendSigninEmailOtp({ pending_mfa_token: pendingMfaToken });
+        setEmailOtpSent(true);
+      } catch (error) {
+        setSubmitError(
+          error instanceof Error
+            ? error.message
+            : "Unable to send a verification code.",
+        );
+        return;
+      }
+    }
+    setPickerFrom(method);
+    setStep(loginStepForMethod(method));
   }
 
   function handleBack() {
@@ -167,6 +188,8 @@ export function LoginForm() {
     setRecoveryCode("");
     setPendingMfaToken("");
     setMethods(["email"]);
+    setEmailOtpSent(false);
+    setPickerFrom("email");
     setStep("credentials");
   }
 
@@ -309,16 +332,20 @@ export function LoginForm() {
   if (step === "methods") {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white px-4 py-10">
-        <LoginMfaMethodPicker
-          methods={methods}
-          currentMethod={pickerFrom}
-          disabled={isSubmitting}
-          onSelect={(method) => {
-            setSubmitError(null);
-            setStep(loginStepForMethod(method));
-          }}
-          onBack={() => setStep(loginStepForMethod(pickerFrom))}
-        />
+        <div className="w-full max-w-md">
+          {submitError ? (
+            <StatusBanner variant="error" message={submitError} className="mb-4" />
+          ) : null}
+          <LoginMfaMethodPicker
+            methods={methods}
+            currentMethod={pickerFrom}
+            disabled={isSubmitting}
+            onSelect={(method) => {
+              void selectSigninMethod(method);
+            }}
+            onBack={() => setStep(loginStepForMethod(pickerFrom))}
+          />
+        </div>
       </div>
     );
   }

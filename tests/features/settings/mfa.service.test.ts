@@ -5,6 +5,7 @@ import {
   activateTotp,
   fetchMfaStatus,
   revealRecoveryCodes,
+  setPreferredMfaMethod,
   setupTotp,
 } from "@/features/settings/services/mfa.service";
 
@@ -25,6 +26,7 @@ describe("mfa.service", () => {
       totp: { enabled: false, created_at: null, last_used_at: null },
       webauthn: [],
       recovery_codes: { enabled: false, unused_count: 0, total_count: 0 },
+      preferred_method: "email",
     });
 
     const status = await fetchMfaStatus();
@@ -67,5 +69,19 @@ describe("mfa.service", () => {
       body: { password: "Str0ng-Passphrase-123!" },
     });
     expect(result.unused_codes).toHaveLength(2);
+  });
+
+  it("sets the preferred sign-in method with the current password", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({ preferred_method: "totp" });
+
+    await setPreferredMfaMethod({
+      password: "Str0ng-Passphrase-123!",
+      method: "totp",
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_AUTH_ROUTES.mfaPreferred, {
+      method: "POST",
+      body: { password: "Str0ng-Passphrase-123!", method: "totp" },
+    });
   });
 });

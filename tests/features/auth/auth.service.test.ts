@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { BFF_AUTH_ROUTES } from "@/constants/api";
 import {
   requestSigninOtp,
+  sendSigninEmailOtp,
   verifySignin,
   verifySigninRecovery,
   verifySigninTotp,
@@ -25,6 +26,8 @@ describe("auth.service", () => {
       detail: "Verification code sent.",
       pending_mfa_token: "pending-token",
       methods: ["email"],
+      preferred_method: "email",
+      email_otp_sent: true,
     });
 
     const result = await requestSigninOtp({
@@ -40,6 +43,19 @@ describe("auth.service", () => {
       },
     });
     expect(result.detail).toBe("Verification code sent.");
+  });
+
+  it("sends a sign-in email OTP for an existing challenge", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({
+      detail: "Verification code sent.",
+    });
+
+    await sendSigninEmailOtp({ pending_mfa_token: "pending-token" });
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_AUTH_ROUTES.signinEmailOtp, {
+      method: "POST",
+      body: { pending_mfa_token: "pending-token" },
+    });
   });
 
   it("verifies signin via the BFF without exposing tokens", async () => {

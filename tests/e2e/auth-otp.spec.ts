@@ -53,6 +53,18 @@ test.describe("OTP auth flow", () => {
     await expect(page.getByTestId("login-totp-form")).toBeVisible();
   });
 
+  test("opens the default totp step when totp is preferred", async ({ page }) => {
+    await mockSigninOtpFlow(page, ["email", "totp", "recovery_codes"], "totp");
+
+    await page.goto("/auth");
+    await page.getByTestId("login-email").fill("user@example.com");
+    await page.getByTestId("login-password").fill("Str0ng-Passphrase-123!");
+    await page.getByTestId("login-continue").click();
+
+    await expect(page.getByTestId("login-totp-form")).toBeVisible();
+    await expect(page.getByTestId("login-otp-form")).toHaveCount(0);
+  });
+
   test("sign-up completes with clinic details and OTP", async ({ page }) => {
     await mockSignupOtpFlow(page);
 

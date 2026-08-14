@@ -2,6 +2,7 @@
 export const AUTH_API_PATHS = {
   signinRequestOtp: "/auth/signin/request-otp/",
   signinVerify: "/auth/signin/verify/",
+  signinEmailOtp: "/auth/signin/email/",
   signinTotp: "/auth/signin/totp/",
   signinRecovery: "/auth/signin/recovery/",
   signinWebAuthnOptions: "/auth/signin/webauthn/options/",
@@ -14,6 +15,7 @@ export const AUTH_API_PATHS = {
   me: "/users/me/",
   userDetail: (userId: number) => `/users/${userId}/`,
   mfa: "/auth/mfa/",
+  mfaPreferred: "/auth/mfa/preferred/",
   mfaTotpSetup: "/auth/mfa/totp/setup/",
   mfaTotpActivate: "/auth/mfa/totp/activate/",
   mfaTotpDeactivate: "/auth/mfa/totp/deactivate/",

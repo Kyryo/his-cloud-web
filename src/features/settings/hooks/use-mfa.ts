@@ -10,6 +10,7 @@ import {
   removeWebAuthn,
   renameWebAuthn,
   revealRecoveryCodes,
+  setPreferredMfaMethod,
   setupTotp,
 } from "@/features/settings/services/mfa.service";
 
@@ -93,6 +94,16 @@ export function useRegenerateRecoveryCodes() {
   const invalidate = useInvalidateMfaStatus();
   return useMutation({
     mutationFn: regenerateRecoveryCodes,
+    onSuccess: () => {
+      void invalidate();
+    },
+  });
+}
+
+export function useSetPreferredMfaMethod() {
+  const invalidate = useInvalidateMfaStatus();
+  return useMutation({
+    mutationFn: setPreferredMfaMethod,
     onSuccess: () => {
       void invalidate();
     },

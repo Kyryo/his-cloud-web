@@ -35,6 +35,15 @@ export async function requestSigninOtp(
   });
 }
 
+export async function sendSigninEmailOtp(payload: {
+  pending_mfa_token: string;
+}): Promise<{ detail: string }> {
+  return bffRequest<{ detail: string }>(BFF_AUTH_ROUTES.signinEmailOtp, {
+    method: "POST",
+    body: payload,
+  });
+}
+
 export async function verifySignin(
   payload: SigninVerifyRequest,
 ): Promise<AuthVerifyResponse> {

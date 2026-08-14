@@ -16,6 +16,7 @@ export type MfaStatus = {
     unused_count: number;
     total_count: number;
   };
+  preferred_method: "email" | "totp" | "webauthn";
 };
 
 export type TotpSetupResponse = {

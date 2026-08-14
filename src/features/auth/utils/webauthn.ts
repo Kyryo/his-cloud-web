@@ -119,14 +119,16 @@ export function credentialToJson(
   return jsonCredential;
 }
 
+export function isWebAuthnCancelled(error: unknown): boolean {
+  return error instanceof DOMException && error.name === "NotAllowedError";
+}
+
 export function webAuthnErrorMessage(error: unknown): string {
-  if (error instanceof DOMException) {
-    if (error.name === "NotAllowedError") {
-      return "Security key verification was cancelled or timed out.";
-    }
-    if (error.name === "InvalidStateError") {
-      return "This security key is already registered.";
-    }
+  if (isWebAuthnCancelled(error)) {
+    return "Security key verification was cancelled or timed out.";
+  }
+  if (error instanceof DOMException && error.name === "InvalidStateError") {
+    return "This security key is already registered.";
   }
   if (error instanceof Error) {
     return error.message;

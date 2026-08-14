@@ -114,6 +114,7 @@ export async function mockCustomersList(page: Page): Promise<void> {
 export async function mockSigninOtpFlow(
   page: Page,
   methods: string[] = ["email"],
+  preferredMethod = "email",
 ): Promise<void> {
   let authenticated = false;
 
@@ -140,7 +141,17 @@ export async function mockSigninOtpFlow(
         detail: "Verification code sent.",
         pending_mfa_token: "mock-pending-token",
         methods,
+        preferred_method: preferredMethod,
+        email_otp_sent: preferredMethod === "email",
       }),
+    });
+  });
+
+  await page.route("**/api/auth/signin/email", async (route) => {
+    await route.fulfill({
+      status: 202,
+      contentType: "application/json",
+      body: JSON.stringify({ detail: "Verification code sent." }),
     });
   });
 
