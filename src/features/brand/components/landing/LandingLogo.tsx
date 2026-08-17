@@ -10,15 +10,50 @@ type LandingLogoProps = {
   imageClassName?: string;
   priority?: boolean;
   linked?: boolean;
+  /** Icon + SigmaHealth wordmark lockup (header). */
+  showWordmark?: boolean;
 };
+
+function SigmaHealthWordmark({ className }: { className?: string }) {
+  return (
+    <span
+      className={cn(
+        "font-[family-name:var(--font-inter)] text-[1.0625rem] font-normal leading-none tracking-[-0.02em] text-[color:var(--landing-ink)] sm:text-[1.1875rem]",
+        className,
+      )}
+      aria-hidden="true"
+    >
+      <span className="font-semibold">Sigma</span>
+      Health
+    </span>
+  );
+}
 
 export function LandingLogo({
   className,
   imageClassName = "h-12 w-auto sm:h-14",
   priority = false,
   linked = true,
+  showWordmark = false,
 }: LandingLogoProps) {
   const image = (
+    <Image
+      src={LANDING_LOGO_SRC}
+      alt=""
+      width={128}
+      height={128}
+      className={cn("object-contain", imageClassName)}
+      priority={priority}
+      aria-hidden="true"
+    />
+  );
+
+  const lockup = showWordmark ? (
+    <>
+      {image}
+      <SigmaHealthWordmark />
+    </>
+  ) : (
     <Image
       src={LANDING_LOGO_SRC}
       alt="Sigma Health"
@@ -29,13 +64,26 @@ export function LandingLogo({
     />
   );
 
+  const wrapperClass = cn(
+    "inline-flex shrink-0 items-center",
+    showWordmark && "gap-2.5 sm:gap-3",
+    className,
+  );
+
   if (!linked) {
-    return <span className={cn("inline-flex shrink-0", className)}>{image}</span>;
+    return <span className={wrapperClass}>{lockup}</span>;
   }
 
   return (
-    <Link href={ROUTES.home} className={cn("inline-flex shrink-0", className)}>
-      {image}
+    <Link
+      href={ROUTES.home}
+      className={cn(
+        wrapperClass,
+        "landing-focus rounded-lg transition-opacity hover:opacity-90",
+      )}
+      aria-label="SigmaHealth home"
+    >
+      {lockup}
     </Link>
   );
 }

@@ -26,7 +26,12 @@ export function Navigation() {
               : "grid-cols-[1fr_auto]",
           )}
         >
-          <LandingLogo className="justify-self-start" priority />
+          <LandingLogo
+            className="justify-self-start"
+            priority
+            showWordmark
+            imageClassName="h-9 w-auto sm:h-10"
+          />
 
           {showNavLinks ? (
             <div className="hidden items-center justify-center gap-8 text-sm font-medium lg:flex">
