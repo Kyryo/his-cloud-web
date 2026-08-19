@@ -18,6 +18,9 @@ const assetPrefix =
 const nextConfig: NextConfig = {
   output: "standalone",
   assetPrefix,
+  images: {
+    qualities: [75, 90, 92],
+  },
   turbopack: {
     root: appRoot,
   },

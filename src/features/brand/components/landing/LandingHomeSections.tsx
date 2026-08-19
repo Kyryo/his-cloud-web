@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  Ban,
-  CheckCircle2,
-  ChevronDown,
-  CircleDollarSign,
-  ClipboardList,
-  ShieldCheck,
-} from "lucide-react";
+import { Ban, CheckCircle2, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { useState } from "react";
@@ -17,7 +10,7 @@ import { LandingProblemFeatureCards } from "@/features/brand/components/landing/
 import { LandingRevenueMetricsVisual } from "@/features/brand/components/landing/LandingRevenueMetricsVisual";
 import { LandingSection } from "@/features/brand/components/landing/LandingSection";
 import { LandingSectionHeader } from "@/features/brand/components/landing/LandingSectionHeader";
-import { LandingSolutionMetricsVisual } from "@/features/brand/components/landing/LandingSolutionMetricsVisual";
+import { LandingSolutionJourney } from "@/features/brand/components/landing/LandingSolutionJourney";
 import { LandingWhyFeatureCards } from "@/features/brand/components/landing/LandingWhyFeatureCards";
 import {
   LANDING_COMPARISON,
@@ -30,8 +23,6 @@ import {
 } from "@/features/brand/constants/landing-home-content";
 import { useLandingReveal } from "@/features/brand/hooks/useLandingReveal";
 import { cn } from "@/lib/utils";
-
-const SOLUTION_ICONS = [ShieldCheck, ClipboardList, CircleDollarSign] as const;
 
 function LandingReveal({
   children,
@@ -136,51 +127,18 @@ export function LandingHomeSections() {
           <LandingSectionHeader
             title={LANDING_PROBLEM.title}
             description={LANDING_PROBLEM.description}
-            align="center"
-            className="mx-auto"
           />
           <LandingProblemFeatureCards />
-          <p className="landing-body landing-text-ink mx-auto mt-12 max-w-2xl text-center text-base font-medium leading-[1.7] sm:text-lg">
-            {LANDING_PROBLEM.closing}
-          </p>
         </LandingReveal>
       </LandingSection>
 
       <LandingSection variant="muted">
         <LandingReveal>
-          <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)] lg:gap-16">
-            <div>
-              <LandingSectionHeader
-                title={LANDING_SOLUTION.title}
-                description={LANDING_SOLUTION.description}
-              />
-              <ul className="mt-10 space-y-8">
-                {LANDING_SOLUTION.items.map((item, index) => {
-                  const Icon = SOLUTION_ICONS[index] ?? ShieldCheck;
-                  return (
-                    <li key={item.title} className="flex gap-4">
-                      <div className="flex size-10 shrink-0 items-center justify-center rounded-[12px] bg-white text-[color:var(--landing-teal)] shadow-[var(--landing-shadow)]">
-                        <Icon
-                          className="size-5"
-                          strokeWidth={1.75}
-                          aria-hidden="true"
-                        />
-                      </div>
-                      <div>
-                        <h3 className="landing-text-ink font-[family-name:var(--font-bricolage)] text-lg font-semibold tracking-tight">
-                          {item.title}
-                        </h3>
-                        <p className="landing-body mt-2 max-w-[40ch] text-base leading-[1.7] text-[color:var(--landing-ledger-ink)]">
-                          {item.description}
-                        </p>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-            <LandingSolutionMetricsVisual />
-          </div>
+          <LandingSectionHeader
+            title={LANDING_SOLUTION.title}
+            description={LANDING_SOLUTION.description}
+          />
+          <LandingSolutionJourney />
         </LandingReveal>
       </LandingSection>
 

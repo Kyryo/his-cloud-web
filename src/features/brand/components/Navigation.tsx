@@ -1,5 +1,6 @@
 "use client";
 
+import { useMotionValueEvent, useScroll } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -12,12 +13,27 @@ import { cn } from "@/lib/utils";
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
-  const showNavLinks = pathname !== ROUTES.home;
+  const { scrollY } = useScroll();
+  const isHome = pathname === ROUTES.home;
+  const showNavLinks = !isHome;
+  const isGlass = !isHome || isScrolled || isOpen;
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    setIsScrolled(latest > 12);
+  });
 
   return (
-    <nav className="fixed top-0 z-50 w-full border-b border-[color:var(--landing-border)] bg-white/80 backdrop-blur-xl">
-      <div className="mx-auto h-16 max-w-6xl px-6 sm:px-10 lg:px-12">
+    <nav
+      className={cn(
+        "fixed top-0 z-50 w-full transition-[background-color,backdrop-filter] duration-300",
+        isGlass
+          ? "landing-nav-glass bg-white/72 backdrop-blur-xl"
+          : "bg-transparent",
+      )}
+    >
+      <div className="mx-auto h-16 max-w-7xl px-6 sm:px-10 lg:px-12">
         <div
           className={cn(
             "grid h-full items-center gap-4",
@@ -73,7 +89,10 @@ export function Navigation() {
           <button
             type="button"
             onClick={() => setIsOpen((open) => !open)}
-            className="landing-focus flex size-10 items-center justify-center justify-self-end rounded-full border border-[color:var(--landing-border)] bg-white text-[color:var(--landing-ink)] transition-colors hover:bg-[color:var(--landing-warm)] lg:hidden"
+            className={cn(
+              "landing-focus flex size-10 items-center justify-center justify-self-end rounded-full text-[color:var(--landing-ink)] transition-colors hover:bg-[color:var(--landing-warm)] lg:hidden",
+              isGlass && "bg-white/80",
+            )}
             aria-label={isOpen ? "Close menu" : "Open menu"}
             aria-expanded={isOpen}
           >
@@ -87,7 +106,7 @@ export function Navigation() {
       </div>
 
       {isOpen ? (
-        <div className="absolute left-0 right-0 top-16 border-b border-[color:var(--landing-border)] bg-white/95 backdrop-blur-xl lg:hidden">
+        <div className="absolute left-0 right-0 top-16 bg-white/95 backdrop-blur-xl lg:hidden">
           <div className="space-y-1 px-6 py-4">
             {showNavLinks
               ? BRAND_NAV_LINKS.map((link) => (
@@ -104,7 +123,7 @@ export function Navigation() {
             <div
               className={cn(
                 "flex flex-col gap-2",
-                showNavLinks && "border-t border-[color:var(--landing-border)] pt-3",
+                showNavLinks && "pt-3",
               )}
             >
               <Link

@@ -1,58 +1,94 @@
 "use client";
 
+import { motion, useReducedMotion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import Link from "next/link";
 
-import { LandingProductScreenshot } from "@/features/brand/components/landing/LandingProductScreenshot";
-import { useLandingReveal } from "@/features/brand/hooks/useLandingReveal";
 import { ROUTES } from "@/constants/routes";
-import { cn } from "@/lib/utils";
-
-const HERO_SCREENSHOT = "/landing/product-screenshots/client-details.png";
+import { HeroProductStage } from "@/features/brand/components/landing/HeroProductStage";
 
 export function HeroSection() {
-  const { ref, isVisible } = useLandingReveal<HTMLElement>({ threshold: 0.05 });
+  const reduceMotion = useReducedMotion();
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.05,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 16 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        ease: [0.16, 1, 0.3, 1],
+      },
+    },
+  };
 
   return (
-    <section
-      ref={ref}
-      className={cn(
-        "landing-hero-ground relative flex flex-col pt-20",
-        "landing-reveal",
-        isVisible && "is-visible",
-      )}
-    >
-      <div className="mx-auto flex w-full max-w-6xl flex-col items-center px-6 pb-8 pt-14 text-center sm:px-10 sm:pb-10 sm:pt-16 lg:px-12 lg:pt-20">
-        <h1 className="landing-display max-w-[18ch] text-[clamp(2rem,5vw,3.75rem)] font-semibold tracking-[-0.045em] text-balance sm:max-w-none sm:whitespace-nowrap">
-          Stop losing revenue after every patient visit
-        </h1>
-
-        <p className="landing-body mx-auto mt-6 max-w-[34rem] text-[1.05rem] leading-[1.7] text-[color:var(--landing-ledger-ink)] sm:text-lg sm:leading-[1.7]">
-        Sigma bills patients, submits insurance claims automatically, and tracks every payment until you&apos;re paid fully.
-        </p>
-
-        <div className="mt-9 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-3">
-          <Link
-            href={ROUTES.signup}
-            className="landing-focus landing-btn-primary inline-flex min-h-11 items-center justify-center rounded-full px-7 py-3 text-sm font-semibold sm:text-[15px]"
+    <section className="landing-hero-ground relative overflow-hidden pt-20">
+      <div className="mx-auto max-w-7xl px-6 pb-10 pt-10 sm:px-10 sm:pb-12 sm:pt-12 lg:px-12 lg:pb-10 lg:pt-12">
+        <div className="grid items-center gap-8 lg:grid-cols-12 lg:gap-10">
+          <motion.div
+            className="lg:col-span-7 xl:col-span-6"
+            variants={containerVariants}
+            initial={reduceMotion ? "visible" : "hidden"}
+            animate="visible"
           >
-            Start for free
-          </Link>
-          <Link
-            href={ROUTES.contacts}
-            className="landing-focus landing-btn-secondary inline-flex min-h-11 items-center justify-center rounded-full border px-7 py-3 text-sm font-semibold sm:text-[15px]"
-          >
-            Book a demo
-          </Link>
-        </div>
+            <motion.h1
+              variants={itemVariants}
+              className="landing-display text-[clamp(2.05rem,4.1vw,3.4rem)] font-semibold leading-[1.12] tracking-[-0.018em] text-[color:var(--landing-ink)]"
+            >
+              Stop losing revenue after every patient visit
+            </motion.h1>
 
-        <div className="mt-14 w-full max-w-5xl sm:mt-16 lg:mt-20">
-          <LandingProductScreenshot
-            src={HERO_SCREENSHOT}
-            alt="Sigma patient account overview showing billing and visit history"
-            elevated
-            priority
-            className="w-full"
-          />
+            <motion.p
+              variants={itemVariants}
+              className="landing-body mt-5 max-w-[32rem] text-[1.05rem] leading-[1.65] text-[color:var(--landing-ledger-ink)] sm:text-lg"
+            >
+              Sigma bills patients, submits insurance claims automatically, and
+              tracks every payment until you&apos;re paid fully.
+            </motion.p>
+
+            <motion.div
+              variants={itemVariants}
+              className="mt-8 flex flex-col items-start gap-3 sm:flex-row sm:items-center"
+            >
+              <Link
+                href={ROUTES.signup}
+                className="landing-focus landing-btn-primary group inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-7 py-3 text-[15px] font-semibold"
+              >
+                Start for free
+                <ArrowRight
+                  className="size-4 transition-transform duration-200 group-hover:translate-x-0.5"
+                  aria-hidden="true"
+                />
+              </Link>
+              <Link
+                href={ROUTES.contacts}
+                className="landing-focus landing-btn-secondary inline-flex min-h-12 items-center justify-center rounded-full border px-7 py-3 text-[15px] font-semibold"
+              >
+                Book a demo
+              </Link>
+            </motion.div>
+          </motion.div>
+
+          <motion.div
+            className="flex justify-center lg:col-span-5 lg:justify-end xl:col-span-6"
+            initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.75, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <HeroProductStage />
+          </motion.div>
         </div>
       </div>
     </section>

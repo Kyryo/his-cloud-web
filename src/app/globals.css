@@ -124,8 +124,8 @@
 
   [data-brand-page] .landing-display {
     font-family: var(--font-display);
-    letter-spacing: -0.04em;
-    line-height: 1.08;
+    letter-spacing: -0.018em;
+    line-height: 1.12;
     color: var(--landing-ink);
     text-wrap: balance;
   }
@@ -205,12 +205,40 @@
   }
 
   [data-brand-page] .landing-hero-ground {
-    background-color: #ffffff;
-    background-image: radial-gradient(
-      ellipse 80% 55% at 50% -15%,
-      color-mix(in srgb, var(--landing-teal) 10%, white),
-      transparent 65%
-    );
+    background-color: #fff8ef;
+    background-image:
+      linear-gradient(
+        180deg,
+        rgb(255 248 239 / 0) 0%,
+        rgb(255 248 239 / 0) 52%,
+        #ffffff 100%
+      ),
+      radial-gradient(
+        ellipse 70% 80% at 8% 10%,
+        color-mix(in srgb, var(--landing-teal) 22%, transparent),
+        transparent 58%
+      ),
+      radial-gradient(
+        ellipse 55% 60% at 92% 18%,
+        color-mix(in srgb, var(--landing-amber) 28%, transparent),
+        transparent 55%
+      ),
+      radial-gradient(
+        ellipse 50% 40% at 68% 62%,
+        color-mix(in srgb, var(--landing-green) 14%, transparent),
+        transparent 60%
+      );
+  }
+
+  [data-brand-page] .landing-nav-glass {
+    background-color: rgb(255 255 255 / 0.72);
+  }
+
+  @media (prefers-reduced-transparency: reduce) {
+    [data-brand-page] .landing-nav-glass {
+      background-color: #ffffff;
+      backdrop-filter: none;
+    }
   }
 
   [data-brand-page] .landing-paper-panel {
@@ -326,8 +354,8 @@
 
   [data-brand-page] .brand-display {
     font-family: var(--font-display);
-    letter-spacing: -0.03em;
-    line-height: 1.05;
+    letter-spacing: -0.018em;
+    line-height: 1.1;
   }
 
   [data-brand-page] .brand-display-relaxed {

@@ -26,6 +26,17 @@ export const LANDING_PROOF_STATS = [
   { value: "<72 Hours", label: "Average Setup" },
 ] as const;
 
+export const LANDING_CUSTOMERS = [
+  { id: "masm-mediclinics", name: "MASM Mediclinics" },
+  { id: "liberty", name: "Liberty" },
+  { id: "medgulf", name: "Medgulf" },
+  { id: "mwai", name: "Mwai Medical" },
+  { id: "amani", name: "Amani Care" },
+  { id: "lakeside", name: "Lakeside Clinic" },
+  { id: "nthanda", name: "Nthanda Health" },
+  { id: "harambee", name: "Harambee Health" },
+] as const;
+
 export const LANDING_LOGO_SRC = BRAND_LOGO_SRC;
 
 export type LandingAccent = "amber" | "teal" | "green";

@@ -18,7 +18,7 @@ function SigmaHealthWordmark({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        "font-[family-name:var(--font-inter)] text-[1.0625rem] font-normal leading-none tracking-[-0.02em] text-[color:var(--landing-ink)] sm:text-[1.1875rem]",
+        "font-[family-name:var(--font-display)] text-[1.0625rem] font-semibold leading-none tracking-[-0.018em] text-[color:var(--landing-ink)] sm:text-[1.2rem]",
         className,
       )}
       aria-hidden="true"
