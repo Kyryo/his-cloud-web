@@ -1,13 +1,14 @@
 "use client";
 
-import { Ban, CheckCircle2, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
+import { LandingComparisonSplit } from "@/features/brand/components/landing/LandingComparisonSplit";
 import { LandingFooter } from "@/features/brand/components/landing/LandingFooter";
 import { LandingProblemFeatureCards } from "@/features/brand/components/landing/LandingProblemFeatureCards";
-import { LandingRevenueMetricsVisual } from "@/features/brand/components/landing/LandingRevenueMetricsVisual";
+import { LandingRevenueStandings } from "@/features/brand/components/landing/LandingRevenueStandings";
 import { LandingSection } from "@/features/brand/components/landing/LandingSection";
 import { LandingSectionHeader } from "@/features/brand/components/landing/LandingSectionHeader";
 import { LandingSolutionJourney } from "@/features/brand/components/landing/LandingSolutionJourney";
@@ -47,7 +48,7 @@ function LandingFaqAccordion() {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   return (
-    <div className="mx-auto max-w-3xl divide-y divide-[color:var(--landing-border)]">
+    <div className="divide-y divide-[color:var(--landing-border)]">
       {LANDING_FAQ.items.map((item, index) => {
         const isOpen = openIndex === index;
         const panelId = `landing-faq-panel-${index}`;
@@ -144,78 +145,18 @@ export function LandingHomeSections() {
 
       <LandingSection variant="white">
         <LandingReveal>
-          <LandingSectionHeader
-            title={LANDING_COMPARISON.title}
-            align="center"
-            className="mx-auto"
-          />
-          <div className="landing-card mt-14 grid overflow-hidden lg:grid-cols-2">
-            <div className="border-b border-[color:var(--landing-border)] p-8 sm:p-10 lg:border-b-0 lg:border-r">
-              <h3 className="landing-body text-sm font-medium text-[color:var(--landing-ledger-ink)]">
-                {LANDING_COMPARISON.before.label}
-              </h3>
-              <ul className="mt-7 space-y-5">
-                {LANDING_COMPARISON.before.items.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-start gap-3 text-base leading-[1.65] text-[color:var(--landing-ledger-ink)]"
-                  >
-                    <Ban
-                      className="mt-0.5 size-5 shrink-0 text-[color:var(--landing-ledger-ink)]/40"
-                      strokeWidth={1.75}
-                      aria-hidden="true"
-                    />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="bg-[color:var(--landing-warm)] p-8 sm:p-10">
-              <h3 className="landing-body text-sm font-medium text-[color:var(--landing-teal)]">
-                {LANDING_COMPARISON.after.label}
-              </h3>
-              <ul className="mt-7 space-y-5">
-                {LANDING_COMPARISON.after.items.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-start gap-3 text-base font-medium leading-[1.65] text-[color:var(--landing-ink)]"
-                  >
-                    <CheckCircle2
-                      className="mt-0.5 size-5 shrink-0 text-[color:var(--landing-teal)]"
-                      strokeWidth={1.75}
-                      aria-hidden="true"
-                    />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+          <LandingSectionHeader title={LANDING_COMPARISON.title} />
+          <LandingComparisonSplit />
         </LandingReveal>
       </LandingSection>
 
       <LandingSection variant="muted">
         <LandingReveal>
-          <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
-            <LandingRevenueMetricsVisual className="order-2 lg:order-1" />
-            <div className="order-1 lg:order-2">
-              <LandingSectionHeader
-                title={LANDING_REVENUE.title}
-                description={LANDING_REVENUE.description}
-              />
-              <ul className="mt-10 grid gap-3 sm:grid-cols-2">
-                {LANDING_REVENUE.items.map((item) => (
-                  <li
-                    key={item}
-                    className="rounded-[16px] bg-white px-4 py-4 text-sm font-medium text-[color:var(--landing-ink)] shadow-[var(--landing-shadow)]"
-                  >
-                    <span className="mr-2 inline-block size-1.5 rounded-full bg-[color:var(--landing-teal)] align-middle" />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
+          <LandingSectionHeader
+            title={LANDING_REVENUE.title}
+            description={LANDING_REVENUE.description}
+          />
+          <LandingRevenueStandings />
         </LandingReveal>
       </LandingSection>
 
@@ -224,52 +165,46 @@ export function LandingHomeSections() {
           <LandingSectionHeader
             title={LANDING_WHY.title}
             description={LANDING_WHY.description}
-            align="center"
-            className="mx-auto"
           />
           <LandingWhyFeatureCards />
         </LandingReveal>
       </LandingSection>
 
-      <LandingSection variant="white">
+      <LandingSection variant="muted">
         <LandingReveal>
-          <LandingSectionHeader
-            title={LANDING_FAQ.title}
-            align="center"
-            className="mx-auto"
-          />
-          <div className="landing-card mt-12 px-6 sm:px-8">
+          <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:gap-16">
+            <LandingSectionHeader title={LANDING_FAQ.title} />
             <LandingFaqAccordion />
           </div>
         </LandingReveal>
       </LandingSection>
 
-      <LandingSection variant="muted" className="!pt-20 !pb-24 sm:!pt-24 sm:!pb-28">
+      <section className="bg-[color:var(--landing-ink)]">
         <LandingReveal>
-          <div className="mx-auto max-w-3xl px-4 text-center sm:px-6">
-            <LandingSectionHeader
-              title={LANDING_FINAL_CTA.title}
-              description={LANDING_FINAL_CTA.description}
-              align="center"
-              className="mx-auto"
-            />
-            <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
+          <div className="mx-auto max-w-6xl px-6 py-20 sm:px-10 sm:py-24 lg:px-12 lg:py-28">
+            <h2 className="max-w-[16ch] whitespace-pre-line font-[family-name:var(--font-display)] text-[clamp(2rem,4vw,3.25rem)] font-semibold tracking-[-0.018em] text-white text-balance">
+              {LANDING_FINAL_CTA.title}
+            </h2>
+            <p className="landing-body mt-5 max-w-[36ch] text-[1.05rem] leading-[1.7] text-white/75">
+              {LANDING_FINAL_CTA.description}
+            </p>
+            <div className="mt-10 flex flex-col items-start gap-3 sm:flex-row sm:items-center">
               <Link
                 href={LANDING_FINAL_CTA.primaryCta.href}
-                className="landing-focus landing-btn-primary inline-flex min-h-11 items-center justify-center rounded-full px-7 py-3 text-sm font-semibold"
+                className="landing-focus landing-btn-primary inline-flex min-h-12 items-center justify-center rounded-full px-7 py-3 text-[15px] font-semibold"
               >
                 {LANDING_FINAL_CTA.primaryCta.label}
               </Link>
               <Link
                 href={LANDING_FINAL_CTA.secondaryCta.href}
-                className="landing-focus landing-btn-secondary inline-flex min-h-11 items-center justify-center rounded-full border px-7 py-3 text-sm font-semibold"
+                className="landing-focus inline-flex min-h-12 items-center justify-center rounded-full border border-white/25 px-7 py-3 text-[15px] font-semibold text-white transition-colors hover:bg-white/10"
               >
                 {LANDING_FINAL_CTA.secondaryCta.label}
               </Link>
             </div>
           </div>
         </LandingReveal>
-      </LandingSection>
+      </section>
 
       <LandingFooter />
     </>
