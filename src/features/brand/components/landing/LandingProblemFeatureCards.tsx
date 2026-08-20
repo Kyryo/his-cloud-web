@@ -7,58 +7,56 @@ const PROBLEM_NUMBERS = ["01", "02", "03", "04"] as const;
 export function LandingProblemFeatureCards() {
   return (
     <div className="mt-12 sm:mt-16">
-      <div className="grid items-start gap-10 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-16">
-        <Image
-          src="/landing/problem-rejected-claims.jpg"
-          alt="A clinic finance officer reviewing a rejected insurance claim"
-          width={2048}
-          height={3072}
-          quality={90}
-          sizes="(min-width: 1024px) 28vw, 90vw"
-          className="aspect-[4/5] w-full object-cover object-[center_18%] sm:aspect-[3/4]"
-        />
+      <Image
+        src="/landing/problem-rejected-claims.jpg"
+        alt="A clinic finance officer reviewing a rejected insurance claim"
+        width={2048}
+        height={3072}
+        quality={90}
+        sizes="(min-width: 1024px) 72vw, 100vw"
+        className="mx-auto aspect-[16/10] w-full max-w-5xl object-cover object-[center_18%] sm:aspect-[2.2/1]"
+      />
 
-        <ol className="m-0 list-none divide-y divide-[color:var(--landing-border)] p-0">
-          {LANDING_PROBLEM.items.map((item, index) => (
-            <li
-              key={item.title}
-              className="grid grid-cols-[auto_minmax(0,1fr)] gap-4 py-6 first:pt-0 last:pb-0 sm:gap-6 sm:py-7"
+      <ol className="mx-auto mt-12 grid max-w-4xl list-none gap-x-10 gap-y-10 p-0 sm:mt-16 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-12">
+        {LANDING_PROBLEM.items.map((item, index) => (
+          <li key={item.title} className="min-w-0 text-center sm:text-left">
+            <p
+              className="landing-display text-sm font-semibold tabular-nums text-[color:var(--landing-teal)]"
+              aria-hidden="true"
             >
-              <span
-                className="landing-display pt-0.5 text-sm font-semibold tabular-nums text-[color:var(--landing-teal)]"
-                aria-hidden="true"
-              >
-                {PROBLEM_NUMBERS[index]}
-              </span>
-              <div>
-                <h3 className="landing-display text-[1.2rem] font-semibold tracking-[-0.018em] text-[color:var(--landing-ink)] sm:text-[1.35rem]">
-                  {item.title}
-                </h3>
-                <p className="landing-body mt-2 max-w-[40ch] text-base leading-[1.7] text-[color:var(--landing-ledger-ink)]">
-                  {item.description}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </div>
+              {PROBLEM_NUMBERS[index]}
+            </p>
+            <h3 className="landing-display mt-2 text-[1.25rem] font-semibold tracking-[-0.018em] text-[color:var(--landing-ink)] sm:text-[1.4rem]">
+              {item.title}
+            </h3>
+            <p className="landing-body mx-auto mt-2 max-w-[36ch] text-base leading-[1.7] text-[color:var(--landing-ledger-ink)] sm:mx-0">
+              {item.description}
+            </p>
+          </li>
+        ))}
+      </ol>
 
-      <figure className="relative mt-16 sm:mt-20">
+      <div className="mt-16 grid items-center gap-10 sm:mt-20 lg:grid-cols-[minmax(0,1.05fr)_minmax(0,0.95fr)] lg:gap-14">
         <Image
           src="/landing/problem-unmatched-payments.jpg"
           alt="Clinic staff matching a bank remittance to unpaid claims"
           width={2731}
           height={2048}
           quality={90}
-          sizes="(min-width: 1024px) 72vw, 100vw"
-          className="aspect-[4/3] w-full object-cover object-[center_40%] sm:aspect-[16/9] lg:aspect-[2.3/1]"
+          sizes="(min-width: 1024px) 40vw, 100vw"
+          className="aspect-[5/4] w-full object-cover object-[center_40%] sm:aspect-[4/3]"
         />
-        <figcaption className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#1f2a24] via-[#1f2a24]/80 to-transparent px-5 pb-6 pt-20 sm:px-8 sm:pb-8 sm:pt-28 lg:px-10">
-          <p className="landing-display max-w-[26ch] text-[1.25rem] font-semibold leading-snug tracking-[-0.018em] text-white sm:text-[1.55rem] lg:text-[1.7rem]">
+
+        <blockquote className="max-w-[22rem] justify-self-center lg:max-w-none lg:justify-self-start">
+          <span
+            aria-hidden="true"
+            className="mb-6 block h-0.5 w-10 bg-[color:var(--landing-teal)]"
+          />
+          <p className="landing-display pb-1 text-[clamp(1.45rem,2.6vw,2rem)] font-medium italic leading-[1.28] tracking-[-0.025em] text-[color:var(--landing-ink)] text-balance">
             {LANDING_PROBLEM.closing}
           </p>
-        </figcaption>
-      </figure>
+        </blockquote>
+      </div>
     </div>
   );
 }

@@ -20,7 +20,6 @@ import {
   LANDING_PROBLEM,
   LANDING_REVENUE,
   LANDING_SOLUTION,
-  LANDING_WHY,
 } from "@/features/brand/constants/landing-home-content";
 import { useLandingReveal } from "@/features/brand/hooks/useLandingReveal";
 import { cn } from "@/lib/utils";
@@ -127,6 +126,8 @@ export function LandingHomeSections() {
         <LandingSectionHeader
           title={LANDING_PROBLEM.title}
           description={LANDING_PROBLEM.description}
+          align="center"
+          className="max-w-4xl"
         />
         <LandingProblemFeatureCards />
       </LandingSection>
