@@ -6,7 +6,6 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 
 import { LandingComparisonSplit } from "@/features/brand/components/landing/LandingComparisonSplit";
-import { LandingFooter } from "@/features/brand/components/landing/LandingFooter";
 import { LandingProblemFeatureCards } from "@/features/brand/components/landing/LandingProblemFeatureCards";
 import { LandingRevenueStandings } from "@/features/brand/components/landing/LandingRevenueStandings";
 import { LandingSection } from "@/features/brand/components/landing/LandingSection";
@@ -200,8 +199,6 @@ export function LandingHomeSections() {
           </div>
         </LandingReveal>
       </section>
-
-      <LandingFooter />
     </>
   );
 }

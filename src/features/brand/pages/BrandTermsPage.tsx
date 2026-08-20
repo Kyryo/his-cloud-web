@@ -15,8 +15,6 @@ import {
 import Link from "next/link";
 
 import { ROUTES } from "@/constants/routes";
-import { LandingFooter } from "@/features/brand/components/landing/LandingFooter";
-import { Navigation } from "@/features/brand/components/Navigation";
 
 const TERMS_SECTIONS = [
   { id: "acceptance-of-terms", label: "Acceptance of Terms" },
@@ -36,13 +34,7 @@ const TERMS_SECTIONS = [
 
 export function BrandTermsPage() {
   return (
-    <div className="min-h-dvh bg-white text-[color:var(--landing-ledger-ink)]">
-      <a href="#main-content" className="landing-skip-link">
-        Skip to main content
-      </a>
-      <Navigation />
-
-      <main id="main-content" className="pb-20 sm:pb-28">
+    <main className="pb-20 text-[color:var(--landing-ledger-ink)] sm:pb-28">
         {/* Page Header */}
         <header className="border-b border-[color:var(--landing-border)] bg-[color:var(--landing-warm)]/60 pt-24 pb-12 sm:pt-28 sm:pb-16">
           <div className="mx-auto max-w-3xl px-6 sm:px-8">
@@ -370,9 +362,6 @@ export function BrandTermsPage() {
             </section>
           </div>
         </div>
-      </main>
-
-      <LandingFooter />
-    </div>
+    </main>
   );
 }
