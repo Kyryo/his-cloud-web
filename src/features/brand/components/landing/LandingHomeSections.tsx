@@ -124,13 +124,11 @@ export function LandingHomeSections() {
   return (
     <>
       <LandingSection variant="white">
-        <LandingReveal>
-          <LandingSectionHeader
-            title={LANDING_PROBLEM.title}
-            description={LANDING_PROBLEM.description}
-          />
-          <LandingProblemFeatureCards />
-        </LandingReveal>
+        <LandingSectionHeader
+          title={LANDING_PROBLEM.title}
+          description={LANDING_PROBLEM.description}
+        />
+        <LandingProblemFeatureCards />
       </LandingSection>
 
       <LandingSection variant="muted">
@@ -162,10 +160,6 @@ export function LandingHomeSections() {
 
       <LandingSection variant="white">
         <LandingReveal>
-          <LandingSectionHeader
-            title={LANDING_WHY.title}
-            description={LANDING_WHY.description}
-          />
           <LandingWhyFeatureCards />
         </LandingReveal>
       </LandingSection>
@@ -182,10 +176,10 @@ export function LandingHomeSections() {
       <section className="bg-[color:var(--landing-ink)]">
         <LandingReveal>
           <div className="mx-auto max-w-6xl px-6 py-20 sm:px-10 sm:py-24 lg:px-12 lg:py-28">
-            <h2 className="max-w-[16ch] whitespace-pre-line font-[family-name:var(--font-display)] text-[clamp(2rem,4vw,3.25rem)] font-semibold tracking-[-0.018em] text-white text-balance">
+            <h2 className="max-w-[28ch] whitespace-pre-line font-[family-name:var(--font-display)] text-[clamp(1.75rem,3.2vw,2.65rem)] font-semibold tracking-[-0.018em] text-white text-balance">
               {LANDING_FINAL_CTA.title}
             </h2>
-            <p className="landing-body mt-5 max-w-[36ch] text-[1.05rem] leading-[1.7] text-white/75">
+            <p className="landing-body mt-5 max-w-[42ch] text-[1.05rem] leading-[1.7] text-white/75">
               {LANDING_FINAL_CTA.description}
             </p>
             <div className="mt-10 flex flex-col items-start gap-3 sm:flex-row sm:items-center">

@@ -1,26 +1,23 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
-import { useTheme } from "next-themes";
 
 import { PasswordInput } from "@/components/password-input";
 import { StatusBanner } from "@/components/ui/status-banner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { BRAND_LOGO_SRC } from "@/constants/brand";
 import { ROUTES } from "@/constants/routes";
 import { AuthOtpStep } from "@/features/auth/components/AuthOtpStep";
+import { AuthSplitLayout } from "@/features/auth/components/AuthSplitLayout";
 import { LoginMfaMethodPicker, hasAlternateMfaMethods } from "@/features/auth/components/LoginMfaMethodPicker";
 import { LoginRecoveryStep } from "@/features/auth/components/LoginRecoveryStep";
 import { LoginTotpStep } from "@/features/auth/components/LoginTotpStep";
 import { LoginWebAuthnStep } from "@/features/auth/components/LoginWebAuthnStep";
-import { MedicalIllustrations } from "@/features/auth/components/MedicalIllustrations";
 import {
   isAccessTokenValid,
   getCurrentUser,
@@ -65,9 +62,21 @@ function destinationForUser(user: User): string {
     : ROUTES.customers;
 }
 
+function LoginSplitFrame({ children }: { children: ReactNode }) {
+  return (
+    <AuthSplitLayout
+      headline={"You've already earned it.\nNow collect it."}
+      subhead="Sign in to follow every claim, payment, and outstanding balance."
+      imageSrc="/landing/hero-clinic-billing.jpg"
+      imageAlt="A clinic finance officer reviewing claims and payments"
+    >
+      {children}
+    </AuthSplitLayout>
+  );
+}
+
 export function LoginForm() {
   const router = useRouter();
-  const { resolvedTheme } = useTheme();
   const [step, setStep] = useState<LoginStep>("credentials");
   const [pendingEmail, setPendingEmail] = useState("");
   const [pendingMfaToken, setPendingMfaToken] = useState("");
@@ -79,7 +88,6 @@ export function LoginForm() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isAlternateSubmitting, setIsAlternateSubmitting] = useState(false);
   const [pickerFrom, setPickerFrom] = useState<MfaSigninMethod>("email");
-  const isDark = resolvedTheme === "dark";
 
   const credentialsForm = useForm<SigninCredentialsValues>({
     resolver: zodResolver(signinCredentialsSchema),
@@ -277,7 +285,7 @@ export function LoginForm() {
   function tryAnotherMethodLink(from: MfaSigninMethod) {
     if (!showAlternateLink) return null;
     return (
-      <div className="mt-4 text-center">
+      <div className="mt-4">
         <button
           type="button"
           data-testid="login-try-another-method"
@@ -297,207 +305,188 @@ export function LoginForm() {
 
   if (step === "otp") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white px-4 py-10">
-        <div className="w-full max-w-md">
-          <form
-            className="w-full max-w-md"
-            data-testid="login-otp-form"
-            onSubmit={(event) => event.preventDefault()}
-          >
-            <AuthOtpStep
-              title="Check your email"
-              description="If an account exists for this email, we've sent a verification code."
-              email={pendingEmail}
-              codeTestId="login-otp"
-              code={otpCode}
-              disabled={isSubmitting}
-              error={submitError ?? otpForm.formState.errors.code?.message}
-              onCodeChange={syncOtpCode}
-              onCodeComplete={(code) => void submitOtpIfReady(code)}
-              onResend={handleResendOtp}
-              onBack={handleBack}
-              submitLabel="Sign in"
-              submittingLabel="Signing in..."
-              submitTestId="login-submit"
-              isSubmitting={isSubmitting}
-              onSubmit={() => void otpForm.handleSubmit(handleOtpSubmit)()}
-            />
-          </form>
-          {tryAnotherMethodLink("email")}
-        </div>
-      </div>
+      <LoginSplitFrame>
+        <form
+          className="w-full"
+          data-testid="login-otp-form"
+          onSubmit={(event) => event.preventDefault()}
+        >
+          <AuthOtpStep
+            title="Check your email"
+            description="If an account exists for this email, we've sent a verification code."
+            email={pendingEmail}
+            codeTestId="login-otp"
+            code={otpCode}
+            disabled={isSubmitting}
+            error={submitError ?? otpForm.formState.errors.code?.message}
+            onCodeChange={syncOtpCode}
+            onCodeComplete={(code) => void submitOtpIfReady(code)}
+            onResend={handleResendOtp}
+            onBack={handleBack}
+            submitLabel="Sign in"
+            submittingLabel="Signing in..."
+            submitTestId="login-submit"
+            isSubmitting={isSubmitting}
+            onSubmit={() => void otpForm.handleSubmit(handleOtpSubmit)()}
+          />
+        </form>
+        {tryAnotherMethodLink("email")}
+      </LoginSplitFrame>
     );
   }
 
   if (step === "methods") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white px-4 py-10">
-        <div className="w-full max-w-md">
-          {submitError ? (
-            <StatusBanner variant="error" message={submitError} className="mb-4" />
-          ) : null}
-          <LoginMfaMethodPicker
-            methods={methods}
-            currentMethod={pickerFrom}
-            disabled={isSubmitting}
-            onSelect={(method) => {
-              void selectSigninMethod(method);
-            }}
-            onBack={() => setStep(loginStepForMethod(pickerFrom))}
-          />
-        </div>
-      </div>
+      <LoginSplitFrame>
+        {submitError ? (
+          <StatusBanner variant="error" message={submitError} className="mb-4" />
+        ) : null}
+        <LoginMfaMethodPicker
+          methods={methods}
+          currentMethod={pickerFrom}
+          disabled={isSubmitting}
+          onSelect={(method) => {
+            void selectSigninMethod(method);
+          }}
+          onBack={() => setStep(loginStepForMethod(pickerFrom))}
+        />
+      </LoginSplitFrame>
     );
   }
 
   if (step === "totp") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white px-4 py-10">
-        <div className="w-full max-w-md">
-          <LoginTotpStep
-            code={totpCode}
-            error={submitError ?? undefined}
-            disabled={isSubmitting}
-            isSubmitting={isSubmitting}
-            onCodeChange={setTotpCode}
-            onCodeComplete={(code) => {
-              setTotpCode(code);
-              if (code.length === 6) {
-                void handleTotpSubmit(code);
-              }
-            }}
-            onSubmit={() => void handleTotpSubmit()}
-            onBack={() => setStep("methods")}
-          />
-          {tryAnotherMethodLink("totp")}
-        </div>
-      </div>
+      <LoginSplitFrame>
+        <LoginTotpStep
+          code={totpCode}
+          error={submitError ?? undefined}
+          disabled={isSubmitting}
+          isSubmitting={isSubmitting}
+          onCodeChange={setTotpCode}
+          onCodeComplete={(code) => {
+            setTotpCode(code);
+            if (code.length === 6) {
+              void handleTotpSubmit(code);
+            }
+          }}
+          onSubmit={() => void handleTotpSubmit()}
+          onBack={() => setStep("methods")}
+        />
+        {tryAnotherMethodLink("totp")}
+      </LoginSplitFrame>
     );
   }
 
   if (step === "recovery") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white px-4 py-10">
-        <div className="w-full max-w-md">
-          <LoginRecoveryStep
-            code={recoveryCode}
-            error={submitError ?? undefined}
-            disabled={isSubmitting}
-            isSubmitting={isSubmitting}
-            onCodeChange={setRecoveryCode}
-            onSubmit={() => void handleRecoverySubmit()}
-            onBack={() => setStep("methods")}
-          />
-          {tryAnotherMethodLink("recovery_codes")}
-        </div>
-      </div>
+      <LoginSplitFrame>
+        <LoginRecoveryStep
+          code={recoveryCode}
+          error={submitError ?? undefined}
+          disabled={isSubmitting}
+          isSubmitting={isSubmitting}
+          onCodeChange={setRecoveryCode}
+          onSubmit={() => void handleRecoverySubmit()}
+          onBack={() => setStep("methods")}
+        />
+        {tryAnotherMethodLink("recovery_codes")}
+      </LoginSplitFrame>
     );
   }
 
   if (step === "webauthn") {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-white px-4 py-10">
-        <div className="w-full max-w-md">
-          <LoginWebAuthnStep
-            error={submitError ?? undefined}
-            isSubmitting={isSubmitting}
-            onVerify={() => void handleWebAuthnVerify()}
-            onBack={() => setStep("methods")}
-          />
-          {tryAnotherMethodLink("webauthn")}
-        </div>
-      </div>
+      <LoginSplitFrame>
+        <LoginWebAuthnStep
+          error={submitError ?? undefined}
+          isSubmitting={isSubmitting}
+          onVerify={() => void handleWebAuthnVerify()}
+          onBack={() => setStep("methods")}
+        />
+        {tryAnotherMethodLink("webauthn")}
+      </LoginSplitFrame>
     );
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-background px-4 py-10 sm:px-6 lg:px-8">
-      <MedicalIllustrations isDark={isDark} />
-      <div className="relative z-10 w-full max-w-md">
-        <div className="mb-8 text-center">
-          <Image
-            src={BRAND_LOGO_SRC}
-            alt="Sigma Health Logo"
-            width={240}
-            height={80}
-            className="mx-auto h-[88px] w-auto rounded-sm object-contain sm:h-[96px]"
-            priority
-          />
+    <LoginSplitFrame>
+      <h2 className="font-[family-name:var(--font-bricolage)] text-[2rem] font-semibold tracking-[-0.02em] text-brand-navy sm:text-[2.25rem]">
+        Sign in
+      </h2>
+      <p className="mt-2 text-[15px] leading-relaxed text-brand-muted">
+        Use your clinic email to continue.
+      </p>
+
+      <form
+        method="post"
+        className="mt-8 space-y-5"
+        data-testid="login-credentials-form"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void submitCredentials(event);
+        }}
+      >
+        <div className="space-y-4">
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              data-testid="login-email"
+              type="email"
+              autoComplete="email"
+              className="mt-1.5 h-12 rounded-full px-5"
+              disabled={credentialsForm.formState.isSubmitting}
+              {...credentialsForm.register("email")}
+            />
+            {credentialsForm.formState.errors.email && (
+              <p className="mt-1.5 text-sm text-destructive">
+                {credentialsForm.formState.errors.email.message}
+              </p>
+            )}
+          </div>
+          <div>
+            <Label htmlFor="password">Password</Label>
+            <PasswordInput
+              id="password"
+              data-testid="login-password"
+              autoComplete="current-password"
+              className="mt-1.5 h-12 rounded-full px-5 pr-12"
+              disabled={credentialsForm.formState.isSubmitting}
+              {...credentialsForm.register("password")}
+            />
+            {credentialsForm.formState.errors.password && (
+              <p className="mt-1.5 text-sm text-destructive">
+                {credentialsForm.formState.errors.password.message}
+              </p>
+            )}
+          </div>
         </div>
 
-        <div className="space-y-8">
-          <form
-            method="post"
-            className="space-y-6"
-            data-testid="login-credentials-form"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void submitCredentials(event);
-            }}
-          >
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input
-                    id="email"
-                    data-testid="login-email"
-                    type="email"
-                    autoComplete="email"
-                    className="mt-1.5 h-11"
-                    disabled={credentialsForm.formState.isSubmitting}
-                    {...credentialsForm.register("email")}
-                  />
-                  {credentialsForm.formState.errors.email && (
-                    <p className="mt-1.5 text-sm text-destructive">
-                      {credentialsForm.formState.errors.email.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="password">Password</Label>
-                  <PasswordInput
-                    id="password"
-                    data-testid="login-password"
-                    autoComplete="current-password"
-                    className="mt-1.5 h-11"
-                    disabled={credentialsForm.formState.isSubmitting}
-                    {...credentialsForm.register("password")}
-                  />
-                  {credentialsForm.formState.errors.password && (
-                    <p className="mt-1.5 text-sm text-destructive">
-                      {credentialsForm.formState.errors.password.message}
-                    </p>
-                  )}
-                </div>
-              </div>
+        {submitError ? (
+          <StatusBanner variant="error" message={submitError} />
+        ) : null}
 
-              {submitError ? (
-                <StatusBanner variant="error" message={submitError} />
-              ) : null}
+        <Button
+          type="submit"
+          data-testid="login-continue"
+          className="h-12 w-full rounded-full text-[15px] font-semibold"
+          disabled={credentialsForm.formState.isSubmitting}
+        >
+          {credentialsForm.formState.isSubmitting
+            ? "Sending code..."
+            : "Continue"}
+        </Button>
+      </form>
 
-              <Button
-                type="submit"
-                data-testid="login-continue"
-                className="h-11 w-full"
-                disabled={credentialsForm.formState.isSubmitting}
-              >
-                {credentialsForm.formState.isSubmitting
-                  ? "Sending code..."
-                  : "Continue"}
-              </Button>
-            </form>
-        </div>
-
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?{" "}
-          <Link
-            href={ROUTES.signup}
-            className="font-medium text-primary hover:underline"
-          >
-            Sign up
-          </Link>
-        </p>
-      </div>
-    </div>
+      <p className="mt-6 text-sm text-brand-muted">
+        Don&apos;t have an account?{" "}
+        <Link
+          href={ROUTES.signup}
+          className="font-medium text-brand-primary hover:underline"
+        >
+          Sign up
+        </Link>
+      </p>
+    </LoginSplitFrame>
   );
 }

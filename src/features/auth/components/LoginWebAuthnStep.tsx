@@ -1,6 +1,6 @@
 "use client";
 
-import { KeyRound, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import { StatusBanner } from "@/components/ui/status-banner";
 import { Button } from "@/components/ui/button";
@@ -19,21 +19,13 @@ export function LoginWebAuthnStep({
   onBack,
 }: LoginWebAuthnStepProps) {
   return (
-    <div
-      className="w-full max-w-md rounded-2xl border-[1.5px] border-brand-border bg-white px-8 py-10 sm:px-10 sm:py-12"
-      data-testid="login-webauthn-form"
-    >
-      <div className="flex flex-col items-center text-center">
-        <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-brand-tint text-brand-primary">
-          <KeyRound className="h-5 w-5" strokeWidth={1.75} />
-        </div>
-        <h1 className="font-[family-name:var(--font-bricolage)] text-2xl font-extrabold tracking-tight text-brand-navy">
-          Security key
-        </h1>
-        <p className="mt-2 text-sm leading-relaxed text-brand-muted">
-          Use your passkey or hardware security key to finish signing in.
-        </p>
-      </div>
+    <div className="w-full" data-testid="login-webauthn-form">
+      <h2 className="font-[family-name:var(--font-bricolage)] text-[2rem] font-semibold tracking-[-0.02em] text-brand-navy sm:text-[2.25rem]">
+        Security key
+      </h2>
+      <p className="mt-2 text-[15px] leading-relaxed text-brand-muted">
+        Use your passkey or hardware security key to finish signing in.
+      </p>
 
       {error ? (
         <StatusBanner variant="error" message={error} className="mt-8" />
@@ -55,7 +47,7 @@ export function LoginWebAuthnStep({
           "Use security key"
         )}
       </Button>
-      <div className="mt-6 text-center">
+      <div className="mt-6">
         <button
           type="button"
           onClick={onBack}

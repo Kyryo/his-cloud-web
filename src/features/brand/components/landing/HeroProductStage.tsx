@@ -12,7 +12,7 @@ export function HeroProductStage() {
         className="pointer-events-none absolute -right-4 bottom-0 h-24 w-24 rounded-full bg-[color:var(--landing-amber)]/20 blur-2xl"
       />
 
-      <div className="relative flex gap-1.5 sm:gap-2">
+      <div className="relative flex gap-2 sm:gap-2.5">
         <div className="w-[58%] shrink-0">
           <Image
             src="/landing/hero-clinic-billing.jpg"
@@ -26,7 +26,7 @@ export function HeroProductStage() {
           />
         </div>
 
-        <div className="flex w-[42%] flex-col gap-1.5 pt-5 sm:gap-2 sm:pt-7">
+        <div className="flex w-[42%] flex-col gap-2 pt-4 sm:gap-2.5 sm:pt-6">
           <Image
             src="/landing/hero-clinic-claims.jpg"
             alt="Clinic staff checking whether insurance claims have been paid"

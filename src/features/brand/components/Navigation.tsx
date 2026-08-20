@@ -33,7 +33,7 @@ export function Navigation() {
           : "bg-transparent",
       )}
     >
-      <div className="mx-auto h-16 max-w-7xl px-6 sm:px-10 lg:px-12">
+      <div className="mx-auto h-16 max-w-6xl px-6 sm:px-10 lg:px-12">
         <div
           className={cn(
             "grid h-full items-center gap-4",
@@ -107,7 +107,7 @@ export function Navigation() {
 
       {isOpen ? (
         <div className="absolute left-0 right-0 top-16 bg-white/95 backdrop-blur-xl lg:hidden">
-          <div className="space-y-1 px-6 py-4">
+          <div className="mx-auto max-w-6xl space-y-1 px-6 py-4 sm:px-10 lg:px-12">
             {showNavLinks
               ? BRAND_NAV_LINKS.map((link) => (
                   <Link

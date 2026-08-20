@@ -1,27 +1,22 @@
 "use client";
 
-import { KeyRound, ShieldCheck, Smartphone } from "lucide-react";
-
 import type { MfaSigninMethod } from "@/features/auth/types/auth.types";
 
 const METHOD_COPY: Record<
   Exclude<MfaSigninMethod, "email">,
-  { label: string; description: string; icon: typeof Smartphone }
+  { label: string; description: string }
 > = {
   totp: {
     label: "Authenticator app",
     description: "Use a 6-digit code from your authenticator app.",
-    icon: Smartphone,
   },
   webauthn: {
     label: "Security key",
     description: "Use a passkey or hardware security key.",
-    icon: KeyRound,
   },
   recovery_codes: {
     label: "Recovery code",
     description: "Use a one-time backup code from when you set up 2FA.",
-    icon: ShieldCheck,
   },
 };
 
@@ -43,17 +38,14 @@ export function LoginMfaMethodPicker({
   const options = methods.filter((method) => method !== currentMethod);
 
   return (
-    <div
-      className="w-full max-w-md rounded-2xl border-[1.5px] border-brand-border bg-white px-8 py-10 sm:px-10 sm:py-12"
-      data-testid="login-mfa-methods"
-    >
-      <h1 className="text-center font-[family-name:var(--font-bricolage)] text-2xl font-extrabold tracking-tight text-brand-navy">
+    <div className="w-full" data-testid="login-mfa-methods">
+      <h2 className="font-[family-name:var(--font-bricolage)] text-[2rem] font-semibold tracking-[-0.02em] text-brand-navy sm:text-[2.25rem]">
         Try another method
-      </h1>
-      <p className="mt-2 text-center text-sm leading-relaxed text-brand-muted">
+      </h2>
+      <p className="mt-2 text-[15px] leading-relaxed text-brand-muted">
         Choose how you want to verify this sign-in.
       </p>
-      <ul className="mt-8 space-y-3">
+      <ul className="mt-8 divide-y divide-slate-200 border-y border-slate-200">
         {options.map((method) => {
           if (method === "email") {
             return (
@@ -63,13 +55,10 @@ export function LoginMfaMethodPicker({
                   data-testid="login-mfa-method-email"
                   disabled={disabled}
                   onClick={() => onSelect("email")}
-                  className="flex w-full items-start gap-3 rounded-xl border border-brand-border px-4 py-3 text-left transition-colors hover:bg-brand-tint disabled:opacity-50"
+                  className="flex w-full items-start py-4 text-left transition-colors hover:text-brand-primary disabled:opacity-50"
                 >
-                  <span className="mt-0.5 text-brand-primary" aria-hidden="true">
-                    @
-                  </span>
                   <span>
-                    <span className="block text-sm font-medium text-brand-navy">
+                    <span className="block text-[15px] font-medium text-brand-navy">
                       Email code
                     </span>
                     <span className="mt-0.5 block text-sm text-brand-muted">
@@ -82,7 +71,6 @@ export function LoginMfaMethodPicker({
           }
 
           const copy = METHOD_COPY[method];
-          const Icon = copy.icon;
           return (
             <li key={method}>
               <button
@@ -90,11 +78,10 @@ export function LoginMfaMethodPicker({
                 data-testid={`login-mfa-method-${method}`}
                 disabled={disabled}
                 onClick={() => onSelect(method)}
-                className="flex w-full items-start gap-3 rounded-xl border border-brand-border px-4 py-3 text-left transition-colors hover:bg-brand-tint disabled:opacity-50"
+                className="flex w-full items-start py-4 text-left transition-colors hover:text-brand-primary disabled:opacity-50"
               >
-                <Icon className="mt-0.5 h-5 w-5 text-brand-primary" aria-hidden="true" />
                 <span>
-                  <span className="block text-sm font-medium text-brand-navy">
+                  <span className="block text-[15px] font-medium text-brand-navy">
                     {copy.label}
                   </span>
                   <span className="mt-0.5 block text-sm text-brand-muted">
@@ -106,7 +93,7 @@ export function LoginMfaMethodPicker({
           );
         })}
       </ul>
-      <div className="mt-6 text-center">
+      <div className="mt-6">
         <button
           type="button"
           onClick={onBack}

@@ -1,7 +1,8 @@
 export const ROUTES = {
   home: "/",
   auth: "/auth",
-  signup: "/signup",
+  signup: "/auth/register",
+  register: "/auth/register",
   onboarding: "/onboarding",
   platformAdmin: "/platform-admin",
   platformAdminTenants: "/platform-admin/tenants",

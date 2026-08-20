@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, ShieldCheck } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import { StatusBanner } from "@/components/ui/status-banner";
 import { Button } from "@/components/ui/button";
@@ -27,21 +27,13 @@ export function LoginRecoveryStep({
   onBack,
 }: LoginRecoveryStepProps) {
   return (
-    <div
-      className="w-full max-w-md rounded-2xl border-[1.5px] border-brand-border bg-white px-8 py-10 sm:px-10 sm:py-12"
-      data-testid="login-recovery-form"
-    >
-      <div className="flex flex-col items-center text-center">
-        <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-brand-tint text-brand-primary">
-          <ShieldCheck className="h-5 w-5" strokeWidth={1.75} />
-        </div>
-        <h1 className="font-[family-name:var(--font-bricolage)] text-2xl font-extrabold tracking-tight text-brand-navy">
-          Recovery code
-        </h1>
-        <p className="mt-2 text-sm leading-relaxed text-brand-muted">
-          Enter one of the 8-digit backup codes you saved when setting up 2FA.
-        </p>
-      </div>
+    <div className="w-full" data-testid="login-recovery-form">
+      <h2 className="font-[family-name:var(--font-bricolage)] text-[2rem] font-semibold tracking-[-0.02em] text-brand-navy sm:text-[2.25rem]">
+        Recovery code
+      </h2>
+      <p className="mt-2 text-[15px] leading-relaxed text-brand-muted">
+        Enter one of the 8-digit backup codes you saved when setting up 2FA.
+      </p>
 
       <div className="mt-8 space-y-2">
         {error ? <StatusBanner variant="error" message={error} /> : null}
@@ -51,6 +43,7 @@ export function LoginRecoveryStep({
           data-testid="login-recovery"
           inputMode="numeric"
           autoComplete="one-time-code"
+          className="mt-1.5 h-12 rounded-full px-5"
           maxLength={8}
           value={code}
           disabled={disabled || isSubmitting}
@@ -76,7 +69,7 @@ export function LoginRecoveryStep({
           "Sign in"
         )}
       </Button>
-      <div className="mt-6 text-center">
+      <div className="mt-6">
         <button
           type="button"
           onClick={onBack}

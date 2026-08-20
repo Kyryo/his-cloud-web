@@ -68,7 +68,7 @@ test.describe("OTP auth flow", () => {
   test("sign-up completes with clinic details and OTP", async ({ page }) => {
     await mockSignupOtpFlow(page);
 
-    await page.goto("/signup");
+    await page.goto("/auth/register");
 
     await page.getByTestId("signup-clinic-name").fill("Lakeview Clinic");
     await page.getByTestId("signup-continue").click();

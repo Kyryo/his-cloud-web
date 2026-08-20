@@ -16,7 +16,7 @@ describe("matchesRoute", () => {
 
   it("matches auth routes", () => {
     expect(matchesRoute("/auth", AUTH_ROUTES)).toBe(true);
-    expect(matchesRoute("/signup", AUTH_ROUTES)).toBe(true);
+    expect(matchesRoute("/auth/register", AUTH_ROUTES)).toBe(true);
     expect(matchesRoute("/", AUTH_ROUTES)).toBe(false);
   });
 });

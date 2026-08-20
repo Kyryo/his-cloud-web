@@ -1,6 +1,5 @@
 import { HeroSection } from "@/features/brand/components/HeroSection";
 import { LandingHomeSections } from "@/features/brand/components/landing/LandingHomeSections";
-import { LandingProofStrip } from "@/features/brand/components/landing/LandingProofStrip";
 import { Navigation } from "@/features/brand/components/Navigation";
 
 export function BrandHomePage() {
@@ -12,7 +11,8 @@ export function BrandHomePage() {
       <Navigation />
       <main id="main-content">
         <HeroSection />
-        <LandingProofStrip />
+        {/* Trusted-by strip hidden for now — logos live on the hero.
+        <LandingProofStrip /> */}
         <LandingHomeSections />
       </main>
     </div>

@@ -13,13 +13,13 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 const floatingFieldClassName =
-  "h-14 rounded-xl border-slate-200 bg-white px-3.5 pt-5 pb-2 text-[15px] shadow-none transition-[box-shadow,border-color,border-width] placeholder:text-transparent focus-visible:border-brand-primary focus-visible:ring-2 focus-visible:ring-brand-primary/20";
+  "h-14 rounded-full border-slate-200 bg-white px-5 pt-5 pb-2 text-[15px] shadow-none transition-[box-shadow,border-color,border-width] placeholder:text-transparent focus-visible:border-brand-primary focus-visible:ring-2 focus-visible:ring-brand-primary/20";
 
 const floatingFieldErrorClassName =
   "border-red-400 focus-visible:border-red-500 focus-visible:ring-red-500/20";
 
 const floatingLabelClassName =
-  "pointer-events-none absolute left-3.5 top-1/2 origin-left -translate-y-1/2 text-[15px] text-brand-muted transition-all duration-200 ease-out peer-focus:top-2.5 peer-focus:translate-y-0 peer-focus:text-[11px] peer-focus:font-medium peer-focus:tracking-[0.02em] peer-focus:text-brand-primary peer-[:not(:placeholder-shown)]:top-2.5 peer-[:not(:placeholder-shown)]:translate-y-0 peer-[:not(:placeholder-shown)]:text-[11px] peer-[:not(:placeholder-shown)]:font-medium peer-[:not(:placeholder-shown)]:tracking-[0.02em] peer-[:not(:placeholder-shown)]:text-brand-muted";
+  "pointer-events-none absolute left-5 top-1/2 origin-left -translate-y-1/2 text-[15px] text-brand-muted transition-all duration-200 ease-out peer-focus:top-2.5 peer-focus:translate-y-0 peer-focus:text-[11px] peer-focus:font-medium peer-focus:tracking-[0.02em] peer-focus:text-brand-primary peer-[:not(:placeholder-shown)]:top-2.5 peer-[:not(:placeholder-shown)]:translate-y-0 peer-[:not(:placeholder-shown)]:text-[11px] peer-[:not(:placeholder-shown)]:font-medium peer-[:not(:placeholder-shown)]:tracking-[0.02em] peer-[:not(:placeholder-shown)]:text-brand-muted";
 
 const floatingLabelErrorClassName =
   "text-red-600 peer-focus:text-red-600 peer-[:not(:placeholder-shown)]:text-red-600";
@@ -104,7 +104,7 @@ export const FloatingLabelPasswordInput = forwardRef<
           placeholder=" "
           aria-invalid={hasError}
           className={cn(
-            "peer pr-10",
+            "peer pr-12",
             floatingFieldClassName,
             hasError && floatingFieldErrorClassName,
             className,
@@ -123,7 +123,7 @@ export const FloatingLabelPasswordInput = forwardRef<
         <button
           type="button"
           tabIndex={-1}
-          className="absolute top-1/2 right-3 -translate-y-1/2 text-brand-muted transition-colors hover:text-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/25"
+          className="absolute top-1/2 right-5 -translate-y-1/2 text-brand-muted transition-colors hover:text-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/25"
           onClick={() => setVisible((current) => !current)}
           aria-label={visible ? "Hide password" : "Show password"}
         >

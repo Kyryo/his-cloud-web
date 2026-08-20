@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Mail } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useCallback, useState } from "react";
 
 import { VerificationCodeInput } from "@/components/verification-code";
@@ -137,29 +137,16 @@ export function AuthOtpStep({
   }
 
   return (
-    <div
-      className={cn(
-        embedded
-          ? "w-full"
-          : "w-full max-w-md rounded-2xl border-[1.5px] border-brand-border bg-white px-8 py-10 sm:px-10 sm:py-12",
-      )}
-    >
+    <div className="w-full">
       {!embedded ? (
-        <div className="flex flex-col items-center text-center">
-          <div
-            className="mb-6 flex h-12 w-12 items-center justify-center rounded-full bg-brand-tint text-brand-primary"
-            aria-hidden="true"
-          >
-            <Mail className="h-5 w-5" strokeWidth={1.75} />
-          </div>
-
-          <h1 className="font-[family-name:var(--font-bricolage)] text-2xl font-extrabold tracking-tight text-brand-navy">
+        <div>
+          <h2 className="font-[family-name:var(--font-bricolage)] text-[2rem] font-semibold tracking-[-0.02em] text-brand-navy sm:text-[2.25rem]">
             {title}
-          </h1>
-          <p className="mt-2 text-sm leading-relaxed text-brand-muted">
+          </h2>
+          <p className="mt-2 text-[15px] leading-relaxed text-brand-muted">
             {description}
           </p>
-          <p className="mt-1 text-sm font-medium text-brand-slate">
+          <p className="mt-1.5 text-sm font-medium text-brand-navy">
             {maskEmail(email)}
           </p>
 
@@ -237,7 +224,7 @@ export function AuthOtpStep({
         <div
           className={cn(
             "flex items-center gap-6 text-sm",
-            hideActions ? "mt-5 justify-start" : "mt-6 justify-center",
+            hideActions ? "mt-5 justify-start" : "mt-6 justify-start",
           )}
         >
           {onBack && !hideActions ? (

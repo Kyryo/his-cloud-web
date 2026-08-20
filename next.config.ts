@@ -20,9 +20,24 @@ const nextConfig: NextConfig = {
   assetPrefix,
   images: {
     qualities: [75, 90, 92],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+    ],
   },
   turbopack: {
     root: appRoot,
+  },
+  async redirects() {
+    return [
+      {
+        source: "/signup",
+        destination: "/auth/register",
+        permanent: true,
+      },
+    ];
   },
   devIndicators: false,
 };

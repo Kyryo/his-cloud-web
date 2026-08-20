@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { ROUTES } from "@/constants/routes";
 import { HeroProductStage } from "@/features/brand/components/landing/HeroProductStage";
+import { LandingHeroMarks } from "@/features/brand/components/landing/LandingCompanyMarks";
 
 export function HeroSection() {
   const reduceMotion = useReducedMotion();
@@ -34,20 +35,28 @@ export function HeroSection() {
   };
 
   return (
-    <section className="landing-hero-ground relative overflow-hidden pt-20">
-      <div className="mx-auto max-w-7xl px-6 pb-10 pt-10 sm:px-10 sm:pb-12 sm:pt-12 lg:px-12 lg:pb-10 lg:pt-12">
-        <div className="grid items-center gap-8 lg:grid-cols-12 lg:gap-10">
+    <section className="landing-hero-ground relative overflow-hidden bg-white pt-20">
+      <div className="relative z-20 mx-auto max-w-6xl px-6 pb-10 pt-10 sm:px-10 sm:pb-12 sm:pt-12 lg:px-12 lg:pb-10 lg:pt-12">
+        <div className="grid items-center gap-8 lg:grid-cols-12 lg:gap-8">
           <motion.div
-            className="lg:col-span-7 xl:col-span-6"
+            className="relative z-20 lg:col-span-7 xl:col-span-6"
             variants={containerVariants}
             initial={reduceMotion ? "visible" : "hidden"}
             animate="visible"
           >
             <motion.h1
               variants={itemVariants}
-              className="landing-display text-[clamp(2.05rem,4.1vw,3.4rem)] font-semibold leading-[1.12] tracking-[-0.018em] text-[color:var(--landing-ink)]"
+              className="landing-display pb-2 text-[clamp(2.05rem,4vw,3.2rem)] font-semibold leading-[1.16] tracking-[-0.024em] text-[color:var(--landing-ink)]"
             >
-              Stop losing revenue after every patient visit
+              Stop{" "}
+              <span className="relative inline-block italic font-medium tracking-[-0.02em]">
+                leaking
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-x-[-0.06em] -bottom-1 h-[2px] bg-[color:var(--landing-teal)]"
+                />
+              </span>{" "}
+              revenue after every patient visit
             </motion.h1>
 
             <motion.p
@@ -79,10 +88,14 @@ export function HeroSection() {
                 Book a demo
               </Link>
             </motion.div>
+
+            <motion.div variants={itemVariants} className="mt-8">
+              <LandingHeroMarks />
+            </motion.div>
           </motion.div>
 
           <motion.div
-            className="flex justify-center lg:col-span-5 lg:justify-end xl:col-span-6"
+            className="relative z-0 flex justify-center lg:col-span-5 lg:justify-end xl:col-span-6"
             initial={reduceMotion ? false : { opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.75, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
