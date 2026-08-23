@@ -104,7 +104,7 @@ export function CustomersTable({
                         <div className="min-w-0">
                           <Link
                             href={ROUTES.customerDetail(customer.uuid)}
-                            className="truncate text-sm font-medium text-brand-navy hover:text-brand-primary hover:underline"
+                            className="truncate text-sm font-medium text-brand-primary underline underline-offset-2 hover:text-brand-primary-hover"
                             onClick={(event) => event.stopPropagation()}
                           >
                             {name}

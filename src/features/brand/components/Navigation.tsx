@@ -8,6 +8,7 @@ import { useState } from "react";
 
 import { ROUTES } from "@/constants/routes";
 import { LandingLogo } from "@/features/brand/components/landing/LandingLogo";
+import { appHref } from "@/lib/app-url";
 import {
   BRAND_NAV_ITEMS,
   getMenuChildLinks,
@@ -307,13 +308,13 @@ export function Navigation() {
 
           <div className="hidden items-center justify-self-end gap-2 lg:flex">
             <Link
-              href={ROUTES.auth}
+              href={appHref(ROUTES.auth)}
               className="landing-focus inline-flex min-h-10 items-center justify-center rounded-full px-4 py-2 text-sm font-semibold text-[color:var(--landing-ledger-ink)] transition-colors hover:bg-[color:var(--landing-warm)] hover:text-[color:var(--landing-ink)]"
             >
               Sign In
             </Link>
             <Link
-              href={ROUTES.signup}
+              href={appHref(ROUTES.signup)}
               className="landing-focus landing-btn-primary inline-flex min-h-10 items-center justify-center rounded-full px-5 py-2 text-sm font-semibold"
             >
               Start for free
@@ -375,14 +376,14 @@ export function Navigation() {
 
             <div className="flex flex-col gap-2 border-t border-[color:var(--landing-border)] pt-4">
               <Link
-                href={ROUTES.auth}
+                href={appHref(ROUTES.auth)}
                 className="landing-focus inline-flex min-h-11 items-center justify-center rounded-full px-5 py-2.5 text-center text-sm font-semibold text-[color:var(--landing-ledger-ink)] transition-colors hover:bg-[color:var(--landing-warm)]"
                 onClick={() => setIsOpen(false)}
               >
                 Sign In
               </Link>
               <Link
-                href={ROUTES.signup}
+                href={appHref(ROUTES.signup)}
                 className="landing-focus landing-btn-primary inline-flex min-h-11 items-center justify-center rounded-full px-5 py-2.5 text-center text-sm font-semibold"
                 onClick={() => setIsOpen(false)}
               >

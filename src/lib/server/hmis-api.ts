@@ -87,9 +87,11 @@ export async function hmisApiRequestWithMeta<T>(
     } catch {
       if (!response.ok) {
         throw new HmisApiError(
-          response.status >= 500
-            ? "Something went wrong. Try again later."
-            : "Request failed.",
+          response.status === 404
+            ? "The API endpoint was not found. Check that HMIS_API_URL includes /api/v1."
+            : response.status >= 500
+              ? "Something went wrong. Try again later."
+              : "Request failed.",
           response.status,
         );
       }

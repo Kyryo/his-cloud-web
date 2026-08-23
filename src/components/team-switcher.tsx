@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Building2, ChevronsUpDown } from "lucide-react";
+import { AppIcon } from "@/components/icons/app-icon";
 
 import {
   DropdownMenu,
@@ -103,15 +103,17 @@ export function TeamSwitcher() {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <Building2 className="size-4" />
+                <AppIcon name="building" size={16} />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-medium">
+                <span className="truncate font-semibold text-brand-navy">
                   {isLoading ? "Loading..." : tenantName}
                 </span>
-                <span className="truncate text-xs">{activeClinicLabel}</span>
+                <span className="truncate text-xs text-dash-muted">
+                  {activeClinicLabel}
+                </span>
               </div>
-              <ChevronsUpDown className="ml-auto" />
+              <AppIcon name="chevronRight" className="ml-auto rotate-90" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -134,7 +136,7 @@ export function TeamSwitcher() {
                   className="gap-2 p-2"
                 >
                   <div className="flex size-6 items-center justify-center rounded-md border">
-                    <Building2 className="size-3.5 shrink-0" />
+                    <AppIcon name="building" size={14} />
                   </div>
                   <div className="grid flex-1 text-left leading-tight">
                     <span className="truncate text-sm">{clinic.clinic_name}</span>

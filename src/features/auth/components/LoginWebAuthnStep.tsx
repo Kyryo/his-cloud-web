@@ -1,7 +1,5 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
-
 import { StatusBanner } from "@/components/ui/status-banner";
 import { Button } from "@/components/ui/button";
 
@@ -10,6 +8,7 @@ type LoginWebAuthnStepProps = {
   isSubmitting?: boolean;
   onVerify: () => void;
   onBack: () => void;
+  onTryAnother?: () => void;
 };
 
 export function LoginWebAuthnStep({
@@ -17,6 +16,7 @@ export function LoginWebAuthnStep({
   isSubmitting,
   onVerify,
   onBack,
+  onTryAnother,
 }: LoginWebAuthnStepProps) {
   return (
     <div className="w-full" data-testid="login-webauthn-form">
@@ -24,11 +24,19 @@ export function LoginWebAuthnStep({
         Security key
       </h2>
       <p className="mt-2 text-[15px] leading-relaxed text-brand-muted">
-        Use your passkey or hardware security key to finish signing in.
+        {isSubmitting
+          ? "Complete the prompt in your browser or on the key."
+          : "Use your passkey or hardware key to finish signing in."}
       </p>
 
       {error ? (
-        <StatusBanner variant="error" message={error} className="mt-8" />
+        <StatusBanner variant="error" message={error} className="mt-6" />
+      ) : null}
+
+      {isSubmitting ? (
+        <p className="sr-only" role="status" aria-live="polite">
+          Waiting for your key
+        </p>
       ) : null}
 
       <Button
@@ -38,21 +46,28 @@ export function LoginWebAuthnStep({
         disabled={isSubmitting}
         onClick={onVerify}
       >
-        {isSubmitting ? (
-          <span className="inline-flex items-center gap-2">
-            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            Waiting for security key...
-          </span>
-        ) : (
-          "Use security key"
-        )}
+        {isSubmitting ? "Waiting for your key..." : "Use security key"}
       </Button>
+
+      {onTryAnother ? (
+        <Button
+          type="button"
+          variant="outline"
+          data-testid="login-try-another-method"
+          disabled={isSubmitting}
+          onClick={onTryAnother}
+          className="mt-3 h-12 w-full rounded-full border-slate-300 bg-white text-brand-navy hover:bg-slate-50 hover:text-brand-navy"
+        >
+          Try another method
+        </Button>
+      ) : null}
+
       <div className="mt-6">
         <button
           type="button"
           onClick={onBack}
           disabled={isSubmitting}
-          className="text-sm text-brand-muted transition-colors hover:text-brand-navy hover:underline disabled:opacity-50"
+          className="text-sm font-medium text-brand-navy transition-colors hover:text-brand-primary disabled:opacity-50"
         >
           Back
         </button>

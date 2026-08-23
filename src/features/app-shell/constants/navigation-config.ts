@@ -1,34 +1,10 @@
-import type { LucideIcon } from "lucide-react";
-import {
-  ArrowLeftRight,
-  Calendar,
-  CalendarClock,
-  ClipboardList,
-  Dumbbell,
-  FileText,
-  FlaskConical,
-  HeartPulse,
-  Home,
-  Hospital,
-  Layers,
-  Package,
-  Pill,
-  Receipt,
-  ShieldCheck,
-  Shuffle,
-  Store,
-  TestTube,
-  User,
-  Users,
-  Wallet,
-} from "lucide-react";
-
+import type { AppIconName } from "@/components/icons/app-icon";
 import { ROUTES } from "@/constants/routes";
 
 export type NavigationItem = {
   name: string;
   href: string;
-  icon: LucideIcon;
+  icon: AppIconName;
   requiredGroup: string | null;
   moduleName?: string;
   enabledInWebNew: boolean;
@@ -48,18 +24,18 @@ export const moduleDisplayNames: Record<string, string> = {
   Therapy: "Therapy",
 };
 
-export const moduleIcons: Record<string, LucideIcon> = {
-  Registration: User,
-  Billing: Wallet,
-  Claims: ShieldCheck,
-  Orders: Shuffle,
-  Dispensation: Pill,
-  Lab: TestTube,
-  Radiology: HeartPulse,
-  Inventory: Store,
-  Dental: Users,
-  Clinical: Hospital,
-  Therapy: Dumbbell,
+export const moduleIcons: Record<string, AppIconName> = {
+  Registration: "user",
+  Billing: "wallet",
+  Claims: "shield",
+  Orders: "shuffle",
+  Dispensation: "pill",
+  Lab: "flask",
+  Radiology: "heartPulse",
+  Inventory: "store",
+  Dental: "dental",
+  Clinical: "hospital",
+  Therapy: "dumbbell",
 };
 
 export const moduleOrder = [
@@ -81,49 +57,49 @@ export const navigation: NavigationItem[] = [
   {
     name: "Clients",
     href: ROUTES.customers,
-    icon: User,
+    icon: "user",
     requiredGroup: "Registration",
     enabledInWebNew: true,
   },
   {
     name: "Appointments",
     href: ROUTES.appointments,
-    icon: CalendarClock,
+    icon: "calendarClock",
     requiredGroup: "Registration",
     enabledInWebNew: true,
   },
   {
     name: "Active Visits",
     href: ROUTES.activeVisits,
-    icon: Calendar,
+    icon: "calendar",
     requiredGroup: "Registration",
     enabledInWebNew: true,
   },
   {
     name: "Sales Orders",
     href: ROUTES.salesOrders,
-    icon: FileText,
+    icon: "file",
     requiredGroup: "Billing",
     enabledInWebNew: true,
   },
   {
     name: "Invoices",
     href: ROUTES.invoices,
-    icon: Receipt,
+    icon: "invoice",
     requiredGroup: "Billing",
     enabledInWebNew: true,
   },
   {
     name: "Payments",
     href: ROUTES.payments,
-    icon: Wallet,
+    icon: "wallet",
     requiredGroup: "Billing",
     enabledInWebNew: true,
   },
   {
     name: "Submissions",
     href: ROUTES.claims,
-    icon: ShieldCheck,
+    icon: "shield",
     requiredGroup: "Claims",
     moduleName: "Claims",
     enabledInWebNew: true,
@@ -131,7 +107,7 @@ export const navigation: NavigationItem[] = [
   {
     name: "Remittances",
     href: ROUTES.claimsRemittances,
-    icon: ShieldCheck,
+    icon: "shield",
     requiredGroup: "Claims",
     moduleName: "Claims",
     enabledInWebNew: true,
@@ -139,7 +115,7 @@ export const navigation: NavigationItem[] = [
   {
     name: "Reconciliations",
     href: ROUTES.claimsReconciliations,
-    icon: ShieldCheck,
+    icon: "shield",
     requiredGroup: "Claims",
     moduleName: "Claims",
     enabledInWebNew: true,
@@ -147,7 +123,7 @@ export const navigation: NavigationItem[] = [
   {
     name: "Rejections",
     href: ROUTES.claimsRejections,
-    icon: ShieldCheck,
+    icon: "shield",
     requiredGroup: "Claims",
     moduleName: "Claims",
     enabledInWebNew: true,
@@ -155,7 +131,7 @@ export const navigation: NavigationItem[] = [
   {
     name: "Appeals",
     href: ROUTES.claimsAppeals,
-    icon: ShieldCheck,
+    icon: "shield",
     requiredGroup: "Claims",
     moduleName: "Claims",
     enabledInWebNew: true,
@@ -163,7 +139,7 @@ export const navigation: NavigationItem[] = [
   {
     name: "Pharmacy queue",
     href: ROUTES.pharmacyQueue,
-    icon: Pill,
+    icon: "pill",
     requiredGroup: "Dispensation",
     moduleName: "Dispensation",
     enabledInWebNew: true,
@@ -171,7 +147,7 @@ export const navigation: NavigationItem[] = [
   {
     name: "Dispensation history",
     href: ROUTES.pharmacyHistory,
-    icon: ClipboardList,
+    icon: "clipboard",
     requiredGroup: "Dispensation",
     moduleName: "Dispensation",
     enabledInWebNew: true,
@@ -179,77 +155,77 @@ export const navigation: NavigationItem[] = [
   {
     name: "Products",
     href: ROUTES.inventoryProducts,
-    icon: Package,
+    icon: "package",
     requiredGroup: "Billing",
     enabledInWebNew: true,
   },
   {
     name: "Pricelists",
     href: ROUTES.inventoryPricelists,
-    icon: Receipt,
+    icon: "invoice",
     requiredGroup: "Billing",
     enabledInWebNew: true,
   },
   {
     name: "Inventory Register",
     href: ROUTES.inventoryStock,
-    icon: Store,
+    icon: "store",
     requiredGroup: "Inventory",
     enabledInWebNew: true,
   },
   {
     name: "Purchase Orders",
     href: ROUTES.inventoryPurchaseOrders,
-    icon: FileText,
+    icon: "file",
     requiredGroup: "Inventory",
     enabledInWebNew: true,
   },
   {
     name: "Internal Orders",
     href: ROUTES.inventoryInternalOrders,
-    icon: Shuffle,
+    icon: "shuffle",
     requiredGroup: "Inventory",
     enabledInWebNew: true,
   },
   {
     name: "Inventory Adjustments",
     href: ROUTES.inventoryStockAdjustments,
-    icon: ClipboardList,
+    icon: "clipboard",
     requiredGroup: "Inventory",
     enabledInWebNew: true,
   },
   {
     name: "Movements",
     href: ROUTES.inventoryMovements,
-    icon: ArrowLeftRight,
+    icon: "transfer",
     requiredGroup: "Inventory",
     enabledInWebNew: true,
   },
   {
     name: "Batches",
     href: ROUTES.inventoryBatches,
-    icon: Layers,
+    icon: "layers",
     requiredGroup: "Inventory",
     enabledInWebNew: true,
   },
   {
     name: "Laboratory",
     href: "/lab-orders",
-    icon: FlaskConical,
+    icon: "flask",
     requiredGroup: "Lab",
     enabledInWebNew: false,
   },
   {
     name: "Patient File",
     href: "/patients",
-    icon: FileText,
+    icon: "file",
     requiredGroup: "Clinical",
     enabledInWebNew: false,
   },
   {
     name: "Physio Queue",
     href: ROUTES.therapyPhysio,
-    icon: Dumbbell,
+    icon: "dumbbell",
     requiredGroup: "Physio",
     moduleName: "Therapy",
     enabledInWebNew: true,
@@ -257,7 +233,7 @@ export const navigation: NavigationItem[] = [
   {
     name: "OT Queue",
     href: ROUTES.therapyOccupational,
-    icon: Dumbbell,
+    icon: "dumbbell",
     requiredGroup: "Occupational",
     moduleName: "Therapy",
     enabledInWebNew: true,
@@ -265,7 +241,7 @@ export const navigation: NavigationItem[] = [
   {
     name: "Speech Queue",
     href: ROUTES.therapySpeech,
-    icon: Dumbbell,
+    icon: "dumbbell",
     requiredGroup: "Speech",
     moduleName: "Therapy",
     enabledInWebNew: true,
@@ -273,7 +249,7 @@ export const navigation: NavigationItem[] = [
   {
     name: "Home",
     href: "/dashboard",
-    icon: Home,
+    icon: "home",
     requiredGroup: null,
     enabledInWebNew: false,
   },
@@ -392,7 +368,7 @@ export function getModuleLabel(moduleName: string) {
 }
 
 export function getModuleIcon(moduleName: string) {
-  return moduleIcons[moduleName] ?? Store;
+  return moduleIcons[moduleName] ?? "store";
 }
 
 export function filterNavigationByQuery(

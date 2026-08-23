@@ -14,7 +14,7 @@ export function ListPageDataTable({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-xl border border-brand-border bg-white",
+        "overflow-hidden rounded-xl border border-dash-border bg-dash-panel",
         className,
       )}
     >
@@ -39,7 +39,7 @@ export function ListPageDataTableHeaderRow({
   children: ReactNode;
 }) {
   return (
-    <tr className="border-b border-brand-border bg-slate-50/80">{children}</tr>
+    <tr className="border-b border-dash-border bg-dash-canvas/70">{children}</tr>
   );
 }
 
@@ -51,7 +51,7 @@ export function ListPageDataTableHeaderCell({
     <th
       scope="col"
       className={cn(
-        "px-4 py-3 text-left text-sm font-medium text-brand-muted",
+        "px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-dash-muted",
         className,
       )}
       {...props}
@@ -64,7 +64,7 @@ export function ListPageDataTableBody({
 }: {
   children: ReactNode;
 }) {
-  return <tbody className="divide-y divide-brand-border">{children}</tbody>;
+  return <tbody className="divide-y divide-dash-border">{children}</tbody>;
 }
 
 export function ListPageDataTableRow({
@@ -73,7 +73,7 @@ export function ListPageDataTableRow({
 }: ComponentPropsWithoutRef<"tr">) {
   return (
     <tr
-      className={cn("transition-colors hover:bg-slate-50/80", className)}
+      className={cn("transition-colors hover:bg-dash-canvas/80", className)}
       {...props}
     />
   );
@@ -83,5 +83,5 @@ export function ListPageDataTableCell({
   className,
   ...props
 }: ComponentPropsWithoutRef<"td">) {
-  return <td className={cn("px-4 py-3", className)} {...props} />;
+  return <td className={cn("px-4 py-2.5 text-sm", className)} {...props} />;
 }

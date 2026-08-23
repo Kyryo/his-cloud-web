@@ -285,21 +285,19 @@ export function LoginForm() {
   function tryAnotherMethodLink(from: MfaSigninMethod) {
     if (!showAlternateLink) return null;
     return (
-      <div className="mt-4">
-        <button
-          type="button"
-          data-testid="login-try-another-method"
-          disabled={isSubmitting}
-          onClick={() => {
-            setSubmitError(null);
-            setPickerFrom(from);
-            setStep("methods");
-          }}
-          className="text-sm text-brand-muted transition-colors hover:text-brand-navy hover:underline disabled:opacity-50"
-        >
-          Try another method
-        </button>
-      </div>
+      <button
+        type="button"
+        data-testid="login-try-another-method"
+        disabled={isSubmitting}
+        onClick={() => {
+          setSubmitError(null);
+          setPickerFrom(from);
+          setStep("methods");
+        }}
+        className="mt-3 flex h-12 w-full items-center justify-center rounded-full border border-slate-300 bg-white text-sm font-semibold text-brand-navy transition-colors hover:bg-slate-50 disabled:opacity-50"
+      >
+        Try another method
+      </button>
     );
   }
 
@@ -402,8 +400,16 @@ export function LoginForm() {
           isSubmitting={isSubmitting}
           onVerify={() => void handleWebAuthnVerify()}
           onBack={() => setStep("methods")}
+          onTryAnother={
+            showAlternateLink
+              ? () => {
+                  setSubmitError(null);
+                  setPickerFrom("webauthn");
+                  setStep("methods");
+                }
+              : undefined
+          }
         />
-        {tryAnotherMethodLink("webauthn")}
       </LoginSplitFrame>
     );
   }

@@ -1,6 +1,4 @@
-import type { LucideIcon } from "lucide-react";
-import { BarChart3, BookOpen, HardDrive, Settings, Shield } from "lucide-react";
-
+import type { AppIconName } from "@/components/icons/app-icon";
 import {
   canAccessReports,
   filterNavigation,
@@ -15,11 +13,14 @@ import {
 } from "@/features/app-shell/constants/navigation-config";
 import { ROUTES } from "@/constants/routes";
 
+export type SidebarNavSection = "workspace" | "admin";
+
 export type SidebarNavItem = {
   title: string;
   url: string;
-  icon?: LucideIcon;
+  icon?: AppIconName;
   isActive?: boolean;
+  section?: SidebarNavSection;
   items?: Array<{
     title: string;
     url: string;
@@ -44,6 +45,7 @@ export function buildSidebarNavItems(
       title: navItem.name,
       url: navItem.href,
       icon: navItem.icon,
+      section: "workspace",
       isActive: isNavItemActive(pathname, navItem.href),
     });
   }
@@ -63,6 +65,7 @@ export function buildSidebarNavItems(
       title: getModuleLabel(moduleName),
       url: activeModuleItem?.href ?? moduleItems[0].href,
       icon: getModuleIcon(moduleName),
+      section: "workspace",
       isActive: moduleItems.some((navItem) =>
         isNavItemActive(pathname, navItem.href),
       ),
@@ -133,7 +136,8 @@ export function buildSidebarNavItems(
     items.push({
       title: "Tenant operations",
       url: ROUTES.platformAdmin,
-      icon: Shield,
+      icon: "shield",
+      section: "admin",
       isActive:
         pathname === ROUTES.platformAdmin ||
         pathname.startsWith(`${ROUTES.platformAdminTenants}`),
@@ -156,7 +160,8 @@ export function buildSidebarNavItems(
     items.push({
       title: "Platform",
       url: ROUTES.platformAdminBackups,
-      icon: HardDrive,
+      icon: "hardDrive",
+      section: "admin",
       isActive: pathname.startsWith(`${ROUTES.platformAdmin}/backups`),
       items: [
         {
@@ -172,9 +177,9 @@ export function buildSidebarNavItems(
     items.push({
       title: "Resources",
       url: ROUTES.platformAdminResourcesSales,
-      icon: BookOpen,
-      isActive:
-        pathname.startsWith(`${ROUTES.platformAdmin}/resources`),
+      icon: "book",
+      section: "admin",
+      isActive: pathname.startsWith(`${ROUTES.platformAdmin}/resources`),
       items: [
         {
           title: "Sales",
@@ -191,7 +196,8 @@ export function buildSidebarNavItems(
     items.push({
       title: "Reports & Insights",
       url: ROUTES.reportsOverview,
-      icon: BarChart3,
+      icon: "analytics",
+      section: "admin",
       isActive: isReportsNavActive(pathname),
       items: [
         {
@@ -227,7 +233,8 @@ export function buildSidebarNavItems(
     items.push({
       title: "Settings",
       url: ROUTES.settingsAccount,
-      icon: Settings,
+      icon: "settings",
+      section: "admin",
       isActive: isSettingsNavActive(pathname),
       items: settingsItems,
     });

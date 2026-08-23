@@ -1,5 +1,32 @@
-/** Server-only Django DRF base URL. Never expose to the browser. */
-export const HMIS_API_URL = process.env.HMIS_API_URL;
+/**
+ * Server-only Django DRF base URL. Never expose to the browser.
+ * Host-only values (no path) get `/api/v1` appended to match the v1 contract.
+ */
+export function resolveHmisApiUrl(
+  raw = process.env.HMIS_API_URL,
+): string | undefined {
+  if (!raw) {
+    return undefined;
+  }
+
+  const trimmed = raw.trim().replace(/\/+$/, "");
+  if (!trimmed) {
+    return undefined;
+  }
+
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.pathname === "/" || parsed.pathname === "") {
+      return `${trimmed}/api/v1`;
+    }
+  } catch {
+    return trimmed;
+  }
+
+  return trimmed;
+}
+
+export const HMIS_API_URL = resolveHmisApiUrl();
 
 /** Browser-facing BFF auth routes (same origin). */
 export const BFF_AUTH_ROUTES = {

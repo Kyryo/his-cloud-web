@@ -47,8 +47,8 @@ describe("page-layout", () => {
     const listPage = screen.getByTestId("list-page");
     expect(listPage).toBeInTheDocument();
     expect(listPage).toHaveClass("px-4", "md:px-6");
-    expect(screen.getByRole("heading", { name: "Clients" })).toBeInTheDocument();
-    expect(screen.getByText("Subtitle")).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Clients" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Subtitle")).not.toBeInTheDocument();
     expect(screen.getByText("Stats")).toBeInTheDocument();
     expect(screen.getByText("Toolbar")).toBeInTheDocument();
     expect(screen.getByText("Table")).toBeInTheDocument();

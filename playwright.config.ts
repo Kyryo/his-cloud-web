@@ -26,6 +26,7 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     env: {
       HMIS_API_URL: "http://localhost:8000/api/v1",
+      NEXT_PUBLIC_DISABLE_HOST_ROUTING: "true",
     },
   },
 });

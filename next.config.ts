@@ -17,6 +17,10 @@ const assetPrefix =
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  allowedDevOrigins: ["app.localhost", "*.localhost"],
+  experimental: {
+    optimizePackageImports: ["@hugeicons/core-free-icons", "@hugeicons/react"],
+  },
   assetPrefix,
   images: {
     qualities: [75, 90, 92],

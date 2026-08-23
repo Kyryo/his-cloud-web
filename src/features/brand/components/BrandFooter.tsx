@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { ROUTES } from "@/constants/routes";
 import { LandingLogo } from "@/features/brand/components/landing/LandingLogo";
+import { appHref } from "@/lib/app-url";
 
 const FOOTER_COLUMNS = [
   {
@@ -25,9 +26,9 @@ const FOOTER_COLUMNS = [
   {
     title: "Get started",
     links: [
-      { label: "Start for free", href: ROUTES.signup },
+      { label: "Start for free", href: appHref(ROUTES.signup) },
       { label: "Talk to sales", href: ROUTES.pricing },
-      { label: "Sign in", href: ROUTES.auth },
+      { label: "Sign in", href: appHref(ROUTES.auth) },
       { label: "Services", href: ROUTES.services },
     ],
   },

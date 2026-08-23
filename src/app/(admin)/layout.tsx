@@ -8,9 +8,10 @@ import { QueryProvider } from "@/providers/query-provider";
 import { ToastProvider } from "@/providers/toast-provider";
 import { UserProvider } from "@/providers/user-provider";
 
+/** Platform admin. Same app host as the clinic dashboard. */
 export default function AdminLayout({ children }: { children: ReactNode }) {
   return (
-    <div className={`${appFont.className} ${appFont.variable}`}>
+    <div className={`${appFont.className} ${appFont.variable} min-h-svh bg-dash-canvas`}>
       <AuthGuard>
         <UserProvider>
           <QueryProvider>

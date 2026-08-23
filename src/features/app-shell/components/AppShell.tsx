@@ -1,9 +1,7 @@
 "use client";
 
 import { AppSidebar } from "@/components/app-sidebar";
-import { AppBreadcrumbs } from "@/features/app-shell/components/AppBreadcrumbs";
 import { ModuleAccessGate } from "@/features/app-shell/components/ModuleAccessGate";
-import { Separator } from "@/components/ui/separator";
 import {
   SidebarInset,
   SidebarProvider,
@@ -13,28 +11,20 @@ import {
 import { AppBreadcrumbProvider } from "@/features/app-shell/providers/app-breadcrumb-provider";
 
 /**
- * Authenticated app shell — shadcn sidebar-07 page layout.
- * @see https://ui.shadcn.com/blocks#sidebar-07
- * @see web-new/AGENTS.md §3.5
+ * Authenticated app shell — sidebar is persistent layout chrome.
+ * Visual language: shared canvas behind sidebar + body, white page sheet.
  */
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
-    <SidebarProvider>
+    <SidebarProvider className="bg-dash-canvas">
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="bg-dash-canvas">
         <AppBreadcrumbProvider>
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b border-brand-border transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
-            <div className="flex w-full items-center gap-2 px-4">
-              <SidebarTrigger className="-ml-1" />
-              <Separator
-                orientation="vertical"
-                className="mr-2 data-[orientation=vertical]:h-4"
-              />
-              <AppBreadcrumbs />
-            </div>
+          <header className="flex h-12 shrink-0 items-center px-4 md:hidden">
+            <SidebarTrigger />
           </header>
-          <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
-            <div className="min-h-[100vh] flex-1 bg-white md:min-h-min">
+          <div className="flex flex-1 flex-col p-4">
+            <div className="flex flex-1 flex-col rounded-2xl bg-dash-panel shadow-[0_1px_2px_rgb(15_23_42/0.04),0_8px_24px_rgb(15_23_42/0.04)]">
               <ModuleAccessGate>{children}</ModuleAccessGate>
             </div>
           </div>

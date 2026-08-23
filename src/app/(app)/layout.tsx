@@ -7,9 +7,11 @@ import { QueryProvider } from "@/providers/query-provider";
 import { ToastProvider } from "@/providers/toast-provider";
 import { UserProvider } from "@/providers/user-provider";
 
+/** Clinic dashboard. Served on the app host (app.example.com) when host routing is on. */
+
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <div className={`${appFont.className} ${appFont.variable}`}>
+    <div className={`${appFont.className} ${appFont.variable} min-h-svh bg-dash-canvas`}>
       <AuthGuard>
         <UserProvider>
           <QueryProvider>

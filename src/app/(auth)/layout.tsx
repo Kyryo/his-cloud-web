@@ -5,6 +5,7 @@ import { landingBody, landingDisplay } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { ToastProvider } from "@/providers/toast-provider";
 
+/** Sign-in and onboarding. Served on the app host when host routing is on. */
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
     <div

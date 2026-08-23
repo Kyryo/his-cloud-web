@@ -43,6 +43,8 @@ export function CustomerSummaryStats({
     <StatsCard1Grid data-testid="customer-summary-stats">
       <StatsCard1
         title="Total clients"
+        icon="users"
+        tone="teal"
         value={
           <StatValue
             isLoading={isLoading}
@@ -52,6 +54,8 @@ export function CustomerSummaryStats({
       />
       <StatsCard1
         title="New this month"
+        icon="add"
+        tone="violet"
         value={
           <StatValue
             isLoading={isLoading}
@@ -67,6 +71,8 @@ export function CustomerSummaryStats({
       />
       <StatsCard1
         title="Male / Female"
+        icon="user"
+        tone="rose"
         value={
           <StatValue
             isLoading={isLoading}
@@ -76,6 +82,8 @@ export function CustomerSummaryStats({
       />
       <StatsCard1
         title="Average age"
+        icon="activity"
+        tone="navy"
         value={
           <StatValue
             isLoading={isLoading}

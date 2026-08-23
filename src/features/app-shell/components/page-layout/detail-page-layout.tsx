@@ -15,7 +15,7 @@ export function DetailPageLayout({
 }: DetailPageLayoutProps) {
   return (
     <div
-      className={cn("-mx-4 flex flex-col pb-20 xl:pb-0", className)}
+        className={cn("flex flex-col pb-20 xl:pb-0", className)}
       data-testid={dataTestId}
     >
       {children}
