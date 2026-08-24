@@ -34,6 +34,7 @@ export const ROUTES = {
   claims: "/claims",
   claimDetail: (claimId: number | string) => `/claims/${claimId}`,
   claimsRemittances: "/claims/remittances",
+  remittanceDetail: (batchId: number | string) => `/claims/remittances/${batchId}`,
   claimsReconciliations: "/claims/reconciliations",
   claimsRejections: "/claims/rejections",
   claimsAppeals: "/claims/appeals",

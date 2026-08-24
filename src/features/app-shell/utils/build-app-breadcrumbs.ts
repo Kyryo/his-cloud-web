@@ -172,6 +172,18 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
       return [{ label: getModuleLabel("Claims") }, { label: "Submissions" }];
     }
 
+    if (pathname === ROUTES.claimsRemittances) {
+      return [{ label: getModuleLabel("Claims") }, { label: "Remittances" }];
+    }
+
+    if (pathname.startsWith(`${ROUTES.claimsRemittances}/`)) {
+      return [
+        { label: getModuleLabel("Claims") },
+        { label: "Remittances", href: ROUTES.claimsRemittances },
+        { label: "Remittance details" },
+      ];
+    }
+
     if (CLAIMS_PLACEHOLDER_ROUTES[pathname]) {
       return [
         { label: getModuleLabel("Claims") },

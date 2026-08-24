@@ -28,4 +28,17 @@ export const CLAIMS_API_PATHS = {
   clinicPortalCredentials: (payer: string, clinicId: number | string) =>
     `/eclaims/integrations/payers/${payer}/clinics/${clinicId}/portal-credentials/`,
   tariffCategories: "/claims-rules/tariff-categories/",
+  remittances: "/eclaims/remittances/",
+  remittanceDetail: (batchId: number | string) =>
+    `/eclaims/remittances/${batchId}/`,
+  remittanceRename: (batchId: number | string) =>
+    `/eclaims/remittances/${batchId}/rename/`,
+  remittanceRows: (batchId: number | string) =>
+    `/eclaims/remittances/${batchId}/rows/`,
+  remittanceRowMatch: (batchId: number | string, rowId: number | string) =>
+    `/eclaims/remittances/${batchId}/rows/${rowId}/match/`,
+  remittanceRowApply: (batchId: number | string, rowId: number | string) =>
+    `/eclaims/remittances/${batchId}/rows/${rowId}/apply/`,
+  remittanceRowReject: (batchId: number | string, rowId: number | string) =>
+    `/eclaims/remittances/${batchId}/rows/${rowId}/reject/`,
 } as const;

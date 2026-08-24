@@ -185,6 +185,19 @@ export const BFF_CLAIMS_ROUTES = {
   practitionerMappingsUpsert:
     "/api/integrations/eclaims/practitioner-mappings/upsert",
   tariffCategories: "/api/claims/tariff-categories",
+  remittances: "/api/claims/remittances",
+  remittanceDetail: (batchId: number | string) =>
+    `/api/claims/remittances/${batchId}`,
+  remittanceRename: (batchId: number | string) =>
+    `/api/claims/remittances/${batchId}/rename`,
+  remittanceRows: (batchId: number | string) =>
+    `/api/claims/remittances/${batchId}/rows`,
+  remittanceRowMatch: (batchId: number | string, rowId: number | string) =>
+    `/api/claims/remittances/${batchId}/rows/${rowId}/match`,
+  remittanceRowApply: (batchId: number | string, rowId: number | string) =>
+    `/api/claims/remittances/${batchId}/rows/${rowId}/apply`,
+  remittanceRowReject: (batchId: number | string, rowId: number | string) =>
+    `/api/claims/remittances/${batchId}/rows/${rowId}/reject`,
 } as const;
 
 /** Browser-facing BFF clinical diagnosis routes (same origin). */
