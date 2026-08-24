@@ -3,10 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   canCancelSalesOrder,
   canConvertSalesOrderToInvoice,
+  canRecalculateSalesOrderPrices,
   formatSalesOrderInvoiceStatusLabel,
   formatSalesOrderStateLabel,
   getCancelSalesOrderDisabledReason,
   getConvertSalesOrderToInvoiceDisabledReason,
+  getRecalculateSalesOrderPricesDisabledReason,
   getSalesOrderStateBadgeVariant,
 } from "@/features/sales-orders/utils/sales-order-status";
 
@@ -58,5 +60,32 @@ describe("sales order status utils", () => {
     expect(getCancelSalesOrderDisabledReason({ state: "cancel" })).toContain(
       "already cancelled",
     );
+  });
+
+  it("determines when sales order prices can be recalculated", () => {
+    expect(
+      canRecalculateSalesOrderPrices({ state: "draft", invoice_status: "to invoice" }),
+    ).toBe(true);
+    expect(
+      canRecalculateSalesOrderPrices({ state: "sent", invoice_status: "no" }),
+    ).toBe(true);
+    expect(
+      getRecalculateSalesOrderPricesDisabledReason({
+        state: "sale",
+        invoice_status: "to invoice",
+      }),
+    ).toContain("draft or quotation");
+    expect(
+      getRecalculateSalesOrderPricesDisabledReason({
+        state: "draft",
+        invoice_status: "invoiced",
+      }),
+    ).toContain("Invoiced");
+    expect(
+      getRecalculateSalesOrderPricesDisabledReason({
+        state: "cancel",
+        invoice_status: "no",
+      }),
+    ).toContain("Cancelled");
   });
 });

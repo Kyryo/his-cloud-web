@@ -7,6 +7,8 @@ import {
 } from "@/features/catalog/services/catalog.service";
 import type {
   AddPricelistProductPayload,
+  AddProductToAllPricelistsPayload,
+  AddProductToAllPricelistsResult,
   CreateProductTariffCodePayload,
   InventoryListFilters,
   InventoryLocationOption,
@@ -180,6 +182,19 @@ export async function addProductToPricelist(
   );
 }
 
+export async function addProductToAllPricelists(
+  productUuid: string,
+  payload: AddProductToAllPricelistsPayload,
+): Promise<AddProductToAllPricelistsResult> {
+  return bffRequest<AddProductToAllPricelistsResult>(
+    BFF_INVENTORY_ROUTES.products.addAllPricelists(productUuid),
+    {
+      method: "POST",
+      body: payload,
+    },
+  );
+}
+
 export async function updatePricelistProductPrice(
   pricelistUuid: string,
   productUuid: string,
@@ -197,7 +212,7 @@ export async function updatePricelistProductPrice(
 export async function removeProductFromPricelist(
   pricelistUuid: string,
   productUuid: string,
-): Promise<PricelistProductMutationResult> {
+): Promise<PricelistProductMutationResult | undefined> {
   return bffRequest<PricelistProductMutationResult>(
     BFF_INVENTORY_ROUTES.pricelists.productDetail(pricelistUuid, productUuid),
     { method: "DELETE" },

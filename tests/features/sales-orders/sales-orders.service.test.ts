@@ -8,6 +8,7 @@ import {
   fetchSalesOrder,
   fetchSalesOrders,
   removeSalesOrderLine,
+  repriceSalesOrder,
   repriceSalesOrderLine,
   updateSalesOrderLine,
   updateSalesOrderLinePrice,
@@ -146,5 +147,16 @@ describe("sales-orders.service", () => {
       BFF_SALES_ORDERS_ROUTES.lineReprice(81, 3),
       { method: "POST" },
     );
+  });
+
+  it("reprices a sales order via the BFF", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({ id: 81, name: "S00081" });
+
+    await repriceSalesOrder(81, { source: "list_price" });
+
+    expect(bffRequest).toHaveBeenCalledWith(BFF_SALES_ORDERS_ROUTES.reprice(81), {
+      method: "POST",
+      body: { source: "list_price" },
+    });
   });
 });

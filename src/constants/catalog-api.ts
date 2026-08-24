@@ -4,6 +4,8 @@ export const CATALOG_API_PATHS = {
     list: "/products/",
     detail: (productUuid: string) => `/products/${productUuid}/`,
     pricelists: (productUuid: string) => `/products/${productUuid}/pricelists/`,
+    addAllPricelists: (productUuid: string) =>
+      `/products/${productUuid}/pricelists/add-all/`,
     invoicePolicy: (productUuid: string) => `/products/${productUuid}/invoice-policy/`,
     tariffCodes: (productUuid: string) => `/products/${productUuid}/tariff-codes/`,
     tariffCodeDetail: (productUuid: string, schemeUuid: string) =>

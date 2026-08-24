@@ -135,3 +135,31 @@ export function getCancelSalesOrderDisabledReason(
 export function canCancelSalesOrder(order: Pick<SalesOrder, "state">): boolean {
   return getCancelSalesOrderDisabledReason(order) === null;
 }
+
+export function getRecalculateSalesOrderPricesDisabledReason(
+  order: Pick<SalesOrder, "state" | "invoice_status">,
+): string | null {
+  if (order.state === "cancel") {
+    return "Cancelled orders cannot be repriced.";
+  }
+
+  if (order.state === "done") {
+    return "Locked sales orders cannot be repriced.";
+  }
+
+  if (order.invoice_status === "invoiced") {
+    return "Invoiced sales orders cannot be repriced.";
+  }
+
+  if (!canEditSalesOrderLines(order.state)) {
+    return "Only draft or quotation sales orders can be repriced.";
+  }
+
+  return null;
+}
+
+export function canRecalculateSalesOrderPrices(
+  order: Pick<SalesOrder, "state" | "invoice_status">,
+): boolean {
+  return getRecalculateSalesOrderPricesDisabledReason(order) === null;
+}

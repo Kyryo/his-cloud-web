@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import {
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AddProductToPricelistDialog } from "@/features/inventory/components/detail/AddProductToPricelistDialog";
+import { ProductPricelistActions } from "@/features/inventory/components/detail/ProductPricelistActions";
 import {
   fetchInventoryProductPricelists,
   removeProductFromPricelist,
@@ -61,7 +61,6 @@ export function ProductDetailPricelistsTab({
   const [items, setItems] = useState<InventoryProductPricelistItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [addOpen, setAddOpen] = useState(false);
   const [priceEdit, setPriceEdit] = useState<PendingPriceEdit | null>(null);
   const [pendingRemove, setPendingRemove] = useState<PendingRemove | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -152,13 +151,14 @@ export function ProductDetailPricelistsTab({
         pendingRemove.pricelist_uuid,
         product.uuid,
       );
+      const approvalRequired = Boolean(result?.approval_required);
 
       toast({
         variant: "success",
-        title: result.approval_required
+        title: approvalRequired
           ? "Removal submitted for approval"
           : "Removed from pricelist",
-        description: result.approval_required
+        description: approvalRequired
           ? "A second approver must confirm this change before it takes effect."
           : "This product was removed from the pricelist.",
       });
@@ -225,14 +225,11 @@ export function ProductDetailPricelistsTab({
           </p>
         </div>
         {isTenantAdmin ? (
-          <PrimaryButton
-            type="button"
-            className="rounded-full"
-            onClick={() => setAddOpen(true)}
-          >
-            <Plus className="size-4" aria-hidden="true" />
-            Add to pricelist
-          </PrimaryButton>
+          <ProductPricelistActions
+            product={product}
+            existingItems={items}
+            onAdded={() => void loadItems()}
+          />
         ) : null}
       </div>
 
@@ -320,14 +317,6 @@ export function ProductDetailPricelistsTab({
           </div>
         </div>
       )}
-
-      <AddProductToPricelistDialog
-        product={product}
-        existingItems={items}
-        open={addOpen}
-        onOpenChange={setAddOpen}
-        onAdded={() => void loadItems()}
-      />
 
       <Dialog
         open={Boolean(priceEdit)}

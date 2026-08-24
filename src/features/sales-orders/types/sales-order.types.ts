@@ -170,6 +170,12 @@ export type UpdateSalesOrderPaymentSplitPayload = {
   insurer_due: number | string;
 };
 
+export type RecalculateSalesOrderPricesSource = "pricelist" | "list_price";
+
+export type RecalculateSalesOrderPricesPayload = {
+  source: RecalculateSalesOrderPricesSource;
+};
+
 export type UpdateSalesOrderLinePayload = {
   quantity?: number | string;
   name?: string;

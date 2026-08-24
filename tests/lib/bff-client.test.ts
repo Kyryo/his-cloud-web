@@ -79,6 +79,21 @@ describe("bffRequest", () => {
     expect(replace).not.toHaveBeenCalled();
   });
 
+  it("returns undefined for 204 responses", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 204,
+        json: async () => {
+          throw new Error("no body");
+        },
+      }),
+    );
+
+    await expect(bffRequest("/api/inventory/batches/1", { method: "DELETE" })).resolves.toBeUndefined();
+  });
+
   it("throws BffError with server error messages", async () => {
     vi.stubGlobal(
       "fetch",

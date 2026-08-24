@@ -146,12 +146,16 @@ export async function handleInventoryDelete(
       return auth.error;
     }
 
-    await hmisApiRequest(upstreamPath, {
+    const data = await hmisApiRequest(upstreamPath, {
       method: "DELETE",
       token: auth.accessToken,
     });
 
-    return bffNoContent();
+    if (data === undefined || data === null) {
+      return bffNoContent();
+    }
+
+    return bffSuccess(data);
   } catch (error) {
     return bffError(error);
   }

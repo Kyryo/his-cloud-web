@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BFF_INVENTORY_ROUTES } from "@/constants/api";
 import {
+  addProductToAllPricelists,
   addProductToPricelist,
   createInventoryProduct,
   createProductTariffCode,
@@ -179,6 +180,25 @@ describe("inventory.service", () => {
       {
         method: "POST",
         body: { product_uuid: PRODUCT_UUID, fixed_price: "12.50" },
+      },
+    );
+  });
+
+  it("adds a product to all remaining pricelists via the BFF", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({
+      added_count: 2,
+      skipped_count: 1,
+      approval_required: false,
+      results: [],
+    });
+
+    await addProductToAllPricelists(PRODUCT_UUID, { price_source: "zero" });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      BFF_INVENTORY_ROUTES.products.addAllPricelists(PRODUCT_UUID),
+      {
+        method: "POST",
+        body: { price_source: "zero" },
       },
     );
   });

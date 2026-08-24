@@ -164,12 +164,13 @@ export function PricelistDetailProductsTab({
         pricelist.uuid,
         pendingRemove.product_uuid,
       );
+      const approvalRequired = Boolean(result?.approval_required);
       toast({
         variant: "success",
-        title: result.approval_required
+        title: approvalRequired
           ? "Removal submitted for approval"
           : "Product removed",
-        description: result.approval_required
+        description: approvalRequired
           ? "A second approver must confirm this change before it takes effect."
           : "This product was removed from the pricelist.",
       });

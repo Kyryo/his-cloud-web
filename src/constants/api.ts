@@ -154,6 +154,7 @@ export const BFF_SALES_ORDERS_ROUTES = {
     `/api/sales-orders/${orderId}/lines/${lineId}/reprice`,
   invoice: (orderId: number | string) => `/api/sales-orders/${orderId}/invoice`,
   cancel: (orderId: number | string) => `/api/sales-orders/${orderId}/cancel`,
+  reprice: (orderId: number | string) => `/api/sales-orders/${orderId}/reprice`,
   activity: (orderId: number | string) => `/api/sales-orders/${orderId}/activity`,
   paymentSplit: (orderId: number | string) =>
     `/api/sales-orders/${orderId}/payment-split`,
@@ -259,6 +260,8 @@ export const BFF_INVENTORY_ROUTES = {
     detail: (productUuid: string) => `/api/inventory/products/${productUuid}`,
     pricelists: (productUuid: string) =>
       `/api/inventory/product-pricelists/${productUuid}`,
+    addAllPricelists: (productUuid: string) =>
+      `/api/inventory/product-pricelists/${productUuid}/add-all`,
     tariffCodes: (productUuid: string) =>
       `/api/inventory/product-tariff-codes/${productUuid}`,
     tariffCodeDetail: (productUuid: string, schemeUuid: string) =>

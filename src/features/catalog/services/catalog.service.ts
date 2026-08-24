@@ -189,7 +189,7 @@ export async function updateCatalogPricelistProduct(
 export async function removeCatalogPricelistProduct(
   pricelistUuid: string,
   productUuid: string,
-): Promise<CatalogPriceChangeMutationResult> {
+): Promise<CatalogPriceChangeMutationResult | undefined> {
   return bffRequest<CatalogPriceChangeMutationResult>(
     BFF_INVENTORY_ROUTES.pricelists.productDetail(pricelistUuid, productUuid),
     {

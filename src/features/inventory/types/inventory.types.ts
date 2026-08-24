@@ -151,6 +151,19 @@ export type PricelistProductMutationResult = {
   record?: InventoryProductPricelistItem;
 };
 
+export type AddProductToAllPricelistsPriceSource = "list_price" | "zero";
+
+export type AddProductToAllPricelistsPayload = {
+  price_source: AddProductToAllPricelistsPriceSource;
+};
+
+export type AddProductToAllPricelistsResult = {
+  added_count: number;
+  skipped_count: number;
+  approval_required: boolean;
+  results: PricelistProductMutationResult[];
+};
+
 export type AddPricelistProductPayload = {
   product_uuid: string;
   fixed_price: number | string;

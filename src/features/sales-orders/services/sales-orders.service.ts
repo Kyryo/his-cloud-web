@@ -3,6 +3,7 @@ import type {
   CreateSalesOrderInvoiceResponse,
   CreateSalesOrderLinePayload,
   CreateSalesOrderPayload,
+  RecalculateSalesOrderPricesPayload,
   SalesOrder,
   SalesOrderListFilters,
   SalesOrdersListResponse,
@@ -191,4 +192,14 @@ export async function repriceSalesOrderLine(
     BFF_SALES_ORDERS_ROUTES.lineReprice(orderId, lineId),
     { method: "POST" },
   );
+}
+
+export async function repriceSalesOrder(
+  orderId: number | string,
+  payload: RecalculateSalesOrderPricesPayload,
+): Promise<SalesOrder> {
+  return bffRequest<SalesOrder>(BFF_SALES_ORDERS_ROUTES.reprice(orderId), {
+    method: "POST",
+    body: payload,
+  });
 }
