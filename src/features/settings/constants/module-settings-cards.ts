@@ -1,5 +1,4 @@
-import type { LucideIcon } from "lucide-react";
-
+import type { AppIconName } from "@/components/icons/app-icon";
 import {
   getModuleIcon,
   getModuleLabel,
@@ -11,7 +10,7 @@ export type ModuleSettingsCard = {
   id: string;
   label: string;
   description: string;
-  icon: LucideIcon;
+  icon: AppIconName;
   href?: string;
   comingSoon?: boolean;
 };

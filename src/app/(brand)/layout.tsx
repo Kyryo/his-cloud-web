@@ -5,6 +5,7 @@ import { Navigation } from "@/features/brand/components/Navigation";
 import { cn } from "@/lib/utils";
 import { landingBody, landingDisplay } from "@/lib/fonts";
 
+/** Marketing site. Stays on the public host when host routing is on. */
 export default function BrandLayout({ children }: { children: ReactNode }) {
   return (
     <div

@@ -33,13 +33,17 @@
   --color-brand-green: #2f5e46;
   --color-brand-green-tint: #eaf2ed;
   --color-brand-amber: #b86a1f;
-  --color-sidebar: #faf7f2;
+  --color-dash-canvas: #f5f5f4;
+  --color-dash-panel: #ffffff;
+  --color-dash-border: #e8e8e8;
+  --color-dash-muted: #6b7280;
+  --color-sidebar: #f5f5f4;
   --color-sidebar-foreground: #1f2a24;
   --color-sidebar-primary: #0b6e6e;
   --color-sidebar-primary-foreground: #ffffff;
-  --color-sidebar-accent: #e6f2f2;
+  --color-sidebar-accent: #ffffff;
   --color-sidebar-accent-foreground: #1f2a24;
-  --color-sidebar-border: #e0d5c8;
+  --color-sidebar-border: #e8e8e8;
   --color-sidebar-ring: #0b6e6e;
   --radius-lg: 0.5rem;
   --radius-md: calc(0.5rem - 2px);
@@ -50,13 +54,13 @@
 
 @layer base {
   :root {
-    --sidebar-background: 40 33% 97%;
+    --sidebar-background: 60 5% 96%;
     --sidebar-foreground: 155 15% 14%;
     --sidebar-primary: 180 82% 24%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 180 33% 93%;
+    --sidebar-accent: 0 0% 100%;
     --sidebar-accent-foreground: 155 15% 14%;
-    --sidebar-border: 34 24% 83%;
+    --sidebar-border: 0 0% 91%;
     --sidebar-ring: 180 82% 24%;
   }
 

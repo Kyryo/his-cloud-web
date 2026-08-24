@@ -21,28 +21,24 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { userData } = useUser();
   const userGroups = useMemo(() => userData?.groups ?? [], [userData?.groups]);
 
-  const navItems = useMemo(
-    () =>
-      buildSidebarNavItems(
-        userGroups,
-        pathname,
-        Boolean(userData?.is_admin),
-        Boolean(userData?.is_superuser && userData.tenant === null),
-      ),
-    [pathname, userData?.is_admin, userData?.is_superuser, userData?.tenant, userGroups],
+  const navItems = buildSidebarNavItems(
+    userGroups,
+    pathname,
+    Boolean(userData?.is_admin),
+    Boolean(userData?.is_superuser && userData.tenant === null),
   );
 
   return (
-    <Sidebar collapsible="icon" {...props}>
-      <SidebarHeader>
+    <Sidebar collapsible="icon" className="border-r-transparent" {...props}>
+      <SidebarHeader className="px-3 pt-3">
         <TeamSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navItems} />
       </SidebarContent>
-        <SidebarFooter className="bg-sidebar p-2">
-          <NavUser />
-        </SidebarFooter>
+      <SidebarFooter className="p-2">
+        <NavUser />
+      </SidebarFooter>
       <SidebarRail />
     </Sidebar>
   );

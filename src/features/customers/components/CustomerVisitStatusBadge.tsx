@@ -16,7 +16,8 @@ export function CustomerVisitStatusBadge({
 
   if (status === "active") {
     return (
-      <Badge variant="success" className={cn("font-normal", className)}>
+      <Badge variant="success" className={cn("gap-1.5 font-normal", className)}>
+        <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
         {label}
       </Badge>
     );
@@ -24,7 +25,8 @@ export function CustomerVisitStatusBadge({
 
   if (status === "completed") {
     return (
-      <Badge variant="secondary" className={cn("font-normal", className)}>
+      <Badge variant="secondary" className={cn("gap-1.5 font-normal", className)}>
+        <span className="size-1.5 rounded-full bg-brand-primary" aria-hidden="true" />
         {label}
       </Badge>
     );
@@ -32,14 +34,16 @@ export function CustomerVisitStatusBadge({
 
   if (status === "cancelled") {
     return (
-      <Badge variant="outline" className={cn("font-normal", className)}>
+      <Badge variant="outline" className={cn("gap-1.5 font-normal", className)}>
+        <span className="size-1.5 rounded-full bg-rose-500" aria-hidden="true" />
         {label}
       </Badge>
     );
   }
 
   return (
-    <Badge variant="outline" className={cn("font-normal text-brand-muted", className)}>
+    <Badge variant="outline" className={cn("gap-1.5 font-normal text-brand-muted", className)}>
+      <span className="size-1.5 rounded-full bg-dash-muted" aria-hidden="true" />
       {label}
     </Badge>
   );

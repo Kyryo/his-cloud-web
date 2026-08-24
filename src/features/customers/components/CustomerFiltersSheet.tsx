@@ -1,7 +1,8 @@
 "use client";
 
-import { SlidersHorizontal } from "lucide-react";
 import { useMemo, useState } from "react";
+
+import { AppIcon } from "@/components/icons/app-icon";
 
 import { FilterSelectField } from "@/components/filter-select-field";
 import { Badge } from "@/components/ui/badge";
@@ -91,13 +92,14 @@ export function CustomerFiltersSheet({
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <Button
         type="button"
-        variant="outline"
+        variant="primary"
         disabled={isLoading}
+        className="h-10 rounded-lg px-4"
         onClick={() => handleOpenChange(true)}
         data-testid="customers-filters-button"
       >
-        <SlidersHorizontal className="size-4" />
-        Filters
+        <AppIcon name="add" size={16} />
+        Add Filter
         {activeCount > 0 ? (
           <Badge variant="secondary" className="ml-1 px-1.5 py-0">
             {activeCount}

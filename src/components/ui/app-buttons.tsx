@@ -1,6 +1,6 @@
-import { Plus } from "lucide-react";
 import type { ComponentProps } from "react";
 
+import { AppIcon } from "@/components/icons/app-icon";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -56,7 +56,7 @@ export function TabAddActionButton({
       className={cn("h-8 gap-1.5 px-2.5 text-brand-navy", className)}
       {...props}
     >
-      {showIcon ? <Plus className="size-3.5" aria-hidden="true" /> : null}
+      {showIcon ? <AppIcon name="add" size={14} /> : null}
       {children ?? label}
     </Button>
   );
@@ -71,7 +71,7 @@ export function AddActionButton({
 }: AddActionButtonProps) {
   return (
     <PrimaryButton className={className} {...props}>
-      {showIcon ? <Plus className="size-4" aria-hidden="true" /> : null}
+      {showIcon ? <AppIcon name="add" size={16} /> : null}
       {children ?? label}
     </PrimaryButton>
   );

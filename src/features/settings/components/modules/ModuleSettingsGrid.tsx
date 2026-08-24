@@ -1,8 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
-
+import { AppIcon } from "@/components/icons/app-icon";
 import { getModuleSettingsCards } from "@/features/settings/constants/module-settings-cards";
 import { cn } from "@/lib/utils";
 
@@ -30,7 +29,6 @@ export function ModuleSettingsGrid() {
 
           <div className="space-y-2">
             {configurable.map((module) => {
-              const Icon = module.icon;
               return (
                 <Link
                   key={module.id}
@@ -39,12 +37,12 @@ export function ModuleSettingsGrid() {
                 >
                   <div
                     className={cn(
-                      "flex items-center gap-3 rounded-lg border border-brand-border bg-white px-4 py-3 transition-colors",
+                      "flex items-center gap-3 rounded-lg border border-dash-border bg-white px-4 py-3 transition-colors",
                       "hover:border-brand-primary/40 hover:bg-brand-tint/30",
                     )}
                   >
                     <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-brand-tint text-brand-primary">
-                      <Icon className="size-4" aria-hidden="true" />
+                      <AppIcon name={module.icon} size={16} />
                     </div>
 
                     <div className="min-w-0 flex-1">
@@ -56,9 +54,10 @@ export function ModuleSettingsGrid() {
                       </p>
                     </div>
 
-                    <ChevronRight
-                      className="size-4 shrink-0 text-brand-muted transition-transform group-hover:translate-x-0.5 group-hover:text-brand-primary"
-                      aria-hidden="true"
+                    <AppIcon
+                      name="chevronRight"
+                      className="shrink-0 text-brand-muted transition-transform group-hover:translate-x-0.5 group-hover:text-brand-primary"
+                      size={16}
                     />
                   </div>
                 </Link>
@@ -84,15 +83,14 @@ export function ModuleSettingsGrid() {
 
           <div className="space-y-2">
             {upcoming.map((module) => {
-              const Icon = module.icon;
               return (
                 <div
                   key={module.id}
-                  className="flex items-center gap-3 rounded-lg border border-brand-border bg-white px-4 py-3 opacity-60"
+                  className="flex items-center gap-3 rounded-lg border border-dash-border bg-white px-4 py-3 opacity-60"
                   aria-disabled="true"
                 >
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-slate-100 text-brand-muted">
-                    <Icon className="size-4" aria-hidden="true" />
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-dash-canvas text-dash-muted">
+                    <AppIcon name={module.icon} size={16} />
                   </div>
 
                   <div className="min-w-0 flex-1">

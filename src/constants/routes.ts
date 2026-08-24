@@ -165,6 +165,45 @@ export const PUBLIC_ROUTES = [
 
 export const AUTH_ROUTES = [ROUTES.auth, ROUTES.signup] as const;
 
+/** Paths that belong on the app host (app.example.com). */
+export const APP_ROUTE_PREFIXES = [
+  ROUTES.auth,
+  "/signup",
+  ROUTES.onboarding,
+  ROUTES.platformAdmin,
+  ROUTES.customers,
+  ROUTES.salesOrders,
+  ROUTES.invoices,
+  ROUTES.claims,
+  ROUTES.payments,
+  "/therapy",
+  "/inventory",
+  "/pharmacy",
+  ROUTES.activeVisits,
+  ROUTES.appointments,
+  "/reports",
+  "/visits",
+  ROUTES.settings,
+  "/api",
+] as const;
+
+/** Paths that belong on the marketing host. `/` is exact-only via matchesRoute. */
+export const MARKETING_ROUTE_PREFIXES = [
+  ROUTES.home,
+  ROUTES.contacts,
+  ROUTES.ourProducts,
+  ROUTES.pricing,
+  ROUTES.about,
+  ROUTES.features,
+  ROUTES.services,
+  ROUTES.solutions,
+  ROUTES.privacy,
+  ROUTES.terms,
+  ROUTES.company,
+  "/unsubscribe",
+  "/design-review",
+] as const;
+
 export const PROTECTED_ROUTES = [
   ROUTES.onboarding,
   ROUTES.platformAdmin,
