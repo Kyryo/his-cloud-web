@@ -1,5 +1,8 @@
 import { CLAIMS_API_PATHS } from "@/constants/claims-api";
-import type { RemittanceRowListResponse } from "@/features/claims/types/remittances.types";
+import type {
+  RemittanceRow,
+  RemittanceRowListResponse,
+} from "@/features/claims/types/remittances.types";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
 import { hmisApiRequestWithMeta } from "@/lib/server/hmis-api";
 import { requireAccessToken } from "@/lib/server/require-access-token";
@@ -25,7 +28,7 @@ export async function GET(request: Request, context: RouteContext) {
       }
     }
     const query = params.toString();
-    const { data, meta } = await hmisApiRequestWithMeta(
+    const { data, meta } = await hmisApiRequestWithMeta<RemittanceRow[]>(
       `${CLAIMS_API_PATHS.remittanceRows(batchId)}${query ? `?${query}` : ""}`,
       { token: auth.accessToken },
     );
