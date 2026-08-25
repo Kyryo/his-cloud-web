@@ -92,14 +92,14 @@ export function CustomerFiltersSheet({
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <Button
         type="button"
-        variant="primary"
+        variant="outline"
         disabled={isLoading}
-        className="h-10 rounded-lg px-4"
+        className="h-10 rounded-lg border-dash-border bg-white px-4 text-brand-slate"
         onClick={() => handleOpenChange(true)}
         data-testid="customers-filters-button"
       >
         <AppIcon name="add" size={16} />
-        Add Filter
+        Add filter
         {activeCount > 0 ? (
           <Badge variant="secondary" className="ml-1 px-1.5 py-0">
             {activeCount}

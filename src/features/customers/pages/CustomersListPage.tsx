@@ -244,14 +244,7 @@ export function CustomersListPage() {
 
   return (
     <ListPageLayout data-testid="customers-page">
-      <CustomersPageHeader
-        onAddClient={handleAddClient}
-        search={search}
-        isSearchDisabled={isRefreshing}
-        onSearchChange={setSearch}
-        onSearchSubmit={handleSearchSubmit}
-        onClearSearch={handleClearSearch}
-      />
+      <CustomersPageHeader onAddClient={handleAddClient} />
       <CreateCustomerDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}

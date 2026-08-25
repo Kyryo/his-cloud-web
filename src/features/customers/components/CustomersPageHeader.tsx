@@ -1,11 +1,8 @@
 "use client";
 
 import { AddActionButton } from "@/components/ui/app-buttons";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   ListPageHeaderActions,
-  ListPageHeaderMobileSearch,
   ListPageHeaderSection,
   ListPageHeaderTitleBlock,
   ListPageHeaderTopRow,
@@ -13,21 +10,9 @@ import {
 
 type CustomersPageHeaderProps = {
   onAddClient: () => void;
-  search: string;
-  isSearchDisabled?: boolean;
-  onSearchChange: (value: string) => void;
-  onSearchSubmit: () => void;
-  onClearSearch: () => void;
 };
 
-export function CustomersPageHeader({
-  onAddClient,
-  search,
-  isSearchDisabled = false,
-  onSearchChange,
-  onSearchSubmit,
-  onClearSearch,
-}: CustomersPageHeaderProps) {
+export function CustomersPageHeader({ onAddClient }: CustomersPageHeaderProps) {
   return (
     <ListPageHeaderSection>
       <ListPageHeaderTopRow>
@@ -45,44 +30,6 @@ export function CustomersPageHeader({
           />
         </ListPageHeaderActions>
       </ListPageHeaderTopRow>
-
-      <ListPageHeaderMobileSearch>
-        <Input
-          id="customer-search-mobile"
-          type="search"
-          placeholder="Search clients..."
-          value={search}
-          disabled={isSearchDisabled}
-          onChange={(event) => onSearchChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              onSearchSubmit();
-            }
-          }}
-          data-testid="customers-search-mobile"
-        />
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          disabled={isSearchDisabled}
-          onClick={onSearchSubmit}
-          data-testid="customers-search-submit-mobile"
-        >
-          Search
-        </Button>
-        {search ? (
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full"
-            disabled={isSearchDisabled}
-            onClick={onClearSearch}
-          >
-            Clear
-          </Button>
-        ) : null}
-      </ListPageHeaderMobileSearch>
     </ListPageHeaderSection>
   );
 }

@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   ListPageToolbarActions,
-  ListPageToolbarFilters,
   ListPageToolbarSearch,
   ListPageToolbarSection,
 } from "@/features/app-shell/components/page-layout";
@@ -40,8 +39,8 @@ export function CustomerListToolbar({
   onFiltersApply,
 }: CustomerListToolbarProps) {
   return (
-    <ListPageToolbarSection>
-      <ListPageToolbarSearch className="lg:order-2 lg:justify-end">
+    <ListPageToolbarSection className="lg:justify-start">
+      <ListPageToolbarSearch className="flex">
         <div className="relative w-full sm:max-w-sm">
           <AppIcon
             name="search"
@@ -66,6 +65,21 @@ export function CustomerListToolbar({
         </div>
 
         <ListPageToolbarActions>
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isLoading}
+            className="h-10 rounded-lg border-dash-border bg-white text-brand-slate"
+            onClick={onSearchSubmit}
+            data-testid="customers-search-submit"
+          >
+            Search
+          </Button>
+          <CustomerFiltersSheet
+            filters={filters}
+            isLoading={isLoading}
+            onApply={onFiltersApply}
+          />
           {search ? (
             <Button
               type="button"
@@ -73,19 +87,13 @@ export function CustomerListToolbar({
               disabled={isLoading}
               className="h-10 rounded-lg border-dash-border bg-white text-brand-slate"
               onClick={onClearSearch}
+              data-testid="customers-search-clear"
             >
               Clear
             </Button>
           ) : null}
         </ListPageToolbarActions>
       </ListPageToolbarSearch>
-      <ListPageToolbarFilters className="flex justify-end">
-        <CustomerFiltersSheet
-          filters={filters}
-          isLoading={isLoading}
-          onApply={onFiltersApply}
-        />
-      </ListPageToolbarFilters>
     </ListPageToolbarSection>
   );
 }
