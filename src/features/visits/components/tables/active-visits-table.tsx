@@ -37,6 +37,11 @@ const columns: InventoryListTableColumn<VisitDetail>[] = [
   },
 ];
 
+export const ACTIVE_VISITS_TABLE_SKELETON_COLUMNS = columns.map((column) => ({
+  key: column.key,
+  label: column.label,
+}));
+
 type ActiveVisitsTableProps = {
   visits: VisitDetail[];
   onRowClick?: (visit: VisitDetail) => void;

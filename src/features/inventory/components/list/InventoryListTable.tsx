@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export type InventoryListTableColumn<T> = {
@@ -94,6 +95,66 @@ export function InventoryListTable<T>({
           {footer}
         </div>
       ) : null}
+    </div>
+  );
+}
+
+type InventoryListTableSkeletonColumn = {
+  key: string;
+  label: string;
+  headerClassName?: string;
+};
+
+type InventoryListTableSkeletonProps = {
+  columns: InventoryListTableSkeletonColumn[];
+  rows?: number;
+  className?: string;
+};
+
+export function InventoryListTableSkeleton({
+  columns,
+  rows = 8,
+  className,
+}: InventoryListTableSkeletonProps) {
+  return (
+    <div
+      className={cn(
+        "overflow-hidden rounded-xl border border-brand-border bg-white",
+        className,
+      )}
+      data-testid="inventory-list-table-skeleton"
+    >
+      <div className="overflow-x-auto">
+        <table className="min-w-full">
+          <thead>
+            <tr className="border-b border-brand-border bg-slate-50/80">
+              {columns.map((column) => (
+                <th
+                  key={column.key}
+                  scope="col"
+                  className={cn(
+                    "px-4 py-3 text-left text-sm font-medium text-brand-muted",
+                    column.headerClassName,
+                  )}
+                >
+                  {column.label}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-brand-border">
+            {Array.from({ length: rows }).map((_, rowIndex) => (
+              <tr key={rowIndex}>
+                {columns.map((column) => (
+                  <td key={column.key} className="px-4 py-3">
+                    <Skeleton className="h-3.5 w-24" />
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

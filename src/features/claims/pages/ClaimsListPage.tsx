@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { PageLoader } from "@/components/page-loader";
@@ -20,25 +20,57 @@ import { fetchClaims } from "@/features/claims/services/claims.service";
 import type { ClaimListItem } from "@/features/claims/types/claims.types";
 import {
   buildClaimListFilters,
-  DEFAULT_CLAIM_LIST_FILTERS,
   type ClaimListFilterState,
 } from "@/features/claims/utils/claim-list-filters";
 
 const DEFAULT_PAGE_SIZE = 20;
 
+function isClaimStatusFilter(
+  value: string | null,
+): value is ClaimListFilterState["status"] {
+  return (
+    value === "draft" ||
+    value === "submitted" ||
+    value === "approved" ||
+    value === "rejected" ||
+    value === "cancelled"
+  );
+}
+
+function filtersFromSearchParams(
+  params: URLSearchParams,
+): ClaimListFilterState {
+  const status = params.get("status");
+  const attention = params.get("attention");
+  return {
+    status: isClaimStatusFilter(status) ? status : "all",
+    attention:
+      attention === "ready" || attention === "needs_attention"
+        ? attention
+        : "all",
+  };
+}
+
 export function ClaimsListPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [claims, setClaims] = useState<ClaimListItem[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
-  const [filters, setFilters] = useState<ClaimListFilterState>(
-    DEFAULT_CLAIM_LIST_FILTERS,
+  const [filters, setFilters] = useState<ClaimListFilterState>(() =>
+    filtersFromSearchParams(searchParams),
   );
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const queryKey = searchParams.toString();
+
+  useEffect(() => {
+    setFilters(filtersFromSearchParams(searchParams));
+    setPage(1);
+  }, [queryKey, searchParams]);
 
   const listFilters = useMemo(
     () =>

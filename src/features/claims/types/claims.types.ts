@@ -1,5 +1,12 @@
 import type { PaginatedListResponse } from "@/types/api.types";
 
+export type ClaimAdvisoryStatus =
+  | "pending"
+  | "processing"
+  | "completed"
+  | "failed"
+  | string;
+
 export type ClaimStatus =
   | "draft"
   | "submitted"
@@ -41,6 +48,8 @@ export type ClaimLineItem = {
   updated_at: string;
 };
 
+export type AdvisorFindingSource = "rules" | "iq";
+
 export type AdvisorFinding = {
   code: string;
   name: string;
@@ -49,6 +58,7 @@ export type AdvisorFinding = {
   message: string;
   recommended_action?: string;
   requires_ai_review?: boolean;
+  source?: AdvisorFindingSource;
   evidence?: Record<string, unknown>;
 };
 
@@ -59,9 +69,10 @@ export type AdvisorEvaluation = {
   status: string;
   selected_validation_codes: string[];
   deterministic_findings: AdvisorFinding[];
-  ai_findings: unknown[];
+  ai_findings: AdvisorFinding[];
   deterministic_count: number;
   ai_count: number;
+  coverage_context?: Record<string, unknown>;
   evaluated_by: number | null;
   created_at: string;
 };
@@ -118,6 +129,7 @@ export type ClaimListItem = {
   id: number;
   uuid: string;
   status: ClaimStatus;
+  advisory_status?: ClaimAdvisoryStatus;
   payer_code: string;
   payer_status?: ClaimPayerStatus;
   payer_status_label?: string;
@@ -142,6 +154,7 @@ export type ClaimDetail = {
   invoice_name?: string | null;
   payer_code: string;
   status: ClaimStatus;
+  advisory_status?: ClaimAdvisoryStatus;
   payer_status?: ClaimPayerStatus;
   payer_status_label?: string;
   payer_reference?: ClaimPayerReference | null;
@@ -175,6 +188,8 @@ export type ClaimListFilters = {
   search?: string;
   /** @deprecated Prefer `search`. Kept for older callers. */
   membershipNumber?: string;
+  advisoryStatus?: string;
+  attention?: "ready" | "needs_attention";
 };
 
 export type ClaimListResponse = PaginatedListResponse<ClaimListItem>;
@@ -321,3 +336,30 @@ export type TariffCategoryListFilters = {
 
 export type TariffCategoryListResponse =
   PaginatedListResponse<TariffCategory>;
+
+export type ValidationPack = {
+  id: number;
+  public_id: string;
+  code: string;
+  name: string;
+  country_code: string;
+  payer_code: string;
+  scheme_code: string;
+  description: string;
+  applies_automatically: boolean;
+  is_active: boolean;
+};
+
+export type ValidationPackListFilters = {
+  assignable?: boolean;
+};
+
+export type ValidationPackListResponse = {
+  results: ValidationPack[];
+};
+
+export type PricelistValidationConfig = {
+  pricelist_uuid: string;
+  selected_pack_codes: string[];
+  selected_packs: ValidationPack[];
+};

@@ -1,13 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  ListPageToolbarActions,
-  ListPageToolbarFilters,
-  ListPageToolbarSearch,
-  ListPageToolbarSection,
-} from "@/features/app-shell/components/page-layout";
+import { ListPageSearchToolbar } from "@/features/app-shell/components/page-layout";
 import { AppointmentsFiltersSheet } from "@/features/appointments/components/AppointmentsFiltersSheet";
 import {
   AppointmentsViewToggle,
@@ -39,58 +32,30 @@ export function AppointmentsListToolbar({
   onViewModeChange,
 }: AppointmentsListToolbarProps) {
   return (
-    <ListPageToolbarSection>
-      <ListPageToolbarSearch>
-        <Input
-          id="appointments-search"
-          type="search"
-          placeholder="Search by name, ID, phone, clinic, or department..."
-          value={search}
-          disabled={isLoading}
-          className="w-full sm:max-w-md"
-          onChange={(event) => onSearchChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              onSearchSubmit();
-            }
-          }}
-          data-testid="appointments-search"
+    <ListPageSearchToolbar
+      search={search}
+      searchId="appointments-search"
+      placeholder="Search by name, ID, phone, clinic, or department..."
+      searchTestId="appointments-search"
+      searchSubmitTestId="appointments-search-submit"
+      clearTestId="appointments-search-clear"
+      isLoading={isLoading}
+      onSearchChange={onSearchChange}
+      onSearchSubmit={onSearchSubmit}
+      onClearSearch={onClearSearch}
+      filter={
+        <AppointmentsFiltersSheet
+          filters={filters}
+          isLoading={isLoading}
+          onApply={onFiltersApply}
         />
-
-        <ListPageToolbarActions>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={isLoading}
-            onClick={onSearchSubmit}
-            data-testid="appointments-search-submit"
-          >
-            Search
-          </Button>
-          {search ? (
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isLoading}
-              onClick={onClearSearch}
-            >
-              Clear
-            </Button>
-          ) : null}
-          <AppointmentsFiltersSheet
-            filters={filters}
-            isLoading={isLoading}
-            onApply={onFiltersApply}
-          />
-        </ListPageToolbarActions>
-      </ListPageToolbarSearch>
-
-      <ListPageToolbarFilters>
+      }
+      trailing={
         <AppointmentsViewToggle
           viewMode={viewMode}
           onViewModeChange={onViewModeChange}
         />
-      </ListPageToolbarFilters>
-    </ListPageToolbarSection>
+      }
+    />
   );
 }

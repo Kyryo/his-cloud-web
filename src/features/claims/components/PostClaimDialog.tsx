@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/dialog";
 import {
   createClaimFromInvoice,
-  evaluateClaimAdvisories,
 } from "@/features/claims/services/claims.service";
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
@@ -57,28 +56,10 @@ export function PostClaimDialog({
         payer_code: "MASM",
       });
 
-      try {
-        await evaluateClaimAdvisories(claim.id);
-      } catch (evaluateError) {
-        toast({
-          variant: "error",
-          title: "Claim created, but advisories failed",
-          description:
-            evaluateError instanceof BffError
-              ? formatBffErrorMessage(
-                  evaluateError.message,
-                  evaluateError.errors,
-                )
-              : evaluateError instanceof Error
-                ? evaluateError.message
-                : "Something went wrong while evaluating advisories.",
-        });
-      }
-
       toast({
         variant: "success",
         title: "Claim created",
-        description: "A draft claim was created for this invoice.",
+        description: "Advisories are processing.",
       });
       await onSuccess?.(claim);
       onOpenChange(false);
@@ -107,9 +88,9 @@ export function PostClaimDialog({
             Create insurance claim
           </DialogTitle>
           <DialogDescription>
-            Create a draft claim for {invoice.name || `invoice #${invoice.id}`}{" "}
-            and run advisories. Member verification with the insurer happens later
-            at submit.
+            Create a draft claim for {invoice.name || `invoice #${invoice.id}`}.
+            Advisories run in the background after create. Member verification
+            with the insurer happens later at submit.
           </DialogDescription>
         </DialogHeader>
 

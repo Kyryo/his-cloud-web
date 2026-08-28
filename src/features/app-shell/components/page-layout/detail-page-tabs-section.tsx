@@ -5,14 +5,19 @@ import { cn } from "@/lib/utils";
 type DetailPageTabsSectionProps = {
   children: ReactNode;
   className?: string;
+  "data-testid"?: string;
 };
 
 export function DetailPageTabsSection({
   children,
   className,
+  "data-testid": dataTestId,
 }: DetailPageTabsSectionProps) {
   return (
-    <div className={cn("flex flex-1 flex-col bg-[#fafbfc]", className)}>
+    <div
+      className={cn("flex flex-1 flex-col bg-white", className)}
+      data-testid={dataTestId}
+    >
       {children}
     </div>
   );

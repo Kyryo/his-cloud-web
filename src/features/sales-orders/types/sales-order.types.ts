@@ -1,3 +1,4 @@
+import type { Invoice } from "@/features/invoices/types/invoice.types";
 import type { PaginatedListResponse } from "@/types/api.types";
 
 export type SalesOrderState =
@@ -113,7 +114,7 @@ export type SalesOrderInvoice = {
 
 export type CreateSalesOrderInvoiceResponse = {
   sales_order: number;
-  invoice: SalesOrderInvoice;
+  invoice: Invoice;
 };
 
 export type SalesOrderListFilters = {
@@ -129,6 +130,18 @@ export type SalesOrderListFilters = {
   providerId?: number;
   hasProvider?: boolean;
   clinicId?: number;
+};
+
+export type SalesOrderCountAmountBucket = {
+  count: number;
+  total: string | number;
+};
+
+export type SalesOrderSummaryStats = {
+  all: SalesOrderCountAmountBucket;
+  open: SalesOrderCountAmountBucket;
+  confirmed: SalesOrderCountAmountBucket;
+  cancelled: SalesOrderCountAmountBucket;
 };
 
 export type SalesOrdersListResponse = PaginatedListResponse<SalesOrder>;

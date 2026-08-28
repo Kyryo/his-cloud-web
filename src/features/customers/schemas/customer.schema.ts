@@ -41,6 +41,12 @@ export const createCustomerSchema = z
         (value) => value === "" || z.string().email().safeParse(value).success,
         "Enter a valid email address.",
       ),
+    internal_reference: z
+      .string()
+      .trim()
+      .max(255, "Internal reference cannot exceed 255 characters.")
+      .optional()
+      .default(""),
   })
   .superRefine((values, ctx) => {
     if (values.dob) {
@@ -90,6 +96,7 @@ export function toCustomerWritePayload(values: CreateCustomerFormValues) {
     dob_is_estimated: values.dob_is_estimated,
     phone_number: values.phone_number?.trim() || "",
     email: values.email?.trim() || "",
+    internal_reference: values.internal_reference?.trim() || "",
   };
 }
 
@@ -107,6 +114,7 @@ export function toUpdateCustomerFormValues(
     | "dob_is_estimated"
     | "phone_number"
     | "email"
+    | "internal_reference"
   >,
 ): CreateCustomerFormValues {
   return {
@@ -123,6 +131,7 @@ export function toUpdateCustomerFormValues(
     dob_is_estimated: customer.dob_is_estimated ?? false,
     phone_number: customer.phone_number ?? "",
     email: customer.email ?? "",
+    internal_reference: customer.internal_reference ?? "",
   };
 }
 
@@ -135,4 +144,5 @@ export const createCustomerDefaultValues: CreateCustomerFormValues = {
   dob_is_estimated: false,
   phone_number: "",
   email: "",
+  internal_reference: "",
 };

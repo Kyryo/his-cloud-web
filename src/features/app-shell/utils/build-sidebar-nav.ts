@@ -21,6 +21,7 @@ export type SidebarNavItem = {
   icon?: AppIconName;
   isActive?: boolean;
   section?: SidebarNavSection;
+  showUnreadDot?: boolean;
   items?: Array<{
     title: string;
     url: string;
@@ -39,16 +40,6 @@ export function buildSidebarNavItems(
     : filterNavigation(userGroups, { isTenantAdmin });
   const modules = groupNavigationByModule(filtered);
   const items: SidebarNavItem[] = [];
-
-  for (const navItem of modules.General ?? []) {
-    items.push({
-      title: navItem.name,
-      url: navItem.href,
-      icon: navItem.icon,
-      section: "workspace",
-      isActive: isNavItemActive(pathname, navItem.href),
-    });
-  }
 
   for (const moduleName of sortModules(Object.keys(modules))) {
     const moduleItems = modules[moduleName] ?? [];
@@ -78,6 +69,16 @@ export function buildSidebarNavItems(
           siblingHrefs,
         ),
       })),
+    });
+  }
+
+  for (const navItem of modules.General ?? []) {
+    items.push({
+      title: navItem.name,
+      url: navItem.href,
+      icon: navItem.icon,
+      section: "workspace",
+      isActive: isNavItemActive(pathname, navItem.href),
     });
   }
 

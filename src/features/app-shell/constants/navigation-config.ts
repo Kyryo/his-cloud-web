@@ -253,6 +253,13 @@ export const navigation: NavigationItem[] = [
     requiredGroup: null,
     enabledInWebNew: false,
   },
+  {
+    name: "Notifications",
+    href: ROUTES.notifications,
+    icon: "notification",
+    requiredGroup: null,
+    enabledInWebNew: true,
+  },
 ];
 
 export function isNavItemActive(pathname: string, itemHref: string) {

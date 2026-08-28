@@ -25,14 +25,19 @@ export const DEFAULT_INVOICE_LIST_FILTERS: InvoiceListFilterState = {
 
 export function buildInvoiceListFilters(input: {
   search: string;
-  page: number;
-  pageSize: number;
+  page?: number;
+  pageSize?: number;
   filters: InvoiceListFilterState;
 }): InvoiceListFilters {
-  const result: InvoiceListFilters = {
-    page: input.page,
-    pageSize: input.pageSize,
-  };
+  const result: InvoiceListFilters = {};
+
+  if (input.page) {
+    result.page = input.page;
+  }
+
+  if (input.pageSize) {
+    result.pageSize = input.pageSize;
+  }
 
   const trimmedSearch = input.search.trim();
   if (trimmedSearch) {

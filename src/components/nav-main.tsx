@@ -64,6 +64,13 @@ function NavMenuItems({ items }: { items: SidebarNavItem[] }) {
               <Link href={item.url}>
                 {item.icon ? <AppIcon name={item.icon} /> : null}
                 <span>{item.title}</span>
+                {item.showUnreadDot ? (
+                  <span
+                    className="ml-auto size-1.5 rounded-full bg-brand-primary"
+                    data-testid="nav-unread-dot"
+                    aria-label="Unread notifications"
+                  />
+                ) : null}
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>

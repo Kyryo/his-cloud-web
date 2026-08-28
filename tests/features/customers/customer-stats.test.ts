@@ -19,6 +19,7 @@ function createCustomer(overrides: Partial<Customer> = {}): Customer {
     last_name: "Lovelace",
     full_name: "Ada Lovelace",
     customer_identifier: "P-001",
+    internal_reference: "",
     phone_number: null,
     email: null,
     patient_uuid: "patient-1",

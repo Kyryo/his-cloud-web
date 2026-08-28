@@ -15,10 +15,15 @@ export function DetailPageLayout({
 }: DetailPageLayoutProps) {
   return (
     <div
-        className={cn("flex flex-col pb-20 xl:pb-0", className)}
+      data-page-surface="card"
+      className={cn("flex min-h-0 w-full flex-1 flex-col", className)}
       data-testid={dataTestId}
     >
-      {children}
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-dash-border bg-dash-panel">
+        <div className="min-h-0 flex-1 overflow-auto pb-20 xl:pb-0">
+          {children}
+        </div>
+      </div>
     </div>
   );
 }

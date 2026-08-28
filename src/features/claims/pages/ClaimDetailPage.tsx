@@ -14,6 +14,7 @@ import { ClaimDetailHeader } from "@/features/claims/components/detail/ClaimDeta
 import { ClaimDetailTabs } from "@/features/claims/components/detail/ClaimDetailTabs";
 import { fetchClaim } from "@/features/claims/services/claims.service";
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
+import { useClaimAdvisoryPoll } from "@/features/claims/hooks/use-claim-advisory-poll";
 
 type ClaimDetailPageProps = {
   claimId: string;
@@ -29,6 +30,8 @@ export function ClaimDetailPage({ claimId }: ClaimDetailPageProps) {
     claim?.customer_name?.trim() ||
       (claim ? claim.claim_reference_number || `Claim #${claim.id}` : null),
   );
+
+  useClaimAdvisoryPoll(claim, { notifyWhenReady: true, onUpdate: setClaim });
 
   useEffect(() => {
     let cancelled = false;

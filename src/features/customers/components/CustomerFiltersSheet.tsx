@@ -2,11 +2,9 @@
 
 import { useMemo, useState } from "react";
 
-import { AppIcon } from "@/components/icons/app-icon";
-
 import { FilterSelectField } from "@/components/filter-select-field";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ListPageFilterButton } from "@/features/app-shell/components/page-layout";
 import {
   Sheet,
   SheetContent,
@@ -90,22 +88,12 @@ export function CustomerFiltersSheet({
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
-      <Button
-        type="button"
-        variant="outline"
+      <ListPageFilterButton
         disabled={isLoading}
-        className="h-10 rounded-lg border-dash-border bg-white px-4 text-brand-slate"
+        activeCount={activeCount}
         onClick={() => handleOpenChange(true)}
         data-testid="customers-filters-button"
-      >
-        <AppIcon name="add" size={16} />
-        Add filter
-        {activeCount > 0 ? (
-          <Badge variant="secondary" className="ml-1 px-1.5 py-0">
-            {activeCount}
-          </Badge>
-        ) : null}
-      </Button>
+      />
 
       <SheetContent
         side="right"

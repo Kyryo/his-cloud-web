@@ -1,6 +1,7 @@
+import { BFF_CUSTOMERS_ROUTES } from "@/constants/api";
 import type { Customer } from "@/features/customers/types/customer.types";
-import { fetchCustomers } from "@/features/customers/services/customers.service";
 import { formatCustomerName } from "@/features/customers/utils/format-customer";
+import { bffRequest } from "@/lib/bff-client";
 import { formatCompactNumber } from "@/utils/format-compact-number";
 
 export type CustomerSummaryStats = {
@@ -12,109 +13,27 @@ export type CustomerSummaryStats = {
   averageAge: number;
 };
 
-const STATS_PAGE_SIZE = 100;
-const MAX_STATS_PAGES = 10;
-
-function startOfCurrentMonth(date = new Date()): Date {
-  return new Date(date.getFullYear(), date.getMonth(), 1);
-}
-
-function parseCreatedAt(value: string): Date {
-  return new Date(value);
-}
-
-async function fetchCount(filters: Parameters<typeof fetchCustomers>[0] = {}) {
-  const response = await fetchCustomers({
-    page: 1,
-    pageSize: 1,
-    isActive: true,
-    ...filters,
-  });
-
-  return response.pagination?.count ?? response.results.length;
-}
-
-type ScanResult = {
-  newThisMonth: number;
-  averageAge: number;
+type CustomerSummaryStatsResponse = {
+  total_clients: number;
+  new_this_month: number;
+  male_count: number;
+  female_count: number;
+  other_count: number;
+  average_age: number;
 };
 
-/**
- * Single pass over the active-customer pages (ordered by newest first) that
- * derives both "new this month" and "average age" — avoiding two overlapping
- * sets of paginated requests.
- */
-async function scanActiveCustomers(totalClients: number): Promise<ScanResult> {
-  if (totalClients === 0) {
-    return { newThisMonth: 0, averageAge: 0 };
-  }
-
-  const monthStart = startOfCurrentMonth();
-  const pagesToFetch = Math.min(
-    MAX_STATS_PAGES,
-    Math.max(1, Math.ceil(totalClients / STATS_PAGE_SIZE)),
+export async function fetchCustomerSummaryStats(): Promise<CustomerSummaryStats> {
+  const data = await bffRequest<CustomerSummaryStatsResponse>(
+    BFF_CUSTOMERS_ROUTES.summaryStats,
   );
 
-  let newThisMonth = 0;
-  let countingNew = true;
-  let ageSum = 0;
-  let ageCount = 0;
-
-  for (let page = 1; page <= pagesToFetch; page += 1) {
-    const response = await fetchCustomers({
-      page,
-      pageSize: STATS_PAGE_SIZE,
-      isActive: true,
-      ordering: "-created_at",
-    });
-
-    if (response.results.length === 0) {
-      break;
-    }
-
-    for (const customer of response.results) {
-      if (countingNew) {
-        if (parseCreatedAt(customer.created_at) >= monthStart) {
-          newThisMonth += 1;
-        } else {
-          countingNew = false;
-        }
-      }
-
-      if (customer.age > 0) {
-        ageSum += customer.age;
-        ageCount += 1;
-      }
-    }
-
-    if (!response.pagination?.next) {
-      break;
-    }
-  }
-
   return {
-    newThisMonth,
-    averageAge: ageCount === 0 ? 0 : Math.round((ageSum / ageCount) * 10) / 10,
-  };
-}
-
-export async function fetchCustomerSummaryStats(): Promise<CustomerSummaryStats> {
-  const [totalClients, maleCount, femaleCount, otherCount] = await Promise.all([
-    fetchCount(),
-    fetchCount({ gender: "Male" }),
-    fetchCount({ gender: "Female" }),
-    fetchCount({ gender: "Other" }),
-  ]);
-
-  const { newThisMonth, averageAge } = await scanActiveCustomers(totalClients);
-
-  return {
-    totalClients,
-    newThisMonth,
-    maleCount,
-    femaleCount,
-    otherCount,
-    averageAge,
+    totalClients: data.total_clients,
+    newThisMonth: data.new_this_month,
+    maleCount: data.male_count,
+    femaleCount: data.female_count,
+    otherCount: data.other_count,
+    averageAge: data.average_age,
   };
 }
 

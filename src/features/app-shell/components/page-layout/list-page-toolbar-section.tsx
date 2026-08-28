@@ -5,11 +5,13 @@ import { cn } from "@/lib/utils";
 type ListPageToolbarSectionProps = {
   children: ReactNode;
   className?: string;
+  "data-testid"?: string;
 };
 
 export function ListPageToolbarSection({
   children,
   className,
+  "data-testid": dataTestId,
 }: ListPageToolbarSectionProps) {
   return (
     <div
@@ -17,6 +19,7 @@ export function ListPageToolbarSection({
         "flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between",
         className,
       )}
+      data-testid={dataTestId}
     >
       {children}
     </div>

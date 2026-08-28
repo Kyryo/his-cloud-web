@@ -107,7 +107,7 @@ export function TherapyVisitTabs({
   const ActiveTabIcon = activeTabConfig.icon;
 
   return (
-    <DetailPageTabsSection className="bg-white">
+    <DetailPageTabsSection>
       <DetailPageTabsNavSection aria-label="Therapy visit sections">
         {visibleTabs.map((tab) => (
           <DetailPageTabNavItem
@@ -124,7 +124,7 @@ export function TherapyVisitTabs({
       </DetailPageTabsNavSection>
 
       <DetailPageMainAsideGrid className="min-h-[calc(100vh-15rem)] xl:grid-cols-[minmax(0,1fr)_19rem]">
-        <DetailPageMainSection className="bg-white">
+        <DetailPageMainSection>
           {activeTab === "assessment" && assessment ? (
             <AssessmentSessionTab
               assessment={assessment}

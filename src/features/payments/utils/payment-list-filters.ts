@@ -16,14 +16,19 @@ export const DEFAULT_PAYMENT_LIST_FILTERS: PaymentListFilterState = {
 
 export function buildPaymentListFilters(input: {
   search: string;
-  page: number;
-  pageSize: number;
+  page?: number;
+  pageSize?: number;
   filters: PaymentListFilterState;
 }): PaymentListFilters {
-  const result: PaymentListFilters = {
-    page: input.page,
-    pageSize: input.pageSize,
-  };
+  const result: PaymentListFilters = {};
+
+  if (input.page) {
+    result.page = input.page;
+  }
+
+  if (input.pageSize) {
+    result.pageSize = input.pageSize;
+  }
 
   const trimmedSearch = input.search.trim();
   if (trimmedSearch) {

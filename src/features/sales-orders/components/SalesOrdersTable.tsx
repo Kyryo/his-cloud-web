@@ -39,6 +39,8 @@ const columns = [
   { key: "total", label: "Total" },
 ] as const;
 
+export const SALES_ORDER_TABLE_SKELETON_COLUMNS = columns;
+
 function SalesOrderProviderCell({ order }: { order: SalesOrder }) {
   const label = formatSalesOrderProvider(order);
   const unassigned = label === "Unassigned";

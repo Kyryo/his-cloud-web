@@ -1,6 +1,7 @@
 /** Django DRF v1 appointment endpoints (relative to HMIS_API_URL, server-only). */
 export const APPOINTMENTS_API_PATHS = {
   list: "/appointments/",
+  summaryStats: "/appointments/summary-stats/",
   detail: (uuid: string) => `/appointments/${uuid}/`,
   confirm: (uuid: string) => `/appointments/${uuid}/confirm/`,
   cancel: (uuid: string) => `/appointments/${uuid}/cancel/`,

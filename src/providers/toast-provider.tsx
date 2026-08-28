@@ -13,6 +13,11 @@ import { Toaster } from "@/components/ui/sonner";
 
 export type ToastVariant = "success" | "error" | "warning" | "info" | "loading";
 
+type ToastAction = {
+  label: string;
+  onClick: () => void;
+};
+
 type ToastInput = {
   title?: string;
   description?: string;
@@ -21,6 +26,7 @@ type ToastInput = {
   /** Defaults to Infinity for loading, otherwise 5000ms. Pass Infinity to keep until dismissed. */
   duration?: number;
   closeButton?: boolean;
+  action?: ToastAction;
 };
 
 type ToastVariantInput = {
@@ -59,6 +65,14 @@ function showToast(input: ToastInput): string | number {
     id: input.id,
     ...(input.closeButton !== undefined
       ? { closeButton: input.closeButton }
+      : {}),
+    ...(input.action
+      ? {
+          action: {
+            label: input.action.label,
+            onClick: input.action.onClick,
+          },
+        }
       : {}),
   };
 

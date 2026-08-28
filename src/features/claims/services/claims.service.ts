@@ -18,6 +18,10 @@ import type {
   VerifyMemberResponse,
   TariffCategoryListFilters,
   TariffCategoryListResponse,
+  ValidationPack,
+  ValidationPackListFilters,
+  ValidationPackListResponse,
+  PricelistValidationConfig,
 } from "@/features/claims/types/claims.types";
 import { BffError, bffRequest } from "@/lib/bff-client";
 import { coerceToOptionalString } from "@/lib/coerce-string";
@@ -33,6 +37,12 @@ function buildClaimsQuery(filters: ClaimListFilters = {}): string {
   }
   if (filters.status) {
     params.set("status", filters.status);
+  }
+  if (filters.advisoryStatus) {
+    params.set("advisory_status", filters.advisoryStatus);
+  }
+  if (filters.attention) {
+    params.set("attention", filters.attention);
   }
   const search = filters.search?.trim() || filters.membershipNumber?.trim();
   if (search) {
@@ -183,8 +193,8 @@ export async function updateClaimLinePaymentSplit(
 
 export async function evaluateClaimAdvisories(
   claimId: number | string,
-): Promise<AdvisorEvaluation> {
-  return bffRequest(BFF_CLAIMS_ROUTES.advisorEvaluate(claimId), {
+): Promise<ClaimDetail> {
+  return bffRequest<ClaimDetail>(BFF_CLAIMS_ROUTES.advisorEvaluate(claimId), {
     method: "POST",
   });
 }
@@ -201,6 +211,39 @@ export async function fetchTariffCategories(
   return bffRequest(
     `${BFF_CLAIMS_ROUTES.tariffCategories}${buildTariffCategoryQuery(filters)}`,
   );
+}
+
+export async function fetchValidationPacks(
+  filters: ValidationPackListFilters = {},
+): Promise<ValidationPack[]> {
+  const params = new URLSearchParams();
+  if (filters.assignable) {
+    params.set("assignable", "true");
+  }
+  const query = params.toString();
+  const response = await bffRequest<ValidationPackListResponse | ValidationPack[]>(
+    `${BFF_CLAIMS_ROUTES.validationPacks}${query ? `?${query}` : ""}`,
+  );
+  if (Array.isArray(response)) {
+    return response;
+  }
+  return response.results ?? [];
+}
+
+export async function fetchPricelistValidationConfig(
+  pricelistUuid: string,
+): Promise<PricelistValidationConfig> {
+  return bffRequest(BFF_CLAIMS_ROUTES.pricelistConfig(pricelistUuid));
+}
+
+export async function updatePricelistValidationConfig(
+  pricelistUuid: string,
+  selectedPackCodes: string[],
+): Promise<PricelistValidationConfig> {
+  return bffRequest(BFF_CLAIMS_ROUTES.pricelistConfig(pricelistUuid), {
+    method: "PUT",
+    body: { selected_pack_codes: selectedPackCodes },
+  });
 }
 
 export async function createClaimAdvisoryOverride(

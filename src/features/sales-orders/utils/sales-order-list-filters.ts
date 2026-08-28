@@ -33,14 +33,19 @@ export const DEFAULT_SALES_ORDER_LIST_FILTERS: SalesOrderListFilterState = {
 
 export function buildSalesOrderListFilters(input: {
   search: string;
-  page: number;
-  pageSize: number;
+  page?: number;
+  pageSize?: number;
   filters: SalesOrderListFilterState;
 }): SalesOrderListFilters {
-  const result: SalesOrderListFilters = {
-    page: input.page,
-    pageSize: input.pageSize,
-  };
+  const result: SalesOrderListFilters = {};
+
+  if (input.page) {
+    result.page = input.page;
+  }
+
+  if (input.pageSize) {
+    result.pageSize = input.pageSize;
+  }
 
   const trimmedSearch = input.search.trim();
   if (trimmedSearch) {

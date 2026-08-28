@@ -10,10 +10,12 @@ export type ClaimStatusFilter =
 
 export type ClaimListFilterState = {
   status: ClaimStatusFilter;
+  attention: "all" | "ready" | "needs_attention";
 };
 
 export const DEFAULT_CLAIM_LIST_FILTERS: ClaimListFilterState = {
   status: "all",
+  attention: "all",
 };
 
 export function buildClaimListFilters(input: {
@@ -35,10 +37,15 @@ export function buildClaimListFilters(input: {
   if (input.filters.status !== "all") {
     result.status = input.filters.status;
   }
+  if (input.filters.attention !== "all") {
+    result.attention = input.filters.attention;
+  }
 
   return result;
 }
 
 export function countActiveClaimFilters(filters: ClaimListFilterState): number {
-  return filters.status !== "all" ? 1 : 0;
+  return (
+    (filters.status !== "all" ? 1 : 0) + (filters.attention !== "all" ? 1 : 0)
+  );
 }

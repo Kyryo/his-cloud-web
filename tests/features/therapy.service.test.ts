@@ -44,12 +44,6 @@ describe("therapy service", () => {
     vi.mocked(bffRequest).mockResolvedValueOnce({
       results: [],
       pagination: null,
-      stats: {
-        todays_visits: 0,
-        todays_active_visits: 0,
-        todays_completed_visits: 0,
-        total_visits: 0,
-      },
     });
 
     await fetchTherapyVisits({
@@ -82,12 +76,6 @@ describe("therapy service", () => {
     vi.mocked(bffRequest).mockResolvedValueOnce({
       results: [],
       pagination: null,
-      stats: {
-        todays_visits: 0,
-        todays_active_visits: 0,
-        todays_completed_visits: 0,
-        total_visits: 0,
-      },
     });
 
     await fetchTherapyVisits({

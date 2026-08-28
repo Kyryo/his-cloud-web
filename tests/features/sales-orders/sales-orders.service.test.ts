@@ -6,6 +6,7 @@ import {
   cancelSalesOrder,
   createSalesOrderInvoice,
   fetchSalesOrder,
+  fetchSalesOrderSummaryStats,
   fetchSalesOrders,
   removeSalesOrderLine,
   repriceSalesOrder,
@@ -42,6 +43,26 @@ describe("sales-orders.service", () => {
 
     expect(bffRequest).toHaveBeenCalledWith(
       `${BFF_SALES_ORDERS_ROUTES.list}?page=2&page_size=20&search=S00081&state=sale&invoice_status=to+invoice&date_from=2024-01-01&date_to=2024-12-31`,
+    );
+  });
+
+  it("fetches summary stats without pagination params", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({
+      all: { count: 3, total: "165.00" },
+      open: { count: 1, total: "40.00" },
+      confirmed: { count: 1, total: "100.00" },
+      cancelled: { count: 1, total: "25.00" },
+    });
+
+    await fetchSalesOrderSummaryStats({
+      page: 2,
+      pageSize: 20,
+      search: "S00081",
+      state: "draft",
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      `${BFF_SALES_ORDERS_ROUTES.summaryStats}?search=S00081&state=draft`,
     );
   });
 

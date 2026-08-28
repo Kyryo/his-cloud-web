@@ -5,6 +5,7 @@ import {
   DetailPageAsidePanelSection,
   DetailPageHeaderSection,
   DetailPageLayout,
+  DetailPageTabsSection,
   DetailPageTabsNavSection,
   ListPageHeaderSection,
   ListPageHeaderTitleBlock,
@@ -19,15 +20,25 @@ describe("page-layout", () => {
     render(
       <DetailPageLayout data-testid="detail-page">
         <DetailPageHeaderSection>Header</DetailPageHeaderSection>
-        <DetailPageTabsNavSection aria-label="Sections">
-          <button type="button">Tab</button>
-        </DetailPageTabsNavSection>
+        <DetailPageTabsSection data-testid="detail-tabs">
+          <DetailPageTabsNavSection aria-label="Sections">
+            <button type="button">Tab</button>
+          </DetailPageTabsNavSection>
+        </DetailPageTabsSection>
         <DetailPageAsidePanelSection>Aside</DetailPageAsidePanelSection>
       </DetailPageLayout>,
     );
 
-    expect(screen.getByTestId("detail-page")).toBeInTheDocument();
+    const detailPage = screen.getByTestId("detail-page");
+    expect(detailPage).toBeInTheDocument();
+    expect(detailPage).toHaveAttribute("data-page-surface", "card");
+    expect(detailPage.firstElementChild).toHaveClass(
+      "overflow-hidden",
+      "rounded-xl",
+      "border-dash-border",
+    );
     expect(screen.getByText("Header")).toBeInTheDocument();
+    expect(screen.getByTestId("detail-tabs")).toHaveClass("bg-white");
     expect(screen.getByText("Aside")).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Sections" })).toBeInTheDocument();
   });
@@ -46,9 +57,9 @@ describe("page-layout", () => {
 
     const listPage = screen.getByTestId("list-page");
     expect(listPage).toBeInTheDocument();
-    expect(listPage).toHaveClass("px-4", "md:px-6");
-    expect(screen.queryByRole("heading", { name: "Clients" })).not.toBeInTheDocument();
-    expect(screen.queryByText("Subtitle")).not.toBeInTheDocument();
+    expect(listPage).toHaveClass("px-4", "md:px-6", "space-y-6");
+    expect(screen.getByRole("heading", { name: "Clients" })).toBeInTheDocument();
+    expect(screen.getByText("Subtitle")).toBeInTheDocument();
     expect(screen.getByText("Stats")).toBeInTheDocument();
     expect(screen.getByText("Toolbar")).toBeInTheDocument();
     expect(screen.getByText("Table")).toBeInTheDocument();

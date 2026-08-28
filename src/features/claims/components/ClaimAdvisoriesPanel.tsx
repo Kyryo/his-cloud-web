@@ -16,6 +16,8 @@ import {
   fetchClaim,
 } from "@/features/claims/services/claims.service";
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
+import { asAdvisorFindings, mergeAdvisorFindings } from "@/features/claims/utils/advisor-findings";
+import { isClaimAdvisoryProcessing } from "@/features/claims/utils/claim-advisory-status";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { cn } from "@/lib/utils";
@@ -96,9 +98,15 @@ export function ClaimAdvisoriesCard({
   const [showOverrideForm, setShowOverrideForm] = useState(false);
 
   const evaluation = claim.latest_advisor_evaluation ?? null;
-  const findings = evaluation?.deterministic_findings ?? [];
+  const findings = mergeAdvisorFindings(
+    evaluation?.deterministic_findings ?? [],
+    asAdvisorFindings(evaluation?.ai_findings),
+  );
+  const isPendingIq = evaluation?.status === "pending_ai";
   const hasBlocking = Boolean(claim.has_blocking_advisories);
   const hasOverride = Boolean(claim.has_advisory_override);
+  const isProcessing = isClaimAdvisoryProcessing(claim);
+  const isFailed = claim.advisory_status === "failed";
   const canRecordOverride = hasBlocking && !hasOverride;
 
   useEffect(() => {
@@ -116,17 +124,18 @@ export function ClaimAdvisoriesCard({
   async function handleEvaluate() {
     setIsEvaluating(true);
     try {
-      await evaluateClaimAdvisories(claim.id);
-      await refreshClaim();
+      const queued = await evaluateClaimAdvisories(claim.id);
+      onClaimUpdated?.(queued);
       toast({
-        variant: "success",
-        title: "Advisories evaluated",
-        description: "Claim validation packs were re-run.",
+        variant: "info",
+        title: "Advisories are running",
+        description:
+          "This can take a minute while we check insurer rules and AI review. We'll notify you when results are ready.",
       });
     } catch (error) {
       toast({
         variant: "error",
-        title: "Could not evaluate advisories",
+        title: "Could not start advisories",
         description:
           error instanceof BffError
             ? formatBffErrorMessage(error.message, error.errors)
@@ -250,7 +259,8 @@ export function ClaimAdvisoriesCard({
         <ClaimAdvisoryBlockingAlert
           findingCount={
             findings.filter((finding) => finding.severity === "rejection_risk")
-              .length || findings.length
+              .length ||
+            findings.filter((finding) => finding.source !== "iq").length
           }
         />
       ) : null}
@@ -264,8 +274,8 @@ export function ClaimAdvisoriesCard({
           <div>
             <h2 className="text-sm font-semibold text-brand-navy">Advisories</h2>
             <p className="mt-1 text-sm leading-relaxed text-brand-muted">
-              Pre-submission validation findings for this claim&apos;s payer and
-              scheme.
+              Pre-submission payer-rule findings and claims intelligence (IQ) for
+              this claim.
             </p>
           </div>
         ) : null}
@@ -284,7 +294,25 @@ export function ClaimAdvisoriesCard({
         ) : null}
 
         <div className={cn(!embedded || hasOverride ? "mt-6" : undefined)}>
-          {!evaluation ? (
+          {isProcessing && !evaluation ? (
+            <div
+              className="rounded-lg border border-dashed border-brand-border bg-slate-50/80 px-4 py-10 text-center"
+              data-testid="claim-advisory-processing"
+            >
+              <Loader2
+                className="mx-auto size-8 animate-spin text-brand-muted"
+                aria-hidden="true"
+              />
+              <p className="mt-3 text-sm font-medium text-brand-navy">
+                Advisories processing
+              </p>
+              <p className="mx-auto mt-1 max-w-sm text-sm text-brand-muted">
+                We are checking this claim against the insurer&apos;s rules and
+                AI review. This can take a minute. You&apos;ll get a notification
+                when it finishes.
+              </p>
+            </div>
+          ) : !evaluation ? (
             <div
               className="rounded-lg border border-dashed border-brand-border bg-slate-50/80 px-4 py-10 text-center"
               data-testid="claim-advisory-empty"
@@ -294,11 +322,12 @@ export function ClaimAdvisoriesCard({
                 aria-hidden="true"
               />
               <p className="mt-3 text-sm font-medium text-brand-navy">
-                No advisory evaluation yet
+                {isFailed ? "Needs attention" : "No advisory evaluation yet"}
               </p>
               <p className="mx-auto mt-1 max-w-sm text-sm text-brand-muted">
-                Run an evaluation to check this claim against the insurer&apos;s
-                validation packs.
+                {isFailed
+                  ? "Advisories could not finish. Re-evaluate this claim to continue."
+                  : "Run an evaluation to check this claim against the insurer's validation packs."}
               </p>
               <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
                 {findingsActions}
@@ -322,15 +351,58 @@ export function ClaimAdvisoriesCard({
               </div>
             </div>
           ) : (
-            <ClaimAdvisoryFindingsCard
-              findings={findings}
-              onReEvaluate={
-                showOverrideForm ? undefined : () => void handleEvaluate()
-              }
-              isReEvaluating={isEvaluating}
-              footerActions={findingsFooterActions}
-              footerContent={overrideFooterContent}
-            />
+            <div className="space-y-6">
+              {isProcessing ? (
+                <div
+                  className="flex items-start gap-2 rounded-lg border border-brand-border bg-slate-50/80 px-3 py-2.5 text-sm text-brand-navy"
+                  data-testid="claim-advisory-running"
+                >
+                  <Loader2
+                    className="mt-0.5 size-4 shrink-0 animate-spin text-brand-muted"
+                    aria-hidden="true"
+                  />
+                  <p>
+                    Advisories are running in the background. This can take a
+                    minute. We&apos;ll notify you when results are ready.
+                  </p>
+                </div>
+              ) : null}
+              <ClaimAdvisoryFindingsCard
+                findings={findings}
+                onReEvaluate={
+                  showOverrideForm || isProcessing
+                    ? undefined
+                    : () => void handleEvaluate()
+                }
+                isReEvaluating={isEvaluating || isProcessing}
+                emptyTitle={
+                  isPendingIq
+                    ? "IQ review is in progress"
+                    : "We did not find any advisory issues on this claim"
+                }
+                emptyDescription={
+                  isPendingIq
+                    ? "Payer-rule checks finished. Claims intelligence notes will appear in this list."
+                    : "Validation packs returned no rejection risks or warnings for the current claim data."
+                }
+                notice={
+                  isPendingIq ? (
+                    <div
+                      className="flex items-center justify-center gap-2 text-sm text-brand-navy"
+                      data-testid="claim-iq-review-pending"
+                    >
+                      <Loader2
+                        className="size-4 shrink-0 animate-spin text-brand-muted"
+                        aria-hidden="true"
+                      />
+                      IQ review is in progress.
+                    </div>
+                  ) : null
+                }
+                footerActions={findingsFooterActions}
+                footerContent={overrideFooterContent}
+              />
+            </div>
           )}
         </div>
 

@@ -59,6 +59,7 @@ export const BFF_AUTH_ROUTES = {
 /** Browser-facing BFF customer routes (same origin). */
 export const BFF_CUSTOMERS_ROUTES = {
   list: "/api/customers",
+  summaryStats: "/api/customers/summary-stats",
   detail: (uuid: string) => `/api/customers/${uuid}`,
   insurance: (uuid: string) => `/api/customers/${uuid}/insurance`,
   insuranceDetail: (customerUuid: string, insuranceUuid: string) =>
@@ -80,6 +81,7 @@ export const BFF_CUSTOMERS_ROUTES = {
 /** Browser-facing BFF visit routes (same origin). */
 export const BFF_VISITS_ROUTES = {
   list: "/api/visits",
+  queueSummary: "/api/visits/queue-summary",
   create: "/api/visits",
   detail: (uuid: string) => `/api/visits/${uuid}`,
   modeOfPayment: (uuid: string) => `/api/visits/${uuid}/mode-of-payment`,
@@ -101,6 +103,7 @@ export const BFF_VISITS_ROUTES = {
 /** Browser-facing BFF appointment routes (same origin). */
 export const BFF_APPOINTMENTS_ROUTES = {
   list: "/api/appointments",
+  summaryStats: "/api/appointments/summary-stats",
   detail: (uuid: string) => `/api/appointments/${uuid}`,
   confirm: (uuid: string) => `/api/appointments/${uuid}/confirm`,
   cancel: (uuid: string) => `/api/appointments/${uuid}/cancel`,
@@ -142,6 +145,7 @@ export const BFF_CUSTOMER_ENCOUNTERS_ROUTES = {
 /** Browser-facing BFF sales order routes (same origin). */
 export const BFF_SALES_ORDERS_ROUTES = {
   list: "/api/sales-orders",
+  summaryStats: "/api/sales-orders/summary-stats",
   detail: (orderId: number | string) => `/api/sales-orders/${orderId}`,
   lines: (orderId: number | string) => `/api/sales-orders/${orderId}/lines`,
   linePrice: (orderId: number | string, lineId: number | string) =>
@@ -168,6 +172,7 @@ export const BFF_SALES_ORDER_ACTIVITY_ROUTES = {
 /** Browser-facing BFF invoice routes (same origin). */
 export const BFF_INVOICES_ROUTES = {
   list: "/api/invoices",
+  summaryStats: "/api/invoices/summary-stats",
   detail: (invoiceId: number | string) => `/api/invoices/${invoiceId}`,
   cancel: (invoiceId: number | string) => `/api/invoices/${invoiceId}/cancel`,
   internalReference: (invoiceId: number | string) =>
@@ -213,6 +218,9 @@ export const BFF_CLAIMS_ROUTES = {
   practitionerMappingsUpsert:
     "/api/integrations/eclaims/practitioner-mappings/upsert",
   tariffCategories: "/api/claims/tariff-categories",
+  validationPacks: "/api/claims/packs",
+  pricelistConfig: (pricelistUuid: string) =>
+    `/api/claims/pricelist-configs/${pricelistUuid}`,
   remittances: "/api/claims/remittances",
   remittanceDetail: (batchId: number | string) =>
     `/api/claims/remittances/${batchId}`,
@@ -228,6 +236,15 @@ export const BFF_CLAIMS_ROUTES = {
     `/api/claims/remittances/${batchId}/rows/${rowId}/reject`,
 } as const;
 
+/** Browser-facing BFF notification inbox routes (same origin). */
+export const BFF_NOTIFICATIONS_ROUTES = {
+  inbox: "/api/notifications/inbox",
+  unreadCount: "/api/notifications/inbox/unread-count",
+  events: "/api/notifications/inbox/events",
+  readAll: "/api/notifications/inbox/read-all",
+  read: (id: number | string) => `/api/notifications/inbox/${id}/read`,
+} as const;
+
 /** Browser-facing BFF clinical diagnosis routes (same origin). */
 export const BFF_CLINICAL_DIAGNOSIS_ROUTES = {
   encounterDiagnoses: (visitUuid: string, encounterUuid: string) =>
@@ -240,6 +257,7 @@ export const BFF_CLINICAL_DIAGNOSIS_ROUTES = {
 /** Browser-facing BFF payment routes (same origin). */
 export const BFF_PAYMENTS_ROUTES = {
   list: "/api/payments",
+  summaryStats: "/api/payments/summary-stats",
   detail: (paymentId: number | string) => `/api/payments/${paymentId}`,
   cancel: (paymentId: number | string) => `/api/payments/${paymentId}/cancel`,
   sendReceipt: (paymentId: number | string) => `/api/payments/${paymentId}/send-receipt`,

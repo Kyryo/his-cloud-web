@@ -15,6 +15,7 @@ export type AdvisorEvidenceLine = {
 
 export type AdvisorFindingEvidenceDisplay = {
   contextLabel: string | null;
+  coverageCitation: string | null;
   lines: Array<{
     key: string;
     summary: string;
@@ -219,6 +220,23 @@ function formatLineSummary(
   return parts.join(" · ");
 }
 
+function formatCoverageCitation(evidence: Record<string, unknown>): string | null {
+  const coverage = evidence.coverage_section;
+  if (typeof coverage === "string" && coverage.trim()) {
+    return coverage.trim();
+  }
+  const record = asRecord(coverage);
+  if (!record) {
+    return null;
+  }
+  const packName = asString(record.pack_name) ?? asString(record.pack_code);
+  const title = asString(record.title) ?? asString(record.section_title) ?? asString(record.id);
+  if (packName && title) {
+    return `${packName} · ${title}`;
+  }
+  return packName ?? title;
+}
+
 function formatContextLabel(evidence: Record<string, unknown>): string | null {
   const parts: string[] = [];
   const patientGender = asString(evidence.patient_gender);
@@ -245,12 +263,14 @@ export function getAdvisorFindingEvidenceDisplay(
   }
 
   const lines = collectEvidenceLines(evidence);
-  if (lines.length === 0) {
+  const coverageCitation = formatCoverageCitation(evidence);
+  if (lines.length === 0 && !coverageCitation) {
     return null;
   }
 
   return {
     contextLabel: formatContextLabel(evidence),
+    coverageCitation,
     lines: lines.map((line, index) => ({
       key: line.id ?? `${line.procedureCode ?? "line"}-${index}`,
       summary: formatLineSummary(line, evidence),

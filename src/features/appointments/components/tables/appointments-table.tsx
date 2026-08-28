@@ -2,6 +2,8 @@
 
 import { MoreHorizontal } from "lucide-react";
 
+import { ClientAvatar } from "@/components/client-avatar";
+import { SecondaryButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -40,6 +42,16 @@ type AppointmentsTableProps = {
   ) => void;
 };
 
+export const APPOINTMENT_TABLE_SKELETON_COLUMNS = [
+  { key: "patient", label: "Client" },
+  { key: "clinic", label: "Clinic" },
+  { key: "department", label: "Department" },
+  { key: "clinician", label: "Care provider", headerClassName: "hidden md:table-cell" },
+  { key: "scheduled_start", label: "Scheduled" },
+  { key: "status", label: "Status" },
+  { key: "actions", label: "" },
+] as const;
+
 export function AppointmentsTable({
   appointments,
   actionUuid,
@@ -50,8 +62,14 @@ export function AppointmentsTable({
     {
       key: "patient",
       label: "Client",
-      cellClassName: "font-medium text-brand-navy",
-      render: (appointment) => appointment.patient_name,
+      render: (appointment) => (
+        <div className="flex min-w-0 items-center gap-3">
+          <ClientAvatar name={appointment.patient_name} />
+          <span className="truncate text-sm font-medium text-brand-navy">
+            {appointment.patient_name}
+          </span>
+        </div>
+      ),
     },
     {
       key: "clinic",
@@ -93,15 +111,14 @@ export function AppointmentsTable({
             onClick={(event) => event.stopPropagation()}
           >
             {canStartVisit(appointment) ? (
-              <Button
+              <SecondaryButton
                 type="button"
                 size="sm"
-                variant="outline"
-                className="h-8 rounded-full border-brand-primary text-brand-primary hover:bg-brand-primary/5 hover:text-brand-primary"
                 onClick={() => onActionRequest(appointment, "start")}
+                data-testid="appointments-start-visit"
               >
                 Start visit
-              </Button>
+              </SecondaryButton>
             ) : null}
 
             {showOverflow ? (

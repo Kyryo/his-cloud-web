@@ -31,6 +31,8 @@ const columns = [
   { key: "amount", label: "Amount" },
 ] as const;
 
+export const PAYMENT_TABLE_SKELETON_COLUMNS = columns;
+
 export function PaymentsTable({ payments, onRowClick, className }: PaymentsTableProps) {
   return (
     <div className={cn("overflow-hidden rounded-xl border border-brand-border bg-white", className)}>

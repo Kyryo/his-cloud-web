@@ -1,18 +1,34 @@
 "use client";
 
+import { BarChart3 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
 import { Button } from "@/components/ui/button";
+import { FabButton } from "@/components/ui/fab-button";
+import { ROUTES } from "@/constants/routes";
+import {
+  ListPageDataSectionsStack,
+  ListPageLayout,
+  ListPagePagination,
+  ListPageStatsSection,
+  ListPageToolbarSkeleton,
+} from "@/features/app-shell/components/page-layout";
+import { useListThenStats } from "@/features/app-shell/hooks/use-list-then-stats";
+import { InventoryListPageContent } from "@/features/inventory/components/list/InventoryListPageContent";
+import { InventoryListTableSkeleton } from "@/features/inventory/components/list/InventoryListTable";
 import { CreateSalesOrderDialog } from "@/features/sales-orders/components/CreateSalesOrderDialog";
 import { SalesOrderListToolbar } from "@/features/sales-orders/components/SalesOrderListToolbar";
+import { SalesOrderSummaryStatsCards } from "@/features/sales-orders/components/SalesOrderSummaryStatsCards";
 import { SalesOrdersPageHeader } from "@/features/sales-orders/components/SalesOrdersPageHeader";
 import {
-  SalesOrdersPagination,
+  SALES_ORDER_TABLE_SKELETON_COLUMNS,
   SalesOrdersTable,
 } from "@/features/sales-orders/components/SalesOrdersTable";
-import { fetchSalesOrders } from "@/features/sales-orders/services/sales-orders.service";
+import {
+  fetchSalesOrderSummaryStats,
+  fetchSalesOrders,
+} from "@/features/sales-orders/services/sales-orders.service";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
 import {
   buildSalesOrderListFilters,
@@ -20,12 +36,7 @@ import {
   DEFAULT_SALES_ORDER_LIST_FILTERS,
   type SalesOrderListFilterState,
 } from "@/features/sales-orders/utils/sales-order-list-filters";
-import { ROUTES } from "@/constants/routes";
-import {
-  ListPageDataSectionsStack,
-  ListPageLayout,
-  ListPageTableSection,
-} from "@/features/app-shell/components/page-layout";
+import { cn } from "@/lib/utils";
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -44,6 +55,15 @@ export function SalesOrdersListPage() {
   const [error, setError] = useState<string | null>(null);
   const [isUnauthorized, setIsUnauthorized] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [showStats, setShowStats] = useState(false);
+  const [completedListStatsKey, setCompletedListStatsKey] = useState<string | null>(
+    null,
+  );
+
+  const statsKey = useMemo(
+    () => JSON.stringify({ search: activeSearch, filters }),
+    [activeSearch, filters],
+  );
 
   const listFilters = useMemo(
     () =>
@@ -56,8 +76,28 @@ export function SalesOrdersListPage() {
     [activeSearch, filters, page],
   );
 
+  const statsFilters = useMemo(
+    () =>
+      buildSalesOrderListFilters({
+        search: activeSearch,
+        filters,
+      }),
+    [activeSearch, filters],
+  );
+
   const hasNext = page * DEFAULT_PAGE_SIZE < totalCount;
   const hasPrevious = page > 1;
+
+  const fetchStats = useCallback(
+    () => fetchSalesOrderSummaryStats(statsFilters),
+    [statsFilters],
+  );
+
+  const { stats, isStatsLoading } = useListThenStats({
+    statsKey,
+    listCompletedKey: isUnauthorized ? null : completedListStatsKey,
+    fetchStats,
+  });
 
   const reloadOrders = useCallback(async () => {
     setIsRefreshing(true);
@@ -80,8 +120,9 @@ export function SalesOrdersListPage() {
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
+      setCompletedListStatsKey(statsKey);
     }
-  }, [listFilters]);
+  }, [listFilters, statsKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -115,6 +156,7 @@ export function SalesOrdersListPage() {
         if (!cancelled) {
           setIsLoading(false);
           setIsRefreshing(false);
+          setCompletedListStatsKey(statsKey);
         }
       }
     })();
@@ -122,7 +164,7 @@ export function SalesOrdersListPage() {
     return () => {
       cancelled = true;
     };
-  }, [listFilters]);
+  }, [listFilters, statsKey]);
 
   function handleSearchSubmit() {
     setIsRefreshing(true);
@@ -178,48 +220,56 @@ export function SalesOrdersListPage() {
 
   return (
     <ListPageLayout data-testid="sales-orders-page">
-      <SalesOrdersPageHeader
-        onNewOrder={() => setCreateDialogOpen(true)}
-        search={search}
-        isSearchDisabled={isRefreshing}
-        onSearchChange={setSearch}
-        onSearchSubmit={handleSearchSubmit}
-        onClearSearch={handleClearSearch}
-      />
+      <SalesOrdersPageHeader onNewOrder={() => setCreateDialogOpen(true)} />
+
+      {!hasNoRecords ? (
+        <FabButton
+          label={showStats ? "Hide stats" : "Show stats"}
+          icon={BarChart3}
+          variant="outline"
+          className="bottom-24 bg-white"
+          onClick={() => setShowStats((current) => !current)}
+          data-testid="sales-orders-show-stats-fab"
+        />
+      ) : null}
 
       {!hasNoRecords ? (
         <ListPageDataSectionsStack>
-          <SalesOrderListToolbar
-            search={search}
-            filters={filters}
-            isLoading={isRefreshing}
-            onSearchChange={setSearch}
-            onSearchSubmit={handleSearchSubmit}
-            onClearSearch={handleClearSearch}
-            onFiltersApply={handleFiltersApply}
-          />
+          <ListPageStatsSection className={cn(!showStats && "hidden sm:block")}>
+            <SalesOrderSummaryStatsCards
+              stats={stats}
+              isLoading={isStatsLoading}
+            />
+          </ListPageStatsSection>
+          {isLoading ? (
+            <ListPageToolbarSkeleton />
+          ) : (
+            <SalesOrderListToolbar
+              search={search}
+              filters={filters}
+              isLoading={isRefreshing}
+              onSearchChange={setSearch}
+              onSearchSubmit={handleSearchSubmit}
+              onClearSearch={handleClearSearch}
+              onFiltersApply={handleFiltersApply}
+            />
+          )}
         </ListPageDataSectionsStack>
       ) : null}
 
-      <ListPageTableSection>
-        {isLoading ? (
-          <PageLoader message="Loading sales orders..." />
-        ) : error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-            <h2 className="text-sm font-semibold text-red-800">
-              Could not load sales orders
-            </h2>
-            <p className="mt-2 text-sm text-red-700">{error}</p>
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-4"
-              onClick={() => void reloadOrders()}
-            >
-              Try again
-            </Button>
-          </div>
-        ) : hasNoRecords ? (
+      <InventoryListPageContent
+        isLoading={isLoading}
+        loadingMessage="Loading sales orders..."
+        loadingFallback={
+          <InventoryListTableSkeleton
+            columns={[...SALES_ORDER_TABLE_SKELETON_COLUMNS]}
+          />
+        }
+        error={error}
+        onRetry={() => void reloadOrders()}
+        errorTitle="Could not load sales orders"
+        hasNoRecords={hasNoRecords}
+        emptyState={
           <div className="rounded-xl border border-brand-border bg-white px-6 py-14 text-center">
             <h2 className="text-lg font-semibold text-brand-navy">No sales orders yet</h2>
             <p className="mt-2 text-sm text-brand-muted">
@@ -227,30 +277,23 @@ export function SalesOrdersListPage() {
               records.
             </p>
           </div>
-        ) : isFilteredEmpty ? (
-          <div className="rounded-xl border border-brand-border bg-white px-6 py-14 text-center">
-            <h2 className="text-lg font-semibold text-brand-navy">
-              No matching sales orders
-            </h2>
-            <p className="mt-2 text-sm text-brand-muted">
-              Adjust your search or filters and try again.
-            </p>
-          </div>
-        ) : (
-          <>
-            <SalesOrdersTable orders={orders} onRowClick={handleRowClick} />
-            <SalesOrdersPagination
-              page={page}
-              pageSize={DEFAULT_PAGE_SIZE}
-              totalCount={totalCount}
-              hasNext={hasNext}
-              hasPrevious={hasPrevious}
-              isLoading={isRefreshing}
-              onPageChange={handlePageChange}
-            />
-          </>
-        )}
-      </ListPageTableSection>
+        }
+        isFilteredEmpty={isFilteredEmpty}
+        filteredEmptyTitle="No matching sales orders"
+      >
+        <>
+          <SalesOrdersTable orders={orders} onRowClick={handleRowClick} />
+          <ListPagePagination
+            page={page}
+            pageSize={DEFAULT_PAGE_SIZE}
+            totalCount={totalCount}
+            hasNext={hasNext}
+            hasPrevious={hasPrevious}
+            isLoading={isRefreshing}
+            onPageChange={handlePageChange}
+          />
+        </>
+      </InventoryListPageContent>
 
       <CreateSalesOrderDialog
         open={createDialogOpen}

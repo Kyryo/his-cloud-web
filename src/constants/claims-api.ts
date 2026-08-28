@@ -28,6 +28,9 @@ export const CLAIMS_API_PATHS = {
   clinicPortalCredentials: (payer: string, clinicId: number | string) =>
     `/eclaims/integrations/payers/${payer}/clinics/${clinicId}/portal-credentials/`,
   tariffCategories: "/claims-rules/tariff-categories/",
+  validationPacks: "/claims-rules/packs/",
+  pricelistConfig: (pricelistUuid: string) =>
+    `/claims-rules/pricelist-configs/${pricelistUuid}/`,
   remittances: "/eclaims/remittances/",
   remittanceDetail: (batchId: number | string) =>
     `/eclaims/remittances/${batchId}/`,

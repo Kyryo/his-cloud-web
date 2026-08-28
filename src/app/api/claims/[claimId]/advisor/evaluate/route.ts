@@ -1,5 +1,5 @@
 import { CLAIMS_API_PATHS } from "@/constants/claims-api";
-import type { AdvisorEvaluation } from "@/features/claims/types/claims.types";
+import type { ClaimDetail } from "@/features/claims/types/claims.types";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
 import { HmisApiError, hmisApiRequest } from "@/lib/server/hmis-api";
 import { requireAccessToken } from "@/lib/server/require-access-token";
@@ -17,7 +17,7 @@ export async function POST(_request: Request, context: RouteContext) {
       return auth.error;
     }
 
-    const evaluation = await hmisApiRequest<AdvisorEvaluation>(
+    const claim = await hmisApiRequest<ClaimDetail>(
       CLAIMS_API_PATHS.advisorEvaluate(claimId),
       {
         method: "POST",
@@ -25,7 +25,7 @@ export async function POST(_request: Request, context: RouteContext) {
       },
     );
 
-    return bffSuccess(evaluation, 201);
+    return bffSuccess(claim, 202);
   } catch (error) {
     if (error instanceof HmisApiError) {
       console.error("[claims/advisor/evaluate] HMIS API error", {

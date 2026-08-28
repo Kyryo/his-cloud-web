@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   createCustomerSchema,
   toCreateCustomerPayload,
+  toUpdateCustomerFormValues,
 } from "@/features/customers/schemas/customer.schema";
 
 describe("createCustomerSchema", () => {
@@ -65,6 +66,22 @@ describe("createCustomerSchema", () => {
 
     expect(result.success).toBe(true);
   });
+
+  it("rejects internal reference longer than 255 characters", () => {
+    const result = createCustomerSchema.safeParse({
+      first_name: "Jane",
+      middle_name: "",
+      last_name: "Doe",
+      gender: "Female",
+      dob: "",
+      dob_is_estimated: false,
+      phone_number: "",
+      email: "",
+      internal_reference: "R".repeat(256),
+    });
+
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("toCreateCustomerPayload", () => {
@@ -79,6 +96,7 @@ describe("toCreateCustomerPayload", () => {
         dob_is_estimated: true,
         phone_number: " 0712345678 ",
         email: " ada@example.com ",
+        internal_reference: " REF-ADA-001 ",
       }),
     ).toEqual({
       first_name: "Ada",
@@ -89,6 +107,33 @@ describe("toCreateCustomerPayload", () => {
       dob_is_estimated: true,
       phone_number: "0712345678",
       email: "ada@example.com",
+      internal_reference: "REF-ADA-001",
+    });
+  });
+
+  it("maps an existing customer into update form values", () => {
+    expect(
+      toUpdateCustomerFormValues({
+        first_name: "Ada",
+        middle_name: "Grace",
+        last_name: "Lovelace",
+        gender: "Female",
+        dob: "1815-12-10",
+        dob_is_estimated: false,
+        phone_number: "+254712345678",
+        email: "ada@example.com",
+        internal_reference: "REF-ADA-001",
+      }),
+    ).toEqual({
+      first_name: "Ada",
+      middle_name: "Grace",
+      last_name: "Lovelace",
+      gender: "Female",
+      dob: "1815-12-10",
+      dob_is_estimated: false,
+      phone_number: "+254712345678",
+      email: "ada@example.com",
+      internal_reference: "REF-ADA-001",
     });
   });
 });

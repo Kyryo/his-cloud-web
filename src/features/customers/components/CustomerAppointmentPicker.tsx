@@ -82,7 +82,7 @@ export function CustomerAppointmentPicker({
       <div>
         <Label htmlFor="appointment-client-select">Client</Label>
         <p className="mt-1 text-xs text-brand-muted">
-          Search by name, identifier, or phone number.
+          Search by name, identifier, phone number, or internal reference.
         </p>
       </div>
 

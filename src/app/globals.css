@@ -68,6 +68,13 @@
     @apply border-border;
   }
 
+  /* Logged-in app: grey borders matching list tables. Login and brand pages keep beige. */
+  .app-authenticated-shell {
+    --color-border: #e8e8e8;
+    --color-input: #e8e8e8;
+    --color-brand-border: #e8e8e8;
+  }
+
   body {
     @apply bg-background font-sans text-foreground antialiased;
   }

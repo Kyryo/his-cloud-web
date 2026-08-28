@@ -1,12 +1,12 @@
 import { HeroSection } from "@/features/brand/components/HeroSection";
 import { LandingHomeSections } from "@/features/brand/components/landing/LandingHomeSections";
+import { LandingSocialProofSection } from "@/features/brand/components/landing/LandingSocialProofSection";
 
 export function BrandHomePage() {
   return (
     <>
       <HeroSection />
-      {/* Trusted-by strip hidden for now — logos live on the hero.
-      <LandingProofStrip /> */}
+      <LandingSocialProofSection />
       <LandingHomeSections />
     </>
   );

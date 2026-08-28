@@ -7,6 +7,7 @@ import { ListPageTableSection } from "@/features/app-shell/components/page-layou
 type InventoryListPageContentProps = {
   isLoading: boolean;
   loadingMessage: string;
+  loadingFallback?: ReactNode;
   error: string | null;
   onRetry: () => void;
   errorTitle: string;
@@ -20,6 +21,7 @@ type InventoryListPageContentProps = {
 export function InventoryListPageContent({
   isLoading,
   loadingMessage,
+  loadingFallback,
   error,
   onRetry,
   errorTitle,
@@ -32,7 +34,7 @@ export function InventoryListPageContent({
   return (
     <ListPageTableSection>
       {isLoading ? (
-        <PageLoader message={loadingMessage} />
+        loadingFallback ?? <PageLoader message={loadingMessage} />
       ) : error ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-6">
           <h2 className="text-sm font-semibold text-red-800">{errorTitle}</h2>

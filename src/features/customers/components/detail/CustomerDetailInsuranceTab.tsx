@@ -1,44 +1,33 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Shield } from "lucide-react";
 
 import { TabAddActionButton } from "@/components/ui/app-buttons";
-import { Badge } from "@/components/ui/badge";
+import { ListPagePagination } from "@/features/app-shell/components/page-layout";
 import { AddCustomerInsuranceDialog } from "@/features/customers/components/detail/AddCustomerInsuranceDialog";
-import {
-  CustomerDetailRecordList,
-  CustomerDetailRecordListItem,
-} from "@/features/customers/components/detail/CustomerDetailRecordList";
 import { CustomerDetailTabEmptyState } from "@/features/customers/components/detail/CustomerDetailTabEmptyState";
+import { CustomerInsuranceTable } from "@/features/customers/components/detail/CustomerInsuranceTable";
 import { CustomerTabSkeleton } from "@/features/customers/components/detail/CustomerTabSkeleton";
 import { UpdateCustomerInsuranceDialog } from "@/features/customers/components/detail/UpdateCustomerInsuranceDialog";
 import { fetchCustomerInsurance } from "@/features/customers/services/customer-insurance.service";
 import type { CustomerInsurance } from "@/features/customers/types/customer-insurance.types";
 import type { Customer } from "@/features/customers/types/customer.types";
+import { paginateItems } from "@/features/customers/utils/paginate-items";
+
+const INSURANCE_PAGE_SIZE = 20;
 
 type CustomerDetailInsuranceTabProps = {
   customer: Customer;
   isActive: boolean;
 };
 
-function InsuranceStatusBadges({ insurance }: { insurance: CustomerInsurance }) {
-  if (!insurance.is_active) {
-    return <Badge variant="outline">Inactive</Badge>;
-  }
-
-  if (insurance.is_primary) {
-    return <Badge variant="secondary">Primary</Badge>;
-  }
-
-  return <Badge variant="success">Active</Badge>;
-}
-
 export function CustomerDetailInsuranceTab({
   customer,
   isActive,
 }: CustomerDetailInsuranceTabProps) {
   const [insurance, setInsurance] = useState<CustomerInsurance[]>([]);
+  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
@@ -64,6 +53,7 @@ export function CustomerDetailInsuranceTab({
   }, [customer.uuid]);
 
   const reloadInsurance = useCallback(() => {
+    setPage(1);
     void loadInsurance();
   }, [loadInsurance]);
 
@@ -107,6 +97,11 @@ export function CustomerDetailInsuranceTab({
     };
   }, [customer.uuid, hasLoaded, isActive]);
 
+  const paged = useMemo(
+    () => paginateItems(insurance, page, INSURANCE_PAGE_SIZE),
+    [insurance, page],
+  );
+
   if (!isActive) {
     return null;
   }
@@ -131,62 +126,8 @@ export function CustomerDetailInsuranceTab({
     />
   );
 
-  if (insurance.length === 0) {
-    return (
-      <>
-        <CustomerDetailTabEmptyState
-          icon={Shield}
-          title="No insurance on file"
-          description="Insurance memberships linked to this client will appear here."
-          action={addButton}
-          data-testid="customer-insurance-empty-state"
-        />
-        <AddCustomerInsuranceDialog
-          customer={customer}
-          open={addDialogOpen}
-          onOpenChange={setAddDialogOpen}
-          onCreated={() => reloadInsurance()}
-        />
-      </>
-    );
-  }
-
-  return (
+  const dialogs = (
     <>
-      <CustomerDetailRecordList
-        title="Insurance"
-        description="Memberships linked to this client."
-        action={addButton}
-        data-testid="customer-detail-insurance-tab"
-      >
-        {insurance.map((record) => (
-          <CustomerDetailRecordListItem
-            key={record.uuid}
-            compact
-            title={record.insurance_company_name}
-            badges={<InsuranceStatusBadges insurance={record} />}
-            description={
-              <p className="truncate">
-                {record.scheme_name} · {record.membership_number}
-                {record.suffix ? `-${record.suffix}` : ""}
-                {" · "}
-                {record.is_principal_member ? "Principal member" : "Dependent"}
-                {record.relationship_to_principal_member
-                  ? ` · ${record.relationship_to_principal_member}`
-                  : ""}
-              </p>
-            }
-            dateTime={record.created_at}
-            menuActions={[
-              {
-                label: "Update",
-                onClick: () => setEditingInsurance(record),
-              },
-            ]}
-          />
-        ))}
-      </CustomerDetailRecordList>
-
       <AddCustomerInsuranceDialog
         customer={customer}
         open={addDialogOpen}
@@ -206,6 +147,42 @@ export function CustomerDetailInsuranceTab({
           onUpdated={() => reloadInsurance()}
         />
       ) : null}
+    </>
+  );
+
+  if (insurance.length === 0) {
+    return (
+      <>
+        <CustomerDetailTabEmptyState
+          icon={Shield}
+          title="No insurance on file"
+          description="Insurance memberships linked to this client will appear here."
+          action={addButton}
+          data-testid="customer-insurance-empty-state"
+        />
+        {dialogs}
+      </>
+    );
+  }
+
+  return (
+    <>
+      <div className="space-y-4" data-testid="customer-detail-insurance-tab">
+        <div className="flex justify-end">{addButton}</div>
+        <CustomerInsuranceTable
+          insurance={paged.items}
+          onUpdate={setEditingInsurance}
+        />
+        <ListPagePagination
+          page={paged.page}
+          pageSize={INSURANCE_PAGE_SIZE}
+          totalCount={paged.totalCount}
+          hasNext={paged.hasNext}
+          hasPrevious={paged.hasPrevious}
+          onPageChange={setPage}
+        />
+      </div>
+      {dialogs}
     </>
   );
 }

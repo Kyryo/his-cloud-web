@@ -1,17 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ShoppingBag } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { StatsCard1, StatsCard1Grid } from "@/components/stats-card1";
 import { ROUTES } from "@/constants/routes";
-import {
-  CustomerDetailRecordList,
-  CustomerDetailRecordListItem,
-} from "@/features/customers/components/detail/CustomerDetailRecordList";
+import { ListPagePagination } from "@/features/app-shell/components/page-layout";
 import { CustomerDetailTabEmptyState } from "@/features/customers/components/detail/CustomerDetailTabEmptyState";
+import { CustomerSalesOrdersTable } from "@/features/customers/components/detail/CustomerSalesOrdersTable";
 import { CustomerTabSkeleton } from "@/features/customers/components/detail/CustomerTabSkeleton";
 import {
   countCancelledCustomerSalesOrders,
@@ -21,9 +19,7 @@ import {
 } from "@/features/customers/services/customer-billing.service";
 import type { CustomerSalesOrderRecord } from "@/features/customers/types/customer-billing.types";
 import type { Customer } from "@/features/customers/types/customer.types";
-import { formatSalesOrderAmount } from "@/features/sales-orders/utils/format-sales-order";
-import { formatSalesOrderStateLabel } from "@/features/sales-orders/utils/sales-order-status";
-import type { SalesOrderState } from "@/features/sales-orders/types/sales-order.types";
+import { pageOffset } from "@/features/customers/utils/paginate-items";
 import { formatCompactNumber } from "@/utils/format-compact-number";
 
 const SALES_ORDERS_PAGE_SIZE = 20;
@@ -35,21 +31,6 @@ type CustomerDetailSalesOrdersTabProps = {
   refreshKey?: number;
 };
 
-function formatSalesOrderTitle(order: CustomerSalesOrderRecord) {
-  const statusLabel = formatSalesOrderStateLabel(order.state as SalesOrderState);
-  return `${statusLabel} order number ${order.name}`;
-}
-
-function formatSalesOrderMeta(order: CustomerSalesOrderRecord) {
-  const statusLabel = formatSalesOrderStateLabel(order.state as SalesOrderState);
-  return (
-    <>
-      <p>{formatSalesOrderAmount(order.amount_total, "MWK")}</p>
-      <p>{statusLabel}</p>
-    </>
-  );
-}
-
 export function CustomerDetailSalesOrdersTab({
   customer,
   isActive,
@@ -59,53 +40,51 @@ export function CustomerDetailSalesOrdersTab({
   const [orders, setOrders] = useState<CustomerSalesOrderRecord[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [hasNext, setHasNext] = useState(false);
-  const [offset, setOffset] = useState(0);
+  const [hasPrevious, setHasPrevious] = useState(false);
+  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const hasLoadedRef = useRef(false);
 
-  const loadOrders = useCallback(
-    async (nextOffset = 0, append = false) => {
-      if (append) {
-        setIsLoadingMore(true);
-      } else {
-        setIsLoading(true);
-      }
-      setLoadError(null);
+  const loadOrders = useCallback(async (nextPage: number) => {
+    if (hasLoadedRef.current) {
+      setIsRefreshing(true);
+    } else {
+      setIsLoading(true);
+    }
+    setLoadError(null);
 
-      try {
-        const response = await fetchCustomerSalesOrders(customer.uuid, {
-          limit: SALES_ORDERS_PAGE_SIZE,
-          offset: nextOffset,
-        });
+    try {
+      const response = await fetchCustomerSalesOrders(customer.uuid, {
+        limit: SALES_ORDERS_PAGE_SIZE,
+        offset: pageOffset(nextPage, SALES_ORDERS_PAGE_SIZE),
+      });
 
-        setOrders((current) =>
-          append ? [...current, ...response.salesOrders] : response.salesOrders,
-        );
-        setTotalCount(response.pagination.count);
-        setHasNext(response.pagination.has_next);
-        setOffset(nextOffset);
-        setHasLoaded(true);
-      } catch (error) {
-        setLoadError(
-          error instanceof Error ? error.message : "Failed to load sales orders.",
-        );
-      } finally {
-        setIsLoading(false);
-        setIsLoadingMore(false);
-      }
-    },
-    [customer.uuid],
-  );
+      setOrders(response.salesOrders);
+      setTotalCount(response.pagination.count);
+      setHasNext(response.pagination.has_next);
+      setHasPrevious(response.pagination.has_previous ?? nextPage > 1);
+      hasLoadedRef.current = true;
+      setHasLoaded(true);
+    } catch (error) {
+      setLoadError(
+        error instanceof Error ? error.message : "Failed to load sales orders.",
+      );
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  }, [customer.uuid]);
 
   useEffect(() => {
     if (!isActive) {
       return;
     }
 
-    void loadOrders(0, false);
-  }, [isActive, loadOrders, refreshKey]);
+    void loadOrders(page);
+  }, [isActive, loadOrders, page, refreshKey]);
 
   if (!isActive) {
     return null;
@@ -121,7 +100,7 @@ export function CustomerDetailSalesOrdersTab({
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-6 text-sm text-red-700">
           {loadError}
         </div>
-        <Button type="button" variant="outline" onClick={() => void loadOrders(0, false)}>
+        <Button type="button" variant="outline" onClick={() => void loadOrders(1)}>
           Try again
         </Button>
       </div>
@@ -157,7 +136,7 @@ export function CustomerDetailSalesOrdersTab({
         />
       </StatsCard1Grid>
 
-      {orders.length === 0 ? (
+      {totalCount === 0 ? (
         <CustomerDetailTabEmptyState
           icon={ShoppingBag}
           title="No sales orders yet"
@@ -165,42 +144,21 @@ export function CustomerDetailSalesOrdersTab({
           data-testid="customer-sales-orders-empty-state"
         />
       ) : (
-        <CustomerDetailRecordList
-          title="Sales orders"
-          description="Orders linked to this client from ERP."
-          data-testid="customer-sales-orders-list"
-          footer={
-            hasNext ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={isLoadingMore}
-                onClick={() => void loadOrders(offset + SALES_ORDERS_PAGE_SIZE, true)}
-              >
-                {isLoadingMore ? "Loading..." : "Load more"}
-              </Button>
-            ) : null
-          }
-        >
-          {orders.map((order) => {
-            const openOrder = () => router.push(ROUTES.salesOrderDetail(order.id));
-
-            return (
-              <CustomerDetailRecordListItem
-                key={order.id}
-                compact
-                title={formatSalesOrderTitle(order)}
-                description={formatSalesOrderMeta(order)}
-                dateTime={order.date_order}
-                onRowClick={openOrder}
-                onUpdate={openOrder}
-                updateLabel="View order"
-                data-testid={`customer-sales-order-${order.id}`}
-              />
-            );
-          })}
-        </CustomerDetailRecordList>
+        <>
+          <CustomerSalesOrdersTable
+            orders={orders}
+            onRowClick={(order) => router.push(ROUTES.salesOrderDetail(order.id))}
+          />
+          <ListPagePagination
+            page={page}
+            pageSize={SALES_ORDERS_PAGE_SIZE}
+            totalCount={totalCount}
+            hasNext={hasNext}
+            hasPrevious={hasPrevious}
+            isLoading={isRefreshing}
+            onPageChange={setPage}
+          />
+        </>
       )}
 
       {loadError && hasLoaded ? (

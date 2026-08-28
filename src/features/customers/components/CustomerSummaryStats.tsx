@@ -1,28 +1,14 @@
 "use client";
 
 import { StatsCard1, StatsCard1Grid } from "@/components/stats-card1";
-import { formatCompactNumber } from "@/utils/format-compact-number";
 import type { CustomerSummaryStats } from "@/features/customers/utils/customer-stats";
 import { formatGenderCounts } from "@/features/customers/utils/customer-stats";
+import { formatCompactNumber } from "@/utils/format-compact-number";
 
 type CustomerSummaryStatsProps = {
   stats: CustomerSummaryStats | null;
   isLoading?: boolean;
 };
-
-function StatValue({
-  value,
-  isLoading,
-}: {
-  value: string;
-  isLoading?: boolean;
-}) {
-  if (isLoading) {
-    return <span className="text-brand-muted">—</span>;
-  }
-
-  return <>{value}</>;
-}
 
 function percentOfTotal(part: number, total: number): number | undefined {
   if (total <= 0) {
@@ -32,7 +18,7 @@ function percentOfTotal(part: number, total: number): number | undefined {
   return Math.round((part / total) * 100);
 }
 
-export function CustomerSummaryStats({
+export function CustomerSummaryStatsCards({
   stats,
   isLoading = false,
 }: CustomerSummaryStatsProps) {
@@ -45,23 +31,15 @@ export function CustomerSummaryStats({
         title="Total clients"
         icon="users"
         tone="teal"
-        value={
-          <StatValue
-            isLoading={isLoading}
-            value={formatCompactNumber(totalClients)}
-          />
-        }
+        isLoading={isLoading}
+        value={formatCompactNumber(totalClients)}
       />
       <StatsCard1
         title="New this month"
         icon="add"
         tone="violet"
-        value={
-          <StatValue
-            isLoading={isLoading}
-            value={formatCompactNumber(newThisMonth)}
-          />
-        }
+        isLoading={isLoading}
+        value={formatCompactNumber(newThisMonth)}
         change={
           !isLoading && stats
             ? percentOfTotal(newThisMonth, totalClients)
@@ -73,24 +51,19 @@ export function CustomerSummaryStats({
         title="Male / Female"
         icon="user"
         tone="rose"
-        value={
-          <StatValue
-            isLoading={isLoading}
-            value={stats ? formatGenderCounts(stats) : "—"}
-          />
-        }
+        isLoading={isLoading}
+        value={stats ? formatGenderCounts(stats) : "—"}
       />
       <StatsCard1
         title="Average age"
         icon="activity"
         tone="navy"
-        value={
-          <StatValue
-            isLoading={isLoading}
-            value={stats ? `${stats.averageAge} yrs` : "—"}
-          />
-        }
+        isLoading={isLoading}
+        value={stats ? `${stats.averageAge} yrs` : "—"}
       />
     </StatsCard1Grid>
   );
 }
+
+/** @deprecated Use {@link CustomerSummaryStatsCards} */
+export const CustomerSummaryStats = CustomerSummaryStatsCards;

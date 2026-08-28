@@ -9,6 +9,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  DetailPageHeaderSection,
   DetailPageLayout,
   DetailPageMainSection,
   DetailPageTabsNavSection,
@@ -180,7 +181,7 @@ export function VisitDetailPage({ visitUuid }: VisitDetailPageProps) {
 
   return (
     <DetailPageLayout data-testid="visit-detail-page">
-      <div className="rounded-2xl border border-brand-border bg-white p-6 shadow-sm">
+      <DetailPageHeaderSection>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-sm text-brand-muted">Visit</p>
@@ -245,9 +246,9 @@ export function VisitDetailPage({ visitUuid }: VisitDetailPageProps) {
             </dd>
           </div>
         </dl>
-      </div>
+      </DetailPageHeaderSection>
 
-      <DetailPageTabsSection className="mt-6">
+      <DetailPageTabsSection>
         <DetailPageTabsNavSection aria-label="Visit sections">
           <DetailPageTabNavItem isActive onClick={() => undefined}>
             Encounters

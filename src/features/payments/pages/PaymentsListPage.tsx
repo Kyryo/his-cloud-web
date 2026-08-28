@@ -1,19 +1,35 @@
 "use client";
 
+import { BarChart3 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
+import { FabButton } from "@/components/ui/fab-button";
+import { ROUTES } from "@/constants/routes";
+import {
+  ListPageDataSectionsStack,
+  ListPageLayout,
+  ListPagePagination,
+  ListPageStatsSection,
+  ListPageToolbarSkeleton,
+} from "@/features/app-shell/components/page-layout";
+import { useListThenStats } from "@/features/app-shell/hooks/use-list-then-stats";
 import { RecordOpeningBalancePaymentDialog } from "@/features/customers/components/detail/RecordOpeningBalancePaymentDialog";
 import { fetchCustomerBillingSummary } from "@/features/customers/services/customer-billing.service";
 import type { Customer } from "@/features/customers/types/customer.types";
+import { InventoryListPageContent } from "@/features/inventory/components/list/InventoryListPageContent";
+import { InventoryListTableSkeleton } from "@/features/inventory/components/list/InventoryListTable";
 import { PaymentListToolbar } from "@/features/payments/components/PaymentListToolbar";
+import { PaymentSummaryStatsCards } from "@/features/payments/components/PaymentSummaryStatsCards";
 import { PaymentsPageHeader } from "@/features/payments/components/PaymentsPageHeader";
 import {
-  PaymentsPagination,
+  PAYMENT_TABLE_SKELETON_COLUMNS,
   PaymentsTable,
 } from "@/features/payments/components/PaymentsTable";
-import { fetchPayments } from "@/features/payments/services/payments.service";
+import {
+  fetchPaymentSummaryStats,
+  fetchPayments,
+} from "@/features/payments/services/payments.service";
 import type { Payment } from "@/features/payments/types/payment.types";
 import {
   buildPaymentListFilters,
@@ -21,12 +37,7 @@ import {
   DEFAULT_PAYMENT_LIST_FILTERS,
   type PaymentListFilterState,
 } from "@/features/payments/utils/payment-list-filters";
-import { ROUTES } from "@/constants/routes";
-import {
-  ListPageDataSectionsStack,
-  ListPageLayout,
-  ListPageTableSection,
-} from "@/features/app-shell/components/page-layout";
+import { cn } from "@/lib/utils";
 import { useUser } from "@/providers/user-provider";
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -59,6 +70,15 @@ export function PaymentsListPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [remainingOpeningBalance, setRemainingOpeningBalance] = useState(0);
   const [isLoadingRemaining, setIsLoadingRemaining] = useState(false);
+  const [showStats, setShowStats] = useState(false);
+  const [completedListStatsKey, setCompletedListStatsKey] = useState<string | null>(
+    null,
+  );
+
+  const statsKey = useMemo(
+    () => JSON.stringify({ search: activeSearch, filters }),
+    [activeSearch, filters],
+  );
 
   const listFilters = useMemo(
     () =>
@@ -70,6 +90,29 @@ export function PaymentsListPage() {
       }),
     [activeSearch, filters, page],
   );
+
+  const statsFilters = useMemo(
+    () =>
+      buildPaymentListFilters({
+        search: activeSearch,
+        filters,
+      }),
+    [activeSearch, filters],
+  );
+
+  const hasNext = page * DEFAULT_PAGE_SIZE < totalCount;
+  const hasPrevious = page > 1;
+
+  const fetchStats = useCallback(
+    () => fetchPaymentSummaryStats(statsFilters),
+    [statsFilters],
+  );
+
+  const { stats, isStatsLoading } = useListThenStats({
+    statsKey,
+    listCompletedKey: completedListStatsKey,
+    fetchStats,
+  });
 
   const reloadPayments = useCallback(async () => {
     setIsRefreshing(true);
@@ -83,8 +126,9 @@ export function PaymentsListPage() {
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
+      setCompletedListStatsKey(statsKey);
     }
-  }, [listFilters]);
+  }, [listFilters, statsKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -106,6 +150,7 @@ export function PaymentsListPage() {
         if (!cancelled) {
           setIsLoading(false);
           setIsRefreshing(false);
+          setCompletedListStatsKey(statsKey);
         }
       }
     })();
@@ -113,7 +158,7 @@ export function PaymentsListPage() {
     return () => {
       cancelled = true;
     };
-  }, [listFilters]);
+  }, [listFilters, statsKey]);
 
   useEffect(() => {
     if (!recordPaymentOpen || !selectedCustomer) {
@@ -172,75 +217,93 @@ export function PaymentsListPage() {
     }
   }
 
-  if (isLoading) {
-    return <PageLoader message="Loading payments..." />;
-  }
-
   const activeFilterCount = countActivePaymentFilters(filters);
   const hasActiveQuery = activeSearch.length > 0 || activeFilterCount > 0;
-  const hasNoRecords = payments.length === 0 && totalCount === 0 && !hasActiveQuery;
+  const isFilteredEmpty =
+    !isLoading && !error && payments.length === 0 && hasActiveQuery;
+  const hasNoRecords =
+    !isLoading && !error && totalCount === 0 && !hasActiveQuery;
 
   return (
     <ListPageLayout data-testid="payments-page">
-      <PaymentsPageHeader
-        search={search}
-        isSearchDisabled={isRefreshing}
-        onSearchChange={setSearch}
-        onSearchSubmit={handleSearchSubmit}
-        onClearSearch={handleClearSearch}
-        onRecordPayment={() => setRecordPaymentOpen(true)}
-      />
+      <PaymentsPageHeader onRecordPayment={() => setRecordPaymentOpen(true)} />
+
+      {!hasNoRecords ? (
+        <FabButton
+          label={showStats ? "Hide stats" : "Show stats"}
+          icon={BarChart3}
+          variant="outline"
+          className="bottom-24 bg-white"
+          onClick={() => setShowStats((current) => !current)}
+          data-testid="payments-show-stats-fab"
+        />
+      ) : null}
 
       {!hasNoRecords ? (
         <ListPageDataSectionsStack>
-          <PaymentListToolbar
-            search={search}
-            filters={filters}
-            isLoading={isRefreshing}
-            onSearchChange={setSearch}
-            onSearchSubmit={handleSearchSubmit}
-            onClearSearch={handleClearSearch}
-            onFiltersApply={(nextFilters) => {
-              setIsRefreshing(true);
-              setFilters(nextFilters);
-              setPage(1);
-            }}
-          />
+          <ListPageStatsSection className={cn(!showStats && "hidden sm:block")}>
+            <PaymentSummaryStatsCards stats={stats} isLoading={isStatsLoading} />
+          </ListPageStatsSection>
+          {isLoading ? (
+            <ListPageToolbarSkeleton />
+          ) : (
+            <PaymentListToolbar
+              search={search}
+              filters={filters}
+              isLoading={isRefreshing}
+              onSearchChange={setSearch}
+              onSearchSubmit={handleSearchSubmit}
+              onClearSearch={handleClearSearch}
+              onFiltersApply={(nextFilters) => {
+                setIsRefreshing(true);
+                setFilters(nextFilters);
+                setPage(1);
+              }}
+            />
+          )}
         </ListPageDataSectionsStack>
       ) : null}
 
-      <ListPageTableSection>
-        {error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-6 text-sm text-red-700">
-            {error}
-          </div>
-        ) : payments.length === 0 ? (
+      <InventoryListPageContent
+        isLoading={isLoading}
+        loadingMessage="Loading payments..."
+        loadingFallback={
+          <InventoryListTableSkeleton columns={[...PAYMENT_TABLE_SKELETON_COLUMNS]} />
+        }
+        error={error}
+        onRetry={() => void reloadPayments()}
+        errorTitle="Could not load payments"
+        hasNoRecords={hasNoRecords}
+        emptyState={
           <div className="rounded-xl border border-dashed border-brand-border bg-white px-6 py-14 text-center">
             <p className="text-sm font-medium text-brand-navy">No payments found</p>
             <p className="mt-2 text-sm text-brand-muted">
-              {hasActiveQuery
-                ? "Try adjusting your search or filters."
-                : "Payments will appear here once they are recorded against invoices."}
+              Payments will appear here once they are recorded against invoices.
             </p>
           </div>
-        ) : (
-          <>
-            <PaymentsTable
-              payments={payments}
-              onRowClick={(payment) => router.push(ROUTES.paymentDetail(payment.id))}
-            />
-            <PaymentsPagination
-              page={page}
-              pageSize={DEFAULT_PAGE_SIZE}
-              totalCount={totalCount}
-              onPageChange={(nextPage) => {
-                setIsRefreshing(true);
-                setPage(nextPage);
-              }}
-            />
-          </>
-        )}
-      </ListPageTableSection>
+        }
+        isFilteredEmpty={isFilteredEmpty}
+        filteredEmptyTitle="No matching payments"
+      >
+        <>
+          <PaymentsTable
+            payments={payments}
+            onRowClick={(payment) => router.push(ROUTES.paymentDetail(payment.id))}
+          />
+          <ListPagePagination
+            page={page}
+            pageSize={DEFAULT_PAGE_SIZE}
+            totalCount={totalCount}
+            hasNext={hasNext}
+            hasPrevious={hasPrevious}
+            isLoading={isRefreshing}
+            onPageChange={(nextPage) => {
+              setIsRefreshing(true);
+              setPage(nextPage);
+            }}
+          />
+        </>
+      </InventoryListPageContent>
 
       <RecordOpeningBalancePaymentDialog
         customer={selectedCustomer}

@@ -69,7 +69,6 @@ export type TherapyVisitListResponse = {
     next: string | null;
     previous: string | null;
   } | null;
-  stats: TherapyVisitQueueStats;
 };
 
 export type TherapyTreatmentPlan = {

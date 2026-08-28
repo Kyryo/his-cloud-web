@@ -62,6 +62,7 @@ export type Invoice = {
   can_initiate_claim?: boolean;
   claim_status?: string | null;
   claim_payer_code?: string | null;
+  payer_integration_configured?: boolean;
   can_cancel?: boolean;
   cancel_block_reason?: string | null;
   service_provider_code?: string | null;
@@ -81,6 +82,18 @@ export type InvoiceListFilters = {
   dateTo?: string;
   customerId?: number;
   paymentStatus?: string;
+};
+
+export type InvoiceCountAmountBucket = {
+  count: number;
+  total: string | number;
+};
+
+export type InvoiceSummaryStats = {
+  all: InvoiceCountAmountBucket;
+  paid: InvoiceCountAmountBucket;
+  not_paid: InvoiceCountAmountBucket;
+  partially_paid: InvoiceCountAmountBucket;
 };
 
 export type InvoiceListResponse = PaginatedListResponse<Invoice>;

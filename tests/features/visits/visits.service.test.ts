@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { updateVisitPaymentMode } from "@/features/visits/services/visits.service";
+import { fetchVisits, updateVisitPaymentMode } from "@/features/visits/services/visits.service";
 import { bffRequest } from "@/lib/bff-client";
 
 vi.mock("@/lib/bff-client", () => ({
@@ -28,6 +28,24 @@ describe("visits.service", () => {
           insurance_scheme: "00000000-0000-0000-0000-000000000001",
         },
       },
+    );
+  });
+
+  it("forwards clinicUuid as clinic_uuid on the visits list query", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({
+      results: [],
+      pagination: null,
+    });
+
+    await fetchVisits({
+      page: 1,
+      clinicUuid: "clinic-uuid",
+      status: "active",
+      isActive: true,
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      "/api/visits?page=1&status=active&is_active=true&clinic_uuid=clinic-uuid",
     );
   });
 });

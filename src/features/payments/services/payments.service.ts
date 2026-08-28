@@ -3,6 +3,7 @@ import type {
   Payment,
   PaymentListFilters,
   PaymentListResponse,
+  PaymentSummaryStats,
   CreatePaymentPayload,
   SendPaymentReceiptPayload,
   UpdatePaymentPayload,
@@ -49,6 +50,15 @@ export async function fetchPayments(
 ): Promise<PaymentListResponse> {
   return bffRequest<PaymentListResponse>(
     `${BFF_PAYMENTS_ROUTES.list}${buildPaymentsQuery(filters)}`,
+  );
+}
+
+export async function fetchPaymentSummaryStats(
+  filters: PaymentListFilters = {},
+): Promise<PaymentSummaryStats> {
+  const { page: _page, pageSize: _pageSize, ...statsFilters } = filters;
+  return bffRequest<PaymentSummaryStats>(
+    `${BFF_PAYMENTS_ROUTES.summaryStats}${buildPaymentsQuery(statsFilters)}`,
   );
 }
 

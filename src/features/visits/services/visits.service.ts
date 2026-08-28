@@ -12,6 +12,7 @@ import type {
   VisitDetail,
   VisitEncounter,
   VisitEncounterCreatePayload,
+  VisitQueueSummary,
 } from "@/features/visits/types/visit.types";
 import { bffRequest } from "@/lib/bff-client";
 import type { PaginatedListResponse } from "@/types/api.types";
@@ -44,11 +45,33 @@ export async function fetchVisits(
   if (options?.clinic) {
     params.set("clinic", options.clinic);
   }
+  if (options?.clinicUuid) {
+    params.set("clinic_uuid", options.clinicUuid);
+  }
 
   const suffix = params.toString();
   const path = suffix ? `${BFF_VISITS_ROUTES.list}?${suffix}` : BFF_VISITS_ROUTES.list;
 
   return bffRequest<PaginatedListResponse<VisitDetail>>(path);
+}
+
+export async function fetchVisitQueueSummary(options?: {
+  clinicUuid?: string;
+  departmentUuid?: string;
+}): Promise<VisitQueueSummary> {
+  const params = new URLSearchParams();
+  if (options?.clinicUuid) {
+    params.set("clinic_uuid", options.clinicUuid);
+  }
+  if (options?.departmentUuid) {
+    params.set("department_uuid", options.departmentUuid);
+  }
+  const suffix = params.toString();
+  const path = suffix
+    ? `${BFF_VISITS_ROUTES.queueSummary}?${suffix}`
+    : BFF_VISITS_ROUTES.queueSummary;
+
+  return bffRequest<VisitQueueSummary>(path);
 }
 
 export async function fetchCustomerVisits(

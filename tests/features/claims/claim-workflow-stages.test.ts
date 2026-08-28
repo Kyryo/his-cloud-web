@@ -123,6 +123,106 @@ describe("getClaimWorkflowStageStates", () => {
     });
   });
 
+  it("does not block advisory or queue for IQ notes", () => {
+    const stages = getClaimWorkflowStageStates(
+      requirements(true),
+      draftClaim({
+        has_blocking_advisories: false,
+        latest_advisor_evaluation: {
+          id: 1,
+          public_id: "e1",
+          claim: 1,
+          status: "completed",
+          selected_validation_codes: ["TEST_AI_REVIEW_TRIGGER"],
+          deterministic_findings: [],
+          ai_findings: [
+            {
+              code: "AI_NECESSITY",
+              name: "Weak indication",
+              severity: "warning",
+              category: "medical_necessity",
+              message: "Procedure is not supported.",
+            },
+          ],
+          deterministic_count: 0,
+          ai_count: 1,
+          evaluated_by: null,
+          created_at: "2026-01-01T00:00:00Z",
+        },
+      }),
+    );
+    expect(stages[1]).toMatchObject({
+      id: "advisory",
+      status: "completed",
+      summary: "No rule findings · 1 IQ note",
+    });
+    expect(stages[2]).toMatchObject({
+      id: "queue",
+      status: "current",
+    });
+  });
+
+  it("marks advisory current while IQ review is pending", () => {
+    const stages = getClaimWorkflowStageStates(
+      requirements(true),
+      draftClaim({
+        latest_advisor_evaluation: {
+          id: 1,
+          public_id: "e1",
+          claim: 1,
+          status: "pending_ai",
+          selected_validation_codes: [],
+          deterministic_findings: [],
+          ai_findings: [],
+          deterministic_count: 0,
+          ai_count: 0,
+          evaluated_by: null,
+          created_at: "2026-01-01T00:00:00Z",
+        },
+      }),
+    );
+    expect(stages[1]).toMatchObject({
+      id: "advisory",
+      status: "current",
+      summary: "IQ review in progress",
+    });
+  });
+
+  it("marks advisory current while advisories are processing", () => {
+    const stages = getClaimWorkflowStageStates(
+      requirements(true),
+      draftClaim({
+        advisory_status: "pending",
+        latest_advisor_evaluation: null,
+      }),
+    );
+    expect(stages[1]).toMatchObject({
+      id: "advisory",
+      status: "current",
+      summary: "Advisories processing",
+    });
+    expect(stages[2]).toMatchObject({
+      id: "queue",
+      status: "pending",
+    });
+  });
+
+  it("marks advisory blocked when the advisory job failed", () => {
+    const stages = getClaimWorkflowStageStates(
+      requirements(true),
+      draftClaim({
+        advisory_status: "failed",
+        latest_advisor_evaluation: null,
+      }),
+    );
+    expect(stages[1]).toMatchObject({
+      id: "advisory",
+      status: "blocked",
+      summary: "Needs attention",
+    });
+    expect(stages[2].status).toBe("pending");
+  });
+
   it("marks payer response current after submission while awaiting", () => {
     const stages = getClaimWorkflowStageStates(
       requirements(true),

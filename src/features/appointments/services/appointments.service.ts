@@ -2,6 +2,7 @@ import { BFF_APPOINTMENTS_ROUTES } from "@/constants/api";
 import type {
   Appointment,
   AppointmentAction,
+  AppointmentSummaryStats,
   CareProvider,
   CreateAppointmentPayload,
   FetchAppointmentsOptions,
@@ -67,6 +68,10 @@ export async function fetchAppointments(
     : BFF_APPOINTMENTS_ROUTES.list;
 
   return bffRequest<PaginatedListResponse<Appointment>>(path);
+}
+
+export async function fetchAppointmentSummaryStats(): Promise<AppointmentSummaryStats> {
+  return bffRequest<AppointmentSummaryStats>(BFF_APPOINTMENTS_ROUTES.summaryStats);
 }
 
 export async function fetchMyClinicianAppointments(

@@ -29,6 +29,8 @@ const columns = [
   { key: "total", label: "Total" },
 ] as const;
 
+export const INVOICE_TABLE_SKELETON_COLUMNS = columns;
+
 export function InvoicesTable({ invoices, onRowClick, className }: InvoicesTableProps) {
   return (
     <div className={cn("overflow-hidden rounded-xl border border-brand-border bg-white", className)}>

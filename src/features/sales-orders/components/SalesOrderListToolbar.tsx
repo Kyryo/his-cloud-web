@@ -1,13 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  ListPageToolbarActions,
-  ListPageToolbarFilters,
-  ListPageToolbarSearch,
-  ListPageToolbarSection,
-} from "@/features/app-shell/components/page-layout";
+import { ListPageSearchToolbar } from "@/features/app-shell/components/page-layout";
 import { SalesOrderFiltersSheet } from "@/features/sales-orders/components/SalesOrderFiltersSheet";
 import type { SalesOrderListFilterState } from "@/features/sales-orders/utils/sales-order-list-filters";
 
@@ -31,54 +24,24 @@ export function SalesOrderListToolbar({
   onFiltersApply,
 }: SalesOrderListToolbarProps) {
   return (
-    <ListPageToolbarSection>
-      <ListPageToolbarSearch>
-        <Input
-          id="sales-order-search"
-          type="search"
-          placeholder="Search by order number, client, provider, or reference..."
-          value={search}
-          disabled={isLoading}
-          className="w-full sm:max-w-md"
-          onChange={(event) => onSearchChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              onSearchSubmit();
-            }
-          }}
-          data-testid="sales-orders-search"
-        />
-
-        <ListPageToolbarActions>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={isLoading}
-            onClick={onSearchSubmit}
-            data-testid="sales-orders-search-submit"
-          >
-            Search
-          </Button>
-          {search ? (
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isLoading}
-              onClick={onClearSearch}
-            >
-              Clear
-            </Button>
-          ) : null}
-        </ListPageToolbarActions>
-      </ListPageToolbarSearch>
-
-      <ListPageToolbarFilters>
+    <ListPageSearchToolbar
+      search={search}
+      searchId="sales-order-search"
+      placeholder="Search by order number, client, provider, or reference..."
+      searchTestId="sales-orders-search"
+      searchSubmitTestId="sales-orders-search-submit"
+      clearTestId="sales-orders-search-clear"
+      isLoading={isLoading}
+      onSearchChange={onSearchChange}
+      onSearchSubmit={onSearchSubmit}
+      onClearSearch={onClearSearch}
+      filter={
         <SalesOrderFiltersSheet
           filters={filters}
           isLoading={isLoading}
           onApply={onFiltersApply}
         />
-      </ListPageToolbarFilters>
-    </ListPageToolbarSection>
+      }
+    />
   );
 }

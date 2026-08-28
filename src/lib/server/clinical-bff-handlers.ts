@@ -14,6 +14,28 @@ async function resolveAuth(mode: AuthMode) {
   return requireAccessToken();
 }
 
+export async function handleClinicalObjectGet<T>(
+  request: Request,
+  upstreamPath: string,
+  queryKeys: readonly string[] = [],
+  mode: AuthMode = "user",
+) {
+  try {
+    const auth = await resolveAuth(mode);
+    if ("error" in auth) {
+      return auth.error;
+    }
+
+    const query = buildForwardedQuery(request, queryKeys);
+    const data = await hmisApiRequest<T>(`${upstreamPath}${query}`, {
+      token: auth.accessToken,
+    });
+    return bffSuccess(data);
+  } catch (error) {
+    return bffError(error);
+  }
+}
+
 export async function handleClinicalListGet<T>(
   request: Request,
   upstreamPath: string,

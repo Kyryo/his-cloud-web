@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import { AppIcon, type AppIconName } from "@/components/icons/app-icon";
+import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 
 export type StatsCard1Tone = "teal" | "sky" | "violet" | "rose" | "amber" | "navy";
@@ -21,6 +22,7 @@ export type StatsCard1Props = {
   changeLabel?: string;
   icon?: AppIconName;
   tone?: StatsCard1Tone;
+  isLoading?: boolean;
   className?: string;
 };
 
@@ -31,9 +33,10 @@ export function StatsCard1({
   changeLabel,
   icon,
   tone = "teal",
+  isLoading = false,
   className,
 }: StatsCard1Props) {
-  const showTrend = change !== undefined && changeLabel;
+  const showTrend = !isLoading && change !== undefined && changeLabel;
 
   return (
     <div
@@ -41,6 +44,7 @@ export function StatsCard1({
         "flex w-full items-start gap-3 rounded-xl border border-dash-border bg-dash-panel px-4 py-3.5 shadow-[0_1px_2px_rgb(15_23_42/0.03)]",
         className,
       )}
+      aria-busy={isLoading || undefined}
     >
       {icon ? (
         <div
@@ -55,7 +59,7 @@ export function StatsCard1({
       <div className="min-w-0 flex-1">
         <p className="text-xs font-medium text-dash-muted">{title}</p>
         <div className="mt-0.5 text-2xl font-semibold tabular-nums leading-tight text-brand-navy">
-          {value}
+          {isLoading ? <Skeleton className="mt-1 h-7 w-16" /> : value}
         </div>
         {showTrend ? (
           <p className="mt-0.5 text-xs text-dash-muted">
@@ -74,11 +78,19 @@ export function StatsCard1({
 type StatsCard1GridProps = {
   children: ReactNode;
   className?: string;
+  "data-testid"?: string;
 };
 
-export function StatsCard1Grid({ children, className }: StatsCard1GridProps) {
+export function StatsCard1Grid({
+  children,
+  className,
+  "data-testid": dataTestId,
+}: StatsCard1GridProps) {
   return (
-    <div className={cn("grid gap-3 sm:grid-cols-2 xl:grid-cols-4", className)}>
+    <div
+      className={cn("grid gap-3 sm:grid-cols-2 xl:grid-cols-4", className)}
+      data-testid={dataTestId}
+    >
       {children}
     </div>
   );

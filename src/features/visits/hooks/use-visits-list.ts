@@ -16,12 +16,14 @@ type UseVisitsListOptions<T> = {
   fetchFn: (filters: FetchVisitsOptions) => Promise<PaginatedListResponse<T>>;
   pageSize?: number;
   extraFilters?: Omit<FetchVisitsOptions, "page" | "pageSize" | "search">;
+  hasActiveFilters?: boolean;
 };
 
 export function useVisitsList<T>({
   fetchFn,
   pageSize = DEFAULT_PAGE_SIZE,
   extraFilters,
+  hasActiveFilters = false,
 }: UseVisitsListOptions<T>) {
   const resolvedExtraFilters = extraFilters ?? EMPTY_EXTRA_FILTERS;
   const [items, setItems] = useState<T[]>([]);
@@ -117,9 +119,13 @@ export function useVisitsList<T>({
     isUnauthorized,
     hasNext,
     hasPrevious,
-    hasNoRecords: !isLoading && !error && items.length === 0 && !activeSearch,
+    hasNoRecords:
+      !isLoading && !error && items.length === 0 && !activeSearch && !hasActiveFilters,
     isFilteredEmpty:
-      !isLoading && !error && items.length === 0 && Boolean(activeSearch),
+      !isLoading &&
+      !error &&
+      items.length === 0 &&
+      (Boolean(activeSearch) || hasActiveFilters),
     setSearch,
     handleSearchSubmit: () => {
       setPage(1);
@@ -132,5 +138,6 @@ export function useVisitsList<T>({
     },
     reload,
     handlePageChange: (nextPage: number) => setPage(nextPage),
+    resetPage: () => setPage(1),
   };
 }

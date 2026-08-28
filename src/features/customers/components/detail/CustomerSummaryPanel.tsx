@@ -70,6 +70,10 @@ export function CustomerSummaryPanel({
           value={customer.customer_identifier}
         />
         <DetailPageAsideSummaryField
+          label="Internal reference"
+          value={customer.internal_reference || "—"}
+        />
+        <DetailPageAsideSummaryField
           label="Phone"
           value={customer.phone_number ?? "—"}
         />

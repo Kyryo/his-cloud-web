@@ -1,5 +1,10 @@
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
 import { isClaimSubmitBlockedByAdvisories } from "@/features/claims/components/ClaimAdvisoriesPanel";
+import { asAdvisorFindings } from "@/features/claims/utils/advisor-findings";
+import {
+  isClaimAdvisoryProcessing,
+  resolveClaimAdvisoryStatus,
+} from "@/features/claims/utils/claim-advisory-status";
 import {
   getBlockingRequirementItems,
   type InvoiceClaimReadinessItem,
@@ -65,6 +70,8 @@ function advisoryState(claim: ClaimDetail | null): ClaimWorkflowStageState {
 
   const evaluation = claim.latest_advisor_evaluation ?? null;
   const findings = evaluation?.deterministic_findings ?? [];
+  const iqCount =
+    evaluation?.ai_count ?? asAdvisorFindings(evaluation?.ai_findings).length;
   const blocked = isClaimSubmitBlockedByAdvisories(claim);
   const hasOverride = Boolean(claim.has_advisory_override);
   const statusLower = String(claim.status).toLowerCase();
@@ -77,6 +84,22 @@ function advisoryState(claim: ClaimDetail | null): ClaimWorkflowStageState {
     };
   }
 
+  const advisoryStatus = resolveClaimAdvisoryStatus(claim);
+  if (advisoryStatus === "pending" || advisoryStatus === "processing") {
+    return {
+      id: "advisory",
+      status: "current",
+      summary: "Advisories processing",
+    };
+  }
+  if (advisoryStatus === "failed") {
+    return {
+      id: "advisory",
+      status: "blocked",
+      summary: "Needs attention",
+    };
+  }
+
   if (!evaluation) {
     return {
       id: "advisory",
@@ -85,17 +108,19 @@ function advisoryState(claim: ClaimDetail | null): ClaimWorkflowStageState {
     };
   }
 
+  if (evaluation.status === "pending_ai" && !blocked) {
+    return {
+      id: "advisory",
+      status: "current",
+      summary: "IQ review in progress",
+    };
+  }
+
   if (blocked) {
-    const rejectionCount = findings.filter(
-      (finding) => finding.severity === "rejection_risk",
-    ).length;
     return {
       id: "advisory",
       status: "blocked",
-      summary:
-        rejectionCount > 0
-          ? `${rejectionCount} rejection-risk finding${rejectionCount === 1 ? "" : "s"} must be resolved`
-          : "Blocking findings must be resolved or overridden",
+      summary: "Needs attention",
     };
   }
 
@@ -111,7 +136,10 @@ function advisoryState(claim: ClaimDetail | null): ClaimWorkflowStageState {
     return {
       id: "advisory",
       status: "completed",
-      summary: "No advisory findings",
+      summary:
+        iqCount > 0
+          ? `No rule findings · ${iqCount} IQ note${iqCount === 1 ? "" : "s"}`
+          : "No advisory findings",
     };
   }
 
@@ -164,6 +192,22 @@ function queueState(claim: ClaimDetail | null): ClaimWorkflowStageState {
       id: "queue",
       status: "failed",
       summary: "Claim was cancelled",
+    };
+  }
+
+  if (isClaimAdvisoryProcessing(claim)) {
+    return {
+      id: "queue",
+      status: "pending",
+      summary: "Waiting for advisories",
+    };
+  }
+
+  if (resolveClaimAdvisoryStatus(claim) === "failed") {
+    return {
+      id: "queue",
+      status: "pending",
+      summary: "Needs attention",
     };
   }
 

@@ -249,6 +249,25 @@ export function CustomerFormFields({
           )}
         />
       </div>
+
+      <FormField
+        control={form.control}
+        name="internal_reference"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Internal reference</FormLabel>
+            <FormControl>
+              <Input
+                disabled={disabled}
+                maxLength={255}
+                data-testid={`${idPrefix}-internal-reference`}
+                {...field}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </>
   );
 }

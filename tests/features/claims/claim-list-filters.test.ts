@@ -15,13 +15,14 @@ describe("claim-list-filters", () => {
         search: "  MEM-100  ",
         page: 2,
         pageSize: 20,
-        filters: { status: "draft" },
+        filters: { status: "draft", attention: "ready" },
       }),
     ).toEqual({
       page: 2,
       pageSize: 20,
       search: "MEM-100",
       status: "draft",
+      attention: "ready",
     });
   });
 
@@ -41,7 +42,10 @@ describe("claim-list-filters", () => {
 
   it("counts active status filters", () => {
     expect(countActiveClaimFilters(DEFAULT_CLAIM_LIST_FILTERS)).toBe(0);
-    expect(countActiveClaimFilters({ status: "submitted" })).toBe(1);
+    expect(countActiveClaimFilters({ status: "submitted", attention: "all" })).toBe(1);
+    expect(
+      countActiveClaimFilters({ status: "draft", attention: "ready" }),
+    ).toBe(2);
   });
 });
 

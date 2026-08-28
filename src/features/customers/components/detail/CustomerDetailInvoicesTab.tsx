@@ -1,17 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Receipt } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
+import { ListPagePagination } from "@/features/app-shell/components/page-layout";
 import { CustomerInvoicePaymentStatsCards } from "@/features/customers/components/detail/CustomerInvoicePaymentStatsCards";
-import {
-  CustomerDetailRecordList,
-  CustomerDetailRecordListItem,
-} from "@/features/customers/components/detail/CustomerDetailRecordList";
 import { CustomerDetailTabEmptyState } from "@/features/customers/components/detail/CustomerDetailTabEmptyState";
+import { CustomerInvoicesTable } from "@/features/customers/components/detail/CustomerInvoicesTable";
 import { CustomerTabSkeleton } from "@/features/customers/components/detail/CustomerTabSkeleton";
 import { fetchCustomerInvoices } from "@/features/customers/services/customer-billing.service";
 import type {
@@ -19,10 +17,7 @@ import type {
   CustomerInvoicesStats,
 } from "@/features/customers/types/customer-billing.types";
 import type { Customer } from "@/features/customers/types/customer.types";
-import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
-import { InvoiceStatusBadge } from "@/features/invoices/components/InvoiceStatusBadge";
-import { formatInvoiceAmount } from "@/features/invoices/utils/format-invoice";
-import type { InvoiceState } from "@/features/invoices/types/invoice.types";
+import { pageOffset } from "@/features/customers/utils/paginate-items";
 
 const INVOICES_PAGE_SIZE = 20;
 
@@ -40,53 +35,53 @@ export function CustomerDetailInvoicesTab({
   const [invoicesStats, setInvoicesStats] = useState<CustomerInvoicesStats | null>(
     null,
   );
+  const [totalCount, setTotalCount] = useState(0);
   const [hasNext, setHasNext] = useState(false);
-  const [offset, setOffset] = useState(0);
+  const [hasPrevious, setHasPrevious] = useState(false);
+  const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
+  const hasLoadedRef = useRef(false);
 
-  const loadInvoices = useCallback(
-    async (nextOffset = 0, append = false) => {
-      if (append) {
-        setIsLoadingMore(true);
-      } else {
-        setIsLoading(true);
-      }
-      setLoadError(null);
+  const loadInvoices = useCallback(async (nextPage: number) => {
+    if (hasLoadedRef.current) {
+      setIsRefreshing(true);
+    } else {
+      setIsLoading(true);
+    }
+    setLoadError(null);
 
-      try {
-        const response = await fetchCustomerInvoices(customer.uuid, {
-          limit: INVOICES_PAGE_SIZE,
-          offset: nextOffset,
-        });
+    try {
+      const response = await fetchCustomerInvoices(customer.uuid, {
+        limit: INVOICES_PAGE_SIZE,
+        offset: pageOffset(nextPage, INVOICES_PAGE_SIZE),
+      });
 
-        setInvoices((current) =>
-          append ? [...current, ...response.invoices] : response.invoices,
-        );
-        setInvoicesStats(response.invoicesStats);
-        setHasNext(response.pagination.has_next);
-        setOffset(nextOffset);
-        setHasLoaded(true);
-      } catch (error) {
-        setLoadError(
-          error instanceof Error ? error.message : "Failed to load invoices.",
-        );
-      } finally {
-        setIsLoading(false);
-        setIsLoadingMore(false);
-      }
-    },
-    [customer.uuid],
-  );
+      setInvoices(response.invoices);
+      setInvoicesStats(response.invoicesStats);
+      setTotalCount(response.pagination.count);
+      setHasNext(response.pagination.has_next);
+      setHasPrevious(response.pagination.has_previous ?? nextPage > 1);
+      hasLoadedRef.current = true;
+      setHasLoaded(true);
+    } catch (error) {
+      setLoadError(
+        error instanceof Error ? error.message : "Failed to load invoices.",
+      );
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  }, [customer.uuid]);
 
   useEffect(() => {
-    if (!isActive || hasLoaded) {
+    if (!isActive) {
       return;
     }
-    void loadInvoices(0, false);
-  }, [hasLoaded, isActive, loadInvoices]);
+    void loadInvoices(page);
+  }, [isActive, loadInvoices, page]);
 
   if (!isActive) {
     return null;
@@ -102,7 +97,7 @@ export function CustomerDetailInvoicesTab({
         <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-6 text-sm text-red-700">
           {loadError}
         </div>
-        <Button type="button" variant="outline" onClick={() => void loadInvoices(0, false)}>
+        <Button type="button" variant="outline" onClick={() => void loadInvoices(1)}>
           Try again
         </Button>
       </div>
@@ -113,7 +108,7 @@ export function CustomerDetailInvoicesTab({
     <div className="space-y-4" data-testid="customer-detail-invoices-tab">
       <CustomerInvoicePaymentStatsCards stats={invoicesStats} />
 
-      {invoices.length === 0 ? (
+      {totalCount === 0 ? (
         <CustomerDetailTabEmptyState
           icon={Receipt}
           title="No invoices yet"
@@ -121,38 +116,21 @@ export function CustomerDetailInvoicesTab({
           data-testid="customer-invoices-empty-state"
         />
       ) : (
-        <CustomerDetailRecordList
-          title="Invoices"
-          description="Posted invoices linked to this client."
-          data-testid="customer-invoices-list"
-          footer={
-            hasNext ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={isLoadingMore}
-                onClick={() => void loadInvoices(offset + INVOICES_PAGE_SIZE, true)}
-              >
-                {isLoadingMore ? "Loading..." : "Load more"}
-              </Button>
-            ) : null
-          }
-        >
-          {invoices.map((invoice) => (
-            <CustomerDetailRecordListItem
-              key={invoice.id}
-              compact
-              title={invoice.name}
-              badges={<InvoiceStatusBadge state={invoice.state as InvoiceState} />}
-              description={formatInvoiceAmount(invoice.amount_total)}
-              dateTime={formatDisplayDateTime(invoice.invoice_date)}
-              onUpdate={() => router.push(ROUTES.invoiceDetail(invoice.id))}
-              updateLabel="View invoice"
-              data-testid={`customer-invoice-${invoice.id}`}
-            />
-          ))}
-        </CustomerDetailRecordList>
+        <>
+          <CustomerInvoicesTable
+            invoices={invoices}
+            onRowClick={(invoice) => router.push(ROUTES.invoiceDetail(invoice.id))}
+          />
+          <ListPagePagination
+            page={page}
+            pageSize={INVOICES_PAGE_SIZE}
+            totalCount={totalCount}
+            hasNext={hasNext}
+            hasPrevious={hasPrevious}
+            isLoading={isRefreshing}
+            onPageChange={setPage}
+          />
+        </>
       )}
     </div>
   );

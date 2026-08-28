@@ -16,6 +16,8 @@ export type ClaimRequirementsCardProps = {
   footerActions?: ReactNode;
   onAddDiagnosis?: () => void;
   className?: string;
+  /** "plain" drops the outer card chrome for nested surfaces such as dialogs. */
+  variant?: "card" | "plain";
 };
 
 /**
@@ -26,6 +28,7 @@ export function ClaimRequirementsCard({
   footerActions,
   onAddDiagnosis,
   className,
+  variant = "card",
 }: ClaimRequirementsCardProps) {
   const [detailsOpen, setDetailsOpen] = useState(true);
   const blockingItems = getBlockingRequirementItems(items);
@@ -35,81 +38,94 @@ export function ClaimRequirementsCard({
   const openWarnings = items.filter(
     (item) => item.blocksProgress === false && !item.met,
   );
+  const isPlain = variant === "plain";
+  const showDetails = isPlain || detailsOpen;
+
+  const statusSummary = (
+    <div className="min-w-0 flex flex-wrap items-center gap-2">
+      {allClear ? (
+        <>
+          <CheckCircle2
+            className="size-4 shrink-0 text-emerald-600"
+            aria-hidden="true"
+          />
+          <span className="text-sm font-medium text-emerald-800">
+            All requirements met
+          </span>
+          {openWarnings.length > 0 ? (
+            <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">
+              <span className="size-1.5 rounded-full bg-amber-500" aria-hidden="true" />
+              {openWarnings.length} warning
+              {openWarnings.length === 1 ? "" : "s"}
+            </span>
+          ) : null}
+        </>
+      ) : (
+        <>
+          <span className="text-sm font-medium text-brand-navy">
+            {unmetBlocking.length} remaining
+          </span>
+          <span className="hidden text-brand-border sm:inline" aria-hidden="true">
+            ·
+          </span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">
+              <span className="size-1.5 rounded-full bg-amber-500" aria-hidden="true" />
+              {unmetBlocking.length} open
+            </span>
+            <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800">
+              <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+              {metBlockingCount} met
+            </span>
+          </div>
+        </>
+      )}
+    </div>
+  );
 
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-xl border border-brand-border bg-white",
+        "overflow-hidden",
+        variant === "card" && "rounded-xl border border-brand-border bg-white",
         className,
       )}
       data-testid="claim-requirements-card"
     >
-      <div className="flex items-center justify-between gap-3 px-4 py-3">
-        <div className="min-w-0 flex flex-wrap items-center gap-2">
-          {allClear ? (
-            <>
-              <CheckCircle2
-                className="size-4 shrink-0 text-emerald-600"
-                aria-hidden="true"
-              />
-              <span className="text-sm font-medium text-emerald-800">
-                All requirements met
-              </span>
-              {openWarnings.length > 0 ? (
-                <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">
-                  <span className="size-1.5 rounded-full bg-amber-500" aria-hidden="true" />
-                  {openWarnings.length} warning
-                  {openWarnings.length === 1 ? "" : "s"}
-                </span>
-              ) : null}
-            </>
-          ) : (
-            <>
-              <span className="text-sm font-medium text-brand-navy">
-                {unmetBlocking.length} remaining
-              </span>
-              <span className="hidden text-brand-border sm:inline" aria-hidden="true">
-                ·
-              </span>
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-800">
-                  <span className="size-1.5 rounded-full bg-amber-500" aria-hidden="true" />
-                  {unmetBlocking.length} open
-                </span>
-                <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800">
-                  <span className="size-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
-                  {metBlockingCount} met
-                </span>
-              </div>
-            </>
-          )}
+      {isPlain ? (
+        <div className="pb-3">{statusSummary}</div>
+      ) : (
+        <div className="flex items-center justify-between gap-3 px-4 py-3">
+          {statusSummary}
+          <button
+            type="button"
+            onClick={() => setDetailsOpen((open) => !open)}
+            className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-brand-muted hover:text-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/25"
+            aria-expanded={detailsOpen}
+          >
+            {detailsOpen ? "Hide" : "Show"}
+            <ChevronDown
+              className={cn(
+                "size-3.5 transition-transform",
+                detailsOpen && "rotate-180",
+              )}
+              aria-hidden="true"
+            />
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={() => setDetailsOpen((open) => !open)}
-          className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-brand-muted hover:text-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/25"
-          aria-expanded={detailsOpen}
-        >
-          {detailsOpen ? "Hide" : "Show"}
-          <ChevronDown
-            className={cn(
-              "size-3.5 transition-transform",
-              detailsOpen && "rotate-180",
-            )}
-            aria-hidden="true"
-          />
-        </button>
-      </div>
+      )}
 
-      {detailsOpen ? (
-        <div className="border-t border-brand-border">
+      {showDetails ? (
+        <div className={cn(!isPlain && "border-t border-brand-border")}>
           <ul
-            className="divide-y divide-brand-border"
+            className={cn(
+              "divide-y divide-brand-border",
+              isPlain && "border-y border-brand-border",
+            )}
             data-testid="claim-workflow-requirements-list"
           >
             {items.map((item) => {
               const showAddDiagnosis =
-                !item.met &&
                 item.id === CLAIM_REQUIREMENT_DIAGNOSIS_ID &&
                 Boolean(onAddDiagnosis);
 
@@ -119,14 +135,21 @@ export function ClaimRequirementsCard({
                   className="flex items-stretch"
                   data-testid={`claim-requirement-${item.met ? "met" : "open"}`}
                 >
-                  <span
+                  {isPlain ? null : (
+                    <span
+                      className={cn(
+                        "w-1 shrink-0",
+                        item.met ? "bg-emerald-500" : "bg-amber-500",
+                      )}
+                      aria-hidden="true"
+                    />
+                  )}
+                  <div
                     className={cn(
-                      "w-1 shrink-0",
-                      item.met ? "bg-emerald-500" : "bg-amber-500",
+                      "flex min-w-0 flex-1 items-start gap-3 py-3",
+                      isPlain ? "px-0" : "px-4",
                     )}
-                    aria-hidden="true"
-                  />
-                  <div className="flex min-w-0 flex-1 items-start gap-3 px-4 py-3">
+                  >
                     {item.met ? (
                       <CheckCircle2
                         className="mt-0.5 size-4 shrink-0 text-emerald-600"
@@ -170,7 +193,12 @@ export function ClaimRequirementsCard({
       ) : null}
 
       {footerActions ? (
-        <div className="flex flex-wrap items-center justify-end gap-2 border-t border-brand-border bg-slate-50/60 px-4 py-3">
+        <div
+          className={cn(
+            "flex flex-wrap items-center justify-end gap-2",
+            isPlain ? "pt-4" : "border-t border-brand-border bg-slate-50/60 px-4 py-3",
+          )}
+        >
           {footerActions}
         </div>
       ) : null}

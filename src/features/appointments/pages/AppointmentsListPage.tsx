@@ -1,11 +1,15 @@
 "use client";
 
-import { CalendarClock } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { BarChart3, CalendarClock } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { FabButton } from "@/components/ui/fab-button";
 import {
   ListPageDataSectionsStack,
   ListPageLayout,
+  ListPagePagination,
+  ListPageStatsSection,
+  ListPageToolbarSkeleton,
 } from "@/features/app-shell/components/page-layout";
 import { AppointmentClinicEmptyState } from "@/features/appointments/components/AppointmentClinicEmptyState";
 import {
@@ -13,6 +17,7 @@ import {
   type AppointmentTableAction,
 } from "@/features/appointments/components/AppointmentActionConfirmDialog";
 import { AppointmentDetailDialog } from "@/features/appointments/components/AppointmentDetailDialog";
+import { AppointmentSummaryStatsCards } from "@/features/appointments/components/AppointmentSummaryStatsCards";
 import {
   AppointmentsDayPanel,
   type AppointmentCreateSchedulePrefill,
@@ -22,16 +27,23 @@ import { AppointmentsMonthCalendar } from "@/features/appointments/components/Ap
 import type { AppointmentsViewMode } from "@/features/appointments/components/AppointmentsViewToggle";
 import { CreateAppointmentDialog } from "@/features/appointments/components/CreateAppointmentDialog";
 import { StartVisitFromAppointmentDialog } from "@/features/appointments/components/StartVisitFromAppointmentDialog";
-import { AppointmentsTable } from "@/features/appointments/components/tables/appointments-table";
+import {
+  APPOINTMENT_TABLE_SKELETON_COLUMNS,
+  AppointmentsTable,
+} from "@/features/appointments/components/tables/appointments-table";
 import { useAppointmentsList } from "@/features/appointments/hooks/use-appointments-list";
 import { useAppointmentsRange } from "@/features/appointments/hooks/use-appointments-range";
 import { useUserAssociatedClinics } from "@/features/appointments/hooks/use-user-associated-clinics";
 import type { CreateAppointmentFormValues } from "@/features/appointments/schemas/appointment.schema";
 import {
+  fetchAppointmentSummaryStats,
   fetchAppointments,
   runAppointmentAction,
 } from "@/features/appointments/services/appointments.service";
-import type { Appointment } from "@/features/appointments/types/appointment.types";
+import type {
+  Appointment,
+  AppointmentSummaryStats,
+} from "@/features/appointments/types/appointment.types";
 import {
   countActiveAppointmentFilters,
   DEFAULT_APPOINTMENT_FILTERS,
@@ -41,7 +53,8 @@ import { InventoryListAccessDenied } from "@/features/inventory/components/list/
 import { InventoryListEmptyState } from "@/features/inventory/components/list/InventoryListEmptyState";
 import { InventoryListPageContent } from "@/features/inventory/components/list/InventoryListPageContent";
 import { InventoryListPageHeader } from "@/features/inventory/components/list/InventoryListPageHeader";
-import { InventoryListPagination } from "@/features/inventory/components/list/InventoryListTable";
+import { InventoryListTableSkeleton } from "@/features/inventory/components/list/InventoryListTable";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
 export function AppointmentsListPage() {
@@ -69,6 +82,9 @@ export function AppointmentsListPage() {
   const [visibleMonth, setVisibleMonth] = useState(() => new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [dayPanelOpen, setDayPanelOpen] = useState(false);
+  const [showStats, setShowStats] = useState(false);
+  const [stats, setStats] = useState<AppointmentSummaryStats | null>(null);
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
 
   const { primaryClinicUuid, hasAssignedClinic, clinics } = useUserAssociatedClinics();
   const calendarClinicUuid = filters.clinicUuid || primaryClinicUuid;
@@ -151,9 +167,45 @@ export function AppointmentsListPage() {
     enabled: viewMode === "calendar" && hasAssignedClinic,
   });
 
+  const reloadStats = useCallback(async () => {
+    try {
+      const summary = await fetchAppointmentSummaryStats();
+      setStats(summary);
+    } catch {
+      setStats(null);
+    } finally {
+      setIsStatsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const summary = await fetchAppointmentSummaryStats();
+        if (!cancelled) {
+          setStats(summary);
+        }
+      } catch {
+        if (!cancelled) {
+          setStats(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsStatsLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const reloadAll = useCallback(async () => {
-    await Promise.all([reloadList(), reloadCalendar()]);
-  }, [reloadCalendar, reloadList]);
+    await Promise.all([reloadList(), reloadCalendar(), reloadStats()]);
+  }, [reloadCalendar, reloadList, reloadStats]);
 
   const handleAction = async (
     appointment: Appointment,
@@ -233,7 +285,7 @@ export function AppointmentsListPage() {
 
   return (
     <>
-      <ListPageLayout className="space-y-4" data-testid="appointments-page">
+      <ListPageLayout data-testid="appointments-page">
         <InventoryListPageHeader
           title="Appointments"
           description="Scheduled visits across your clinics. Confirm, start visits, or manage cancellations."
@@ -244,26 +296,56 @@ export function AppointmentsListPage() {
           }}
         />
 
-        <ListPageDataSectionsStack className="space-y-2">
-          <AppointmentsListToolbar
-            search={search}
-            filters={filters}
-            viewMode={viewMode}
-            isLoading={activeRefreshing}
-            onSearchChange={setSearch}
-            onSearchSubmit={handleSearchSubmit}
-            onClearSearch={handleClearSearch}
-            onViewModeChange={setViewMode}
-            onFiltersApply={(nextFilters) => {
-              setFilters(nextFilters);
-              resetPage();
-            }}
+        {!hasNoRecords ? (
+          <FabButton
+            label={showStats ? "Hide stats" : "Show stats"}
+            icon={BarChart3}
+            variant="outline"
+            className="bottom-24 bg-white"
+            onClick={() => setShowStats((current) => !current)}
+            data-testid="appointments-show-stats-fab"
           />
-        </ListPageDataSectionsStack>
+        ) : null}
+
+        {!hasNoRecords ? (
+          <ListPageDataSectionsStack>
+            <ListPageStatsSection className={cn(!showStats && "hidden sm:block")}>
+              <AppointmentSummaryStatsCards
+                stats={stats}
+                isLoading={isStatsLoading}
+              />
+            </ListPageStatsSection>
+            {isLoading && isListView ? (
+              <ListPageToolbarSkeleton showViewToggle />
+            ) : (
+              <AppointmentsListToolbar
+                search={search}
+                filters={filters}
+                viewMode={viewMode}
+                isLoading={activeRefreshing}
+                onSearchChange={setSearch}
+                onSearchSubmit={handleSearchSubmit}
+                onClearSearch={handleClearSearch}
+                onViewModeChange={setViewMode}
+                onFiltersApply={(nextFilters) => {
+                  setFilters(nextFilters);
+                  resetPage();
+                }}
+              />
+            )}
+          </ListPageDataSectionsStack>
+        ) : null}
 
         <InventoryListPageContent
           isLoading={activeLoading}
           loadingMessage="Loading appointments..."
+          loadingFallback={
+            isListView ? (
+              <InventoryListTableSkeleton
+                columns={[...APPOINTMENT_TABLE_SKELETON_COLUMNS]}
+              />
+            ) : undefined
+          }
           error={activeError}
           onRetry={() => void reloadAll()}
           errorTitle="Could not load appointments"
@@ -285,7 +367,7 @@ export function AppointmentsListPage() {
           filteredEmptyTitle="No matching appointments"
         >
           {isListView ? (
-            <div className="space-y-2">
+            <>
               <AppointmentsTable
                 appointments={items}
                 actionUuid={actionUuid}
@@ -294,7 +376,7 @@ export function AppointmentsListPage() {
                   setPendingAction({ appointment, action })
                 }
               />
-              <InventoryListPagination
+              <ListPagePagination
                 page={page}
                 pageSize={pageSize}
                 totalCount={totalCount}
@@ -303,7 +385,7 @@ export function AppointmentsListPage() {
                 isLoading={isRefreshing}
                 onPageChange={handlePageChange}
               />
-            </div>
+            </>
           ) : !hasAssignedClinic ? (
             <AppointmentClinicEmptyState className="rounded-2xl border border-brand-border bg-white py-16" />
           ) : (

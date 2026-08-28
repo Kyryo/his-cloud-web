@@ -37,6 +37,33 @@ export const LANDING_CUSTOMERS = [
   { id: "harambee", name: "Harambee Health" },
 ] as const;
 
+export const LANDING_SOCIAL_PROOF_LOGOS = [
+  {
+    id: "masm-mediclinics",
+    name: "MASM MediClinics",
+    src: "/landing/social-proof-logos/masm.jpeg",
+    width: 220,
+    height: 64,
+    imageClassName: "h-8 max-w-[12rem] sm:h-9 sm:max-w-[13.5rem]",
+  },
+  {
+    id: "warm-hands",
+    name: "Warm Hands Children's Therapy & Wellness Center",
+    src: "/landing/social-proof-logos/warm_hands.png",
+    width: 180,
+    height: 120,
+    imageClassName: "h-[3.25rem] max-w-[7.25rem] sm:h-14 sm:max-w-[8rem]",
+  },
+  {
+    id: "dental-implant",
+    name: "Dental Implant",
+    src: "/landing/social-proof-logos/Dental-Implant.avif",
+    width: 180,
+    height: 80,
+    imageClassName: "h-11 max-w-[6.25rem] sm:h-12 sm:max-w-[6.75rem]",
+  },
+] as const;
+
 export const LANDING_LOGO_SRC = BRAND_LOGO_SRC;
 
 export type LandingAccent = "amber" | "teal" | "green";

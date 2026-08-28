@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import Image from "next/image";
 
 import { LANDING_CUSTOMERS } from "@/features/brand/constants/landing-tokens";
 
@@ -92,39 +91,6 @@ export function LandingCompanyMarks() {
     <ul className="grid grid-cols-2 gap-x-8 gap-y-7 sm:grid-cols-4 sm:gap-x-10 sm:gap-y-8">
       {LANDING_CUSTOMERS.map((company) => (
         <CompanyMarkItem key={company.id} company={company} />
-      ))}
-    </ul>
-  );
-}
-
-const HERO_LOGOS = [
-  {
-    id: "masm-mediclinics",
-    src: "https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=240&h=240&q=80",
-  },
-  {
-    id: "liberty",
-    src: "https://images.unsplash.com/photo-1587351021759-3e566b6af7cc?auto=format&fit=crop&w=240&h=240&q=80",
-  },
-  {
-    id: "medgulf",
-    src: "https://images.unsplash.com/photo-1538108149393-fbbd81895907?auto=format&fit=crop&w=240&h=240&q=80",
-  },
-] as const;
-
-export function LandingHeroMarks() {
-  return (
-    <ul className="flex items-center -space-x-2.5" aria-hidden="true">
-      {HERO_LOGOS.map((company) => (
-        <li key={company.id} className="relative">
-          <Image
-            src={company.src}
-            alt=""
-            width={48}
-            height={48}
-            className="size-12 rounded-full object-cover ring-2 ring-white grayscale"
-          />
-        </li>
       ))}
     </ul>
   );

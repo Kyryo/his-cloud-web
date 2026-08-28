@@ -72,6 +72,13 @@ export type FetchAppointmentsOptions = {
   includeOutstandingBalance?: boolean;
 };
 
+export type AppointmentSummaryStats = {
+  todays_appointments: number;
+  upcoming_appointments: number;
+  in_progress: number;
+  cancelled_today: number;
+};
+
 export type UpdateAppointmentPayload = {
   clinic?: string;
   department?: string;

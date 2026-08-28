@@ -1,11 +1,10 @@
 "use client";
 
-import { SlidersHorizontal } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { FilterSelectField } from "@/components/filter-select-field";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ListPageFilterButton } from "@/features/app-shell/components/page-layout";
 import { Input } from "@/components/ui/input";
 import {
   Sheet,
@@ -77,21 +76,12 @@ export function AppointmentsFiltersSheet({
 
   return (
     <>
-      <Button
-        type="button"
-        variant="outline"
+      <ListPageFilterButton
         disabled={isLoading}
+        activeCount={activeCount}
         onClick={() => handleOpenChange(true)}
         data-testid="appointments-filters-button"
-      >
-        <SlidersHorizontal className="size-4" aria-hidden="true" />
-        Filters
-        {activeCount > 0 ? (
-          <Badge variant="secondary" className="ml-1 px-1.5 py-0">
-            {activeCount}
-          </Badge>
-        ) : null}
-      </Button>
+      />
 
       <Sheet open={open} onOpenChange={handleOpenChange}>
         <SheetContent className={cn("w-full sm:max-w-md", appFont.className)}>

@@ -18,6 +18,29 @@ import { getAdvisorFindingEvidenceDisplay } from "@/features/claims/utils/adviso
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 
+function FindingSourceBadge({
+  source,
+}: {
+  source: AdvisorFinding["source"];
+}) {
+  if (source == null) {
+    return null;
+  }
+  const isIq = source === "iq";
+  return (
+    <span
+      className={cn(
+        "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium",
+        isIq ? "bg-indigo-50 text-indigo-700" : "bg-slate-100 text-brand-slate",
+      )}
+      data-testid={isIq ? "claim-iq-badge" : "claim-rules-badge"}
+      title={isIq ? "Claims intelligence" : "Payer rules"}
+    >
+      {isIq ? "IQ" : "Rules"}
+    </span>
+  );
+}
+
 function FindingFixDialog({
   finding,
   open,
@@ -49,6 +72,7 @@ function FindingFixDialog({
         <DialogHeader className="border-b border-brand-border px-6 py-5">
           <div className="min-w-0 space-y-1.5 pr-6">
             <div className="flex flex-wrap items-center gap-2">
+              <FindingSourceBadge source={finding.source} />
               <span
                 className={cn(
                   "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium",
@@ -88,7 +112,21 @@ function FindingFixDialog({
             </section>
           ) : null}
 
-          {evidenceDisplay ? (
+          {evidenceDisplay?.coverageCitation ? (
+            <section className="space-y-2">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-brand-muted">
+                Coverage
+              </h3>
+              <p
+                className="text-sm text-brand-navy"
+                data-testid="claim-advisory-coverage-citation-dialog"
+              >
+                {evidenceDisplay.coverageCitation}
+              </p>
+            </section>
+          ) : null}
+
+          {evidenceDisplay && evidenceDisplay.lines.length > 0 ? (
             <section
               className="space-y-2.5"
               data-testid="claim-advisory-finding-evidence"
@@ -138,7 +176,9 @@ function FindingFixDialog({
             </section>
           ) : null}
 
-          {!recommendedAction && !evidenceDisplay ? (
+          {!recommendedAction &&
+          !evidenceDisplay?.coverageCitation &&
+          !(evidenceDisplay && evidenceDisplay.lines.length > 0) ? (
             <p className="text-sm leading-relaxed text-brand-muted">
               Review this finding and update the claim or patient details before
               submitting.
@@ -233,9 +273,12 @@ function FindingsList({ findings }: { findings: AdvisorFinding[] }) {
             </div>
 
             <ul className="divide-y divide-brand-border border-t border-brand-border">
-              {group.findings.map((finding) => (
+              {group.findings.map((finding) => {
+                const coverageCitation =
+                  getAdvisorFindingEvidenceDisplay(finding)?.coverageCitation;
+                return (
                 <li
-                  key={finding.code}
+                  key={`${finding.source ?? "rules"}-${finding.code}`}
                   className="flex items-stretch"
                   data-testid={`claim-advisory-finding-${finding.code}`}
                 >
@@ -252,12 +295,23 @@ function FindingsList({ findings }: { findings: AdvisorFinding[] }) {
                   />
                   <div className="flex min-w-0 flex-1 items-start gap-3 px-4 py-3">
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium leading-snug text-brand-navy">
-                        {finding.name}
-                      </p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-sm font-medium leading-snug text-brand-navy">
+                          {finding.name}
+                        </p>
+                        <FindingSourceBadge source={finding.source} />
+                      </div>
                       <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-brand-muted">
                         {finding.message}
                       </p>
+                      {coverageCitation ? (
+                        <p
+                          className="mt-1 text-[11px] text-brand-slate"
+                          data-testid="claim-advisory-coverage-citation"
+                        >
+                          {coverageCitation}
+                        </p>
+                      ) : null}
                     </div>
                     <Button
                       type="button"
@@ -271,7 +325,8 @@ function FindingsList({ findings }: { findings: AdvisorFinding[] }) {
                     </Button>
                   </div>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           </section>
         ))}
@@ -311,7 +366,12 @@ export type ClaimAdvisoryFindingsCardProps = {
   footerActions?: ReactNode;
   /** Extra footer content below the action row (e.g. override note form). */
   footerContent?: ReactNode;
+  /** Status notice above findings (e.g. IQ review in progress). */
+  notice?: ReactNode;
   className?: string;
+  emptyTitle?: string;
+  emptyDescription?: string;
+  testId?: string;
 };
 
 /**
@@ -323,7 +383,11 @@ export function ClaimAdvisoryFindingsCard({
   isReEvaluating = false,
   footerActions,
   footerContent,
+  notice,
   className,
+  emptyTitle = "We did not find any advisory issues on this claim",
+  emptyDescription = "Validation packs returned no rejection risks or warnings for the current claim data.",
+  testId = "claim-advisory-findings",
 }: ClaimAdvisoryFindingsCardProps) {
   const [detailsOpen, setDetailsOpen] = useState(true);
   const rejectionCount = findings.filter(
@@ -333,28 +397,27 @@ export function ClaimAdvisoryFindingsCard({
     (finding) => finding.severity === "warning",
   ).length;
   const otherCount = Math.max(0, findings.length - rejectionCount - warningCount);
+  const iqCount = findings.filter((finding) => finding.source === "iq").length;
   const allClear = findings.length === 0;
   const showFooter =
     Boolean(onReEvaluate) || Boolean(footerActions) || Boolean(footerContent);
 
   if (allClear) {
     return (
-      <div className={cn("space-y-4", className)} data-testid="claim-advisory-findings">
+      <div className={cn("space-y-4", className)} data-testid={testId}>
         <div
           className="rounded-lg border border-dashed border-brand-border bg-slate-50/80 px-4 py-10 text-center"
-          data-testid="claim-advisory-findings-empty"
+          data-testid={`${testId}-empty`}
         >
           <CheckCircle2
             className="mx-auto size-8 text-emerald-600"
             aria-hidden="true"
           />
-          <p className="mt-3 text-sm font-medium text-brand-navy">
-            We did not find any advisory issues on this claim
-          </p>
+          <p className="mt-3 text-sm font-medium text-brand-navy">{emptyTitle}</p>
           <p className="mx-auto mt-1 max-w-sm text-sm text-brand-muted">
-            Validation packs returned no rejection risks or warnings for the
-            current claim data.
+            {emptyDescription}
           </p>
+          {notice}
           {onReEvaluate ? (
             <div className="mt-4 flex justify-center">
               <SecondaryButton
@@ -396,7 +459,7 @@ export function ClaimAdvisoryFindingsCard({
         "overflow-hidden rounded-xl border border-brand-border bg-white",
         className,
       )}
-      data-testid="claim-advisory-findings"
+      data-testid={testId}
     >
       <div className="flex items-center justify-between gap-3 px-4 py-3">
         <div className="min-w-0 flex flex-wrap items-center gap-2">
@@ -424,6 +487,15 @@ export function ClaimAdvisoryFindingsCard({
                 {otherCount} other
               </span>
             ) : null}
+            {iqCount > 0 ? (
+              <span
+                className="inline-flex items-center gap-1 rounded-md bg-indigo-50 px-1.5 py-0.5 text-[11px] font-medium text-indigo-700"
+                data-testid="claim-iq-findings-count"
+                title="Claims intelligence"
+              >
+                {iqCount} IQ
+              </span>
+            ) : null}
           </div>
         </div>
         <button
@@ -445,6 +517,9 @@ export function ClaimAdvisoryFindingsCard({
 
       {detailsOpen ? (
         <div className="border-t border-brand-border">
+          {notice ? (
+            <div className="border-b border-brand-border px-4 py-3">{notice}</div>
+          ) : null}
           <FindingsList findings={findings} />
         </div>
       ) : null}

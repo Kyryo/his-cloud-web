@@ -162,7 +162,8 @@ export function getInvoiceClaimSystemReadinessItems(
     {
       label: payerConnectionLabel(invoice),
       met:
-        invoice.can_initiate_claim
+        invoice.payer_integration_configured === true
+        || invoice.can_initiate_claim
         || Boolean(claim)
         || Boolean(invoice.claim_status),
       hint: payer

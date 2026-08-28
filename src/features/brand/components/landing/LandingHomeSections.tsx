@@ -121,7 +121,7 @@ function LandingFaqAccordion() {
 export function LandingHomeSections() {
   return (
     <>
-      <LandingSection variant="white">
+      <LandingSection variant="white" className="pt-16 sm:pt-20 lg:pt-24">
         <LandingSectionHeader
           title={LANDING_PROBLEM.title}
           description={LANDING_PROBLEM.description}

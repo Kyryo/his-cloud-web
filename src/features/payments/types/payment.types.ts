@@ -35,6 +35,18 @@ export type PaymentListFilters = {
   invoiceId?: number;
 };
 
+export type PaymentCountAmountBucket = {
+  count: number;
+  total: string | number;
+};
+
+export type PaymentSummaryStats = {
+  all: PaymentCountAmountBucket;
+  posted: PaymentCountAmountBucket;
+  draft: PaymentCountAmountBucket;
+  cancelled: PaymentCountAmountBucket;
+};
+
 export type PaymentListResponse = PaginatedListResponse<Payment>;
 
 export type SendPaymentReceiptPayload = {

@@ -26,7 +26,7 @@ export function ListPageHeaderTopRow({
   return (
     <div
       className={cn(
-        "flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-end",
+        "flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between",
         className,
       )}
     >
@@ -41,8 +41,21 @@ type ListPageHeaderTitleBlockProps = {
   className?: string;
 };
 
-export function ListPageHeaderTitleBlock(_props: ListPageHeaderTitleBlockProps) {
-  return null;
+export function ListPageHeaderTitleBlock({
+  title,
+  description,
+  className,
+}: ListPageHeaderTitleBlockProps) {
+  return (
+    <div className={cn("min-w-0 flex-1", className)}>
+      <h1 className="text-2xl font-semibold tracking-tight text-brand-navy">
+        {title}
+      </h1>
+      {description ? (
+        <p className="mt-1 max-w-2xl text-sm text-brand-muted">{description}</p>
+      ) : null}
+    </div>
+  );
 }
 
 type ListPageHeaderActionsProps = {
@@ -54,7 +67,7 @@ export function ListPageHeaderActions({
   children,
   className,
 }: ListPageHeaderActionsProps) {
-  return <div className={className}>{children}</div>;
+  return <div className={cn("shrink-0", className)}>{children}</div>;
 }
 
 type ListPageHeaderMobileSearchProps = {

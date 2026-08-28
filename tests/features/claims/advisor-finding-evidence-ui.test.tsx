@@ -118,4 +118,35 @@ describe("ClaimAdvisoryFindingsCard evidence", () => {
     expect(screen.getByText("Finding 6")).toBeInTheDocument();
     expect(screen.getByText("Finding 7")).toBeInTheDocument();
   });
+
+  it("shows a coverage citation on AI findings", () => {
+    const findings: AdvisorFinding[] = [
+      {
+        code: "AI_COVERAGE",
+        name: "Dental implant exclusion",
+        severity: "warning",
+        category: "exclusion",
+        message: "Dental implants are not covered on this scheme.",
+        source: "iq",
+        evidence: {
+          coverage_section: {
+            id: "dentistry",
+            title: "Dentistry",
+            pack_name: "MASM VIP 2026",
+          },
+        },
+      },
+    ];
+
+    render(<ClaimAdvisoryFindingsCard findings={findings} />);
+
+    expect(screen.getByTestId("claim-advisory-coverage-citation")).toHaveTextContent(
+      "MASM VIP 2026 · Dentistry",
+    );
+
+    fireEvent.click(screen.getByTestId("claim-advisory-fix-AI_COVERAGE"));
+    expect(screen.getByTestId("claim-advisory-coverage-citation-dialog")).toHaveTextContent(
+      "MASM VIP 2026 · Dentistry",
+    );
+  });
 });

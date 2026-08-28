@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { InvoiceClaimsTab } from "@/features/invoices/components/detail/InvoiceClaimsTab";
@@ -194,5 +194,78 @@ describe("InvoiceClaimsTab advisories", () => {
       expect(screen.getByTestId("invoice-submit-claim-button")).toBeEnabled();
     });
     expect(screen.queryByTestId("claim-record-override-button")).not.toBeInTheDocument();
+  });
+
+  it("creates a claim without waiting on evaluate and shows processing copy", async () => {
+    fetchClaimByInvoice.mockResolvedValue(null);
+    createClaimFromInvoice.mockResolvedValue(
+      buildClaim({
+        advisory_status: "pending",
+        has_blocking_advisories: false,
+        latest_advisor_evaluation: null,
+      }),
+    );
+    fetchClaim.mockResolvedValue(
+      buildClaim({
+        advisory_status: "pending",
+        has_blocking_advisories: false,
+        latest_advisor_evaluation: null,
+      }),
+    );
+
+    render(<InvoiceClaimsTab invoice={buildInvoice()} isActive />);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("invoice-create-claim-button")).toBeEnabled();
+    });
+    fireEvent.click(screen.getByTestId("invoice-create-claim-button"));
+
+    await waitFor(() => {
+      expect(createClaimFromInvoice).toHaveBeenCalled();
+    });
+    expect(evaluateClaimAdvisories).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.getByTestId("claim-advisory-processing")).toBeInTheDocument();
+    });
+    expect(screen.getAllByText(/Advisories processing/i).length).toBeGreaterThan(0);
+  });
+
+  it("shows a success empty state in the prepare-claim dialog layout after create", async () => {
+    fetchClaimByInvoice.mockResolvedValue(null);
+    createClaimFromInvoice.mockResolvedValue(
+      buildClaim({
+        advisory_status: "pending",
+        has_blocking_advisories: false,
+        latest_advisor_evaluation: null,
+      }),
+    );
+
+    let createAction: { create: () => void; disabled: boolean } | null = null;
+    render(
+      <InvoiceClaimsTab
+        invoice={buildInvoice()}
+        isActive
+        layout="requirements"
+        onCreateClaimActionChange={(action) => {
+          createAction = action;
+        }}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(createAction?.disabled).toBe(false);
+    });
+    createAction?.create();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("claim-created-success-state")).toBeInTheDocument();
+    });
+    expect(screen.getByText("Claim created")).toBeInTheDocument();
+    expect(evaluateClaimAdvisories).not.toHaveBeenCalled();
+    expect(screen.queryByTestId("claim-workflow-card")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "View claim" })).toHaveAttribute(
+      "href",
+      "/claims/99",
+    );
   });
 });

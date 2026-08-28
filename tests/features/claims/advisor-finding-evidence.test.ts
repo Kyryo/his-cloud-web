@@ -85,7 +85,23 @@ describe("getAdvisorFindingEvidenceDisplay", () => {
     );
   });
 
-  it("returns null when evidence has no usable lines", () => {
+    it("returns a coverage citation without requiring affected lines", () => {
+      const display = getAdvisorFindingEvidenceDisplay({
+        evidence: {
+          coverage_section: {
+            id: "dentistry",
+            title: "Dentistry",
+            pack_name: "MASM VIP 2026",
+          },
+        },
+      });
+
+      expect(display).not.toBeNull();
+      expect(display?.coverageCitation).toBe("MASM VIP 2026 · Dentistry");
+      expect(display?.lines).toHaveLength(0);
+    });
+
+    it("returns null when evidence has no usable lines", () => {
     expect(getAdvisorFindingEvidenceDisplay({})).toBeNull();
     expect(
       getAdvisorFindingEvidenceDisplay({

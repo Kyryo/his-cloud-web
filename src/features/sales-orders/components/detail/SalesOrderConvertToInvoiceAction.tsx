@@ -2,6 +2,7 @@
 
 import { Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
@@ -14,6 +15,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ROUTES } from "@/constants/routes";
+import type { Invoice } from "@/features/invoices/types/invoice.types";
+import { shouldOfferPrepareClaimAfterInvoice } from "@/features/invoices/utils/should-offer-prepare-claim";
+import { PrepareClaimFromInvoiceDialog } from "@/features/sales-orders/components/detail/PrepareClaimFromInvoiceDialog";
+import { SalesOrderInvoiceCreatedDialog } from "@/features/sales-orders/components/detail/SalesOrderInvoiceCreatedDialog";
 import {
   createSalesOrderInvoice,
   fetchSalesOrder,
@@ -43,10 +48,14 @@ export function SalesOrderConvertToInvoiceAction({
   hasDraftSplitMismatch = false,
 }: SalesOrderConvertToInvoiceActionProps) {
   const { toast } = useToast();
+  const router = useRouter();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [createdOpen, setCreatedOpen] = useState(false);
+  const [prepareOpen, setPrepareOpen] = useState(false);
+  const [createdInvoice, setCreatedInvoice] = useState<Invoice | null>(null);
   const [isConverting, setIsConverting] = useState(false);
 
-  const invoiceId = order.invoice_id ?? null;
+  const invoiceId = order.invoice_id ?? createdInvoice?.id ?? null;
 
   const disabledReason = getConvertSalesOrderToInvoiceDisabledReason(order, {
     hasDraftSplitMismatch,
@@ -55,6 +64,7 @@ export function SalesOrderConvertToInvoiceAction({
     hasDraftSplitMismatch,
   });
   const orderLabel = order.name || `Order #${order.id}`;
+  const isInvoiced = order.invoice_status === "invoiced" && invoiceId != null;
 
   async function handleConvert() {
     setIsConverting(true);
@@ -64,12 +74,18 @@ export function SalesOrderConvertToInvoiceAction({
       onOrderUpdated(refreshedOrder);
 
       const invoiceLabel = result.invoice.name || `Invoice #${result.invoice.id}`;
-      toast({
-        variant: "success",
-        title: "Invoice created",
-        description: `${orderLabel} was converted to ${invoiceLabel}.`,
-      });
       setConfirmOpen(false);
+
+      if (shouldOfferPrepareClaimAfterInvoice(result.invoice)) {
+        setCreatedInvoice(result.invoice);
+        setCreatedOpen(true);
+      } else {
+        toast({
+          variant: "success",
+          title: "Invoice created",
+          description: `${orderLabel} was converted to ${invoiceLabel}.`,
+        });
+      }
     } catch (error) {
       toast({
         variant: "error",
@@ -86,37 +102,35 @@ export function SalesOrderConvertToInvoiceAction({
     }
   }
 
-  if (order.invoice_status === "invoiced" && invoiceId != null) {
-    return (
-      <SecondaryButton
-        asChild
-        className={cn(className)}
-        data-testid="sales-order-view-invoice-button"
-      >
-        <Link href={ROUTES.invoiceDetail(invoiceId)}>View invoice</Link>
-      </SecondaryButton>
-    );
-  }
-
   return (
     <>
-      <PrimaryButton
-        type="button"
-        className={cn(className)}
-        disabled={!canConvert || isConverting}
-        title={disabledReason ?? undefined}
-        onClick={() => setConfirmOpen(true)}
-        data-testid="sales-order-convert-to-invoice-button"
-      >
-        {isConverting ? (
-          <>
-            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            Creating...
-          </>
-        ) : (
-          "Create invoice"
-        )}
-      </PrimaryButton>
+      {isInvoiced ? (
+        <SecondaryButton
+          asChild
+          className={cn(className)}
+          data-testid="sales-order-view-invoice-button"
+        >
+          <Link href={ROUTES.invoiceDetail(invoiceId)}>View invoice</Link>
+        </SecondaryButton>
+      ) : (
+        <PrimaryButton
+          type="button"
+          className={cn(className)}
+          disabled={!canConvert || isConverting}
+          title={disabledReason ?? undefined}
+          onClick={() => setConfirmOpen(true)}
+          data-testid="sales-order-convert-to-invoice-button"
+        >
+          {isConverting ? (
+            <>
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              Creating...
+            </>
+          ) : (
+            "Create invoice"
+          )}
+        </PrimaryButton>
+      )}
 
       <Dialog
         open={confirmOpen}
@@ -157,6 +171,32 @@ export function SalesOrderConvertToInvoiceAction({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <SalesOrderInvoiceCreatedDialog
+        open={createdOpen}
+        invoiceName={createdInvoice?.name || `Invoice #${createdInvoice?.id ?? ""}`}
+        onOpenChange={setCreatedOpen}
+        onPrepareClaim={() => {
+          setCreatedOpen(false);
+          setPrepareOpen(true);
+        }}
+        onViewInvoice={() => {
+          if (createdInvoice == null) {
+            return;
+          }
+          setCreatedOpen(false);
+          router.push(ROUTES.invoiceDetail(createdInvoice.id));
+        }}
+      />
+
+      {createdInvoice ? (
+        <PrepareClaimFromInvoiceDialog
+          open={prepareOpen}
+          invoiceId={createdInvoice.id}
+          initialInvoice={createdInvoice}
+          onOpenChange={setPrepareOpen}
+        />
+      ) : null}
     </>
   );
 }

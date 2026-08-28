@@ -20,7 +20,10 @@ export function SecondaryButton({ className, ...props }: AppButtonProps) {
   return (
     <Button
       variant="outline"
-      className={cn("rounded-full border-brand-navy text-brand-navy", className)}
+      className={cn(
+        "rounded-full border-dash-border bg-white text-brand-slate hover:bg-white hover:text-brand-slate",
+        className,
+      )}
       {...props}
     />
   );

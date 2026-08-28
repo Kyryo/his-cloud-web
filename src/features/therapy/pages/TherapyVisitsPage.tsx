@@ -34,6 +34,7 @@ import {
   fetchTherapyDepartments,
   fetchTherapyVisits,
 } from "@/features/therapy/services/therapy.service";
+import { fetchVisitQueueSummary } from "@/features/visits/services/visits.service";
 import type {
   TherapyDepartment,
   TherapyDiscipline,
@@ -62,6 +63,7 @@ export function TherapyVisitsPage({
   const [departmentUuid, setDepartmentUuid] = useState("");
   const [visits, setVisits] = useState<TherapyVisit[]>([]);
   const [stats, setStats] = useState<TherapyVisitQueueStats | null>(null);
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
   const [activeTab, setActiveTab] = useState<TherapyQueueTab>("active");
@@ -155,7 +157,6 @@ export function TherapyVisitsPage({
   useEffect(() => {
     if (!hasAccess || !activeClinicId || !departmentUuid) {
       setVisits([]);
-      setStats(null);
       return;
     }
 
@@ -175,7 +176,6 @@ export function TherapyVisitsPage({
       .then((response) => {
         if (!cancelled) {
           setVisits(response.results);
-          setStats(response.stats);
           setTotalCount(response.pagination?.count ?? response.results.length);
           setHasNext(Boolean(response.pagination?.next));
           setHasPrevious(Boolean(response.pagination?.previous));
@@ -208,6 +208,37 @@ export function TherapyVisitsPage({
     hasAccess,
     page,
   ]);
+
+  useEffect(() => {
+    if (!hasAccess || !departmentUuid) {
+      setStats(null);
+      return;
+    }
+
+    let cancelled = false;
+    setIsStatsLoading(true);
+
+    void fetchVisitQueueSummary({ departmentUuid })
+      .then((summary) => {
+        if (!cancelled) {
+          setStats(summary);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setStats(null);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setIsStatsLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [departmentUuid, hasAccess]);
 
   if (isUserLoading) {
     return <PageLoader message={`Loading ${config.label}...`} />;
@@ -292,7 +323,7 @@ export function TherapyVisitsPage({
 
       <ListPageDataSectionsStack>
         <ListPageStatsSection>
-          <TherapyVisitSummaryCards stats={stats} />
+          <TherapyVisitSummaryCards stats={stats} isLoading={isStatsLoading} />
         </ListPageStatsSection>
         {departments.length > 0 ? (
           <TherapyVisitsToolbar

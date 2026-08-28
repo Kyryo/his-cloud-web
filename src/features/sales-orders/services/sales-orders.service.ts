@@ -6,6 +6,7 @@ import type {
   RecalculateSalesOrderPricesPayload,
   SalesOrder,
   SalesOrderListFilters,
+  SalesOrderSummaryStats,
   SalesOrdersListResponse,
   UpdateSalesOrderLinePayload,
   UpdateSalesOrderLinePricePayload,
@@ -74,6 +75,15 @@ export async function fetchSalesOrders(
 ): Promise<SalesOrdersListResponse> {
   return bffRequest<SalesOrdersListResponse>(
     `${BFF_SALES_ORDERS_ROUTES.list}${buildSalesOrdersQuery(filters)}`,
+  );
+}
+
+export async function fetchSalesOrderSummaryStats(
+  filters: SalesOrderListFilters = {},
+): Promise<SalesOrderSummaryStats> {
+  const { page: _page, pageSize: _pageSize, ...statsFilters } = filters;
+  return bffRequest<SalesOrderSummaryStats>(
+    `${BFF_SALES_ORDERS_ROUTES.summaryStats}${buildSalesOrdersQuery(statsFilters)}`,
   );
 }
 

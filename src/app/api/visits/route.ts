@@ -12,6 +12,7 @@ const QUERY_KEYS = [
   "ordering",
   "customer_uuid",
   "clinic",
+  "clinic_uuid",
   "status",
   "is_active",
   "visit_date_after",

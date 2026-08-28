@@ -1,3 +1,10 @@
+export type VisitQueueSummary = {
+  todays_visits: number;
+  todays_active_visits: number;
+  todays_completed_visits: number;
+  total_visits: number;
+};
+
 export type VisitEncounter = {
   id: number;
   uuid: string;
@@ -112,6 +119,7 @@ export type FetchVisitsOptions = {
   isActive?: boolean;
   customerUuid?: string;
   clinic?: string;
+  clinicUuid?: string;
 };
 
 export type FetchCustomerVisitsOptions = {

@@ -11,6 +11,7 @@ export type Customer = {
   last_name: string;
   full_name: string;
   customer_identifier: string;
+  internal_reference: string;
   phone_number: string | null;
   email: string | null;
   patient_uuid: string;
@@ -59,6 +60,7 @@ export type CreateCustomerPayload = {
   phone_number?: string;
   email?: string;
   customer_identifier?: string;
+  internal_reference?: string;
 };
 
 export type UpdateCustomerPayload = CreateCustomerPayload;

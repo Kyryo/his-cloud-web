@@ -61,6 +61,22 @@ describe("invoice-claim-readiness", () => {
     ).toBe(true);
   });
 
+  it("treats payer_integration_configured as satisfying payer readiness", () => {
+    const items = getInvoiceClaimReadinessItems(
+      buildInvoice({
+        has_diagnosis: true,
+        has_practitioner_mapping: true,
+        can_initiate_claim: false,
+        payer_integration_configured: true,
+        claim_payer_code: "MASM",
+      }),
+    );
+
+    expect(
+      items.find((item) => item.label.includes("connection is configured"))?.met,
+    ).toBe(true);
+  });
+
   it("checks tariff codes, diagnosis, and membership for requirements", () => {
     const unmet = getClaimRequirementCheckItems(
       buildInvoice({

@@ -24,12 +24,6 @@ const nextConfig: NextConfig = {
   assetPrefix,
   images: {
     qualities: [75, 90, 92],
-    remotePatterns: [
-      {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-      },
-    ],
   },
   turbopack: {
     root: appRoot,

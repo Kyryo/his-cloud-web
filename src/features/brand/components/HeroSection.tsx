@@ -6,7 +6,6 @@ import Link from "next/link";
 
 import { ROUTES } from "@/constants/routes";
 import { HeroProductStage } from "@/features/brand/components/landing/HeroProductStage";
-import { LandingHeroMarks } from "@/features/brand/components/landing/LandingCompanyMarks";
 
 export function HeroSection() {
   const reduceMotion = useReducedMotion();
@@ -36,7 +35,7 @@ export function HeroSection() {
 
   return (
     <section className="landing-hero-ground relative overflow-hidden bg-white pt-20">
-      <div className="relative z-20 mx-auto max-w-6xl px-6 pb-10 pt-10 sm:px-10 sm:pb-12 sm:pt-12 lg:px-12 lg:pb-10 lg:pt-12">
+      <div className="relative z-20 mx-auto max-w-6xl px-6 pb-8 pt-10 sm:px-10 sm:pb-10 sm:pt-12 lg:px-12 lg:pb-8 lg:pt-12">
         <div className="grid items-center gap-8 lg:grid-cols-12 lg:gap-8">
           <motion.div
             className="relative z-20 lg:col-span-7 xl:col-span-6"
@@ -87,10 +86,6 @@ export function HeroSection() {
               >
                 Book a demo
               </Link>
-            </motion.div>
-
-            <motion.div variants={itemVariants} className="mt-8">
-              <LandingHeroMarks />
             </motion.div>
           </motion.div>
 

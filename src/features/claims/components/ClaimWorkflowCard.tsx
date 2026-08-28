@@ -20,6 +20,7 @@ import {
 } from "@/features/claims/components/ClaimRequirementsCard";
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
 import { getClaimWorkflowStageStates } from "@/features/claims/utils/claim-workflow-stages";
+import { isClaimReadyToSubmit } from "@/features/claims/utils/claim-advisory-status";
 import {
   isBlockingRequirementItem,
   type InvoiceClaimReadinessItem,
@@ -41,6 +42,11 @@ export type ClaimWorkflowCardProps = {
   showSubmitInQueue?: boolean;
   onAddDiagnosis?: () => void;
   className?: string;
+  /**
+   * "workflow" shows the full staged card.
+   * "requirements" shows only the Requirements checks.
+   */
+  layout?: "workflow" | "requirements";
 };
 
 /**
@@ -59,6 +65,7 @@ export function ClaimWorkflowCard({
   showSubmitInQueue = false,
   onAddDiagnosis,
   className,
+  layout = "workflow",
 }: ClaimWorkflowCardProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const stageStates = getClaimWorkflowStageStates(requirementItems, claim);
@@ -76,15 +83,12 @@ export function ClaimWorkflowCard({
     .every((item) => item.met);
   const isDraft = String(claim?.status ?? "").toLowerCase() === "draft";
   const canSubmit =
-    Boolean(claim) &&
-    isDraft &&
-    !isClaimSubmitBlockedByAdvisories(claim!) &&
-    Boolean(onSubmit);
+    Boolean(claim) && isDraft && isClaimReadyToSubmit(claim) && Boolean(onSubmit);
 
   const requirementsFooter =
     claim && isDraft ? (
       <ClaimRequirementsEditButton onClick={() => setEditDialogOpen(true)} />
-    ) : !claim && onCreateClaim ? (
+    ) : !claim && onCreateClaim && layout !== "requirements" ? (
       <PrimaryButton
         type="button"
         size="sm"
@@ -109,6 +113,35 @@ export function ClaimWorkflowCard({
       </PrimaryButton>
     ) : null;
 
+  const requirementsContent = (
+    <div className="space-y-4">
+      {notice}
+      <ClaimRequirementsCard
+        items={requirementItems}
+        footerActions={requirementsFooter}
+        onAddDiagnosis={onAddDiagnosis}
+      />
+    </div>
+  );
+
+  if (layout === "requirements") {
+    return (
+      <>
+        <div data-testid="claim-requirements-stage">{requirementsContent}</div>
+        {claim && isDraft ? (
+          <EditClaimDialog
+            claim={claim}
+            open={editDialogOpen}
+            onOpenChange={setEditDialogOpen}
+            onSuccess={(updated) => {
+              onClaimUpdated?.(updated);
+            }}
+          />
+        ) : null}
+      </>
+    );
+  }
+
   const stages: WorkflowStageConfig[] = [
     {
       id: "requirements",
@@ -117,16 +150,7 @@ export function ClaimWorkflowCard({
       status: requirements.status,
       // Keep open for drafts so Edit draft stays reachable after checks pass.
       defaultOpen: claim && isDraft ? true : undefined,
-      content: (
-        <div className="space-y-4">
-          {notice}
-          <ClaimRequirementsCard
-            items={requirementItems}
-            footerActions={requirementsFooter}
-            onAddDiagnosis={onAddDiagnosis}
-          />
-        </div>
-      ),
+      content: requirementsContent,
     },
     {
       id: "advisory",
@@ -152,7 +176,7 @@ export function ClaimWorkflowCard({
       title: "Queue for submission",
       summary: queue.summary,
       status: queue.status,
-      disabled: !claim,
+      disabled: !claim || queue.status === "pending",
       content: (
         <div className="space-y-4">
           {queue.status === "current" && canSubmit ? (
