@@ -96,6 +96,26 @@ export function CustomerDetailActions({
   return (
     <>
       <div className={cn("flex shrink-0 flex-wrap items-center gap-2", className)}>
+        <SecondaryButton
+          type="button"
+          onClick={onEditDetails}
+          className="hidden items-center gap-1.5 sm:inline-flex"
+        >
+          <Pencil className="size-3.5" aria-hidden="true" />
+          <span>Edit details</span>
+        </SecondaryButton>
+
+        {onScheduleAppointment ? (
+          <SecondaryButton
+            type="button"
+            onClick={onScheduleAppointment}
+            className="hidden items-center gap-1.5 md:inline-flex"
+          >
+            <CalendarPlus className="size-3.5" aria-hidden="true" />
+            <span>Schedule</span>
+          </SecondaryButton>
+        ) : null}
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button

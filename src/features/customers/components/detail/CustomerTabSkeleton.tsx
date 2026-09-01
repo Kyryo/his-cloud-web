@@ -28,10 +28,21 @@ export function CustomerTabSkeleton({
           ))}
         </div>
       ) : null}
-      <div className="space-y-3 rounded-xl border border-dash-border/80 bg-white p-4">
-        {Array.from({ length: rows }).map((_, index) => (
-          <Skeleton key={index} className="h-12 w-full" />
-        ))}
+      <div className="overflow-hidden rounded-xl border border-dash-border/80 bg-white">
+        <div className="border-b border-dash-border/80 bg-slate-50/70 px-4 py-3 sm:px-5">
+          <Skeleton className="h-4 w-32" />
+        </div>
+        <div className="divide-y divide-dash-border/60">
+          {Array.from({ length: rows }).map((_, index) => (
+            <div key={index} className="flex items-center justify-between px-4 py-3 sm:px-5">
+              <div className="space-y-1.5">
+                <Skeleton className="h-4 w-48" />
+                <Skeleton className="h-3 w-32" />
+              </div>
+              <Skeleton className="h-8 w-16 rounded-md" />
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

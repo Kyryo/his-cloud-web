@@ -14,7 +14,7 @@ export function DetailPageHeaderSection({
   return (
     <header
       className={cn(
-        "border-b border-brand-border bg-white px-4 py-3 sm:px-6 sm:py-4",
+        "border-b border-dash-border/80 bg-white px-4 py-3 sm:px-6 sm:py-4",
         className,
       )}
     >

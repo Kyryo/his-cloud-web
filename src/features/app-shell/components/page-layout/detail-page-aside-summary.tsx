@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 type DetailPageAsidePanelHeaderProps = {
-  title: string;
+  title: ReactNode;
   description?: string;
   action?: ReactNode;
 };
@@ -40,7 +40,7 @@ export function DetailPageAsideSummaryField({
   return (
     <div className={className}>
       <dt className="text-xs text-brand-muted">{label}</dt>
-      <dd className="mt-0.5 break-words text-sm font-normal text-brand-slate">
+      <dd className="mt-0.5 wrap-break-word text-sm font-normal text-brand-slate">
         {value}
       </dd>
     </div>
@@ -48,7 +48,7 @@ export function DetailPageAsideSummaryField({
 }
 
 type DetailPageAsideSummarySectionProps = {
-  title: string;
+  title: ReactNode;
   action?: ReactNode;
   children: ReactNode;
   className?: string;
@@ -61,7 +61,7 @@ export function DetailPageAsideSummarySection({
   className,
 }: DetailPageAsideSummarySectionProps) {
   return (
-    <div className={cn("border-t border-brand-border pt-4", className)}>
+    <div className={cn("border-t border-dash-border/80 pt-4", className)}>
       <div className="mb-3 flex items-center justify-between gap-2">
         <h3 className="text-[11px] font-medium uppercase tracking-wide text-brand-muted">
           {title}
@@ -121,7 +121,7 @@ export function DetailPageAsideSummaryTotalRow({
     <>
       {showDivider ? (
         <div
-          className="border-t border-brand-border pt-2.5"
+          className="border-t border-dash-border/80 pt-2.5"
           role="presentation"
         />
       ) : null}
@@ -146,7 +146,7 @@ export function DetailPageAsideSummaryHighlight({
   return (
     <div
       className={cn(
-        "rounded-xl border border-brand-border bg-slate-50/60 p-4",
+        "rounded-xl border border-dash-border/80 bg-slate-50/60 p-4",
         className,
       )}
     >

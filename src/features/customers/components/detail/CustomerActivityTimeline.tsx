@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Activity,
   History,
   MapPin,
   NotebookPen,
@@ -69,7 +70,12 @@ export function CustomerActivityTimeline({
   return (
     <DetailActivityTimeline
       className={cn(className)}
-      title="Activity"
+      title={
+        <span className="inline-flex items-center gap-1.5">
+          <Activity className="size-4 text-brand-primary" aria-hidden="true" />
+          <span>Activity Timeline</span>
+        </span>
+      }
       description="Recent events recorded for this client."
       items={encounters.map(mapEncounterToTimelineItem)}
       hasMore={hasMore}

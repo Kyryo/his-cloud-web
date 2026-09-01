@@ -33,27 +33,26 @@ export function InventoryListTable<T>({
   className,
   compact = false,
 }: InventoryListTableProps<T>) {
-  const cellPadding = compact ? "px-3 py-2" : "px-4 py-3";
+  const cellPadding = compact ? "px-3.5 py-2.5" : "px-4 py-3 sm:px-5";
 
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-xl border border-brand-border bg-white",
+        "overflow-hidden rounded-xl border border-dash-border/80 bg-white",
         className,
       )}
     >
       <div className="overflow-x-auto">
         <table className="min-w-full">
           <thead>
-            <tr className="border-b border-brand-border bg-slate-50/80">
+            <tr className="border-b border-dash-border/80 bg-slate-50/70">
               {columns.map((column) => (
                 <th
                   key={column.key}
                   scope="col"
                   className={cn(
                     cellPadding,
-                    "text-left text-sm font-medium text-brand-muted",
-                    compact && "text-xs",
+                    "text-left text-xs font-semibold uppercase tracking-wider text-dash-muted",
                     column.headerClassName,
                   )}
                 >
@@ -62,13 +61,13 @@ export function InventoryListTable<T>({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-brand-border">
+          <tbody className="divide-y divide-dash-border/60">
             {items.map((item) => (
               <tr
                 key={getRowKey(item)}
                 className={cn(
                   onRowClick &&
-                    "cursor-pointer transition-colors hover:bg-slate-50 active:bg-slate-100/80",
+                    "cursor-pointer transition-colors hover:bg-slate-50/70 active:bg-slate-100/60",
                 )}
                 onClick={() => onRowClick?.(item)}
               >
@@ -91,7 +90,7 @@ export function InventoryListTable<T>({
         </table>
       </div>
       {footer ? (
-        <div className={cn("border-t border-brand-border", compact ? "px-3 py-2" : "px-4 py-3")}>
+        <div className={cn("border-t border-dash-border/80", compact ? "px-3.5 py-2.5" : "px-4 py-3 sm:px-5")}>
           {footer}
         </div>
       ) : null}
@@ -119,7 +118,7 @@ export function InventoryListTableSkeleton({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-xl border border-brand-border bg-white",
+        "overflow-hidden rounded-xl border border-dash-border/80 bg-white",
         className,
       )}
       data-testid="inventory-list-table-skeleton"
@@ -127,13 +126,13 @@ export function InventoryListTableSkeleton({
       <div className="overflow-x-auto">
         <table className="min-w-full">
           <thead>
-            <tr className="border-b border-brand-border bg-slate-50/80">
+            <tr className="border-b border-dash-border/80 bg-slate-50/70">
               {columns.map((column) => (
                 <th
                   key={column.key}
                   scope="col"
                   className={cn(
-                    "px-4 py-3 text-left text-sm font-medium text-brand-muted",
+                    "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-dash-muted sm:px-5",
                     column.headerClassName,
                   )}
                 >
@@ -142,11 +141,11 @@ export function InventoryListTableSkeleton({
               ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-brand-border">
+          <tbody className="divide-y divide-dash-border/60">
             {Array.from({ length: rows }).map((_, rowIndex) => (
               <tr key={rowIndex}>
                 {columns.map((column) => (
-                  <td key={column.key} className="px-4 py-3">
+                  <td key={column.key} className="px-4 py-3 sm:px-5">
                     <Skeleton className="h-3.5 w-24" />
                   </td>
                 ))}

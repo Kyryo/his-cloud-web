@@ -189,7 +189,12 @@ export function CustomerDetailNotesTab({
   return (
     <>
       <CustomerDetailRecordList
-        title="Notes"
+        title={
+          <span className="inline-flex items-center gap-1.5">
+            <NotebookPen className="size-4 text-brand-primary" aria-hidden="true" />
+            <span>Notes</span>
+          </span>
+        }
         description="Notes recorded for this client."
         action={addButton}
         data-testid="customer-detail-notes-tab"
