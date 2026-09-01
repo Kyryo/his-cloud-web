@@ -1,26 +1,22 @@
 "use client";
 
-import { BarChart3, Calendar } from "lucide-react";
+import { BarChart3 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { FabButton } from "@/components/ui/fab-button";
 import {
   ListPageDataSectionsStack,
   ListPageLayout,
   ListPagePagination,
   ListPageStatsSection,
-  ListPageToolbarSkeleton,
+  ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
-import { InventoryListEmptyState } from "@/features/inventory/components/list/InventoryListEmptyState";
-import { InventoryListPageContent } from "@/features/inventory/components/list/InventoryListPageContent";
-import { InventoryListPageHeader } from "@/features/inventory/components/list/InventoryListPageHeader";
-import { InventoryListTableSkeleton } from "@/features/inventory/components/list/InventoryListTable";
-import { ActiveVisitsListToolbar } from "@/features/visits/components/ActiveVisitsListToolbar";
-import {
-  ACTIVE_VISITS_TABLE_SKELETON_COLUMNS,
-  ActiveVisitsTable,
-} from "@/features/visits/components/tables/active-visits-table";
+import { ActiveVisitsEmptyState } from "@/features/visits/components/ActiveVisitsEmptyState";
+import { ActiveVisitsPageHeader } from "@/features/visits/components/ActiveVisitsPageHeader";
+import { ActiveVisitsTable } from "@/features/visits/components/tables/active-visits-table";
+import { ActiveVisitsTableSkeleton } from "@/features/visits/components/ActiveVisitsTableSkeleton";
 import { VisitDetailDialog } from "@/features/visits/components/VisitDetailDialog";
 import { VisitQueueSummaryCards } from "@/features/visits/components/VisitQueueSummaryCards";
 import { useVisitsList } from "@/features/visits/hooks/use-visits-list";
@@ -115,6 +111,19 @@ export function ActiveVisitsListPage() {
     };
   }, []);
 
+  const handleFiltersApply = useCallback(
+    (nextFilters: ActiveVisitListFilterState) => {
+      setFilters(nextFilters);
+      resetPage();
+    },
+    [resetPage],
+  );
+
+  const handleClearSearchAndFilters = useCallback(() => {
+    handleClearSearch();
+    handleFiltersApply(DEFAULT_ACTIVE_VISIT_FILTERS);
+  }, [handleClearSearch, handleFiltersApply]);
+
   const handleRowClick = useCallback((visit: VisitDetail) => {
     setSelectedVisitUuid(visit.uuid);
   }, []);
@@ -130,9 +139,14 @@ export function ActiveVisitsListPage() {
   return (
     <>
       <ListPageLayout data-testid="active-visits-page">
-        <InventoryListPageHeader
-          title="Active visits"
-          description="Patients currently in clinic with open visits and encounters."
+        <ActiveVisitsPageHeader
+          search={search}
+          filters={filters}
+          isLoading={isRefreshing}
+          onSearchChange={setSearch}
+          onSearchSubmit={handleSearchSubmit}
+          onClearSearch={handleClearSearch}
+          onFiltersApply={handleFiltersApply}
         />
 
         {!hasNoRecords ? (
@@ -151,58 +165,62 @@ export function ActiveVisitsListPage() {
             <ListPageStatsSection className={cn(!showStats && "hidden sm:block")}>
               <VisitQueueSummaryCards stats={stats} isLoading={isStatsLoading} />
             </ListPageStatsSection>
-            {isLoading ? (
-              <ListPageToolbarSkeleton />
-            ) : (
-              <ActiveVisitsListToolbar
-                search={search}
-                filters={filters}
-                isLoading={isRefreshing}
-                onSearchChange={setSearch}
-                onSearchSubmit={handleSearchSubmit}
-                onClearSearch={handleClearSearch}
-                onFiltersApply={(nextFilters) => {
-                  setFilters(nextFilters);
-                  resetPage();
-                }}
-              />
-            )}
           </ListPageDataSectionsStack>
         ) : null}
 
-        <InventoryListPageContent
-          isLoading={isLoading}
-          loadingMessage="Loading active visits..."
-          loadingFallback={
-            <InventoryListTableSkeleton columns={ACTIVE_VISITS_TABLE_SKELETON_COLUMNS} />
-          }
-          error={error}
-          onRetry={() => void handleReload()}
-          errorTitle="Could not load active visits"
-          hasNoRecords={hasNoRecords}
-          emptyState={
-            <InventoryListEmptyState
-              icon={Calendar}
-              title="No active visits"
-              description="Walk-in and appointment-backed visits will appear here while they are open."
-            />
-          }
-          isFilteredEmpty={isFilteredEmpty}
-          filteredEmptyTitle="No matching active visits"
-        >
-          <>
-            <ActiveVisitsTable visits={items} onRowClick={handleRowClick} />
-            <ListPagePagination
-              page={page}
-              pageSize={pageSize}
-              totalCount={totalCount}
-              hasNext={hasNext}
-              hasPrevious={hasPrevious}
-              isLoading={isRefreshing}
-              onPageChange={handlePageChange}
-            />
-          </>
-        </InventoryListPageContent>
+        <ListPageTableSection>
+          {isLoading ? (
+            <ActiveVisitsTableSkeleton rows={8} />
+          ) : error ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+              <h2 className="text-sm font-semibold text-red-800">
+                Could not load active visits
+              </h2>
+              <p className="mt-2 text-sm text-red-700">{error}</p>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-4"
+                onClick={() => void handleReload()}
+              >
+                Try again
+              </Button>
+            </div>
+          ) : hasNoRecords ? (
+            <ActiveVisitsEmptyState />
+          ) : isFilteredEmpty ? (
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center">
+              <h2 className="text-base font-semibold text-brand-navy">
+                No matching active visits
+              </h2>
+              <p className="mt-1 text-sm text-brand-muted">
+                Adjust your search or filters and try again.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-4"
+                onClick={handleClearSearchAndFilters}
+              >
+                Clear search & filters
+              </Button>
+            </div>
+          ) : (
+            <>
+              <ActiveVisitsTable visits={items} onRowClick={handleRowClick} />
+              <ListPagePagination
+                page={page}
+                pageSize={pageSize}
+                totalCount={totalCount}
+                hasNext={hasNext}
+                hasPrevious={hasPrevious}
+                isLoading={isRefreshing}
+                onPageChange={handlePageChange}
+              />
+            </>
+          )}
+        </ListPageTableSection>
       </ListPageLayout>
 
       <VisitDetailDialog
