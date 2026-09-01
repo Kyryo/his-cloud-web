@@ -80,8 +80,45 @@ export function CustomerDetailInvoicesTab({
     if (!isActive) {
       return;
     }
-    void loadInvoices(page);
-  }, [isActive, loadInvoices, page]);
+
+    let cancelled = false;
+
+    async function run() {
+      try {
+        const response = await fetchCustomerInvoices(customer.uuid, {
+          limit: INVOICES_PAGE_SIZE,
+          offset: pageOffset(page, INVOICES_PAGE_SIZE),
+        });
+
+        if (!cancelled) {
+          setInvoices(response.invoices);
+          setInvoicesStats(response.invoicesStats);
+          setTotalCount(response.pagination.count);
+          setHasNext(response.pagination.has_next);
+          setHasPrevious(response.pagination.has_previous ?? page > 1);
+          hasLoadedRef.current = true;
+          setHasLoaded(true);
+          setLoadError(null);
+          setIsLoading(false);
+          setIsRefreshing(false);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setLoadError(
+            error instanceof Error ? error.message : "Failed to load invoices.",
+          );
+          setIsLoading(false);
+          setIsRefreshing(false);
+        }
+      }
+    }
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [customer.uuid, isActive, page]);
 
   if (!isActive) {
     return null;
@@ -105,7 +142,7 @@ export function CustomerDetailInvoicesTab({
   }
 
   return (
-    <div className="space-y-4" data-testid="customer-detail-invoices-tab">
+    <div className="space-y-5" data-testid="customer-detail-invoices-tab">
       <CustomerInvoicePaymentStatsCards stats={invoicesStats} />
 
       {totalCount === 0 ? (

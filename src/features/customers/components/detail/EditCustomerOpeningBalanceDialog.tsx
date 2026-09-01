@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import {
@@ -33,6 +33,11 @@ function parseAmount(value: string): number {
   return Number.isFinite(parsed) ? parsed : Number.NaN;
 }
 
+function formatInitialBalance(value: number | string): string {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount.toFixed(2) : "0.00";
+}
+
 export function EditCustomerOpeningBalanceDialog({
   open,
   isSaving = false,
@@ -41,15 +46,17 @@ export function EditCustomerOpeningBalanceDialog({
   onOpenChange,
   onSave,
 }: EditCustomerOpeningBalanceDialogProps) {
-  const [openingBalance, setOpeningBalance] = useState("");
+  const [openingBalance, setOpeningBalance] = useState(() =>
+    formatInitialBalance(initialOpeningBalance),
+  );
+  const [lastInitialBalance, setLastInitialBalance] = useState(
+    initialOpeningBalance,
+  );
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    const amount = Number(initialOpeningBalance);
-    setOpeningBalance(Number.isFinite(amount) ? amount.toFixed(2) : "0.00");
-  }, [initialOpeningBalance, open]);
+  if (initialOpeningBalance !== lastInitialBalance) {
+    setLastInitialBalance(initialOpeningBalance);
+    setOpeningBalance(formatInitialBalance(initialOpeningBalance));
+  }
 
   const parsed = parseAmount(openingBalance);
   const canSave = canEdit && !isSaving && Number.isFinite(parsed);
@@ -68,81 +75,74 @@ export function EditCustomerOpeningBalanceDialog({
     <Dialog
       open={open}
       onOpenChange={(nextOpen) => {
-        if (isSaving) {
-          return;
+        if (!isSaving) {
+          if (nextOpen) {
+            setOpeningBalance(formatInitialBalance(initialOpeningBalance));
+          }
+          onOpenChange(nextOpen);
         }
-        onOpenChange(nextOpen);
       }}
     >
-      <DialogContent className={cn("sm:max-w-md", appFont.className)}>
+      <DialogContent
+        className={cn("sm:max-w-md", appFont.className)}
+        data-testid="edit-customer-opening-balance-dialog"
+      >
         <DialogHeader>
           <DialogTitle>Edit opening balance</DialogTitle>
           <DialogDescription>
-            Positive amounts mean the client owes the organization. Negative
-            amounts are credits owed to the client.
+            Set the starting balance carried over for this client. Outstanding
+            balance will be recalculated automatically.
           </DialogDescription>
         </DialogHeader>
 
-        {canEdit ? (
-          <div className="space-y-2">
+        <div className="space-y-4 py-2">
+          <div className="space-y-1.5">
             <label
-              htmlFor="customer-opening-balance-input"
-              className="text-sm font-medium text-brand-navy"
+              htmlFor="opening-balance-input"
+              className="text-xs font-medium text-brand-navy"
             >
-              Opening balance
+              Opening balance (MWK)
             </label>
             <Input
-              id="customer-opening-balance-input"
+              id="opening-balance-input"
               type="number"
               step="0.01"
               value={openingBalance}
-              disabled={isSaving}
-              onChange={(event) => setOpeningBalance(event.target.value)}
-              data-testid="customer-opening-balance-input"
+              disabled={!canEdit || isSaving}
+              onChange={(e) => setOpeningBalance(e.target.value)}
+              placeholder="0.00"
+              data-testid="opening-balance-input"
             />
             <p className="text-xs text-brand-muted">
-              Outstanding balance is recalculated as opening balance + invoices −
-              payments.
+              Use positive values for client debt carried forward.
             </p>
           </div>
-        ) : (
-          <div
-            className="rounded-xl border border-brand-border bg-white px-4 py-8 text-center"
-            data-testid="customer-opening-balance-access-denied"
-          >
-            <p className="text-sm font-semibold text-brand-navy">Access denied</p>
-            <p className="mt-2 text-sm text-brand-muted">
-              Only users in the Billing group can edit opening balances. Contact
-              your administrator if you need access.
-            </p>
-          </div>
-        )}
+        </div>
 
-        <DialogFooter>
+        <DialogFooter className="gap-2 sm:gap-0">
           <SecondaryButton
             type="button"
             disabled={isSaving}
             onClick={() => onOpenChange(false)}
+            data-testid="edit-opening-balance-cancel-button"
           >
-            {canEdit ? "Cancel" : "Close"}
+            Cancel
           </SecondaryButton>
-          {canEdit ? (
-            <PrimaryButton
-              type="button"
-              disabled={!canSave}
-              onClick={() => void handleSave()}
-              data-testid="customer-opening-balance-save-button"
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                  Saving...
-                </>
-              ) : (
-                "Save"
-              )}
-            </PrimaryButton>
-          ) : null}
+          <PrimaryButton
+            type="button"
+            disabled={!canSave}
+            onClick={() => void handleSave()}
+            data-testid="edit-opening-balance-save-button"
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                Saving...
+              </>
+            ) : (
+              "Save changes"
+            )}
+          </PrimaryButton>
         </DialogFooter>
       </DialogContent>
     </Dialog>

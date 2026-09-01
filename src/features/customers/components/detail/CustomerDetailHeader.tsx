@@ -1,12 +1,13 @@
 "use client";
 
-import { Calendar } from "lucide-react";
+import { Calendar, Hash, Mail, Phone } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { ClientAvatar } from "@/components/client-avatar";
 import { Badge } from "@/components/ui/badge";
 import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
 import type { Customer } from "@/features/customers/types/customer.types";
+import { isCustomerVisitActive } from "@/features/customers/utils/customer-visit-status";
 import {
   formatAdaptiveAge,
   formatCustomerName,
@@ -25,45 +26,102 @@ export function CustomerDetailHeader({
 }: CustomerDetailHeaderProps) {
   const fullName = formatCustomerName(customer);
   const ageDisplay = formatAdaptiveAge(customer.dob);
+  const hasActiveVisit = isCustomerVisitActive(customer.visit_status);
 
   return (
-    <DetailPageHeaderSection>
-      <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
-      <div className="flex min-w-0 flex-1 items-start gap-3 sm:gap-4">
-        <ClientAvatar name={fullName} className="size-10 text-sm sm:size-12" />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h1 className="truncate text-lg font-semibold text-brand-navy sm:text-xl">
-              {fullName}
-            </h1>
-            <Badge variant={customer.gender === "Male" ? "default" : "secondary"}>
-              {customer.gender}
-            </Badge>
-            {!customer.is_active ? (
-              <Badge variant="outline">Inactive</Badge>
-            ) : null}
-            <TagBadgeList tags={customer.tags} />
-          </div>
+    <DetailPageHeaderSection className="border-b border-dash-border/80 bg-white px-4 py-4 sm:px-6 sm:py-5">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        {/* Left: Avatar & Patient Identity */}
+        <div className="flex min-w-0 flex-1 items-start gap-3.5 sm:gap-4">
+          <ClientAvatar
+            name={fullName}
+            className="size-11 shrink-0 text-base font-medium shadow-sm ring-2 ring-dash-border/70 sm:size-13 sm:text-lg"
+          />
 
-          <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-brand-muted">
-            <span>
-              {ageDisplay}
-              {customer.dob_is_estimated ? " (estimated)" : ""}
-            </span>
-            <span className="font-mono text-xs text-brand-slate">
-              {customer.customer_identifier}
-            </span>
-          </div>
+          <div className="min-w-0 flex-1 space-y-1.5">
+            {/* Top Row: Name, ID, Badges */}
+            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
+              <h1 className="truncate text-lg font-bold tracking-tight text-brand-navy sm:text-2xl">
+                {fullName}
+              </h1>
 
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-brand-muted">
-            <span className="inline-flex items-center gap-1.5">
-              <Calendar className="size-3.5 shrink-0" aria-hidden="true" />
-              Registered {formatDisplayDate(customer.created_at)}
-            </span>
+              <span className="inline-flex items-center rounded-md border border-dash-border/80 bg-dash-canvas px-2 py-0.5 font-mono text-xs font-semibold text-brand-navy shadow-2xs">
+                {customer.customer_identifier}
+              </span>
+
+              <Badge
+                variant={customer.gender === "Male" ? "default" : "secondary"}
+                className="text-xs"
+              >
+                {customer.gender}
+              </Badge>
+
+              {!customer.is_active ? (
+                <Badge
+                  variant="outline"
+                  className="border-red-200 bg-red-50 text-xs font-medium text-red-700"
+                >
+                  Inactive
+                </Badge>
+              ) : null}
+
+              {hasActiveVisit ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200/90 bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800 shadow-2xs">
+                  <span className="relative flex size-2 shrink-0">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                    <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
+                  </span>
+                  Active visit
+                </span>
+              ) : null}
+
+              <TagBadgeList tags={customer.tags} />
+            </div>
+
+            {/* Middle Row: Demographics & Contact Chips */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-brand-slate sm:text-sm">
+              <span className="font-medium text-brand-navy">
+                {ageDisplay}
+                {customer.dob_is_estimated ? " (est.)" : ""}
+                <span className="ml-1 font-normal text-brand-muted">
+                  · DOB: {formatDisplayDate(customer.dob)}
+                </span>
+              </span>
+
+              {customer.phone_number ? (
+                <span className="inline-flex items-center gap-1 text-brand-slate">
+                  <Phone className="size-3 text-brand-muted" aria-hidden="true" />
+                  {customer.phone_number}
+                </span>
+              ) : null}
+
+              {customer.email ? (
+                <span className="inline-flex items-center gap-1 text-brand-slate">
+                  <Mail className="size-3 text-brand-muted" aria-hidden="true" />
+                  {customer.email}
+                </span>
+              ) : null}
+
+              {customer.internal_reference ? (
+                <span className="inline-flex items-center gap-1 font-mono text-xs text-brand-muted">
+                  <Hash className="size-3" aria-hidden="true" />
+                  {customer.internal_reference}
+                </span>
+              ) : null}
+            </div>
+
+            {/* Bottom Row: Registration Meta */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-brand-muted">
+              <span className="inline-flex items-center gap-1.5">
+                <Calendar className="size-3.5 shrink-0 text-brand-muted" aria-hidden="true" />
+                Registered {formatDisplayDate(customer.created_at)}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
-      {actions ? <div className="shrink-0">{actions}</div> : null}
+
+        {/* Right: Actions */}
+        {actions ? <div className="shrink-0">{actions}</div> : null}
       </div>
     </DetailPageHeaderSection>
   );

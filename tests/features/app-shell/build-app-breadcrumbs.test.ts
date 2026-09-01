@@ -55,6 +55,14 @@ describe("buildAppBreadcrumbs", () => {
     ]);
   });
 
+  it("keeps the client detail breadcrumb for parallel tab routes", () => {
+    expect(buildAppBreadcrumbs("/customers/abc-123/visits")).toEqual([
+      { label: "Front Desk" },
+      { label: "Clients", href: ROUTES.customers },
+      { label: "Client details" },
+    ]);
+  });
+
   it("returns billing and sales orders for the sales orders list", () => {
     expect(buildAppBreadcrumbs(ROUTES.salesOrders)).toEqual([
       { label: "Billing" },

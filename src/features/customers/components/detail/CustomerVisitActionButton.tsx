@@ -49,8 +49,6 @@ export function CustomerVisitActionButton({
       return;
     }
 
-    setIsLoadingContext(true);
-
     try {
       const [visits, clinicsResponse] = await Promise.all([
         fetchCustomerVisits(customer.uuid, { limit: 100 }),
@@ -65,14 +63,46 @@ export function CustomerVisitActionButton({
       );
     } catch {
       setActiveVisit(null);
-    } finally {
-      setIsLoadingContext(false);
     }
   }, [customer.uuid, hasActiveVisit]);
 
   useEffect(() => {
-    void loadVisitContext();
-  }, [loadVisitContext]);
+    if (!hasActiveVisit) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function run() {
+      try {
+        const [visits, clinicsResponse] = await Promise.all([
+          fetchCustomerVisits(customer.uuid, { limit: 100 }),
+          fetchOrganizationClinics(),
+        ]);
+
+        if (!cancelled) {
+          setActiveVisit(findActiveCustomerVisit(visits));
+          setClinicIdByUuid(
+            new Map(
+              clinicsResponse.results.map((clinic) => [clinic.uuid, clinic.id]),
+            ),
+          );
+          setIsLoadingContext(false);
+        }
+      } catch {
+        if (!cancelled) {
+          setActiveVisit(null);
+          setIsLoadingContext(false);
+        }
+      }
+    }
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [customer.uuid, hasActiveVisit]);
 
   const canClose = useMemo(
     () => canCloseCustomerVisit(userData, activeVisit, clinicIdByUuid),

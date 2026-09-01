@@ -1,29 +1,45 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { PanelRight } from "lucide-react";
 
 import {
   PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS,
   PageLoader,
 } from "@/components/page-loader";
+import { FabButton } from "@/components/ui/fab-button";
+import { CreateAppointmentDialog } from "@/features/appointments/components/CreateAppointmentDialog";
+import {
+  DetailPageLayout,
+  DetailPageMainAsideGrid,
+  DetailPageMainSection,
+  DetailPageTabsSection,
+} from "@/features/app-shell/components/page-layout";
+import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
 import { CustomerDetailActions } from "@/features/customers/components/detail/CustomerDetailActions";
 import { CustomerDetailHeader } from "@/features/customers/components/detail/CustomerDetailHeader";
 import { CustomerDetailTabs } from "@/features/customers/components/detail/CustomerDetailTabs";
+import { CustomerDetailWorkspaceProvider } from "@/features/customers/components/detail/customer-detail-workspace-context";
+import { CustomerSummaryPanel } from "@/features/customers/components/detail/CustomerSummaryPanel";
 import { CustomerVisitActionButton } from "@/features/customers/components/detail/CustomerVisitActionButton";
-import { CreateAppointmentDialog } from "@/features/appointments/components/CreateAppointmentDialog";
 import { UpdateCustomerDialog } from "@/features/customers/components/UpdateCustomerDialog";
-import type { CustomerVisit } from "@/features/customers/types/customer-visit.types";
+import { fetchCustomerInsurance } from "@/features/customers/services/customer-insurance.service";
 import { fetchCustomer } from "@/features/customers/services/customers.service";
+import type { CustomerVisit } from "@/features/customers/types/customer-visit.types";
 import type { Customer } from "@/features/customers/types/customer.types";
+import { customerHasMasemPayer } from "@/features/customers/utils/customer-has-masm-payer";
 import { formatCustomerName } from "@/features/customers/utils/format-customer";
-import { DetailPageLayout } from "@/features/app-shell/components/page-layout";
-import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
+import { cn } from "@/lib/utils";
 
 type CustomerDetailPageProps = {
   customerId: string;
+  children: React.ReactNode;
 };
 
-export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
+export function CustomerDetailPage({
+  customerId,
+  children,
+}: CustomerDetailPageProps) {
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,25 +47,71 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
   const [appointmentDialogOpen, setAppointmentDialogOpen] = useState(false);
   const [visitsRefreshKey, setVisitsRefreshKey] = useState(0);
   const [billingRefreshKey, setBillingRefreshKey] = useState(0);
+  const [showSummaryPanel, setShowSummaryPanel] = useState(false);
+  const [hasMasemPayer, setHasMasemPayer] = useState(false);
+  const [isInsuranceReady, setIsInsuranceReady] = useState(false);
 
   useAppBreadcrumb(customer ? formatCustomerName(customer) : null);
 
   useEffect(() => {
+    let cancelled = false;
+
     async function loadCustomer() {
       try {
-        setIsLoading(true);
-        setError(null);
         const data = await fetchCustomer(customerId);
-        setCustomer(data);
+        if (!cancelled) {
+          setCustomer(data);
+          setError(null);
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load client.");
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Failed to load client.");
+        }
       } finally {
-        setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
     }
 
     void loadCustomer();
+
+    return () => {
+      cancelled = true;
+    };
   }, [customerId]);
+
+  useEffect(() => {
+    const customerUuid = customer?.uuid;
+    if (!customerUuid) {
+      return;
+    }
+
+    let cancelled = false;
+
+    async function loadInsurance() {
+      try {
+        const records = await fetchCustomerInsurance(customerUuid);
+        if (!cancelled) {
+          setHasMasemPayer(customerHasMasemPayer(records));
+        }
+      } catch {
+        if (!cancelled) {
+          setHasMasemPayer(false);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsInsuranceReady(true);
+        }
+      }
+    }
+
+    void loadInsurance();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [customer?.uuid]);
 
   const handleCustomerUpdated = useCallback((updatedCustomer: Customer) => {
     setCustomer(updatedCustomer);
@@ -60,14 +122,14 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
   }, []);
 
   const handleVisitChanged = useCallback(
-    async (_visit: CustomerVisit) => {
+    async (_visit?: CustomerVisit) => {
       setVisitsRefreshKey((current) => current + 1);
 
       try {
         const updatedCustomer = await fetchCustomer(customerId);
         setCustomer(updatedCustomer);
       } catch {
-        // Visits tab will still refresh; customer header may be stale until reload.
+        // Active tab will still refresh; customer header may be stale until reload.
       }
     },
     [customerId],
@@ -94,48 +156,88 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
   }
 
   return (
-    <DetailPageLayout data-testid="customer-detail-page">
-      <CustomerDetailHeader
-        customer={customer}
-        actions={
-          <div className="flex shrink-0 flex-wrap items-center gap-2">
-            <CustomerDetailActions
+    <CustomerDetailWorkspaceProvider
+      value={{
+        customer,
+        hasMasemPayer,
+        isInsuranceReady,
+        visitsRefreshKey,
+        billingRefreshKey,
+        onUpdateClick: () => setUpdateDialogOpen(true),
+        onVisitChanged: () => {
+          void handleVisitChanged();
+        },
+        onOpeningBalanceUpdated: handleCustomerUpdated,
+        onBillingUpdated: () =>
+          setBillingRefreshKey((current) => current + 1),
+        onTagsUpdated: handleTagsUpdated,
+      }}
+    >
+      <DetailPageLayout data-testid="customer-detail-page">
+        <CustomerDetailHeader
+          customer={customer}
+          actions={
+            <div className="flex shrink-0 flex-wrap items-center gap-2">
+              <CustomerDetailActions
+                customer={customer}
+                onEditDetails={() => setUpdateDialogOpen(true)}
+                onScheduleAppointment={() => setAppointmentDialogOpen(true)}
+                onCustomerUpdated={handleCustomerUpdated}
+              />
+              <CustomerVisitActionButton
+                customer={customer}
+                onVisitChanged={handleVisitChanged}
+              />
+            </div>
+          }
+        />
+        <DetailPageTabsSection>
+          <CustomerDetailTabs
+            customer={customer}
+            showBenefitsTab={hasMasemPayer}
+          />
+
+          <DetailPageMainAsideGrid>
+            <DetailPageMainSection>{children}</DetailPageMainSection>
+
+            <CustomerSummaryPanel
               customer={customer}
-              onEditDetails={() => setUpdateDialogOpen(true)}
-              onScheduleAppointment={() => setAppointmentDialogOpen(true)}
-              onCustomerUpdated={handleCustomerUpdated}
+              onUpdateClick={() => setUpdateDialogOpen(true)}
+              billingRefreshKey={billingRefreshKey}
+              onOpeningBalanceUpdated={handleCustomerUpdated}
+              onBillingUpdated={() =>
+                setBillingRefreshKey((current) => current + 1)
+              }
+              onTagsUpdated={handleTagsUpdated}
+              className={cn(!showSummaryPanel && "hidden xl:block")}
             />
-            <CustomerVisitActionButton
-              customer={customer}
-              onVisitChanged={handleVisitChanged}
-            />
-          </div>
-        }
-      />
-      <CustomerDetailTabs
-        customer={customer}
-        onUpdateClick={() => setUpdateDialogOpen(true)}
-        visitsRefreshKey={visitsRefreshKey}
-        billingRefreshKey={billingRefreshKey}
-        onVisitChanged={() => setVisitsRefreshKey((current) => current + 1)}
-        onOpeningBalanceUpdated={handleCustomerUpdated}
-        onBillingUpdated={() =>
-          setBillingRefreshKey((current) => current + 1)
-        }
-        onTagsUpdated={handleTagsUpdated}
-      />
-      <UpdateCustomerDialog
-        customer={customer}
-        open={updateDialogOpen}
-        onOpenChange={setUpdateDialogOpen}
-        onUpdated={handleCustomerUpdated}
-      />
-      <CreateAppointmentDialog
-        customer={customer}
-        open={appointmentDialogOpen}
-        onOpenChange={setAppointmentDialogOpen}
-        onCreated={() => setVisitsRefreshKey((current) => current + 1)}
-      />
-    </DetailPageLayout>
+          </DetailPageMainAsideGrid>
+
+          <FabButton
+            label={
+              showSummaryPanel ? "Hide client summary" : "Show client summary"
+            }
+            icon={PanelRight}
+            variant="outline"
+            hideFrom="xl"
+            className="bg-white"
+            onClick={() => setShowSummaryPanel((current) => !current)}
+            data-testid="customer-summary-fab"
+          />
+        </DetailPageTabsSection>
+        <UpdateCustomerDialog
+          customer={customer}
+          open={updateDialogOpen}
+          onOpenChange={setUpdateDialogOpen}
+          onUpdated={handleCustomerUpdated}
+        />
+        <CreateAppointmentDialog
+          customer={customer}
+          open={appointmentDialogOpen}
+          onOpenChange={setAppointmentDialogOpen}
+          onCreated={() => setVisitsRefreshKey((current) => current + 1)}
+        />
+      </DetailPageLayout>
+    </CustomerDetailWorkspaceProvider>
   );
 }
