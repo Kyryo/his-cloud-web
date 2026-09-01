@@ -29,6 +29,10 @@ export const ROUTES = {
   solutionsClaims: "/solutions/claims",
   solutionsPayments: "/solutions/payments",
   customerDetail: (customerId: string) => `/customers/${customerId}`,
+  customerDetailTab: (customerId: string, tab?: string) =>
+    tab && tab !== "summary"
+      ? `/customers/${customerId}/${tab}`
+      : `/customers/${customerId}`,
   salesOrders: "/sales-orders",
   salesOrderDetail: (orderId: number | string) => `/sales-orders/${orderId}`,
   invoices: "/invoices",

@@ -1,5 +1,4 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { StatsCard1Grid } from "@/components/stats-card1";
 import { cn } from "@/lib/utils";
 
 type CustomerTabSkeletonProps = {
@@ -14,17 +13,24 @@ export function CustomerTabSkeleton({
   className,
 }: CustomerTabSkeletonProps) {
   return (
-    <div className={cn("space-y-4", className)} data-testid="customer-tab-skeleton">
+    <div className={cn("space-y-5", className)} data-testid="customer-tab-skeleton">
       {statCards > 0 ? (
-        <StatsCard1Grid>
+        <div
+          className="grid grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
+          aria-busy="true"
+        >
           {Array.from({ length: statCards }).map((_, index) => (
-            <Skeleton key={index} className="h-[72px] rounded-xl" />
+            <div key={index} className="p-3.5 sm:p-4">
+              <Skeleton className="h-3.5 w-20" />
+              <Skeleton className="mt-2.5 h-8 w-16" />
+              <Skeleton className="mt-1.5 h-3 w-28" />
+            </div>
           ))}
-        </StatsCard1Grid>
+        </div>
       ) : null}
-      <div className="space-y-3 rounded-xl border border-brand-border bg-white p-4">
+      <div className="space-y-3 rounded-xl border border-dash-border/80 bg-white p-4">
         {Array.from({ length: rows }).map((_, index) => (
-          <Skeleton key={index} className="h-14 w-full" />
+          <Skeleton key={index} className="h-12 w-full" />
         ))}
       </div>
     </div>

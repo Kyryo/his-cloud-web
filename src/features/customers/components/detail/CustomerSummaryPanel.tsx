@@ -72,17 +72,54 @@ export function CustomerSummaryPanel({
         <DetailPageAsideSummaryField label="Name" value={fullName} />
         <DetailPageAsideSummaryField
           label="Client ID"
-          value={customer.customer_identifier}
+          value={
+            <span className="inline-flex items-center rounded border border-dash-border/80 bg-dash-canvas px-1.5 py-0.5 font-mono text-xs font-semibold text-brand-navy">
+              {customer.customer_identifier}
+            </span>
+          }
         />
         <DetailPageAsideSummaryField
           label="Internal reference"
-          value={customer.internal_reference || "—"}
+          value={
+            customer.internal_reference ? (
+              <span className="font-mono text-xs text-brand-slate">
+                {customer.internal_reference}
+              </span>
+            ) : (
+              "—"
+            )
+          }
         />
         <DetailPageAsideSummaryField
           label="Phone"
-          value={customer.phone_number ?? "—"}
+          value={
+            customer.phone_number ? (
+              <a
+                href={`tel:${customer.phone_number}`}
+                className="text-brand-slate hover:text-brand-navy hover:underline"
+              >
+                {customer.phone_number}
+              </a>
+            ) : (
+              "—"
+            )
+          }
         />
-        <DetailPageAsideSummaryField label="Email" value={customer.email ?? "—"} />
+        <DetailPageAsideSummaryField
+          label="Email"
+          value={
+            customer.email ? (
+              <a
+                href={`mailto:${customer.email}`}
+                className="break-all text-brand-slate hover:text-brand-navy hover:underline"
+              >
+                {customer.email}
+              </a>
+            ) : (
+              "—"
+            )
+          }
+        />
         <DetailPageAsideSummaryField label="Gender" value={customer.gender} />
         <DetailPageAsideSummaryField
           label="Date of Birth"

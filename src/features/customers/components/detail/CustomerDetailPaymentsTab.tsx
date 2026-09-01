@@ -80,8 +80,45 @@ export function CustomerDetailPaymentsTab({
     if (!isActive) {
       return;
     }
-    void loadPayments(page);
-  }, [isActive, loadPayments, page]);
+
+    let cancelled = false;
+
+    async function run() {
+      try {
+        const response = await fetchCustomerPayments(customer.uuid, {
+          limit: PAYMENTS_PAGE_SIZE,
+          offset: pageOffset(page, PAYMENTS_PAGE_SIZE),
+        });
+
+        if (!cancelled) {
+          setPayments(response.payments);
+          setInvoicesStats(response.invoicesStats);
+          setTotalCount(response.pagination.count);
+          setHasNext(response.pagination.has_next);
+          setHasPrevious(response.pagination.has_previous ?? page > 1);
+          hasLoadedRef.current = true;
+          setHasLoaded(true);
+          setLoadError(null);
+          setIsLoading(false);
+          setIsRefreshing(false);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setLoadError(
+            error instanceof Error ? error.message : "Failed to load payments.",
+          );
+          setIsLoading(false);
+          setIsRefreshing(false);
+        }
+      }
+    }
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [customer.uuid, isActive, page]);
 
   if (!isActive) {
     return null;
@@ -105,7 +142,7 @@ export function CustomerDetailPaymentsTab({
   }
 
   return (
-    <div className="space-y-4" data-testid="customer-detail-payments-tab">
+    <div className="space-y-5" data-testid="customer-detail-payments-tab">
       <CustomerInvoicePaymentStatsCards stats={invoicesStats} />
 
       {totalCount === 0 ? (
@@ -119,7 +156,13 @@ export function CustomerDetailPaymentsTab({
         <>
           <CustomerPaymentsTable
             payments={payments}
-            onRowClick={(payment) => router.push(ROUTES.paymentDetail(payment.id))}
+            onRowClick={(payment) =>
+              payment.applies_to_opening_balance
+                ? undefined
+                : payment.invoice_uuid
+                  ? router.push(ROUTES.invoiceDetail(payment.invoice_uuid))
+                  : undefined
+            }
           />
           <ListPagePagination
             page={page}

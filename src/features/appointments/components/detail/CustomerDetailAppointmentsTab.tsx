@@ -5,12 +5,12 @@ import { useCallback, useEffect, useState } from "react";
 
 import { TabAddActionButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
-import { StatsCard1, StatsCard1Grid } from "@/components/stats-card1";
 import {
   AppointmentActionConfirmDialog,
   type AppointmentTableAction,
 } from "@/features/appointments/components/AppointmentActionConfirmDialog";
 import { AppointmentDetailDialog } from "@/features/appointments/components/AppointmentDetailDialog";
+import { AppointmentStatusBadge } from "@/features/appointments/components/AppointmentStatusBadge";
 import { CreateAppointmentDialog } from "@/features/appointments/components/CreateAppointmentDialog";
 import { StartVisitFromAppointmentDialog } from "@/features/appointments/components/StartVisitFromAppointmentDialog";
 import { fetchAppointments, runAppointmentAction } from "@/features/appointments/services/appointments.service";
@@ -23,11 +23,8 @@ import { CustomerDetailTabEmptyState } from "@/features/customers/components/det
 import { CustomerTabSkeleton } from "@/features/customers/components/detail/CustomerTabSkeleton";
 import type { Customer } from "@/features/customers/types/customer.types";
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
-import { AppointmentStatusBadge } from "@/features/appointments/components/AppointmentStatusBadge";
-import { formatCompactNumber } from "@/utils/format-compact-number";
 import { useToast } from "@/providers/toast-provider";
-
-const STAT_CARD_CLASS = "border-brand-border bg-white shadow-none";
+import { formatCompactNumber } from "@/utils/format-compact-number";
 
 type CustomerDetailAppointmentsTabProps = {
   customer: Customer;
@@ -112,10 +109,7 @@ export function CustomerDetailAppointmentsTab({
 
     let cancelled = false;
 
-    void (async () => {
-      setIsLoading(true);
-      setLoadError(null);
-
+    async function run() {
       try {
         const response = await fetchAppointments({
           patient: customer.uuid,
@@ -124,19 +118,20 @@ export function CustomerDetailAppointmentsTab({
         if (!cancelled) {
           setAppointments(response.results);
           setHasLoaded(true);
+          setLoadError(null);
+          setIsLoading(false);
         }
       } catch (error) {
         if (!cancelled) {
           setLoadError(
             error instanceof Error ? error.message : "Failed to load appointments.",
           );
-        }
-      } finally {
-        if (!cancelled) {
           setIsLoading(false);
         }
       }
-    })();
+    }
+
+    void run();
 
     return () => {
       cancelled = true;
@@ -159,14 +154,17 @@ export function CustomerDetailAppointmentsTab({
             ? "Appointment confirmed."
             : action === "cancel"
               ? "Appointment cancelled."
-              : "Marked as no-show.",
+              : "Appointment marked as no-show.",
       });
       await loadAppointments();
     } catch (error) {
       toast({
         variant: "error",
-        title: "Action could not be completed",
-        description: error instanceof Error ? error.message : "Try again.",
+        title: "Could not update appointment",
+        description:
+          error instanceof Error
+            ? error.message
+            : "The appointment action failed.",
       });
     } finally {
       setActionUuid(null);
@@ -176,27 +174,26 @@ export function CustomerDetailAppointmentsTab({
 
   const scheduleButton = (
     <TabAddActionButton
-      label="Schedule appointment"
+      label="Schedule"
       onClick={() => setCreateOpen(true)}
-      data-testid="schedule-appointment-button"
+      data-testid="customer-appointments-schedule-button"
     />
   );
 
   const emptyStateScheduleButton = (
-    <TabAddActionButton
-      label="Schedule appointment"
-      emptyState
+    <Button
+      type="button"
+      size="sm"
       onClick={() => setCreateOpen(true)}
-      data-testid="schedule-appointment-button"
-    />
+      data-testid="customer-appointments-empty-schedule-button"
+    >
+      <CalendarPlus className="mr-1.5 size-4" aria-hidden="true" />
+      Schedule appointment
+    </Button>
   );
 
-  if (!isActive) {
-    return null;
-  }
-
   if (isLoading && !hasLoaded) {
-    return <CustomerTabSkeleton statCards={4} rows={5} />;
+    return <CustomerTabSkeleton statCards={4} rows={3} />;
   }
 
   if (loadError && !hasLoaded) {
@@ -223,7 +220,7 @@ export function CustomerDetailAppointmentsTab({
   ).length;
 
   return (
-    <div className="space-y-4" data-testid="customer-detail-appointments-tab">
+    <div className="space-y-5" data-testid="customer-detail-appointments-tab">
       <CreateAppointmentDialog
         customer={customer}
         open={createOpen}
@@ -275,30 +272,67 @@ export function CustomerDetailAppointmentsTab({
         }}
       />
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <StatsCard1Grid className="flex-1">
-          <StatsCard1
-            className={STAT_CARD_CLASS}
-            title="Total appointments"
-            value={formatCompactNumber(appointments.length)}
-          />
-          <StatsCard1
-            className={STAT_CARD_CLASS}
-            title="Upcoming"
-            value={formatCompactNumber(upcomingCount)}
-          />
-          <StatsCard1
-            className={STAT_CARD_CLASS}
-            title="Completed"
-            value={formatCompactNumber(completedCount)}
-          />
-          <StatsCard1
-            className={STAT_CARD_CLASS}
-            title="Cancelled"
-            value={formatCompactNumber(cancelledCount)}
-          />
-        </StatsCard1Grid>
-      </div>
+      {/* Seamless Cardless Stat Strip */}
+      <dl
+        className="grid grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
+        data-testid="customer-appointments-stats"
+      >
+        {/* 1. Total appointments */}
+        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
+          <div className="flex items-center gap-2">
+            <span className="size-2 shrink-0 rounded-full bg-blue-500" />
+            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
+              Total appointments
+            </dt>
+          </div>
+          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+            {formatCompactNumber(appointments.length)}
+          </dd>
+          <p className="mt-0.5 text-xs text-brand-muted">All scheduled bookings</p>
+        </div>
+
+        {/* 2. Upcoming */}
+        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
+          <div className="flex items-center gap-2">
+            <span className="size-2 shrink-0 rounded-full bg-indigo-500" />
+            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
+              Upcoming
+            </dt>
+          </div>
+          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+            {formatCompactNumber(upcomingCount)}
+          </dd>
+          <p className="mt-0.5 text-xs text-brand-muted">Future bookings</p>
+        </div>
+
+        {/* 3. Completed */}
+        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
+          <div className="flex items-center gap-2">
+            <span className="size-2 shrink-0 rounded-full bg-emerald-500" />
+            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
+              Completed
+            </dt>
+          </div>
+          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+            {formatCompactNumber(completedCount)}
+          </dd>
+          <p className="mt-0.5 text-xs text-brand-muted">Concluded sessions</p>
+        </div>
+
+        {/* 4. Cancelled */}
+        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
+          <div className="flex items-center gap-2">
+            <span className="size-2 shrink-0 rounded-full bg-slate-400" />
+            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
+              Cancelled
+            </dt>
+          </div>
+          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+            {formatCompactNumber(cancelledCount)}
+          </dd>
+          <p className="mt-0.5 text-xs text-brand-muted">Voided appointments</p>
+        </div>
+      </dl>
 
       {appointments.length === 0 ? (
         <CustomerDetailTabEmptyState

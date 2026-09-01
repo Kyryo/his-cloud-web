@@ -12,19 +12,15 @@ import {
   ListPageLayout,
   ListPagePagination,
   ListPageStatsSection,
-  ListPageToolbarSkeleton,
+  ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
 import { useListThenStats } from "@/features/app-shell/hooks/use-list-then-stats";
-import { InventoryListPageContent } from "@/features/inventory/components/list/InventoryListPageContent";
-import { InventoryListTableSkeleton } from "@/features/inventory/components/list/InventoryListTable";
 import { CreateSalesOrderDialog } from "@/features/sales-orders/components/CreateSalesOrderDialog";
-import { SalesOrderListToolbar } from "@/features/sales-orders/components/SalesOrderListToolbar";
 import { SalesOrderSummaryStatsCards } from "@/features/sales-orders/components/SalesOrderSummaryStatsCards";
+import { SalesOrdersEmptyState } from "@/features/sales-orders/components/SalesOrdersEmptyState";
 import { SalesOrdersPageHeader } from "@/features/sales-orders/components/SalesOrdersPageHeader";
-import {
-  SALES_ORDER_TABLE_SKELETON_COLUMNS,
-  SalesOrdersTable,
-} from "@/features/sales-orders/components/SalesOrdersTable";
+import { SalesOrdersTable } from "@/features/sales-orders/components/SalesOrdersTable";
+import { SalesOrdersTableSkeleton } from "@/features/sales-orders/components/SalesOrdersTableSkeleton";
 import {
   fetchSalesOrderSummaryStats,
   fetchSalesOrders,
@@ -220,7 +216,16 @@ export function SalesOrdersListPage() {
 
   return (
     <ListPageLayout data-testid="sales-orders-page">
-      <SalesOrdersPageHeader onNewOrder={() => setCreateDialogOpen(true)} />
+      <SalesOrdersPageHeader
+        search={search}
+        filters={filters}
+        isLoading={isRefreshing}
+        onSearchChange={setSearch}
+        onSearchSubmit={handleSearchSubmit}
+        onClearSearch={handleClearSearch}
+        onFiltersApply={handleFiltersApply}
+        onNewOrder={() => setCreateDialogOpen(true)}
+      />
 
       {!hasNoRecords ? (
         <FabButton
@@ -233,6 +238,12 @@ export function SalesOrdersListPage() {
         />
       ) : null}
 
+      <FabButton
+        label="New order"
+        onClick={() => setCreateDialogOpen(true)}
+        data-testid="new-sales-order-fab"
+      />
+
       {!hasNoRecords ? (
         <ListPageDataSectionsStack>
           <ListPageStatsSection className={cn(!showStats && "hidden sm:block")}>
@@ -241,59 +252,62 @@ export function SalesOrdersListPage() {
               isLoading={isStatsLoading}
             />
           </ListPageStatsSection>
-          {isLoading ? (
-            <ListPageToolbarSkeleton />
-          ) : (
-            <SalesOrderListToolbar
-              search={search}
-              filters={filters}
-              isLoading={isRefreshing}
-              onSearchChange={setSearch}
-              onSearchSubmit={handleSearchSubmit}
-              onClearSearch={handleClearSearch}
-              onFiltersApply={handleFiltersApply}
-            />
-          )}
         </ListPageDataSectionsStack>
       ) : null}
 
-      <InventoryListPageContent
-        isLoading={isLoading}
-        loadingMessage="Loading sales orders..."
-        loadingFallback={
-          <InventoryListTableSkeleton
-            columns={[...SALES_ORDER_TABLE_SKELETON_COLUMNS]}
-          />
-        }
-        error={error}
-        onRetry={() => void reloadOrders()}
-        errorTitle="Could not load sales orders"
-        hasNoRecords={hasNoRecords}
-        emptyState={
-          <div className="rounded-xl border border-brand-border bg-white px-6 py-14 text-center">
-            <h2 className="text-lg font-semibold text-brand-navy">No sales orders yet</h2>
-            <p className="mt-2 text-sm text-brand-muted">
-              Sales orders from ERP will appear here once visits generate billing
-              records.
-            </p>
+      <ListPageTableSection>
+        {isLoading ? (
+          <SalesOrdersTableSkeleton rows={8} />
+        ) : error ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+            <h2 className="text-sm font-semibold text-red-800">
+              Could not load sales orders
+            </h2>
+            <p className="mt-2 text-sm text-red-700">{error}</p>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-4"
+              onClick={() => void reloadOrders()}
+            >
+              Try again
+            </Button>
           </div>
-        }
-        isFilteredEmpty={isFilteredEmpty}
-        filteredEmptyTitle="No matching sales orders"
-      >
-        <>
-          <SalesOrdersTable orders={orders} onRowClick={handleRowClick} />
-          <ListPagePagination
-            page={page}
-            pageSize={DEFAULT_PAGE_SIZE}
-            totalCount={totalCount}
-            hasNext={hasNext}
-            hasPrevious={hasPrevious}
-            isLoading={isRefreshing}
-            onPageChange={handlePageChange}
-          />
-        </>
-      </InventoryListPageContent>
+        ) : hasNoRecords ? (
+          <SalesOrdersEmptyState onNewOrder={() => setCreateDialogOpen(true)} />
+        ) : isFilteredEmpty ? (
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center">
+            <h2 className="text-base font-semibold text-brand-navy">
+              No matching sales orders
+            </h2>
+            <p className="mt-1 text-sm text-brand-muted">
+              Adjust your search or filters and try again.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-4"
+              onClick={handleClearSearch}
+            >
+              Clear search & filters
+            </Button>
+          </div>
+        ) : (
+          <>
+            <SalesOrdersTable orders={orders} onRowClick={handleRowClick} />
+            <ListPagePagination
+              page={page}
+              pageSize={DEFAULT_PAGE_SIZE}
+              totalCount={totalCount}
+              hasNext={hasNext}
+              hasPrevious={hasPrevious}
+              isLoading={isRefreshing}
+              onPageChange={handlePageChange}
+            />
+          </>
+        )}
+      </ListPageTableSection>
 
       <CreateSalesOrderDialog
         open={createDialogOpen}

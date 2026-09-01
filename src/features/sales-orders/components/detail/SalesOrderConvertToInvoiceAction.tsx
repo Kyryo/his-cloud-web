@@ -186,7 +186,9 @@ export function SalesOrderConvertToInvoiceAction({
             return;
           }
           setCreatedOpen(false);
-          router.push(ROUTES.invoiceDetail(createdInvoice.uuid));
+          const invoiceIdentifier =
+            createdInvoice.uuid ?? (createdInvoice.id ? String(createdInvoice.id) : "");
+          router.push(ROUTES.invoiceDetail(invoiceIdentifier));
         }}
       />
 

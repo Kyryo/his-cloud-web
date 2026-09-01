@@ -1,15 +1,30 @@
 "use client";
 
 import Link from "next/link";
+import { Check, Copy, ExternalLink } from "lucide-react";
+import { useState } from "react";
 
 import { HoverPreviewCard } from "@/components/hover-preview-card";
+import { UserIdenticon } from "@/components/UserIdenticon";
 import {
   TableAmountCell,
   TableEntityCell,
-  TableTextCell,
 } from "@/components/table-text-cell";
-import { Button } from "@/components/ui/button";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  ListPageDataTable,
+  ListPageDataTableBody,
+  ListPageDataTableCell,
+  ListPageDataTableHeader,
+  ListPageDataTableHeaderCell,
+  ListPageDataTableHeaderRow,
+  ListPageDataTableRow,
+} from "@/features/app-shell/components/page-layout";
 import { SalesOrderStateBadge } from "@/features/sales-orders/components/SalesOrderStatusBadge";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
 import {
@@ -21,7 +36,7 @@ import {
   formatSalesOrderProvider,
 } from "@/features/sales-orders/utils/format-sales-order";
 import { ROUTES } from "@/constants/routes";
-import { cn } from "@/lib/utils";
+import { useToast } from "@/providers/toast-provider";
 
 type SalesOrdersTableProps = {
   orders: SalesOrder[];
@@ -30,16 +45,24 @@ type SalesOrdersTableProps = {
 };
 
 const columns = [
-  { key: "order", label: "Order" },
-  { key: "customer", label: "Customer" },
-  { key: "provider", label: "Provider" },
-  { key: "pricelist", label: "Pricelist" },
-  { key: "date", label: "Order date" },
+  { key: "order", label: "Order Number" },
+  { key: "customer", label: "Client" },
+  { key: "provider", label: "Care provider", className: "hidden md:table-cell" },
+  { key: "pricelist", label: "Pricelist", className: "hidden lg:table-cell" },
+  { key: "date", label: "Order Date" },
   { key: "state", label: "State" },
-  { key: "total", label: "Total" },
+  { key: "total", label: "Total", className: "text-right pr-4" },
 ] as const;
 
-export const SALES_ORDER_TABLE_SKELETON_COLUMNS = columns;
+export const SALES_ORDER_TABLE_SKELETON_COLUMNS = [
+  { key: "order", label: "Order Number" },
+  { key: "customer", label: "Client" },
+  { key: "provider", label: "Care provider", headerClassName: "hidden md:table-cell" },
+  { key: "pricelist", label: "Pricelist", headerClassName: "hidden lg:table-cell" },
+  { key: "date", label: "Order Date" },
+  { key: "state", label: "State" },
+  { key: "total", label: "Total", headerClassName: "text-right pr-4" },
+] as const;
 
 function SalesOrderProviderCell({ order }: { order: SalesOrder }) {
   const label = formatSalesOrderProvider(order);
@@ -59,31 +82,40 @@ function SalesOrderHoverPreview({ order }: { order: SalesOrder }) {
   const currency = formatSalesOrderCurrency(order);
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <div>
-        <p className="font-medium text-brand-navy">{order.name || `#${order.id}`}</p>
-        <p className="text-xs text-brand-muted">ERP order #{order.id}</p>
+        <p className="font-semibold text-brand-navy">{order.name || `#${order.id}`}</p>
+        <p className="font-mono text-xs text-brand-muted">ERP reference #{order.id}</p>
       </div>
-      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs">
-        <dt className="text-brand-muted">Customer</dt>
-        <dd>{formatSalesOrderCustomer(order)}</dd>
+      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-xs">
+        <dt className="text-brand-muted">Client</dt>
+        <dd className="font-medium text-brand-navy">{formatSalesOrderCustomer(order)}</dd>
         <dt className="text-brand-muted">Provider</dt>
-        <dd>{formatSalesOrderProvider(order)}</dd>
+        <dd className="font-medium text-brand-navy">{formatSalesOrderProvider(order)}</dd>
         <dt className="text-brand-muted">Order date</dt>
-        <dd>{formatSalesOrderDateTime(order.date_order)}</dd>
+        <dd className="font-medium text-brand-navy">{formatSalesOrderDateTime(order.date_order)}</dd>
         <dt className="text-brand-muted">Clinic</dt>
-        <dd>{formatSalesOrderClinicName(order)}</dd>
+        <dd className="font-medium text-brand-navy">{formatSalesOrderClinicName(order)}</dd>
         <dt className="text-brand-muted">Pricelist</dt>
-        <dd>{formatSalesOrderPricelist(order)}</dd>
+        <dd className="font-medium text-brand-navy">{formatSalesOrderPricelist(order)}</dd>
         <dt className="text-brand-muted">State</dt>
         <dd>
           <SalesOrderStateBadge state={order.state} />
         </dd>
         <dt className="text-brand-muted">Total</dt>
-        <dd>
+        <dd className="font-semibold text-brand-navy">
           <TableAmountCell value={order.amount_total} currency={currency} />
         </dd>
       </dl>
+      <div className="border-t border-dash-border/60 pt-2">
+        <Link
+          href={ROUTES.salesOrderDetail(order.uuid)}
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-primary hover:text-brand-primary-hover"
+        >
+          <span>Open order details</span>
+          <ExternalLink className="size-3" />
+        </Link>
+      </div>
     </div>
   );
 }
@@ -93,147 +125,138 @@ export function SalesOrdersTable({
   onRowClick,
   className,
 }: SalesOrdersTableProps) {
+  const { toast } = useToast();
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopyOrderNumber = (event: React.MouseEvent, order: SalesOrder) => {
+    event.stopPropagation();
+    const orderLabel = order.name || `#${order.id}`;
+    void navigator.clipboard.writeText(orderLabel);
+    setCopiedId(order.uuid);
+    setTimeout(() => setCopiedId(null), 2000);
+    toast({
+      variant: "success",
+      title: "Order number copied",
+      description: `${orderLabel} copied to clipboard.`,
+    });
+  };
+
   return (
     <TooltipProvider delayDuration={200}>
-      <div
-        className={cn(
-          "overflow-hidden rounded-xl border border-brand-border bg-white",
-          className,
-        )}
-      >
-        <div className="overflow-x-auto">
-          <table className="min-w-full table-fixed">
-            <thead>
-              <tr className="border-b border-brand-border bg-slate-50/80">
-                {columns.map((column) => (
-                  <th
-                    key={column.key}
-                    scope="col"
-                    className={cn(
-                      "px-4 py-3 text-sm font-medium text-brand-muted",
-                      column.key === "total" ? "text-right" : "text-left",
-                    )}
-                  >
-                    {column.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-brand-border">
-              {orders.map((order) => {
-                const currency = formatSalesOrderCurrency(order);
-                const orderLabel = order.name || `#${order.id}`;
-                const customerName = formatSalesOrderCustomer(order);
+      <ListPageDataTable className={className}>
+        <ListPageDataTableHeader>
+          <ListPageDataTableHeaderRow>
+            {columns.map((column) => (
+              <ListPageDataTableHeaderCell
+                key={column.key}
+                className={column.className}
+              >
+                {column.label}
+              </ListPageDataTableHeaderCell>
+            ))}
+          </ListPageDataTableHeaderRow>
+        </ListPageDataTableHeader>
+        <ListPageDataTableBody>
+          {orders.map((order) => {
+            const currency = formatSalesOrderCurrency(order);
+            const orderLabel = order.name || `#${order.id}`;
+            const customerName = formatSalesOrderCustomer(order);
+            const isCopied = copiedId === order.uuid;
 
-                return (
-                  <tr
-                    key={order.id}
-                    className="cursor-pointer transition-colors hover:bg-slate-50/80"
-                    onClick={() => onRowClick?.(order)}
-                  >
-                    <td className="px-4 py-3">
-                      <HoverPreviewCard
-                        trigger={
-                          <Link
-                            href={ROUTES.salesOrderDetail(order.uuid)}
-                            className="block max-w-[10rem] truncate font-mono text-sm font-medium text-brand-navy hover:text-brand-primary hover:underline"
-                            title={orderLabel}
-                            onClick={(event) => event.stopPropagation()}
-                          >
-                            {orderLabel}
-                          </Link>
-                        }
-                      >
-                        <SalesOrderHoverPreview order={order} />
-                      </HoverPreviewCard>
-                    </td>
-                    <td className="px-4 py-3">
-                      <TableEntityCell name={customerName} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <SalesOrderProviderCell order={order} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <TableTextCell className="text-brand-slate">
-                        {formatSalesOrderPricelist(order)}
-                      </TableTextCell>
-                    </td>
-                    <td className="px-4 py-3">
-                      <TableTextCell className="text-brand-slate">
-                        {formatSalesOrderDateTime(order.date_order)}
-                      </TableTextCell>
-                    </td>
-                    <td className="px-4 py-3">
-                      <SalesOrderStateBadge state={order.state} />
-                    </td>
-                    <td className="px-4 py-3">
-                      <TableAmountCell
-                        value={order.amount_total}
-                        currency={currency}
-                      />
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            return (
+              <ListPageDataTableRow
+                key={order.id}
+                className="group cursor-pointer hover:bg-slate-50/70 transition-colors"
+                onClick={() => onRowClick?.(order)}
+              >
+                {/* 1. Order Number */}
+                <ListPageDataTableCell className="py-3">
+                  <div className="flex items-center gap-1.5">
+                    <HoverPreviewCard
+                      trigger={
+                        <Link
+                          href={ROUTES.salesOrderDetail(order.uuid)}
+                          className="font-mono text-xs font-semibold text-brand-navy hover:text-brand-primary transition-colors tracking-tight"
+                          title={orderLabel}
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          {orderLabel}
+                        </Link>
+                      }
+                    >
+                      <SalesOrderHoverPreview order={order} />
+                    </HoverPreviewCard>
+
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={(e) => handleCopyOrderNumber(e, order)}
+                          className="rounded p-1 text-dash-muted opacity-0 transition-all hover:bg-slate-100 hover:text-brand-navy group-hover:opacity-100 focus-visible:opacity-100"
+                          aria-label="Copy order number"
+                        >
+                          {isCopied ? (
+                            <Check className="size-3 text-emerald-600" />
+                          ) : (
+                            <Copy className="size-3" />
+                          )}
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        {isCopied ? "Copied!" : "Copy order number"}
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </ListPageDataTableCell>
+
+                {/* 2. Client / Customer */}
+                <ListPageDataTableCell className="py-3">
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <UserIdenticon
+                      seed={customerName}
+                      name={customerName}
+                      className="size-7.5 shrink-0 rounded-lg shadow-2xs"
+                    />
+                    <span className="truncate text-sm font-medium text-brand-navy">
+                      {customerName}
+                    </span>
+                  </div>
+                </ListPageDataTableCell>
+
+                {/* 3. Provider */}
+                <ListPageDataTableCell className="hidden py-3 text-xs md:table-cell">
+                  <SalesOrderProviderCell order={order} />
+                </ListPageDataTableCell>
+
+                {/* 4. Pricelist */}
+                <ListPageDataTableCell className="hidden py-3 text-xs text-brand-slate lg:table-cell">
+                  {formatSalesOrderPricelist(order)}
+                </ListPageDataTableCell>
+
+                {/* 5. Date */}
+                <ListPageDataTableCell className="py-3 text-xs text-dash-muted tabular-nums">
+                  {formatSalesOrderDateTime(order.date_order)}
+                </ListPageDataTableCell>
+
+                {/* 6. State */}
+                <ListPageDataTableCell className="py-3">
+                  <SalesOrderStateBadge state={order.state} />
+                </ListPageDataTableCell>
+
+                {/* 7. Total */}
+                <ListPageDataTableCell className="py-3 pr-4 text-right">
+                  <div className="font-semibold text-sm text-brand-navy tabular-nums">
+                    <TableAmountCell
+                      value={order.amount_total}
+                      currency={currency}
+                    />
+                  </div>
+                </ListPageDataTableCell>
+              </ListPageDataTableRow>
+            );
+          })}
+        </ListPageDataTableBody>
+      </ListPageDataTable>
     </TooltipProvider>
-  );
-}
-
-type SalesOrdersPaginationProps = {
-  page: number;
-  pageSize: number;
-  totalCount: number;
-  hasPrevious: boolean;
-  hasNext: boolean;
-  onPageChange: (page: number) => void;
-  isLoading?: boolean;
-};
-
-export function SalesOrdersPagination({
-  page,
-  pageSize,
-  totalCount,
-  hasPrevious,
-  hasNext,
-  onPageChange,
-  isLoading = false,
-}: SalesOrdersPaginationProps) {
-  const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
-  const start = totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
-  const end = Math.min(page * pageSize, totalCount);
-
-  return (
-    <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm text-brand-muted">
-        Showing {start}–{end} of {totalCount}
-      </p>
-      <div className="flex items-center gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={!hasPrevious || isLoading}
-          onClick={() => onPageChange(page - 1)}
-        >
-          Previous
-        </Button>
-        <span className="text-sm text-brand-slate">
-          Page {page} of {totalPages}
-        </span>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={!hasNext || isLoading}
-          onClick={() => onPageChange(page + 1)}
-        >
-          Next
-        </Button>
-      </div>
-    </div>
   );
 }

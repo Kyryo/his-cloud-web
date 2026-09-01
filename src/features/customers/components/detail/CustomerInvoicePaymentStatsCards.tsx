@@ -1,35 +1,17 @@
 "use client";
 
-import { StatsCard1, StatsCard1Grid } from "@/components/stats-card1";
 import type { CustomerInvoicesStats } from "@/features/customers/types/customer-billing.types";
 import { formatSalesOrderAmount } from "@/features/sales-orders/utils/format-sales-order";
 import {
   formatCompactAmount,
   formatCompactNumber,
 } from "@/utils/format-compact-number";
-
-const STAT_CARD_CLASS = "border-brand-border bg-white shadow-none";
+import { cn } from "@/lib/utils";
 
 type CustomerInvoicePaymentStatsCardsProps = {
   stats: CustomerInvoicesStats | null;
   className?: string;
 };
-
-function formatStatCardValue(count: number, total: number | string) {
-  const fullAmount = formatSalesOrderAmount(total, "MWK");
-
-  return (
-    <div className="space-y-0.5">
-      <div title={`${count} items`}>{formatCompactNumber(count)}</div>
-      <div
-        className="text-xs font-normal text-muted-foreground"
-        title={fullAmount}
-      >
-        {formatCompactAmount(total)} MWK
-      </div>
-    </div>
-  );
-}
 
 export function CustomerInvoicePaymentStatsCards({
   stats,
@@ -43,30 +25,99 @@ export function CustomerInvoicePaymentStatsCards({
   };
 
   return (
-    <StatsCard1Grid className={className}>
-      <StatsCard1
-        className={STAT_CARD_CLASS}
-        title="All invoices"
-        value={formatStatCardValue(buckets.all.count, buckets.all.total)}
-      />
-      <StatsCard1
-        className={STAT_CARD_CLASS}
-        title="Paid"
-        value={formatStatCardValue(buckets.paid.count, buckets.paid.total)}
-      />
-      <StatsCard1
-        className={STAT_CARD_CLASS}
-        title="Unpaid"
-        value={formatStatCardValue(buckets.not_paid.count, buckets.not_paid.total)}
-      />
-      <StatsCard1
-        className={STAT_CARD_CLASS}
-        title="Partially paid"
-        value={formatStatCardValue(
-          buckets.partially_paid.count,
-          buckets.partially_paid.total,
-        )}
-      />
-    </StatsCard1Grid>
+    <dl
+      className={cn(
+        "grid grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x",
+        className,
+      )}
+      data-testid="customer-invoice-payment-stats"
+    >
+      {/* 1. All invoices */}
+      <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
+        <div className="flex items-center gap-2">
+          <span className="size-2 shrink-0 rounded-full bg-blue-500" />
+          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
+            All invoices
+          </dt>
+        </div>
+        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          {formatCompactNumber(buckets.all.count)}
+        </dd>
+        <p
+          className="mt-0.5 text-xs text-brand-muted"
+          title={formatSalesOrderAmount(buckets.all.total, "MWK")}
+        >
+          {formatCompactAmount(buckets.all.total)} MWK · Total billed
+        </p>
+      </div>
+
+      {/* 2. Paid */}
+      <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
+        <div className="flex items-center gap-2">
+          <span className="size-2 shrink-0 rounded-full bg-emerald-500" />
+          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
+            Paid
+          </dt>
+        </div>
+        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          {formatCompactNumber(buckets.paid.count)}
+        </dd>
+        <p
+          className="mt-0.5 text-xs text-brand-muted"
+          title={formatSalesOrderAmount(buckets.paid.total, "MWK")}
+        >
+          <span className="font-medium text-emerald-700">
+            {formatCompactAmount(buckets.paid.total)} MWK
+          </span>{" "}
+          · Settled
+        </p>
+      </div>
+
+      {/* 3. Unpaid */}
+      <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
+        <div className="flex items-center gap-2">
+          <span className="size-2 shrink-0 rounded-full bg-red-500" />
+          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
+            Unpaid
+          </dt>
+        </div>
+        <dd
+          className={cn(
+            "mt-1.5 text-2xl font-bold tracking-tight tabular-nums sm:text-3xl",
+            buckets.not_paid.count > 0 ? "text-red-600" : "text-brand-navy",
+          )}
+        >
+          {formatCompactNumber(buckets.not_paid.count)}
+        </dd>
+        <p
+          className="mt-0.5 text-xs text-brand-muted"
+          title={formatSalesOrderAmount(buckets.not_paid.total, "MWK")}
+        >
+          <span className={cn(buckets.not_paid.count > 0 && "font-medium text-red-700")}>
+            {formatCompactAmount(buckets.not_paid.total)} MWK
+          </span>{" "}
+          · Unpaid
+        </p>
+      </div>
+
+      {/* 4. Partially paid */}
+      <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
+        <div className="flex items-center gap-2">
+          <span className="size-2 shrink-0 rounded-full bg-amber-500" />
+          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
+            Partially paid
+          </dt>
+        </div>
+        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          {formatCompactNumber(buckets.partially_paid.count)}
+        </dd>
+        <p
+          className="mt-0.5 text-xs text-brand-muted"
+          title={formatSalesOrderAmount(buckets.partially_paid.total, "MWK")}
+        >
+          {formatCompactAmount(buckets.partially_paid.total)} MWK · Partial
+        </p>
+      </div>
+    </dl>
   );
 }

@@ -14,6 +14,16 @@ export const DEFAULT_PAYMENT_LIST_FILTERS: PaymentListFilterState = {
   dateTo: "",
 };
 
+export const PAYMENT_STATE_OPTIONS: Array<{
+  value: PaymentStateFilter;
+  label: string;
+}> = [
+  { value: "all", label: "All states" },
+  { value: "draft", label: "Draft" },
+  { value: "posted", label: "Posted" },
+  { value: "cancel", label: "Cancelled" },
+];
+
 export function buildPaymentListFilters(input: {
   search: string;
   page?: number;

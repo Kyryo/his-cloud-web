@@ -17,17 +17,11 @@ import {
 import {
   countActivePaymentFilters,
   DEFAULT_PAYMENT_LIST_FILTERS,
+  PAYMENT_STATE_OPTIONS,
   type PaymentListFilterState,
 } from "@/features/payments/utils/payment-list-filters";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
-
-const PAYMENT_STATE_OPTIONS = [
-  { value: "all", label: "All states" },
-  { value: "draft", label: "Draft" },
-  { value: "posted", label: "Posted" },
-  { value: "cancel", label: "Cancelled" },
-] as const;
 
 type PaymentFiltersSheetProps = {
   filters: PaymentListFilterState;

@@ -4,6 +4,7 @@ import { BarChart3 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { FabButton } from "@/components/ui/fab-button";
 import { ROUTES } from "@/constants/routes";
 import {
@@ -11,21 +12,17 @@ import {
   ListPageLayout,
   ListPagePagination,
   ListPageStatsSection,
-  ListPageToolbarSkeleton,
+  ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
 import { useListThenStats } from "@/features/app-shell/hooks/use-list-then-stats";
 import { RecordOpeningBalancePaymentDialog } from "@/features/customers/components/detail/RecordOpeningBalancePaymentDialog";
 import { fetchCustomerBillingSummary } from "@/features/customers/services/customer-billing.service";
 import type { Customer } from "@/features/customers/types/customer.types";
-import { InventoryListPageContent } from "@/features/inventory/components/list/InventoryListPageContent";
-import { InventoryListTableSkeleton } from "@/features/inventory/components/list/InventoryListTable";
-import { PaymentListToolbar } from "@/features/payments/components/PaymentListToolbar";
+import { PaymentsEmptyState } from "@/features/payments/components/PaymentsEmptyState";
 import { PaymentSummaryStatsCards } from "@/features/payments/components/PaymentSummaryStatsCards";
 import { PaymentsPageHeader } from "@/features/payments/components/PaymentsPageHeader";
-import {
-  PAYMENT_TABLE_SKELETON_COLUMNS,
-  PaymentsTable,
-} from "@/features/payments/components/PaymentsTable";
+import { PaymentsTable } from "@/features/payments/components/PaymentsTable";
+import { PaymentsTableSkeleton } from "@/features/payments/components/PaymentsTableSkeleton";
 import {
   fetchPaymentSummaryStats,
   fetchPayments,
@@ -162,13 +159,10 @@ export function PaymentsListPage() {
 
   useEffect(() => {
     if (!recordPaymentOpen || !selectedCustomer) {
-      setRemainingOpeningBalance(0);
-      setIsLoadingRemaining(false);
       return;
     }
 
     let cancelled = false;
-    setIsLoadingRemaining(true);
 
     void (async () => {
       try {
@@ -208,13 +202,29 @@ export function PaymentsListPage() {
     setPage(1);
   }, []);
 
+  const handleClearSearchAndFilters = useCallback(() => {
+    setIsRefreshing(true);
+    setSearch("");
+    setActiveSearch("");
+    setFilters(DEFAULT_PAYMENT_LIST_FILTERS);
+    setPage(1);
+  }, []);
+
   function handleRecordPaymentOpenChange(open: boolean) {
     setRecordPaymentOpen(open);
-    if (!open) {
-      setSelectedCustomer(null);
-      setRemainingOpeningBalance(0);
-      setIsLoadingRemaining(false);
+    if (open) {
+      setIsLoadingRemaining(Boolean(selectedCustomer));
+      return;
     }
+    setSelectedCustomer(null);
+    setRemainingOpeningBalance(0);
+    setIsLoadingRemaining(false);
+  }
+
+  function handleRecordPaymentCustomerChange(customer: Customer | null) {
+    setSelectedCustomer(customer);
+    setRemainingOpeningBalance(0);
+    setIsLoadingRemaining(Boolean(customer));
   }
 
   const activeFilterCount = countActivePaymentFilters(filters);
@@ -226,7 +236,20 @@ export function PaymentsListPage() {
 
   return (
     <ListPageLayout data-testid="payments-page">
-      <PaymentsPageHeader onRecordPayment={() => setRecordPaymentOpen(true)} />
+      <PaymentsPageHeader
+        search={search}
+        filters={filters}
+        isLoading={isRefreshing}
+        onSearchChange={setSearch}
+        onSearchSubmit={handleSearchSubmit}
+        onClearSearch={handleClearSearch}
+        onFiltersApply={(nextFilters) => {
+          setIsRefreshing(true);
+          setFilters(nextFilters);
+          setPage(1);
+        }}
+        onRecordPayment={() => setRecordPaymentOpen(true)}
+      />
 
       {!hasNoRecords ? (
         <FabButton
@@ -239,71 +262,75 @@ export function PaymentsListPage() {
         />
       ) : null}
 
+      <FabButton
+        label="Record payment"
+        onClick={() => setRecordPaymentOpen(true)}
+        data-testid="payments-record-payment-fab"
+      />
+
       {!hasNoRecords ? (
         <ListPageDataSectionsStack>
           <ListPageStatsSection className={cn(!showStats && "hidden sm:block")}>
             <PaymentSummaryStatsCards stats={stats} isLoading={isStatsLoading} />
           </ListPageStatsSection>
-          {isLoading ? (
-            <ListPageToolbarSkeleton />
-          ) : (
-            <PaymentListToolbar
-              search={search}
-              filters={filters}
-              isLoading={isRefreshing}
-              onSearchChange={setSearch}
-              onSearchSubmit={handleSearchSubmit}
-              onClearSearch={handleClearSearch}
-              onFiltersApply={(nextFilters) => {
-                setIsRefreshing(true);
-                setFilters(nextFilters);
-                setPage(1);
-              }}
-            />
-          )}
         </ListPageDataSectionsStack>
       ) : null}
 
-      <InventoryListPageContent
-        isLoading={isLoading}
-        loadingMessage="Loading payments..."
-        loadingFallback={
-          <InventoryListTableSkeleton columns={[...PAYMENT_TABLE_SKELETON_COLUMNS]} />
-        }
-        error={error}
-        onRetry={() => void reloadPayments()}
-        errorTitle="Could not load payments"
-        hasNoRecords={hasNoRecords}
-        emptyState={
-          <div className="rounded-xl border border-dashed border-brand-border bg-white px-6 py-14 text-center">
-            <p className="text-sm font-medium text-brand-navy">No payments found</p>
-            <p className="mt-2 text-sm text-brand-muted">
-              Payments will appear here once they are recorded against invoices.
-            </p>
+      <ListPageTableSection>
+        {isLoading ? (
+          <PaymentsTableSkeleton rows={8} />
+        ) : error ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+            <h2 className="text-sm font-semibold text-red-800">Could not load payments</h2>
+            <p className="mt-2 text-sm text-red-700">{error}</p>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-4"
+              onClick={() => void reloadPayments()}
+            >
+              Try again
+            </Button>
           </div>
-        }
-        isFilteredEmpty={isFilteredEmpty}
-        filteredEmptyTitle="No matching payments"
-      >
-        <>
-          <PaymentsTable
-            payments={payments}
-            onRowClick={(payment) => router.push(ROUTES.paymentDetail(payment.id))}
-          />
-          <ListPagePagination
-            page={page}
-            pageSize={DEFAULT_PAGE_SIZE}
-            totalCount={totalCount}
-            hasNext={hasNext}
-            hasPrevious={hasPrevious}
-            isLoading={isRefreshing}
-            onPageChange={(nextPage) => {
-              setIsRefreshing(true);
-              setPage(nextPage);
-            }}
-          />
-        </>
-      </InventoryListPageContent>
+        ) : hasNoRecords ? (
+          <PaymentsEmptyState onRecordPayment={() => setRecordPaymentOpen(true)} />
+        ) : isFilteredEmpty ? (
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center">
+            <h2 className="text-base font-semibold text-brand-navy">No matching payments</h2>
+            <p className="mt-1 text-sm text-brand-muted">
+              Adjust your search or filters and try again.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-4"
+              onClick={handleClearSearchAndFilters}
+            >
+              Clear search & filters
+            </Button>
+          </div>
+        ) : (
+          <>
+            <PaymentsTable
+              payments={payments}
+              onRowClick={(payment) => router.push(ROUTES.paymentDetail(payment.id))}
+            />
+            <ListPagePagination
+              page={page}
+              pageSize={DEFAULT_PAGE_SIZE}
+              totalCount={totalCount}
+              hasNext={hasNext}
+              hasPrevious={hasPrevious}
+              isLoading={isRefreshing}
+              onPageChange={(nextPage) => {
+                setIsRefreshing(true);
+                setPage(nextPage);
+              }}
+            />
+          </>
+        )}
+      </ListPageTableSection>
 
       <RecordOpeningBalancePaymentDialog
         customer={selectedCustomer}
@@ -312,7 +339,7 @@ export function PaymentsListPage() {
         canRecord={isBillingUser}
         showCustomerPicker
         isLoadingRemaining={isLoadingRemaining}
-        onCustomerChange={setSelectedCustomer}
+        onCustomerChange={handleRecordPaymentCustomerChange}
         onOpenChange={handleRecordPaymentOpenChange}
         onRecorded={() => {
           void reloadPayments();

@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import {
   DetailPageAsideSummaryAmountRow,
-  DetailPageAsideSummaryHighlight,
+  DetailPageAsideSummarySection,
 } from "@/features/app-shell/components/page-layout";
 import { EditCustomerOpeningBalanceDialog } from "@/features/customers/components/detail/EditCustomerOpeningBalanceDialog";
 import { RecordOpeningBalancePaymentDialog } from "@/features/customers/components/detail/RecordOpeningBalancePaymentDialog";
@@ -25,7 +25,6 @@ import type { Customer } from "@/features/customers/types/customer.types";
 import { formatSalesOrderAmount } from "@/features/sales-orders/utils/format-sales-order";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
-import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 import { useUser } from "@/providers/user-provider";
 
@@ -62,23 +61,44 @@ export function CustomerAccountSummaryCard({
   const [isSaving, setIsSaving] = useState(false);
 
   const loadTotals = useCallback(async () => {
-    setIsLoading(true);
-    setLoadError(null);
     try {
       const billing = await fetchCustomerBillingSummary(customer.uuid);
       setTotals(billing.totals);
+      setLoadError(null);
     } catch (error) {
       setLoadError(
         error instanceof Error ? error.message : "Failed to load account summary.",
       );
-    } finally {
-      setIsLoading(false);
     }
   }, [customer.uuid]);
 
   useEffect(() => {
-    void loadTotals();
-  }, [loadTotals, refreshKey]);
+    let cancelled = false;
+
+    async function run() {
+      try {
+        const billing = await fetchCustomerBillingSummary(customer.uuid);
+        if (!cancelled) {
+          setTotals(billing.totals);
+          setLoadError(null);
+          setIsLoading(false);
+        }
+      } catch (error) {
+        if (!cancelled) {
+          setLoadError(
+            error instanceof Error ? error.message : "Failed to load account summary.",
+          );
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [customer.uuid, refreshKey]);
 
   const outstanding = parseBillingAmount(totals?.total_due);
   const hasOutstanding = outstanding > 0;
@@ -123,76 +143,101 @@ export function CustomerAccountSummaryCard({
     }
   }
 
+  const manageAction = (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <EditButton
+          label="Manage"
+          className="h-7 px-2 text-xs text-brand-muted hover:text-brand-navy"
+          data-testid="customer-account-summary-manage-button"
+        >
+          Manage
+          <ChevronDown className="size-3.5" aria-hidden="true" />
+        </EditButton>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem
+          onClick={() => setEditOpen(true)}
+          data-testid="customer-account-summary-opening-balance-menu-item"
+        >
+          {hasOpeningBalance ? "Edit opening balance" : "Add opening balance"}
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          disabled={!canRecordOpeningBalancePayment}
+          title={
+            canRecordOpeningBalancePayment
+              ? undefined
+              : "Record payment requires an unpaid opening balance."
+          }
+          onClick={() => setRecordPaymentOpen(true)}
+          data-testid="customer-account-summary-record-payment-menu-item"
+        >
+          Record payment
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
   return (
     <>
-      <DetailPageAsideSummaryHighlight
-        title="Account Summary"
-        className={cn(hasOutstanding && "border-red-200 bg-red-50/70")}
-        action={
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <EditButton
-                label="Manage"
-                className="gap-1"
-                data-testid="customer-account-summary-manage-button"
-              >
-                Manage
-                <ChevronDown className="size-3.5" aria-hidden="true" />
-              </EditButton>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => setEditOpen(true)}
-                data-testid="customer-account-summary-opening-balance-menu-item"
-              >
-                {hasOpeningBalance ? "Edit opening balance" : "Add opening balance"}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                disabled={!canRecordOpeningBalancePayment}
-                title={
-                  canRecordOpeningBalancePayment
-                    ? undefined
-                    : "Record payment requires an unpaid opening balance."
-                }
-                onClick={() => setRecordPaymentOpen(true)}
-                data-testid="customer-account-summary-record-payment-menu-item"
-              >
-                Record payment
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        }
+      <DetailPageAsideSummarySection
+        title="Financial Summary"
+        action={manageAction}
+        data-testid="customer-account-summary"
       >
         {isLoading && !totals ? (
-          <div className="flex items-center gap-2 py-2 text-sm text-brand-muted">
-            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            Loading...
+          <div className="flex items-center gap-2 py-2 text-xs text-brand-muted">
+            <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+            Loading financial data...
           </div>
         ) : loadError && !totals ? (
-          <p className="py-2 text-sm text-red-600">{loadError}</p>
+          <p className="py-2 text-xs text-red-600">{loadError}</p>
         ) : (
-          <dl className="space-y-2.5">
-            <DetailPageAsideSummaryAmountRow
-              label="Opening balance"
-              value={formatSalesOrderAmount(openingBalance, "MWK")}
-            />
-            <DetailPageAsideSummaryAmountRow
-              label="Invoices"
-              value={formatSalesOrderAmount(totals?.total_invoiced ?? 0, "MWK")}
-            />
-            <DetailPageAsideSummaryAmountRow
-              label="Payments"
-              value={formatSalesOrderAmount(totals?.total_paid ?? 0, "MWK")}
-            />
-            <DetailPageAsideSummaryAmountRow
-              label="Outstanding balance"
-              value={formatSalesOrderAmount(totals?.total_due ?? 0, "MWK")}
-              variant={hasOutstanding ? "danger" : "default"}
-              emphasized
-            />
-          </dl>
+          <div className="space-y-3">
+            {/* Outstanding Balance Banner */}
+            {hasOutstanding ? (
+              <div className="rounded-lg border border-red-200/90 bg-red-50/80 p-3 shadow-2xs">
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-red-700">
+                  Outstanding Balance
+                </div>
+                <div className="mt-1 text-xl font-bold tracking-tight text-red-700 tabular-nums">
+                  {formatSalesOrderAmount(totals?.total_due, "MWK")}
+                </div>
+                <p className="mt-0.5 text-xs font-medium text-red-600/90">
+                  Payment required
+                </p>
+              </div>
+            ) : (
+              <div className="rounded-lg border border-emerald-200/80 bg-emerald-50/60 p-2.5 shadow-2xs">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-emerald-800">
+                    Account Settled
+                  </span>
+                  <span className="font-mono text-xs font-semibold text-emerald-700">
+                    {formatSalesOrderAmount(0, "MWK")}
+                  </span>
+                </div>
+              </div>
+            )}
+
+            {/* Financial Breakdown */}
+            <div className="space-y-2 pt-1 text-xs sm:text-sm">
+              <DetailPageAsideSummaryAmountRow
+                label="Opening balance"
+                value={formatSalesOrderAmount(openingBalance, "MWK")}
+              />
+              <DetailPageAsideSummaryAmountRow
+                label="Total invoiced"
+                value={formatSalesOrderAmount(totals?.total_invoiced ?? 0, "MWK")}
+              />
+              <DetailPageAsideSummaryAmountRow
+                label="Total payments"
+                value={formatSalesOrderAmount(totals?.total_paid ?? 0, "MWK")}
+              />
+            </div>
+          </div>
         )}
-      </DetailPageAsideSummaryHighlight>
+      </DetailPageAsideSummarySection>
 
       <EditCustomerOpeningBalanceDialog
         open={editOpen}

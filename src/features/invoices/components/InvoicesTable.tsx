@@ -1,7 +1,16 @@
 "use client";
 
-import { TableAmountCell, TableEntityCell, TableTextCell } from "@/components/table-text-cell";
-import { Button } from "@/components/ui/button";
+import { TableAmountCell } from "@/components/table-text-cell";
+import { UserIdenticon } from "@/components/UserIdenticon";
+import {
+  ListPageDataTable,
+  ListPageDataTableBody,
+  ListPageDataTableCell,
+  ListPageDataTableHeader,
+  ListPageDataTableHeaderCell,
+  ListPageDataTableHeaderRow,
+  ListPageDataTableRow,
+} from "@/features/app-shell/components/page-layout";
 import { InvoicePaymentStatusBadge } from "@/features/invoices/components/InvoicePaymentStatusBadge";
 import { InvoiceStatusBadge } from "@/features/invoices/components/InvoiceStatusBadge";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
@@ -10,7 +19,6 @@ import {
   formatInvoiceDate,
   formatInvoicePricelist,
 } from "@/features/invoices/utils/format-invoice";
-import { cn } from "@/lib/utils";
 
 type InvoicesTableProps = {
   invoices: Invoice[];
@@ -20,152 +28,98 @@ type InvoicesTableProps = {
 
 const columns = [
   { key: "invoice", label: "Invoice" },
-  { key: "customer", label: "Customer" },
-  { key: "salesOrder", label: "Sales order" },
-  { key: "pricelist", label: "Pricelist" },
+  { key: "customer", label: "Client" },
+  { key: "salesOrder", label: "Sales order", className: "hidden md:table-cell" },
+  { key: "pricelist", label: "Pricelist", className: "hidden lg:table-cell" },
   { key: "date", label: "Invoice date" },
   { key: "state", label: "State" },
   { key: "payment", label: "Payment" },
-  { key: "total", label: "Total" },
+  { key: "total", label: "Total", className: "text-right pr-4" },
 ] as const;
 
-export const INVOICE_TABLE_SKELETON_COLUMNS = columns;
+export const INVOICE_TABLE_SKELETON_COLUMNS = [
+  { key: "invoice", label: "Invoice" },
+  { key: "customer", label: "Client" },
+  { key: "salesOrder", label: "Sales order", headerClassName: "hidden md:table-cell" },
+  { key: "pricelist", label: "Pricelist", headerClassName: "hidden lg:table-cell" },
+  { key: "date", label: "Invoice date" },
+  { key: "state", label: "State" },
+  { key: "payment", label: "Payment" },
+  { key: "total", label: "Total", headerClassName: "text-right pr-4" },
+] as const;
 
 export function InvoicesTable({ invoices, onRowClick, className }: InvoicesTableProps) {
   return (
-    <div className={cn("overflow-hidden rounded-xl border border-brand-border bg-white", className)}>
-      <div className="overflow-x-auto">
-        <table className="min-w-full table-fixed">
-          <thead>
-            <tr className="border-b border-brand-border bg-slate-50/80">
-              {columns.map((column) => (
-                <th
-                  key={column.key}
-                  scope="col"
-                  className={cn(
-                    "px-4 py-3 text-sm font-medium text-brand-muted",
-                    column.key === "total" ? "text-right" : "text-left",
-                  )}
-                >
-                  {column.label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-brand-border">
-            {invoices.map((invoice) => {
-              const invoiceLabel = invoice.name || `#${invoice.id}`;
-              const customerName = formatInvoiceCustomer(invoice);
-              const salesOrderLabel =
-                invoice.sales_order_name || `#${invoice.sales_order_id}`;
+    <ListPageDataTable className={className}>
+      <ListPageDataTableHeader>
+        <ListPageDataTableHeaderRow>
+          {columns.map((column) => (
+            <ListPageDataTableHeaderCell key={column.key} className={column.className}>
+              {column.label}
+            </ListPageDataTableHeaderCell>
+          ))}
+        </ListPageDataTableHeaderRow>
+      </ListPageDataTableHeader>
+      <ListPageDataTableBody>
+        {invoices.map((invoice) => {
+          const invoiceLabel = invoice.name || `#${invoice.id}`;
+          const customerName = formatInvoiceCustomer(invoice);
+          const salesOrderLabel =
+            invoice.sales_order_name ||
+            (invoice.sales_order_id ? `#${invoice.sales_order_id}` : "—");
 
-              return (
-                <tr
-                  key={invoice.id}
-                  className={cn(onRowClick && "cursor-pointer hover:bg-slate-50/80")}
-                  onClick={() => onRowClick?.(invoice)}
-                  data-testid={`invoice-row-${invoice.id}`}
-                >
-                  <td className="px-4 py-3">
-                    <TableTextCell className="font-medium text-brand-navy">
-                      {invoiceLabel}
-                    </TableTextCell>
-                  </td>
-                  <td className="px-4 py-3">
-                    <TableEntityCell name={customerName} />
-                  </td>
-                  <td className="px-4 py-3">
-                    {invoice.sales_order_id ? (
-                      <TableTextCell className="text-brand-slate" title={salesOrderLabel}>
-                        {salesOrderLabel}
-                      </TableTextCell>
-                    ) : (
-                      <TableTextCell className="text-brand-slate">—</TableTextCell>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <TableTextCell className="text-brand-slate">
-                      {formatInvoicePricelist(invoice)}
-                    </TableTextCell>
-                  </td>
-                  <td className="px-4 py-3">
-                    <TableTextCell className="text-brand-slate">
-                      {formatInvoiceDate(invoice.invoice_date)}
-                    </TableTextCell>
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    <InvoiceStatusBadge state={invoice.state} />
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    {invoice.payment_status ? (
-                      <InvoicePaymentStatusBadge status={invoice.payment_status} />
-                    ) : (
-                      <TableTextCell className="text-brand-slate">—</TableTextCell>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <TableAmountCell value={invoice.amount_total} currency="MWK" />
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          return (
+            <ListPageDataTableRow
+              key={invoice.id}
+              className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+              onClick={() => onRowClick?.(invoice)}
+              data-testid={`invoice-row-${invoice.id}`}
+            >
+              <ListPageDataTableCell className="py-3">
+                <span className="font-mono text-xs font-semibold tracking-tight text-brand-navy group-hover:text-brand-primary">
+                  {invoiceLabel}
+                </span>
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="py-3">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <UserIdenticon
+                    seed={customerName}
+                    name={customerName}
+                    className="size-7.5 shrink-0 rounded-lg shadow-2xs"
+                  />
+                  <span className="truncate text-sm font-medium text-brand-navy">
+                    {customerName}
+                  </span>
+                </div>
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="hidden py-3 font-mono text-xs text-brand-slate md:table-cell">
+                {salesOrderLabel}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="hidden py-3 text-xs text-brand-slate lg:table-cell">
+                {formatInvoicePricelist(invoice)}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="py-3 text-xs tabular-nums text-dash-muted">
+                {formatInvoiceDate(invoice.invoice_date)}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="py-3">
+                <InvoiceStatusBadge state={invoice.state} />
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="py-3">
+                {invoice.payment_status ? (
+                  <InvoicePaymentStatusBadge status={invoice.payment_status} />
+                ) : (
+                  <span className="text-xs text-dash-muted">—</span>
+                )}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="py-3 pr-4 text-right">
+                <div className="text-sm font-semibold tabular-nums text-brand-navy">
+                  <TableAmountCell value={invoice.amount_total} currency="MWK" />
+                </div>
+              </ListPageDataTableCell>
+            </ListPageDataTableRow>
+          );
+        })}
+      </ListPageDataTableBody>
+    </ListPageDataTable>
   );
-}
-
-type InvoicesPaginationProps = {
-  page: number;
-  pageSize: number;
-  totalCount: number;
-  onPageChange: (page: number) => void;
-};
-
-export function InvoicesPagination({
-  page,
-  pageSize,
-  totalCount,
-  onPageChange,
-}: InvoicesPaginationProps) {
-  const hasNext = page * pageSize < totalCount;
-  const hasPrevious = page > 1;
-
-  return (
-    <div className="mt-4 flex items-center justify-between gap-3">
-      <p className="text-sm text-brand-muted">
-        Showing {invoicesRangeLabel(page, pageSize, totalCount)} of {totalCount}
-      </p>
-      <div className="flex gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={!hasPrevious}
-          onClick={() => onPageChange(page - 1)}
-        >
-          Previous
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={!hasNext}
-          onClick={() => onPageChange(page + 1)}
-        >
-          Next
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function invoicesRangeLabel(page: number, pageSize: number, totalCount: number) {
-  if (totalCount === 0) {
-    return "0";
-  }
-  const start = (page - 1) * pageSize + 1;
-  const end = Math.min(page * pageSize, totalCount);
-  return `${start}-${end}`;
 }

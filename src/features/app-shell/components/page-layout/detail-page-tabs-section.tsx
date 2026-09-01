@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Link from "next/link";
 
 import { cn } from "@/lib/utils";
 
@@ -49,28 +50,44 @@ export function DetailPageTabsNavSection({
 type DetailPageTabNavItemProps = {
   children: ReactNode;
   isActive: boolean;
-  onClick: () => void;
+  href?: string;
+  onClick?: () => void;
   className?: string;
 };
+
+const TAB_NAV_ITEM_CLASS =
+  "whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition-colors";
 
 export function DetailPageTabNavItem({
   children,
   isActive,
+  href,
   onClick,
   className,
 }: DetailPageTabNavItemProps) {
+  const itemClassName = cn(
+    TAB_NAV_ITEM_CLASS,
+    isActive
+      ? "border-brand-primary text-brand-primary"
+      : "border-transparent text-brand-muted hover:border-brand-border hover:text-brand-navy",
+    className,
+  );
+
+  if (href) {
+    return (
+      <Link
+        href={href}
+        className={itemClassName}
+        aria-current={isActive ? "page" : undefined}
+        onClick={onClick}
+      >
+        {children}
+      </Link>
+    );
+  }
+
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition-colors",
-        isActive
-          ? "border-brand-primary text-brand-primary"
-          : "border-transparent text-brand-muted hover:border-brand-border hover:text-brand-navy",
-        className,
-      )}
-    >
+    <button type="button" onClick={onClick} className={itemClassName}>
       {children}
     </button>
   );

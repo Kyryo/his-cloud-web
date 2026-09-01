@@ -24,45 +24,55 @@ export function CustomerAppointmentPicker({
 }: CustomerAppointmentPickerProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [options, setOptions] = useState<Customer[]>([]);
+  const [searchResults, setSearchResults] = useState<Customer[]>([]);
   const [isLoadingResults, setIsLoadingResults] = useState(false);
 
   useEffect(() => {
-    if (!open) {
-      setSearch("");
+    if (!open || search.trim().length < 2) {
       return;
     }
 
-    if (search.trim().length < 2) {
-      setOptions(customer ? [customer] : []);
-      return;
-    }
+    let cancelled = false;
 
     const handle = window.setTimeout(() => {
       void (async () => {
-        setIsLoadingResults(true);
         try {
           const response = await fetchCustomers({
             search: search.trim(),
             pageSize: 8,
             isActive: true,
           });
-          setOptions(response.results);
+          if (!cancelled) {
+            setSearchResults(response.results);
+            setIsLoadingResults(false);
+          }
         } catch {
-          setOptions(customer ? [customer] : []);
-        } finally {
-          setIsLoadingResults(false);
+          if (!cancelled) {
+            setSearchResults([]);
+            setIsLoadingResults(false);
+          }
         }
       })();
     }, 250);
 
-    return () => window.clearTimeout(handle);
-  }, [customer, open, search]);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(handle);
+    };
+  }, [open, search]);
+
+  const options =
+    search.trim().length < 2
+      ? customer
+        ? [customer]
+        : []
+      : searchResults;
 
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
     if (!nextOpen) {
       setSearch("");
+      setSearchResults([]);
     }
   }
 

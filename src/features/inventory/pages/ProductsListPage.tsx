@@ -4,22 +4,21 @@ import { Package } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { FabButton } from "@/components/ui/fab-button";
 import { ROUTES } from "@/constants/routes";
 import {
-  ListPageDataSectionsStack,
   ListPageLayout,
+  ListPagePagination,
+  ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
 import { fetchCatalogProducts } from "@/features/catalog/services/catalog.service";
 import { CreateProductDialog } from "@/features/inventory/components/CreateProductDialog";
-import { InventoryFiltersSheet } from "@/features/inventory/components/InventoryFiltersSheet";
-import { InventoryListToolbar } from "@/features/inventory/components/InventoryListToolbar";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
 import { InventoryListEmptyState } from "@/features/inventory/components/list/InventoryListEmptyState";
-import { InventoryListPageContent } from "@/features/inventory/components/list/InventoryListPageContent";
-import { InventoryListPageHeader } from "@/features/inventory/components/list/InventoryListPageHeader";
-import { InventoryListPagination } from "@/features/inventory/components/list/InventoryListTable";
+import { ProductsPageHeader } from "@/features/inventory/components/ProductsPageHeader";
 import { ProductsTable } from "@/features/inventory/components/tables/products-table";
+import { ProductsTableSkeleton } from "@/features/inventory/components/tables/ProductsTableSkeleton";
 import { useInventoryListFilters } from "@/features/inventory/hooks/use-inventory-list-filters";
 import type {
   InventoryListFilters,
@@ -79,6 +78,11 @@ export function ProductsListPage() {
     countActiveSheetFilters: countActiveProductFilters,
   });
 
+  const handleClearSearchAndFilters = useCallback(() => {
+    handleClearSearch();
+    handleFiltersApply(DEFAULT_PRODUCT_SHEET_FILTERS);
+  }, [handleClearSearch, handleFiltersApply]);
+
   const handleCreate = useCallback(() => {
     setCreateOpen(true);
   }, []);
@@ -92,7 +96,8 @@ export function ProductsListPage() {
   );
 
   const handleRowClick = useCallback(
-    (product: InventoryProduct) => router.push(ROUTES.inventoryProductDetail(product.uuid)),
+    (product: InventoryProduct) =>
+      router.push(ROUTES.inventoryProductDetail(product.uuid)),
     [router],
   );
 
@@ -108,18 +113,15 @@ export function ProductsListPage() {
         onCreated={handleProductCreated}
       />
 
-      <InventoryListPageHeader
-        title="Products"
-        description="Search and manage the product catalog."
-        addLabel="New product"
-        onAdd={handleCreate}
+      <ProductsPageHeader
         search={search}
-        isSearchDisabled={isRefreshing}
+        filters={sheetFilters}
+        isLoading={isRefreshing}
         onSearchChange={setSearch}
         onSearchSubmit={handleSearchSubmit}
         onClearSearch={handleClearSearch}
-        searchPlaceholder="Search by name, code, barcode, or tariff code..."
-        data-testid="add-product-button"
+        onFiltersApply={handleFiltersApply}
+        onNewProduct={handleCreate}
       />
 
       <FabButton
@@ -128,35 +130,23 @@ export function ProductsListPage() {
         data-testid="add-product-fab"
       />
 
-      {!hasNoRecords ? (
-        <ListPageDataSectionsStack>
-          <InventoryListToolbar
-            search={search}
-            searchPlaceholder="Search by name, code, barcode, or tariff code..."
-            isLoading={isRefreshing}
-            onSearchChange={setSearch}
-            onSearchSubmit={handleSearchSubmit}
-            onClearSearch={handleClearSearch}
-            filters={
-              <InventoryFiltersSheet
-                variant="products"
-                filters={sheetFilters}
-                isLoading={isRefreshing}
-                onApply={(filters) => handleFiltersApply(filters as typeof sheetFilters)}
-              />
-            }
-          />
-        </ListPageDataSectionsStack>
-      ) : null}
-
-      <InventoryListPageContent
-        isLoading={isLoading}
-        loadingMessage="Loading products..."
-        error={error}
-        onRetry={() => void reload()}
-        errorTitle="Could not load products"
-        hasNoRecords={hasNoRecords}
-        emptyState={
+      <ListPageTableSection>
+        {isLoading ? (
+          <ProductsTableSkeleton rows={8} />
+        ) : error ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+            <h2 className="text-sm font-semibold text-red-800">Could not load products</h2>
+            <p className="mt-2 text-sm text-red-700">{error}</p>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-4"
+              onClick={() => void reload()}
+            >
+              Try again
+            </Button>
+          </div>
+        ) : hasNoRecords ? (
           <InventoryListEmptyState
             icon={Package}
             title="No products found"
@@ -164,21 +154,37 @@ export function ProductsListPage() {
             actionLabel="New product"
             onAction={handleCreate}
           />
-        }
-        isFilteredEmpty={isFilteredEmpty}
-        filteredEmptyTitle="No matching products"
-      >
-        <ProductsTable products={items} onRowClick={handleRowClick} />
-        <InventoryListPagination
-          page={page}
-          pageSize={pageSize}
-          totalCount={totalCount}
-          hasNext={hasNext}
-          hasPrevious={hasPrevious}
-          isLoading={isRefreshing}
-          onPageChange={handlePageChange}
-        />
-      </InventoryListPageContent>
+        ) : isFilteredEmpty ? (
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center">
+            <h2 className="text-base font-semibold text-brand-navy">No matching products</h2>
+            <p className="mt-1 text-sm text-brand-muted">
+              Adjust your search or filters and try again.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-4"
+              onClick={handleClearSearchAndFilters}
+            >
+              Clear search & filters
+            </Button>
+          </div>
+        ) : (
+          <>
+            <ProductsTable products={items} onRowClick={handleRowClick} />
+            <ListPagePagination
+              page={page}
+              pageSize={pageSize}
+              totalCount={totalCount}
+              hasNext={hasNext}
+              hasPrevious={hasPrevious}
+              isLoading={isRefreshing}
+              onPageChange={handlePageChange}
+            />
+          </>
+        )}
+      </ListPageTableSection>
     </ListPageLayout>
   );
 }

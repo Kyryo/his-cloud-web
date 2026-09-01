@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Activity, Loader2 } from "lucide-react";
 
-import { StatsCard1, StatsCard1Grid } from "@/components/stats-card1";
 import {
   CustomerActivityTimeline,
 } from "@/features/customers/components/detail/CustomerActivityTimeline";
@@ -29,7 +28,6 @@ import type { CustomerBillingTotals } from "@/features/customers/types/customer-
 import { cn } from "@/lib/utils";
 
 const ACTIVITY_PAGE_SIZE = 10;
-const SUMMARY_STAT_CARD_CLASS = "border-brand-border bg-white shadow-none";
 
 type CustomerDetailSummaryTabProps = {
   customer: Customer;
@@ -60,61 +58,6 @@ function parseBillingAmount(value: number | string | null | undefined): number {
 
   const amount = Number(value);
   return Number.isFinite(amount) ? amount : 0;
-}
-
-function StatCardValue({
-  value,
-  unavailable,
-  isLoading,
-  title,
-}: {
-  value: number | null;
-  unavailable?: boolean;
-  isLoading?: boolean;
-  title?: string;
-}) {
-  if (isLoading) {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-brand-muted">
-        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-        <span className="sr-only">Loading</span>
-      </span>
-    );
-  }
-
-  if (value === null) {
-    return (
-      <span className="text-brand-muted" title={unavailable ? "Unavailable" : undefined}>
-        —
-      </span>
-    );
-  }
-
-  return <span title={title}>{formatCompactNumber(value)}</span>;
-}
-
-function StatCardCurrencyValue({
-  value,
-  isLoading,
-}: {
-  value: number | string | null | undefined;
-  isLoading?: boolean;
-}) {
-  if (isLoading) {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-brand-muted">
-        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-        <span className="sr-only">Loading</span>
-      </span>
-    );
-  }
-
-  const fullValue = formatBillingTotal(value);
-  return (
-    <span title={fullValue === "—" ? undefined : fullValue}>
-      {formatCompactCurrency(value)}
-    </span>
-  );
 }
 
 export function CustomerDetailSummaryTab({
@@ -306,59 +249,124 @@ export function CustomerDetailSummaryTab({
     );
   }
 
+  const dueAmount = parseBillingAmount(stats?.totals?.total_due);
+  const hasDue = dueAmount > 0;
+  const isBillingLoading = Boolean(stats?.isBillingLoading);
+
   return (
-    <div className="space-y-4" data-testid="customer-detail-summary-tab">
-      <StatsCard1Grid>
-        <StatsCard1
-          className={SUMMARY_STAT_CARD_CLASS}
-          title="Visits"
-          value={
-            <StatCardValue
-              value={stats?.visits ?? null}
-              title={stats?.visits != null ? String(stats.visits) : undefined}
-            />
-          }
-        />
-        <StatsCard1
-          className={SUMMARY_STAT_CARD_CLASS}
-          title="Sales orders"
-          value={
-            <StatCardCurrencyValue
-              value={stats?.totals?.total_sales}
-              isLoading={stats?.isBillingLoading}
-            />
-          }
-        />
-        <StatsCard1
-          className={SUMMARY_STAT_CARD_CLASS}
-          title="Invoices"
-          value={
-            <StatCardCurrencyValue
-              value={stats?.totals?.total_invoiced}
-              isLoading={stats?.isBillingLoading}
-            />
-          }
-        />
-        <StatsCard1
-          className={SUMMARY_STAT_CARD_CLASS}
-          title="Outstanding balance"
-          value={
-            stats?.isBillingLoading ? (
-              <StatCardCurrencyValue value={null} isLoading />
+    <div className="space-y-5" data-testid="customer-detail-summary-tab">
+      {/* Seamless Cardless Stat Strip */}
+      <dl
+        className="grid grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
+        data-testid="customer-detail-stats"
+      >
+        {/* 1. Visits */}
+        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
+          <div className="flex items-center gap-2">
+            <span className="size-2 shrink-0 rounded-full bg-blue-500" />
+            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
+              Visits
+            </dt>
+          </div>
+          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+            {stats?.visits != null ? (
+              <span title={String(stats.visits)}>
+                {formatCompactNumber(stats.visits)}
+              </span>
             ) : (
-              <span
-                className={cn(
-                  parseBillingAmount(stats?.totals?.total_due) > 0 && "text-red-600",
-                )}
-                title={formatBillingTotal(stats?.totals?.total_due)}
-              >
+              "—"
+            )}
+          </dd>
+          <p className="mt-0.5 text-xs text-brand-muted">Recorded encounters</p>
+        </div>
+
+        {/* 2. Sales orders */}
+        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
+          <div className="flex items-center gap-2">
+            <span className="size-2 shrink-0 rounded-full bg-indigo-500" />
+            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
+              Sales orders
+            </dt>
+          </div>
+          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+            {isBillingLoading ? (
+              <span className="inline-flex items-center gap-1.5 text-brand-muted">
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                <span className="sr-only">Loading</span>
+              </span>
+            ) : (
+              <span title={formatBillingTotal(stats?.totals?.total_sales)}>
+                {formatCompactCurrency(stats?.totals?.total_sales)}
+              </span>
+            )}
+          </dd>
+          <p className="mt-0.5 text-xs text-brand-muted">Total order volume</p>
+        </div>
+
+        {/* 3. Invoices */}
+        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
+          <div className="flex items-center gap-2">
+            <span className="size-2 shrink-0 rounded-full bg-emerald-500" />
+            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
+              Invoiced
+            </dt>
+          </div>
+          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+            {isBillingLoading ? (
+              <span className="inline-flex items-center gap-1.5 text-brand-muted">
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                <span className="sr-only">Loading</span>
+              </span>
+            ) : (
+              <span title={formatBillingTotal(stats?.totals?.total_invoiced)}>
+                {formatCompactCurrency(stats?.totals?.total_invoiced)}
+              </span>
+            )}
+          </dd>
+          <p className="mt-0.5 text-xs text-brand-muted">Total billed services</p>
+        </div>
+
+        {/* 4. Outstanding balance */}
+        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
+          <div className="flex items-center gap-2">
+            <span
+              className={cn(
+                "size-2 shrink-0 rounded-full",
+                hasDue ? "bg-red-500" : "bg-emerald-500",
+              )}
+            />
+            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
+              Outstanding balance
+            </dt>
+          </div>
+          <dd
+            className={cn(
+              "mt-1.5 text-2xl font-bold tracking-tight tabular-nums sm:text-3xl",
+              hasDue ? "text-red-600" : "text-brand-navy",
+            )}
+          >
+            {isBillingLoading ? (
+              <span className="inline-flex items-center gap-1.5 text-brand-muted">
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                <span className="sr-only">Loading</span>
+              </span>
+            ) : (
+              <span title={formatBillingTotal(stats?.totals?.total_due)}>
                 {formatCompactCurrency(stats?.totals?.total_due)}
               </span>
-            )
-          }
-        />
-      </StatsCard1Grid>
+            )}
+          </dd>
+          <p className="mt-0.5 text-xs text-brand-muted">
+            {hasDue ? (
+              <span className="font-medium text-red-700">Payment required</span>
+            ) : (
+              <span className="font-medium text-emerald-700">Account settled</span>
+            )}
+          </p>
+        </div>
+      </dl>
 
+      {/* Activity Timeline Section */}
       {encounters.length === 0 ? (
         <CustomerDetailTabEmptyState
           icon={Activity}
@@ -376,7 +384,7 @@ export function CustomerDetailSummaryTab({
       )}
 
       {loadError && hasLoaded ? (
-        <p className={cn("text-xs text-red-600")}>{loadError}</p>
+        <p className="text-xs text-red-600">{loadError}</p>
       ) : null}
     </div>
   );
