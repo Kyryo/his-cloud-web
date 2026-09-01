@@ -151,6 +151,14 @@ export function InvoicesListPage() {
     setPage(1);
   }, []);
 
+  const handleClearSearchAndFilters = useCallback(() => {
+    setIsRefreshing(true);
+    setSearch("");
+    setActiveSearch("");
+    setFilters(DEFAULT_INVOICE_LIST_FILTERS);
+    setPage(1);
+  }, []);
+
   const handleFiltersApply = useCallback((nextFilters: InvoiceListFilterState) => {
     setIsRefreshing(true);
     setFilters(nextFilters);
@@ -224,7 +232,7 @@ export function InvoicesListPage() {
               variant="outline"
               size="sm"
               className="mt-4"
-              onClick={handleClearSearch}
+              onClick={handleClearSearchAndFilters}
             >
               Clear search & filters
             </Button>

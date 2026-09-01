@@ -1,42 +1,73 @@
 "use client";
 
 import {
-  InventoryListTable,
-  type InventoryListTableColumn,
-} from "@/features/inventory/components/list/InventoryListTable";
+  ListPageDataTable,
+  ListPageDataTableBody,
+  ListPageDataTableCell,
+  ListPageDataTableHeader,
+  ListPageDataTableHeaderCell,
+  ListPageDataTableHeaderRow,
+  ListPageDataTableRow,
+} from "@/features/app-shell/components/page-layout";
 import type { CatalogPricelist } from "@/features/catalog/types/catalog.types";
-
-const columns: InventoryListTableColumn<CatalogPricelist>[] = [
-  {
-    key: "name",
-    label: "Name",
-    cellClassName: "font-medium text-brand-navy",
-    render: (item) => item.name,
-  },
-  {
-    key: "currency",
-    label: "Currency",
-    render: (item) => item.currency_code,
-  },
-  {
-    key: "status",
-    label: "Status",
-    render: (item) => (item.is_active ? "Active" : "Archived"),
-  },
-];
 
 type PricelistsTableProps = {
   pricelists: CatalogPricelist[];
   onRowClick?: (pricelist: CatalogPricelist) => void;
+  className?: string;
 };
 
-export function PricelistsTable({ pricelists, onRowClick }: PricelistsTableProps) {
+const columns = [
+  { key: "name", label: "Pricelist" },
+  { key: "currency", label: "Currency" },
+  { key: "status", label: "Status" },
+] as const;
+
+export function PricelistsTable({
+  pricelists,
+  onRowClick,
+  className,
+}: PricelistsTableProps) {
   return (
-    <InventoryListTable
-      items={pricelists}
-      columns={columns}
-      getRowKey={(pricelist) => pricelist.uuid}
-      onRowClick={onRowClick}
-    />
+    <ListPageDataTable className={className}>
+      <ListPageDataTableHeader>
+        <ListPageDataTableHeaderRow>
+          {columns.map((column) => (
+            <ListPageDataTableHeaderCell key={column.key}>
+              {column.label}
+            </ListPageDataTableHeaderCell>
+          ))}
+        </ListPageDataTableHeaderRow>
+      </ListPageDataTableHeader>
+      <ListPageDataTableBody>
+        {pricelists.map((pricelist) => (
+          <ListPageDataTableRow
+            key={pricelist.uuid}
+            className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+            onClick={() => onRowClick?.(pricelist)}
+          >
+            <ListPageDataTableCell className="py-3">
+              <span className="block truncate text-sm font-semibold text-brand-navy group-hover:text-brand-primary">
+                {pricelist.name}
+              </span>
+            </ListPageDataTableCell>
+            <ListPageDataTableCell className="py-3 font-mono text-xs font-medium text-brand-navy">
+              {pricelist.currency_code || "—"}
+            </ListPageDataTableCell>
+            <ListPageDataTableCell className="py-3">
+              <span
+                className={
+                  pricelist.is_active
+                    ? "inline-flex rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800"
+                    : "inline-flex rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-700"
+                }
+              >
+                {pricelist.is_active ? "Active" : "Archived"}
+              </span>
+            </ListPageDataTableCell>
+          </ListPageDataTableRow>
+        ))}
+      </ListPageDataTableBody>
+    </ListPageDataTable>
   );
 }

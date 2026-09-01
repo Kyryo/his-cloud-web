@@ -1,56 +1,79 @@
 "use client";
 
 import {
-  InventoryListTable,
-  type InventoryListTableColumn,
-} from "@/features/inventory/components/list/InventoryListTable";
+  ListPageDataTable,
+  ListPageDataTableBody,
+  ListPageDataTableCell,
+  ListPageDataTableHeader,
+  ListPageDataTableHeaderCell,
+  ListPageDataTableHeaderRow,
+  ListPageDataTableRow,
+} from "@/features/app-shell/components/page-layout";
 import { ProductTypeBadge } from "@/features/inventory/components/ProductTypeBadge";
 import type { InventoryProduct } from "@/features/inventory/types/inventory.types";
 import { formatInventoryAmount } from "@/features/inventory/utils/format-inventory";
 
-const columns: InventoryListTableColumn<InventoryProduct>[] = [
-  {
-    key: "name",
-    label: "Name",
-    cellClassName: "font-medium text-brand-navy",
-    render: (item) => item.display_name || item.name,
-  },
-  {
-    key: "type",
-    label: "Type",
-    render: (item) => <ProductTypeBadge product={item} />,
-  },
-  {
-    key: "code",
-    label: "Code",
-    render: (item) => item.default_code ?? "—",
-  },
-  {
-    key: "barcode",
-    label: "Barcode",
-    render: (item) => item.barcode ?? "—",
-  },
-  {
-    key: "list_price",
-    label: "List price",
-    headerClassName: "text-right",
-    cellClassName: "text-right",
-    render: (item) => formatInventoryAmount(item.list_price),
-  },
-];
-
 type ProductsTableProps = {
   products: InventoryProduct[];
   onRowClick?: (product: InventoryProduct) => void;
+  className?: string;
 };
 
-export function ProductsTable({ products, onRowClick }: ProductsTableProps) {
+const columns = [
+  { key: "name", label: "Product" },
+  { key: "type", label: "Type" },
+  { key: "code", label: "Code" },
+  { key: "barcode", label: "Barcode", className: "hidden md:table-cell" },
+  { key: "list_price", label: "List price", className: "text-right pr-4" },
+] as const;
+
+export function ProductsTable({
+  products,
+  onRowClick,
+  className,
+}: ProductsTableProps) {
   return (
-    <InventoryListTable
-      items={products}
-      columns={columns}
-      getRowKey={(product) => product.uuid}
-      onRowClick={onRowClick}
-    />
+    <ListPageDataTable className={className}>
+      <ListPageDataTableHeader>
+        <ListPageDataTableHeaderRow>
+          {columns.map((column) => (
+            <ListPageDataTableHeaderCell key={column.key} className={column.className}>
+              {column.label}
+            </ListPageDataTableHeaderCell>
+          ))}
+        </ListPageDataTableHeaderRow>
+      </ListPageDataTableHeader>
+      <ListPageDataTableBody>
+        {products.map((product) => {
+          const name = product.display_name || product.name;
+
+          return (
+            <ListPageDataTableRow
+              key={product.uuid}
+              className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+              onClick={() => onRowClick?.(product)}
+            >
+              <ListPageDataTableCell className="py-3">
+                <span className="block truncate text-sm font-semibold text-brand-navy group-hover:text-brand-primary">
+                  {name}
+                </span>
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="py-3">
+                <ProductTypeBadge product={product} />
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="py-3 font-mono text-xs font-medium text-brand-navy">
+                {product.default_code || "—"}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="hidden py-3 font-mono text-xs text-brand-slate md:table-cell">
+                {product.barcode || "—"}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="py-3 pr-4 text-right text-sm font-semibold tabular-nums text-brand-navy">
+                {formatInventoryAmount(product.list_price)}
+              </ListPageDataTableCell>
+            </ListPageDataTableRow>
+          );
+        })}
+      </ListPageDataTableBody>
+    </ListPageDataTable>
   );
 }

@@ -2,18 +2,26 @@
 
 import Link from "next/link";
 
-import { TableAmountCell, TableEntityCell, TableTextCell } from "@/components/table-text-cell";
-import { Button } from "@/components/ui/button";
+import { TableAmountCell } from "@/components/table-text-cell";
+import { UserIdenticon } from "@/components/UserIdenticon";
+import { ROUTES } from "@/constants/routes";
+import {
+  ListPageDataTable,
+  ListPageDataTableBody,
+  ListPageDataTableCell,
+  ListPageDataTableHeader,
+  ListPageDataTableHeaderCell,
+  ListPageDataTableHeaderRow,
+  ListPageDataTableRow,
+} from "@/features/app-shell/components/page-layout";
 import { PaymentStatusBadge } from "@/features/payments/components/PaymentStatusBadge";
 import type { Payment } from "@/features/payments/types/payment.types";
 import {
+  formatPaymentAllocationLabel,
   formatPaymentCustomer,
   formatPaymentDate,
   formatPaymentMethod,
-  formatPaymentAllocationLabel,
 } from "@/features/payments/utils/format-payment";
-import { ROUTES } from "@/constants/routes";
-import { cn } from "@/lib/utils";
 
 type PaymentsTableProps = {
   payments: Payment[];
@@ -23,160 +31,119 @@ type PaymentsTableProps = {
 
 const columns = [
   { key: "payment", label: "Payment" },
-  { key: "customer", label: "Customer" },
+  { key: "customer", label: "Client" },
   { key: "invoice", label: "Allocation" },
   { key: "date", label: "Payment date" },
-  { key: "method", label: "Method" },
+  { key: "method", label: "Method", className: "hidden md:table-cell" },
   { key: "state", label: "State" },
-  { key: "amount", label: "Amount" },
+  { key: "amount", label: "Amount", className: "text-right pr-4" },
 ] as const;
 
-export const PAYMENT_TABLE_SKELETON_COLUMNS = columns;
+export const PAYMENT_TABLE_SKELETON_COLUMNS = [
+  { key: "payment", label: "Payment" },
+  { key: "customer", label: "Client" },
+  { key: "invoice", label: "Allocation" },
+  { key: "date", label: "Payment date" },
+  { key: "method", label: "Method", headerClassName: "hidden md:table-cell" },
+  { key: "state", label: "State" },
+  { key: "amount", label: "Amount", headerClassName: "text-right pr-4" },
+] as const;
 
 export function PaymentsTable({ payments, onRowClick, className }: PaymentsTableProps) {
   return (
-    <div className={cn("overflow-hidden rounded-xl border border-brand-border bg-white", className)}>
-      <div className="overflow-x-auto">
-        <table className="min-w-full table-fixed">
-          <thead>
-            <tr className="border-b border-brand-border bg-slate-50/80">
-              {columns.map((column) => (
-                <th
-                  key={column.key}
-                  scope="col"
-                  className={cn(
-                    "px-4 py-3 text-sm font-medium text-brand-muted",
-                    column.key === "amount" ? "text-right" : "text-left",
-                  )}
-                >
-                  {column.label}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-brand-border">
-            {payments.map((payment) => {
-              const paymentLabel = payment.name || `#${payment.id}`;
-              const customerName = formatPaymentCustomer(payment);
-              const allocationLabel = formatPaymentAllocationLabel(payment);
+    <ListPageDataTable className={className}>
+      <ListPageDataTableHeader>
+        <ListPageDataTableHeaderRow>
+          {columns.map((column) => (
+            <ListPageDataTableHeaderCell key={column.key} className={column.className}>
+              {column.label}
+            </ListPageDataTableHeaderCell>
+          ))}
+        </ListPageDataTableHeaderRow>
+      </ListPageDataTableHeader>
+      <ListPageDataTableBody>
+        {payments.map((payment) => {
+          const paymentLabel = payment.name || `#${payment.id}`;
+          const customerName = formatPaymentCustomer(payment);
+          const allocationLabel = formatPaymentAllocationLabel(payment);
+          const invoiceHref =
+            payment.invoice_uuid ?? payment.invoice_id
+              ? ROUTES.invoiceDetail(payment.invoice_uuid ?? payment.invoice_id)
+              : null;
 
-              return (
-                <tr
-                  key={payment.id}
-                  className={cn(onRowClick && "cursor-pointer hover:bg-slate-50/80")}
-                  onClick={() => onRowClick?.(payment)}
-                  data-testid={`payment-row-${payment.id}`}
-                >
-                  <td className="px-4 py-3">
-                    <TableTextCell className="font-medium text-brand-navy">
-                      {paymentLabel}
-                    </TableTextCell>
-                  </td>
-                  <td className="px-4 py-3">
-                    <TableEntityCell
+          return (
+            <ListPageDataTableRow
+              key={payment.id}
+              className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+              onClick={() => onRowClick?.(payment)}
+              data-testid={`payment-row-${payment.id}`}
+            >
+              <ListPageDataTableCell className="py-3">
+                <span className="font-mono text-xs font-semibold tracking-tight text-brand-navy group-hover:text-brand-primary">
+                  {paymentLabel}
+                </span>
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="py-3">
+                {payment.customer_uuid ? (
+                  <Link
+                    href={ROUTES.customerDetail(payment.customer_uuid)}
+                    className="flex min-w-0 items-center gap-2.5"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    <UserIdenticon
+                      seed={customerName}
                       name={customerName}
-                      href={
-                        payment.customer_uuid
-                          ? ROUTES.customerDetail(payment.customer_uuid)
-                          : undefined
-                      }
-                      onClick={(event) => event.stopPropagation()}
+                      className="size-7.5 shrink-0 rounded-lg shadow-2xs"
                     />
-                  </td>
-                  <td className="px-4 py-3">
-                    {payment.invoice_id || payment.invoice_uuid ? (
-                      <Link
-                        href={ROUTES.invoiceDetail(
-                          payment.invoice_uuid ?? payment.invoice_id,
-                        )}
-                        className="block max-w-[12rem] truncate text-sm text-brand-slate hover:text-brand-primary hover:underline"
-                        title={allocationLabel}
-                        onClick={(event) => event.stopPropagation()}
-                      >
-                        {allocationLabel}
-                      </Link>
-                    ) : (
-                      <TableTextCell className="text-brand-slate">
-                        {allocationLabel}
-                      </TableTextCell>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <TableTextCell className="text-brand-slate">
-                      {formatPaymentDate(payment.payment_date)}
-                    </TableTextCell>
-                  </td>
-                  <td className="px-4 py-3">
-                    <TableTextCell className="text-brand-slate">
-                      {formatPaymentMethod(payment.payment_method)}
-                    </TableTextCell>
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    <PaymentStatusBadge state={payment.state} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <TableAmountCell value={payment.amount} currency="MWK" />
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
+                    <span className="truncate text-sm font-medium text-brand-navy hover:text-brand-primary">
+                      {customerName}
+                    </span>
+                  </Link>
+                ) : (
+                  <div className="flex min-w-0 items-center gap-2.5">
+                    <UserIdenticon
+                      seed={customerName}
+                      name={customerName}
+                      className="size-7.5 shrink-0 rounded-lg shadow-2xs"
+                    />
+                    <span className="truncate text-sm font-medium text-brand-navy">
+                      {customerName}
+                    </span>
+                  </div>
+                )}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="py-3">
+                {invoiceHref ? (
+                  <Link
+                    href={invoiceHref}
+                    className="block max-w-48 truncate text-xs text-brand-slate hover:text-brand-primary hover:underline"
+                    title={allocationLabel}
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    {allocationLabel}
+                  </Link>
+                ) : (
+                  <span className="text-xs text-brand-slate">{allocationLabel}</span>
+                )}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="py-3 text-xs tabular-nums text-dash-muted">
+                {formatPaymentDate(payment.payment_date)}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="hidden py-3 text-xs text-brand-slate md:table-cell">
+                {formatPaymentMethod(payment.payment_method)}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="py-3">
+                <PaymentStatusBadge state={payment.state} />
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="py-3 pr-4 text-right">
+                <div className="text-sm font-semibold tabular-nums text-brand-navy">
+                  <TableAmountCell value={payment.amount} currency="MWK" />
+                </div>
+              </ListPageDataTableCell>
+            </ListPageDataTableRow>
+          );
+        })}
+      </ListPageDataTableBody>
+    </ListPageDataTable>
   );
-}
-
-type PaymentsPaginationProps = {
-  page: number;
-  pageSize: number;
-  totalCount: number;
-  onPageChange: (page: number) => void;
-};
-
-export function PaymentsPagination({
-  page,
-  pageSize,
-  totalCount,
-  onPageChange,
-}: PaymentsPaginationProps) {
-  const hasNext = page * pageSize < totalCount;
-  const hasPrevious = page > 1;
-
-  return (
-    <div className="mt-4 flex items-center justify-between gap-3">
-      <p className="text-sm text-brand-muted">
-        Showing {paymentsRangeLabel(page, pageSize, totalCount)} of {totalCount}
-      </p>
-      <div className="flex gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={!hasPrevious}
-          onClick={() => onPageChange(page - 1)}
-        >
-          Previous
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={!hasNext}
-          onClick={() => onPageChange(page + 1)}
-        >
-          Next
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-function paymentsRangeLabel(page: number, pageSize: number, totalCount: number) {
-  if (totalCount === 0) {
-    return "0";
-  }
-  const start = (page - 1) * pageSize + 1;
-  const end = Math.min(page * pageSize, totalCount);
-  return `${start}-${end}`;
 }

@@ -3,21 +3,21 @@
 import { AppIcon } from "@/components/icons/app-icon";
 import { Button } from "@/components/ui/button";
 import { ListPageHeaderSection } from "@/features/app-shell/components/page-layout";
-import { PaymentListToolbar } from "@/features/payments/components/PaymentListToolbar";
-import type { PaymentListFilterState } from "@/features/payments/utils/payment-list-filters";
+import { ProductsListToolbar } from "@/features/inventory/components/ProductsListToolbar";
+import type { ProductSheetFilters } from "@/features/inventory/utils/inventory-list-filters";
 
-type PaymentsPageHeaderProps = {
+type ProductsPageHeaderProps = {
   search: string;
-  filters: PaymentListFilterState;
+  filters: ProductSheetFilters;
   isLoading?: boolean;
   onSearchChange: (value: string) => void;
   onSearchSubmit: () => void;
   onClearSearch: () => void;
-  onFiltersApply: (filters: PaymentListFilterState) => void;
-  onRecordPayment: () => void;
+  onFiltersApply: (filters: ProductSheetFilters) => void;
+  onNewProduct: () => void;
 };
 
-export function PaymentsPageHeader({
+export function ProductsPageHeader({
   search,
   filters,
   isLoading = false,
@@ -25,11 +25,11 @@ export function PaymentsPageHeader({
   onSearchSubmit,
   onClearSearch,
   onFiltersApply,
-  onRecordPayment,
-}: PaymentsPageHeaderProps) {
+  onNewProduct,
+}: ProductsPageHeaderProps) {
   return (
     <ListPageHeaderSection>
-      <PaymentListToolbar
+      <ProductsListToolbar
         search={search}
         filters={filters}
         isLoading={isLoading}
@@ -41,11 +41,11 @@ export function PaymentsPageHeader({
           <Button
             size="sm"
             className="gap-1.5 rounded-lg bg-brand-primary text-xs font-medium text-white shadow-xs transition-all hover:bg-brand-primary-hover active:scale-[0.98]"
-            onClick={onRecordPayment}
-            data-testid="payments-record-payment-button"
+            onClick={onNewProduct}
+            data-testid="add-product-button"
           >
             <AppIcon name="add" className="size-3.5" />
-            <span>Record Payment</span>
+            <span>New Product</span>
           </Button>
         }
       />

@@ -2,50 +2,50 @@
 
 import { AppIcon } from "@/components/icons/app-icon";
 import { Button } from "@/components/ui/button";
-import { ListPageHeaderSection } from "@/features/app-shell/components/page-layout";
-import { PaymentListToolbar } from "@/features/payments/components/PaymentListToolbar";
-import type { PaymentListFilterState } from "@/features/payments/utils/payment-list-filters";
+import {
+  ListPageHeaderSection,
+  ListPageSearchToolbar,
+} from "@/features/app-shell/components/page-layout";
 
-type PaymentsPageHeaderProps = {
+type PricelistsPageHeaderProps = {
   search: string;
-  filters: PaymentListFilterState;
   isLoading?: boolean;
   onSearchChange: (value: string) => void;
   onSearchSubmit: () => void;
   onClearSearch: () => void;
-  onFiltersApply: (filters: PaymentListFilterState) => void;
-  onRecordPayment: () => void;
+  onNewPricelist: () => void;
 };
 
-export function PaymentsPageHeader({
+export function PricelistsPageHeader({
   search,
-  filters,
   isLoading = false,
   onSearchChange,
   onSearchSubmit,
   onClearSearch,
-  onFiltersApply,
-  onRecordPayment,
-}: PaymentsPageHeaderProps) {
+  onNewPricelist,
+}: PricelistsPageHeaderProps) {
   return (
     <ListPageHeaderSection>
-      <PaymentListToolbar
+      <ListPageSearchToolbar
         search={search}
-        filters={filters}
+        searchId="inventory-pricelists-search"
+        placeholder="Search by name..."
+        searchTestId="inventory-pricelists-search"
+        searchSubmitTestId="inventory-pricelists-search-submit"
+        clearTestId="inventory-pricelists-search-clear"
         isLoading={isLoading}
         onSearchChange={onSearchChange}
         onSearchSubmit={onSearchSubmit}
         onClearSearch={onClearSearch}
-        onFiltersApply={onFiltersApply}
         trailing={
           <Button
             size="sm"
             className="gap-1.5 rounded-lg bg-brand-primary text-xs font-medium text-white shadow-xs transition-all hover:bg-brand-primary-hover active:scale-[0.98]"
-            onClick={onRecordPayment}
-            data-testid="payments-record-payment-button"
+            onClick={onNewPricelist}
+            data-testid="add-pricelist-button"
           >
             <AppIcon name="add" className="size-3.5" />
-            <span>Record Payment</span>
+            <span>New Pricelist</span>
           </Button>
         }
       />
