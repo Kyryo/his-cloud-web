@@ -3,29 +3,34 @@
 import { Store } from "lucide-react";
 import { useCallback, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import {
-  ListPageDataSectionsStack,
   ListPageLayout,
+  ListPagePagination,
+  ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
-import { InventoryFiltersSheet } from "@/features/inventory/components/InventoryFiltersSheet";
-import { InventoryListToolbar } from "@/features/inventory/components/InventoryListToolbar";
+import { InventoryListPageHeaderBar } from "@/features/inventory/components/InventoryListPageHeaderBar";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
 import { InventoryListEmptyState } from "@/features/inventory/components/list/InventoryListEmptyState";
-import { InventoryListPageContent } from "@/features/inventory/components/list/InventoryListPageContent";
-import { InventoryListPageHeader } from "@/features/inventory/components/list/InventoryListPageHeader";
-import { InventoryListPagination } from "@/features/inventory/components/list/InventoryListTable";
+import { InventoryListFilteredEmpty } from "@/features/inventory/components/list/InventoryListFilteredEmpty";
 import { StockDetailDialog } from "@/features/inventory/components/StockDetailDialog";
-import { StockTable } from "@/features/inventory/components/tables/stock-table";
+import { InventoryTableSkeleton } from "@/features/inventory/components/tables/InventoryTableSkeleton";
+import {
+  STOCK_TABLE_SKELETON_COLUMNS,
+  StockTable,
+} from "@/features/inventory/components/tables/stock-table";
 import { useInventoryListFilters } from "@/features/inventory/hooks/use-inventory-list-filters";
 import { fetchInventoryStock } from "@/features/inventory/services/inventory.service";
 import type {
   InventoryListFilters,
   InventoryStock,
 } from "@/features/inventory/types/inventory.types";
+import type { InventoryListSearchFilters } from "@/features/inventory/utils/inventory-list-filter-chips";
 import {
   buildStockListFilters,
   countActiveStockFilters,
   DEFAULT_STOCK_SHEET_FILTERS,
+  type StockSheetFilters,
 } from "@/features/inventory/utils/inventory-list-filters";
 
 export function StockListPage() {
@@ -33,7 +38,7 @@ export function StockListPage() {
   const [detailOpen, setDetailOpen] = useState(false);
 
   const fetchFn = useCallback(
-    (f: InventoryListFilters) => fetchInventoryStock(f),
+    (filters: InventoryListFilters) => fetchInventoryStock(filters),
     [],
   );
 
@@ -65,13 +70,21 @@ export function StockListPage() {
     countActiveSheetFilters: countActiveStockFilters,
   });
 
+  const applyFilters = useCallback(
+    (nextFilters: InventoryListSearchFilters) => {
+      handleFiltersApply(nextFilters as StockSheetFilters);
+    },
+    [handleFiltersApply],
+  );
+
+  const handleClearSearchAndFilters = useCallback(() => {
+    handleClearSearch();
+    handleFiltersApply(DEFAULT_STOCK_SHEET_FILTERS);
+  }, [handleClearSearch, handleFiltersApply]);
+
   const handleRowClick = useCallback((item: InventoryStock) => {
     setSelectedStock(item);
     setDetailOpen(true);
-  }, []);
-
-  const handleDetailOpenChange = useCallback((open: boolean) => {
-    setDetailOpen(open);
   }, []);
 
   if (isUnauthorized) {
@@ -85,70 +98,62 @@ export function StockListPage() {
       <StockDetailDialog
         stock={selectedStock}
         open={detailOpen}
-        onOpenChange={handleDetailOpenChange}
+        onOpenChange={setDetailOpen}
       />
 
-      <InventoryListPageHeader
-        title="Inventory register"
-        description="On-hand quantities by location and product."
+      <InventoryListPageHeaderBar
+        variant="stock"
         search={search}
-        isSearchDisabled={isRefreshing}
+        filters={sheetFilters}
+        isLoading={isRefreshing}
         onSearchChange={setSearch}
         onSearchSubmit={handleSearchSubmit}
         onClearSearch={handleClearSearch}
-        searchPlaceholder="Search by product, location, or batch..."
+        onFiltersApply={applyFilters}
       />
 
-      {!hasNoRecords ? (
-        <ListPageDataSectionsStack>
-          <InventoryListToolbar
-            search={search}
-            searchPlaceholder="Search by product, location, or batch..."
-            isLoading={isRefreshing}
-            onSearchChange={setSearch}
-            onSearchSubmit={handleSearchSubmit}
-            onClearSearch={handleClearSearch}
-            filtersClassName="ml-auto flex justify-end"
-            filters={
-              <InventoryFiltersSheet
-                variant="stock"
-                filters={sheetFilters}
-                isLoading={isRefreshing}
-                onApply={(filters) => handleFiltersApply(filters as typeof sheetFilters)}
-              />
-            }
-          />
-        </ListPageDataSectionsStack>
-      ) : null}
-
-      <InventoryListPageContent
-        isLoading={isLoading}
-        loadingMessage="Loading stock..."
-        error={error}
-        onRetry={() => void reload()}
-        errorTitle="Could not load stock"
-        hasNoRecords={hasNoRecords}
-        emptyState={
+      <ListPageTableSection>
+        {isLoading ? (
+          <InventoryTableSkeleton columns={STOCK_TABLE_SKELETON_COLUMNS} />
+        ) : error ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+            <h2 className="text-sm font-semibold text-red-800">Could not load stock</h2>
+            <p className="mt-2 text-sm text-red-700">{error}</p>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-4"
+              onClick={() => void reload()}
+            >
+              Try again
+            </Button>
+          </div>
+        ) : hasNoRecords ? (
           <InventoryListEmptyState
             icon={Store}
             title="No stock records yet"
             description="Stock levels will appear here once inventory is received."
           />
-        }
-        isFilteredEmpty={isFilteredEmpty}
-        filteredEmptyTitle="No matching stock records"
-      >
-        <StockTable items={items} onRowClick={handleRowClick} />
-        <InventoryListPagination
-          page={page}
-          pageSize={pageSize}
-          totalCount={totalCount}
-          hasNext={hasNext}
-          hasPrevious={hasPrevious}
-          isLoading={isRefreshing}
-          onPageChange={handlePageChange}
-        />
-      </InventoryListPageContent>
+        ) : isFilteredEmpty ? (
+          <InventoryListFilteredEmpty
+            title="No matching stock records"
+            onClear={handleClearSearchAndFilters}
+          />
+        ) : (
+          <>
+            <StockTable items={items} onRowClick={handleRowClick} />
+            <ListPagePagination
+              page={page}
+              pageSize={pageSize}
+              totalCount={totalCount}
+              hasNext={hasNext}
+              hasPrevious={hasPrevious}
+              isLoading={isRefreshing}
+              onPageChange={handlePageChange}
+            />
+          </>
+        )}
+      </ListPageTableSection>
     </ListPageLayout>
   );
 }

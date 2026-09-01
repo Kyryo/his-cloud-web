@@ -1,54 +1,78 @@
 "use client";
 
 import {
-  InventoryListTable,
-  type InventoryListTableColumn,
-} from "@/features/inventory/components/list/InventoryListTable";
+  ListPageDataTable,
+  ListPageDataTableBody,
+  ListPageDataTableCell,
+  ListPageDataTableHeader,
+  ListPageDataTableHeaderCell,
+  ListPageDataTableHeaderRow,
+  ListPageDataTableRow,
+} from "@/features/app-shell/components/page-layout";
 import type { InventoryBatch } from "@/features/inventory/types/inventory.types";
 import { formatDisplayDate } from "@/features/inventory/utils/format-inventory";
-
-const columns: InventoryListTableColumn<InventoryBatch>[] = [
-  {
-    key: "batch_number",
-    label: "Batch number",
-    cellClassName: "font-medium text-brand-navy",
-    render: (item) => item.batch_number,
-  },
-  {
-    key: "product",
-    label: "Product ID",
-    cellClassName: "font-mono text-brand-slate",
-    render: (item) => item.product_id,
-  },
-  {
-    key: "expiry",
-    label: "Expiry",
-    render: (item) => formatDisplayDate(item.expiry_date),
-  },
-  {
-    key: "supplier",
-    label: "Supplier",
-    render: (item) => item.supplier ?? "—",
-  },
-  {
-    key: "status",
-    label: "Status",
-    render: (item) => (item.is_active ? "Active" : "Inactive"),
-  },
-];
 
 type BatchesTableProps = {
   items: InventoryBatch[];
   onRowClick?: (item: InventoryBatch) => void;
+  className?: string;
 };
 
-export function BatchesTable({ items, onRowClick }: BatchesTableProps) {
+const columns = [
+  { key: "batch_number", label: "Batch number" },
+  { key: "product", label: "Product ID" },
+  { key: "expiry", label: "Expiry" },
+  { key: "supplier", label: "Supplier" },
+  { key: "status", label: "Status" },
+] as const;
+
+export const BATCHES_TABLE_SKELETON_COLUMNS = columns;
+
+export function BatchesTable({ items, onRowClick, className }: BatchesTableProps) {
   return (
-    <InventoryListTable
-      items={items}
-      columns={columns}
-      getRowKey={(item) => item.uuid}
-      onRowClick={onRowClick}
-    />
+    <ListPageDataTable className={className}>
+      <ListPageDataTableHeader>
+        <ListPageDataTableHeaderRow>
+          {columns.map((column) => (
+            <ListPageDataTableHeaderCell key={column.key}>
+              {column.label}
+            </ListPageDataTableHeaderCell>
+          ))}
+        </ListPageDataTableHeaderRow>
+      </ListPageDataTableHeader>
+      <ListPageDataTableBody>
+        {items.map((item) => (
+          <ListPageDataTableRow
+            key={item.uuid}
+            className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+            onClick={() => onRowClick?.(item)}
+          >
+            <ListPageDataTableCell className="py-3 text-sm font-semibold text-brand-navy group-hover:text-brand-primary">
+              {item.batch_number}
+            </ListPageDataTableCell>
+            <ListPageDataTableCell className="py-3 font-mono text-xs text-brand-slate">
+              {item.product_id}
+            </ListPageDataTableCell>
+            <ListPageDataTableCell className="py-3 text-xs tabular-nums text-dash-muted">
+              {formatDisplayDate(item.expiry_date)}
+            </ListPageDataTableCell>
+            <ListPageDataTableCell className="py-3 text-sm text-brand-navy">
+              {item.supplier ?? "—"}
+            </ListPageDataTableCell>
+            <ListPageDataTableCell className="py-3">
+              <span
+                className={
+                  item.is_active
+                    ? "inline-flex rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800"
+                    : "inline-flex rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-700"
+                }
+              >
+                {item.is_active ? "Active" : "Inactive"}
+              </span>
+            </ListPageDataTableCell>
+          </ListPageDataTableRow>
+        ))}
+      </ListPageDataTableBody>
+    </ListPageDataTable>
   );
 }

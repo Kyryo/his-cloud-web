@@ -1,68 +1,80 @@
 "use client";
 
 import {
-  InventoryListTable,
-  type InventoryListTableColumn,
-} from "@/features/inventory/components/list/InventoryListTable";
+  ListPageDataTable,
+  ListPageDataTableBody,
+  ListPageDataTableCell,
+  ListPageDataTableHeader,
+  ListPageDataTableHeaderCell,
+  ListPageDataTableHeaderRow,
+  ListPageDataTableRow,
+} from "@/features/app-shell/components/page-layout";
 import type { InventoryStock } from "@/features/inventory/types/inventory.types";
 import {
   formatInventoryAmount,
   formatInventoryQuantity,
 } from "@/features/inventory/utils/format-inventory";
 
-const columns: InventoryListTableColumn<InventoryStock>[] = [
-  {
-    key: "location",
-    label: "Location",
-    render: (item) => (
-      <span className="font-medium text-brand-navy">{item.location_name}</span>
-    ),
-  },
-  {
-    key: "product_name",
-    label: "Product",
-    cellClassName: "font-medium text-brand-navy",
-    render: (item) => item.product_name?.trim() || "—",
-  },
-  {
-    key: "product",
-    label: "Product ID",
-    cellClassName: "font-mono text-brand-navy",
-    render: (item) => item.product_id,
-  },
-  {
-    key: "batch",
-    label: "Batch",
-    render: (item) => item.batch_number ?? "—",
-  },
-  {
-    key: "qty",
-    label: "Qty on hand",
-    headerClassName: "text-right",
-    cellClassName: "text-right font-medium text-brand-navy",
-    render: (item) => formatInventoryQuantity(item.quantity_on_hand),
-  },
-  {
-    key: "cost",
-    label: "Avg unit cost",
-    headerClassName: "text-right",
-    cellClassName: "text-right",
-    render: (item) => formatInventoryAmount(item.average_unit_cost),
-  },
-];
-
 type StockTableProps = {
   items: InventoryStock[];
   onRowClick?: (item: InventoryStock) => void;
+  className?: string;
 };
 
-export function StockTable({ items, onRowClick }: StockTableProps) {
+const columns = [
+  { key: "location", label: "Location" },
+  { key: "product_name", label: "Product" },
+  { key: "product", label: "Product ID" },
+  { key: "batch", label: "Batch" },
+  { key: "qty", label: "Qty on hand", align: "right" as const },
+  { key: "cost", label: "Avg unit cost", align: "right" as const },
+] as const;
+
+export const STOCK_TABLE_SKELETON_COLUMNS = columns;
+
+export function StockTable({ items, onRowClick, className }: StockTableProps) {
   return (
-    <InventoryListTable
-      items={items}
-      columns={columns}
-      getRowKey={(item) => item.uuid}
-      onRowClick={onRowClick}
-    />
+    <ListPageDataTable className={className}>
+      <ListPageDataTableHeader>
+        <ListPageDataTableHeaderRow>
+          {columns.map((column) => (
+            <ListPageDataTableHeaderCell
+              key={column.key}
+              className={column.align === "right" ? "text-right pr-4" : undefined}
+            >
+              {column.label}
+            </ListPageDataTableHeaderCell>
+          ))}
+        </ListPageDataTableHeaderRow>
+      </ListPageDataTableHeader>
+      <ListPageDataTableBody>
+        {items.map((item) => (
+          <ListPageDataTableRow
+            key={item.uuid}
+            className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+            onClick={() => onRowClick?.(item)}
+          >
+            <ListPageDataTableCell className="py-3 font-medium text-brand-navy">
+              {item.location_name}
+            </ListPageDataTableCell>
+            <ListPageDataTableCell className="py-3 font-medium text-brand-navy">
+              {item.product_name?.trim() || "—"}
+            </ListPageDataTableCell>
+            <ListPageDataTableCell className="py-3 font-mono text-xs text-brand-navy">
+              {item.product_id}
+            </ListPageDataTableCell>
+            <ListPageDataTableCell className="py-3 text-sm text-brand-slate">
+              {item.batch_number ?? "—"}
+            </ListPageDataTableCell>
+            <ListPageDataTableCell className="py-3 pr-4 text-right font-semibold tabular-nums text-brand-navy">
+              {formatInventoryQuantity(item.quantity_on_hand)}
+            </ListPageDataTableCell>
+            <ListPageDataTableCell className="py-3 pr-4 text-right text-sm tabular-nums text-brand-navy">
+              {formatInventoryAmount(item.average_unit_cost)}
+            </ListPageDataTableCell>
+          </ListPageDataTableRow>
+        ))}
+      </ListPageDataTableBody>
+    </ListPageDataTable>
   );
 }

@@ -4,38 +4,46 @@ import { ClipboardList } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { FabButton } from "@/components/ui/fab-button";
 import { ROUTES } from "@/constants/routes";
 import {
-  ListPageDataSectionsStack,
   ListPageLayout,
+  ListPagePagination,
+  ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
 import { CreateStockAdjustmentDialog } from "@/features/inventory/components/CreateStockAdjustmentDialog";
-import { InventoryFiltersSheet } from "@/features/inventory/components/InventoryFiltersSheet";
-import { InventoryListToolbar } from "@/features/inventory/components/InventoryListToolbar";
+import {
+  InventoryListPageHeaderBar,
+  InventoryListPrimaryAction,
+} from "@/features/inventory/components/InventoryListPageHeaderBar";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
 import { InventoryListEmptyState } from "@/features/inventory/components/list/InventoryListEmptyState";
-import { InventoryListPageContent } from "@/features/inventory/components/list/InventoryListPageContent";
-import { InventoryListPageHeader } from "@/features/inventory/components/list/InventoryListPageHeader";
-import { InventoryListPagination } from "@/features/inventory/components/list/InventoryListTable";
-import { StockAdjustmentsTable } from "@/features/inventory/components/tables/stock-adjustments-table";
+import { InventoryListFilteredEmpty } from "@/features/inventory/components/list/InventoryListFilteredEmpty";
+import { InventoryTableSkeleton } from "@/features/inventory/components/tables/InventoryTableSkeleton";
+import {
+  STOCK_ADJUSTMENTS_TABLE_SKELETON_COLUMNS,
+  StockAdjustmentsTable,
+} from "@/features/inventory/components/tables/stock-adjustments-table";
 import { useInventoryListFilters } from "@/features/inventory/hooks/use-inventory-list-filters";
 import { fetchStockAdjustments } from "@/features/inventory/services/stock-adjustments.service";
 import type {
   InventoryListFilters,
   StockAdjustment,
 } from "@/features/inventory/types/inventory.types";
+import type { InventoryListSearchFilters } from "@/features/inventory/utils/inventory-list-filter-chips";
 import {
   buildStockAdjustmentListFilters,
   countActiveStockAdjustmentFilters,
   DEFAULT_STOCK_ADJUSTMENT_SHEET_FILTERS,
+  type StockAdjustmentSheetFilters,
 } from "@/features/inventory/utils/inventory-list-filters";
 
 export function StockAdjustmentsListPage() {
   const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
   const fetchFn = useCallback(
-    (f: InventoryListFilters) => fetchStockAdjustments(f),
+    (filters: InventoryListFilters) => fetchStockAdjustments(filters),
     [],
   );
 
@@ -67,6 +75,18 @@ export function StockAdjustmentsListPage() {
     countActiveSheetFilters: countActiveStockAdjustmentFilters,
   });
 
+  const applyFilters = useCallback(
+    (nextFilters: InventoryListSearchFilters) => {
+      handleFiltersApply(nextFilters as StockAdjustmentSheetFilters);
+    },
+    [handleFiltersApply],
+  );
+
+  const handleClearSearchAndFilters = useCallback(() => {
+    handleClearSearch();
+    handleFiltersApply(DEFAULT_STOCK_ADJUSTMENT_SHEET_FILTERS);
+  }, [handleClearSearch, handleFiltersApply]);
+
   const handleCreate = useCallback(() => {
     setCreateOpen(true);
   }, []);
@@ -93,18 +113,22 @@ export function StockAdjustmentsListPage() {
         }
       />
 
-      <InventoryListPageHeader
-        title="Stock adjustments"
-        description="Correct on-hand quantities and costs."
-        addLabel="New adjustment"
-        onAdd={handleCreate}
+      <InventoryListPageHeaderBar
+        variant="stock-adjustments"
         search={search}
-        isSearchDisabled={isRefreshing}
+        filters={sheetFilters}
+        isLoading={isRefreshing}
         onSearchChange={setSearch}
         onSearchSubmit={handleSearchSubmit}
         onClearSearch={handleClearSearch}
-        searchPlaceholder="Search by reference, reason, or notes..."
-        data-testid="add-stock-adjustment-button"
+        onFiltersApply={applyFilters}
+        trailing={
+          <InventoryListPrimaryAction
+            label="New Adjustment"
+            onClick={handleCreate}
+            data-testid="add-stock-adjustment-button"
+          />
+        }
       />
 
       <FabButton
@@ -113,37 +137,27 @@ export function StockAdjustmentsListPage() {
         data-testid="add-stock-adjustment-fab"
       />
 
-      {!hasNoRecords ? (
-        <ListPageDataSectionsStack>
-          <InventoryListToolbar
-            search={search}
-            searchPlaceholder="Search by reference, reason, or notes..."
-            isLoading={isRefreshing}
-            onSearchChange={setSearch}
-            onSearchSubmit={handleSearchSubmit}
-            onClearSearch={handleClearSearch}
-            filters={
-              <InventoryFiltersSheet
-                variant="stock-adjustments"
-                filters={sheetFilters}
-                isLoading={isRefreshing}
-                onApply={(filters) =>
-                  handleFiltersApply(filters as typeof sheetFilters)
-                }
-              />
-            }
+      <ListPageTableSection>
+        {isLoading ? (
+          <InventoryTableSkeleton
+            columns={STOCK_ADJUSTMENTS_TABLE_SKELETON_COLUMNS}
           />
-        </ListPageDataSectionsStack>
-      ) : null}
-
-      <InventoryListPageContent
-        isLoading={isLoading}
-        loadingMessage="Loading stock adjustments..."
-        error={error}
-        onRetry={() => void reload()}
-        errorTitle="Could not load stock adjustments"
-        hasNoRecords={hasNoRecords}
-        emptyState={
+        ) : error ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+            <h2 className="text-sm font-semibold text-red-800">
+              Could not load stock adjustments
+            </h2>
+            <p className="mt-2 text-sm text-red-700">{error}</p>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-4"
+              onClick={() => void reload()}
+            >
+              Try again
+            </Button>
+          </div>
+        ) : hasNoRecords ? (
           <InventoryListEmptyState
             icon={ClipboardList}
             title="No stock adjustments yet"
@@ -151,24 +165,29 @@ export function StockAdjustmentsListPage() {
             actionLabel="New adjustment"
             onAction={handleCreate}
           />
-        }
-        isFilteredEmpty={isFilteredEmpty}
-        filteredEmptyTitle="No matching stock adjustments"
-      >
-        <StockAdjustmentsTable
-          adjustments={items}
-          onRowClick={handleRowClick}
-        />
-        <InventoryListPagination
-          page={page}
-          pageSize={pageSize}
-          totalCount={totalCount}
-          hasNext={hasNext}
-          hasPrevious={hasPrevious}
-          isLoading={isRefreshing}
-          onPageChange={handlePageChange}
-        />
-      </InventoryListPageContent>
+        ) : isFilteredEmpty ? (
+          <InventoryListFilteredEmpty
+            title="No matching stock adjustments"
+            onClear={handleClearSearchAndFilters}
+          />
+        ) : (
+          <>
+            <StockAdjustmentsTable
+              adjustments={items}
+              onRowClick={handleRowClick}
+            />
+            <ListPagePagination
+              page={page}
+              pageSize={pageSize}
+              totalCount={totalCount}
+              hasNext={hasNext}
+              hasPrevious={hasPrevious}
+              isLoading={isRefreshing}
+              onPageChange={handlePageChange}
+            />
+          </>
+        )}
+      </ListPageTableSection>
     </ListPageLayout>
   );
 }
