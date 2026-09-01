@@ -39,7 +39,7 @@ export function CustomerVisitsTable({
       key: "date",
       label: "Date",
       render: (visit) => (
-        <TableTextCell className="text-brand-slate">
+        <TableTextCell className="font-medium text-brand-navy">
           {formatDisplayDateTime(visit.visit_date)}
         </TableTextCell>
       ),

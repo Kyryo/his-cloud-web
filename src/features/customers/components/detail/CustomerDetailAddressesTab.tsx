@@ -203,7 +203,12 @@ export function CustomerDetailAddressesTab({
   return (
     <>
       <CustomerDetailRecordList
-        title="Addresses"
+        title={
+          <span className="inline-flex items-center gap-1.5">
+            <MapPin className="size-4 text-brand-primary" aria-hidden="true" />
+            <span>Addresses</span>
+          </span>
+        }
         description="Saved addresses for this client."
         action={addButton}
         data-testid="customer-detail-addresses-tab"

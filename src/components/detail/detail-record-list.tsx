@@ -43,9 +43,9 @@ export function DetailRecordListItem({
   return (
     <li
       className={cn(
-        "px-4",
-        compact ? "py-2" : "py-2.5",
-        onRowClick && "cursor-pointer hover:bg-slate-50/80",
+        "px-4 sm:px-5",
+        compact ? "py-2.5" : "py-3",
+        onRowClick && "cursor-pointer transition-colors hover:bg-slate-50/70 active:bg-slate-100/60",
       )}
       data-testid={testId}
       onClick={onRowClick}
@@ -62,10 +62,10 @@ export function DetailRecordListItem({
       role={onRowClick ? "button" : undefined}
       tabIndex={onRowClick ? 0 : undefined}
     >
-      <div className={cn("flex gap-2.5", !Icon && "gap-0")}>
+      <div className={cn("flex gap-3", !Icon && "gap-0")}>
         {Icon ? (
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-full border border-brand-border bg-slate-50 text-brand-primary">
-            <Icon className="size-3" aria-hidden="true" />
+          <div className="flex size-7.5 shrink-0 items-center justify-center rounded-lg border border-slate-200/80 bg-slate-50 text-brand-primary shadow-2xs">
+            <Icon className="size-3.5" aria-hidden="true" />
           </div>
         ) : null}
         <div className="min-w-0 flex-1">
@@ -128,7 +128,7 @@ export function DetailRecordListItem({
 }
 
 type DetailRecordListProps = {
-  title: string;
+  title: ReactNode;
   description?: string;
   action?: ReactNode;
   children: ReactNode;
@@ -148,10 +148,10 @@ export function DetailRecordList({
 }: DetailRecordListProps) {
   return (
     <section
-      className={cn("rounded-xl border border-brand-border bg-white", className)}
+      className={cn("rounded-xl border border-dash-border/80 bg-white", className)}
       data-testid={testId}
     >
-      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-brand-border px-4 py-2.5">
+      <div className="flex flex-wrap items-start justify-between gap-3 border-b border-dash-border/80 px-4 py-3 sm:px-5">
         <div>
           <h3 className="text-sm font-semibold text-brand-navy">{title}</h3>
           {description ? (
@@ -160,8 +160,12 @@ export function DetailRecordList({
         </div>
         {action}
       </div>
-      <ol className="divide-y divide-brand-border">{children}</ol>
-      {footer ? <div className="border-t border-brand-border px-4 py-2.5">{footer}</div> : null}
+      <ol className="divide-y divide-dash-border/60">{children}</ol>
+      {footer ? (
+        <div className="border-t border-dash-border/80 px-4 py-2.5 sm:px-5">
+          {footer}
+        </div>
+      ) : null}
     </section>
   );
 }

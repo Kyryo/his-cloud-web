@@ -1,59 +1,97 @@
 "use client";
 
+import { UserIdenticon } from "@/components/UserIdenticon";
 import {
-  InventoryListTable,
-  type InventoryListTableColumn,
-} from "@/features/inventory/components/list/InventoryListTable";
+  ListPageDataTable,
+  ListPageDataTableBody,
+  ListPageDataTableCell,
+  ListPageDataTableHeader,
+  ListPageDataTableHeaderCell,
+  ListPageDataTableHeaderRow,
+  ListPageDataTableRow,
+} from "@/features/app-shell/components/page-layout";
 import { CustomerVisitStatusBadge } from "@/features/customers/components/CustomerVisitStatusBadge";
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import type { VisitDetail } from "@/features/visits/types/visit.types";
 
-const columns: InventoryListTableColumn<VisitDetail>[] = [
-  {
-    key: "patient",
-    label: "Client",
-    cellClassName: "font-medium text-brand-navy",
-    render: (visit) => visit.customer_name,
-  },
-  {
-    key: "service",
-    label: "Service",
-    render: (visit) => visit.consultation_service_name || "—",
-  },
-  {
-    key: "clinic",
-    label: "Clinic",
-    render: (visit) => visit.clinic_name || "—",
-  },
-  {
-    key: "status",
-    label: "Status",
-    render: (visit) => <CustomerVisitStatusBadge status={visit.status} />,
-  },
-  {
-    key: "visit_date",
-    label: "Started",
-    render: (visit) => formatDisplayDateTime(visit.visit_date),
-  },
-];
-
-export const ACTIVE_VISITS_TABLE_SKELETON_COLUMNS = columns.map((column) => ({
-  key: column.key,
-  label: column.label,
-}));
-
 type ActiveVisitsTableProps = {
   visits: VisitDetail[];
   onRowClick?: (visit: VisitDetail) => void;
+  className?: string;
 };
 
-export function ActiveVisitsTable({ visits, onRowClick }: ActiveVisitsTableProps) {
+const columns = [
+  { key: "patient", label: "Client" },
+  { key: "service", label: "Service" },
+  { key: "clinic", label: "Clinic", className: "hidden md:table-cell" },
+  { key: "status", label: "Status" },
+  { key: "visit_date", label: "Started" },
+] as const;
+
+export const ACTIVE_VISITS_TABLE_SKELETON_COLUMNS = columns;
+
+export function ActiveVisitsTable({
+  visits,
+  onRowClick,
+  className,
+}: ActiveVisitsTableProps) {
   return (
-    <InventoryListTable
-      items={visits}
-      columns={columns}
-      getRowKey={(visit) => visit.uuid}
-      onRowClick={onRowClick}
-    />
+    <ListPageDataTable className={className}>
+      <ListPageDataTableHeader>
+        <ListPageDataTableHeaderRow>
+          {columns.map((column) => (
+            <ListPageDataTableHeaderCell key={column.key} className={column.className}>
+              {column.label}
+            </ListPageDataTableHeaderCell>
+          ))}
+        </ListPageDataTableHeaderRow>
+      </ListPageDataTableHeader>
+      <ListPageDataTableBody>
+        {visits.map((visit) => {
+          const clientName = visit.customer_name?.trim() || "—";
+
+          return (
+            <ListPageDataTableRow
+              key={visit.uuid}
+              className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+              onClick={() => onRowClick?.(visit)}
+              data-testid={`active-visit-row-${visit.uuid}`}
+            >
+              <ListPageDataTableCell className="py-3">
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <UserIdenticon
+                    seed={visit.customer || clientName}
+                    name={clientName}
+                    className="size-7.5 shrink-0 rounded-lg shadow-2xs"
+                  />
+                  <div className="min-w-0">
+                    <span className="block truncate text-sm font-semibold text-brand-navy group-hover:text-brand-primary">
+                      {clientName}
+                    </span>
+                    {visit.customer_identifier ? (
+                      <span className="block truncate font-mono text-[11px] text-dash-muted">
+                        {visit.customer_identifier}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="py-3 text-sm text-brand-navy">
+                {visit.consultation_service_name || "—"}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="hidden py-3 text-sm text-brand-slate md:table-cell">
+                {visit.clinic_name || "—"}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="py-3">
+                <CustomerVisitStatusBadge status={visit.status} />
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="py-3 text-xs tabular-nums text-dash-muted">
+                {formatDisplayDateTime(visit.visit_date)}
+              </ListPageDataTableCell>
+            </ListPageDataTableRow>
+          );
+        })}
+      </ListPageDataTableBody>
+    </ListPageDataTable>
   );
 }

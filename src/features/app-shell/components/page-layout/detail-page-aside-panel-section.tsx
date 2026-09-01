@@ -14,7 +14,7 @@ export function DetailPageAsidePanelSection({
   return (
     <aside
       className={cn(
-        "order-first border-t border-brand-border bg-white px-4 py-5 sm:px-6 xl:order-none xl:border-l xl:border-t-0 xl:px-5",
+        "order-first border-t border-dash-border/80 bg-white px-4 py-5 sm:px-6 xl:order-0 xl:border-l xl:border-t-0 xl:px-5",
         className,
       )}
     >

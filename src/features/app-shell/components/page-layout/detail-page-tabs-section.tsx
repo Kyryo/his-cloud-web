@@ -36,7 +36,7 @@ export function DetailPageTabsNavSection({
   className,
 }: DetailPageTabsNavSectionProps) {
   return (
-    <div className={cn("border-b border-brand-border bg-white", className)}>
+    <div className={cn("border-b border-dash-border/80 bg-white", className)}>
       <nav
         className="scrollbar-hide flex gap-1 overflow-x-auto px-4 sm:px-6"
         aria-label={ariaLabel}

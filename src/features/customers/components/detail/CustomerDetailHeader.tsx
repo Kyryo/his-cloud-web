@@ -37,23 +37,23 @@ export function CustomerDetailHeader({
         <div className="flex min-w-0 flex-1 items-start gap-3.5 sm:gap-4">
           <ClientAvatar
             name={fullName}
-            className="size-11 shrink-0 text-base font-medium shadow-sm ring-2 ring-dash-border/70 sm:size-13 sm:text-lg"
+            className="size-12 shrink-0 text-base font-semibold shadow-2xs ring-2 ring-dash-border/70 sm:size-14 sm:text-lg"
           />
 
-          <div className="min-w-0 flex-1 space-y-1.5">
+          <div className="min-w-0 flex-1 space-y-2">
             {/* Top Row: Name, ID, Badges */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
               <h1 className="truncate text-lg font-bold tracking-tight text-brand-navy sm:text-2xl">
                 {fullName}
               </h1>
 
-              <span className="inline-flex items-center rounded-md border border-dash-border/80 bg-dash-canvas px-2 py-0.5 font-mono text-xs font-semibold text-brand-navy shadow-2xs">
+              <span className="inline-flex items-center rounded-md border border-slate-200/90 bg-slate-50 px-2.5 py-0.5 font-mono text-xs font-semibold text-brand-navy shadow-2xs">
                 {customer.customer_identifier}
               </span>
 
               <Badge
                 variant={customer.gender === "Male" ? "default" : "secondary"}
-                className="text-xs"
+                className="rounded-full px-2.5 py-0.5 text-xs font-medium"
               >
                 {customer.gender}
               </Badge>
@@ -61,7 +61,7 @@ export function CustomerDetailHeader({
               {!customer.is_active ? (
                 <Badge
                   variant="outline"
-                  className="border-red-200 bg-red-50 text-xs font-medium text-red-700"
+                  className="rounded-full border-red-200 bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700"
                 >
                   Inactive
                 </Badge>
@@ -84,7 +84,7 @@ export function CustomerDetailHeader({
             </div>
 
             {/* Middle Row: Demographics & Contact Chips */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-brand-slate sm:text-sm">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-brand-slate sm:text-sm">
               <span className="font-medium text-brand-navy">
                 {ageDisplay}
                 {customer.dob_is_estimated ? " (est.)" : ""}
@@ -94,23 +94,29 @@ export function CustomerDetailHeader({
               </span>
 
               {customer.phone_number ? (
-                <span className="inline-flex items-center gap-1 text-brand-slate">
-                  <Phone className="size-3 text-brand-muted" aria-hidden="true" />
-                  {customer.phone_number}
-                </span>
+                <a
+                  href={`tel:${customer.phone_number}`}
+                  className="inline-flex items-center gap-1.5 text-brand-slate transition-colors hover:text-brand-primary hover:underline"
+                >
+                  <Phone className="size-3.5 text-brand-muted" aria-hidden="true" />
+                  <span>{customer.phone_number}</span>
+                </a>
               ) : null}
 
               {customer.email ? (
-                <span className="inline-flex items-center gap-1 text-brand-slate">
-                  <Mail className="size-3 text-brand-muted" aria-hidden="true" />
-                  {customer.email}
-                </span>
+                <a
+                  href={`mailto:${customer.email}`}
+                  className="inline-flex items-center gap-1.5 text-brand-slate transition-colors hover:text-brand-primary hover:underline"
+                >
+                  <Mail className="size-3.5 text-brand-muted" aria-hidden="true" />
+                  <span>{customer.email}</span>
+                </a>
               ) : null}
 
               {customer.internal_reference ? (
                 <span className="inline-flex items-center gap-1 font-mono text-xs text-brand-muted">
-                  <Hash className="size-3" aria-hidden="true" />
-                  {customer.internal_reference}
+                  <Hash className="size-3.5" aria-hidden="true" />
+                  <span>{customer.internal_reference}</span>
                 </span>
               ) : null}
             </div>
@@ -119,7 +125,7 @@ export function CustomerDetailHeader({
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-brand-muted">
               <span className="inline-flex items-center gap-1.5">
                 <Calendar className="size-3.5 shrink-0 text-brand-muted" aria-hidden="true" />
-                Registered {formatDisplayDate(customer.created_at)}
+                <span>Registered {formatDisplayDate(customer.created_at)}</span>
               </span>
             </div>
           </div>
