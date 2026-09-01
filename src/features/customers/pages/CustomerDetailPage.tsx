@@ -18,6 +18,7 @@ import type { Customer } from "@/features/customers/types/customer.types";
 import { formatCustomerName } from "@/features/customers/utils/format-customer";
 import { DetailPageLayout } from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
+import { ManageEntityTagsDialog } from "@/features/tags/components/ManageEntityTagsDialog";
 
 type CustomerDetailPageProps = {
   customerId: string;
@@ -29,6 +30,7 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [appointmentDialogOpen, setAppointmentDialogOpen] = useState(false);
+  const [tagsDialogOpen, setTagsDialogOpen] = useState(false);
   const [visitsRefreshKey, setVisitsRefreshKey] = useState(0);
   const [billingRefreshKey, setBillingRefreshKey] = useState(0);
 
@@ -97,6 +99,7 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
     <DetailPageLayout data-testid="customer-detail-page">
       <CustomerDetailHeader
         customer={customer}
+        onManageTagsClick={() => setTagsDialogOpen(true)}
         actions={
           <div className="flex shrink-0 flex-wrap items-center gap-2">
             <CustomerDetailActions
@@ -123,6 +126,15 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
           setBillingRefreshKey((current) => current + 1)
         }
         onTagsUpdated={handleTagsUpdated}
+        onManageTagsClick={() => setTagsDialogOpen(true)}
+      />
+      <ManageEntityTagsDialog
+        open={tagsDialogOpen}
+        onOpenChange={setTagsDialogOpen}
+        entityLabel={formatCustomerName(customer)}
+        entityUuid={customer.uuid}
+        selectedTags={customer.tags}
+        onSaved={handleTagsUpdated}
       />
       <UpdateCustomerDialog
         customer={customer}

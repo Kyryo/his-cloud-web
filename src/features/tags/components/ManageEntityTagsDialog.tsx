@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { SectionedDialog } from "@/components/ui/sectioned-dialog";
 import { ListPagePagination } from "@/features/app-shell/components/page-layout";
 import { TagBadge } from "@/features/tags/components/TagBadge";
+import { TagBadgeList } from "@/features/tags/components/TagBadgeList";
 import { TAG_TARGET_TYPES } from "@/features/tags/constants/tag-target-types";
 import { syncCustomerTags } from "@/features/tags/services/customer-tags.service";
 import { fetchTags } from "@/features/tags/services/tags.service";
@@ -229,11 +230,11 @@ export function ManageEntityTagsDialog({
             Selected
           </p>
           {selectedTagObjects.length > 0 ? (
-            <div className="flex flex-wrap gap-1.5">
-              {selectedTagObjects.map((tag) => (
-                <TagBadge key={tag.uuid} tag={tag} />
-              ))}
-            </div>
+            <TagBadgeList
+              tags={selectedTagObjects}
+              moreTagsTestId="manage-tags-selected-more"
+              lessTagsTestId="manage-tags-selected-less"
+            />
           ) : (
             <p className="text-sm text-brand-muted">No tags selected.</p>
           )}

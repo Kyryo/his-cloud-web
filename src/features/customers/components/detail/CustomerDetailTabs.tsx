@@ -38,6 +38,7 @@ type CustomerDetailTabsProps = {
   onOpeningBalanceUpdated?: (customer: Customer) => void;
   onBillingUpdated?: () => void;
   onTagsUpdated?: (tags: Tag[]) => void;
+  onManageTagsClick?: () => void;
 };
 
 type DetailTabId =
@@ -79,6 +80,7 @@ export function CustomerDetailTabs({
   onOpeningBalanceUpdated,
   onBillingUpdated,
   onTagsUpdated,
+  onManageTagsClick,
 }: CustomerDetailTabsProps) {
   const [activeTab, setActiveTab] = useState<DetailTabId>("summary");
   const [showSummaryPanel, setShowSummaryPanel] = useState(false);
@@ -189,6 +191,7 @@ export function CustomerDetailTabs({
           onOpeningBalanceUpdated={onOpeningBalanceUpdated}
           onBillingUpdated={onBillingUpdated}
           onTagsUpdated={onTagsUpdated}
+          onManageTagsClick={onManageTagsClick}
           className={cn(!showSummaryPanel && "hidden xl:block")}
         />
       </DetailPageMainAsideGrid>

@@ -17,11 +17,13 @@ import { TagBadgeList } from "@/features/tags/components/TagBadgeList";
 type CustomerDetailHeaderProps = {
   customer: Customer;
   actions?: ReactNode;
+  onManageTagsClick?: () => void;
 };
 
 export function CustomerDetailHeader({
   customer,
   actions,
+  onManageTagsClick,
 }: CustomerDetailHeaderProps) {
   const fullName = formatCustomerName(customer);
   const ageDisplay = formatAdaptiveAge(customer.dob);
@@ -42,7 +44,7 @@ export function CustomerDetailHeader({
             {!customer.is_active ? (
               <Badge variant="outline">Inactive</Badge>
             ) : null}
-            <TagBadgeList tags={customer.tags} />
+            <TagBadgeList tags={customer.tags} onTagClick={onManageTagsClick} />
           </div>
 
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-brand-muted">
