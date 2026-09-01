@@ -23,6 +23,27 @@ export const DEFAULT_INVOICE_LIST_FILTERS: InvoiceListFilterState = {
   dateTo: "",
 };
 
+export const INVOICE_STATE_OPTIONS: Array<{
+  value: InvoiceStateFilter;
+  label: string;
+}> = [
+  { value: "all", label: "All states" },
+  { value: "draft", label: "Draft" },
+  { value: "posted", label: "Posted" },
+  { value: "cancel", label: "Cancelled" },
+];
+
+export const INVOICE_PAYMENT_STATUS_OPTIONS: Array<{
+  value: InvoicePaymentStatusFilter;
+  label: string;
+}> = [
+  { value: "all", label: "All payment statuses" },
+  { value: "not_paid", label: "Unpaid" },
+  { value: "partially_paid", label: "Partially paid" },
+  { value: "paid", label: "Paid" },
+  { value: "overpaid", label: "Overpaid" },
+];
+
 export function buildInvoiceListFilters(input: {
   search: string;
   page?: number;

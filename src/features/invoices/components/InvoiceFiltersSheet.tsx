@@ -17,25 +17,12 @@ import {
 import {
   countActiveInvoiceFilters,
   DEFAULT_INVOICE_LIST_FILTERS,
+  INVOICE_PAYMENT_STATUS_OPTIONS,
+  INVOICE_STATE_OPTIONS,
   type InvoiceListFilterState,
 } from "@/features/invoices/utils/invoice-list-filters";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
-
-const INVOICE_STATE_OPTIONS = [
-  { value: "all", label: "All states" },
-  { value: "draft", label: "Draft" },
-  { value: "posted", label: "Posted" },
-  { value: "cancel", label: "Cancelled" },
-] as const;
-
-const INVOICE_PAYMENT_STATUS_OPTIONS = [
-  { value: "all", label: "All payment statuses" },
-  { value: "not_paid", label: "Unpaid" },
-  { value: "partially_paid", label: "Partially paid" },
-  { value: "paid", label: "Paid" },
-  { value: "overpaid", label: "Overpaid" },
-] as const;
 
 type InvoiceFiltersSheetProps = {
   filters: InvoiceListFilterState;
