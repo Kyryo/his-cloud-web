@@ -13,9 +13,9 @@ import { CustomersEmptyState } from "@/features/customers/components/CustomersEm
 import { CustomersPageHeader } from "@/features/customers/components/CustomersPageHeader";
 import { CustomersTable } from "@/features/customers/components/CustomersTable";
 import { CustomersTableSkeleton } from "@/features/customers/components/CustomersTableSkeleton";
-import {
-  fetchCustomers,
-} from "@/features/customers/services/customers.service";
+import { CustomerVisitDialog } from "@/features/customers/components/detail/CustomerVisitDialog";
+import { UpdateCustomerDialog } from "@/features/customers/components/UpdateCustomerDialog";
+import { fetchCustomers } from "@/features/customers/services/customers.service";
 import type { Customer } from "@/features/customers/types/customer.types";
 import {
   buildCustomerListFilters,
@@ -67,6 +67,8 @@ export function CustomersListPage() {
   const [error, setError] = useState<string | null>(null);
   const [isUnauthorized, setIsUnauthorized] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [visitCustomer, setVisitCustomer] = useState<Customer | null>(null);
+  const [editCustomer, setEditCustomer] = useState<Customer | null>(null);
   const [showStats, setShowStats] = useState(false);
 
   const listFilters = useMemo(
@@ -246,12 +248,43 @@ export function CustomersListPage() {
 
   return (
     <ListPageLayout data-testid="customers-page">
-      <CustomersPageHeader onAddClient={handleAddClient} />
+      <CustomersPageHeader
+        onAddClient={handleAddClient}
+        totalCount={totalCount}
+      />
       <CreateCustomerDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         onCreated={handleCustomerCreated}
       />
+      {visitCustomer ? (
+        <CustomerVisitDialog
+          open={Boolean(visitCustomer)}
+          customer={visitCustomer}
+          onOpenChange={(open) => {
+            if (!open) {
+              setVisitCustomer(null);
+            }
+          }}
+          onVisitChanged={() => {
+            void reloadCustomers();
+          }}
+        />
+      ) : null}
+      {editCustomer ? (
+        <UpdateCustomerDialog
+          open={Boolean(editCustomer)}
+          customer={editCustomer}
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditCustomer(null);
+            }
+          }}
+          onUpdated={() => {
+            void reloadCustomers();
+          }}
+        />
+      ) : null}
       {!hasNoCustomerRecords ? (
         <FabButton
           label={showStats ? "Hide stats" : "Show stats"}
@@ -308,15 +341,29 @@ export function CustomersListPage() {
         ) : hasNoCustomerRecords ? (
           <CustomersEmptyState onAddClient={handleAddClient} />
         ) : isFilteredEmpty ? (
-          <div className="rounded-xl border border-brand-border bg-white px-6 py-14 text-center">
-            <h2 className="text-lg font-semibold text-brand-navy">No matching clients</h2>
-            <p className="mt-2 text-sm text-brand-muted">
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center">
+            <h2 className="text-base font-semibold text-brand-navy">No matching clients</h2>
+            <p className="mt-1 text-sm text-brand-muted">
               Adjust your search or filters and try again.
             </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-4"
+              onClick={handleClearSearch}
+            >
+              Clear search & filters
+            </Button>
           </div>
         ) : (
           <>
-            <CustomersTable customers={customers} onRowClick={handleRowClick} />
+            <CustomersTable
+              customers={customers}
+              onRowClick={handleRowClick}
+              onStartVisit={(customer) => setVisitCustomer(customer)}
+              onEditCustomer={(customer) => setEditCustomer(customer)}
+            />
             <ListPagePagination
               page={page}
               pageSize={DEFAULT_PAGE_SIZE}

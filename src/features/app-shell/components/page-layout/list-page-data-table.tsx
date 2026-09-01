@@ -2,24 +2,30 @@ import type { ComponentPropsWithoutRef, ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
+export type ListPageDataTableVariant = "card" | "plain";
+
 type ListPageDataTableProps = {
   children: ReactNode;
   className?: string;
+  variant?: ListPageDataTableVariant;
 };
 
 export function ListPageDataTable({
   children,
   className,
+  variant = "plain",
 }: ListPageDataTableProps) {
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-xl border border-dash-border bg-dash-panel",
+        variant === "card"
+          ? "overflow-hidden rounded-xl border border-dash-border bg-dash-panel"
+          : "w-full overflow-hidden",
         className,
       )}
     >
       <div className="overflow-x-auto">
-        <table className="min-w-full">{children}</table>
+        <table className="min-w-full text-left">{children}</table>
       </div>
     </div>
   );
@@ -27,19 +33,30 @@ export function ListPageDataTable({
 
 export function ListPageDataTableHeader({
   children,
+  className,
 }: {
   children: ReactNode;
+  className?: string;
 }) {
-  return <thead>{children}</thead>;
+  return <thead className={cn(className)}>{children}</thead>;
 }
 
 export function ListPageDataTableHeaderRow({
   children,
+  className,
 }: {
   children: ReactNode;
+  className?: string;
 }) {
   return (
-    <tr className="border-b border-dash-border bg-dash-canvas/70">{children}</tr>
+    <tr
+      className={cn(
+        "border-b border-dash-border/80 bg-dash-canvas/40",
+        className,
+      )}
+    >
+      {children}
+    </tr>
   );
 }
 
@@ -51,7 +68,7 @@ export function ListPageDataTableHeaderCell({
     <th
       scope="col"
       className={cn(
-        "px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-dash-muted",
+        "px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted",
         className,
       )}
       {...props}
@@ -61,10 +78,16 @@ export function ListPageDataTableHeaderCell({
 
 export function ListPageDataTableBody({
   children,
+  className,
 }: {
   children: ReactNode;
+  className?: string;
 }) {
-  return <tbody className="divide-y divide-dash-border">{children}</tbody>;
+  return (
+    <tbody className={cn("divide-y divide-dash-border/60", className)}>
+      {children}
+    </tbody>
+  );
 }
 
 export function ListPageDataTableRow({
@@ -73,7 +96,10 @@ export function ListPageDataTableRow({
 }: ComponentPropsWithoutRef<"tr">) {
   return (
     <tr
-      className={cn("transition-colors hover:bg-dash-canvas/80", className)}
+      className={cn(
+        "transition-colors hover:bg-dash-panel/60",
+        className,
+      )}
       {...props}
     />
   );
@@ -83,5 +109,5 @@ export function ListPageDataTableCell({
   className,
   ...props
 }: ComponentPropsWithoutRef<"td">) {
-  return <td className={cn("px-4 py-2.5 text-sm", className)} {...props} />;
+  return <td className={cn("px-4 py-3 text-sm", className)} {...props} />;
 }

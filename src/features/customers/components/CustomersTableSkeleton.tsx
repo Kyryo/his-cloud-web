@@ -11,11 +11,11 @@ import {
 
 const columns = [
   { key: "client", label: "Client" },
-  { key: "id", label: "Client ID" },
-  { key: "visit_status", label: "Visit status" },
-  { key: "gender", label: "Gender" },
-  { key: "age", label: "Age" },
-  { key: "created", label: "Created" },
+  { key: "id", label: "Client ID / MRN" },
+  { key: "visit_status", label: "Visit Status" },
+  { key: "demographics", label: "Demographics" },
+  { key: "created", label: "Registered" },
+  { key: "actions", label: "Actions" },
 ] as const;
 
 type CustomersTableSkeletonProps = {
@@ -32,7 +32,10 @@ export function CustomersTableSkeleton({
       <ListPageDataTableHeader>
         <ListPageDataTableHeaderRow>
           {columns.map((column) => (
-            <ListPageDataTableHeaderCell key={column.key}>
+            <ListPageDataTableHeaderCell
+              key={column.key}
+              className={column.key === "actions" ? "text-right pr-4" : undefined}
+            >
               {column.label}
             </ListPageDataTableHeaderCell>
           ))}
@@ -41,29 +44,47 @@ export function CustomersTableSkeleton({
       <ListPageDataTableBody>
         {Array.from({ length: rows }).map((_, index) => (
           <ListPageDataTableRow key={index} className="hover:bg-transparent">
-            <ListPageDataTableCell>
+            {/* Client */}
+            <ListPageDataTableCell className="py-3">
               <div className="flex min-w-0 items-center gap-3">
-                <Skeleton className="h-9 w-9 shrink-0 rounded-full" />
+                <Skeleton className="size-9 shrink-0 rounded-lg" />
                 <div className="min-w-0 space-y-1.5">
                   <Skeleton className="h-3.5 w-32" />
                   <Skeleton className="h-3 w-20" />
                 </div>
               </div>
             </ListPageDataTableCell>
-            <ListPageDataTableCell>
-              <Skeleton className="h-3.5 w-20" />
+
+            {/* MRN */}
+            <ListPageDataTableCell className="py-3">
+              <Skeleton className="h-5 w-20 rounded-md" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell>
+
+            {/* Status */}
+            <ListPageDataTableCell className="py-3">
               <Skeleton className="h-5 w-24 rounded-full" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell>
-              <Skeleton className="h-3.5 w-14" />
+
+            {/* Demographics */}
+            <ListPageDataTableCell className="py-3">
+              <div className="space-y-1">
+                <Skeleton className="h-3.5 w-14" />
+                <Skeleton className="h-3 w-10" />
+              </div>
             </ListPageDataTableCell>
-            <ListPageDataTableCell>
-              <Skeleton className="h-3.5 w-8" />
+
+            {/* Created */}
+            <ListPageDataTableCell className="py-3">
+              <Skeleton className="h-3.5 w-20" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell>
-              <Skeleton className="h-3.5 w-24" />
+
+            {/* Actions */}
+            <ListPageDataTableCell className="py-3 pr-4 text-right">
+              <div className="flex items-center justify-end gap-1.5">
+                <Skeleton className="size-7 rounded-lg" />
+                <Skeleton className="size-7 rounded-lg" />
+                <Skeleton className="size-7 rounded-lg" />
+              </div>
             </ListPageDataTableCell>
           </ListPageDataTableRow>
         ))}

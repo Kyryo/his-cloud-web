@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
 
 import { ROUTES } from "@/constants/routes";
 import type { Appointment } from "@/features/appointments/types/appointment.types";
@@ -19,6 +19,12 @@ import {
   overviewGreeting,
 } from "@/features/overview/utils/overview-workspace";
 import type { VisitDetail } from "@/features/visits/types/visit.types";
+
+vi.mock("@/components/UserIdenticon", () => ({
+  UserIdenticon: ({ name }: { name: string }) => (
+    <div data-testid="user-identicon">{name}</div>
+  ),
+}));
 
 describe("overview workspace utils", () => {
   it("greets by time of day", () => {
@@ -104,6 +110,10 @@ describe("overview workspace utils", () => {
 });
 
 describe("overview workspace components", () => {
+  afterEach(() => {
+    cleanup();
+  });
+
   it("renders metric counts with pulse indicator and link", () => {
     render(
       <OverviewCount
@@ -185,7 +195,7 @@ describe("overview workspace components", () => {
 
     render(<OverviewRecentClients clients={clients} />);
 
-    expect(screen.getByText("John Doe")).toBeInTheDocument();
+    expect(screen.getAllByText("John Doe").length).toBeGreaterThan(0);
     expect(screen.getByText("MRN-101")).toBeInTheDocument();
   });
 
