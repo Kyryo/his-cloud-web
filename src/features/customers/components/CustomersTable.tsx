@@ -5,13 +5,11 @@ import { useRouter } from "next/navigation";
 import {
   CalendarPlus,
   Check,
-  ChevronRight,
   Copy,
   ExternalLink,
   HeartPulse,
   MoreHorizontal,
   Pencil,
-  Phone,
   User,
 } from "lucide-react";
 import { useState } from "react";
@@ -166,18 +164,18 @@ export function CustomersTable({
             return (
               <ListPageDataTableRow
                 key={customer.uuid}
-                className="group cursor-pointer hover:bg-dash-canvas/70 transition-colors"
+                className="group cursor-pointer hover:bg-slate-50/70 transition-colors"
                 onClick={() => onRowClick?.(customer)}
               >
-                {/* 1. Client Identity */}
-                <ListPageDataTableCell className="py-3.5">
+                {/* 1. Client Details & Avatar */}
+                <ListPageDataTableCell className="py-3">
                   <HoverPreviewCard
                     trigger={
                       <div className="flex min-w-0 items-center gap-3">
                         <UserIdenticon
                           seed={customer.uuid || identifier || name}
                           name={name}
-                          className="size-9 shrink-0 rounded-lg shadow-xs ring-1 ring-black/5"
+                          className="size-9 shrink-0 rounded-lg shadow-2xs"
                         />
                         <div className="min-w-0 space-y-0.5">
                           <Link
@@ -189,14 +187,11 @@ export function CustomersTable({
                           </Link>
                           <div className="flex items-center gap-2 truncate text-xs text-brand-muted">
                             {customer.phone_number ? (
-                              <span className="flex items-center gap-1">
-                                <Phone className="size-2.5 text-dash-muted" />
-                                <span>{customer.phone_number}</span>
-                              </span>
+                              <span>{customer.phone_number}</span>
                             ) : customer.email ? (
                               <span className="truncate">{customer.email}</span>
                             ) : (
-                              <span className="text-dash-muted/70">No contact info</span>
+                              <span className="text-dash-muted">No phone / email</span>
                             )}
                           </div>
                         </div>
@@ -208,9 +203,9 @@ export function CustomersTable({
                 </ListPageDataTableCell>
 
                 {/* 2. Client ID / MRN */}
-                <ListPageDataTableCell className="py-3.5">
+                <ListPageDataTableCell className="py-3">
                   <div className="inline-flex items-center gap-1.5">
-                    <span className="rounded-md border border-dash-border/80 bg-dash-canvas/80 px-2 py-0.5 font-mono text-xs font-medium text-brand-slate shadow-2xs">
+                    <span className="font-mono text-xs font-semibold text-brand-navy tracking-tight">
                       {identifier}
                     </span>
                     {customer.customer_identifier ? (
@@ -219,7 +214,7 @@ export function CustomersTable({
                           <button
                             type="button"
                             onClick={(e) => handleCopyMrn(e, customer)}
-                            className="rounded p-1 text-dash-muted opacity-0 transition-all hover:bg-dash-panel hover:text-brand-navy group-hover:opacity-100 focus-visible:opacity-100"
+                            className="rounded p-1 text-dash-muted opacity-0 transition-all hover:bg-slate-100 hover:text-brand-navy group-hover:opacity-100 focus-visible:opacity-100"
                             aria-label="Copy MRN"
                           >
                             {isCopied ? (
@@ -238,40 +233,40 @@ export function CustomersTable({
                 </ListPageDataTableCell>
 
                 {/* 3. Visit Status */}
-                <ListPageDataTableCell className="py-3.5">
+                <ListPageDataTableCell className="py-3">
                   <CustomerVisitStatusBadge status={customer.visit_status} />
                 </ListPageDataTableCell>
 
                 {/* 4. Demographics (Gender + Age) */}
-                <ListPageDataTableCell className="py-3.5">
-                  <div className="space-y-0.5 text-xs">
-                    <span className="font-medium text-brand-navy">
-                      {customer.gender || "—"}
-                    </span>
-                    <span className="block text-dash-muted tabular-nums">
-                      {customer.age > 0 ? `${customer.age} yrs` : "Age not set"}
-                    </span>
+                <ListPageDataTableCell className="py-3">
+                  <div className="text-xs space-y-0.5">
+                    <div className="font-medium text-brand-navy">
+                      <span>{customer.gender || "—"}</span>
+                      {customer.age > 0 ? (
+                        <span className="text-dash-muted font-normal"> · {customer.age} yrs</span>
+                      ) : null}
+                    </div>
                   </div>
                 </ListPageDataTableCell>
 
                 {/* 5. Registration Date */}
-                <ListPageDataTableCell className="py-3.5 text-xs text-dash-muted tabular-nums">
+                <ListPageDataTableCell className="py-3 text-xs text-dash-muted tabular-nums">
                   {formatDisplayDate(customer.created_at)}
                 </ListPageDataTableCell>
 
-                {/* 6. Precision Actions */}
-                <ListPageDataTableCell className="py-3.5 pr-4 text-right">
+                {/* 6. Interactive Actions */}
+                <ListPageDataTableCell className="py-3 pr-4 text-right">
                   <div
-                    className="flex items-center justify-end gap-1"
+                    className="flex items-center justify-end gap-1.5"
                     onClick={(event) => event.stopPropagation()}
                   >
-                    {/* Primary Visit Action */}
+                    {/* Quick Start/Active Visit Action */}
                     {isVisitActive ? (
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="h-7.5 gap-1.5 rounded-full border-emerald-200 bg-emerald-50/90 px-3 text-xs font-semibold text-emerald-800 shadow-2xs hover:bg-emerald-100 active:scale-[0.98] transition-all"
+                        className="h-7 gap-1 rounded-full border-emerald-200 bg-emerald-50 px-2.5 text-[11px] font-semibold text-emerald-800 hover:bg-emerald-100"
                         onClick={() => {
                           if (onStartVisit) {
                             onStartVisit(customer);
@@ -290,7 +285,7 @@ export function CustomersTable({
                             type="button"
                             variant="ghost"
                             size="icon"
-                            className="size-7.5 rounded-lg text-dash-muted hover:bg-brand-tint hover:text-brand-primary"
+                            className="size-7.5 rounded-lg text-dash-muted hover:bg-emerald-50 hover:text-emerald-700"
                             onClick={() => {
                               if (onStartVisit) {
                                 onStartVisit(customer);
@@ -300,14 +295,14 @@ export function CustomersTable({
                             }}
                             aria-label="Start visit"
                           >
-                            <HeartPulse className="size-4 text-emerald-600" />
+                            <HeartPulse className="size-4" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent side="top">Start clinical visit</TooltipContent>
                       </Tooltip>
                     )}
 
-                    {/* Quick Appointment */}
+                    {/* Quick Appointment Action */}
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
@@ -318,30 +313,13 @@ export function CustomersTable({
                           onClick={() => router.push(ROUTES.appointments)}
                           aria-label="Schedule appointment"
                         >
-                          <CalendarPlus className="size-4 text-blue-600" />
+                          <CalendarPlus className="size-4" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="top">Book appointment</TooltipContent>
                     </Tooltip>
 
-                    {/* Direct Chart Link */}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="size-7.5 rounded-lg text-dash-muted hover:bg-slate-100 hover:text-brand-navy"
-                          onClick={() => router.push(ROUTES.customerDetail(customer.uuid))}
-                          aria-label="Open medical chart"
-                        >
-                          <ChevronRight className="size-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">View patient chart</TooltipContent>
-                    </Tooltip>
-
-                    {/* Overflow Dropdown */}
+                    {/* More Actions Dropdown */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -354,7 +332,7 @@ export function CustomersTable({
                           <MoreHorizontal className="size-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-52">
+                      <DropdownMenuContent align="end" className="w-48">
                         <DropdownMenuItem
                           onClick={() => router.push(ROUTES.customerDetail(customer.uuid))}
                         >

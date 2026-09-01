@@ -61,4 +61,68 @@ describe("CustomerListToolbar", () => {
     expect(searchButton.className).toContain("border");
     expect(filterButton.className).not.toContain("bg-brand-primary");
   });
+
+  it("renders active filter chips and allows removing a filter", () => {
+    const onFiltersApply = vi.fn();
+
+    render(
+      <CustomerListToolbar
+        search=""
+        filters={{
+          gender: "Female",
+          activeStatus: "active",
+          ordering: DEFAULT_CUSTOMER_ORDERING,
+          tags: [],
+        }}
+        onSearchChange={vi.fn()}
+        onSearchSubmit={vi.fn()}
+        onClearSearch={vi.fn()}
+        onFiltersApply={onFiltersApply}
+      />,
+    );
+
+    expect(screen.getByText("Active filters:")).toBeInTheDocument();
+    expect(screen.getByText("Gender: Female")).toBeInTheDocument();
+    expect(screen.getByText("Status: active")).toBeInTheDocument();
+
+    const genderChip = screen.getByRole("button", { name: /Gender: Female/i });
+    fireEvent.click(genderChip);
+
+    expect(onFiltersApply).toHaveBeenCalledWith({
+      gender: "all",
+      activeStatus: "active",
+      ordering: DEFAULT_CUSTOMER_ORDERING,
+      tags: [],
+    });
+  });
+
+  it("clears all active filters when Clear all is clicked", () => {
+    const onFiltersApply = vi.fn();
+
+    render(
+      <CustomerListToolbar
+        search=""
+        filters={{
+          gender: "Male",
+          activeStatus: "inactive",
+          ordering: "first_name",
+          tags: ["tag-1"],
+        }}
+        onSearchChange={vi.fn()}
+        onSearchSubmit={vi.fn()}
+        onClearSearch={vi.fn()}
+        onFiltersApply={onFiltersApply}
+      />,
+    );
+
+    const clearAllButton = screen.getByRole("button", { name: /Clear all/i });
+    fireEvent.click(clearAllButton);
+
+    expect(onFiltersApply).toHaveBeenCalledWith({
+      gender: "all",
+      activeStatus: "all",
+      ordering: DEFAULT_CUSTOMER_ORDERING,
+      tags: [],
+    });
+  });
 });
