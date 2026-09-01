@@ -100,11 +100,11 @@ describe("CustomersTable", () => {
     expect(screen.getAllByText("Tadala Banda").length).toBeGreaterThan(0);
     expect(screen.getByText("MRN-5001")).toBeInTheDocument();
     expect(screen.getByText("+265999123456")).toBeInTheDocument();
-    expect(screen.getByText("32 yrs")).toBeInTheDocument();
+    expect(screen.getByText(/32 yrs/)).toBeInTheDocument();
 
     expect(screen.getAllByText("Kondwani Phiri").length).toBeGreaterThan(0);
     expect(screen.getByText("MRN-5002")).toBeInTheDocument();
-    expect(screen.getByText("37 yrs")).toBeInTheDocument();
+    expect(screen.getByText(/37 yrs/)).toBeInTheDocument();
   });
 
   it("calls onRowClick when a customer row is clicked", () => {

@@ -7,7 +7,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { FabButton } from "@/components/ui/fab-button";
 import { Button } from "@/components/ui/button";
 import { CreateCustomerDialog } from "@/features/customers/components/CreateCustomerDialog";
-import { CustomerListToolbar } from "@/features/customers/components/CustomerListToolbar";
 import { CustomerSummaryStatsCards } from "@/features/customers/components/CustomerSummaryStats";
 import { CustomersEmptyState } from "@/features/customers/components/CustomersEmptyState";
 import { CustomersPageHeader } from "@/features/customers/components/CustomersPageHeader";
@@ -34,7 +33,6 @@ import {
   ListPagePagination,
   ListPageStatsSection,
   ListPageTableSection,
-  ListPageToolbarSkeleton,
 } from "@/features/app-shell/components/page-layout";
 import { cn } from "@/lib/utils";
 
@@ -249,8 +247,14 @@ export function CustomersListPage() {
   return (
     <ListPageLayout data-testid="customers-page">
       <CustomersPageHeader
+        search={search}
+        filters={filters}
+        isLoading={isRefreshing}
+        onSearchChange={setSearch}
+        onSearchSubmit={handleSearchSubmit}
+        onClearSearch={handleClearSearch}
+        onFiltersApply={handleFiltersApply}
         onAddClient={handleAddClient}
-        totalCount={totalCount}
       />
       <CreateCustomerDialog
         open={createDialogOpen}
@@ -306,19 +310,6 @@ export function CustomersListPage() {
           <ListPageStatsSection className={cn(!showStats && "hidden sm:block")}>
             <CustomerSummaryStatsCards stats={stats} isLoading={isStatsLoading} />
           </ListPageStatsSection>
-          {isLoading ? (
-            <ListPageToolbarSkeleton />
-          ) : (
-            <CustomerListToolbar
-              search={search}
-              filters={filters}
-              isLoading={isRefreshing}
-              onSearchChange={setSearch}
-              onSearchSubmit={handleSearchSubmit}
-              onClearSearch={handleClearSearch}
-              onFiltersApply={handleFiltersApply}
-            />
-          )}
         </ListPageDataSectionsStack>
       ) : null}
 

@@ -5,40 +5,50 @@ import Link from "next/link";
 import { AppIcon } from "@/components/icons/app-icon";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
-import {
-  ListPageHeaderActions,
-  ListPageHeaderSection,
-  ListPageHeaderTitleBlock,
-  ListPageHeaderTopRow,
-} from "@/features/app-shell/components/page-layout";
+import { ListPageHeaderSection } from "@/features/app-shell/components/page-layout";
+import { CustomerListToolbar } from "@/features/customers/components/CustomerListToolbar";
+import type { CustomerListFilterState } from "@/features/customers/utils/customer-list-filters";
 
 type CustomersPageHeaderProps = {
+  search: string;
+  filters: Pick<
+    CustomerListFilterState,
+    "gender" | "activeStatus" | "ordering" | "tags"
+  >;
+  isLoading?: boolean;
+  onSearchChange: (value: string) => void;
+  onSearchSubmit: () => void;
+  onClearSearch: () => void;
+  onFiltersApply: (
+    filters: Pick<
+      CustomerListFilterState,
+      "gender" | "activeStatus" | "ordering" | "tags"
+    >,
+  ) => void;
   onAddClient: () => void;
-  totalCount?: number;
 };
 
 export function CustomersPageHeader({
+  search,
+  filters,
+  isLoading = false,
+  onSearchChange,
+  onSearchSubmit,
+  onClearSearch,
+  onFiltersApply,
   onAddClient,
-  totalCount,
 }: CustomersPageHeaderProps) {
   return (
     <ListPageHeaderSection>
-      <ListPageHeaderTopRow>
-        <ListPageHeaderTitleBlock
-          title={
-            <div className="flex flex-wrap items-center gap-2.5">
-              <span>Clients</span>
-              {totalCount !== undefined && totalCount > 0 ? (
-                <span className="inline-flex items-center rounded-full bg-brand-tint px-2.5 py-0.5 text-xs font-semibold text-brand-primary">
-                  {totalCount} registered
-                </span>
-              ) : null}
-            </div>
-          }
-          description="Manage client registrations, visits, and clinical activity."
-        />
-
-        <ListPageHeaderActions>
+      <CustomerListToolbar
+        search={search}
+        filters={filters}
+        isLoading={isLoading}
+        onSearchChange={onSearchChange}
+        onSearchSubmit={onSearchSubmit}
+        onClearSearch={onClearSearch}
+        onFiltersApply={onFiltersApply}
+        trailing={
           <div className="flex shrink-0 flex-wrap items-center gap-2">
             <Button
               asChild
@@ -65,7 +75,7 @@ export function CustomersPageHeader({
             </Button>
             <Button
               size="sm"
-              className="gap-1.5 rounded-lg bg-brand-primary text-xs font-medium text-white shadow-sm hover:bg-brand-primary-hover active:scale-[0.98] transition-all"
+              className="gap-1.5 rounded-lg bg-brand-primary text-xs font-medium text-white shadow-xs hover:bg-brand-primary-hover active:scale-[0.98] transition-all"
               onClick={onAddClient}
               data-testid="add-client-button"
             >
@@ -73,8 +83,8 @@ export function CustomersPageHeader({
               <span>Register Client</span>
             </Button>
           </div>
-        </ListPageHeaderActions>
-      </ListPageHeaderTopRow>
+        }
+      />
     </ListPageHeaderSection>
   );
 }

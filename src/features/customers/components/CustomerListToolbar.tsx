@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { X } from "lucide-react";
 
 import { ListPageSearchToolbar } from "@/features/app-shell/components/page-layout";
@@ -9,8 +10,9 @@ import {
   DEFAULT_CUSTOMER_ORDERING,
   type CustomerListFilterState,
 } from "@/features/customers/utils/customer-list-filters";
+import { cn } from "@/lib/utils";
 
-type CustomerListToolbarProps = {
+export type CustomerListToolbarProps = {
   search: string;
   filters: Pick<
     CustomerListFilterState,
@@ -26,6 +28,8 @@ type CustomerListToolbarProps = {
       "gender" | "activeStatus" | "ordering" | "tags"
     >,
   ) => void;
+  trailing?: ReactNode;
+  className?: string;
 };
 
 export function CustomerListToolbar({
@@ -36,6 +40,8 @@ export function CustomerListToolbar({
   onSearchSubmit,
   onClearSearch,
   onFiltersApply,
+  trailing,
+  className,
 }: CustomerListToolbarProps) {
   const hasGenderFilter = filters.gender !== "all";
   const hasStatusFilter = filters.activeStatus !== "all";
@@ -74,7 +80,7 @@ export function CustomerListToolbar({
   };
 
   return (
-    <div className="space-y-2">
+    <div className={cn("space-y-2", className)}>
       <ListPageSearchToolbar
         search={search}
         searchId="customer-search"
@@ -93,6 +99,7 @@ export function CustomerListToolbar({
             onApply={onFiltersApply}
           />
         }
+        trailing={trailing}
       />
 
       {/* Active Filter Chips Bar */}
