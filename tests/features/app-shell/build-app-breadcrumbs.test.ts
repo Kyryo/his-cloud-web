@@ -166,6 +166,12 @@ describe("buildAppBreadcrumbs", () => {
     ]);
   });
 
+  it("returns overview breadcrumbs", () => {
+    expect(buildAppBreadcrumbs(ROUTES.overview)).toEqual([
+      { label: "Overview" },
+    ]);
+  });
+
   it("returns reports overview breadcrumbs", () => {
     expect(buildAppBreadcrumbs(ROUTES.reportsOverview)).toEqual([
       { label: "Reports & Insights" },

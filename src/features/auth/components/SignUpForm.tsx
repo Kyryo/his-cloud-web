@@ -249,7 +249,7 @@ export function SignUpForm() {
       });
       await configureOnboardingModules(DEFAULT_SIGNUP_GROUPS);
       markAuthenticatedSession();
-      router.push(ROUTES.customers);
+      router.push(ROUTES.postAuth);
     } catch (error) {
       setOtpCode("");
       otpForm.setValue("code", "");

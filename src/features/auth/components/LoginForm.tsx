@@ -59,7 +59,7 @@ function loginStepForMethod(method: MfaSigninMethod): LoginStep {
 function destinationForUser(user: User): string {
   return user.is_superuser && user.tenant === null
     ? ROUTES.platformAdmin
-    : ROUTES.customers;
+    : ROUTES.postAuth;
 }
 
 function LoginSplitFrame({ children }: { children: ReactNode }) {
@@ -106,7 +106,7 @@ export function LoginForm() {
         router.replace(
           user?.is_superuser && user.tenant === null
             ? ROUTES.platformAdmin
-            : ROUTES.customers,
+            : ROUTES.postAuth,
         );
       }
     }

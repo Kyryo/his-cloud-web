@@ -7,6 +7,7 @@ describe("matchesRoute", () => {
   it("matches exact and nested protected routes", () => {
     expect(matchesRoute("/onboarding", PROTECTED_ROUTES)).toBe(true);
     expect(matchesRoute("/onboarding/setup", PROTECTED_ROUTES)).toBe(true);
+    expect(matchesRoute("/overview", PROTECTED_ROUTES)).toBe(true);
     expect(matchesRoute("/customers", PROTECTED_ROUTES)).toBe(true);
     expect(matchesRoute("/customers/abc-123", PROTECTED_ROUTES)).toBe(true);
     expect(matchesRoute("/settings/account", PROTECTED_ROUTES)).toBe(true);

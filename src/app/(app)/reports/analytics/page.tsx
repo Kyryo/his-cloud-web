@@ -1,5 +1,7 @@
-import { ReportsAnalyticsPage } from "@/features/reports/pages/ReportsAnalyticsPage";
+import { redirect } from "next/navigation";
+
+import { ROUTES } from "@/constants/routes";
 
 export default function Page() {
-  return <ReportsAnalyticsPage />;
+  redirect(ROUTES.overview);
 }

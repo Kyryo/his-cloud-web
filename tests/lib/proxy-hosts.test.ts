@@ -99,7 +99,7 @@ describe("proxy host routing", () => {
 
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe(
-      "https://app.sigmahmis.com/customers",
+      "https://app.sigmahmis.com/overview",
     );
   });
 

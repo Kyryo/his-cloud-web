@@ -10,7 +10,7 @@ import {
 import { fillVerificationCode } from "./helpers/fill-verification-code";
 
 test.describe("OTP auth flow", () => {
-  test("sign-in completes with OTP and lands on customers", async ({ page }) => {
+  test("sign-in completes with OTP and lands on overview", async ({ page }) => {
     await mockSigninOtpFlow(page);
 
     await page.goto("/auth");
@@ -23,7 +23,7 @@ test.describe("OTP auth flow", () => {
     await fillVerificationCode(page, "login-otp", "123456");
     await page.getByTestId("login-submit").click();
 
-    await expect(page).toHaveURL(/\/customers$/);
+    await expect(page).toHaveURL(/\/overview$/);
   });
 
   test("hides try another method when only email is available", async ({ page }) => {
@@ -82,7 +82,7 @@ test.describe("OTP auth flow", () => {
     await fillVerificationCode(page, "signup-otp", "123456");
     await page.getByTestId("signup-submit").click();
 
-    await expect(page).toHaveURL(/\/customers$/);
+    await expect(page).toHaveURL(/\/overview$/);
   });
 
   test("redirects unauthenticated users away from customers", async ({ page }) => {
@@ -99,6 +99,6 @@ test.describe("OTP auth flow", () => {
     await setAuthCookies(page);
     await page.goto("/auth");
 
-    await expect(page).toHaveURL(/\/customers$/);
+    await expect(page).toHaveURL(/\/overview$/);
   });
 });

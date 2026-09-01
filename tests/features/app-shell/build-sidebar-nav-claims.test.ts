@@ -17,29 +17,17 @@ describe("buildSidebarNavItems claims module", () => {
     expect(claimsNav?.items?.map((item) => item.title)).toEqual([
       "Submissions",
       "Remittances",
-      "Reconciliations",
       "Rejections",
-      "Appeals",
     ]);
     expect(claimsNav?.items?.[0]?.url).toBe(ROUTES.claims);
   });
 
-  it("shows Notifications last among workspace items", () => {
+  it("shows Overview first among workspace items", () => {
     const items = buildSidebarNavItems(["Billing", "Claims"], ROUTES.customers);
     const workspace = items.filter((item) => item.section !== "admin");
 
-    expect(workspace[0]?.title).not.toBe("Notifications");
-    expect(workspace.at(-1)?.title).toBe("Notifications");
-    expect(workspace.at(-1)?.url).toBe(ROUTES.notifications);
-  });
-
-  it("shows Notifications for authenticated clinic users without a module group", () => {
-    const items = buildSidebarNavItems(["Billing"], ROUTES.notifications);
-    const notificationsNav = items.find((item) => item.title === "Notifications");
-
-    expect(notificationsNav).toBeDefined();
-    expect(notificationsNav?.url).toBe(ROUTES.notifications);
-    expect(notificationsNav?.items).toBeUndefined();
+    expect(workspace[0]?.title).toBe("Overview");
+    expect(workspace[0]?.url).toBe(ROUTES.overview);
   });
 
   it("shows locked Claims for tenant admins without the Claims group", () => {

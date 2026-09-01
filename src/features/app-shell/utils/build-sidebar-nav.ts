@@ -41,6 +41,16 @@ export function buildSidebarNavItems(
   const modules = groupNavigationByModule(filtered);
   const items: SidebarNavItem[] = [];
 
+  if (!isPlatformAdmin) {
+    items.push({
+      title: "Overview",
+      url: ROUTES.overview,
+      icon: "home",
+      section: "workspace",
+      isActive: pathname === ROUTES.overview,
+    });
+  }
+
   for (const moduleName of sortModules(Object.keys(modules))) {
     const moduleItems = modules[moduleName] ?? [];
     if (moduleItems.length === 0) {
@@ -145,21 +155,11 @@ export function buildSidebarNavItems(
   if (!isPlatformAdmin && canAccessReports(userGroups)) {
     items.push({
       title: "Reports & Insights",
-      url: ROUTES.reportsOverview,
+      url: ROUTES.reportsExports,
       icon: "analytics",
       section: "admin",
       isActive: isReportsNavActive(pathname),
       items: [
-        {
-          title: "Overview",
-          url: ROUTES.reportsOverview,
-          isActive: isNavItemActive(pathname, ROUTES.reportsOverview),
-        },
-        {
-          title: "Analytics",
-          url: ROUTES.reportsAnalytics,
-          isActive: isNavItemActive(pathname, ROUTES.reportsAnalytics),
-        },
         {
           title: "Today's appointments",
           url: ROUTES.reportsAppointmentsToday,

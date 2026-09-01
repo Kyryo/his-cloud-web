@@ -51,6 +51,7 @@ describe("host routing", () => {
 
 describe("app vs marketing routes", () => {
   it("keeps dashboard and auth on the app host", () => {
+    expect(isAppRoute("/overview")).toBe(true);
     expect(isAppRoute("/customers")).toBe(true);
     expect(isAppRoute("/customers/abc")).toBe(true);
     expect(isAppRoute("/auth/register")).toBe(true);

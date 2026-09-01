@@ -49,6 +49,10 @@ const CLAIMS_PLACEHOLDER_ROUTES: Record<string, string> = {
 };
 
 export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
+  if (pathname === ROUTES.overview) {
+    return [{ label: "Overview" }];
+  }
+
   if (isSettingsNavActive(pathname)) {
     if (pathname === ROUTES.settingsAccount) {
       return [{ label: "Settings" }, { label: "Account" }];

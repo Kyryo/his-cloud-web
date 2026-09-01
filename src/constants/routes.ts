@@ -14,8 +14,10 @@ export const ROUTES = {
   platformAdminResourcesSales: "/platform-admin/resources/sales",
   platformAdminSalesPlaybook: "/platform-admin/resources/sales/playbook",
   customers: "/customers",
+  /** Clinic home: recent activity and clients. */
+  overview: "/overview",
   /** Default destination after successful sign-in / sign-up. */
-  postAuth: "/customers",
+  postAuth: "/overview",
   contacts: "/contacts",
   ourProducts: "/our-products",
   pricing: "/pricing",
@@ -114,6 +116,7 @@ export const WEB_NEW_ROUTE_PREFIXES = [
   ROUTES.signup,
   ROUTES.onboarding,
   ROUTES.platformAdmin,
+  ROUTES.overview,
   ROUTES.customers,
   ROUTES.salesOrders,
   ROUTES.invoices,
@@ -174,6 +177,7 @@ export const APP_ROUTE_PREFIXES = [
   "/signup",
   ROUTES.onboarding,
   ROUTES.platformAdmin,
+  ROUTES.overview,
   ROUTES.customers,
   ROUTES.salesOrders,
   ROUTES.invoices,
@@ -211,6 +215,7 @@ export const MARKETING_ROUTE_PREFIXES = [
 export const PROTECTED_ROUTES = [
   ROUTES.onboarding,
   ROUTES.platformAdmin,
+  ROUTES.overview,
   ROUTES.customers,
   ROUTES.salesOrders,
   ROUTES.invoices,
