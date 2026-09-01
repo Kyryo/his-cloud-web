@@ -1,12 +1,11 @@
 "use client";
 
-import { SlidersHorizontal } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { FetchErrorNotice } from "@/components/fetch-error-notice";
 import { FilterSelectField } from "@/components/filter-select-field";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { ListPageFilterButton } from "@/features/app-shell/components/page-layout";
 import {
   Sheet,
   SheetContent,
@@ -197,9 +196,6 @@ export function InventoryFiltersSheet({
     variant === "movements";
 
   const loadOptions = useCallback(async () => {
-    setIsLoadingOptions(true);
-    setOptionsLoadError(null);
-
     try {
       const needsClinics = variant === "stock";
       const [locationsResponse, clinicsResponse] = await Promise.all([
@@ -209,6 +205,7 @@ export function InventoryFiltersSheet({
 
       setLocations(locationsResponse?.results ?? []);
       setClinics(clinicsResponse?.results ?? []);
+      setOptionsLoadError(null);
     } catch (error) {
       logFetchError("InventoryFiltersSheet.loadOptions", error);
       setLocations([]);
@@ -247,20 +244,16 @@ export function InventoryFiltersSheet({
     [clinics],
   );
 
-  useEffect(() => {
-    if (!open) {
-      setOptionsLoadError(null);
-      return;
-    }
-
-    void loadOptions();
-  }, [loadOptions, open]);
-
   function handleOpenChange(nextOpen: boolean) {
     if (nextOpen) {
       setDraft(filters);
+      setIsLoadingOptions(true);
+      setOpen(true);
+      void loadOptions();
+      return;
     }
-    setOpen(nextOpen);
+    setOptionsLoadError(null);
+    setOpen(false);
   }
 
   function handleApply() {
@@ -279,22 +272,12 @@ export function InventoryFiltersSheet({
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
+      <ListPageFilterButton
         disabled={isLoading}
+        activeCount={activeCount}
         onClick={() => handleOpenChange(true)}
         data-testid={meta.testId}
-      >
-        <SlidersHorizontal className="size-4" />
-        Filters
-        {activeCount > 0 ? (
-          <Badge variant="secondary" className="ml-1 px-1.5 py-0">
-            {activeCount}
-          </Badge>
-        ) : null}
-      </Button>
+      />
 
       <SheetContent
         side="right"
@@ -313,7 +296,10 @@ export function InventoryFiltersSheet({
           <FetchErrorNotice
             className="mt-4"
             message={optionsLoadError}
-            onRetry={() => void loadOptions()}
+            onRetry={() => {
+              setIsLoadingOptions(true);
+              void loadOptions();
+            }}
           />
         ) : null}
 

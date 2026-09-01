@@ -1,65 +1,81 @@
 "use client";
 
-import { PurchaseStatusBadge } from "@/features/inventory/components/InventoryStatusBadge";
 import {
-  InventoryListTable,
-  type InventoryListTableColumn,
-} from "@/features/inventory/components/list/InventoryListTable";
+  ListPageDataTable,
+  ListPageDataTableBody,
+  ListPageDataTableCell,
+  ListPageDataTableHeader,
+  ListPageDataTableHeaderCell,
+  ListPageDataTableHeaderRow,
+  ListPageDataTableRow,
+} from "@/features/app-shell/components/page-layout";
+import { PurchaseStatusBadge } from "@/features/inventory/components/InventoryStatusBadge";
 import type { PurchaseOrder } from "@/features/inventory/types/inventory.types";
 import {
   formatDisplayDate,
   formatInventoryAmount,
 } from "@/features/inventory/utils/format-inventory";
 
-const columns: InventoryListTableColumn<PurchaseOrder>[] = [
-  {
-    key: "reference",
-    label: "Reference",
-    cellClassName: "font-mono font-medium text-brand-navy",
-    render: (item) => item.reference_number,
-  },
-  {
-    key: "vendor",
-    label: "Vendor",
-    render: (item) => item.vendor_name,
-  },
-  {
-    key: "status",
-    label: "Status",
-    render: (item) => <PurchaseStatusBadge status={item.status} />,
-  },
-  {
-    key: "delivery",
-    label: "Delivery",
-    render: (item) => formatDisplayDate(item.delivery_date),
-  },
-  {
-    key: "total",
-    label: "Total",
-    headerClassName: "text-right",
-    cellClassName: "text-right",
-    render: (item) => formatInventoryAmount(item.total_value),
-  },
-];
-
 type PurchaseOrdersTableProps = {
   orders: PurchaseOrder[];
   onRowClick?: (order: PurchaseOrder) => void;
-  compact?: boolean;
+  className?: string;
 };
+
+const columns = [
+  { key: "reference", label: "Reference" },
+  { key: "vendor", label: "Vendor" },
+  { key: "status", label: "Status" },
+  { key: "delivery", label: "Delivery" },
+  { key: "total", label: "Total", align: "right" as const },
+] as const;
+
+export const PURCHASE_ORDERS_TABLE_SKELETON_COLUMNS = columns;
 
 export function PurchaseOrdersTable({
   orders,
   onRowClick,
-  compact = false,
+  className,
 }: PurchaseOrdersTableProps) {
   return (
-    <InventoryListTable
-      items={orders}
-      columns={columns}
-      getRowKey={(order) => order.uuid}
-      onRowClick={onRowClick}
-      compact={compact}
-    />
+    <ListPageDataTable className={className}>
+      <ListPageDataTableHeader>
+        <ListPageDataTableHeaderRow>
+          {columns.map((column) => (
+            <ListPageDataTableHeaderCell
+              key={column.key}
+              className={column.align === "right" ? "text-right pr-4" : undefined}
+            >
+              {column.label}
+            </ListPageDataTableHeaderCell>
+          ))}
+        </ListPageDataTableHeaderRow>
+      </ListPageDataTableHeader>
+      <ListPageDataTableBody>
+        {orders.map((order) => (
+          <ListPageDataTableRow
+            key={order.uuid}
+            className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+            onClick={() => onRowClick?.(order)}
+          >
+            <ListPageDataTableCell className="py-3 font-mono text-xs font-semibold text-brand-navy group-hover:text-brand-primary">
+              {order.reference_number}
+            </ListPageDataTableCell>
+            <ListPageDataTableCell className="py-3 text-sm font-medium text-brand-navy">
+              {order.vendor_name}
+            </ListPageDataTableCell>
+            <ListPageDataTableCell className="py-3">
+              <PurchaseStatusBadge status={order.status} />
+            </ListPageDataTableCell>
+            <ListPageDataTableCell className="py-3 text-xs tabular-nums text-dash-muted">
+              {formatDisplayDate(order.delivery_date)}
+            </ListPageDataTableCell>
+            <ListPageDataTableCell className="py-3 pr-4 text-right text-sm font-semibold tabular-nums text-brand-navy">
+              {formatInventoryAmount(order.total_value)}
+            </ListPageDataTableCell>
+          </ListPageDataTableRow>
+        ))}
+      </ListPageDataTableBody>
+    </ListPageDataTable>
   );
 }

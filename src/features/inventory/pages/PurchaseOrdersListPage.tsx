@@ -4,38 +4,46 @@ import { FileText } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { FabButton } from "@/components/ui/fab-button";
 import { ROUTES } from "@/constants/routes";
 import {
-  ListPageDataSectionsStack,
   ListPageLayout,
+  ListPagePagination,
+  ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
 import { CreatePurchaseOrderDialog } from "@/features/inventory/components/CreatePurchaseOrderDialog";
-import { InventoryFiltersSheet } from "@/features/inventory/components/InventoryFiltersSheet";
-import { InventoryListToolbar } from "@/features/inventory/components/InventoryListToolbar";
+import {
+  InventoryListPageHeaderBar,
+  InventoryListPrimaryAction,
+} from "@/features/inventory/components/InventoryListPageHeaderBar";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
 import { InventoryListEmptyState } from "@/features/inventory/components/list/InventoryListEmptyState";
-import { InventoryListPageContent } from "@/features/inventory/components/list/InventoryListPageContent";
-import { InventoryListPageHeader } from "@/features/inventory/components/list/InventoryListPageHeader";
-import { InventoryListPagination } from "@/features/inventory/components/list/InventoryListTable";
-import { PurchaseOrdersTable } from "@/features/inventory/components/tables/purchase-orders-table";
+import { InventoryListFilteredEmpty } from "@/features/inventory/components/list/InventoryListFilteredEmpty";
+import { InventoryTableSkeleton } from "@/features/inventory/components/tables/InventoryTableSkeleton";
+import {
+  PURCHASE_ORDERS_TABLE_SKELETON_COLUMNS,
+  PurchaseOrdersTable,
+} from "@/features/inventory/components/tables/purchase-orders-table";
 import { useInventoryListFilters } from "@/features/inventory/hooks/use-inventory-list-filters";
 import { fetchPurchaseOrders } from "@/features/inventory/services/purchase-orders.service";
 import type {
   InventoryListFilters,
   PurchaseOrder,
 } from "@/features/inventory/types/inventory.types";
+import type { InventoryListSearchFilters } from "@/features/inventory/utils/inventory-list-filter-chips";
 import {
   buildPurchaseOrderListFilters,
   countActivePurchaseOrderFilters,
   DEFAULT_PURCHASE_ORDER_SHEET_FILTERS,
+  type PurchaseOrderSheetFilters,
 } from "@/features/inventory/utils/inventory-list-filters";
 
 export function PurchaseOrdersListPage() {
   const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
   const fetchFn = useCallback(
-    (f: InventoryListFilters) => fetchPurchaseOrders(f),
+    (filters: InventoryListFilters) => fetchPurchaseOrders(filters),
     [],
   );
 
@@ -67,12 +75,25 @@ export function PurchaseOrdersListPage() {
     countActiveSheetFilters: countActivePurchaseOrderFilters,
   });
 
+  const applyFilters = useCallback(
+    (nextFilters: InventoryListSearchFilters) => {
+      handleFiltersApply(nextFilters as PurchaseOrderSheetFilters);
+    },
+    [handleFiltersApply],
+  );
+
+  const handleClearSearchAndFilters = useCallback(() => {
+    handleClearSearch();
+    handleFiltersApply(DEFAULT_PURCHASE_ORDER_SHEET_FILTERS);
+  }, [handleClearSearch, handleFiltersApply]);
+
   const handleCreate = useCallback(() => {
     setCreateOpen(true);
   }, []);
 
   const handleRowClick = useCallback(
-    (order: PurchaseOrder) => router.push(ROUTES.inventoryPurchaseOrderDetail(order.uuid)),
+    (order: PurchaseOrder) =>
+      router.push(ROUTES.inventoryPurchaseOrderDetail(order.uuid)),
     [router],
   );
 
@@ -81,27 +102,33 @@ export function PurchaseOrdersListPage() {
   }
 
   return (
-    <ListPageLayout className="space-y-4" data-testid="inventory-purchase-orders-page">
+    <ListPageLayout data-testid="inventory-purchase-orders-page">
       <CreatePurchaseOrderDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
         onCreated={(order) =>
-          router.push(`${ROUTES.inventoryPurchaseOrderDetail(order.uuid)}?add-lines=1`)
+          router.push(
+            `${ROUTES.inventoryPurchaseOrderDetail(order.uuid)}?add-lines=1`,
+          )
         }
       />
 
-      <InventoryListPageHeader
-        title="Purchase orders"
-        description="Manage inbound stock from vendors."
-        addLabel="New purchase order"
-        onAdd={handleCreate}
+      <InventoryListPageHeaderBar
+        variant="purchase-orders"
         search={search}
-        isSearchDisabled={isRefreshing}
+        filters={sheetFilters}
+        isLoading={isRefreshing}
         onSearchChange={setSearch}
         onSearchSubmit={handleSearchSubmit}
         onClearSearch={handleClearSearch}
-        searchPlaceholder="Search by reference, vendor, LPO, or GRN..."
-        data-testid="add-purchase-order-button"
+        onFiltersApply={applyFilters}
+        trailing={
+          <InventoryListPrimaryAction
+            label="New Purchase Order"
+            onClick={handleCreate}
+            data-testid="add-purchase-order-button"
+          />
+        }
       />
 
       <FabButton
@@ -110,36 +137,25 @@ export function PurchaseOrdersListPage() {
         data-testid="add-purchase-order-fab"
       />
 
-      {!hasNoRecords ? (
-        <ListPageDataSectionsStack className="space-y-2">
-          <InventoryListToolbar
-            search={search}
-            searchPlaceholder="Search by reference, vendor, LPO, or GRN..."
-            isLoading={isRefreshing}
-            onSearchChange={setSearch}
-            onSearchSubmit={handleSearchSubmit}
-            onClearSearch={handleClearSearch}
-            compact
-            filters={
-              <InventoryFiltersSheet
-                variant="purchase-orders"
-                filters={sheetFilters}
-                isLoading={isRefreshing}
-                onApply={(filters) => handleFiltersApply(filters as typeof sheetFilters)}
-              />
-            }
-          />
-        </ListPageDataSectionsStack>
-      ) : null}
-
-      <InventoryListPageContent
-        isLoading={isLoading}
-        loadingMessage="Loading purchase orders..."
-        error={error}
-        onRetry={() => void reload()}
-        errorTitle="Could not load purchase orders"
-        hasNoRecords={hasNoRecords}
-        emptyState={
+      <ListPageTableSection>
+        {isLoading ? (
+          <InventoryTableSkeleton columns={PURCHASE_ORDERS_TABLE_SKELETON_COLUMNS} />
+        ) : error ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+            <h2 className="text-sm font-semibold text-red-800">
+              Could not load purchase orders
+            </h2>
+            <p className="mt-2 text-sm text-red-700">{error}</p>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-4"
+              onClick={() => void reload()}
+            >
+              Try again
+            </Button>
+          </div>
+        ) : hasNoRecords ? (
           <InventoryListEmptyState
             icon={FileText}
             title="No purchase orders yet"
@@ -147,23 +163,26 @@ export function PurchaseOrdersListPage() {
             actionLabel="New purchase order"
             onAction={handleCreate}
           />
-        }
-        isFilteredEmpty={isFilteredEmpty}
-        filteredEmptyTitle="No matching purchase orders"
-      >
-        <div className="space-y-2">
-          <PurchaseOrdersTable orders={items} onRowClick={handleRowClick} compact />
-          <InventoryListPagination
-          page={page}
-          pageSize={pageSize}
-          totalCount={totalCount}
-          hasNext={hasNext}
-          hasPrevious={hasPrevious}
-          isLoading={isRefreshing}
-          onPageChange={handlePageChange}
-        />
-        </div>
-      </InventoryListPageContent>
+        ) : isFilteredEmpty ? (
+          <InventoryListFilteredEmpty
+            title="No matching purchase orders"
+            onClear={handleClearSearchAndFilters}
+          />
+        ) : (
+          <>
+            <PurchaseOrdersTable orders={items} onRowClick={handleRowClick} />
+            <ListPagePagination
+              page={page}
+              pageSize={pageSize}
+              totalCount={totalCount}
+              hasNext={hasNext}
+              hasPrevious={hasPrevious}
+              isLoading={isRefreshing}
+              onPageChange={handlePageChange}
+            />
+          </>
+        )}
+      </ListPageTableSection>
     </ListPageLayout>
   );
 }

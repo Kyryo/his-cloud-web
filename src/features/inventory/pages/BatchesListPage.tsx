@@ -3,32 +3,39 @@
 import { Layers } from "lucide-react";
 import { useCallback, useState } from "react";
 
-import { AddActionButton } from "@/components/ui/app-buttons";
+import { Button } from "@/components/ui/button";
 import { FabButton } from "@/components/ui/fab-button";
 import {
-  ListPageDataSectionsStack,
   ListPageLayout,
+  ListPagePagination,
+  ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
 import { BatchDetailDialog } from "@/features/inventory/components/BatchDetailDialog";
 import { CreateBatchDialog } from "@/features/inventory/components/CreateBatchDialog";
-import { InventoryFiltersSheet } from "@/features/inventory/components/InventoryFiltersSheet";
-import { InventoryListToolbar } from "@/features/inventory/components/InventoryListToolbar";
+import {
+  InventoryListPageHeaderBar,
+  InventoryListPrimaryAction,
+} from "@/features/inventory/components/InventoryListPageHeaderBar";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
 import { InventoryListEmptyState } from "@/features/inventory/components/list/InventoryListEmptyState";
-import { InventoryListPageContent } from "@/features/inventory/components/list/InventoryListPageContent";
-import { InventoryListPageHeader } from "@/features/inventory/components/list/InventoryListPageHeader";
-import { InventoryListPagination } from "@/features/inventory/components/list/InventoryListTable";
-import { BatchesTable } from "@/features/inventory/components/tables/batches-table";
+import { InventoryListFilteredEmpty } from "@/features/inventory/components/list/InventoryListFilteredEmpty";
+import { InventoryTableSkeleton } from "@/features/inventory/components/tables/InventoryTableSkeleton";
+import {
+  BATCHES_TABLE_SKELETON_COLUMNS,
+  BatchesTable,
+} from "@/features/inventory/components/tables/batches-table";
 import { useInventoryListFilters } from "@/features/inventory/hooks/use-inventory-list-filters";
 import { fetchInventoryBatches } from "@/features/inventory/services/batches.service";
 import type {
   InventoryBatch,
   InventoryListFilters,
 } from "@/features/inventory/types/inventory.types";
+import type { InventoryListSearchFilters } from "@/features/inventory/utils/inventory-list-filter-chips";
 import {
   buildBatchListFilters,
   countActiveBatchFilters,
   DEFAULT_BATCH_SHEET_FILTERS,
+  type BatchSheetFilters,
 } from "@/features/inventory/utils/inventory-list-filters";
 
 export function BatchesListPage() {
@@ -37,7 +44,7 @@ export function BatchesListPage() {
   const [detailOpen, setDetailOpen] = useState(false);
 
   const fetchFn = useCallback(
-    (f: InventoryListFilters) => fetchInventoryBatches(f),
+    (filters: InventoryListFilters) => fetchInventoryBatches(filters),
     [],
   );
 
@@ -69,6 +76,18 @@ export function BatchesListPage() {
     countActiveSheetFilters: countActiveBatchFilters,
   });
 
+  const applyFilters = useCallback(
+    (nextFilters: InventoryListSearchFilters) => {
+      handleFiltersApply(nextFilters as BatchSheetFilters);
+    },
+    [handleFiltersApply],
+  );
+
+  const handleClearSearchAndFilters = useCallback(() => {
+    handleClearSearch();
+    handleFiltersApply(DEFAULT_BATCH_SHEET_FILTERS);
+  }, [handleClearSearch, handleFiltersApply]);
+
   const handleAdd = useCallback(() => {
     setCreateOpen(true);
   }, []);
@@ -77,14 +96,6 @@ export function BatchesListPage() {
     setSelectedBatch(item);
     setDetailOpen(true);
   }, []);
-
-  const handleDetailOpenChange = useCallback((open: boolean) => {
-    setDetailOpen(open);
-  }, []);
-
-  const handleBatchCreated = useCallback(() => {
-    void reload();
-  }, [reload]);
 
   if (isUnauthorized) {
     return <InventoryListAccessDenied />;
@@ -95,26 +106,30 @@ export function BatchesListPage() {
       <CreateBatchDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
-        onCreated={handleBatchCreated}
+        onCreated={() => void reload()}
       />
       <BatchDetailDialog
         batch={selectedBatch}
         open={detailOpen}
-        onOpenChange={handleDetailOpenChange}
+        onOpenChange={setDetailOpen}
       />
 
-      <InventoryListPageHeader
-        title="Batches"
-        description="Track batch numbers, expiry, and supplier details."
-        addLabel="New batch"
-        onAdd={handleAdd}
+      <InventoryListPageHeaderBar
+        variant="batches"
         search={search}
-        isSearchDisabled={isRefreshing}
+        filters={sheetFilters}
+        isLoading={isRefreshing}
         onSearchChange={setSearch}
         onSearchSubmit={handleSearchSubmit}
         onClearSearch={handleClearSearch}
-        searchPlaceholder="Search by batch number, supplier, or notes..."
-        data-testid="add-batch-button"
+        onFiltersApply={applyFilters}
+        trailing={
+          <InventoryListPrimaryAction
+            label="New Batch"
+            onClick={handleAdd}
+            data-testid="add-batch-button"
+          />
+        }
       />
 
       <FabButton
@@ -123,43 +138,23 @@ export function BatchesListPage() {
         data-testid="add-batch-fab"
       />
 
-      {!hasNoRecords ? (
-        <ListPageDataSectionsStack>
-          <InventoryListToolbar
-            search={search}
-            searchPlaceholder="Search by batch number, supplier, or notes..."
-            isLoading={isRefreshing}
-            onSearchChange={setSearch}
-            onSearchSubmit={handleSearchSubmit}
-            onClearSearch={handleClearSearch}
-            onRefresh={() => void reload()}
-            filters={
-              <InventoryFiltersSheet
-                variant="batches"
-                filters={sheetFilters}
-                isLoading={isRefreshing}
-                onApply={(filters) => handleFiltersApply(filters as typeof sheetFilters)}
-              />
-            }
-            primaryAction={
-              <AddActionButton
-                label="New batch"
-                className="hidden sm:inline-flex"
-                onClick={handleAdd}
-              />
-            }
-          />
-        </ListPageDataSectionsStack>
-      ) : null}
-
-      <InventoryListPageContent
-        isLoading={isLoading}
-        loadingMessage="Loading batches..."
-        error={error}
-        onRetry={() => void reload()}
-        errorTitle="Could not load batches"
-        hasNoRecords={hasNoRecords}
-        emptyState={
+      <ListPageTableSection>
+        {isLoading ? (
+          <InventoryTableSkeleton columns={BATCHES_TABLE_SKELETON_COLUMNS} />
+        ) : error ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+            <h2 className="text-sm font-semibold text-red-800">Could not load batches</h2>
+            <p className="mt-2 text-sm text-red-700">{error}</p>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-4"
+              onClick={() => void reload()}
+            >
+              Try again
+            </Button>
+          </div>
+        ) : hasNoRecords ? (
           <InventoryListEmptyState
             icon={Layers}
             title="No batches yet"
@@ -167,21 +162,26 @@ export function BatchesListPage() {
             actionLabel="New batch"
             onAction={handleAdd}
           />
-        }
-        isFilteredEmpty={isFilteredEmpty}
-        filteredEmptyTitle="No matching batches"
-      >
-        <BatchesTable items={items} onRowClick={handleRowClick} />
-        <InventoryListPagination
-          page={page}
-          pageSize={pageSize}
-          totalCount={totalCount}
-          hasNext={hasNext}
-          hasPrevious={hasPrevious}
-          isLoading={isRefreshing}
-          onPageChange={handlePageChange}
-        />
-      </InventoryListPageContent>
+        ) : isFilteredEmpty ? (
+          <InventoryListFilteredEmpty
+            title="No matching batches"
+            onClear={handleClearSearchAndFilters}
+          />
+        ) : (
+          <>
+            <BatchesTable items={items} onRowClick={handleRowClick} />
+            <ListPagePagination
+              page={page}
+              pageSize={pageSize}
+              totalCount={totalCount}
+              hasNext={hasNext}
+              hasPrevious={hasPrevious}
+              isLoading={isRefreshing}
+              onPageChange={handlePageChange}
+            />
+          </>
+        )}
+      </ListPageTableSection>
     </ListPageLayout>
   );
 }

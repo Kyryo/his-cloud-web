@@ -4,38 +4,46 @@ import { Shuffle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { FabButton } from "@/components/ui/fab-button";
 import { ROUTES } from "@/constants/routes";
 import {
-  ListPageDataSectionsStack,
   ListPageLayout,
+  ListPagePagination,
+  ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
 import { CreateInternalOrderDialog } from "@/features/inventory/components/CreateInternalOrderDialog";
-import { InventoryFiltersSheet } from "@/features/inventory/components/InventoryFiltersSheet";
-import { InventoryListToolbar } from "@/features/inventory/components/InventoryListToolbar";
+import {
+  InventoryListPageHeaderBar,
+  InventoryListPrimaryAction,
+} from "@/features/inventory/components/InventoryListPageHeaderBar";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
 import { InventoryListEmptyState } from "@/features/inventory/components/list/InventoryListEmptyState";
-import { InventoryListPageContent } from "@/features/inventory/components/list/InventoryListPageContent";
-import { InventoryListPageHeader } from "@/features/inventory/components/list/InventoryListPageHeader";
-import { InventoryListPagination } from "@/features/inventory/components/list/InventoryListTable";
-import { InternalOrdersTable } from "@/features/inventory/components/tables/internal-orders-table";
+import { InventoryListFilteredEmpty } from "@/features/inventory/components/list/InventoryListFilteredEmpty";
+import { InventoryTableSkeleton } from "@/features/inventory/components/tables/InventoryTableSkeleton";
+import {
+  INTERNAL_ORDERS_TABLE_SKELETON_COLUMNS,
+  InternalOrdersTable,
+} from "@/features/inventory/components/tables/internal-orders-table";
 import { useInventoryListFilters } from "@/features/inventory/hooks/use-inventory-list-filters";
 import { fetchInternalOrders } from "@/features/inventory/services/internal-orders.service";
 import type {
   InternalOrder,
   InventoryListFilters,
 } from "@/features/inventory/types/inventory.types";
+import type { InventoryListSearchFilters } from "@/features/inventory/utils/inventory-list-filter-chips";
 import {
   buildInternalOrderListFilters,
   countActiveInternalOrderFilters,
   DEFAULT_INTERNAL_ORDER_SHEET_FILTERS,
+  type InternalOrderSheetFilters,
 } from "@/features/inventory/utils/inventory-list-filters";
 
 export function InternalOrdersListPage() {
   const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
   const fetchFn = useCallback(
-    (f: InventoryListFilters) => fetchInternalOrders(f),
+    (filters: InventoryListFilters) => fetchInternalOrders(filters),
     [],
   );
 
@@ -67,12 +75,25 @@ export function InternalOrdersListPage() {
     countActiveSheetFilters: countActiveInternalOrderFilters,
   });
 
+  const applyFilters = useCallback(
+    (nextFilters: InventoryListSearchFilters) => {
+      handleFiltersApply(nextFilters as InternalOrderSheetFilters);
+    },
+    [handleFiltersApply],
+  );
+
+  const handleClearSearchAndFilters = useCallback(() => {
+    handleClearSearch();
+    handleFiltersApply(DEFAULT_INTERNAL_ORDER_SHEET_FILTERS);
+  }, [handleClearSearch, handleFiltersApply]);
+
   const handleCreate = useCallback(() => {
     setCreateOpen(true);
   }, []);
 
   const handleRowClick = useCallback(
-    (order: InternalOrder) => router.push(ROUTES.inventoryInternalOrderDetail(order.uuid)),
+    (order: InternalOrder) =>
+      router.push(ROUTES.inventoryInternalOrderDetail(order.uuid)),
     [router],
   );
 
@@ -81,27 +102,33 @@ export function InternalOrdersListPage() {
   }
 
   return (
-    <ListPageLayout className="space-y-4" data-testid="inventory-internal-orders-page">
+    <ListPageLayout data-testid="inventory-internal-orders-page">
       <CreateInternalOrderDialog
         open={createOpen}
         onOpenChange={setCreateOpen}
         onCreated={(order) =>
-          router.push(`${ROUTES.inventoryInternalOrderDetail(order.uuid)}?add-lines=1`)
+          router.push(
+            `${ROUTES.inventoryInternalOrderDetail(order.uuid)}?add-lines=1`,
+          )
         }
       />
 
-      <InventoryListPageHeader
-        title="Internal orders"
-        description="Transfer stock between locations."
-        addLabel="New internal order"
-        onAdd={handleCreate}
+      <InventoryListPageHeaderBar
+        variant="internal-orders"
         search={search}
-        isSearchDisabled={isRefreshing}
+        filters={sheetFilters}
+        isLoading={isRefreshing}
         onSearchChange={setSearch}
         onSearchSubmit={handleSearchSubmit}
         onClearSearch={handleClearSearch}
-        searchPlaceholder="Search by reference or notes..."
-        data-testid="add-internal-order-button"
+        onFiltersApply={applyFilters}
+        trailing={
+          <InventoryListPrimaryAction
+            label="New Internal Order"
+            onClick={handleCreate}
+            data-testid="add-internal-order-button"
+          />
+        }
       />
 
       <FabButton
@@ -110,36 +137,25 @@ export function InternalOrdersListPage() {
         data-testid="add-internal-order-fab"
       />
 
-      {!hasNoRecords ? (
-        <ListPageDataSectionsStack className="space-y-2">
-          <InventoryListToolbar
-            search={search}
-            searchPlaceholder="Search by reference or notes..."
-            isLoading={isRefreshing}
-            onSearchChange={setSearch}
-            onSearchSubmit={handleSearchSubmit}
-            onClearSearch={handleClearSearch}
-            compact
-            filters={
-              <InventoryFiltersSheet
-                variant="internal-orders"
-                filters={sheetFilters}
-                isLoading={isRefreshing}
-                onApply={(filters) => handleFiltersApply(filters as typeof sheetFilters)}
-              />
-            }
-          />
-        </ListPageDataSectionsStack>
-      ) : null}
-
-      <InventoryListPageContent
-        isLoading={isLoading}
-        loadingMessage="Loading internal orders..."
-        error={error}
-        onRetry={() => void reload()}
-        errorTitle="Could not load internal orders"
-        hasNoRecords={hasNoRecords}
-        emptyState={
+      <ListPageTableSection>
+        {isLoading ? (
+          <InventoryTableSkeleton columns={INTERNAL_ORDERS_TABLE_SKELETON_COLUMNS} />
+        ) : error ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+            <h2 className="text-sm font-semibold text-red-800">
+              Could not load internal orders
+            </h2>
+            <p className="mt-2 text-sm text-red-700">{error}</p>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-4"
+              onClick={() => void reload()}
+            >
+              Try again
+            </Button>
+          </div>
+        ) : hasNoRecords ? (
           <InventoryListEmptyState
             icon={Shuffle}
             title="No internal orders yet"
@@ -147,23 +163,26 @@ export function InternalOrdersListPage() {
             actionLabel="New internal order"
             onAction={handleCreate}
           />
-        }
-        isFilteredEmpty={isFilteredEmpty}
-        filteredEmptyTitle="No matching internal orders"
-      >
-        <div className="space-y-2">
-          <InternalOrdersTable orders={items} onRowClick={handleRowClick} compact />
-          <InventoryListPagination
-            page={page}
-            pageSize={pageSize}
-            totalCount={totalCount}
-            hasNext={hasNext}
-            hasPrevious={hasPrevious}
-            isLoading={isRefreshing}
-            onPageChange={handlePageChange}
+        ) : isFilteredEmpty ? (
+          <InventoryListFilteredEmpty
+            title="No matching internal orders"
+            onClear={handleClearSearchAndFilters}
           />
-        </div>
-      </InventoryListPageContent>
+        ) : (
+          <>
+            <InternalOrdersTable orders={items} onRowClick={handleRowClick} />
+            <ListPagePagination
+              page={page}
+              pageSize={pageSize}
+              totalCount={totalCount}
+              hasNext={hasNext}
+              hasPrevious={hasPrevious}
+              isLoading={isRefreshing}
+              onPageChange={handlePageChange}
+            />
+          </>
+        )}
+      </ListPageTableSection>
     </ListPageLayout>
   );
 }
