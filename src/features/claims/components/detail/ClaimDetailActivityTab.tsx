@@ -9,7 +9,7 @@ import { fetchInvoice } from "@/features/invoices/services/invoices.service";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 
 type ClaimDetailActivityTabProps = {
-  invoiceId: number | null;
+  invoiceId: number | string | null;
   isActive: boolean;
 };
 

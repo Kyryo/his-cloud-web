@@ -12,6 +12,7 @@ import type {
   VisitDetail,
   VisitEncounter,
   VisitEncounterCreatePayload,
+  VisitMemberBenefitsSnapshot,
   VisitQueueSummary,
 } from "@/features/visits/types/visit.types";
 import { bffRequest } from "@/lib/bff-client";
@@ -114,6 +115,15 @@ export async function reopenVisit(uuid: string): Promise<VisitDetail> {
 
 export async function fetchVisit(uuid: string): Promise<VisitDetail> {
   return bffRequest<VisitDetail>(BFF_VISITS_ROUTES.detail(uuid));
+}
+
+export async function refreshVisitMemberBenefits(
+  uuid: string,
+): Promise<VisitMemberBenefitsSnapshot> {
+  return bffRequest<VisitMemberBenefitsSnapshot>(
+    BFF_VISITS_ROUTES.memberBenefitsRefresh(uuid),
+    { method: "POST" },
+  );
 }
 
 export async function updateVisitPaymentMode(

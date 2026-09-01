@@ -2,14 +2,20 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { ROUTES } from "@/constants/routes";
 import { TabbedDialog } from "@/components/ui/tabbed-dialog";
+import { NextStepOptionsList } from "@/components/ui/next-step-options-list";
+import { CreateAppointmentDialog } from "@/features/appointments/components/CreateAppointmentDialog";
+import type { Appointment } from "@/features/appointments/types/appointment.types";
 import { CustomerAddressFormFields } from "@/features/customers/components/CustomerAddressFormFields";
 import { CustomerFormFields } from "@/features/customers/components/CustomerFormFields";
 import { CustomerInsuranceFormFields } from "@/features/customers/components/CustomerInsuranceFormFields";
 import { CustomerNoteFormFields } from "@/features/customers/components/CustomerNoteFormFields";
+import { CustomerVisitDialog } from "@/features/customers/components/detail/CustomerVisitDialog";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import { Form } from "@/components/ui/form";
 import {
@@ -42,6 +48,7 @@ import { createCustomerNote } from "@/features/customers/services/customer-notes
 import { createCustomer } from "@/features/customers/services/customers.service";
 import { fetchInsuranceSchemes } from "@/features/customers/services/insurance-schemes.service";
 import type { Customer } from "@/features/customers/types/customer.types";
+import type { CustomerVisit } from "@/features/customers/types/customer-visit.types";
 import type { InsuranceScheme } from "@/features/customers/types/customer-insurance.types";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-errors";
@@ -58,7 +65,8 @@ type CreateCustomerTab =
   | "personal"
   | "insurance"
   | "address"
-  | "notes";
+  | "notes"
+  | "whats-next";
 
 function getCustomerDisplayName(customer: Customer) {
   return (
@@ -74,11 +82,14 @@ export function CreateCustomerDialog({
   onOpenChange,
   onCreated,
 }: CreateCustomerDialogProps) {
+  const router = useRouter();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState<CreateCustomerTab>("personal");
   const [createdCustomer, setCreatedCustomer] = useState<Customer | null>(null);
   const [schemes, setSchemes] = useState<InsuranceScheme[]>([]);
   const [isLoadingSchemes, setIsLoadingSchemes] = useState(false);
+  const [visitDialogOpen, setVisitDialogOpen] = useState(false);
+  const [appointmentDialogOpen, setAppointmentDialogOpen] = useState(false);
 
   const personalForm = useForm<CreateCustomerFormValues>({
     resolver: zodResolver(createCustomerSchema),
@@ -127,6 +138,8 @@ export function CreateCustomerDialog({
     setCreatedCustomer(null);
     setSchemes([]);
     setIsLoadingSchemes(false);
+    setVisitDialogOpen(false);
+    setAppointmentDialogOpen(false);
     personalForm.reset(createCustomerDefaultValues);
     insuranceForm.reset(createCustomerInsuranceDefaultValues);
     addressForm.reset(createCustomerAddressDefaultValues);
@@ -322,7 +335,8 @@ export function CreateCustomerDialog({
         title: "Note added",
         description: "The note was saved for this client.",
       });
-      finalizeCreatedCustomer(createdCustomer);
+      notesForm.reset(createCustomerNoteDefaultValues);
+      setActiveTab("whats-next");
     } catch (error) {
       if (error instanceof BffError) {
         const fieldErrors = mapBffErrorsToForm(error.errors);
@@ -351,12 +365,90 @@ export function CreateCustomerDialog({
     }
   }
 
+  async function handleNotesNext() {
+    if (!createdCustomer) {
+      return;
+    }
+
+    const body = notesForm.getValues("body").trim();
+    if (!body) {
+      setActiveTab("whats-next");
+      return;
+    }
+
+    await notesForm.handleSubmit(handleSaveNote)();
+  }
+
   const tabs = [
     { id: "personal", label: "Personal" },
     { id: "insurance", label: "Insurance", disabled: !isCustomerCreated },
     { id: "address", label: "Address", disabled: !isCustomerCreated },
     { id: "notes", label: "Notes", disabled: !isCustomerCreated },
+    { id: "whats-next", label: "What's next?", disabled: !isCustomerCreated },
   ];
+
+  const whatsNextOptions = useMemo(() => {
+    if (!createdCustomer) {
+      return [];
+    }
+
+    const displayName = getCustomerDisplayName(createdCustomer);
+
+    return [
+      {
+        id: "view-client",
+        title: "View client",
+        description: `Open ${displayName}'s profile.`,
+        icon: "user" as const,
+        onSelect: () => {
+          finalizeCreatedCustomer(createdCustomer);
+          router.push(ROUTES.customerDetail(createdCustomer.uuid));
+        },
+        testId: "create-customer-view-client-next-button",
+      },
+      {
+        id: "start-visit",
+        title: "Start a visit",
+        description: "Open the visit workflow for this client.",
+        icon: "hospital" as const,
+        emphasized: true,
+        onSelect: () => setVisitDialogOpen(true),
+        testId: "create-customer-start-visit-next-button",
+      },
+      {
+        id: "schedule-appointment",
+        title: "Schedule an appointment",
+        description: `Book a future appointment for ${displayName}.`,
+        icon: "calendarClock" as const,
+        onSelect: () => setAppointmentDialogOpen(true),
+        testId: "create-customer-schedule-appointment-next-button",
+      },
+    ];
+  }, [createdCustomer, router]);
+
+  function handleVisitChanged(_visit: CustomerVisit) {
+    if (!createdCustomer) {
+      return;
+    }
+
+    finalizeCreatedCustomer(createdCustomer);
+    router.push(ROUTES.customerDetail(createdCustomer.uuid));
+  }
+
+  function handleAppointmentCreated(_appointment: Appointment) {
+    if (!createdCustomer) {
+      return;
+    }
+
+    toast({
+      variant: "success",
+      title: "Appointment scheduled",
+      description: `An appointment was booked for ${getCustomerDisplayName(createdCustomer)}.`,
+    });
+    setAppointmentDialogOpen(false);
+    finalizeCreatedCustomer(createdCustomer);
+    router.push(ROUTES.customerDetail(createdCustomer.uuid));
+  }
 
   function renderFooter() {
     if (activeTab === "personal" && !isCustomerCreated) {
@@ -471,20 +563,32 @@ export function CreateCustomerDialog({
       );
     }
 
-    return (
-      <>
+    if (activeTab === "whats-next") {
+      return (
         <SecondaryButton
           type="button"
           disabled={isBusy}
           onClick={() => createdCustomer && finalizeCreatedCustomer(createdCustomer)}
         >
+          Close
+        </SecondaryButton>
+      );
+    }
+
+    return (
+      <>
+        <SecondaryButton
+          type="button"
+          disabled={isBusy}
+          onClick={() => setActiveTab("whats-next")}
+        >
           Skip for now
         </SecondaryButton>
         <PrimaryButton
-          type="submit"
-          form="create-customer-notes-form"
+          type="button"
           disabled={isBusy}
           data-testid="create-customer-notes-submit"
+          onClick={() => void handleNotesNext()}
         >
           {isSavingNote ? (
             <>
@@ -492,7 +596,7 @@ export function CreateCustomerDialog({
               Saving...
             </>
           ) : (
-            "Save"
+            "Next"
           )}
         </PrimaryButton>
       </>
@@ -500,7 +604,8 @@ export function CreateCustomerDialog({
   }
 
   return (
-    <TabbedDialog
+    <>
+      <TabbedDialog
       open={open}
       onOpenChange={handleOpenChange}
       title="Add client"
@@ -512,7 +617,8 @@ export function CreateCustomerDialog({
           tabId === "personal" ||
           tabId === "insurance" ||
           tabId === "address" ||
-          tabId === "notes"
+          tabId === "notes" ||
+          tabId === "whats-next"
         ) {
           handleTabChange(tabId);
         }
@@ -535,7 +641,7 @@ export function CreateCustomerDialog({
                 data-testid="create-customer-locked-notice"
               >
                 Client created. Personal details are locked while you add
-                insurance, address, and notes.
+                insurance, address, notes, or choose what to do next.
               </p>
             ) : null}
             <CustomerFormFields
@@ -598,6 +704,35 @@ export function CreateCustomerDialog({
           </form>
         </Form>
       ) : null}
-    </TabbedDialog>
+
+      {activeTab === "whats-next" && isCustomerCreated ? (
+        <div className="-mx-6 -my-4">
+          <p className="px-6 pb-2 pt-2 text-sm text-brand-muted">
+            What would you like to do next?
+          </p>
+          <NextStepOptionsList
+            options={whatsNextOptions}
+            testId="create-customer-next-step-options"
+          />
+        </div>
+      ) : null}
+      </TabbedDialog>
+      {createdCustomer ? (
+        <>
+          <CustomerVisitDialog
+            customer={createdCustomer}
+            open={visitDialogOpen}
+            onOpenChange={setVisitDialogOpen}
+            onVisitChanged={handleVisitChanged}
+          />
+          <CreateAppointmentDialog
+            customer={createdCustomer}
+            open={appointmentDialogOpen}
+            onOpenChange={setAppointmentDialogOpen}
+            onCreated={handleAppointmentCreated}
+          />
+        </>
+      ) : null}
+    </>
   );
 }

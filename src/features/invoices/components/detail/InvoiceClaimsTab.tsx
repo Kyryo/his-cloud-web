@@ -29,7 +29,7 @@ import {
   getClaimRequirementCheckItems,
   getInvoiceClaimReadinessItems,
   getInvoiceClaimSystemReadinessItems,
-  isBlockingRequirementItem,
+  getCreateClaimDisabledReasonFromItems,
 } from "@/features/invoices/utils/invoice-claim-readiness";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
@@ -147,6 +147,11 @@ export function InvoiceClaimsTab({
     );
   }, [claim, invoice, onClaimIndicatorChange]);
 
+  async function handleClaimUpdated(updated: ClaimDetail) {
+    setClaim(updated);
+    await onInvoiceRefresh?.();
+  }
+
   async function handleCreateClaim() {
     setIsCreating(true);
     try {
@@ -198,20 +203,16 @@ export function InvoiceClaimsTab({
 
     const readinessItems = getInvoiceClaimSystemReadinessItems(invoice, claim);
     const requirementItems = getClaimRequirementCheckItems(invoice, claim);
-    const allSystemReady = readinessItems
-      .filter(isBlockingRequirementItem)
-      .every((item) => item.met);
-    const allRequirementsMet = requirementItems
-      .filter(isBlockingRequirementItem)
-      .every((item) => item.met);
-    const ready = allSystemReady && allRequirementsMet;
+    const disabledReason = getCreateClaimDisabledReasonFromItems(
+      readinessItems,
+      requirementItems,
+      claim,
+    );
 
     onCreateClaimActionChange({
       isCreating,
-      disabled: isCreating || isLoading || !ready,
-      disabledReason: ready
-        ? undefined
-        : "Resolve remaining requirements before creating a claim.",
+      disabled: isCreating || isLoading || Boolean(disabledReason),
+      disabledReason: disabledReason,
       create: () => {
         void handleCreateClaimRef.current();
       },
@@ -292,7 +293,7 @@ export function InvoiceClaimsTab({
           data-testid="claim-created-success-state"
           action={
             <PrimaryButton asChild>
-              <a href={ROUTES.claimDetail(claim.id)}>View claim</a>
+              <a href={ROUTES.claimDetail(claim.uuid)}>View claim</a>
             </PrimaryButton>
           }
         />
@@ -301,7 +302,7 @@ export function InvoiceClaimsTab({
           claim={claim}
           readinessItems={readinessItems}
           requirementItems={requirementItems}
-          onClaimUpdated={setClaim}
+          onClaimUpdated={(updated) => void handleClaimUpdated(updated)}
           notice={nonPayableNotice}
           onCreateClaim={() => void handleCreateClaim()}
           isCreating={isCreating}
@@ -321,14 +322,8 @@ export function InvoiceClaimsTab({
           claim={claim}
           open={submitOpen}
           onOpenChange={setSubmitOpen}
-          onSuccess={async (submitted) => {
-            setClaim(submitted);
-            await onInvoiceRefresh?.();
-          }}
-          onClaimUpdated={async (updated) => {
-            setClaim(updated);
-            await onInvoiceRefresh?.();
-          }}
+          onSuccess={(submitted) => void handleClaimUpdated(submitted)}
+          onClaimUpdated={(updated) => void handleClaimUpdated(updated)}
         />
       ) : null}
 

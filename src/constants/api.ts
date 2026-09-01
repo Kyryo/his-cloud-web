@@ -66,6 +66,10 @@ export const BFF_CUSTOMERS_ROUTES = {
     `/api/customers/${customerUuid}/insurance/${insuranceUuid}`,
   billing: (uuid: string) => `/api/customers/${uuid}/billing`,
   openingBalance: (uuid: string) => `/api/customers/${uuid}/opening-balance`,
+  memberBenefits: (uuid: string) => `/api/customers/${uuid}/member-benefits`,
+  memberBenefitsCheck: (uuid: string) =>
+    `/api/customers/${uuid}/member-benefits/check`,
+  tags: (uuid: string) => `/api/customers/${uuid}/tags`,
   visits: (uuid: string, query?: { limit?: number }) => {
     const params = new URLSearchParams();
     if (query?.limit) {
@@ -86,6 +90,8 @@ export const BFF_VISITS_ROUTES = {
   detail: (uuid: string) => `/api/visits/${uuid}`,
   modeOfPayment: (uuid: string) => `/api/visits/${uuid}/mode-of-payment`,
   preAuthorization: (uuid: string) => `/api/visits/${uuid}/pre-authorization`,
+  memberBenefitsRefresh: (uuid: string) =>
+    `/api/visits/${uuid}/member-benefits/refresh`,
   end: (uuid: string) => `/api/visits/${uuid}/end`,
   reopen: (uuid: string) => `/api/visits/${uuid}/reopen`,
   fromAppointment: (appointmentUuid: string) =>
@@ -135,6 +141,24 @@ export const BFF_CUSTOMER_ADDRESSES_ROUTES = {
 export const BFF_CUSTOMER_NOTES_ROUTES = {
   list: "/api/customer-notes",
   detail: (uuid: string) => `/api/customer-notes/${uuid}`,
+} as const;
+
+/** Browser-facing BFF customer legal guardian routes (same origin). */
+export const BFF_CUSTOMER_LEGAL_GUARDIANS_ROUTES = {
+  list: "/api/customer-legal-guardians",
+  detail: (uuid: string) => `/api/customer-legal-guardians/${uuid}`,
+} as const;
+
+/** Browser-facing BFF tag routes (same origin). */
+export const BFF_TAGS_ROUTES = {
+  list: "/api/tags",
+  detail: (uuid: string) => `/api/tags/${uuid}`,
+} as const;
+
+/** Browser-facing BFF tag assignment routes (same origin). */
+export const BFF_TAG_ASSIGNMENTS_ROUTES = {
+  list: "/api/tag-assignments",
+  detail: (uuid: string) => `/api/tag-assignments/${uuid}`,
 } as const;
 
 /** Browser-facing BFF customer encounter routes (same origin). */
@@ -190,12 +214,15 @@ export const BFF_INVOICE_ACTIVITY_ROUTES = {
 /** Browser-facing BFF e-claims routes (same origin). */
 export const BFF_CLAIMS_ROUTES = {
   list: "/api/claims",
+  summaryStats: "/api/claims/summary-stats",
   detail: (claimId: number | string) => `/api/claims/${claimId}`,
   fromInvoice: (invoiceId: number | string) =>
     `/api/claims/from-invoice/${invoiceId}`,
   byInvoice: (invoiceId: number | string) => `/api/claims/by-invoice/${invoiceId}`,
   verifyMember: "/api/claims/verify-member",
   submit: (claimId: number | string) => `/api/claims/${claimId}/submit`,
+  changeStatus: (claimId: number | string) =>
+    `/api/claims/${claimId}/change-status`,
   checkPayerStatus: (claimId: number | string) =>
     `/api/claims/${claimId}/payer-status/check`,
   diagnoses: (claimId: number | string) => `/api/claims/${claimId}/diagnoses`,
@@ -205,10 +232,16 @@ export const BFF_CLAIMS_ROUTES = {
     `/api/claims/${claimId}/line-items/${lineItemId}/payment-split`,
   advisorEvaluate: (claimId: number | string) =>
     `/api/claims/${claimId}/advisor/evaluate`,
+  advisorStatus: (claimId: number | string) =>
+    `/api/claims/${claimId}/advisor/status`,
   advisorEvaluations: (claimId: number | string) =>
     `/api/claims/${claimId}/advisor/evaluations`,
   advisorOverride: (claimId: number | string) =>
     `/api/claims/${claimId}/advisor/override`,
+  advisorClearances: (claimId: number | string) =>
+    `/api/claims/${claimId}/advisor/clearances`,
+  advisorFindingsApply: (claimId: number | string) =>
+    `/api/claims/${claimId}/advisor/findings/apply`,
   masmIntegration: "/api/integrations/eclaims/masm",
   clinicPayerIntegration: (clinicId: number | string) =>
     `/api/integrations/eclaims/masm/clinics/${clinicId}`,
@@ -222,18 +255,26 @@ export const BFF_CLAIMS_ROUTES = {
   pricelistConfig: (pricelistUuid: string) =>
     `/api/claims/pricelist-configs/${pricelistUuid}`,
   remittances: "/api/claims/remittances",
+  remittancesSummaryStats: "/api/claims/remittances/summary-stats",
   remittanceDetail: (batchId: number | string) =>
     `/api/claims/remittances/${batchId}`,
   remittanceRename: (batchId: number | string) =>
     `/api/claims/remittances/${batchId}/rename`,
+  remittanceRematch: (batchId: number | string) =>
+    `/api/claims/remittances/${batchId}/rematch`,
   remittanceRows: (batchId: number | string) =>
     `/api/claims/remittances/${batchId}/rows`,
+  remittanceRowsSummaryStats: (batchId: number | string) =>
+    `/api/claims/remittances/${batchId}/rows/summary-stats`,
   remittanceRowMatch: (batchId: number | string, rowId: number | string) =>
     `/api/claims/remittances/${batchId}/rows/${rowId}/match`,
   remittanceRowApply: (batchId: number | string, rowId: number | string) =>
     `/api/claims/remittances/${batchId}/rows/${rowId}/apply`,
   remittanceRowReject: (batchId: number | string, rowId: number | string) =>
     `/api/claims/remittances/${batchId}/rows/${rowId}/reject`,
+  remittanceRejections: "/api/claims/remittances/rejections",
+  remittanceRejectionsSummaryStats:
+    "/api/claims/remittances/rejections/summary-stats",
 } as const;
 
 /** Browser-facing BFF notification inbox routes (same origin). */

@@ -1,6 +1,6 @@
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
 import { isClaimSubmitBlockedByAdvisories } from "@/features/claims/components/ClaimAdvisoriesPanel";
-import { asAdvisorFindings } from "@/features/claims/utils/advisor-findings";
+import { asAdvisorFindings, isAdvisorFindingCleared } from "@/features/claims/utils/advisor-findings";
 import {
   isClaimAdvisoryProcessing,
   resolveClaimAdvisoryStatus,
@@ -69,9 +69,18 @@ function advisoryState(claim: ClaimDetail | null): ClaimWorkflowStageState {
   }
 
   const evaluation = claim.latest_advisor_evaluation ?? null;
-  const findings = evaluation?.deterministic_findings ?? [];
-  const iqCount =
-    evaluation?.ai_count ?? asAdvisorFindings(evaluation?.ai_findings).length;
+  const clearances = claim.advisory_clearances ?? [];
+  const findings = (evaluation?.deterministic_findings ?? []).filter(
+    (finding) =>
+      !isAdvisorFindingCleared({ ...finding, source: "rules" }, clearances),
+  );
+  const iqCount = asAdvisorFindings(evaluation?.ai_findings).filter(
+    (finding) =>
+      !isAdvisorFindingCleared(
+        { ...finding, source: finding.source ?? "iq" },
+        clearances,
+      ),
+  ).length;
   const blocked = isClaimSubmitBlockedByAdvisories(claim);
   const hasOverride = Boolean(claim.has_advisory_override);
   const statusLower = String(claim.status).toLowerCase();
@@ -132,27 +141,41 @@ function advisoryState(claim: ClaimDetail | null): ClaimWorkflowStageState {
     };
   }
 
+  const warningCount = findings.filter(
+    (finding) => finding.severity === "warning",
+  ).length;
+  const iqNotesLabel = `${iqCount} IQ note${iqCount === 1 ? "" : "s"}`;
+
+  if (iqCount > 0 || warningCount > 0) {
+    let summary: string;
+    if (findings.length === 0) {
+      summary = `No rule findings · ${iqNotesLabel}`;
+    } else if (warningCount > 0 && iqCount > 0) {
+      summary = `${warningCount} warning${warningCount === 1 ? "" : "s"} — submission is allowed · ${iqNotesLabel}`;
+    } else if (warningCount > 0) {
+      summary = `${warningCount} warning${warningCount === 1 ? "" : "s"} — submission is allowed`;
+    } else {
+      summary = `${findings.length} finding${findings.length === 1 ? "" : "s"} reviewed · ${iqNotesLabel}`;
+    }
+    return {
+      id: "advisory",
+      status: "warning",
+      summary,
+    };
+  }
+
   if (findings.length === 0) {
     return {
       id: "advisory",
       status: "completed",
-      summary:
-        iqCount > 0
-          ? `No rule findings · ${iqCount} IQ note${iqCount === 1 ? "" : "s"}`
-          : "No advisory findings",
+      summary: "No advisory findings",
     };
   }
 
-  const warningCount = findings.filter(
-    (finding) => finding.severity === "warning",
-  ).length;
   return {
     id: "advisory",
     status: "completed",
-    summary:
-      warningCount > 0
-        ? `${warningCount} warning${warningCount === 1 ? "" : "s"} — submission is allowed`
-        : `${findings.length} finding${findings.length === 1 ? "" : "s"} reviewed`,
+    summary: `${findings.length} finding${findings.length === 1 ? "" : "s"} reviewed`,
   };
 }
 
@@ -264,6 +287,30 @@ function payerResponseState(claim: ClaimDetail | null): ClaimWorkflowStageState 
     };
   }
 
+  if (payerStatus === "settled_via_remittance") {
+    return {
+      id: "payer",
+      status: "completed",
+      summary: `Payment confirmed via ${payerName} remittance`,
+    };
+  }
+
+  if (payerStatus === "manual_submission") {
+    return {
+      id: "payer",
+      status: "completed",
+      summary: "Submission was done manually",
+    };
+  }
+
+  if (payerStatus === "denied_via_remittance") {
+    return {
+      id: "payer",
+      status: "failed",
+      summary: `${payerName} remittance denied payment`,
+    };
+  }
+
   if (payerStatus === "failed") {
     return {
       id: "payer",
@@ -301,11 +348,27 @@ function payerResponseState(claim: ClaimDetail | null): ClaimWorkflowStageState 
 export function getClaimWorkflowStageStates(
   requirementItems: InvoiceClaimReadinessItem[],
   claim: ClaimDetail | null,
+  systemReadinessItems?: InvoiceClaimReadinessItem[],
 ): ClaimWorkflowStageState[] {
+  const checklistItems = claim
+    ? requirementItems
+    : [...(systemReadinessItems ?? []), ...requirementItems];
+
   return [
-    requirementsState(requirementItems, claim),
+    requirementsState(checklistItems, claim),
     advisoryState(claim),
     queueState(claim),
     payerResponseState(claim),
   ];
+}
+
+/** Hide Requirements after create unless a blocking check is still open. */
+export function shouldShowRequirementsStage(
+  stage: ClaimWorkflowStageState,
+  claim?: ClaimDetail | null,
+): boolean {
+  if (!claim) {
+    return true;
+  }
+  return stage.status === "blocked";
 }

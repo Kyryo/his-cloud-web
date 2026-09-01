@@ -26,11 +26,13 @@ export type SalesOrderProviderAssociation = {
 
 export type SalesOrder = {
   id: number;
+  uuid: string;
   name: string;
   date_order: string | null;
   state: SalesOrderState;
   invoice_status: SalesOrderInvoiceStatus;
   invoice_id?: number | null;
+  invoice_uuid?: string | null;
   customer_id: number;
   customer_uuid: string | null;
   customer_name: string | null;

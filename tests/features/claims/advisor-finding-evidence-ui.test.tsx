@@ -1,8 +1,15 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ClaimAdvisoryFindingsCard } from "@/features/claims/components/ClaimAdvisoryFindingsCard";
 import type { AdvisorFinding } from "@/features/claims/types/claims.types";
+
+vi.mock("@/providers/toast-provider", () => ({
+  useToast: () => ({
+    toast: vi.fn(),
+    dismiss: vi.fn(),
+  }),
+}));
 
 afterEach(() => {
   cleanup();
@@ -56,7 +63,21 @@ describe("ClaimAdvisoryFindingsCard evidence", () => {
     );
 
     expect(screen.getByTestId("claim-advisory-fix-dialog")).toBeInTheDocument();
-    expect(screen.getByText("How to resolve")).toBeInTheDocument();
+    expect(screen.getByTestId("tabbed-dialog-tab-apply")).toBeInTheDocument();
+    expect(screen.getByTestId("tabbed-dialog-tab-guidance")).toHaveTextContent(
+      "How to resolve",
+    );
+    expect(
+      screen.queryByText(
+        "Confirm the patient's demographic details and the selected tariff before submission.",
+      ),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("claim-advisory-finding-evidence"),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("tabbed-dialog-tab-guidance"));
+
     expect(
       screen.getByText(
         "Confirm the patient's demographic details and the selected tariff before submission.",
@@ -93,6 +114,11 @@ describe("ClaimAdvisoryFindingsCard evidence", () => {
     fireEvent.click(screen.getByTestId("claim-advisory-fix-SOME_GENERIC_RULE"));
 
     expect(screen.getByTestId("claim-advisory-fix-dialog")).toBeInTheDocument();
+    expect(screen.getByTestId("claim-advisory-apply-unsupported")).toBeInTheDocument();
+    expect(screen.queryByText("Review the claim.")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("tabbed-dialog-tab-guidance"));
+
     expect(screen.getByText("Review the claim.")).toBeInTheDocument();
     expect(
       screen.queryByTestId("claim-advisory-finding-evidence"),
@@ -145,6 +171,7 @@ describe("ClaimAdvisoryFindingsCard evidence", () => {
     );
 
     fireEvent.click(screen.getByTestId("claim-advisory-fix-AI_COVERAGE"));
+    fireEvent.click(screen.getByTestId("tabbed-dialog-tab-guidance"));
     expect(screen.getByTestId("claim-advisory-coverage-citation-dialog")).toHaveTextContent(
       "MASM VIP 2026 · Dentistry",
     );

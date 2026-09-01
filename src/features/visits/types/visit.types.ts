@@ -5,6 +5,29 @@ export type VisitQueueSummary = {
   total_visits: number;
 };
 
+export type VisitMemberBenefit = {
+  membershipNumber?: string | null;
+  benefitId?: number | null;
+  balance?: number | string | null;
+  externalBenefitId?: number | null;
+  benefitName?: string | null;
+  membershipPlan?: string | null;
+  status?: string | null;
+  isDental?: boolean | null;
+  isOptical?: boolean | null;
+};
+
+export type VisitMemberBenefitsSnapshot = {
+  uuid: string;
+  membership_number: string;
+  payer_code: string;
+  benefits: VisitMemberBenefit[];
+  requested_at: string | null;
+  status: "pending" | "succeeded" | "failed" | string;
+  error_message: string;
+  created_at: string;
+};
+
 export type VisitEncounter = {
   id: number;
   uuid: string;
@@ -41,6 +64,7 @@ export type VisitDetail = {
   mode_of_payment: "cash" | "insurance";
   insurance_scheme: string | null;
   insurance_scheme_name: string | null;
+  insurance_company_name: string | null;
   linked_sales_order_state: string | null;
   can_edit_mode_of_payment: boolean;
   mode_of_payment_edit_block_reason: string | null;
@@ -58,6 +82,7 @@ export type VisitDetail = {
   created_by_name: string | null;
   created_by_email?: string | null;
   encounters: VisitEncounter[];
+  member_benefits?: VisitMemberBenefitsSnapshot | null;
   created_at: string;
   updated_at: string;
 };

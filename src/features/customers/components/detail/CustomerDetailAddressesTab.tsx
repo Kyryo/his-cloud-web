@@ -171,6 +171,15 @@ export function CustomerDetailAddressesTab({
     />
   );
 
+  const emptyStateAddButton = (
+    <TabAddActionButton
+      label="Add address"
+      emptyState
+      onClick={() => setAddDialogOpen(true)}
+      data-testid="add-customer-address-button"
+    />
+  );
+
   if (addresses.length === 0) {
     return (
       <>
@@ -178,7 +187,7 @@ export function CustomerDetailAddressesTab({
           icon={MapPin}
           title="No addresses saved"
           description="Home, work, billing, and other addresses for this client will appear here."
-          action={addButton}
+          action={emptyStateAddButton}
           data-testid="customer-addresses-empty-state"
         />
         <AddCustomerAddressDialog

@@ -1,8 +1,9 @@
 "use client";
 
-import { ClipboardList, Maximize2, Plus, Trash2 } from "lucide-react";
+import { Maximize2, Plus, Trash2 } from "lucide-react";
 import { useRef, useState, useEffect, type MutableRefObject } from "react";
 
+import { LineItemsEmptyState } from "@/components/detail/line-items-empty-state";
 import { SecondaryButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -290,12 +291,11 @@ export function SalesOrderLinesEditor({
 
     if (lines.length === 0) {
       return (
-        <div className="rounded-xl border border-dashed border-brand-border bg-white px-6 py-14 text-center">
-          <p className="text-sm font-medium text-brand-navy">No line items</p>
-          <p className="mt-2 text-sm text-brand-muted">
-            This sales order does not have any line items.
-          </p>
-        </div>
+        <LineItemsEmptyState
+          title="No line items"
+          description="This sales order does not have any line items."
+          data-testid="sales-order-lines-empty-state"
+        />
       );
     }
 
@@ -391,31 +391,25 @@ export function SalesOrderLinesEditor({
       />
 
       {!hasRows ? (
-        <div className="rounded-xl border border-dashed border-brand-border bg-white px-6 py-14 text-center">
-          <ClipboardList
-            className="mx-auto size-10 text-brand-muted/70"
-            aria-hidden="true"
-          />
-          <p className="mt-4 text-sm font-medium text-brand-navy">No items yet</p>
-          <p className="mt-2 text-sm text-brand-muted">
-            Click Add line item to get started.
-          </p>
-          <SecondaryButton
-            type="button"
-            className="mt-6"
-            disabled={editor.isSaving || editor.splitMismatchKeys.size > 0}
-            title={
-              editor.splitMismatchKeys.size > 0
-                ? "Resolve client/insurance split mismatch first"
-                : undefined
-            }
-            onClick={editor.addLine}
-            data-testid="add-sales-order-line-item-button"
-          >
-            <Plus className="size-4" aria-hidden="true" />
-            Add line item
-          </SecondaryButton>
-        </div>
+        <LineItemsEmptyState
+          data-testid="sales-order-lines-empty-state"
+          action={
+            <SecondaryButton
+              type="button"
+              disabled={editor.isSaving || editor.splitMismatchKeys.size > 0}
+              title={
+                editor.splitMismatchKeys.size > 0
+                  ? "Resolve client/insurance split mismatch first"
+                  : undefined
+              }
+              onClick={editor.addLine}
+              data-testid="add-sales-order-line-item-button"
+            >
+              <Plus className="size-4" aria-hidden="true" />
+              Add line item
+            </SecondaryButton>
+          }
+        />
       ) : (
         <>
           {editor.splitMismatchKeys.size > 0 ? (

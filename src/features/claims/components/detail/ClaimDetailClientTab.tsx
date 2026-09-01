@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 
 import { ClientAvatar } from "@/components/client-avatar";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { SecondaryButton } from "@/components/ui/app-buttons";
 import { CustomerDetailTabEmptyState } from "@/features/customers/components/detail/CustomerDetailTabEmptyState";
 import { CustomerTabSkeleton } from "@/features/customers/components/detail/CustomerTabSkeleton";
 import { fetchCustomer } from "@/features/customers/services/customers.service";
@@ -187,9 +187,9 @@ export function ClaimDetailClientTab({
             {customer.customer_identifier}
           </p>
         </div>
-        <Button asChild variant="outline" size="sm" className="shrink-0">
+        <SecondaryButton asChild className="shrink-0">
           <Link href={ROUTES.customerDetail(customer.uuid)}>View client</Link>
-        </Button>
+        </SecondaryButton>
       </div>
 
       <SalesOrderLinkedDetailsTable

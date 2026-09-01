@@ -53,9 +53,11 @@ export function PaymentDetailOverviewTab({
               },
               {
                 label: "Allocation",
-                value: payment.invoice_id ? (
+                value: payment.invoice_id || payment.invoice_uuid ? (
                   <Link
-                    href={ROUTES.invoiceDetail(payment.invoice_id)}
+                    href={ROUTES.invoiceDetail(
+                      payment.invoice_uuid ?? payment.invoice_id,
+                    )}
                     className="text-brand-primary hover:underline"
                   >
                     {formatPaymentAllocationLabel(payment)}

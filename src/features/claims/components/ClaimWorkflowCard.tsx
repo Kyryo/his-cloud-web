@@ -19,10 +19,15 @@ import {
   ClaimRequirementsEditButton,
 } from "@/features/claims/components/ClaimRequirementsCard";
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
-import { getClaimWorkflowStageStates } from "@/features/claims/utils/claim-workflow-stages";
+import {
+  getClaimWorkflowStageStates,
+  shouldShowRequirementsStage,
+} from "@/features/claims/utils/claim-workflow-stages";
 import { isClaimReadyToSubmit } from "@/features/claims/utils/claim-advisory-status";
 import {
   isBlockingRequirementItem,
+  getCreateClaimChecklistItems,
+  getCreateClaimDisabledReasonFromItems,
   type InvoiceClaimReadinessItem,
 } from "@/features/invoices/utils/invoice-claim-readiness";
 
@@ -68,37 +73,44 @@ export function ClaimWorkflowCard({
   layout = "workflow",
 }: ClaimWorkflowCardProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const stageStates = getClaimWorkflowStageStates(requirementItems, claim);
+  const checklistItems = getCreateClaimChecklistItems(
+    readinessItems,
+    requirementItems,
+    claim,
+  );
+  const stageStates = getClaimWorkflowStageStates(
+    requirementItems,
+    claim,
+    readinessItems,
+  );
   const requirements = stageStates.find((stage) => stage.id === "requirements")!;
   const advisory = stageStates.find((stage) => stage.id === "advisory")!;
   const queue = stageStates.find((stage) => stage.id === "queue")!;
   const payer = stageStates.find((stage) => stage.id === "payer")!;
   const payerName = claim?.payer_code?.trim() || "the insurer";
+  const payerStatusLower = String(claim?.payer_status || "").toLowerCase();
+  const isRemittanceSettled = payerStatusLower === "settled_via_remittance";
+  const isRemittanceDenied = payerStatusLower === "denied_via_remittance";
+  const isManualSubmission = payerStatusLower === "manual_submission";
 
-  const allSystemReady = readinessItems
-    .filter(isBlockingRequirementItem)
-    .every((item) => item.met);
-  const allRequirementsMet = requirementItems
-    .filter(isBlockingRequirementItem)
-    .every((item) => item.met);
+  const showRequirements = shouldShowRequirementsStage(requirements, claim);
   const isDraft = String(claim?.status ?? "").toLowerCase() === "draft";
   const canSubmit =
     Boolean(claim) && isDraft && isClaimReadyToSubmit(claim) && Boolean(onSubmit);
+  const createClaimDisabledReason = getCreateClaimDisabledReasonFromItems(
+    readinessItems,
+    requirementItems,
+    claim,
+  );
 
-  const requirementsFooter =
-    claim && isDraft ? (
-      <ClaimRequirementsEditButton onClick={() => setEditDialogOpen(true)} />
-    ) : !claim && onCreateClaim && layout !== "requirements" ? (
+  const createClaimButton =
+    !claim && onCreateClaim && layout !== "requirements" ? (
       <PrimaryButton
         type="button"
         size="sm"
         className="h-9 px-4"
-        disabled={isCreating || !allSystemReady || !allRequirementsMet}
-        title={
-          allSystemReady && allRequirementsMet
-            ? undefined
-            : "Resolve remaining requirements before creating a claim."
-        }
+        disabled={isCreating || Boolean(createClaimDisabledReason)}
+        title={createClaimDisabledReason}
         onClick={() => onCreateClaim()}
         data-testid="invoice-create-claim-button"
       >
@@ -113,11 +125,20 @@ export function ClaimWorkflowCard({
       </PrimaryButton>
     ) : null;
 
+  const editDraftButton =
+    claim && isDraft ? (
+      <ClaimRequirementsEditButton onClick={() => setEditDialogOpen(true)} />
+    ) : null;
+
+  const requirementsFooter = showRequirements
+    ? editDraftButton || createClaimButton
+    : null;
+
   const requirementsContent = (
     <div className="space-y-4">
       {notice}
       <ClaimRequirementsCard
-        items={requirementItems}
+        items={checklistItems}
         footerActions={requirementsFooter}
         onAddDiagnosis={onAddDiagnosis}
       />
@@ -143,15 +164,18 @@ export function ClaimWorkflowCard({
   }
 
   const stages: WorkflowStageConfig[] = [
-    {
-      id: "requirements",
-      title: "Requirements",
-      summary: requirements.summary,
-      status: requirements.status,
-      // Keep open for drafts so Edit draft stays reachable after checks pass.
-      defaultOpen: claim && isDraft ? true : undefined,
-      content: requirementsContent,
-    },
+    ...(showRequirements
+      ? [
+          {
+            id: "requirements",
+            title: "Requirements",
+            summary: requirements.summary,
+            status: requirements.status,
+            defaultOpen: claim && isDraft ? true : undefined,
+            content: requirementsContent,
+          } satisfies WorkflowStageConfig,
+        ]
+      : []),
     {
       id: "advisory",
       title: "Advisory",
@@ -276,10 +300,18 @@ export function ClaimWorkflowCard({
                 aria-hidden="true"
               />
               <p className="mt-3 text-sm font-medium text-brand-navy">
-                {payerName} has closed this claim
+                {isRemittanceSettled
+                  ? `${payerName} remittance confirmed payment`
+                  : isManualSubmission
+                    ? "Submission was done manually"
+                    : `${payerName} has closed this claim`}
               </p>
               <p className="mx-auto mt-1 max-w-sm text-sm text-brand-muted">
-                Portal confirmation was received successfully.
+                {isRemittanceSettled
+                  ? "This claim line was settled from an uploaded remittance file."
+                  : isManualSubmission
+                    ? `This claim was submitted outside HMIS. Track the ${payerName} outcome manually or upload a remittance when available.`
+                    : "Portal confirmation was received successfully."}
               </p>
             </div>
           ) : null}
@@ -287,7 +319,11 @@ export function ClaimWorkflowCard({
             <StatusBanner
               variant="warning"
               showIcon={false}
-              message={`Automatic closing with ${payerName} did not complete. Review the claim in ${payerName} and finish the close manually.`}
+              message={
+                isRemittanceDenied
+                  ? `${payerName} remittance denied payment for this claim. Review the remittance lines and claimed items for details.`
+                  : `Automatic closing with ${payerName} did not complete. Review the claim in ${payerName} and finish the close manually.`
+              }
               data-testid="claim-workflow-payer-failed-alert"
             />
           ) : null}
@@ -298,10 +334,14 @@ export function ClaimWorkflowCard({
 
   return (
     <>
+      {notice && !showRequirements ? notice : null}
       <WorkflowCard
         title="Claim workflow"
         description="Complete each stage in order. Expand a stage to see what needs attention."
         stages={stages}
+        headerActions={
+          showRequirements ? null : editDraftButton || createClaimButton
+        }
         className={className}
         data-testid="claim-workflow-card"
       />

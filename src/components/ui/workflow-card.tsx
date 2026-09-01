@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircle, Check, ChevronDown, Circle, X } from "lucide-react";
+import { AlertCircle, AlertTriangle, Check, ChevronDown, Circle, X } from "lucide-react";
 import {
   useEffect,
   useState,
@@ -18,6 +18,7 @@ export type WorkflowStageStatus =
   | "completed"
   | "current"
   | "pending"
+  | "warning"
   | "blocked"
   | "failed";
 
@@ -51,6 +52,7 @@ const STATUS_LABEL: Record<WorkflowStageStatus, string> = {
   completed: "Completed",
   current: "In progress",
   pending: "Pending",
+  warning: "Warning",
   blocked: "Blocked",
   failed: "Failed",
 };
@@ -68,6 +70,13 @@ function StageStatusIcon({ status }: { status: WorkflowStageStatus }) {
       <span className="relative flex size-8 items-center justify-center rounded-full bg-brand-primary text-white shadow-sm shadow-brand-primary/25">
         <span className="absolute inset-0 animate-ping rounded-full bg-brand-primary/30 [animation-duration:2.4s]" />
         <Circle className="relative size-2.5 fill-current" aria-hidden="true" />
+      </span>
+    );
+  }
+  if (status === "warning") {
+    return (
+      <span className="flex size-8 items-center justify-center rounded-full bg-amber-600 text-white shadow-sm shadow-amber-600/20">
+        <AlertTriangle className="size-4" strokeWidth={2.5} aria-hidden="true" />
       </span>
     );
   }
@@ -100,6 +109,7 @@ function StageStatusChip({ status }: { status: WorkflowStageStatus }) {
         status === "completed" && "bg-emerald-50 text-emerald-800",
         status === "current" && "bg-brand-tint text-brand-primary",
         status === "pending" && "bg-slate-100 text-brand-muted",
+        status === "warning" && "bg-amber-50 text-amber-800",
         status === "blocked" && "bg-red-50 text-red-700",
         status === "failed" && "bg-red-50 text-red-700",
       )}
@@ -110,7 +120,7 @@ function StageStatusChip({ status }: { status: WorkflowStageStatus }) {
 }
 
 function defaultOpenForStatus(status: WorkflowStageStatus): boolean {
-  return status === "current" || status === "blocked" || status === "failed";
+  return status === "current" || status === "warning" || status === "blocked" || status === "failed";
 }
 
 function WorkflowStageRow({
@@ -161,7 +171,9 @@ function WorkflowStageRow({
               "mt-2 w-px flex-1",
               stage.status === "completed"
                 ? "bg-emerald-200"
-                : "bg-brand-border",
+                : stage.status === "warning"
+                  ? "bg-amber-200"
+                  : "bg-brand-border",
             )}
             aria-hidden="true"
           />

@@ -20,14 +20,18 @@ export const DEFAULT_CLAIM_LIST_FILTERS: ClaimListFilterState = {
 
 export function buildClaimListFilters(input: {
   search: string;
-  page: number;
-  pageSize: number;
+  page?: number;
+  pageSize?: number;
   filters: ClaimListFilterState;
 }): ClaimListFilters {
-  const result: ClaimListFilters = {
-    page: input.page,
-    pageSize: input.pageSize,
-  };
+  const result: ClaimListFilters = {};
+
+  if (input.page) {
+    result.page = input.page;
+  }
+  if (input.pageSize) {
+    result.pageSize = input.pageSize;
+  }
 
   const trimmedSearch = input.search.trim();
   if (trimmedSearch) {

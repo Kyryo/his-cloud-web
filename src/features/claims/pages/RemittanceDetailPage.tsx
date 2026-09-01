@@ -1,37 +1,52 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import {
-  PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS,
-  PageLoader,
-} from "@/components/page-loader";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ROUTES } from "@/constants/routes";
 import {
+  DetailPageHeaderSection,
   DetailPageLayout,
   DetailPageMainSection,
+  ListPageDataSectionsStack,
   ListPagePagination,
+  ListPageStatsSection,
+  ListPageToolbarSkeleton,
 } from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
 import { RemittanceDetailActions } from "@/features/claims/components/detail/RemittanceDetailActions";
 import { RemittanceDetailHeader } from "@/features/claims/components/detail/RemittanceDetailHeader";
+import { RemittanceDetailSummaryCards } from "@/features/claims/components/RemittanceDetailSummaryCards";
 import { RemittanceImportProgress } from "@/features/claims/components/RemittanceImportProgress";
+import { RemittanceMatchClaimDialog } from "@/features/claims/components/RemittanceMatchClaimDialog";
+import { RemittanceRowRejectDialog } from "@/features/claims/components/RemittanceRowRejectDialog";
 import { RemittanceRowDetailDialog } from "@/features/claims/components/RemittanceRowDetailDialog";
-import { RemittanceRowsTable } from "@/features/claims/components/RemittanceRowsTable";
+import {
+  REMITTANCE_ROWS_TABLE_SKELETON_COLUMNS,
+  RemittanceRowsTable,
+} from "@/features/claims/components/RemittanceRowsTable";
 import { RemittanceRowsToolbar } from "@/features/claims/components/RemittanceRowsToolbar";
 import {
   applyRemittanceRow,
   fetchRemittanceBatch,
+  fetchRemittanceBatchRowSummaryStats,
   fetchRemittanceRows,
   rejectRemittanceRow,
 } from "@/features/claims/services/remittances.service";
 import type {
   RemittanceBatchDetail,
+  RemittanceBatchRowSummaryStats,
   RemittanceRow,
 } from "@/features/claims/types/remittances.types";
+import {
+  countActiveRemittanceRowFilters,
+  DEFAULT_REMITTANCE_ROW_LIST_FILTERS,
+  type RemittanceRowListFilterState,
+} from "@/features/claims/utils/remittance-row-list-filters";
 import { remittanceDisplayName } from "@/features/claims/utils/remittance-display";
+import { InventoryListTableSkeleton } from "@/features/inventory/components/list/InventoryListTable";
 
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -44,7 +59,14 @@ export function RemittanceDetailPage() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
+  const [filters, setFilters] = useState<RemittanceRowListFilterState>(
+    DEFAULT_REMITTANCE_ROW_LIST_FILTERS,
+  );
   const [rowsRefreshKey, setRowsRefreshKey] = useState(0);
+  const [rowStats, setRowStats] = useState<RemittanceBatchRowSummaryStats | null>(
+    null,
+  );
+  const [isStatsLoading, setIsStatsLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
   const [hasNext, setHasNext] = useState(false);
   const [hasPrevious, setHasPrevious] = useState(false);
@@ -53,8 +75,32 @@ export function RemittanceDetailPage() {
   const [isRefreshingRows, setIsRefreshingRows] = useState(false);
   const [busyRowId, setBusyRowId] = useState<number | null>(null);
   const [viewRow, setViewRow] = useState<RemittanceRow | null>(null);
+  const [matchRow, setMatchRow] = useState<RemittanceRow | null>(null);
+  const [rejectRow, setRejectRow] = useState<RemittanceRow | null>(null);
+  const [isRejecting, setIsRejecting] = useState(false);
 
   useAppBreadcrumb(batch ? remittanceDisplayName(batch) : null);
+
+  const activeFilterCount = countActiveRemittanceRowFilters(filters);
+  const hasActiveQuery = activeSearch.length > 0 || activeFilterCount > 0;
+  const isFilteredEmpty =
+    !isLoading &&
+    !isRefreshingRows &&
+    !error &&
+    batch != null &&
+    rows.length === 0 &&
+    hasActiveQuery;
+
+  const rowListFilters = useMemo(
+    () => ({
+      page,
+      pageSize: DEFAULT_PAGE_SIZE,
+      search: activeSearch || undefined,
+      resolutionStatus:
+        filters.resolutionStatus !== "all" ? filters.resolutionStatus : undefined,
+    }),
+    [activeSearch, filters.resolutionStatus, page],
+  );
 
   const reloadBatch = useCallback(async () => {
     setError(null);
@@ -76,6 +122,7 @@ export function RemittanceDetailPage() {
       setError(null);
       setSearch("");
       setActiveSearch("");
+      setFilters(DEFAULT_REMITTANCE_ROW_LIST_FILTERS);
       setPage(1);
       setRows([]);
       try {
@@ -113,11 +160,7 @@ export function RemittanceDetailPage() {
     void (async () => {
       setIsRefreshingRows(true);
       try {
-        const response = await fetchRemittanceRows(batchId, {
-          page,
-          pageSize: DEFAULT_PAGE_SIZE,
-          search: activeSearch || undefined,
-        });
+        const response = await fetchRemittanceRows(batchId, rowListFilters);
         if (cancelled) {
           return;
         }
@@ -141,7 +184,41 @@ export function RemittanceDetailPage() {
     return () => {
       cancelled = true;
     };
-  }, [activeSearch, batch, batchId, page, rowsRefreshKey]);
+  }, [batch, batchId, page, rowsRefreshKey, rowListFilters]);
+
+  useEffect(() => {
+    if (
+      !batch ||
+      batch.status === "queued" ||
+      batch.status === "processing"
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+
+    void (async () => {
+      setIsStatsLoading(true);
+      try {
+        const stats = await fetchRemittanceBatchRowSummaryStats(batchId);
+        if (!cancelled) {
+          setRowStats(stats);
+        }
+      } catch {
+        if (!cancelled) {
+          setRowStats(null);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsStatsLoading(false);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [batch, batchId, rowsRefreshKey]);
 
   useEffect(() => {
     if (!batch || (batch.status !== "queued" && batch.status !== "processing")) {
@@ -163,20 +240,22 @@ export function RemittanceDetailPage() {
   }, [batch, reloadBatch]);
 
   function handleSearchSubmit() {
-    setIsRefreshingRows(true);
     setPage(1);
     setActiveSearch(search.trim());
   }
 
   function handleClearSearch() {
-    setIsRefreshingRows(true);
     setSearch("");
     setActiveSearch("");
     setPage(1);
   }
 
+  function handleFiltersApply(nextFilters: RemittanceRowListFilterState) {
+    setFilters(nextFilters);
+    setPage(1);
+  }
+
   function handlePageChange(nextPage: number) {
-    setIsRefreshingRows(true);
     setPage(nextPage);
   }
 
@@ -187,7 +266,7 @@ export function RemittanceDetailPage() {
       }
       setBusyRowId(row.id);
       try {
-        await applyRemittanceRow(batch.id, row.id);
+        await applyRemittanceRow(batch.uuid, row.id);
         await reloadBatch();
         setRowsRefreshKey((current) => current + 1);
       } catch (err) {
@@ -204,15 +283,18 @@ export function RemittanceDetailPage() {
       if (!batch) {
         return;
       }
+      setIsRejecting(true);
       setBusyRowId(row.id);
       try {
-        await rejectRemittanceRow(batch.id, row.id);
+        await rejectRemittanceRow(batch.uuid, row.id);
         await reloadBatch();
         setRowsRefreshKey((current) => current + 1);
+        setRejectRow(null);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Reject failed.");
       } finally {
         setBusyRowId(null);
+        setIsRejecting(false);
       }
     },
     [batch, reloadBatch],
@@ -220,10 +302,23 @@ export function RemittanceDetailPage() {
 
   if (isLoading) {
     return (
-      <PageLoader
-        message="Loading remittance…"
-        className={PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS}
-      />
+      <DetailPageLayout data-testid="remittance-detail-page">
+        <DetailPageHeaderSection>
+          <Skeleton className="h-8 w-64 max-w-full" />
+          <Skeleton className="mt-2 h-4 w-48" />
+        </DetailPageHeaderSection>
+        <DetailPageMainSection>
+          <ListPageDataSectionsStack>
+            <ListPageStatsSection>
+              <RemittanceDetailSummaryCards isLoading />
+            </ListPageStatsSection>
+            <ListPageToolbarSkeleton showFilter />
+          </ListPageDataSectionsStack>
+          <InventoryListTableSkeleton
+            columns={[...REMITTANCE_ROWS_TABLE_SKELETON_COLUMNS]}
+          />
+        </DetailPageMainSection>
+      </DetailPageLayout>
     );
   }
 
@@ -251,6 +346,7 @@ export function RemittanceDetailPage() {
     : [];
   const isImporting =
     batch.status === "queued" || batch.status === "processing";
+  const showRowsSkeleton = isRefreshingRows && rows.length === 0;
 
   return (
     <DetailPageLayout data-testid="remittance-detail-page">
@@ -260,6 +356,7 @@ export function RemittanceDetailPage() {
           <RemittanceDetailActions
             batch={batch}
             onBatchUpdated={setBatch}
+            onRematched={() => setRowsRefreshKey((current) => current + 1)}
           />
         }
       />
@@ -284,24 +381,27 @@ export function RemittanceDetailPage() {
             <RemittanceImportProgress batch={batch} />
           ) : (
             <>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <SummaryCard
-                  label="Pay to you (sum)"
-                  value={batch.summary?.sum_pay_to_provider ?? "—"}
-                />
-                <SummaryCard
-                  label="Document total"
-                  value={batch.summary?.document_total_pay_to_provider ?? "—"}
-                />
-                <SummaryCard
-                  label="Matched"
-                  value={String(batch.summary?.matched ?? 0)}
-                />
-                <SummaryCard
-                  label="Unmatched / review"
-                  value={`${batch.summary?.unmatched ?? 0} / ${batch.summary?.pending_review ?? 0}`}
-                />
-              </div>
+              <ListPageDataSectionsStack>
+                <ListPageStatsSection>
+                  <RemittanceDetailSummaryCards
+                    stats={rowStats}
+                    isLoading={isStatsLoading}
+                  />
+                </ListPageStatsSection>
+                {showRowsSkeleton ? (
+                  <ListPageToolbarSkeleton showFilter />
+                ) : (
+                  <RemittanceRowsToolbar
+                    search={search}
+                    filters={filters}
+                    isLoading={isRefreshingRows}
+                    onSearchChange={setSearch}
+                    onSearchSubmit={handleSearchSubmit}
+                    onClearSearch={handleClearSearch}
+                    onFiltersApply={handleFiltersApply}
+                  />
+                )}
+              </ListPageDataSectionsStack>
 
               {gateFailures.length > 0 ? (
                 <div className="space-y-2" data-testid="remittance-gate-failures">
@@ -326,21 +426,33 @@ export function RemittanceDetailPage() {
                 </div>
               ) : null}
 
-              <RemittanceRowsToolbar
-                search={search}
-                isLoading={isRefreshingRows}
-                onSearchChange={setSearch}
-                onSearchSubmit={handleSearchSubmit}
-                onClearSearch={handleClearSearch}
-              />
+              {showRowsSkeleton ? (
+                <InventoryListTableSkeleton
+                  columns={[...REMITTANCE_ROWS_TABLE_SKELETON_COLUMNS]}
+                />
+              ) : isFilteredEmpty ? (
+                <div
+                  className="rounded-xl border border-brand-border bg-white px-6 py-10 text-center"
+                  data-testid="remittance-rows-filtered-empty"
+                >
+                  <p className="text-sm font-medium text-brand-navy">
+                    No matching line items
+                  </p>
+                  <p className="mt-1 text-sm text-brand-muted">
+                    Try a different search term or clear your filters.
+                  </p>
+                </div>
+              ) : (
+                <RemittanceRowsTable
+                  rows={rows}
+                  busyRowId={busyRowId}
+                  onView={setViewRow}
+                  onMatch={setMatchRow}
+                  onApply={(row) => void handleApply(row)}
+                  onReject={setRejectRow}
+                />
+              )}
 
-              <RemittanceRowsTable
-                rows={rows}
-                busyRowId={busyRowId}
-                onView={setViewRow}
-                onApply={(row) => void handleApply(row)}
-                onReject={(row) => void handleReject(row)}
-              />
               <ListPagePagination
                 page={page}
                 pageSize={DEFAULT_PAGE_SIZE}
@@ -364,15 +476,37 @@ export function RemittanceDetailPage() {
           }
         }}
       />
-    </DetailPageLayout>
-  );
-}
 
-function SummaryCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-brand-border bg-white p-3">
-      <p className="text-xs text-brand-muted">{label}</p>
-      <p className="mt-1 text-sm font-medium text-brand-navy">{value}</p>
-    </div>
+      <RemittanceMatchClaimDialog
+        batchId={batch.uuid}
+        row={matchRow}
+        open={matchRow != null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setMatchRow(null);
+          }
+        }}
+        onMatched={() => {
+          void reloadBatch();
+          setRowsRefreshKey((current) => current + 1);
+        }}
+      />
+
+      <RemittanceRowRejectDialog
+        row={rejectRow}
+        open={rejectRow != null}
+        isSubmitting={isRejecting}
+        onOpenChange={(open) => {
+          if (!open) {
+            setRejectRow(null);
+          }
+        }}
+        onConfirm={() => {
+          if (rejectRow) {
+            void handleReject(rejectRow);
+          }
+        }}
+      />
+    </DetailPageLayout>
   );
 }

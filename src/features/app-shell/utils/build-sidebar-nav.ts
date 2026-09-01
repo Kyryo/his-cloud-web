@@ -82,57 +82,6 @@ export function buildSidebarNavItems(
     });
   }
 
-  const settingsItems = [
-    {
-      title: "Account",
-      url: ROUTES.settingsAccount,
-      isActive: isNavItemActive(pathname, ROUTES.settingsAccount),
-    },
-    {
-      title: "Security",
-      url: ROUTES.settingsSecurity,
-      isActive: isNavItemActive(pathname, ROUTES.settingsSecurity),
-    },
-    ...(isTenantAdmin
-      ? [
-          {
-            title: "Organization",
-            url: ROUTES.settingsOrganization,
-            isActive: isNavItemActive(pathname, ROUTES.settingsOrganization),
-          },
-          {
-            title: "Visit Management",
-            url: ROUTES.settingsVisitManagement,
-            isActive: isNavItemActive(pathname, ROUTES.settingsVisitManagement),
-          },
-          {
-            title: "Finance & Operations",
-            url: ROUTES.settingsFinanceOperations,
-            isActive: isNavItemActive(pathname, ROUTES.settingsFinanceOperations),
-          },
-          {
-            title: "User Management",
-            url: ROUTES.settingsUserManagement,
-            isActive: isNavItemActive(pathname, ROUTES.settingsUserManagement),
-          },
-          {
-            title: "Modules",
-            url: ROUTES.settingsModules,
-            isActive:
-              isNavItemActive(pathname, ROUTES.settingsModules) ||
-              pathname.startsWith(`${ROUTES.settingsModules}/`),
-          },
-          {
-            title: "Integrations",
-            url: ROUTES.settingsIntegrations,
-            isActive:
-              isNavItemActive(pathname, ROUTES.settingsIntegrations) ||
-              pathname.startsWith(`${ROUTES.settingsIntegrations}/`),
-          },
-        ]
-      : []),
-  ];
-
   if (isPlatformAdmin) {
     items.push({
       title: "Tenant operations",
@@ -237,7 +186,6 @@ export function buildSidebarNavItems(
       icon: "settings",
       section: "admin",
       isActive: isSettingsNavActive(pathname),
-      items: settingsItems,
     });
   }
 

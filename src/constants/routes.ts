@@ -80,6 +80,7 @@ export const ROUTES = {
   settingsSecurity: "/settings/security",
   settingsOrganization: "/settings/organization",
   settingsVisitManagement: "/settings/visit-management",
+  settingsClientTags: "/settings/client-tags",
   settingsFinanceOperations: "/settings/finance-operations",
   settingsUserManagement: "/settings/user-management",
   settingsModules: "/settings/modules",

@@ -1,10 +1,14 @@
 import { BFF_CLAIMS_ROUTES } from "@/constants/api";
 import type {
   AdvisorEvaluation,
+  ClaimAdvisoryClearance,
   ClaimAdvisoryOverride,
+  ClaimAdvisoryStatusSnapshot,
+  ChangeClaimStatusPayload,
   ClaimDetail,
   ClaimListFilters,
   ClaimListResponse,
+  ClaimSummaryStats,
   CreateClaimFromInvoicePayload,
   EClaimPractitionerMapping,
   EClaimPractitionerMappingListResponse,
@@ -78,6 +82,14 @@ export async function fetchClaims(
   );
 }
 
+export async function fetchClaimSummaryStats(
+  filters: Omit<ClaimListFilters, "page" | "pageSize"> = {},
+): Promise<ClaimSummaryStats> {
+  return bffRequest<ClaimSummaryStats>(
+    `${BFF_CLAIMS_ROUTES.summaryStats}${buildClaimsQuery(filters)}`,
+  );
+}
+
 export async function fetchClaim(claimId: number | string): Promise<ClaimDetail> {
   return bffRequest<ClaimDetail>(BFF_CLAIMS_ROUTES.detail(claimId));
 }
@@ -107,6 +119,16 @@ export async function updateClaim(
 ): Promise<ClaimDetail> {
   return bffRequest<ClaimDetail>(BFF_CLAIMS_ROUTES.detail(claimId), {
     method: "PATCH",
+    body: payload,
+  });
+}
+
+export async function changeClaimStatus(
+  claimId: number | string,
+  payload: ChangeClaimStatusPayload,
+): Promise<ClaimDetail> {
+  return bffRequest<ClaimDetail>(BFF_CLAIMS_ROUTES.changeStatus(claimId), {
+    method: "POST",
     body: payload,
   });
 }
@@ -199,6 +221,14 @@ export async function evaluateClaimAdvisories(
   });
 }
 
+export async function fetchClaimAdvisoryStatus(
+  claimId: number | string,
+): Promise<ClaimAdvisoryStatusSnapshot> {
+  return bffRequest<ClaimAdvisoryStatusSnapshot>(
+    BFF_CLAIMS_ROUTES.advisorStatus(claimId),
+  );
+}
+
 export async function fetchClaimAdvisorEvaluations(
   claimId: number | string,
 ): Promise<AdvisorEvaluation[]> {
@@ -253,6 +283,32 @@ export async function createClaimAdvisoryOverride(
   return bffRequest(BFF_CLAIMS_ROUTES.advisorOverride(claimId), {
     method: "POST",
     body: { note },
+  });
+}
+
+export async function createClaimAdvisoryClearance(
+  claimId: number | string,
+  payload: { code: string; source?: string; reason: string },
+): Promise<ClaimAdvisoryClearance> {
+  return bffRequest(BFF_CLAIMS_ROUTES.advisorClearances(claimId), {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export async function applyClaimAdvisoryFinding(
+  claimId: number | string,
+  payload: {
+    code: string;
+    source?: string;
+    action?: string;
+    payload?: Record<string, unknown>;
+    targets?: Array<Record<string, unknown>>;
+  },
+): Promise<ClaimDetail> {
+  return bffRequest(BFF_CLAIMS_ROUTES.advisorFindingsApply(claimId), {
+    method: "POST",
+    body: payload,
   });
 }
 

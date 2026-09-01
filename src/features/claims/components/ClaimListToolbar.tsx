@@ -1,15 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { ListPageSearchToolbar } from "@/features/app-shell/components/page-layout";
 import { ClaimFiltersSheet } from "@/features/claims/components/ClaimFiltersSheet";
 import type { ClaimListFilterState } from "@/features/claims/utils/claim-list-filters";
-import {
-  ListPageToolbarActions,
-  ListPageToolbarFilters,
-  ListPageToolbarSearch,
-  ListPageToolbarSection,
-} from "@/features/app-shell/components/page-layout";
 
 type ClaimListToolbarProps = {
   search: string;
@@ -33,47 +26,24 @@ export function ClaimListToolbar(props: ClaimListToolbarProps) {
   } = props;
 
   return (
-    <ListPageToolbarSection>
-      <ListPageToolbarSearch>
-        <Input
-          id="claim-search"
-          type="search"
-          placeholder="Search membership, patient, invoice, claim #, payer…"
-          value={search}
-          disabled={isLoading}
-          className="w-full sm:max-w-md"
-          onChange={(event) => onSearchChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              onSearchSubmit();
-            }
-          }}
-          data-testid="claims-search"
-        />
-        <ListPageToolbarActions>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={isLoading}
-            onClick={onSearchSubmit}
-            data-testid="claims-search-submit"
-          >
-            Search
-          </Button>
-          {search ? (
-            <Button type="button" variant="outline" disabled={isLoading} onClick={onClearSearch}>
-              Clear
-            </Button>
-          ) : null}
-        </ListPageToolbarActions>
-      </ListPageToolbarSearch>
-      <ListPageToolbarFilters>
+    <ListPageSearchToolbar
+      search={search}
+      searchId="claim-search"
+      placeholder="Search membership, patient, invoice, claim #, payer…"
+      searchTestId="claims-search"
+      searchSubmitTestId="claims-search-submit"
+      clearTestId="claims-search-clear"
+      isLoading={isLoading}
+      onSearchChange={onSearchChange}
+      onSearchSubmit={onSearchSubmit}
+      onClearSearch={onClearSearch}
+      filter={
         <ClaimFiltersSheet
           filters={filters}
           isLoading={isLoading}
           onApply={onFiltersApply}
         />
-      </ListPageToolbarFilters>
-    </ListPageToolbarSection>
+      }
+    />
   );
 }

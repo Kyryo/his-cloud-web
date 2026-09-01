@@ -1,4 +1,5 @@
 import type { PaginatedListResponse } from "@/types/api.types";
+import type { RemittanceLineSettlementStatus } from "@/features/claims/types/remittance-line-settlement.types";
 
 export type InvoiceState = "draft" | "posted" | "cancel" | string;
 
@@ -28,10 +29,12 @@ export type InvoiceLine = {
   has_excess?: boolean;
   excess_amount?: string | number | null;
   pricing_rule_snapshot?: Record<string, unknown> | null;
+  remittance_settlement_status?: RemittanceLineSettlementStatus | null;
 };
 
 export type Invoice = {
   id: number;
+  uuid: string;
   name: string;
   state: InvoiceState;
   move_type?: string | null;
@@ -45,6 +48,7 @@ export type Invoice = {
   invoice_origin?: string | null;
   internal_reference?: string | null;
   sales_order_id?: number | null;
+  sales_order_uuid?: string | null;
   sales_order_name?: string | null;
   pricelist_id?: number | null;
   pricelist_name?: string | null;

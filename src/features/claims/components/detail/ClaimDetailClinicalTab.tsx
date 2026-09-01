@@ -82,7 +82,8 @@ export function ClaimDetailClinicalTab({
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [addDiagnosisOpen, setAddDiagnosisOpen] = useState(false);
   const [vitalsDialogOpen, setVitalsDialogOpen] = useState(false);
-  const invoiceId = claim.invoice_id || claim.invoice;
+  const invoiceRef =
+    claim.invoice_uuid ?? claim.invoice_id ?? claim.invoice ?? null;
   const encounterUuid = useInvoiceEncounterUuid(
     invoice ?? {
       encounter_uuid: null,
@@ -92,7 +93,7 @@ export function ClaimDetailClinicalTab({
   );
 
   useEffect(() => {
-    if (!isActive || !invoiceId) {
+    if (!isActive || !invoiceRef) {
       return;
     }
 
@@ -100,7 +101,7 @@ export function ClaimDetailClinicalTab({
 
     void (async () => {
       try {
-        const data = await fetchInvoice(invoiceId);
+        const data = await fetchInvoice(invoiceRef);
         if (!cancelled) {
           setInvoice(data);
         }
@@ -114,7 +115,7 @@ export function ClaimDetailClinicalTab({
     return () => {
       cancelled = true;
     };
-  }, [invoiceId, isActive]);
+  }, [invoiceRef, isActive]);
 
   if (!isActive) {
     return null;

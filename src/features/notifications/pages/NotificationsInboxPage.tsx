@@ -31,6 +31,8 @@ export function NotificationsInboxPage() {
   const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
+  const [hasPrevious, setHasPrevious] = useState(false);
 
   const reload = useCallback(async () => {
     setError(null);
@@ -40,6 +42,8 @@ export function NotificationsInboxPage() {
     });
     setItems(response.results);
     setTotalCount(response.pagination?.count ?? response.results.length);
+    setHasNext(Boolean(response.pagination?.next));
+    setHasPrevious(Boolean(response.pagination?.previous));
   }, [page]);
 
   useEffect(() => {
@@ -56,6 +60,8 @@ export function NotificationsInboxPage() {
         }
         setItems(response.results);
         setTotalCount(response.pagination?.count ?? response.results.length);
+        setHasNext(Boolean(response.pagination?.next));
+        setHasPrevious(Boolean(response.pagination?.previous));
       } catch (err) {
         if (!cancelled) {
           setError(
@@ -123,7 +129,6 @@ export function NotificationsInboxPage() {
   }
 
   const hasUnread = items.some((item) => !item.is_read);
-  const totalPages = Math.max(1, Math.ceil(totalCount / DEFAULT_PAGE_SIZE));
 
   return (
     <ListPageLayout
@@ -184,19 +189,25 @@ export function NotificationsInboxPage() {
             className="py-16"
           />
         ) : (
-          <InboxActivityFeed items={items} onOpen={(item) => void handleOpen(item)} />
+          <>
+            <InboxActivityFeed
+              items={items}
+              onOpen={(item) => void handleOpen(item)}
+            />
+            <ListPagePagination
+              page={page}
+              pageSize={DEFAULT_PAGE_SIZE}
+              totalCount={totalCount}
+              hasPrevious={hasPrevious}
+              hasNext={hasNext}
+              onPageChange={(nextPage) => {
+                setIsRefreshing(true);
+                setPage(nextPage);
+              }}
+              isLoading={isLoading || isRefreshing}
+            />
+          </>
         )}
-        {totalPages > 1 && items.length > 0 ? (
-          <ListPagePagination
-            page={page}
-            pageSize={DEFAULT_PAGE_SIZE}
-            totalCount={totalCount}
-            hasPrevious={page > 1}
-            hasNext={page < totalPages}
-            onPageChange={setPage}
-            isLoading={isLoading || isRefreshing}
-          />
-        ) : null}
       </div>
     </ListPageLayout>
   );

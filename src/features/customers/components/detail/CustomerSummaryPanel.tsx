@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { Button } from "@/components/ui/button";
 import {
   DetailPageAsidePanelHeader,
@@ -14,10 +16,14 @@ import {
   formatCustomerName,
   formatDisplayDate,
 } from "@/features/customers/utils/format-customer";
+import { ManageEntityTagsDialog } from "@/features/tags/components/ManageEntityTagsDialog";
+import { TagBadgeList } from "@/features/tags/components/TagBadgeList";
+import type { Tag } from "@/features/tags/types/tag.types";
 
 type CustomerSummaryPanelProps = {
   customer: Customer;
   onUpdateClick: () => void;
+  onTagsUpdated?: (tags: Tag[]) => void;
   billingRefreshKey?: number;
   onOpeningBalanceUpdated?: (customer: Customer) => void;
   onBillingUpdated?: () => void;
@@ -27,6 +33,7 @@ type CustomerSummaryPanelProps = {
 export function CustomerSummaryPanel({
   customer,
   onUpdateClick,
+  onTagsUpdated,
   billingRefreshKey = 0,
   onOpeningBalanceUpdated,
   onBillingUpdated,
@@ -34,6 +41,7 @@ export function CustomerSummaryPanel({
 }: CustomerSummaryPanelProps) {
   const fullName = formatCustomerName(customer);
   const ageDisplay = formatAdaptiveAge(customer.dob);
+  const [tagsDialogOpen, setTagsDialogOpen] = useState(false);
 
   return (
     <DetailPageAsidePanelSection className={className}>
@@ -93,6 +101,24 @@ export function CustomerSummaryPanel({
         <DetailPageAsideSummaryField label="Age" value={ageDisplay} />
       </DetailPageAsideSummarySection>
 
+      <DetailPageAsideSummarySection
+        title="Tags"
+        action={
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-xs text-brand-muted hover:text-brand-navy"
+            onClick={() => setTagsDialogOpen(true)}
+            data-testid="manage-customer-tags-button"
+          >
+            Manage tags
+          </Button>
+        }
+      >
+        <TagBadgeList tags={customer.tags} emptyLabel="No tags assigned." />
+      </DetailPageAsideSummarySection>
+
       <DetailPageAsideSummarySection title="System">
         <DetailPageAsideSummaryField
           label="Patient UUID"
@@ -111,6 +137,15 @@ export function CustomerSummaryPanel({
           value={formatDisplayDate(customer.updated_at)}
         />
       </DetailPageAsideSummarySection>
+
+      <ManageEntityTagsDialog
+        open={tagsDialogOpen}
+        onOpenChange={setTagsDialogOpen}
+        entityLabel={fullName}
+        entityUuid={customer.uuid}
+        selectedTags={customer.tags}
+        onSaved={(tags) => onTagsUpdated?.(tags)}
+      />
     </DetailPageAsidePanelSection>
   );
 }

@@ -32,7 +32,7 @@ export function IntegrationsSettingsPage() {
               You need tenant administrator access to configure integrations.
             </p>
             <Button asChild variant="outline">
-              <Link href={ROUTES.settingsAccount}>Back to account settings</Link>
+              <Link href={ROUTES.settingsAccount}>Back to account</Link>
             </Button>
           </div>
         </SettingsSection>

@@ -86,6 +86,14 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
       ];
     }
 
+    if (pathname === ROUTES.settingsModulePharmacy) {
+      return [
+        { label: "Settings" },
+        { label: "Modules", href: ROUTES.settingsModules },
+        { label: "Pharmacy" },
+      ];
+    }
+
     if (pathname === ROUTES.settingsIntegrations) {
       return [{ label: "Settings" }, { label: "Integrations" }];
     }

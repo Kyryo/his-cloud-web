@@ -1,8 +1,7 @@
 import { ROUTES } from "@/constants/routes";
 
 export const LANDING_SOCIAL_PROOF = {
-  headline: "Every claim, tracked until it's paid.",
-  supporting: "From a children's therapy clinic to a national mediclinic network.",
+  headline: "A few of the clinics powered by Sigma.",
 } as const;
 
 export const LANDING_PROBLEM = {

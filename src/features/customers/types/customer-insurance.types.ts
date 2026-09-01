@@ -25,6 +25,7 @@ export type CustomerInsurance = {
   insurance_scheme: number;
   scheme_name: string;
   insurance_company_name: string;
+  insurance_company_code: string;
   membership_number: string;
   suffix: string;
   is_principal_member: boolean;

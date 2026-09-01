@@ -24,6 +24,8 @@ const columns = [
   { key: "created", label: "Created" },
 ] as const;
 
+export const CLAIM_TABLE_SKELETON_COLUMNS = columns;
+
 function formatClaimDate(value: string | null | undefined): string {
   if (!value) {
     return "—";

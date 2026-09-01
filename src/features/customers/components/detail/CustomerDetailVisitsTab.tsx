@@ -4,13 +4,9 @@ import { useCallback, useEffect, useState } from "react";
 import { Stethoscope } from "lucide-react";
 
 import { StatsCard1, StatsCard1Grid } from "@/components/stats-card1";
-import { CustomerVisitStatusBadge } from "@/features/customers/components/CustomerVisitStatusBadge";
-import {
-  CustomerDetailRecordList,
-  CustomerDetailRecordListItem,
-} from "@/features/customers/components/detail/CustomerDetailRecordList";
 import { CustomerDetailTabEmptyState } from "@/features/customers/components/detail/CustomerDetailTabEmptyState";
 import { CustomerTabSkeleton } from "@/features/customers/components/detail/CustomerTabSkeleton";
+import { CustomerVisitsTable } from "@/features/customers/components/detail/CustomerVisitsTable";
 import {
   countActiveCustomerVisits,
   countCancelledCustomerVisits,
@@ -20,7 +16,7 @@ import {
 } from "@/features/customers/services/customer-visits.service";
 import type { CustomerVisit } from "@/features/customers/types/customer-visit.types";
 import type { Customer } from "@/features/customers/types/customer.types";
-import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
+import { EditVisitPaymentDialog } from "@/features/visits/components/EditVisitPaymentDialog";
 import { VisitDetailDialog } from "@/features/visits/components/VisitDetailDialog";
 import { formatCompactNumber } from "@/utils/format-compact-number";
 
@@ -32,16 +28,6 @@ type CustomerDetailVisitsTabProps = {
   refreshKey?: number;
 };
 
-function formatVisitMeta(visit: CustomerVisit) {
-  return [
-    visit.mode_of_payment.charAt(0).toUpperCase() + visit.mode_of_payment.slice(1),
-    visit.clinic_name,
-    visit.requires_pre_authorization ? "Pre-auth required" : null,
-  ]
-    .filter(Boolean)
-    .join(" · ");
-}
-
 export function CustomerDetailVisitsTab({
   customer,
   isActive,
@@ -52,6 +38,7 @@ export function CustomerDetailVisitsTab({
   const [loadError, setLoadError] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [selectedVisitUuid, setSelectedVisitUuid] = useState<string | null>(null);
+  const [editingVisit, setEditingVisit] = useState<CustomerVisit | null>(null);
 
   const loadVisits = useCallback(async () => {
     setIsLoading(true);
@@ -99,8 +86,8 @@ export function CustomerDetailVisitsTab({
   const completedVisits = countCompletedCustomerVisits(visits);
   const cancelledVisits = countCancelledCustomerVisits(visits);
 
-  return (
-    <div className="space-y-4" data-testid="customer-detail-visits-tab">
+  const dialogs = (
+    <>
       <VisitDetailDialog
         visitUuid={selectedVisitUuid}
         open={Boolean(selectedVisitUuid)}
@@ -111,7 +98,30 @@ export function CustomerDetailVisitsTab({
         }}
         onVisitUpdated={() => void loadVisits()}
       />
+      {editingVisit ? (
+        <EditVisitPaymentDialog
+          visit={editingVisit}
+          open={Boolean(editingVisit)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditingVisit(null);
+            }
+          }}
+          onUpdated={(updatedVisit) => {
+            setVisits((current) =>
+              current.map((visit) =>
+                visit.uuid === updatedVisit.uuid ? updatedVisit : visit,
+              ),
+            );
+            setEditingVisit(null);
+          }}
+        />
+      ) : null}
+    </>
+  );
 
+  return (
+    <div className="space-y-4" data-testid="customer-detail-visits-tab">
       <StatsCard1Grid>
         <StatsCard1
           className={VISIT_STAT_CARD_CLASS}
@@ -143,29 +153,17 @@ export function CustomerDetailVisitsTab({
           data-testid="customer-visits-empty-state"
         />
       ) : (
-        <CustomerDetailRecordList
-          title="Visit history"
-          description="Recent visits for this client, newest first."
-          data-testid="customer-visits-list"
-        >
-          {visits.map((visit) => (
-            <CustomerDetailRecordListItem
-              key={visit.uuid}
-              compact
-              title={visit.consultation_service_name || "Visit"}
-              badges={<CustomerVisitStatusBadge status={visit.status} />}
-              description={formatVisitMeta(visit)}
-              dateTime={formatDisplayDateTime(visit.visit_date)}
-              onRowClick={() => setSelectedVisitUuid(visit.uuid)}
-              data-testid={`customer-visit-${visit.uuid}`}
-            />
-          ))}
-        </CustomerDetailRecordList>
+        <CustomerVisitsTable
+          visits={visits}
+          onEdit={setEditingVisit}
+          onView={(visit) => setSelectedVisitUuid(visit.uuid)}
+        />
       )}
 
       {loadError && hasLoaded ? (
         <p className="text-xs text-red-600">{loadError}</p>
       ) : null}
+      {dialogs}
     </div>
   );
 }

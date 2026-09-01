@@ -14,6 +14,7 @@ const FORWARDED_QUERY_KEYS = [
   "gender",
   "is_active",
   "ordering",
+  "tags",
 ] as const;
 
 function buildUpstreamQuery(request: Request): string {

@@ -211,14 +211,7 @@ export function AccountProfileSettings({ user }: AccountProfileSettingsProps) {
   const displayName = form.watch("displayName") || user.name || "User";
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-6" data-testid="account-profile-settings">
-      <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-brand-navy">Account</h1>
-        <p className="mt-1 text-sm text-brand-muted">
-          Manage your profile, preferences, and clinic access.
-        </p>
-      </div>
-
+    <div className="w-full space-y-6" data-testid="account-profile-settings">
       <Card className="overflow-hidden border-brand-border shadow-sm">
         <div className="relative">
           <div

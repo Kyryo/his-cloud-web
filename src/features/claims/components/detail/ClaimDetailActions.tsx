@@ -18,9 +18,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { isClaimSubmitBlockedByAdvisories } from "@/features/claims/components/ClaimAdvisoriesPanel";
+import { ChangeClaimStatusDialog } from "@/features/claims/components/ChangeClaimStatusDialog";
 import {
   checkClaimPayerStatus,
   deleteClaim,
@@ -57,6 +59,7 @@ export function ClaimDetailActions({
   const router = useRouter();
   const { toast, dismiss } = useToast();
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [changeStatusOpen, setChangeStatusOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isCheckingPayer, setIsCheckingPayer] = useState(false);
 
@@ -146,30 +149,35 @@ export function ClaimDetailActions({
     }
   }
 
-  if (!isDraft && !showCheckPayerStatus) {
-    return null;
-  }
+  const menuBusy = isDeleting || isCheckingPayer;
 
   return (
     <>
       <div className={cn("flex shrink-0 flex-wrap items-center justify-end gap-2", className)}>
-        {isDraft ? (
-          <>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="icon"
-                  className="rounded-full"
-                  disabled={isDeleting}
-                  aria-label="Claim actions"
-                  data-testid="claim-actions-menu-button"
-                >
-                  <MoreVertical className="size-4" aria-hidden="true" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="rounded-full"
+              disabled={menuBusy}
+              aria-label="Claim actions"
+              data-testid="claim-actions-menu-button"
+            >
+              <MoreVertical className="size-4" aria-hidden="true" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem
+              onClick={() => setChangeStatusOpen(true)}
+              data-testid="claim-change-status-menu-item"
+            >
+              Submit manually
+            </DropdownMenuItem>
+            {isDraft ? (
+              <>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-red-700 focus:text-red-700"
                   onClick={() => setDeleteOpen(true)}
@@ -178,23 +186,25 @@ export function ClaimDetailActions({
                   <Trash2 className="size-4" aria-hidden="true" />
                   Delete
                 </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+              </>
+            ) : null}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-            <PrimaryButton
-              type="button"
-              disabled={submitBlocked || !onRequestSubmit}
-              title={
-                submitBlocked
-                  ? "Resolve rejection-risk advisories or record an override first"
-                  : undefined
-              }
-              onClick={() => onRequestSubmit?.()}
-              data-testid="claim-submit-header-button"
-            >
-              Submit
-            </PrimaryButton>
-          </>
+        {isDraft ? (
+          <PrimaryButton
+            type="button"
+            disabled={submitBlocked || !onRequestSubmit}
+            title={
+              submitBlocked
+                ? "Resolve rejection-risk advisories or record an override first"
+                : undefined
+            }
+            onClick={() => onRequestSubmit?.()}
+            data-testid="claim-submit-header-button"
+          >
+            Submit
+          </PrimaryButton>
         ) : null}
 
         {showCheckPayerStatus ? (
@@ -218,6 +228,13 @@ export function ClaimDetailActions({
           </PrimaryButton>
         ) : null}
       </div>
+
+      <ChangeClaimStatusDialog
+        claim={claim}
+        open={changeStatusOpen}
+        onOpenChange={setChangeStatusOpen}
+        onSuccess={onClaimUpdated}
+      />
 
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className="sm:max-w-md">

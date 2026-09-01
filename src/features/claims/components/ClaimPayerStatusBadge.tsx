@@ -19,6 +19,21 @@ const STATUS_CONFIG: Record<
   awaiting_payer: { variant: "outline", icon: Clock3, label: "Awaiting payer" },
   processing: { variant: "outline", icon: Loader2, label: "Processing" },
   closed: { variant: "success", icon: CheckCircle2, label: "Closed" },
+  settled_via_remittance: {
+    variant: "success",
+    icon: CheckCircle2,
+    label: "Settled via remittance",
+  },
+  manual_submission: {
+    variant: "outline",
+    icon: Shield,
+    label: "Submitted manually",
+  },
+  denied_via_remittance: {
+    variant: "destructive",
+    icon: Ban,
+    label: "Denied via remittance",
+  },
   failed: { variant: "destructive", icon: Ban, label: "Failed" },
   not_applicable: { variant: "outline", icon: Shield, label: "Not submitted" },
 };

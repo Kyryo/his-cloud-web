@@ -5,6 +5,10 @@ import Link from "next/link";
 
 import { DetailTabEmptyState } from "@/components/detail/detail-tab-empty-state";
 import { SecondaryButton } from "@/components/ui/app-buttons";
+import {
+  LineRemittanceSettlementBadge,
+  shouldShowRemittanceSettlementBadge,
+} from "@/features/claims/components/LineRemittanceSettlementBadge";
 import type { ClaimDetail, ClaimLineItem } from "@/features/claims/types/claims.types";
 import { formatAmountNumber } from "@/features/sales-orders/utils/format-sales-order";
 import { ROUTES } from "@/constants/routes";
@@ -17,6 +21,10 @@ type ClaimDetailClaimedItemsTabProps = {
 
 function formatTariffCode(value: string | null | undefined): string {
   return value?.trim() ? value : "—";
+}
+
+function formatLineName(line: ClaimLineItem): string {
+  return line.description?.trim() ? line.description.trim() : "—";
 }
 
 function formatLineDate(value: string | null | undefined): string {
@@ -49,7 +57,8 @@ export function ClaimDetailClaimedItemsTab({
 }: ClaimDetailClaimedItemsTabProps) {
   const claimInvoices = claim.claim_invoices ?? [];
   const lineItems = claimInvoices.flatMap((invoice) => invoice.line_items ?? []);
-  const invoiceId = claim.invoice_id || claim.invoice || null;
+  const invoiceRef =
+    claim.invoice_uuid ?? claim.invoice_id ?? claim.invoice ?? null;
 
   return (
     <section
@@ -79,9 +88,9 @@ export function ClaimDetailClaimedItemsTab({
                       Line items submitted on this insurance claim.
                     </p>
                   </div>
-                  {invoiceId ? (
+                  {invoiceRef ? (
                     <SecondaryButton asChild size="sm" className="px-4">
-                      <Link href={ROUTES.invoiceDetail(invoiceId)}>
+                      <Link href={ROUTES.invoiceDetail(invoiceRef)}>
                         View invoice
                       </Link>
                     </SecondaryButton>
@@ -99,6 +108,12 @@ export function ClaimDetailClaimedItemsTab({
                     <thead>
                       <tr className="border-b border-brand-border bg-slate-50/80">
                         <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
+                          Date
+                        </th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
+                          Product
+                        </th>
+                        <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
                           Code
                         </th>
                         <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
@@ -111,13 +126,19 @@ export function ClaimDetailClaimedItemsTab({
                           Total (MWK)
                         </th>
                         <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
-                          Date
+                          <span className="sr-only">Remittance</span>
                         </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-brand-border">
                       {claimInvoice.line_items.map((line) => (
                         <tr key={line.id}>
+                          <td className="px-4 py-3 text-sm text-brand-slate">
+                            {formatLineDate(line.date_created)}
+                          </td>
+                          <td className="px-4 py-3 text-sm font-medium text-brand-navy">
+                            {formatLineName(line)}
+                          </td>
                           <td className="px-4 py-3 text-sm font-mono text-brand-slate">
                             {formatTariffCode(line.tariff_code)}
                           </td>
@@ -130,8 +151,14 @@ export function ClaimDetailClaimedItemsTab({
                           <td className="px-4 py-3 text-right text-sm font-medium text-brand-navy">
                             {formatAmountNumber(lineTotal(line))}
                           </td>
-                          <td className="px-4 py-3 text-sm text-brand-slate">
-                            {formatLineDate(line.date_created)}
+                          <td className="px-4 py-3 text-left">
+                            {shouldShowRemittanceSettlementBadge(
+                              line.remittance_settlement_status,
+                            ) ? (
+                              <LineRemittanceSettlementBadge
+                                status={line.remittance_settlement_status}
+                              />
+                            ) : null}
                           </td>
                         </tr>
                       ))}

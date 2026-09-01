@@ -5,7 +5,9 @@ import { CustomerSalesOrdersTable } from "@/features/customers/components/detail
 import { CustomerInvoicesTable } from "@/features/customers/components/detail/CustomerInvoicesTable";
 import { CustomerPaymentsTable } from "@/features/customers/components/detail/CustomerPaymentsTable";
 import { CustomerInsuranceTable } from "@/features/customers/components/detail/CustomerInsuranceTable";
+import { CustomerVisitsTable } from "@/features/customers/components/detail/CustomerVisitsTable";
 import type { CustomerInsurance } from "@/features/customers/types/customer-insurance.types";
+import type { CustomerVisit } from "@/features/customers/types/customer-visit.types";
 
 afterEach(() => {
   cleanup();
@@ -122,5 +124,55 @@ describe("customer detail billing tables", () => {
     expect(screen.getByText("Principal member")).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "Update" }));
     expect(onUpdate).toHaveBeenCalledWith(record);
+  });
+
+  it("renders visit rows with scheme and actions", () => {
+    const onEdit = vi.fn();
+    const onView = vi.fn();
+    const visit: CustomerVisit = {
+      id: 41,
+      uuid: "visit-41",
+      appointment: null,
+      consultation_service: null,
+      consultation_service_name: "General consultation",
+      customer: "customer-1",
+      customer_name: "Jane Doe",
+      customer_identifier: "P-001",
+      visit_date: "2026-08-04T10:00:00.000Z",
+      status: "in_progress",
+      mark_for_completion: false,
+      mode_of_payment: "insurance",
+      insurance_scheme: "ins-1",
+      insurance_scheme_name: "VIP",
+      insurance_company_name: "MASM",
+      linked_sales_order_state: null,
+      can_edit_mode_of_payment: true,
+      mode_of_payment_edit_block_reason: null,
+      requires_pre_authorization: false,
+      pre_authorization_number: "",
+      pre_authorization_comments: "",
+      is_walk_in: false,
+      is_active: true,
+      clinic: "clinic-1",
+      clinic_name: "Central Clinic",
+      closed_by: null,
+      created_by: null,
+      created_by_name: null,
+      encounters: [],
+      created_at: "2026-08-04T10:00:00.000Z",
+      updated_at: "2026-08-04T10:00:00.000Z",
+    };
+
+    render(
+      <CustomerVisitsTable visits={[visit]} onEdit={onEdit} onView={onView} />,
+    );
+
+    expect(screen.getByText("MASM - VIP")).toBeInTheDocument();
+    expect(screen.getByText("Central Clinic")).toBeInTheDocument();
+    expect(screen.getByText("Insurance")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Edit" }));
+    expect(onEdit).toHaveBeenCalledWith(visit);
+    fireEvent.click(screen.getByText("MASM - VIP").closest("tr")!);
+    expect(onView).toHaveBeenCalledWith(visit);
   });
 });

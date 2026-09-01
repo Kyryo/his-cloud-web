@@ -35,6 +35,10 @@ function buildCustomersQuery(filters: CustomerListFilters = {}): string {
     params.set("ordering", filters.ordering);
   }
 
+  if (filters.tags && filters.tags.length > 0) {
+    params.set("tags", filters.tags.join(","));
+  }
+
   const query = params.toString();
   return query ? `?${query}` : "";
 }

@@ -126,6 +126,15 @@ export function CustomerDetailInsuranceTab({
     />
   );
 
+  const emptyStateAddButton = (
+    <TabAddActionButton
+      label="Add insurance"
+      emptyState
+      onClick={() => setAddDialogOpen(true)}
+      data-testid="add-customer-insurance-button"
+    />
+  );
+
   const dialogs = (
     <>
       <AddCustomerInsuranceDialog
@@ -157,7 +166,7 @@ export function CustomerDetailInsuranceTab({
           icon={Shield}
           title="No insurance on file"
           description="Insurance memberships linked to this client will appear here."
-          action={addButton}
+          action={emptyStateAddButton}
           data-testid="customer-insurance-empty-state"
         />
         {dialogs}

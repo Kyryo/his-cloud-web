@@ -225,7 +225,7 @@ export function InvoicesListPage() {
         <>
           <InvoicesTable
             invoices={invoices}
-            onRowClick={(invoice) => router.push(ROUTES.invoiceDetail(invoice.id))}
+            onRowClick={(invoice) => router.push(ROUTES.invoiceDetail(invoice.uuid))}
           />
           <ListPagePagination
             page={page}

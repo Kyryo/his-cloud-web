@@ -2,6 +2,8 @@ import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { AppointmentSummaryStatsCards } from "@/features/appointments/components/AppointmentSummaryStatsCards";
+import { ClaimSummaryStatsCards } from "@/features/claims/components/ClaimSummaryStatsCards";
+import { RemittanceSummaryStatsCards } from "@/features/claims/components/RemittanceSummaryStatsCards";
 import { InvoiceSummaryStatsCards } from "@/features/invoices/components/InvoiceSummaryStatsCards";
 import { PaymentSummaryStatsCards } from "@/features/payments/components/PaymentSummaryStatsCards";
 import { SalesOrderSummaryStatsCards } from "@/features/sales-orders/components/SalesOrderSummaryStatsCards";
@@ -105,5 +107,43 @@ describe("list page summary stat cards", () => {
     expect(screen.getByText("Posted")).toBeInTheDocument();
     expect(screen.getByText("Draft")).toBeInTheDocument();
     expect(screen.getByText("Cancelled")).toBeInTheDocument();
+  });
+
+  it("renders claim card labels", () => {
+    render(
+      <ClaimSummaryStatsCards
+        stats={{
+          all: { count: 4, total: "450.00" },
+          draft: { count: 2, total: "200.00" },
+          submitted: { count: 1, total: "100.00" },
+          approved: { count: 1, total: "150.00" },
+        }}
+      />,
+    );
+
+    expect(screen.getByTestId("claim-summary-stats")).toBeInTheDocument();
+    expect(screen.getByText("All claims")).toBeInTheDocument();
+    expect(screen.getByText("Draft")).toBeInTheDocument();
+    expect(screen.getByText("Submitted")).toBeInTheDocument();
+    expect(screen.getByText("Approved")).toBeInTheDocument();
+  });
+
+  it("renders remittance card labels", () => {
+    render(
+      <RemittanceSummaryStatsCards
+        stats={{
+          all: { count: 4, total: "1200.00" },
+          in_progress: { count: 1, total: "0.00" },
+          processed: { count: 2, total: "900.00" },
+          needs_review: { count: 1, total: "300.00" },
+        }}
+      />,
+    );
+
+    expect(screen.getByTestId("remittance-summary-stats")).toBeInTheDocument();
+    expect(screen.getByText("All remittances")).toBeInTheDocument();
+    expect(screen.getByText("In progress")).toBeInTheDocument();
+    expect(screen.getByText("Processed")).toBeInTheDocument();
+    expect(screen.getByText("Needs review")).toBeInTheDocument();
   });
 });

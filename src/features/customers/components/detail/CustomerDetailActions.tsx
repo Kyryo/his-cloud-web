@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, MoreVertical, Pencil, UserX } from "lucide-react";
+import { CalendarPlus, Loader2, MoreVertical, Pencil, UserX } from "lucide-react";
 import { useState } from "react";
 
 import { DestructiveButton, SecondaryButton } from "@/components/ui/app-buttons";
@@ -39,6 +39,7 @@ const ACTIVE_VISIT_VOID_BLOCK_REASON =
 type CustomerDetailActionsProps = {
   customer: Customer;
   onEditDetails: () => void;
+  onScheduleAppointment?: () => void;
   onCustomerUpdated: (customer: Customer) => void;
   className?: string;
 };
@@ -46,6 +47,7 @@ type CustomerDetailActionsProps = {
 export function CustomerDetailActions({
   customer,
   onEditDetails,
+  onScheduleAppointment,
   onCustomerUpdated,
   className,
 }: CustomerDetailActionsProps) {
@@ -116,6 +118,15 @@ export function CustomerDetailActions({
               <Pencil className="size-4" aria-hidden="true" />
               Edit details
             </DropdownMenuItem>
+            {onScheduleAppointment ? (
+              <DropdownMenuItem
+                onClick={onScheduleAppointment}
+                data-testid="customer-schedule-appointment-menu-item"
+              >
+                <CalendarPlus className="size-4" aria-hidden="true" />
+                Schedule appointment
+              </DropdownMenuItem>
+            ) : null}
             {showVoid ? (
               <>
                 <DropdownMenuSeparator />

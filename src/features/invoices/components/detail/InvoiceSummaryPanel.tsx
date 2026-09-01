@@ -173,7 +173,9 @@ export function InvoiceSummaryPanel({
             label="Sales order"
             value={
               <Link
-                href={ROUTES.salesOrderDetail(invoice.sales_order_id)}
+                href={ROUTES.salesOrderDetail(
+                  invoice.sales_order_uuid ?? invoice.sales_order_id,
+                )}
                 className="text-brand-primary hover:underline"
               >
                 {invoice.sales_order_name || `#${invoice.sales_order_id}`}

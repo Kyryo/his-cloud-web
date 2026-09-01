@@ -18,11 +18,11 @@ export function SettingsPageLayout({
   className,
 }: SettingsPageLayoutProps) {
   return (
-    <div className={cn("mx-auto w-full max-w-5xl space-y-8 px-4 py-6 md:px-6", className)}>
+    <div className={cn("space-y-6", className)}>
       <header className="space-y-1">
-        <h1 className="text-2xl font-semibold tracking-tight text-brand-navy">
+        <h2 className="text-xl font-semibold tracking-tight text-brand-navy">
           {title}
-        </h1>
+        </h2>
         <p className="max-w-2xl text-sm text-brand-muted">{description}</p>
       </header>
       <div className="space-y-6">{children}</div>

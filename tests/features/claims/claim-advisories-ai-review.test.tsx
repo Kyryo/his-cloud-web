@@ -2,23 +2,33 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ClaimAdvisoriesCard } from "@/features/claims/components/ClaimAdvisoriesPanel";
+import {
+  evaluateClaimAdvisories,
+} from "@/features/claims/services/claims.service";
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
+import { BffError } from "@/lib/bff-client";
+
+const toastMock = vi.fn();
 
 vi.mock("@/features/claims/services/claims.service", () => ({
   fetchClaim: vi.fn(),
   evaluateClaimAdvisories: vi.fn(),
   createClaimAdvisoryOverride: vi.fn(),
+  createClaimAdvisoryClearance: vi.fn(),
+  applyClaimAdvisoryFinding: vi.fn(),
 }));
 
 vi.mock("@/providers/toast-provider", () => ({
   useToast: () => ({
-    toast: vi.fn(),
+    toast: toastMock,
     dismiss: vi.fn(),
   }),
 }));
 
 afterEach(() => {
   cleanup();
+  toastMock.mockReset();
+  vi.mocked(evaluateClaimAdvisories).mockReset();
 });
 
 function buildClaim(overrides: Partial<ClaimDetail> = {}): ClaimDetail {
@@ -94,6 +104,13 @@ describe("ClaimAdvisoriesCard IQ review", () => {
 
     fireEvent.click(screen.getByTestId("claim-advisory-fix-AI_NECESSITY"));
     expect(screen.getByTestId("claim-advisory-fix-dialog")).toBeInTheDocument();
+    expect(screen.getByTestId("claim-advisory-apply-tab")).toBeInTheDocument();
+    expect(screen.getByTestId("claim-advisory-apply-unsupported")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Add supporting clinical notes."),
+    ).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("tabbed-dialog-tab-guidance"));
     expect(screen.getByText("Add supporting clinical notes.")).toBeInTheDocument();
     expect(screen.getAllByText("IQ").length).toBeGreaterThan(0);
   });
@@ -198,5 +215,30 @@ describe("ClaimAdvisoriesCard IQ review", () => {
     expect(
       screen.queryByTestId("claim-advisory-blocking-alert"),
     ).not.toBeInTheDocument();
+  });
+
+  it("shows a rate-limit toast when re-evaluate is throttled", async () => {
+    vi.mocked(evaluateClaimAdvisories).mockRejectedValue(
+      new BffError("Request was throttled.", 429),
+    );
+
+    render(
+      <ClaimAdvisoriesCard
+        claim={buildClaim({
+          advisory_status: "completed",
+        })}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId("claim-evaluate-advisories-button"));
+
+    await vi.waitFor(() => {
+      expect(toastMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: "error",
+          title: "IQ review is temporarily limited",
+        }),
+      );
+    });
   });
 });

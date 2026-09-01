@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { InvoiceClaimsTab } from "@/features/invoices/components/detail/InvoiceClaimsTab";
@@ -7,19 +7,28 @@ import type { Invoice } from "@/features/invoices/types/invoice.types";
 
 const fetchClaimByInvoice = vi.fn();
 const fetchClaim = vi.fn();
+const fetchClaimAdvisoryStatus = vi.fn();
 const createClaimFromInvoice = vi.fn();
 const evaluateClaimAdvisories = vi.fn();
 const submitClaim = vi.fn();
 const createClaimAdvisoryOverride = vi.fn();
+const createClaimAdvisoryClearance = vi.fn();
+const applyClaimAdvisoryFinding = vi.fn();
 
 vi.mock("@/features/claims/services/claims.service", () => ({
   fetchClaimByInvoice: (...args: unknown[]) => fetchClaimByInvoice(...args),
   fetchClaim: (...args: unknown[]) => fetchClaim(...args),
+  fetchClaimAdvisoryStatus: (...args: unknown[]) =>
+    fetchClaimAdvisoryStatus(...args),
   createClaimFromInvoice: (...args: unknown[]) => createClaimFromInvoice(...args),
   evaluateClaimAdvisories: (...args: unknown[]) => evaluateClaimAdvisories(...args),
   submitClaim: (...args: unknown[]) => submitClaim(...args),
   createClaimAdvisoryOverride: (...args: unknown[]) =>
     createClaimAdvisoryOverride(...args),
+  createClaimAdvisoryClearance: (...args: unknown[]) =>
+    createClaimAdvisoryClearance(...args),
+  applyClaimAdvisoryFinding: (...args: unknown[]) =>
+    applyClaimAdvisoryFinding(...args),
   isInsuranceInvoice: () => true,
 }));
 
@@ -136,8 +145,7 @@ describe("InvoiceClaimsTab advisories", () => {
     await waitFor(() => {
       expect(screen.getByTestId("claim-workflow-card")).toBeInTheDocument();
     });
-    expect(screen.getByText(/All 3 checks passed/i)).toBeInTheDocument();
-    expect(screen.getByText("All line items have tariff codes")).toBeInTheDocument();
+    expect(screen.queryByTestId("workflow-stage-requirements")).not.toBeInTheDocument();
     expect(screen.getByTestId("invoice-create-claim-button")).toBeEnabled();
     expect(screen.queryByTestId("claim-edit-draft-button")).not.toBeInTheDocument();
     expect(screen.queryByTestId("claim-advisories-panel")).not.toBeInTheDocument();
@@ -162,12 +170,23 @@ describe("InvoiceClaimsTab advisories", () => {
     expect(screen.getByTestId("workflow-stage-advisory")).toBeInTheDocument();
     expect(screen.getByText("Advisory")).toBeInTheDocument();
     expect(screen.getByTestId("claim-advisory-blocking-alert")).toBeInTheDocument();
+    expect(screen.getByTestId("claim-advisory-blocking-alert")).toHaveTextContent(
+      /Fix/,
+    );
+    expect(screen.getByTestId("claim-advisory-blocking-alert")).toHaveTextContent(
+      /Clear/,
+    );
+    expect(screen.getByTestId("claim-advisory-fix-MISSING_TARIFF")).toBeInTheDocument();
+    expect(
+      screen.getByTestId("claim-advisory-clear-MISSING_TARIFF"),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("claim-evaluate-advisories-button")).toHaveTextContent(
       "Re-evaluate",
     );
     expect(screen.getAllByText(/1 rejection-risk/i).length).toBeGreaterThan(0);
     expect(screen.getByTestId("claim-record-override-button")).toBeInTheDocument();
     expect(screen.getByTestId("claim-edit-draft-button")).toBeInTheDocument();
+    expect(screen.queryByTestId("workflow-stage-requirements")).not.toBeInTheDocument();
     expect(screen.queryByText("Membership number")).not.toBeInTheDocument();
     expect(
       screen.queryByTestId("invoice-submit-claim-button"),
@@ -212,6 +231,12 @@ describe("InvoiceClaimsTab advisories", () => {
         latest_advisor_evaluation: null,
       }),
     );
+    fetchClaimAdvisoryStatus.mockResolvedValue({
+      advisory_status: "pending",
+      has_blocking_advisories: false,
+      has_advisory_override: false,
+      latest_advisor_evaluation: null,
+    });
 
     render(<InvoiceClaimsTab invoice={buildInvoice()} isActive />);
 
@@ -228,6 +253,93 @@ describe("InvoiceClaimsTab advisories", () => {
       expect(screen.getByTestId("claim-advisory-processing")).toBeInTheDocument();
     });
     expect(screen.getAllByText(/Advisories processing/i).length).toBeGreaterThan(0);
+  });
+
+  it("hides the findings card while advisories are running", async () => {
+    fetchClaimByInvoice.mockResolvedValue(
+      buildClaim({
+        advisory_status: "processing",
+        has_blocking_advisories: false,
+        latest_advisor_evaluation: {
+          id: 1,
+          public_id: "eval-1",
+          claim: 99,
+          status: "completed",
+          selected_validation_codes: [],
+          deterministic_findings: [
+            {
+              code: "WARN_CODE",
+              name: "Optional code",
+              severity: "warning",
+              category: "coding",
+              message: "Prefer a more specific tariff.",
+            },
+          ],
+          ai_findings: [],
+          deterministic_count: 1,
+          ai_count: 0,
+          evaluated_by: null,
+          created_at: "2026-01-01T00:00:00Z",
+        },
+      }),
+    );
+
+    render(
+      <InvoiceClaimsTab
+        invoice={buildInvoice({ claim_status: "draft" })}
+        isActive
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("claim-advisory-running")).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId("claim-advisory-findings")).not.toBeInTheDocument();
+  });
+
+  it("shows the advisory stage as a warning when IQ notes are present", async () => {
+    fetchClaimByInvoice.mockResolvedValue(
+      buildClaim({
+        has_blocking_advisories: false,
+        latest_advisor_evaluation: {
+          id: 1,
+          public_id: "eval-1",
+          claim: 99,
+          status: "completed",
+          selected_validation_codes: ["TEST_AI_REVIEW_TRIGGER"],
+          deterministic_findings: [],
+          ai_findings: [
+            {
+              code: "AI_NECESSITY",
+              name: "Weak indication",
+              severity: "warning",
+              category: "medical_necessity",
+              message: "Procedure is not supported.",
+            },
+          ],
+          deterministic_count: 0,
+          ai_count: 1,
+          evaluated_by: null,
+          created_at: "2026-01-01T00:00:00Z",
+        },
+      }),
+    );
+
+    render(
+      <InvoiceClaimsTab
+        invoice={buildInvoice({ claim_status: "draft" })}
+        isActive
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("workflow-stage-advisory")).toBeInTheDocument();
+    });
+
+    const advisory = screen.getByTestId("workflow-stage-advisory");
+    expect(within(advisory).getByText("Warning")).toBeInTheDocument();
+    expect(within(advisory).getByText(/1 IQ note/i)).toBeInTheDocument();
+    expect(screen.getByTestId("invoice-submit-claim-button")).toBeEnabled();
   });
 
   it("shows a success empty state in the prepare-claim dialog layout after create", async () => {
@@ -267,5 +379,67 @@ describe("InvoiceClaimsTab advisories", () => {
       "href",
       "/claims/99",
     );
+  });
+
+  it("refreshes the invoice when an advisory fix is applied from the workflow card", async () => {
+    const onInvoiceRefresh = vi.fn().mockResolvedValue(undefined);
+    fetchClaimByInvoice.mockResolvedValue(
+      buildClaim({
+        latest_advisor_evaluation: {
+          id: 1,
+          public_id: "eval-1",
+          claim: 99,
+          status: "completed",
+          selected_validation_codes: [],
+          deterministic_findings: [
+            {
+              code: "GLOBAL_MISSING_TARIFF_FOR_CODED_LINE",
+              name: "Missing tariff",
+              severity: "rejection_risk",
+              category: "coding",
+              message: "Line is missing a tariff code.",
+              source: "rules",
+            },
+          ],
+          ai_findings: [],
+          deterministic_count: 1,
+          ai_count: 0,
+          evaluated_by: null,
+          created_at: "2026-01-01T00:00:00Z",
+        },
+      }),
+    );
+    applyClaimAdvisoryFinding.mockResolvedValue(
+      buildClaim({
+        has_blocking_advisories: false,
+        updated_at: "2026-01-02T00:00:00Z",
+      }),
+    );
+
+    render(
+      <InvoiceClaimsTab
+        invoice={buildInvoice({ claim_status: "draft" })}
+        isActive
+        onInvoiceRefresh={onInvoiceRefresh}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId("claim-advisories-panel")).toBeInTheDocument();
+    });
+
+    fireEvent.click(
+      screen.getByTestId(
+        "claim-advisory-fix-GLOBAL_MISSING_TARIFF_FOR_CODED_LINE",
+      ),
+    );
+    fireEvent.click(screen.getByTestId("claim-advisory-apply-submit"));
+
+    await waitFor(() => {
+      expect(applyClaimAdvisoryFinding).toHaveBeenCalled();
+    });
+    await waitFor(() => {
+      expect(onInvoiceRefresh).toHaveBeenCalledTimes(1);
+    });
   });
 });

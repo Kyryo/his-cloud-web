@@ -32,6 +32,7 @@ import { CustomerVisitStatusBadge } from "@/features/customers/components/Custom
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { formatVisitStartedBy } from "@/features/customers/utils/format-visit-started-by";
 import { EditVisitPaymentDialog } from "@/features/visits/components/EditVisitPaymentDialog";
+import { VisitMemberBenefitsTab } from "@/features/visits/components/VisitMemberBenefitsTab";
 import { OpenEncountersCloseNotice } from "@/features/visits/components/OpenEncountersCloseNotice";
 import { VisitPreAuthorizationTab } from "@/features/visits/components/VisitPreAuthorizationTab";
 import {
@@ -54,12 +55,13 @@ type VisitDetailDialogProps = {
   onVisitUpdated?: () => void;
 };
 
-type VisitDetailTab = "overview" | "preauth" | "encounters";
+type VisitDetailTab = "overview" | "preauth" | "encounters" | "benefits";
 
 const TABS = [
   { id: "overview" as const, label: "Overview" },
   { id: "preauth" as const, label: "Preauth" },
   { id: "encounters" as const, label: "Encounters" },
+  { id: "benefits" as const, label: "Benefits" },
 ];
 
 function EncounterStatusBadge({ status }: { status: string }) {
@@ -412,6 +414,18 @@ export function VisitDetailDialog({
               visit={visit}
               onUpdated={(updatedVisit) => {
                 setVisit(updatedVisit);
+                onVisitUpdated?.();
+              }}
+            />
+          ) : activeTab === "benefits" ? (
+            <VisitMemberBenefitsTab
+              key={visit.uuid}
+              visit={visit}
+              onRefresh={loadVisit}
+              onSnapshotUpdated={(snapshot) => {
+                setVisit((current) =>
+                  current ? { ...current, member_benefits: snapshot } : current,
+                );
                 onVisitUpdated?.();
               }}
             />

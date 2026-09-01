@@ -1,4 +1,5 @@
 import type { PaginatedListResponse } from "@/types/api.types";
+import type { RemittanceLineSettlementStatus } from "@/features/claims/types/remittance-line-settlement.types";
 
 export type ClaimAdvisoryStatus =
   | "pending"
@@ -44,11 +45,41 @@ export type ClaimLineItem = {
   sales_order_line: number | null;
   is_procedure?: boolean;
   dental?: ClaimLineItemDental[];
+  remittance_settlement_status?: RemittanceLineSettlementStatus | null;
   created_at: string;
   updated_at: string;
 };
 
 export type AdvisorFindingSource = "rules" | "iq";
+
+export type AdvisorRemediationObject =
+  | "claim_diagnosis"
+  | "claim_line"
+  | "claim_line_dental"
+  | "customer"
+  | "customer_insurance"
+  | "visit_preauth"
+  | "claim_referral"
+  | "coverage_policy";
+
+export type AdvisorRemediationAction = "add" | "update" | "replace" | "review";
+
+export type AdvisorRemediationTarget = {
+  object: AdvisorRemediationObject;
+  action: AdvisorRemediationAction;
+  ids?: string[];
+  codes?: string[];
+  fields?: string[];
+  hint?: string;
+  suggested_values?: Record<string, unknown>;
+  line_labels?: Record<string, string>;
+};
+
+export type AdvisorRemediation = {
+  resolved?: boolean;
+  resolution?: "model" | "heuristic";
+  targets: AdvisorRemediationTarget[];
+};
 
 export type AdvisorFinding = {
   code: string;
@@ -60,6 +91,7 @@ export type AdvisorFinding = {
   requires_ai_review?: boolean;
   source?: AdvisorFindingSource;
   evidence?: Record<string, unknown>;
+  remediation?: AdvisorRemediation;
 };
 
 export type AdvisorEvaluation = {
@@ -84,6 +116,30 @@ export type ClaimAdvisoryOverride = {
   note: string;
   created_by: number | null;
   created_at: string;
+};
+
+export type ClaimAdvisoryClearance = {
+  id: number;
+  uuid: string;
+  claim: number;
+  finding_code: string;
+  finding_source: AdvisorFindingSource;
+  finding_name: string;
+  severity: string;
+  reason: string;
+  created_by: number | null;
+  created_at: string;
+};
+
+/** Lightweight advisory snapshot returned by the status polling endpoint. */
+export type ClaimAdvisoryStatusSnapshot = {
+  advisory_status?: ClaimAdvisoryStatus;
+  latest_advisor_evaluation?: Pick<
+    AdvisorEvaluation,
+    "id" | "status" | "deterministic_count" | "ai_count"
+  > | null;
+  has_blocking_advisories?: boolean;
+  has_advisory_override?: boolean;
 };
 
 export type ClaimInvoice = {
@@ -151,6 +207,7 @@ export type ClaimDetail = {
   visit_uuid: string;
   invoice: number;
   invoice_id: number;
+  invoice_uuid?: string | null;
   invoice_name?: string | null;
   payer_code: string;
   status: ClaimStatus;
@@ -175,6 +232,7 @@ export type ClaimDetail = {
   latest_advisor_evaluation?: AdvisorEvaluation | null;
   has_blocking_advisories?: boolean;
   has_advisory_override?: boolean;
+  advisory_clearances?: ClaimAdvisoryClearance[];
   /** True when the visit has an active dental-department encounter. */
   has_dental_encounter?: boolean;
   created_at: string;
@@ -193,6 +251,19 @@ export type ClaimListFilters = {
 };
 
 export type ClaimListResponse = PaginatedListResponse<ClaimListItem>;
+
+export type ClaimSummaryStatsBucket = {
+  count: number;
+  total: string;
+};
+
+export type ClaimSummaryStats = {
+  all: ClaimSummaryStatsBucket;
+  draft: ClaimSummaryStatsBucket;
+  submitted: ClaimSummaryStatsBucket;
+  approved: ClaimSummaryStatsBucket;
+  rejected: ClaimSummaryStatsBucket;
+};
 
 export type CreateClaimFromInvoicePayload = {
   verification_token?: string;
@@ -232,6 +303,12 @@ export type UpdateClaimPayload = {
     id: number;
     amount: string;
   }>;
+};
+
+export type ChangeClaimStatusPayload = {
+  status: ClaimStatus;
+  claim_reference_number?: string;
+  external_claim_id?: string;
 };
 
 export type MasmPayerIntegration = {

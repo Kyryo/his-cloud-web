@@ -54,3 +54,4 @@ export {
   ListPageDataTableRow,
 } from "@/features/app-shell/components/page-layout/list-page-data-table";
 export { ListPagePagination } from "@/features/app-shell/components/page-layout/list-page-pagination";
+export { DetailPageSkeleton } from "@/features/app-shell/components/page-layout/detail-page-skeleton";

@@ -2,16 +2,15 @@
 
 import { useEffect, useState } from "react";
 
-import {
-  PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS,
-  PageLoader,
-} from "@/components/page-loader";
 import { PaymentDetailActions } from "@/features/payments/components/detail/PaymentDetailActions";
 import { PaymentDetailHeader } from "@/features/payments/components/detail/PaymentDetailHeader";
 import { PaymentDetailTabs } from "@/features/payments/components/detail/PaymentDetailTabs";
 import { fetchPayment } from "@/features/payments/services/payments.service";
 import type { Payment } from "@/features/payments/types/payment.types";
-import { DetailPageLayout } from "@/features/app-shell/components/page-layout";
+import {
+  DetailPageLayout,
+  DetailPageSkeleton,
+} from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
 
 type PaymentDetailPageProps = {
@@ -54,9 +53,9 @@ export function PaymentDetailPage({ paymentId }: PaymentDetailPageProps) {
 
   if (isLoading) {
     return (
-      <PageLoader
-        message="Loading payment..."
-        className={PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS}
+      <DetailPageSkeleton
+        tabCount={2}
+        data-testid="payment-detail-skeleton"
       />
     );
   }

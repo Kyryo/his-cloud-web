@@ -5,17 +5,16 @@ import { useState, type ReactNode } from "react";
 
 import { SecondaryButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import type { AdvisorFinding } from "@/features/claims/types/claims.types";
+import { FindingClearDialog } from "@/features/claims/components/advisory-fix/FindingClearDialog";
+import { FindingFixDialog } from "@/features/claims/components/advisory-fix/FindingFixDialog";
+import type {
+  AdvisorFinding,
+  ClaimAdvisoryClearance,
+  ClaimDetail,
+} from "@/features/claims/types/claims.types";
 import { getAdvisorFindingEvidenceDisplay } from "@/features/claims/utils/advisor-finding-evidence";
-import { appFont } from "@/lib/fonts";
+import { advisoryFixTargetLabels } from "@/features/claims/utils/advisory-fix-actions";
+import { partitionAdvisorFindings } from "@/features/claims/utils/advisor-findings";
 import { cn } from "@/lib/utils";
 
 function FindingSourceBadge({
@@ -38,161 +37,6 @@ function FindingSourceBadge({
     >
       {isIq ? "IQ" : "Rules"}
     </span>
-  );
-}
-
-function FindingFixDialog({
-  finding,
-  open,
-  onOpenChange,
-}: {
-  finding: AdvisorFinding | null;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
-  if (!finding) {
-    return null;
-  }
-
-  const evidenceDisplay = getAdvisorFindingEvidenceDisplay(finding);
-  const recommendedAction = finding.recommended_action?.trim() ?? "";
-  const severityLabel =
-    finding.severity === "rejection_risk"
-      ? "Rejection risk"
-      : finding.severity === "warning"
-        ? "Warning"
-        : "Advisory";
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className={cn("gap-0 overflow-hidden p-0 sm:max-w-lg", appFont.className)}
-        data-testid="claim-advisory-fix-dialog"
-      >
-        <DialogHeader className="border-b border-brand-border px-6 py-5">
-          <div className="min-w-0 space-y-1.5 pr-6">
-            <div className="flex flex-wrap items-center gap-2">
-              <FindingSourceBadge source={finding.source} />
-              <span
-                className={cn(
-                  "inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium",
-                  finding.severity === "rejection_risk"
-                    ? "bg-red-50 text-red-700"
-                    : finding.severity === "warning"
-                      ? "bg-amber-50 text-amber-800"
-                      : "bg-slate-100 text-brand-slate",
-                )}
-              >
-                {severityLabel}
-              </span>
-              <span className="font-mono text-[11px] text-brand-muted">
-                {finding.code}
-              </span>
-            </div>
-            <DialogTitle className="text-base leading-snug">
-              {finding.name}
-            </DialogTitle>
-            <DialogDescription className="text-sm leading-relaxed">
-              {finding.message}
-            </DialogDescription>
-          </div>
-        </DialogHeader>
-
-        <div className="space-y-5 px-6 py-5">
-          {recommendedAction ? (
-            <section className="space-y-2">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-brand-muted">
-                How to resolve
-              </h3>
-              <div className="rounded-xl border border-brand-border bg-slate-50/80 px-4 py-3.5">
-                <p className="text-sm leading-relaxed text-brand-navy">
-                  {recommendedAction}
-                </p>
-              </div>
-            </section>
-          ) : null}
-
-          {evidenceDisplay?.coverageCitation ? (
-            <section className="space-y-2">
-              <h3 className="text-xs font-semibold uppercase tracking-wide text-brand-muted">
-                Coverage
-              </h3>
-              <p
-                className="text-sm text-brand-navy"
-                data-testid="claim-advisory-coverage-citation-dialog"
-              >
-                {evidenceDisplay.coverageCitation}
-              </p>
-            </section>
-          ) : null}
-
-          {evidenceDisplay && evidenceDisplay.lines.length > 0 ? (
-            <section
-              className="space-y-2.5"
-              data-testid="claim-advisory-finding-evidence"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="text-xs font-semibold uppercase tracking-wide text-brand-muted">
-                  Affected lines
-                </h3>
-                {evidenceDisplay.contextLabel ? (
-                  <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-medium text-brand-slate">
-                    {evidenceDisplay.contextLabel}
-                  </span>
-                ) : null}
-              </div>
-              <ul className="divide-y divide-brand-border overflow-hidden rounded-xl border border-brand-border bg-white">
-                {evidenceDisplay.lines.map((line) => (
-                  <li
-                    key={line.key}
-                    className="px-4 py-3.5"
-                    data-testid="claim-advisory-finding-evidence-line"
-                  >
-                    <div className="flex flex-wrap items-baseline justify-between gap-2">
-                      <p className="text-sm font-medium text-brand-navy">
-                        {line.description}
-                      </p>
-                      {line.procedureCode ? (
-                        <span className="font-mono text-xs text-brand-muted">
-                          {line.procedureCode}
-                        </span>
-                      ) : null}
-                    </div>
-                    {line.detailParts.length > 0 ? (
-                      <ul className="mt-2 space-y-1">
-                        {line.detailParts.map((part) => (
-                          <li
-                            key={part}
-                            className="text-xs leading-relaxed text-brand-slate"
-                          >
-                            {part}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
-
-          {!recommendedAction &&
-          !evidenceDisplay?.coverageCitation &&
-          !(evidenceDisplay && evidenceDisplay.lines.length > 0) ? (
-            <p className="text-sm leading-relaxed text-brand-muted">
-              Review this finding and update the claim or patient details before
-              submitting.
-            </p>
-          ) : null}
-        </div>
-
-        <DialogFooter className="mt-0 border-t border-brand-border px-6 py-4">
-          <SecondaryButton type="button" onClick={() => onOpenChange(false)}>
-            Close
-          </SecondaryButton>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 }
 
@@ -233,13 +77,45 @@ function groupFindingsBySeverity(
   }));
 }
 
+function isDraftClaim(claim: ClaimDetail | null | undefined): boolean {
+  return String(claim?.status ?? "").toLowerCase() === "draft";
+}
+
+function formatClearanceTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+  return date.toLocaleString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 const MAX_VISIBLE_FINDINGS = 5;
 
-function FindingsList({ findings }: { findings: AdvisorFinding[] }) {
+function FindingsList({
+  findings,
+  claim,
+  canEdit,
+  onClaimUpdated,
+}: {
+  findings: AdvisorFinding[];
+  claim?: ClaimDetail | null;
+  canEdit: boolean;
+  onClaimUpdated?: (claim: ClaimDetail) => void;
+}) {
   const [selectedFinding, setSelectedFinding] = useState<AdvisorFinding | null>(
     null,
   );
+  const [clearingFinding, setClearingFinding] = useState<AdvisorFinding | null>(
+    null,
+  );
   const [showAll, setShowAll] = useState(false);
+  const showFix = claim == null || canEdit;
   const sorted = sortFindingsBySeverity(findings);
   const visible = showAll ? sorted : sorted.slice(0, MAX_VISIBLE_FINDINGS);
   const hiddenCount = Math.max(0, sorted.length - MAX_VISIBLE_FINDINGS);
@@ -276,55 +152,82 @@ function FindingsList({ findings }: { findings: AdvisorFinding[] }) {
               {group.findings.map((finding) => {
                 const coverageCitation =
                   getAdvisorFindingEvidenceDisplay(finding)?.coverageCitation;
+                const needsUpdate = advisoryFixTargetLabels(finding);
                 return (
-                <li
-                  key={`${finding.source ?? "rules"}-${finding.code}`}
-                  className="flex items-stretch"
-                  data-testid={`claim-advisory-finding-${finding.code}`}
-                >
-                  <span
-                    className={cn(
-                      "w-1 shrink-0",
-                      group.severity === "rejection_risk"
-                        ? "bg-red-500"
-                        : group.severity === "warning"
-                          ? "bg-amber-500"
-                          : "bg-slate-300",
-                    )}
-                    aria-hidden="true"
-                  />
-                  <div className="flex min-w-0 flex-1 items-start gap-3 px-4 py-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-sm font-medium leading-snug text-brand-navy">
-                          {finding.name}
+                  <li
+                    key={`${finding.source ?? "rules"}-${finding.code}`}
+                    className="flex items-stretch"
+                    data-testid={`claim-advisory-finding-${finding.code}`}
+                  >
+                    <span
+                      className={cn(
+                        "w-1 shrink-0",
+                        group.severity === "rejection_risk"
+                          ? "bg-red-500"
+                          : group.severity === "warning"
+                            ? "bg-amber-500"
+                            : "bg-slate-300",
+                      )}
+                      aria-hidden="true"
+                    />
+                    <div className="flex min-w-0 flex-1 items-start gap-3 px-4 py-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-medium leading-snug text-brand-navy">
+                            {finding.name}
+                          </p>
+                          <FindingSourceBadge source={finding.source} />
+                        </div>
+                        <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-brand-muted">
+                          {finding.message}
                         </p>
-                        <FindingSourceBadge source={finding.source} />
+                        {coverageCitation ? (
+                          <p
+                            className="mt-1 text-[11px] text-brand-slate"
+                            data-testid="claim-advisory-coverage-citation"
+                          >
+                            {coverageCitation}
+                          </p>
+                        ) : null}
+                        {needsUpdate.length > 0 ? (
+                          <p
+                            className="mt-1 text-[11px] text-brand-navy"
+                            data-testid="claim-advisory-needs-update"
+                          >
+                            Needs update: {needsUpdate.join(", ")}
+                          </p>
+                        ) : null}
                       </div>
-                      <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-brand-muted">
-                        {finding.message}
-                      </p>
-                      {coverageCitation ? (
-                        <p
-                          className="mt-1 text-[11px] text-brand-slate"
-                          data-testid="claim-advisory-coverage-citation"
-                        >
-                          {coverageCitation}
-                        </p>
+                      {showFix || canEdit ? (
+                        <div className="flex shrink-0 items-center gap-2">
+                          {canEdit ? (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-8 rounded-full border-brand-border px-3.5 text-brand-muted hover:border-brand-navy/30 hover:text-brand-navy"
+                              onClick={() => setClearingFinding(finding)}
+                              data-testid={`claim-advisory-clear-${finding.code}`}
+                            >
+                              Clear
+                            </Button>
+                          ) : null}
+                          {showFix ? (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              className="h-8 rounded-full border-brand-navy/20 px-3.5 text-brand-navy hover:border-brand-navy hover:bg-brand-tint"
+                              onClick={() => setSelectedFinding(finding)}
+                              data-testid={`claim-advisory-fix-${finding.code}`}
+                            >
+                              Fix
+                            </Button>
+                          ) : null}
+                        </div>
                       ) : null}
                     </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-8 shrink-0 rounded-full border-brand-navy/20 px-3.5 text-brand-navy hover:border-brand-navy hover:bg-brand-tint"
-                      onClick={() => setSelectedFinding(finding)}
-                      data-testid={`claim-advisory-fix-${finding.code}`}
-                    >
-                      Fix
-                    </Button>
-                  </div>
-                </li>
+                  </li>
                 );
               })}
             </ul>
@@ -353,13 +256,95 @@ function FindingsList({ findings }: { findings: AdvisorFinding[] }) {
             setSelectedFinding(null);
           }
         }}
+        claim={claim}
+        canEdit={canEdit}
+        onApplied={onClaimUpdated}
       />
+      {claim ? (
+        <FindingClearDialog
+          finding={clearingFinding}
+          claim={claim}
+          open={clearingFinding != null}
+          onOpenChange={(open) => {
+            if (!open) {
+              setClearingFinding(null);
+            }
+          }}
+          onCleared={onClaimUpdated}
+        />
+      ) : null}
     </>
+  );
+}
+
+function ClearedFindingsGroup({
+  clearances,
+}: {
+  clearances: ClaimAdvisoryClearance[];
+}) {
+  const [open, setOpen] = useState(false);
+  if (clearances.length === 0) {
+    return null;
+  }
+
+  return (
+    <section
+      className="border-t border-brand-border"
+      data-testid="claim-advisory-cleared-group"
+    >
+      <button
+        type="button"
+        className="flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
+        onClick={() => setOpen((current) => !current)}
+        aria-expanded={open}
+        data-testid="claim-advisory-cleared-toggle"
+      >
+        <span className="text-[11px] font-semibold tracking-wide text-brand-muted">
+          Cleared
+        </span>
+        <span className="inline-flex items-center gap-2 text-[11px] text-brand-muted">
+          <span className="tabular-nums">{clearances.length}</span>
+          <ChevronDown
+            className={cn("size-3.5 transition-transform", open && "rotate-180")}
+            aria-hidden="true"
+          />
+        </span>
+      </button>
+      {open ? (
+        <ul className="divide-y divide-brand-border border-t border-brand-border">
+          {clearances.map((clearance) => (
+            <li
+              key={clearance.uuid || `${clearance.finding_source}-${clearance.finding_code}`}
+              className="px-4 py-3"
+              data-testid={`claim-advisory-cleared-${clearance.finding_code}`}
+            >
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <p className="text-sm font-medium text-brand-navy">
+                  {clearance.finding_name || clearance.finding_code}
+                </p>
+                <span className="font-mono text-[11px] text-brand-muted">
+                  {clearance.finding_code}
+                </span>
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-brand-muted">
+                {clearance.reason}
+              </p>
+              <p className="mt-1 text-[11px] text-brand-slate">
+                {clearance.created_by != null ? `User ${clearance.created_by} · ` : ""}
+                {formatClearanceTime(clearance.created_at)}
+              </p>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </section>
   );
 }
 
 export type ClaimAdvisoryFindingsCardProps = {
   findings: AdvisorFinding[];
+  claim?: ClaimDetail | null;
+  onClaimUpdated?: (claim: ClaimDetail) => void;
   onReEvaluate?: () => void;
   isReEvaluating?: boolean;
   /** Left-side footer actions (e.g. Edit draft, Record override). */
@@ -379,6 +364,8 @@ export type ClaimAdvisoryFindingsCardProps = {
  */
 export function ClaimAdvisoryFindingsCard({
   findings,
+  claim,
+  onClaimUpdated,
   onReEvaluate,
   isReEvaluating = false,
   footerActions,
@@ -390,15 +377,21 @@ export function ClaimAdvisoryFindingsCard({
   testId = "claim-advisory-findings",
 }: ClaimAdvisoryFindingsCardProps) {
   const [detailsOpen, setDetailsOpen] = useState(true);
-  const rejectionCount = findings.filter(
+  const clearances = claim?.advisory_clearances ?? [];
+  const { open: openFindings } = partitionAdvisorFindings(findings, clearances);
+  const canEdit = isDraftClaim(claim);
+  const rejectionCount = openFindings.filter(
     (finding) => finding.severity === "rejection_risk",
   ).length;
-  const warningCount = findings.filter(
+  const warningCount = openFindings.filter(
     (finding) => finding.severity === "warning",
   ).length;
-  const otherCount = Math.max(0, findings.length - rejectionCount - warningCount);
-  const iqCount = findings.filter((finding) => finding.source === "iq").length;
-  const allClear = findings.length === 0;
+  const otherCount = Math.max(
+    0,
+    openFindings.length - rejectionCount - warningCount,
+  );
+  const iqCount = openFindings.filter((finding) => finding.source === "iq").length;
+  const allClear = openFindings.length === 0 && clearances.length === 0;
   const showFooter =
     Boolean(onReEvaluate) || Boolean(footerActions) || Boolean(footerContent);
 
@@ -464,7 +457,7 @@ export function ClaimAdvisoryFindingsCard({
       <div className="flex items-center justify-between gap-3 px-4 py-3">
         <div className="min-w-0 flex flex-wrap items-center gap-2">
           <span className="text-sm font-medium text-brand-navy">
-            {findings.length} finding{findings.length === 1 ? "" : "s"}
+            {openFindings.length} finding{openFindings.length === 1 ? "" : "s"}
           </span>
           <span className="hidden text-brand-border sm:inline" aria-hidden="true">
             ·
@@ -520,7 +513,15 @@ export function ClaimAdvisoryFindingsCard({
           {notice ? (
             <div className="border-b border-brand-border px-4 py-3">{notice}</div>
           ) : null}
-          <FindingsList findings={findings} />
+          {openFindings.length > 0 ? (
+            <FindingsList
+              findings={openFindings}
+              claim={claim}
+              canEdit={canEdit}
+              onClaimUpdated={onClaimUpdated}
+            />
+          ) : null}
+          <ClearedFindingsGroup clearances={clearances} />
         </div>
       ) : null}
 

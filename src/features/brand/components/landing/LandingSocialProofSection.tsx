@@ -37,7 +37,7 @@ export function LandingSocialProofSection() {
       className="bg-white"
     >
       <motion.div
-        className="mx-auto max-w-6xl px-6 pb-0 pt-10 sm:px-10 sm:pt-12 lg:px-12 lg:pt-14"
+        className="mx-auto max-w-6xl px-6 pb-4 pt-8 sm:px-10 sm:pb-5 sm:pt-10 lg:px-12 lg:pt-11"
         variants={sectionVariants}
         initial={reduceMotion ? "visible" : "hidden"}
         whileInView="visible"
@@ -46,14 +46,14 @@ export function LandingSocialProofSection() {
         <motion.h2
           id="landing-social-proof-heading"
           variants={fadeUp}
-          className="landing-display text-center text-[1.15rem] font-semibold tracking-[-0.03em] text-[color:var(--landing-ink)] sm:text-[1.3rem]"
+          className="landing-body text-center text-sm font-medium tracking-normal text-[color:var(--landing-ledger-ink)] sm:text-[0.9375rem]"
         >
           {LANDING_SOCIAL_PROOF.headline}
         </motion.h2>
 
         <motion.div
           variants={fadeUp}
-          className="mt-5 overflow-hidden rounded-[var(--landing-radius)] bg-[color:var(--landing-border)] sm:mt-6"
+          className="mt-4 overflow-hidden rounded-[var(--landing-radius)] bg-[color:var(--landing-border)] sm:mt-5"
         >
           <ul
             className="grid grid-cols-2 gap-px md:grid-cols-3"
@@ -83,13 +83,6 @@ export function LandingSocialProofSection() {
             ))}
           </ul>
         </motion.div>
-
-        <motion.p
-          variants={fadeUp}
-          className="landing-body mx-auto mt-3 max-w-xl text-center text-sm leading-relaxed text-[color:var(--landing-ledger-ink)] sm:mt-4"
-        >
-          {LANDING_SOCIAL_PROOF.supporting}
-        </motion.p>
       </motion.div>
     </section>
   );

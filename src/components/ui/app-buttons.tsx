@@ -42,16 +42,38 @@ export function DestructiveButton({ className, ...props }: AppButtonProps) {
 type AddActionButtonProps = AppButtonProps & {
   label?: string;
   showIcon?: boolean;
+  /** Outlined secondary styling for tab empty states. */
+  emptyState?: boolean;
 };
 
 /** Secondary tab action — ghost style so page-level primary actions stay prominent. */
 export function TabAddActionButton({
   label = "Add",
   showIcon = true,
+  emptyState = false,
   className,
   children,
   ...props
 }: AddActionButtonProps) {
+  const content = (
+    <>
+      {showIcon ? <AppIcon name="add" size={14} /> : null}
+      {children ?? label}
+    </>
+  );
+
+  if (emptyState) {
+    return (
+      <SecondaryButton
+        size="sm"
+        className={cn("h-8 gap-1.5 px-4", className)}
+        {...props}
+      >
+        {content}
+      </SecondaryButton>
+    );
+  }
+
   return (
     <Button
       variant="ghost"
@@ -59,8 +81,7 @@ export function TabAddActionButton({
       className={cn("h-8 gap-1.5 px-2.5 text-brand-navy", className)}
       {...props}
     >
-      {showIcon ? <AppIcon name="add" size={14} /> : null}
-      {children ?? label}
+      {content}
     </Button>
   );
 }

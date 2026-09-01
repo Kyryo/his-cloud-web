@@ -191,7 +191,7 @@ export function SalesOrdersListPage() {
   }
 
   function handleRowClick(order: SalesOrder) {
-    router.push(ROUTES.salesOrderDetail(order.id));
+    router.push(ROUTES.salesOrderDetail(order.uuid));
   }
 
   if (isUnauthorized) {
@@ -298,7 +298,7 @@ export function SalesOrdersListPage() {
       <CreateSalesOrderDialog
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
-        onCreated={(order) => router.push(ROUTES.salesOrderDetail(order.id))}
+        onCreated={(order) => router.push(ROUTES.salesOrderDetail(order.uuid))}
       />
     </ListPageLayout>
   );

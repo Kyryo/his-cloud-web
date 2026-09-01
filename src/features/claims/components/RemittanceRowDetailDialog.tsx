@@ -4,6 +4,7 @@ import { useEffect, useState, type ReactNode } from "react";
 
 import { SecondaryButton } from "@/components/ui/app-buttons";
 import { TabbedDialog } from "@/components/ui/tabbed-dialog";
+import { RemittanceRowResolutionStatusBadge } from "@/features/claims/components/RemittanceRowResolutionStatusBadge";
 import type { RemittanceRow } from "@/features/claims/types/remittances.types";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
@@ -15,10 +16,6 @@ type RemittanceRowDetailDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
-
-function formatResolutionStatus(status: RemittanceRow["resolution_status"]): string {
-  return status.replace(/_/g, " ");
-}
 
 function DetailRow({
   label,
@@ -132,10 +129,12 @@ export function RemittanceRowDetailDialog({
         <div className="space-y-4">
           <DetailPanel>
             <dl className="space-y-3">
-              <DetailRow
-                label="Status"
-                value={formatResolutionStatus(row.resolution_status)}
-              />
+              <div className="flex items-start justify-between gap-4">
+                <dt className="shrink-0 text-brand-muted">Status</dt>
+                <dd>
+                  <RemittanceRowResolutionStatusBadge status={row.resolution_status} />
+                </dd>
+              </div>
               <DetailRow label="Treatment date" value={row.service_date || "—"} />
               <DetailRow label="Member #" value={row.member_number || "—"} mono />
               <DetailRow label="Patient" value={patientName} />

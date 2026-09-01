@@ -16,6 +16,7 @@ describe("customer list filters", () => {
         gender: "Female",
         activeStatus: "active",
         ordering: "-created_at",
+        tags: [],
       }),
     ).toEqual({
       search: "Ada",
@@ -27,12 +28,35 @@ describe("customer list filters", () => {
     });
   });
 
+  it("maps tag filters to comma-separated query values", () => {
+    expect(
+      buildCustomerListFilters({
+        search: "",
+        page: 1,
+        pageSize: 20,
+        gender: "all",
+        activeStatus: "all",
+        ordering: DEFAULT_CUSTOMER_ORDERING,
+        tags: ["tag-a", "tag-b"],
+      }),
+    ).toEqual({
+      search: undefined,
+      page: 1,
+      pageSize: 20,
+      gender: undefined,
+      isActive: undefined,
+      ordering: DEFAULT_CUSTOMER_ORDERING,
+      tags: ["tag-a", "tag-b"],
+    });
+  });
+
   it("counts non-default filters", () => {
     expect(
       countActiveCustomerFilters({
         gender: "all",
         activeStatus: "all",
         ordering: DEFAULT_CUSTOMER_ORDERING,
+        tags: [],
       }),
     ).toBe(0);
 
@@ -41,7 +65,8 @@ describe("customer list filters", () => {
         gender: "Male",
         activeStatus: "inactive",
         ordering: "first_name",
+        tags: ["tag-a"],
       }),
-    ).toBe(3);
+    ).toBe(4);
   });
 });

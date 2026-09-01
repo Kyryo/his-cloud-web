@@ -10,6 +10,7 @@ export type Payment = {
   customer_uuid: string | null;
   customer_name: string | null;
   invoice_id?: number | null;
+  invoice_uuid?: string | null;
   invoice_name?: string | null;
   invoice_state?: string | null;
   amount: string | number;

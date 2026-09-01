@@ -55,7 +55,8 @@ export function ClaimDetailTabs({
   const [activeTab, setActiveTab] = useState<DetailTabId>("advisories");
   const [showSummaryPanel, setShowSummaryPanel] = useState(false);
   const [visitDialogOpen, setVisitDialogOpen] = useState(false);
-  const invoiceId = claim.invoice_id || claim.invoice || null;
+  const invoiceRef =
+    claim.invoice_uuid ?? claim.invoice_id ?? claim.invoice ?? null;
   const visitUuid = claim.visit_uuid || null;
   const claimedItemCount =
     claim.claim_invoices?.reduce(
@@ -123,7 +124,7 @@ export function ClaimDetailTabs({
             isActive={resolvedActiveTab === "reference"}
           />
           <ClaimDetailActivityTab
-            invoiceId={invoiceId}
+            invoiceId={invoiceRef}
             isActive={resolvedActiveTab === "activity"}
           />
         </DetailPageMainSection>

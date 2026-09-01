@@ -10,6 +10,10 @@ export const CUSTOMERS_API_PATHS = {
     `/customers/${customerUuid}/insurance/${insuranceUuid}/`,
   billing: (uuid: string) => `/customers/${uuid}/billing/`,
   openingBalance: (uuid: string) => `/customers/${uuid}/opening-balance/`,
+  memberBenefits: (uuid: string) => `/customers/${uuid}/member-benefits/`,
+  memberBenefitsCheck: (uuid: string) =>
+    `/customers/${uuid}/member-benefits/check/`,
+  tags: (uuid: string) => `/customers/${uuid}/tags/`,
   visits: (uuid: string, query?: { limit?: number }) =>
     VISITS_API_PATHS.customerVisits(uuid, query),
 } as const;

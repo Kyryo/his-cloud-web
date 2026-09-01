@@ -1,70 +1,47 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  ListPageToolbarActions,
-  ListPageToolbarSearch,
-  ListPageToolbarSection,
-} from "@/features/app-shell/components/page-layout";
+import { ListPageSearchToolbar } from "@/features/app-shell/components/page-layout";
+import { RemittanceRowsFiltersSheet } from "@/features/claims/components/RemittanceRowsFiltersSheet";
+import type { RemittanceRowListFilterState } from "@/features/claims/utils/remittance-row-list-filters";
 
 type RemittanceRowsToolbarProps = {
   search: string;
+  filters: RemittanceRowListFilterState;
   isLoading?: boolean;
   onSearchChange: (value: string) => void;
   onSearchSubmit: () => void;
   onClearSearch: () => void;
+  onFiltersApply: (filters: RemittanceRowListFilterState) => void;
 };
 
 export function RemittanceRowsToolbar({
   search,
+  filters,
   isLoading = false,
   onSearchChange,
   onSearchSubmit,
   onClearSearch,
+  onFiltersApply,
 }: RemittanceRowsToolbarProps) {
   return (
-    <ListPageToolbarSection>
-      <ListPageToolbarSearch>
-        <Input
-          id="remittance-rows-search"
-          type="search"
-          placeholder="Search by patient, member #, invoice, claim #, code, or reason…"
-          value={search}
-          disabled={isLoading}
-          className="w-full sm:max-w-md"
-          onChange={(event) => onSearchChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter") {
-              onSearchSubmit();
-            }
-          }}
-          data-testid="remittance-rows-search"
+    <ListPageSearchToolbar
+      search={search}
+      searchId="remittance-rows-search"
+      placeholder="Search patient, member #, invoice, claim #, code, or reason..."
+      searchTestId="remittance-rows-search"
+      searchSubmitTestId="remittance-rows-search-submit"
+      clearTestId="remittance-rows-search-clear"
+      isLoading={isLoading}
+      onSearchChange={onSearchChange}
+      onSearchSubmit={onSearchSubmit}
+      onClearSearch={onClearSearch}
+      filter={
+        <RemittanceRowsFiltersSheet
+          filters={filters}
+          isLoading={isLoading}
+          onApply={onFiltersApply}
         />
-
-        <ListPageToolbarActions>
-          <Button
-            type="button"
-            variant="outline"
-            disabled={isLoading}
-            onClick={onSearchSubmit}
-            data-testid="remittance-rows-search-submit"
-          >
-            Search
-          </Button>
-          {search ? (
-            <Button
-              type="button"
-              variant="outline"
-              disabled={isLoading}
-              onClick={onClearSearch}
-              data-testid="remittance-rows-search-clear"
-            >
-              Clear
-            </Button>
-          ) : null}
-        </ListPageToolbarActions>
-      </ListPageToolbarSearch>
-    </ListPageToolbarSection>
+      }
+    />
   );
 }

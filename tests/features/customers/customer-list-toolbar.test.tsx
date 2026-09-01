@@ -12,6 +12,7 @@ const defaultFilters = {
   gender: "all" as const,
   activeStatus: "all" as const,
   ordering: DEFAULT_CUSTOMER_ORDERING,
+  tags: [] as string[],
 };
 
 describe("CustomerListToolbar", () => {

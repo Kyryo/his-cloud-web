@@ -16,7 +16,7 @@ import {
   fetchClaim,
 } from "@/features/claims/services/claims.service";
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
-import { asAdvisorFindings, mergeAdvisorFindings } from "@/features/claims/utils/advisor-findings";
+import { asAdvisorFindings, mergeAdvisorFindings, partitionAdvisorFindings } from "@/features/claims/utils/advisor-findings";
 import { isClaimAdvisoryProcessing } from "@/features/claims/utils/claim-advisory-status";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
@@ -49,9 +49,9 @@ export function ClaimAdvisoryBlockingAlert({
           Submit is blocked until findings are resolved
         </p>
         <p className="text-sm text-red-800/90">
-          Open {countLabel}, click <span className="font-medium">Fix</span>, then{" "}
-          <span className="font-medium">Re-evaluate</span>. Use override only if
-          this claim should proceed as-is.
+          Open {countLabel}, then <span className="font-medium">Fix</span> or{" "}
+          <span className="font-medium">Clear</span>. Use override only if this
+          claim should proceed as-is.
         </p>
       </div>
     </div>
@@ -102,6 +102,10 @@ export function ClaimAdvisoriesCard({
     evaluation?.deterministic_findings ?? [],
     asAdvisorFindings(evaluation?.ai_findings),
   );
+  const { open: openFindings } = partitionAdvisorFindings(
+    findings,
+    claim.advisory_clearances,
+  );
   const isPendingIq = evaluation?.status === "pending_ai";
   const hasBlocking = Boolean(claim.has_blocking_advisories);
   const hasOverride = Boolean(claim.has_advisory_override);
@@ -133,12 +137,19 @@ export function ClaimAdvisoriesCard({
           "This can take a minute while we check insurer rules and AI review. We'll notify you when results are ready.",
       });
     } catch (error) {
+      const isRateLimited =
+        error instanceof BffError && error.status === 429;
       toast({
         variant: "error",
-        title: "Could not start advisories",
+        title: isRateLimited
+          ? "IQ review is temporarily limited"
+          : "Could not start advisories",
         description:
           error instanceof BffError
-            ? formatBffErrorMessage(error.message, error.errors)
+            ? formatBffErrorMessage(error.message, error.errors) ||
+              (isRateLimited
+                ? "Please wait a few minutes before re-running advisories."
+                : "Something went wrong.")
             : error instanceof Error
               ? error.message
               : "Something went wrong.",
@@ -258,9 +269,9 @@ export function ClaimAdvisoriesCard({
       {canRecordOverride ? (
         <ClaimAdvisoryBlockingAlert
           findingCount={
-            findings.filter((finding) => finding.severity === "rejection_risk")
+            openFindings.filter((finding) => finding.severity === "rejection_risk")
               .length ||
-            findings.filter((finding) => finding.source !== "iq").length
+            openFindings.filter((finding) => finding.source !== "iq").length
           }
         />
       ) : null}
@@ -366,42 +377,43 @@ export function ClaimAdvisoriesCard({
                     minute. We&apos;ll notify you when results are ready.
                   </p>
                 </div>
-              ) : null}
-              <ClaimAdvisoryFindingsCard
-                findings={findings}
-                onReEvaluate={
-                  showOverrideForm || isProcessing
-                    ? undefined
-                    : () => void handleEvaluate()
-                }
-                isReEvaluating={isEvaluating || isProcessing}
-                emptyTitle={
-                  isPendingIq
-                    ? "IQ review is in progress"
-                    : "We did not find any advisory issues on this claim"
-                }
-                emptyDescription={
-                  isPendingIq
-                    ? "Payer-rule checks finished. Claims intelligence notes will appear in this list."
-                    : "Validation packs returned no rejection risks or warnings for the current claim data."
-                }
-                notice={
-                  isPendingIq ? (
-                    <div
-                      className="flex items-center justify-center gap-2 text-sm text-brand-navy"
-                      data-testid="claim-iq-review-pending"
-                    >
-                      <Loader2
-                        className="size-4 shrink-0 animate-spin text-brand-muted"
-                        aria-hidden="true"
-                      />
-                      IQ review is in progress.
-                    </div>
-                  ) : null
-                }
-                footerActions={findingsFooterActions}
-                footerContent={overrideFooterContent}
-              />
+              ) : (
+                <ClaimAdvisoryFindingsCard
+                  findings={findings}
+                  claim={claim}
+                  onClaimUpdated={onClaimUpdated}
+                  onReEvaluate={
+                    showOverrideForm ? undefined : () => void handleEvaluate()
+                  }
+                  isReEvaluating={isEvaluating}
+                  emptyTitle={
+                    isPendingIq
+                      ? "IQ review is in progress"
+                      : "We did not find any advisory issues on this claim"
+                  }
+                  emptyDescription={
+                    isPendingIq
+                      ? "Payer-rule checks finished. Claims intelligence notes will appear in this list."
+                      : "Validation packs returned no rejection risks or warnings for the current claim data."
+                  }
+                  notice={
+                    isPendingIq ? (
+                      <div
+                        className="flex items-center justify-center gap-2 text-sm text-brand-navy"
+                        data-testid="claim-iq-review-pending"
+                      >
+                        <Loader2
+                          className="size-4 shrink-0 animate-spin text-brand-muted"
+                          aria-hidden="true"
+                        />
+                        IQ review is in progress.
+                      </div>
+                    ) : null
+                  }
+                  footerActions={findingsFooterActions}
+                  footerContent={overrideFooterContent}
+                />
+              )}
             </div>
           )}
         </div>

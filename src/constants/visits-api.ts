@@ -7,6 +7,8 @@ export const VISITS_API_PATHS = {
   reopen: (uuid: string) => `/visits/${uuid}/reopen/`,
   modeOfPayment: (uuid: string) => `/visits/${uuid}/mode-of-payment/`,
   preAuthorization: (uuid: string) => `/visits/${uuid}/pre-authorization/`,
+  memberBenefitsRefresh: (uuid: string) =>
+    `/visits/${uuid}/member-benefits/refresh/`,
   fromAppointment: (appointmentUuid: string) =>
     `/visits/from-appointment/${appointmentUuid}/`,
   encounters: (uuid: string) => `/visits/${uuid}/encounters/`,

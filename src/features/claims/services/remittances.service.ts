@@ -3,16 +3,15 @@ import type {
   RemittanceBatch,
   RemittanceBatchDetail,
   RemittanceBatchListResponse,
+  RemittanceListFilters,
   RemittanceRow,
   RemittanceRowListResponse,
+  RemittanceBatchRowSummaryStats,
+  RemittanceSummaryStats,
 } from "@/features/claims/types/remittances.types";
 import { bffRequest } from "@/lib/bff-client";
 
-export async function fetchRemittanceBatches(filters: {
-  page?: number;
-  pageSize?: number;
-  status?: string;
-} = {}): Promise<RemittanceBatchListResponse> {
+function buildRemittancesQuery(filters: RemittanceListFilters = {}): string {
   const params = new URLSearchParams();
   if (filters.page) {
     params.set("page", String(filters.page));
@@ -23,9 +22,26 @@ export async function fetchRemittanceBatches(filters: {
   if (filters.status) {
     params.set("status", filters.status);
   }
+  if (filters.search?.trim()) {
+    params.set("search", filters.search.trim());
+  }
   const query = params.toString();
+  return query ? `?${query}` : "";
+}
+
+export async function fetchRemittanceBatches(
+  filters: RemittanceListFilters = {},
+): Promise<RemittanceBatchListResponse> {
   return bffRequest<RemittanceBatchListResponse>(
-    `${BFF_CLAIMS_ROUTES.remittances}${query ? `?${query}` : ""}`,
+    `${BFF_CLAIMS_ROUTES.remittances}${buildRemittancesQuery(filters)}`,
+  );
+}
+
+export async function fetchRemittanceSummaryStats(
+  filters: Omit<RemittanceListFilters, "page" | "pageSize"> = {},
+): Promise<RemittanceSummaryStats> {
+  return bffRequest<RemittanceSummaryStats>(
+    `${BFF_CLAIMS_ROUTES.remittancesSummaryStats}${buildRemittancesQuery(filters)}`,
   );
 }
 
@@ -58,9 +74,23 @@ export async function renameRemittanceBatch(
   );
 }
 
+export async function rematchRemittanceBatch(
+  batchId: number | string,
+): Promise<RemittanceBatchDetail> {
+  return bffRequest<RemittanceBatchDetail>(
+    BFF_CLAIMS_ROUTES.remittanceRematch(batchId),
+    { method: "POST" },
+  );
+}
+
 export async function fetchRemittanceRows(
   batchId: number | string,
-  filters: { page?: number; pageSize?: number; search?: string } = {},
+  filters: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    resolutionStatus?: string;
+  } = {},
 ): Promise<RemittanceRowListResponse> {
   const params = new URLSearchParams();
   if (filters.page) {
@@ -72,9 +102,20 @@ export async function fetchRemittanceRows(
   if (filters.search?.trim()) {
     params.set("search", filters.search.trim());
   }
+  if (filters.resolutionStatus && filters.resolutionStatus !== "all") {
+    params.set("resolution_status", filters.resolutionStatus);
+  }
   const query = params.toString();
   return bffRequest<RemittanceRowListResponse>(
     `${BFF_CLAIMS_ROUTES.remittanceRows(batchId)}${query ? `?${query}` : ""}`,
+  );
+}
+
+export async function fetchRemittanceBatchRowSummaryStats(
+  batchId: number | string,
+): Promise<RemittanceBatchRowSummaryStats> {
+  return bffRequest<RemittanceBatchRowSummaryStats>(
+    BFF_CLAIMS_ROUTES.remittanceRowsSummaryStats(batchId),
   );
 }
 

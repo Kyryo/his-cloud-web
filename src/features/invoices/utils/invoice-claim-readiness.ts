@@ -204,6 +204,29 @@ export function hasClaimRequirementIssues(
   );
 }
 
+/** Checklist shown before a draft claim exists (system + line-level requirements). */
+export function getCreateClaimChecklistItems(
+  readinessItems: InvoiceClaimReadinessItem[],
+  requirementItems: InvoiceClaimReadinessItem[],
+  claim?: ClaimDetail | null,
+): InvoiceClaimReadinessItem[] {
+  return claim ? requirementItems : [...readinessItems, ...requirementItems];
+}
+
+export function getCreateClaimDisabledReasonFromItems(
+  readinessItems: InvoiceClaimReadinessItem[],
+  requirementItems: InvoiceClaimReadinessItem[],
+  claim?: ClaimDetail | null,
+): string | undefined {
+  const unmet = getBlockingRequirementItems(
+    getCreateClaimChecklistItems(readinessItems, requirementItems, claim),
+  ).filter((item) => !item.met);
+  if (unmet.length === 0) {
+    return undefined;
+  }
+  return `Complete before creating a claim: ${unmet.map((item) => item.label).join("; ")}`;
+}
+
 /**
  * Non-blocking: dental claim has at least one procedure line without teeth.
  */

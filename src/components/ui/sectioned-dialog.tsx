@@ -55,7 +55,11 @@ export function SectionedDialog({
           <DialogHeader className="pr-8">
             <DialogTitle>{title}</DialogTitle>
             {description ? (
-              <DialogDescription>{description}</DialogDescription>
+              typeof description === "string" ? (
+                <DialogDescription>{description}</DialogDescription>
+              ) : (
+                <DialogDescription asChild>{description}</DialogDescription>
+              )
             ) : null}
           </DialogHeader>
           {headerExtra}

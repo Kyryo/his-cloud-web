@@ -30,6 +30,8 @@ const columns = [
   { key: "uploaded", label: "Uploaded" },
 ] as const;
 
+export const REMITTANCE_TABLE_SKELETON_COLUMNS = columns;
+
 export function RemittancesTable({
   batches,
   onRowClick,

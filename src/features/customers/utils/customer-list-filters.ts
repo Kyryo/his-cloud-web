@@ -19,6 +19,7 @@ export type CustomerListFilterState = {
   gender: CustomerGender | "all";
   activeStatus: CustomerActiveFilter;
   ordering: CustomerOrdering;
+  tags: string[];
 };
 
 export const DEFAULT_CUSTOMER_ORDERING: CustomerOrdering = "-created_at";
@@ -40,7 +41,7 @@ export const CUSTOMER_ORDERING_OPTIONS: Array<{
 export function countActiveCustomerFilters(
   filters: Pick<
     CustomerListFilterState,
-    "gender" | "activeStatus" | "ordering"
+    "gender" | "activeStatus" | "ordering" | "tags"
   >,
 ): number {
   let count = 0;
@@ -48,6 +49,7 @@ export function countActiveCustomerFilters(
   if (filters.gender !== "all") count += 1;
   if (filters.activeStatus !== "all") count += 1;
   if (filters.ordering !== DEFAULT_CUSTOMER_ORDERING) count += 1;
+  if (filters.tags.length > 0) count += 1;
 
   return count;
 }
@@ -65,5 +67,6 @@ export function buildCustomerListFilters(
         ? undefined
         : state.activeStatus === "active",
     ordering: state.ordering,
+    tags: state.tags.length > 0 ? state.tags : undefined,
   };
 }

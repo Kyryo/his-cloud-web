@@ -31,6 +31,7 @@ import { ROUTES } from "@/constants/routes";
 import { RemittanceBatchStatusBadge } from "@/features/claims/components/RemittanceBatchStatusBadge";
 import {
   deleteRemittanceBatch,
+  rematchRemittanceBatch,
   renameRemittanceBatch,
 } from "@/features/claims/services/remittances.service";
 import type { RemittanceBatchDetail } from "@/features/claims/types/remittances.types";
@@ -48,6 +49,7 @@ import { useToast } from "@/providers/toast-provider";
 type RemittanceDetailActionsProps = {
   batch: RemittanceBatchDetail;
   onBatchUpdated?: (batch: RemittanceBatchDetail) => void;
+  onRematched?: () => void;
   className?: string;
 };
 
@@ -87,6 +89,7 @@ function FileDetailRow({
 export function RemittanceDetailActions({
   batch,
   onBatchUpdated,
+  onRematched,
   className,
 }: RemittanceDetailActionsProps) {
   const router = useRouter();
@@ -99,6 +102,7 @@ export function RemittanceDetailActions({
   );
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
+  const [isRematching, setIsRematching] = useState(false);
 
   useEffect(() => {
     if (renameOpen) {
@@ -113,7 +117,7 @@ export function RemittanceDetailActions({
     }
     setIsRenaming(true);
     try {
-      const updated = await renameRemittanceBatch(batch.id, nextName);
+      const updated = await renameRemittanceBatch(batch.uuid, nextName);
       setRenameOpen(false);
       onBatchUpdated?.(updated);
       toast({
@@ -140,7 +144,7 @@ export function RemittanceDetailActions({
   async function handleDelete() {
     setIsDeleting(true);
     try {
-      await deleteRemittanceBatch(batch.id);
+      await deleteRemittanceBatch(batch.uuid);
       setDeleteOpen(false);
       toast({
         variant: "success",
@@ -164,7 +168,34 @@ export function RemittanceDetailActions({
     }
   }
 
-  const busy = isDeleting || isRenaming;
+  async function handleRematch() {
+    setIsRematching(true);
+    try {
+      const updated = await rematchRemittanceBatch(batch.uuid);
+      onBatchUpdated?.(updated);
+      onRematched?.();
+      toast({
+        variant: "success",
+        title: "Matching re-run",
+        description: `${updated.summary?.matched ?? 0} lines matched.`,
+      });
+    } catch (error) {
+      toast({
+        variant: "error",
+        title: "Could not re-run matching",
+        description:
+          error instanceof BffError
+            ? formatBffErrorMessage(error.message, error.errors)
+            : error instanceof Error
+              ? error.message
+              : "Something went wrong.",
+      });
+    } finally {
+      setIsRematching(false);
+    }
+  }
+
+  const busy = isDeleting || isRenaming || isRematching;
   const name = remittanceDisplayName(batch);
 
   return (
@@ -199,6 +230,19 @@ export function RemittanceDetailActions({
               <Pencil className="size-4" aria-hidden="true" />
               Rename file
             </DropdownMenuItem>
+            {batch.status !== "queued" && batch.status !== "processing" ? (
+              <DropdownMenuItem
+                disabled={isRematching}
+                onClick={() => void handleRematch()}
+                data-testid="remittance-rematch-menu-item"
+              >
+                <Loader2
+                  className={cn("size-4", isRematching && "animate-spin")}
+                  aria-hidden="true"
+                />
+                Re-run matching
+              </DropdownMenuItem>
+            ) : null}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               className="text-red-700 focus:text-red-700"

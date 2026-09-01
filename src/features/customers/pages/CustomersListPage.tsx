@@ -52,12 +52,13 @@ export function CustomersListPage() {
   const [filters, setFilters] = useState<
     Pick<
       CustomerListFilterState,
-      "gender" | "activeStatus" | "ordering"
+      "gender" | "activeStatus" | "ordering" | "tags"
     >
   >({
     gender: "all",
     activeStatus: "all",
     ordering: DEFAULT_CUSTOMER_ORDERING,
+    tags: [],
   });
   const [stats, setStats] = useState<CustomerSummaryStatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);

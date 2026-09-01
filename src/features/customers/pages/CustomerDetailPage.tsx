@@ -10,6 +10,7 @@ import { CustomerDetailActions } from "@/features/customers/components/detail/Cu
 import { CustomerDetailHeader } from "@/features/customers/components/detail/CustomerDetailHeader";
 import { CustomerDetailTabs } from "@/features/customers/components/detail/CustomerDetailTabs";
 import { CustomerVisitActionButton } from "@/features/customers/components/detail/CustomerVisitActionButton";
+import { CreateAppointmentDialog } from "@/features/appointments/components/CreateAppointmentDialog";
 import { UpdateCustomerDialog } from "@/features/customers/components/UpdateCustomerDialog";
 import type { CustomerVisit } from "@/features/customers/types/customer-visit.types";
 import { fetchCustomer } from "@/features/customers/services/customers.service";
@@ -27,6 +28,7 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [appointmentDialogOpen, setAppointmentDialogOpen] = useState(false);
   const [visitsRefreshKey, setVisitsRefreshKey] = useState(0);
   const [billingRefreshKey, setBillingRefreshKey] = useState(0);
 
@@ -51,6 +53,10 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
 
   const handleCustomerUpdated = useCallback((updatedCustomer: Customer) => {
     setCustomer(updatedCustomer);
+  }, []);
+
+  const handleTagsUpdated = useCallback((tags: Customer["tags"]) => {
+    setCustomer((current) => (current ? { ...current, tags } : current));
   }, []);
 
   const handleVisitChanged = useCallback(
@@ -96,6 +102,7 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
             <CustomerDetailActions
               customer={customer}
               onEditDetails={() => setUpdateDialogOpen(true)}
+              onScheduleAppointment={() => setAppointmentDialogOpen(true)}
               onCustomerUpdated={handleCustomerUpdated}
             />
             <CustomerVisitActionButton
@@ -115,12 +122,19 @@ export function CustomerDetailPage({ customerId }: CustomerDetailPageProps) {
         onBillingUpdated={() =>
           setBillingRefreshKey((current) => current + 1)
         }
+        onTagsUpdated={handleTagsUpdated}
       />
       <UpdateCustomerDialog
         customer={customer}
         open={updateDialogOpen}
         onOpenChange={setUpdateDialogOpen}
         onUpdated={handleCustomerUpdated}
+      />
+      <CreateAppointmentDialog
+        customer={customer}
+        open={appointmentDialogOpen}
+        onOpenChange={setAppointmentDialogOpen}
+        onCreated={() => setVisitsRefreshKey((current) => current + 1)}
       />
     </DetailPageLayout>
   );

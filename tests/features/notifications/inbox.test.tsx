@@ -123,6 +123,21 @@ describe("NotificationsInboxPage", () => {
     markInboxItemRead.mockResolvedValue(buildItem({ is_read: true }));
   });
 
+  it("renders pagination when notifications span multiple pages", async () => {
+    fetchInboxItems.mockResolvedValue({
+      results: [buildItem()],
+      pagination: { count: 25, next: "/api/notifications/inbox?page=2", previous: null },
+    });
+
+    render(<NotificationsInboxPage />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
+    });
+    expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "2" })).toBeInTheDocument();
+  });
+
   it("renders bundled copy and navigates using resolver hrefs", async () => {
     render(<NotificationsInboxPage />);
 

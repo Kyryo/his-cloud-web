@@ -5,6 +5,10 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { isInsuranceInvoice } from "@/features/claims/services/claims.service";
+import {
+  LineRemittanceSettlementBadge,
+  shouldShowRemittanceSettlementBadge,
+} from "@/features/claims/components/LineRemittanceSettlementBadge";
 import { syncInvoiceLineTariffCode } from "@/features/invoices/services/invoices.service";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 import type { InvoiceLine } from "@/features/invoices/types/invoice.types";
@@ -117,6 +121,9 @@ export function InvoiceDetailLinesTab({
                   <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
                     Total
                   </th>
+                  <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
+                    <span className="sr-only">Remittance</span>
+                  </th>
                   <th className="w-12 px-2 py-3">
                     <span className="sr-only">Details</span>
                   </th>
@@ -149,6 +156,15 @@ export function InvoiceDetailLinesTab({
                     </td>
                     <td className="px-4 py-3 text-right text-sm font-medium text-brand-navy">
                       {formatInvoiceAmount(line.price_total)}
+                    </td>
+                    <td className="px-4 py-3 text-left">
+                      {shouldShowRemittanceSettlementBadge(
+                        line.remittance_settlement_status,
+                      ) ? (
+                        <LineRemittanceSettlementBadge
+                          status={line.remittance_settlement_status}
+                        />
+                      ) : null}
                     </td>
                     <td className="px-2 py-3">
                       <Button

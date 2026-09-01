@@ -31,8 +31,12 @@ export function AccountSettingsPage() {
   }
 
   return (
-    <div className="p-6">
+    <SettingsPageLayout
+      className="max-w-3xl"
+      title="Account"
+      description="Manage your profile, preferences, and clinic access."
+    >
       <AccountProfileSettings user={userData} />
-    </div>
+    </SettingsPageLayout>
   );
 }

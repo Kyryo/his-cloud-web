@@ -13,9 +13,7 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar";
-import { ROUTES } from "@/constants/routes";
 import { buildSidebarNavItems } from "@/features/app-shell/utils/build-sidebar-nav";
-import { useInboxUnreadCount } from "@/features/notifications/hooks/use-inbox-unread-count";
 import { useUser } from "@/providers/user-provider";
 
 export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
@@ -23,19 +21,12 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const { userData } = useUser();
   const userGroups = useMemo(() => userData?.groups ?? [], [userData?.groups]);
   const isPlatformAdmin = Boolean(userData?.is_superuser && userData.tenant === null);
-  const unreadCount = useInboxUnreadCount(!isPlatformAdmin, {
-    notifyOnNew: true,
-  });
 
   const navItems = buildSidebarNavItems(
     userGroups,
     pathname,
     Boolean(userData?.is_admin),
     isPlatformAdmin,
-  ).map((item) =>
-    item.url === ROUTES.notifications
-      ? { ...item, showUnreadDot: unreadCount > 0 }
-      : item,
   );
 
   return (

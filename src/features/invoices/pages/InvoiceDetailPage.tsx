@@ -2,10 +2,6 @@
 
 import { useCallback, useEffect, useState } from "react";
 
-import {
-  PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS,
-  PageLoader,
-} from "@/components/page-loader";
 import { InvoiceDetailActions } from "@/features/invoices/components/detail/InvoiceDetailActions";
 import { InvoiceDetailHeader } from "@/features/invoices/components/detail/InvoiceDetailHeader";
 import { InvoiceDetailTabs } from "@/features/invoices/components/detail/InvoiceDetailTabs";
@@ -13,7 +9,10 @@ import { InvoiceInternalReferenceDialog } from "@/features/invoices/components/d
 import { fetchInvoice } from "@/features/invoices/services/invoices.service";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 import { RecordPaymentDialog } from "@/features/payments/components/RecordPaymentDialog";
-import { DetailPageLayout } from "@/features/app-shell/components/page-layout";
+import {
+  DetailPageLayout,
+  DetailPageSkeleton,
+} from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
 
 type InvoiceDetailPageProps = {
@@ -72,9 +71,9 @@ export function InvoiceDetailPage({ invoiceId }: InvoiceDetailPageProps) {
 
   if (isLoading) {
     return (
-      <PageLoader
-        message="Loading invoice..."
-        className={PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS}
+      <DetailPageSkeleton
+        tabCount={5}
+        data-testid="invoice-detail-skeleton"
       />
     );
   }

@@ -157,6 +157,15 @@ export function CustomerDetailNotesTab({
     />
   );
 
+  const emptyStateAddButton = (
+    <TabAddActionButton
+      label="Add note"
+      emptyState
+      onClick={() => setAddDialogOpen(true)}
+      data-testid="add-customer-note-button"
+    />
+  );
+
   if (notes.length === 0) {
     return (
       <>
@@ -164,7 +173,7 @@ export function CustomerDetailNotesTab({
           icon={NotebookPen}
           title="No notes yet"
           description="General, clinical, billing, and administrative notes for this client will appear here."
-          action={addButton}
+          action={emptyStateAddButton}
           data-testid="customer-notes-empty-state"
         />
         <AddCustomerNoteDialog

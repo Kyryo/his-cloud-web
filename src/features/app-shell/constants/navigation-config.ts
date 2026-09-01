@@ -113,14 +113,6 @@ export const navigation: NavigationItem[] = [
     enabledInWebNew: true,
   },
   {
-    name: "Reconciliations",
-    href: ROUTES.claimsReconciliations,
-    icon: "shield",
-    requiredGroup: "Claims",
-    moduleName: "Claims",
-    enabledInWebNew: true,
-  },
-  {
     name: "Rejections",
     href: ROUTES.claimsRejections,
     icon: "shield",
@@ -129,12 +121,20 @@ export const navigation: NavigationItem[] = [
     enabledInWebNew: true,
   },
   {
+    name: "Reconciliations",
+    href: ROUTES.claimsReconciliations,
+    icon: "shield",
+    requiredGroup: "Claims",
+    moduleName: "Claims",
+    enabledInWebNew: false,
+  },
+  {
     name: "Appeals",
     href: ROUTES.claimsAppeals,
     icon: "shield",
     requiredGroup: "Claims",
     moduleName: "Claims",
-    enabledInWebNew: true,
+    enabledInWebNew: false,
   },
   {
     name: "Pharmacy queue",
@@ -258,7 +258,7 @@ export const navigation: NavigationItem[] = [
     href: ROUTES.notifications,
     icon: "notification",
     requiredGroup: null,
-    enabledInWebNew: true,
+    enabledInWebNew: false,
   },
 ];
 

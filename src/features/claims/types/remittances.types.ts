@@ -69,6 +69,9 @@ export type RemittanceRow = {
   remarks: string;
   parse_warnings: string[];
   matched_claim_id: number | null;
+  matched_claim_uuid: string | null;
+  matched_invoice_id: number | null;
+  matched_invoice_uuid: string | null;
   matched_line_item_id: number | null;
   confidence: string | null;
   match_reasons: string[];
@@ -86,12 +89,69 @@ export type RemittanceListPagination = {
   previous?: string | null;
 } | null;
 
+export type RemittanceListFilters = {
+  page?: number;
+  pageSize?: number;
+  status?: RemittanceBatchStatus;
+  search?: string;
+};
+
 export type RemittanceBatchListResponse = {
   results: RemittanceBatch[];
   pagination: RemittanceListPagination;
 };
 
+export type RemittanceSummaryStatsBucket = {
+  count: number;
+  total: string;
+};
+
+export type RemittanceSummaryStats = {
+  all: RemittanceSummaryStatsBucket;
+  in_progress: RemittanceSummaryStatsBucket;
+  processed: RemittanceSummaryStatsBucket;
+  needs_review: RemittanceSummaryStatsBucket;
+};
+
 export type RemittanceRowListResponse = {
   results: RemittanceRow[];
+  pagination: RemittanceListPagination;
+};
+
+export type RemittanceBatchRowStatsBucket = {
+  count: number;
+  total: string;
+};
+
+export type RemittanceBatchRowSummaryStats = {
+  claimed: RemittanceBatchRowStatsBucket;
+  pay_to_provider: RemittanceBatchRowStatsBucket;
+  matched: RemittanceBatchRowStatsBucket;
+  needs_action: RemittanceBatchRowStatsBucket;
+};
+
+export type RemittanceRejectionRow = RemittanceRow & {
+  batch_id: number;
+  batch_uuid: string;
+  batch_display_filename: string;
+  batch_payer_code: string;
+};
+
+export type RemittanceRejectionSummaryStats = {
+  claimed: RemittanceBatchRowStatsBucket;
+  pay_to_provider: RemittanceBatchRowStatsBucket;
+  matched: RemittanceBatchRowStatsBucket;
+  with_reason: RemittanceBatchRowStatsBucket;
+};
+
+export type RemittanceRejectionListFilters = {
+  page?: number;
+  pageSize?: number;
+  payerCode?: string;
+  search?: string;
+};
+
+export type RemittanceRejectionListResponse = {
+  results: RemittanceRejectionRow[];
   pagination: RemittanceListPagination;
 };

@@ -182,6 +182,15 @@ export function CustomerDetailAppointmentsTab({
     />
   );
 
+  const emptyStateScheduleButton = (
+    <TabAddActionButton
+      label="Schedule appointment"
+      emptyState
+      onClick={() => setCreateOpen(true)}
+      data-testid="schedule-appointment-button"
+    />
+  );
+
   if (!isActive) {
     return null;
   }
@@ -296,7 +305,7 @@ export function CustomerDetailAppointmentsTab({
           icon={CalendarPlus}
           title="No appointments yet"
           description="Schedule the client's next visit to reserve clinic time in advance."
-          action={scheduleButton}
+          action={emptyStateScheduleButton}
           data-testid="customer-appointments-empty-state"
         />
       ) : (

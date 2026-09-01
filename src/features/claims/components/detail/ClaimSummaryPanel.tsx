@@ -77,11 +77,12 @@ export function ClaimSummaryPanel({
   className,
   onOpenVisit,
 }: ClaimSummaryPanelProps) {
-  const invoiceId = claim.invoice_id || claim.invoice || null;
+  const invoiceRef =
+    claim.invoice_uuid ?? claim.invoice_id ?? claim.invoice ?? null;
   const [invoice, setInvoice] = useState<Invoice | null>(null);
 
   useEffect(() => {
-    if (!invoiceId) {
+    if (!invoiceRef) {
       setInvoice(null);
       return;
     }
@@ -90,7 +91,7 @@ export function ClaimSummaryPanel({
 
     void (async () => {
       try {
-        const data = await fetchInvoice(invoiceId);
+        const data = await fetchInvoice(invoiceRef);
         if (!cancelled) {
           setInvoice(data);
         }
@@ -104,7 +105,11 @@ export function ClaimSummaryPanel({
     return () => {
       cancelled = true;
     };
-  }, [invoiceId]);
+  }, [
+    invoiceRef,
+    claim.updated_at,
+    claim.latest_advisor_evaluation?.id,
+  ]);
 
   const insurerDue = invoice ? sumInvoiceInsurerDue(invoice) : 0;
   const clientDue = invoice ? sumInvoiceClientDue(invoice) : 0;
@@ -202,9 +207,9 @@ export function ClaimSummaryPanel({
         <DetailPageAsideSummaryField
           label="Invoice"
           value={
-            invoiceId ? (
+            invoiceRef ? (
               <Link
-                href={ROUTES.invoiceDetail(invoiceId)}
+                href={ROUTES.invoiceDetail(invoiceRef)}
                 className="text-brand-primary hover:underline"
               >
                 View invoice

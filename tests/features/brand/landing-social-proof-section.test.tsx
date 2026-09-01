@@ -24,18 +24,13 @@ beforeAll(() => {
 });
 
 describe("LandingSocialProofSection", () => {
-  it("renders the headline, clinic logos, and supporting line", () => {
+  it("renders the headline and clinic logos", () => {
     render(<LandingSocialProofSection />);
 
     expect(
       screen.getByRole("heading", {
-        name: "Every claim, tracked until it's paid.",
+        name: "A few of the clinics powered by Sigma.",
       }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "From a children's therapy clinic to a national mediclinic network.",
-      ),
     ).toBeInTheDocument();
 
     expect(

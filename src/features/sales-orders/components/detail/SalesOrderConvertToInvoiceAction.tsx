@@ -55,7 +55,8 @@ export function SalesOrderConvertToInvoiceAction({
   const [createdInvoice, setCreatedInvoice] = useState<Invoice | null>(null);
   const [isConverting, setIsConverting] = useState(false);
 
-  const invoiceId = order.invoice_id ?? createdInvoice?.id ?? null;
+  const invoiceRef =
+    order.invoice_uuid ?? order.invoice_id ?? createdInvoice?.uuid ?? createdInvoice?.id ?? null;
 
   const disabledReason = getConvertSalesOrderToInvoiceDisabledReason(order, {
     hasDraftSplitMismatch,
@@ -64,13 +65,13 @@ export function SalesOrderConvertToInvoiceAction({
     hasDraftSplitMismatch,
   });
   const orderLabel = order.name || `Order #${order.id}`;
-  const isInvoiced = order.invoice_status === "invoiced" && invoiceId != null;
+  const isInvoiced = order.invoice_status === "invoiced" && invoiceRef != null;
 
   async function handleConvert() {
     setIsConverting(true);
     try {
-      const result = await createSalesOrderInvoice(order.id);
-      const refreshedOrder = await fetchSalesOrder(order.id);
+      const result = await createSalesOrderInvoice(order.uuid);
+      const refreshedOrder = await fetchSalesOrder(order.uuid);
       onOrderUpdated(refreshedOrder);
 
       const invoiceLabel = result.invoice.name || `Invoice #${result.invoice.id}`;
@@ -110,7 +111,7 @@ export function SalesOrderConvertToInvoiceAction({
           className={cn(className)}
           data-testid="sales-order-view-invoice-button"
         >
-          <Link href={ROUTES.invoiceDetail(invoiceId)}>View invoice</Link>
+          <Link href={ROUTES.invoiceDetail(invoiceRef)}>View invoice</Link>
         </SecondaryButton>
       ) : (
         <PrimaryButton
@@ -185,7 +186,7 @@ export function SalesOrderConvertToInvoiceAction({
             return;
           }
           setCreatedOpen(false);
-          router.push(ROUTES.invoiceDetail(createdInvoice.id));
+          router.push(ROUTES.invoiceDetail(createdInvoice.uuid));
         }}
       />
 

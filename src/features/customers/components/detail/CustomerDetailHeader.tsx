@@ -12,6 +12,7 @@ import {
   formatCustomerName,
   formatDisplayDate,
 } from "@/features/customers/utils/format-customer";
+import { TagBadgeList } from "@/features/tags/components/TagBadgeList";
 
 type CustomerDetailHeaderProps = {
   customer: Customer;
@@ -41,6 +42,7 @@ export function CustomerDetailHeader({
             {!customer.is_active ? (
               <Badge variant="outline">Inactive</Badge>
             ) : null}
+            <TagBadgeList tags={customer.tags} />
           </div>
 
           <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-brand-muted">

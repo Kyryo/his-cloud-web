@@ -30,10 +30,11 @@ describe("customers.service", () => {
       gender: "Female",
       isActive: true,
       ordering: "-created_at",
+      tags: ["tag-a", "tag-b"],
     });
 
     expect(bffRequest).toHaveBeenCalledWith(
-      `${BFF_CUSTOMERS_ROUTES.list}?search=Ada&page=2&page_size=20&gender=Female&is_active=true&ordering=-created_at`,
+      `${BFF_CUSTOMERS_ROUTES.list}?search=Ada&page=2&page_size=20&gender=Female&is_active=true&ordering=-created_at&tags=tag-a%2Ctag-b`,
     );
   });
 

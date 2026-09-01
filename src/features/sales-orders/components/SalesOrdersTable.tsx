@@ -135,7 +135,7 @@ export function SalesOrdersTable({
                       <HoverPreviewCard
                         trigger={
                           <Link
-                            href={ROUTES.salesOrderDetail(order.id)}
+                            href={ROUTES.salesOrderDetail(order.uuid)}
                             className="block max-w-[10rem] truncate font-mono text-sm font-medium text-brand-navy hover:text-brand-primary hover:underline"
                             title={orderLabel}
                             onClick={(event) => event.stopPropagation()}

@@ -36,16 +36,6 @@ describe("buildSidebarNavItems", () => {
           title: "Settings",
           url: ROUTES.settingsAccount,
           isActive: false,
-          items: expect.arrayContaining([
-            expect.objectContaining({
-              title: "Account",
-              url: ROUTES.settingsAccount,
-            }),
-            expect.objectContaining({
-              title: "Security",
-              url: ROUTES.settingsSecurity,
-            }),
-          ]),
         }),
       ]),
     );
@@ -61,26 +51,8 @@ describe("buildSidebarNavItems", () => {
     const settings = items.find((item) => item.title === "Settings");
 
     expect(settings?.isActive).toBe(true);
-    expect(settings?.items).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ title: "Account" }),
-        expect.objectContaining({
-          title: "Organization",
-          url: ROUTES.settingsOrganization,
-          isActive: true,
-        }),
-        expect.objectContaining({
-          title: "Visit Management",
-          url: ROUTES.settingsVisitManagement,
-          isActive: false,
-        }),
-        expect.objectContaining({
-          title: "Finance & Operations",
-          url: ROUTES.settingsFinanceOperations,
-          isActive: false,
-        }),
-      ]),
-    );
+    expect(settings?.items).toBeUndefined();
+    expect(settings?.url).toBe(ROUTES.settingsAccount);
   });
 
   it("groups only authorized therapy disciplines under Therapy", () => {

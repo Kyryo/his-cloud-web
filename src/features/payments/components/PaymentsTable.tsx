@@ -84,9 +84,11 @@ export function PaymentsTable({ payments, onRowClick, className }: PaymentsTable
                     />
                   </td>
                   <td className="px-4 py-3">
-                    {payment.invoice_id ? (
+                    {payment.invoice_id || payment.invoice_uuid ? (
                       <Link
-                        href={ROUTES.invoiceDetail(payment.invoice_id)}
+                        href={ROUTES.invoiceDetail(
+                          payment.invoice_uuid ?? payment.invoice_id,
+                        )}
                         className="block max-w-[12rem] truncate text-sm text-brand-slate hover:text-brand-primary hover:underline"
                         title={allocationLabel}
                         onClick={(event) => event.stopPropagation()}
