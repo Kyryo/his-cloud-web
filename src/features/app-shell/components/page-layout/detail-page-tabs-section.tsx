@@ -36,9 +36,9 @@ export function DetailPageTabsNavSection({
   className,
 }: DetailPageTabsNavSectionProps) {
   return (
-    <div className={cn("border-b border-dash-border/80 bg-white", className)}>
+    <div className={cn("overflow-y-hidden border-b border-dash-border/80 bg-white", className)}>
       <nav
-        className="scrollbar-hide flex gap-1 overflow-x-auto px-4 sm:px-6"
+        className="scrollbar-hide flex gap-0.5 overflow-x-auto overflow-y-hidden overscroll-y-none px-4 sm:px-6"
         aria-label={ariaLabel}
       >
         {children}
@@ -56,7 +56,7 @@ type DetailPageTabNavItemProps = {
 };
 
 const TAB_NAV_ITEM_CLASS =
-  "whitespace-nowrap border-b-2 px-3 py-3 text-sm font-medium transition-colors";
+  "whitespace-nowrap px-3 py-2 text-sm font-medium transition-colors";
 
 export function DetailPageTabNavItem({
   children,
@@ -68,8 +68,8 @@ export function DetailPageTabNavItem({
   const itemClassName = cn(
     TAB_NAV_ITEM_CLASS,
     isActive
-      ? "border-brand-primary text-brand-primary"
-      : "border-transparent text-brand-muted hover:border-brand-border hover:text-brand-navy",
+      ? "text-brand-primary shadow-[inset_0_-2px_0_0_var(--color-brand-primary)]"
+      : "text-brand-muted hover:text-brand-navy",
     className,
   );
 

@@ -126,6 +126,40 @@ export const BFF_CLINICAL_ROUTES = {
   locations: "/api/clinical/locations",
 } as const;
 
+/** Browser-facing BFF clinical OPD routes (same origin). */
+export const BFF_CLINICAL_OPD_ROUTES = {
+  queue: "/api/clinical/opd/queue",
+  observationDefinitions: "/api/clinical/opd/observation-definitions",
+  roleCapabilities: "/api/clinical/opd/role-capabilities",
+  myCapabilities: "/api/clinical/opd/my-capabilities",
+  encounterObservations: (visitUuid: string, encounterUuid: string) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/observations`,
+  encounterNursingNotes: (visitUuid: string, encounterUuid: string) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/nursing-notes`,
+  encounterPhysicalExams: (visitUuid: string, encounterUuid: string) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/physical-exams`,
+  encounterPhysicalExam: (
+    visitUuid: string,
+    encounterUuid: string,
+    examUuid: string,
+  ) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/physical-exams/${examUuid}`,
+  encounterClinicalNotes: (visitUuid: string, encounterUuid: string) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/clinical-notes`,
+  encounterPrescriptions: (visitUuid: string, encounterUuid: string) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/prescriptions`,
+  finalizePrescription: (
+    visitUuid: string,
+    encounterUuid: string,
+    prescriptionUuid: string,
+  ) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/prescriptions/${prescriptionUuid}/finalize`,
+  encounterOrders: (visitUuid: string, encounterUuid: string) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/orders`,
+  encounterTimeline: (visitUuid: string, encounterUuid: string) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/timeline`,
+} as const;
+
 /** Browser-facing BFF insurance catalog routes (same origin). */
 export const BFF_INSURANCE_ROUTES = {
   schemes: "/api/insurance-schemes",

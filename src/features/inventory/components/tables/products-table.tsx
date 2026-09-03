@@ -61,10 +61,10 @@ export function ProductsTable({
               <ListPageDataTableCell className="py-3">
                 <ProductTypeBadge product={product} />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 font-mono text-xs font-medium text-brand-navy">
+              <ListPageDataTableCell className="py-3 font-mono text-sm font-medium text-brand-navy">
                 {product.default_code || "—"}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="hidden py-3 font-mono text-xs text-brand-slate md:table-cell">
+              <ListPageDataTableCell className="hidden py-3 font-mono text-sm text-brand-slate md:table-cell">
                 {product.barcode || "—"}
               </ListPageDataTableCell>
               <ListPageDataTableCell className="py-3 pr-4 text-right text-sm font-semibold tabular-nums text-brand-navy">

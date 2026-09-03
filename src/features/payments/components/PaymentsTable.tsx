@@ -79,7 +79,7 @@ export function PaymentsTable({ payments, onRowClick, className }: PaymentsTable
               data-testid={`payment-row-${payment.id}`}
             >
               <ListPageDataTableCell className="py-3">
-                <span className="font-mono text-xs font-semibold tracking-tight text-brand-navy group-hover:text-brand-primary">
+                <span className="font-mono text-sm font-semibold tracking-tight text-brand-navy group-hover:text-brand-primary">
                   {paymentLabel}
                 </span>
               </ListPageDataTableCell>
@@ -116,20 +116,20 @@ export function PaymentsTable({ payments, onRowClick, className }: PaymentsTable
                 {invoiceHref ? (
                   <Link
                     href={invoiceHref}
-                    className="block max-w-48 truncate text-xs text-brand-slate hover:text-brand-primary hover:underline"
+                    className="block max-w-48 truncate text-sm text-brand-slate hover:text-brand-primary hover:underline"
                     title={allocationLabel}
                     onClick={(event) => event.stopPropagation()}
                   >
                     {allocationLabel}
                   </Link>
                 ) : (
-                  <span className="text-xs text-brand-slate">{allocationLabel}</span>
+                  <span className="text-sm text-brand-slate">{allocationLabel}</span>
                 )}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 text-xs tabular-nums text-dash-muted">
+              <ListPageDataTableCell className="py-3 text-sm tabular-nums text-dash-muted">
                 {formatPaymentDate(payment.payment_date)}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="hidden py-3 text-xs text-brand-slate md:table-cell">
+              <ListPageDataTableCell className="hidden py-3 text-sm text-brand-slate md:table-cell">
                 {formatPaymentMethod(payment.payment_method)}
               </ListPageDataTableCell>
               <ListPageDataTableCell className="py-3">

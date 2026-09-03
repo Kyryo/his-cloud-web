@@ -23,6 +23,24 @@ export const ASSOCIATION_ROLE_OPTIONS = [
   { value: "viewer", label: "Viewer" },
 ] as const;
 
+export const CLINICAL_STAFF_ROLE_OPTIONS = ORGANIZATION_USER_ROLE_OPTIONS.filter(
+  (option) =>
+    option.value === "" || option.value === "nurse" || option.value === "physician",
+);
+
+export function formatOrganizationUserRole(
+  userRole?: OrganizationUserRole,
+): string {
+  if (!userRole) {
+    return "Unassigned";
+  }
+
+  const option = ORGANIZATION_USER_ROLE_OPTIONS.find(
+    (item) => item.value === userRole,
+  );
+  return option?.label ?? userRole;
+}
+
 export const createOrganizationUserSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   email: z.string().trim().email("Enter a valid email address"),

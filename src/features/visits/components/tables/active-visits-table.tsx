@@ -69,7 +69,7 @@ export function ActiveVisitsTable({
                       {clientName}
                     </span>
                     {visit.customer_identifier ? (
-                      <span className="block truncate font-mono text-[11px] text-dash-muted">
+                      <span className="block truncate font-mono text-sm text-dash-muted">
                         {visit.customer_identifier}
                       </span>
                     ) : null}
@@ -85,7 +85,7 @@ export function ActiveVisitsTable({
               <ListPageDataTableCell className="py-3">
                 <CustomerVisitStatusBadge status={visit.status} />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 text-xs tabular-nums text-dash-muted">
+              <ListPageDataTableCell className="py-3 text-sm tabular-nums text-dash-muted">
                 {formatDisplayDateTime(visit.visit_date)}
               </ListPageDataTableCell>
             </ListPageDataTableRow>

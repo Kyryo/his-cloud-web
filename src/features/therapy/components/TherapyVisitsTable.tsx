@@ -77,7 +77,7 @@ export function TherapyVisitsTable({
                     <p className="truncate text-sm font-medium text-brand-navy">
                       {visit.customer_name}
                     </p>
-                    <p className="text-xs text-brand-muted">
+                    <p className="text-sm text-brand-muted">
                       {visit.customer_identifier}
                     </p>
                   </div>
@@ -90,7 +90,7 @@ export function TherapyVisitsTable({
                 <span className="flex items-center gap-2">
                   <CalendarClock className="size-4 text-brand-muted" />
                   {DATE_FORMATTER.format(visitDate)}
-                  <span className="text-xs text-brand-muted">
+                  <span className="text-sm text-brand-muted">
                     {TIME_FORMATTER.format(visitDate)}
                   </span>
                 </span>

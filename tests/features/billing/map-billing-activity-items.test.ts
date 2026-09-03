@@ -25,5 +25,7 @@ describe("mapBillingActivityItems", () => {
     expect(items[0]?.title).toBe("Invoice created");
     expect(items[0]?.summary).toContain("INV/00002");
     expect(items[0]?.createdByName).toBe("Jane Admin");
+    expect(items[0]?.groupKey).toBe("INVOICE_CREATED");
+    expect(items[0]?.tone).toBe("info");
   });
 });

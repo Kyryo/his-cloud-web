@@ -47,7 +47,11 @@ export function CustomerInvoicePaymentStatsCards({
           className="mt-0.5 text-xs text-brand-muted"
           title={formatSalesOrderAmount(buckets.all.total, "MWK")}
         >
-          {formatCompactAmount(buckets.all.total)} MWK · Total billed
+          {formatCompactAmount(buckets.all.total)}
+          <span className="ml-1 text-[10px] uppercase tracking-[0.06em] text-dash-muted">
+            MWK
+          </span>{" "}
+          · Total billed
         </p>
       </div>
 
@@ -67,7 +71,10 @@ export function CustomerInvoicePaymentStatsCards({
           title={formatSalesOrderAmount(buckets.paid.total, "MWK")}
         >
           <span className="font-medium text-emerald-700">
-            {formatCompactAmount(buckets.paid.total)} MWK
+            {formatCompactAmount(buckets.paid.total)}
+          </span>
+          <span className="ml-1 text-[10px] uppercase tracking-[0.06em] text-dash-muted">
+            MWK
           </span>{" "}
           · Settled
         </p>
@@ -94,7 +101,10 @@ export function CustomerInvoicePaymentStatsCards({
           title={formatSalesOrderAmount(buckets.not_paid.total, "MWK")}
         >
           <span className={cn(buckets.not_paid.count > 0 && "font-medium text-red-700")}>
-            {formatCompactAmount(buckets.not_paid.total)} MWK
+            {formatCompactAmount(buckets.not_paid.total)}
+          </span>
+          <span className="ml-1 text-[10px] uppercase tracking-[0.06em] text-dash-muted">
+            MWK
           </span>{" "}
           · Unpaid
         </p>
@@ -115,7 +125,11 @@ export function CustomerInvoicePaymentStatsCards({
           className="mt-0.5 text-xs text-brand-muted"
           title={formatSalesOrderAmount(buckets.partially_paid.total, "MWK")}
         >
-          {formatCompactAmount(buckets.partially_paid.total)} MWK · Partial
+          {formatCompactAmount(buckets.partially_paid.total)}
+          <span className="ml-1 text-[10px] uppercase tracking-[0.06em] text-dash-muted">
+            MWK
+          </span>{" "}
+          · Partial
         </p>
       </div>
     </dl>

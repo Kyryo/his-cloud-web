@@ -9,6 +9,7 @@ import { AddUserDialog } from "@/features/settings/components/AddUserDialog";
 import { OrganizationEmptyState } from "@/features/settings/components/OrganizationEmptyState";
 import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
 import { UpdateUserDialog } from "@/features/settings/components/UpdateUserDialog";
+import { formatOrganizationUserRole } from "@/features/settings/schemas/organization-user.schema";
 import { fetchOrganizationUsers } from "@/features/settings/services/user-management.service";
 import type { OrganizationUser } from "@/features/settings/types/settings.types";
 
@@ -18,7 +19,8 @@ type UserManagementUsersTabProps = {
 
 const userColumns = [
   { key: "name", label: "User" },
-  { key: "role", label: "Role" },
+  { key: "access", label: "Access" },
+  { key: "clinicalRole", label: "Clinical role" },
   { key: "status", label: "Status" },
   { key: "groups", label: "Groups" },
   { key: "clinic", label: "Primary clinic" },
@@ -156,6 +158,9 @@ export function UserManagementUsersTab({ isActive }: UserManagementUsersTabProps
                       <Badge variant={user.is_admin ? "default" : "secondary"}>
                         {user.is_admin ? "Administrator" : "Staff"}
                       </Badge>
+                    </td>
+                    <td className="px-6 py-3.5 text-sm text-brand-navy">
+                      {formatOrganizationUserRole(user.user_role)}
                     </td>
                     <td className="px-6 py-3.5">
                       <div className="flex flex-col items-start gap-1.5">

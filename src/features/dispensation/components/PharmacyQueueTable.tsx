@@ -57,7 +57,7 @@ export function PharmacyQueueTable({
               onClick={() => onRowClick?.(item)}
               data-testid={`pharmacy-queue-row-${item.uuid}`}
             >
-              <ListPageDataTableCell className="py-3 font-mono text-xs font-semibold text-brand-navy group-hover:text-brand-primary">
+              <ListPageDataTableCell className="py-3 font-mono text-sm font-semibold text-brand-navy group-hover:text-brand-primary">
                 {item.name}
               </ListPageDataTableCell>
               <ListPageDataTableCell className="py-3">
@@ -81,7 +81,7 @@ export function PharmacyQueueTable({
                   remainingLineCount={item.remaining_line_count}
                 />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 text-xs tabular-nums text-dash-muted">
+              <ListPageDataTableCell className="py-3 text-sm tabular-nums text-dash-muted">
                 {formatDisplayDateTime(item.date_order)}
               </ListPageDataTableCell>
             </ListPageDataTableRow>

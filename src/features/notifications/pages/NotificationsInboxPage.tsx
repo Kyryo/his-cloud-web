@@ -2,7 +2,7 @@
 
 import { Bell } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { PageLoader } from "@/components/page-loader";
 import { Button } from "@/components/ui/button";
@@ -13,9 +13,8 @@ import {
   ListPagePagination,
 } from "@/features/app-shell/components/page-layout";
 import { InboxActivityFeed } from "@/features/notifications/components/InboxActivityFeed";
-import { INBOX_UPDATED_EVENT } from "@/features/notifications/hooks/use-inbox-unread-count";
+import { useInboxItems } from "@/features/notifications/hooks/use-inbox-items";
 import {
-  fetchInboxItems,
   markAllInboxItemsRead,
   markInboxItemRead,
 } from "@/features/notifications/services/inbox.service";
@@ -25,95 +24,42 @@ const DEFAULT_PAGE_SIZE = 20;
 
 export function NotificationsInboxPage() {
   const router = useRouter();
-  const [items, setItems] = useState<InboxItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-  const [totalCount, setTotalCount] = useState(0);
-  const [hasNext, setHasNext] = useState(false);
-  const [hasPrevious, setHasPrevious] = useState(false);
+  const [isMarkingAll, setIsMarkingAll] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  const reload = useCallback(async () => {
-    setError(null);
-    const response = await fetchInboxItems({
-      page,
-      pageSize: DEFAULT_PAGE_SIZE,
-    });
-    setItems(response.results);
-    setTotalCount(response.pagination?.count ?? response.results.length);
-    setHasNext(Boolean(response.pagination?.next));
-    setHasPrevious(Boolean(response.pagination?.previous));
-  }, [page]);
-
-  useEffect(() => {
-    let cancelled = false;
-    void (async () => {
-      try {
-        setError(null);
-        const response = await fetchInboxItems({
-          page,
-          pageSize: DEFAULT_PAGE_SIZE,
-        });
-        if (cancelled) {
-          return;
-        }
-        setItems(response.results);
-        setTotalCount(response.pagination?.count ?? response.results.length);
-        setHasNext(Boolean(response.pagination?.next));
-        setHasPrevious(Boolean(response.pagination?.previous));
-      } catch (err) {
-        if (!cancelled) {
-          setError(
-            err instanceof Error ? err.message : "Failed to load notifications.",
-          );
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-          setIsRefreshing(false);
-        }
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [page]);
+  const {
+    items,
+    isLoading,
+    isRefreshing,
+    error,
+    totalCount,
+    hasNext,
+    hasPrevious,
+    reload,
+  } = useInboxItems({
+    page,
+    pageSize: DEFAULT_PAGE_SIZE,
+  });
 
   useEffect(() => {
-    function handleInboxUpdated() {
-      void reload();
-    }
-
-    function handleVisibility() {
-      if (document.visibilityState === "visible") {
-        handleInboxUpdated();
-      }
-    }
-
-    window.addEventListener(INBOX_UPDATED_EVENT, handleInboxUpdated);
-    document.addEventListener("visibilitychange", handleVisibility);
-
-    return () => {
-      window.removeEventListener(INBOX_UPDATED_EVENT, handleInboxUpdated);
-      document.removeEventListener("visibilitychange", handleVisibility);
-    };
-  }, [reload]);
+    setActionError(null);
+  }, [page]);
 
   async function handleMarkAllRead() {
-    setIsRefreshing(true);
+    setIsMarkingAll(true);
+    setActionError(null);
     try {
       await markAllInboxItemsRead();
       await reload();
     } catch (err) {
-      setError(
+      setActionError(
         err instanceof Error
           ? err.message
           : "Could not mark notifications as read.",
       );
     } finally {
-      setIsRefreshing(false);
+      setIsMarkingAll(false);
     }
   }
 
@@ -129,6 +75,7 @@ export function NotificationsInboxPage() {
   }
 
   const hasUnread = items.some((item) => !item.is_read);
+  const displayError = actionError ?? error;
 
   return (
     <ListPageLayout
@@ -149,7 +96,7 @@ export function NotificationsInboxPage() {
           variant="ghost"
           size="sm"
           className="h-8 shrink-0 text-brand-slate hover:text-brand-navy"
-          disabled={isLoading || isRefreshing || !hasUnread}
+          disabled={isLoading || isRefreshing || isMarkingAll || !hasUnread}
           onClick={() => void handleMarkAllRead()}
           data-testid="inbox-mark-all-read"
         >
@@ -163,18 +110,18 @@ export function NotificationsInboxPage() {
             message="Loading notifications..."
             className="min-h-[16rem] py-12 lg:min-h-[16rem]"
           />
-        ) : error ? (
+        ) : displayError ? (
           <StatusBanner
             variant="error"
-            message={error}
+            message={displayError}
             data-testid="inbox-error"
           >
             <button
               type="button"
               className="mt-2 text-sm font-medium text-red-800 underline"
               onClick={() => {
-                setIsRefreshing(true);
-                void reload().finally(() => setIsRefreshing(false));
+                setActionError(null);
+                void reload();
               }}
             >
               Try again
@@ -201,10 +148,9 @@ export function NotificationsInboxPage() {
               hasPrevious={hasPrevious}
               hasNext={hasNext}
               onPageChange={(nextPage) => {
-                setIsRefreshing(true);
                 setPage(nextPage);
               }}
-              isLoading={isLoading || isRefreshing}
+              isLoading={isLoading || isRefreshing || isMarkingAll}
             />
           </>
         )}

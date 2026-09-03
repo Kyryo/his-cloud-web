@@ -608,7 +608,7 @@ export function CreateCustomerDialog({
       <TabbedDialog
       open={open}
       onOpenChange={handleOpenChange}
-      title="Add client"
+      title="Register client"
       description="Create a new client record, then optionally add insurance, address, and notes."
       tabs={tabs}
       activeTab={activeTab}

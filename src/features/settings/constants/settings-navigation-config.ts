@@ -72,6 +72,21 @@ const SETTINGS_NAV_CATEGORIES: SettingsNavigationCategory[] = [
     ],
   },
   {
+    label: "EMR",
+    items: [
+      {
+        label: "Providers",
+        href: ROUTES.settingsClinicalProviders,
+        adminOnly: true,
+      },
+      {
+        label: "Clinical role capabilities",
+        href: ROUTES.settingsClinicalRoleCapabilities,
+        adminOnly: true,
+      },
+    ],
+  },
+  {
     label: "Integrations",
     items: [
       {

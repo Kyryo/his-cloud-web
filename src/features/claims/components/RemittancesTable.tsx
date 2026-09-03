@@ -71,7 +71,7 @@ export function RemittancesTable({
                   {remittanceDisplayName(batch)}
                 </p>
                 {batch.provider_name ? (
-                  <p className="truncate text-xs text-brand-muted">
+                  <p className="truncate text-sm text-brand-muted">
                     {batch.provider_name}
                   </p>
                 ) : null}

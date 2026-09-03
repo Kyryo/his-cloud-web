@@ -76,7 +76,7 @@ export function InvoicesTable({ invoices, onRowClick, className }: InvoicesTable
               data-testid={`invoice-row-${invoice.id}`}
             >
               <ListPageDataTableCell className="py-3">
-                <span className="font-mono text-xs font-semibold tracking-tight text-brand-navy group-hover:text-brand-primary">
+                <span className="font-mono text-sm font-semibold tracking-tight text-brand-navy group-hover:text-brand-primary">
                   {invoiceLabel}
                 </span>
               </ListPageDataTableCell>
@@ -92,13 +92,13 @@ export function InvoicesTable({ invoices, onRowClick, className }: InvoicesTable
                   </span>
                 </div>
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="hidden py-3 font-mono text-xs text-brand-slate md:table-cell">
+              <ListPageDataTableCell className="hidden py-3 font-mono text-sm text-brand-slate md:table-cell">
                 {salesOrderLabel}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="hidden py-3 text-xs text-brand-slate lg:table-cell">
+              <ListPageDataTableCell className="hidden py-3 text-sm text-brand-slate lg:table-cell">
                 {formatInvoicePricelist(invoice)}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 text-xs tabular-nums text-dash-muted">
+              <ListPageDataTableCell className="py-3 text-sm tabular-nums text-dash-muted">
                 {formatInvoiceDate(invoice.invoice_date)}
               </ListPageDataTableCell>
               <ListPageDataTableCell className="py-3">
@@ -108,7 +108,7 @@ export function InvoicesTable({ invoices, onRowClick, className }: InvoicesTable
                 {invoice.payment_status ? (
                   <InvoicePaymentStatusBadge status={invoice.payment_status} />
                 ) : (
-                  <span className="text-xs text-dash-muted">—</span>
+                  <span className="text-sm text-dash-muted">—</span>
                 )}
               </ListPageDataTableCell>
               <ListPageDataTableCell className="py-3 pr-4 text-right">

@@ -96,26 +96,6 @@ export function CustomerDetailActions({
   return (
     <>
       <div className={cn("flex shrink-0 flex-wrap items-center gap-2", className)}>
-        <SecondaryButton
-          type="button"
-          onClick={onEditDetails}
-          className="hidden items-center gap-1.5 sm:inline-flex"
-        >
-          <Pencil className="size-3.5" aria-hidden="true" />
-          <span>Edit details</span>
-        </SecondaryButton>
-
-        {onScheduleAppointment ? (
-          <SecondaryButton
-            type="button"
-            onClick={onScheduleAppointment}
-            className="hidden items-center gap-1.5 md:inline-flex"
-          >
-            <CalendarPlus className="size-3.5" aria-hidden="true" />
-            <span>Schedule</span>
-          </SecondaryButton>
-        ) : null}
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -141,6 +121,7 @@ export function CustomerDetailActions({
             {onScheduleAppointment ? (
               <DropdownMenuItem
                 onClick={onScheduleAppointment}
+                className="md:hidden"
                 data-testid="customer-schedule-appointment-menu-item"
               >
                 <CalendarPlus className="size-4" aria-hidden="true" />
@@ -173,6 +154,18 @@ export function CustomerDetailActions({
             ) : null}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {onScheduleAppointment ? (
+          <SecondaryButton
+            type="button"
+            onClick={onScheduleAppointment}
+            className="hidden items-center gap-1.5 md:inline-flex"
+            data-testid="customer-schedule-appointment-button"
+          >
+            <CalendarPlus className="size-3.5" aria-hidden="true" />
+            <span>Schedule</span>
+          </SecondaryButton>
+        ) : null}
       </div>
 
       <Dialog open={voidConfirmOpen} onOpenChange={setVoidConfirmOpen}>

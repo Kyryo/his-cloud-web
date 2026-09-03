@@ -51,15 +51,15 @@ export function PricelistsTable({
                 {pricelist.name}
               </span>
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 font-mono text-xs font-medium text-brand-navy">
+            <ListPageDataTableCell className="py-3 font-mono text-sm font-medium text-brand-navy">
               {pricelist.currency_code || "—"}
             </ListPageDataTableCell>
             <ListPageDataTableCell className="py-3">
               <span
                 className={
                   pricelist.is_active
-                    ? "inline-flex rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800"
-                    : "inline-flex rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-700"
+                    ? "inline-flex rounded-md bg-emerald-50 px-1.5 py-0.5 text-xs font-medium text-emerald-800"
+                    : "inline-flex rounded-md bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-700"
                 }
               >
                 {pricelist.is_active ? "Active" : "Archived"}

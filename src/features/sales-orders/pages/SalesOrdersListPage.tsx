@@ -245,69 +245,71 @@ export function SalesOrdersListPage() {
       />
 
       {!hasNoRecords ? (
-        <ListPageDataSectionsStack>
+        <ListPageDataSectionsStack className="space-y-0">
           <ListPageStatsSection className={cn(!showStats && "hidden sm:block")}>
             <SalesOrderSummaryStatsCards
               stats={stats}
               isLoading={isStatsLoading}
             />
           </ListPageStatsSection>
-        </ListPageDataSectionsStack>
-      ) : null}
 
-      <ListPageTableSection>
-        {isLoading ? (
-          <SalesOrdersTableSkeleton rows={8} />
-        ) : error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-            <h2 className="text-sm font-semibold text-red-800">
-              Could not load sales orders
-            </h2>
-            <p className="mt-2 text-sm text-red-700">{error}</p>
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-4"
-              onClick={() => void reloadOrders()}
-            >
-              Try again
-            </Button>
-          </div>
-        ) : hasNoRecords ? (
+          <ListPageTableSection>
+            {isLoading ? (
+              <SalesOrdersTableSkeleton rows={8} />
+            ) : error ? (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+                <h2 className="text-sm font-semibold text-red-800">
+                  Could not load sales orders
+                </h2>
+                <p className="mt-2 text-sm text-red-700">{error}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => void reloadOrders()}
+                >
+                  Try again
+                </Button>
+              </div>
+            ) : isFilteredEmpty ? (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center">
+                <h2 className="text-base font-semibold text-brand-navy">
+                  No matching sales orders
+                </h2>
+                <p className="mt-1 text-sm text-brand-muted">
+                  Adjust your search or filters and try again.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={handleClearSearch}
+                >
+                  Clear search & filters
+                </Button>
+              </div>
+            ) : (
+              <>
+                <SalesOrdersTable orders={orders} onRowClick={handleRowClick} />
+                <ListPagePagination
+                  page={page}
+                  pageSize={DEFAULT_PAGE_SIZE}
+                  totalCount={totalCount}
+                  hasNext={hasNext}
+                  hasPrevious={hasPrevious}
+                  isLoading={isRefreshing}
+                  onPageChange={handlePageChange}
+                />
+              </>
+            )}
+          </ListPageTableSection>
+        </ListPageDataSectionsStack>
+      ) : (
+        <ListPageTableSection>
           <SalesOrdersEmptyState onNewOrder={() => setCreateDialogOpen(true)} />
-        ) : isFilteredEmpty ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center">
-            <h2 className="text-base font-semibold text-brand-navy">
-              No matching sales orders
-            </h2>
-            <p className="mt-1 text-sm text-brand-muted">
-              Adjust your search or filters and try again.
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="mt-4"
-              onClick={handleClearSearch}
-            >
-              Clear search & filters
-            </Button>
-          </div>
-        ) : (
-          <>
-            <SalesOrdersTable orders={orders} onRowClick={handleRowClick} />
-            <ListPagePagination
-              page={page}
-              pageSize={DEFAULT_PAGE_SIZE}
-              totalCount={totalCount}
-              hasNext={hasNext}
-              hasPrevious={hasPrevious}
-              isLoading={isRefreshing}
-              onPageChange={handlePageChange}
-            />
-          </>
-        )}
-      </ListPageTableSection>
+        </ListPageTableSection>
+      )}
 
       <CreateSalesOrderDialog
         open={createDialogOpen}

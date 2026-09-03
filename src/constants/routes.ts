@@ -80,6 +80,26 @@ export const ROUTES = {
   pharmacyHistory: "/pharmacy/history",
   activeVisits: "/active-visits",
   appointments: "/appointments",
+  clinicalOpd: "/clinical/opd",
+  clinicalOpdEncounter: (visitUuid: string, encounterUuid: string) =>
+    `/clinical/opd/${visitUuid}/${encounterUuid}`,
+  clinicalOpdEncounterTab: (
+    visitUuid: string,
+    encounterUuid: string,
+    tab?: "vital-signs" | "physical-examination" | "orders" | "diagnoses" | "medications",
+  ) => {
+    const base = `/clinical/opd/${visitUuid}/${encounterUuid}`;
+    const segments: Record<string, string> = {
+      "physical-examination": "physical-examination",
+      orders: "orders",
+      diagnoses: "diagnoses",
+      medications: "medications",
+    };
+    if (!tab || tab === "vital-signs") {
+      return base;
+    }
+    return `${base}/${segments[tab]}`;
+  },
   visitDetail: (uuid: string) => `/visits/${uuid}`,
   settings: "/settings",
   settingsAccount: "/settings/account",
@@ -87,6 +107,8 @@ export const ROUTES = {
   settingsOrganization: "/settings/organization",
   settingsVisitManagement: "/settings/visit-management",
   settingsClientTags: "/settings/client-tags",
+  settingsClinicalProviders: "/settings/clinical-providers",
+  settingsClinicalRoleCapabilities: "/settings/clinical-role-capabilities",
   settingsFinanceOperations: "/settings/finance-operations",
   settingsUserManagement: "/settings/user-management",
   settingsModules: "/settings/modules",
@@ -142,6 +164,8 @@ export const WEB_NEW_ROUTE_PREFIXES = [
   ROUTES.pharmacyHistory,
   ROUTES.activeVisits,
   ROUTES.appointments,
+  ROUTES.clinicalOpd,
+  "/clinical",
   "/reports",
   "/visits",
   ROUTES.settings,
@@ -193,6 +217,8 @@ export const APP_ROUTE_PREFIXES = [
   "/pharmacy",
   ROUTES.activeVisits,
   ROUTES.appointments,
+  ROUTES.clinicalOpd,
+  "/clinical",
   "/reports",
   "/visits",
   ROUTES.settings,
@@ -241,6 +267,8 @@ export const PROTECTED_ROUTES = [
   ROUTES.pharmacyHistory,
   ROUTES.activeVisits,
   ROUTES.appointments,
+  ROUTES.clinicalOpd,
+  "/clinical",
   "/reports",
   "/visits",
   ROUTES.settings,

@@ -1,7 +1,7 @@
 "use client";
 
 import { Bold, Italic, List, ListOrdered, Underline } from "lucide-react";
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -14,20 +14,71 @@ const COMMANDS = [
   { command: "insertOrderedList", label: "Numbered list", icon: ListOrdered },
 ] as const;
 
+function focusEditorAtEnd(node: HTMLDivElement) {
+  node.focus();
+  const selection = window.getSelection();
+  if (!selection) {
+    return;
+  }
+
+  const range = document.createRange();
+  range.selectNodeContents(node);
+  range.collapse(false);
+  selection.removeAllRanges();
+  selection.addRange(range);
+}
+
 export function TherapyRichTextEditor({
   value,
   onChange,
   placeholder,
   disabled,
+  readOnly = false,
   className,
+  autoFocus = false,
+  focusAtEndKey = 0,
 }: {
   value: string;
   onChange: (value: string) => void;
   placeholder: string;
   disabled?: boolean;
+  readOnly?: boolean;
   className?: string;
+  autoFocus?: boolean;
+  focusAtEndKey?: number;
 }) {
   const editorRef = useRef<HTMLDivElement>(null);
+  const isInteractive = !disabled && !readOnly;
+
+  useEffect(() => {
+    if (!autoFocus) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      editorRef.current?.focus();
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, [autoFocus]);
+
+  useEffect(() => {
+    if (!focusAtEndKey || !isInteractive) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      if (editorRef.current) {
+        focusEditorAtEnd(editorRef.current);
+      }
+    });
+
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
+  }, [focusAtEndKey, isInteractive]);
 
   function runCommand(command: (typeof COMMANDS)[number]["command"]) {
     editorRef.current?.focus();
@@ -38,11 +89,17 @@ export function TherapyRichTextEditor({
   return (
     <div
       className={cn(
-        "w-full bg-white",
+        "w-full rounded-lg border border-transparent bg-white",
+        disabled && "bg-dash-canvas/60",
         className,
       )}
     >
-      <div className="flex flex-wrap gap-1 bg-white py-1.5">
+      <div
+        className={cn(
+          "flex flex-wrap gap-1 bg-white py-1.5",
+          disabled && "bg-dash-canvas/60",
+        )}
+      >
         {COMMANDS.map(({ command, label, icon: Icon }) => (
           <Button
             key={command}
@@ -50,7 +107,7 @@ export function TherapyRichTextEditor({
             variant="ghost"
             size="icon"
             className="size-8"
-            disabled={disabled}
+            disabled={!isInteractive}
             aria-label={label}
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => runCommand(command)}
@@ -68,11 +125,21 @@ export function TherapyRichTextEditor({
         }}
         role="textbox"
         aria-multiline="true"
-        contentEditable={!disabled}
+        aria-readonly={readOnly}
+        contentEditable={isInteractive}
         data-placeholder={placeholder}
-        className="min-h-64 w-full bg-white px-1 py-3 text-sm leading-6 text-brand-navy outline-none empty:before:pointer-events-none empty:before:text-brand-muted empty:before:content-[attr(data-placeholder)] [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-1 [&_ul]:list-disc [&_ul]:pl-5"
+        className={cn(
+          "min-h-64 w-full bg-white px-1 py-3 text-sm leading-6 text-brand-navy outline-none empty:before:pointer-events-none empty:before:text-brand-muted empty:before:content-[attr(data-placeholder)] [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-1 [&_ul]:list-disc [&_ul]:pl-5",
+          !isInteractive && "cursor-default",
+          disabled && "bg-dash-canvas/60 text-brand-muted",
+        )}
         suppressContentEditableWarning
-        onInput={(event) => onChange(event.currentTarget.innerHTML)}
+        onInput={(event) => {
+          if (!isInteractive) {
+            return;
+          }
+          onChange(event.currentTarget.innerHTML);
+        }}
       />
     </div>
   );

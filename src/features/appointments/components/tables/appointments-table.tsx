@@ -112,7 +112,7 @@ export function AppointmentsTable({
                       {appointment.patient_name}
                     </span>
                     {appointment.reason ? (
-                      <span className="block truncate text-xs text-brand-muted">
+                      <span className="block truncate text-sm text-brand-muted">
                         {appointment.reason}
                       </span>
                     ) : null}
@@ -121,24 +121,24 @@ export function AppointmentsTable({
               </ListPageDataTableCell>
 
               {/* Clinic */}
-              <ListPageDataTableCell className="py-3 text-xs text-brand-slate">
+              <ListPageDataTableCell className="py-3 text-sm text-brand-slate">
                 {appointment.clinic_name || "—"}
               </ListPageDataTableCell>
 
               {/* Department */}
-              <ListPageDataTableCell className="py-3 text-xs text-brand-slate">
+              <ListPageDataTableCell className="py-3 text-sm text-brand-slate">
                 {appointment.department_name || "—"}
               </ListPageDataTableCell>
 
               {/* Clinician */}
-              <ListPageDataTableCell className="hidden py-3 text-xs text-brand-slate md:table-cell">
+              <ListPageDataTableCell className="hidden py-3 text-sm text-brand-slate md:table-cell">
                 {appointment.clinician_name || (
                   <span className="text-dash-muted">Unassigned</span>
                 )}
               </ListPageDataTableCell>
 
               {/* Scheduled Start */}
-              <ListPageDataTableCell className="py-3 text-xs font-medium text-brand-navy tabular-nums">
+              <ListPageDataTableCell className="py-3 text-sm font-medium text-brand-navy tabular-nums">
                 {formatDisplayDateTime(appointment.scheduled_start)}
               </ListPageDataTableCell>
 
@@ -157,7 +157,7 @@ export function AppointmentsTable({
                     <SecondaryButton
                       type="button"
                       size="sm"
-                      className="h-7 text-xs"
+                      className="h-7 text-sm"
                       onClick={() => onActionRequest(appointment, "start")}
                       data-testid="appointments-start-visit"
                     >

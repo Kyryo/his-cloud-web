@@ -57,7 +57,7 @@ export function InternalOrdersTable({
               className="group cursor-pointer transition-colors hover:bg-slate-50/70"
               onClick={() => onRowClick?.(order)}
             >
-              <ListPageDataTableCell className="py-3 font-mono text-xs font-semibold text-brand-navy group-hover:text-brand-primary">
+              <ListPageDataTableCell className="py-3 font-mono text-sm font-semibold text-brand-navy group-hover:text-brand-primary">
                 {order.reference_number}
               </ListPageDataTableCell>
               <ListPageDataTableCell className="py-3 text-sm text-brand-navy">
@@ -78,7 +78,7 @@ export function InternalOrdersTable({
                   <TableEntityCell name="" unassigned unassignedLabel="Unknown" />
                 )}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 text-xs tabular-nums text-dash-muted">
+              <ListPageDataTableCell className="py-3 text-sm tabular-nums text-dash-muted">
                 {formatDisplayDateTime(order.updated_at)}
               </ListPageDataTableCell>
             </ListPageDataTableRow>

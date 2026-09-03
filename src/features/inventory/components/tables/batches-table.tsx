@@ -50,10 +50,10 @@ export function BatchesTable({ items, onRowClick, className }: BatchesTableProps
             <ListPageDataTableCell className="py-3 text-sm font-semibold text-brand-navy group-hover:text-brand-primary">
               {item.batch_number}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 font-mono text-xs text-brand-slate">
+            <ListPageDataTableCell className="py-3 font-mono text-sm text-brand-slate">
               {item.product_id}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 text-xs tabular-nums text-dash-muted">
+            <ListPageDataTableCell className="py-3 text-sm tabular-nums text-dash-muted">
               {formatDisplayDate(item.expiry_date)}
             </ListPageDataTableCell>
             <ListPageDataTableCell className="py-3 text-sm text-brand-navy">
@@ -63,8 +63,8 @@ export function BatchesTable({ items, onRowClick, className }: BatchesTableProps
               <span
                 className={
                   item.is_active
-                    ? "inline-flex rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-800"
-                    : "inline-flex rounded-md bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium text-slate-700"
+                    ? "inline-flex rounded-md bg-emerald-50 px-1.5 py-0.5 text-xs font-medium text-emerald-800"
+                    : "inline-flex rounded-md bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-700"
                 }
               >
                 {item.is_active ? "Active" : "Inactive"}

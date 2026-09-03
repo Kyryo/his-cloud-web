@@ -82,6 +82,13 @@ export function resolvePortalModuleForPath(
     return "Lab";
   }
 
+  if (
+    pathname === ROUTES.clinicalOpd ||
+    pathname.startsWith(`${ROUTES.clinicalOpd}/`)
+  ) {
+    return "Clinical";
+  }
+
   return null;
 }
 

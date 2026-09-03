@@ -13,7 +13,6 @@ import {
   OverviewCount,
   OverviewRecentClients,
   OverviewSection,
-  OverviewWorkstations,
 } from "@/features/overview/components/overview-workspace-sections";
 import { useOverviewWorkspace } from "@/features/overview/hooks/use-overview-workspace";
 import {
@@ -64,27 +63,15 @@ export function OverviewWorkspace() {
             {greeting}
           </h1>
           <p className="text-xs text-brand-muted sm:text-sm">
-            Live clinic operational pulse, active patient queue, and clinical schedule.
+            Live clinic operational pulse and recent activity.
           </p>
         </div>
 
         <div className="flex shrink-0 flex-wrap items-center gap-2">
-          <Button asChild size="sm" variant="outline" className="gap-1.5 text-xs">
-            <Link href={ROUTES.activeVisits}>
-              <AppIcon name="heartPulse" className="size-3.5" />
-              <span>Active Queue</span>
-            </Link>
-          </Button>
-          <Button asChild size="sm" variant="outline" className="gap-1.5 text-xs">
-            <Link href={ROUTES.appointments}>
-              <AppIcon name="calendar" className="size-3.5" />
-              <span>Schedule</span>
-            </Link>
-          </Button>
           <Button asChild size="sm" className="gap-1.5 bg-brand-primary text-xs text-white hover:bg-brand-primary-hover">
             <Link href={ROUTES.customers}>
               <AppIcon name="add" className="size-3.5" />
-              <span>Register Client</span>
+              <span>Register client</span>
             </Link>
           </Button>
         </div>
@@ -164,7 +151,7 @@ export function OverviewWorkspace() {
             {/* Primary Operations Timeline */}
             <div className="space-y-6">
               <OverviewSection
-                title="Live Operations & Activity"
+                title="Activity"
                 badge={
                   activity.length > 0 ? (
                     <Badge variant="secondary" className="h-4.5 px-1.5 text-[10px]">
@@ -183,7 +170,6 @@ export function OverviewWorkspace() {
               </OverviewSection>
             </div>
 
-            {/* Secondary Column: Recent Clients & Workstations */}
             <div className="space-y-8">
               <OverviewSection
                 title="Recently Registered"
@@ -198,10 +184,6 @@ export function OverviewWorkspace() {
                 actionLabel="Directory"
               >
                 <OverviewRecentClients clients={clients} />
-              </OverviewSection>
-
-              <OverviewSection title="Clinical Workstations">
-                <OverviewWorkstations />
               </OverviewSection>
             </div>
           </div>

@@ -60,7 +60,7 @@ export function StockTable({ items, onRowClick, className }: StockTableProps) {
             <ListPageDataTableCell className="py-3 font-medium text-brand-navy">
               {item.product_name?.trim() || "—"}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 font-mono text-xs text-brand-navy">
+            <ListPageDataTableCell className="py-3 font-mono text-sm text-brand-navy">
               {item.product_id}
             </ListPageDataTableCell>
             <ListPageDataTableCell className="py-3 text-sm text-brand-slate">

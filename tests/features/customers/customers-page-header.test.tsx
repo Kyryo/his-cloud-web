@@ -42,9 +42,11 @@ describe("CustomersPageHeader", () => {
     expect(screen.getByTestId("customers-filters-button")).toBeInTheDocument();
 
     // Action buttons
-    expect(screen.getByText("Active Queue")).toBeInTheDocument();
-    expect(screen.getByText("Appointments")).toBeInTheDocument();
-    expect(screen.getByTestId("add-client-button")).toBeInTheDocument();
+    expect(screen.queryByText("Active Queue")).not.toBeInTheDocument();
+    expect(screen.queryByText("Appointments")).not.toBeInTheDocument();
+    expect(screen.getByTestId("add-client-button")).toHaveTextContent(
+      "Register client",
+    );
 
     fireEvent.click(screen.getByTestId("add-client-button"));
     expect(onAddClient).toHaveBeenCalledTimes(1);

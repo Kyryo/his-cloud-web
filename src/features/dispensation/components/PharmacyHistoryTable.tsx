@@ -57,10 +57,10 @@ export function PharmacyHistoryTable({
             key={item.uuid}
             data-testid={`pharmacy-history-row-${item.uuid}`}
           >
-            <ListPageDataTableCell className="py-3 text-xs tabular-nums text-dash-muted">
+            <ListPageDataTableCell className="py-3 text-sm tabular-nums text-dash-muted">
               {formatDisplayDateTime(item.dispensed_at)}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 font-mono text-xs font-semibold text-brand-navy">
+            <ListPageDataTableCell className="py-3 font-mono text-sm font-semibold text-brand-navy">
               {item.sales_order_name}
             </ListPageDataTableCell>
             <ListPageDataTableCell className="py-3 text-sm font-medium text-brand-navy">

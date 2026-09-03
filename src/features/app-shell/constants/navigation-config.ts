@@ -20,7 +20,7 @@ export const moduleDisplayNames: Record<string, string> = {
   Lab: "Laboratory",
   Radiology: "Radiology",
   Inventory: "Inventory",
-  Clinical: "Clinical",
+  Clinical: "EMR",
   Therapy: "Therapy",
 };
 
@@ -214,6 +214,14 @@ export const navigation: NavigationItem[] = [
     icon: "flask",
     requiredGroup: "Lab",
     enabledInWebNew: false,
+  },
+  {
+    name: "OPD Queue",
+    href: ROUTES.clinicalOpd,
+    icon: "hospital",
+    requiredGroup: "Clinical",
+    moduleName: "Clinical",
+    enabledInWebNew: true,
   },
   {
     name: "Patient File",

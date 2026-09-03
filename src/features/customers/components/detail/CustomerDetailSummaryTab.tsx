@@ -1,12 +1,11 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Activity, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 import {
   CustomerActivityTimeline,
 } from "@/features/customers/components/detail/CustomerActivityTimeline";
-import { CustomerDetailTabEmptyState } from "@/features/customers/components/detail/CustomerDetailTabEmptyState";
 import { CustomerTabSkeleton } from "@/features/customers/components/detail/CustomerTabSkeleton";
 import {
   extractCustomerBillingCounts,
@@ -20,14 +19,15 @@ import {
 import type { CustomerEncounter } from "@/features/customers/types/customer-encounter.types";
 import type { Customer } from "@/features/customers/types/customer.types";
 import {
-  formatCompactCurrency,
+  formatCompactAmount,
   formatCompactNumber,
 } from "@/utils/format-compact-number";
 import { formatSalesOrderAmount } from "@/features/sales-orders/utils/format-sales-order";
 import type { CustomerBillingTotals } from "@/features/customers/types/customer-billing.types";
 import { cn } from "@/lib/utils";
 
-const ACTIVITY_PAGE_SIZE = 10;
+const ACTIVITY_PAGE_SIZE = 20;
+const STAT_CURRENCY = "MWK";
 
 type CustomerDetailSummaryTabProps = {
   customer: Customer;
@@ -48,7 +48,32 @@ function formatBillingTotal(value: number | string | null | undefined) {
   if (value === null || value === undefined) {
     return "—";
   }
-  return formatSalesOrderAmount(value, "MWK");
+  return formatSalesOrderAmount(value, STAT_CURRENCY);
+}
+
+function StatCurrencyValue({
+  value,
+  amountClassName,
+}: {
+  value: number | string | null | undefined;
+  amountClassName?: string;
+}) {
+  const amount = formatCompactAmount(value);
+  if (amount === "—") {
+    return <span className={amountClassName}>—</span>;
+  }
+
+  return (
+    <span
+      className="inline-flex items-baseline gap-1.5"
+      title={formatBillingTotal(value)}
+    >
+      <span className={amountClassName}>{amount}</span>
+      <span className="text-[0.45em] font-medium uppercase tracking-[0.08em] text-brand-muted">
+        {STAT_CURRENCY}
+      </span>
+    </span>
+  );
 }
 
 function parseBillingAmount(value: number | string | null | undefined): number {
@@ -68,38 +93,47 @@ export function CustomerDetailSummaryTab({
   const [stats, setStats] = useState<SummaryStats | null>(null);
   const [encounters, setEncounters] = useState<CustomerEncounter[]>([]);
   const [activityPage, setActivityPage] = useState(1);
-  const [hasMoreActivity, setHasMoreActivity] = useState(false);
+  const [activityTotalCount, setActivityTotalCount] = useState(0);
+  const [hasNextActivity, setHasNextActivity] = useState(false);
+  const [hasPreviousActivity, setHasPreviousActivity] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isActivityRefreshing, setIsActivityRefreshing] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [hasLoaded, setHasLoaded] = useState(false);
 
-  const loadMoreActivity = useCallback(async () => {
-    if (isLoadingMore || !hasMoreActivity) {
-      return;
-    }
+  const loadActivityPage = useCallback(
+    async (page: number, options?: { quiet?: boolean }) => {
+      if (!options?.quiet) {
+        setIsActivityRefreshing(true);
+      }
 
-    setIsLoadingMore(true);
+      try {
+        const response = await fetchCustomerEncounters({
+          customerId: customer.id,
+          page,
+          pageSize: ACTIVITY_PAGE_SIZE,
+        });
 
-    try {
-      const nextPage = activityPage + 1;
-      const response = await fetchCustomerEncounters({
-        customerId: customer.id,
-        page: nextPage,
-        pageSize: ACTIVITY_PAGE_SIZE,
-      });
-
-      setEncounters((current) => [...current, ...response.results]);
-      setActivityPage(nextPage);
-      setHasMoreActivity(Boolean(response.pagination?.next));
-    } catch (error) {
-      setLoadError(
-        error instanceof Error ? error.message : "Failed to load more activity.",
-      );
-    } finally {
-      setIsLoadingMore(false);
-    }
-  }, [activityPage, customer.id, hasMoreActivity, isLoadingMore]);
+        setEncounters(response.results);
+        setActivityPage(page);
+        setActivityTotalCount(
+          response.pagination?.count ?? response.results.length,
+        );
+        setHasNextActivity(Boolean(response.pagination?.next));
+        setHasPreviousActivity(Boolean(response.pagination?.previous));
+        setLoadError(null);
+      } catch (error) {
+        setLoadError(
+          error instanceof Error
+            ? error.message
+            : "Failed to load activity.",
+        );
+      } finally {
+        setIsActivityRefreshing(false);
+      }
+    },
+    [customer.id],
+  );
 
   useEffect(() => {
     if (!isActive || hasLoaded) {
@@ -136,7 +170,14 @@ export function CustomerDetailSummaryTab({
         });
         setEncounters(encountersResponse.results);
         setActivityPage(1);
-        setHasMoreActivity(Boolean(encountersResponse.pagination?.next));
+        setActivityTotalCount(
+          encountersResponse.pagination?.count ??
+            encountersResponse.results.length,
+        );
+        setHasNextActivity(Boolean(encountersResponse.pagination?.next));
+        setHasPreviousActivity(
+          Boolean(encountersResponse.pagination?.previous),
+        );
         setHasLoaded(true);
       } catch (error) {
         if (cancelled) {
@@ -295,9 +336,7 @@ export function CustomerDetailSummaryTab({
                 <span className="sr-only">Loading</span>
               </span>
             ) : (
-              <span title={formatBillingTotal(stats?.totals?.total_sales)}>
-                {formatCompactCurrency(stats?.totals?.total_sales)}
-              </span>
+              <StatCurrencyValue value={stats?.totals?.total_sales} />
             )}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Total order volume</p>
@@ -318,9 +357,7 @@ export function CustomerDetailSummaryTab({
                 <span className="sr-only">Loading</span>
               </span>
             ) : (
-              <span title={formatBillingTotal(stats?.totals?.total_invoiced)}>
-                {formatCompactCurrency(stats?.totals?.total_invoiced)}
-              </span>
+              <StatCurrencyValue value={stats?.totals?.total_invoiced} />
             )}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Total billed services</p>
@@ -351,9 +388,10 @@ export function CustomerDetailSummaryTab({
                 <span className="sr-only">Loading</span>
               </span>
             ) : (
-              <span title={formatBillingTotal(stats?.totals?.total_due)}>
-                {formatCompactCurrency(stats?.totals?.total_due)}
-              </span>
+              <StatCurrencyValue
+                value={stats?.totals?.total_due}
+                amountClassName={hasDue ? "text-red-600" : undefined}
+              />
             )}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">
@@ -366,22 +404,20 @@ export function CustomerDetailSummaryTab({
         </div>
       </dl>
 
-      {/* Activity Timeline Section */}
-      {encounters.length === 0 ? (
-        <CustomerDetailTabEmptyState
-          icon={Activity}
-          title="No activity yet"
-          description="Events such as profile updates, insurance changes, and notes will appear here as they happen."
-          data-testid="customer-activity-empty-state"
-        />
-      ) : (
-        <CustomerActivityTimeline
-          encounters={encounters}
-          hasMore={hasMoreActivity}
-          isLoadingMore={isLoadingMore}
-          onLoadMore={() => void loadMoreActivity()}
-        />
-      )}
+      <CustomerActivityTimeline
+        encounters={encounters}
+        pagination={{
+          page: activityPage,
+          pageSize: ACTIVITY_PAGE_SIZE,
+          totalCount: activityTotalCount,
+          hasPrevious: hasPreviousActivity,
+          hasNext: hasNextActivity,
+          onPageChange: (page) => {
+            void loadActivityPage(page);
+          },
+          isLoading: isActivityRefreshing,
+        }}
+      />
 
       {loadError && hasLoaded ? (
         <p className="text-xs text-red-600">{loadError}</p>

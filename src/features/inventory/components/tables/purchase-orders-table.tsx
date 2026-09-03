@@ -58,7 +58,7 @@ export function PurchaseOrdersTable({
             className="group cursor-pointer transition-colors hover:bg-slate-50/70"
             onClick={() => onRowClick?.(order)}
           >
-            <ListPageDataTableCell className="py-3 font-mono text-xs font-semibold text-brand-navy group-hover:text-brand-primary">
+            <ListPageDataTableCell className="py-3 font-mono text-sm font-semibold text-brand-navy group-hover:text-brand-primary">
               {order.reference_number}
             </ListPageDataTableCell>
             <ListPageDataTableCell className="py-3 text-sm font-medium text-brand-navy">
@@ -67,7 +67,7 @@ export function PurchaseOrdersTable({
             <ListPageDataTableCell className="py-3">
               <PurchaseStatusBadge status={order.status} />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 text-xs tabular-nums text-dash-muted">
+            <ListPageDataTableCell className="py-3 text-sm tabular-nums text-dash-muted">
               {formatDisplayDate(order.delivery_date)}
             </ListPageDataTableCell>
             <ListPageDataTableCell className="py-3 pr-4 text-right text-sm font-semibold tabular-nums text-brand-navy">

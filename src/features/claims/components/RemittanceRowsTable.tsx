@@ -166,7 +166,7 @@ export function RemittanceRowsTable({
                 </ListPageDataTableCell>
                 <ListPageDataTableCell className="text-sm">
                   {hasRejectionReason(row) ? (
-                    <span className="font-mono text-xs text-red-600">
+                    <span className="font-mono text-sm text-red-600">
                       {row.reason_code}
                     </span>
                   ) : (

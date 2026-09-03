@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { FabButton } from "@/components/ui/fab-button";
 import { Button } from "@/components/ui/button";
+import { CreateAppointmentDialog } from "@/features/appointments/components/CreateAppointmentDialog";
 import { CreateCustomerDialog } from "@/features/customers/components/CreateCustomerDialog";
 import { CustomerSummaryStatsCards } from "@/features/customers/components/CustomerSummaryStats";
 import { CustomersEmptyState } from "@/features/customers/components/CustomersEmptyState";
@@ -66,6 +67,9 @@ export function CustomersListPage() {
   const [isUnauthorized, setIsUnauthorized] = useState(false);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [visitCustomer, setVisitCustomer] = useState<Customer | null>(null);
+  const [appointmentCustomer, setAppointmentCustomer] = useState<Customer | null>(
+    null,
+  );
   const [editCustomer, setEditCustomer] = useState<Customer | null>(null);
   const [showStats, setShowStats] = useState(false);
 
@@ -275,6 +279,20 @@ export function CustomersListPage() {
           }}
         />
       ) : null}
+      {appointmentCustomer ? (
+        <CreateAppointmentDialog
+          customer={appointmentCustomer}
+          open={Boolean(appointmentCustomer)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setAppointmentCustomer(null);
+            }
+          }}
+          onCreated={() => {
+            setAppointmentCustomer(null);
+          }}
+        />
+      ) : null}
       {editCustomer ? (
         <UpdateCustomerDialog
           open={Boolean(editCustomer)}
@@ -306,67 +324,70 @@ export function CustomersListPage() {
       />
 
       {!hasNoCustomerRecords ? (
-        <ListPageDataSectionsStack>
+        <ListPageDataSectionsStack className="space-y-0">
           <ListPageStatsSection className={cn(!showStats && "hidden sm:block")}>
             <CustomerSummaryStatsCards stats={stats} isLoading={isStatsLoading} />
           </ListPageStatsSection>
-        </ListPageDataSectionsStack>
-      ) : null}
 
-      <ListPageTableSection>
-        {isLoading ? (
-          <CustomersTableSkeleton rows={10} />
-        ) : error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-            <h2 className="text-sm font-semibold text-red-800">Could not load clients</h2>
-            <p className="mt-2 text-sm text-red-700">{error}</p>
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-4"
-              onClick={() => void reloadCustomers()}
-            >
-              Try again
-            </Button>
-          </div>
-        ) : hasNoCustomerRecords ? (
+          <ListPageTableSection>
+            {isLoading ? (
+              <CustomersTableSkeleton rows={10} />
+            ) : error ? (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+                <h2 className="text-sm font-semibold text-red-800">Could not load clients</h2>
+                <p className="mt-2 text-sm text-red-700">{error}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => void reloadCustomers()}
+                >
+                  Try again
+                </Button>
+              </div>
+            ) : isFilteredEmpty ? (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center">
+                <h2 className="text-base font-semibold text-brand-navy">No matching clients</h2>
+                <p className="mt-1 text-sm text-brand-muted">
+                  Adjust your search or filters and try again.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={handleClearSearch}
+                >
+                  Clear search & filters
+                </Button>
+              </div>
+            ) : (
+              <>
+                <CustomersTable
+                  customers={customers}
+                  onRowClick={handleRowClick}
+                  onStartVisit={(customer) => setVisitCustomer(customer)}
+                  onBookAppointment={(customer) => setAppointmentCustomer(customer)}
+                  onEditCustomer={(customer) => setEditCustomer(customer)}
+                />
+                <ListPagePagination
+                  page={page}
+                  pageSize={DEFAULT_PAGE_SIZE}
+                  totalCount={totalCount}
+                  hasNext={hasNext}
+                  hasPrevious={hasPrevious}
+                  isLoading={isRefreshing}
+                  onPageChange={handlePageChange}
+                />
+              </>
+            )}
+          </ListPageTableSection>
+        </ListPageDataSectionsStack>
+      ) : (
+        <ListPageTableSection>
           <CustomersEmptyState onAddClient={handleAddClient} />
-        ) : isFilteredEmpty ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center">
-            <h2 className="text-base font-semibold text-brand-navy">No matching clients</h2>
-            <p className="mt-1 text-sm text-brand-muted">
-              Adjust your search or filters and try again.
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="mt-4"
-              onClick={handleClearSearch}
-            >
-              Clear search & filters
-            </Button>
-          </div>
-        ) : (
-          <>
-            <CustomersTable
-              customers={customers}
-              onRowClick={handleRowClick}
-              onStartVisit={(customer) => setVisitCustomer(customer)}
-              onEditCustomer={(customer) => setEditCustomer(customer)}
-            />
-            <ListPagePagination
-              page={page}
-              pageSize={DEFAULT_PAGE_SIZE}
-              totalCount={totalCount}
-              hasNext={hasNext}
-              hasPrevious={hasPrevious}
-              isLoading={isRefreshing}
-              onPageChange={handlePageChange}
-            />
-          </>
-        )}
-      </ListPageTableSection>
+        </ListPageTableSection>
+      )}
     </ListPageLayout>
   );
 }

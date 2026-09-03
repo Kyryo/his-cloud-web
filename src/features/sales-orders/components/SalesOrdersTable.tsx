@@ -84,10 +84,10 @@ function SalesOrderHoverPreview({ order }: { order: SalesOrder }) {
   return (
     <div className="space-y-3">
       <div>
-        <p className="font-semibold text-brand-navy">{order.name || `#${order.id}`}</p>
-        <p className="font-mono text-xs text-brand-muted">ERP reference #{order.id}</p>
+        <p className="font-normal text-brand-navy">{order.name || `#${order.id}`}</p>
+        <p className="font-mono text-sm text-brand-muted">ERP reference #{order.id}</p>
       </div>
-      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-xs">
+      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1.5 text-sm">
         <dt className="text-brand-muted">Client</dt>
         <dd className="font-medium text-brand-navy">{formatSalesOrderCustomer(order)}</dd>
         <dt className="text-brand-muted">Provider</dt>
@@ -110,7 +110,7 @@ function SalesOrderHoverPreview({ order }: { order: SalesOrder }) {
       <div className="border-t border-dash-border/60 pt-2">
         <Link
           href={ROUTES.salesOrderDetail(order.uuid)}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand-primary hover:text-brand-primary-hover"
+          className="inline-flex items-center gap-1.5 text-sm font-semibold text-brand-primary hover:text-brand-primary-hover"
         >
           <span>Open order details</span>
           <ExternalLink className="size-3" />
@@ -176,7 +176,7 @@ export function SalesOrdersTable({
                       trigger={
                         <Link
                           href={ROUTES.salesOrderDetail(order.uuid)}
-                          className="font-mono text-xs font-semibold text-brand-navy hover:text-brand-primary transition-colors tracking-tight"
+                          className="font-mono text-sm font-normal text-brand-navy hover:text-brand-primary transition-colors tracking-tight"
                           title={orderLabel}
                           onClick={(event) => event.stopPropagation()}
                         >
@@ -224,17 +224,17 @@ export function SalesOrdersTable({
                 </ListPageDataTableCell>
 
                 {/* 3. Provider */}
-                <ListPageDataTableCell className="hidden py-3 text-xs md:table-cell">
+                <ListPageDataTableCell className="hidden py-3 text-sm md:table-cell">
                   <SalesOrderProviderCell order={order} />
                 </ListPageDataTableCell>
 
                 {/* 4. Pricelist */}
-                <ListPageDataTableCell className="hidden py-3 text-xs text-brand-slate lg:table-cell">
+                <ListPageDataTableCell className="hidden py-3 text-sm text-brand-slate lg:table-cell">
                   {formatSalesOrderPricelist(order)}
                 </ListPageDataTableCell>
 
                 {/* 5. Date */}
-                <ListPageDataTableCell className="py-3 text-xs text-dash-muted tabular-nums">
+                <ListPageDataTableCell className="py-3 text-sm text-dash-muted tabular-nums">
                   {formatSalesOrderDateTime(order.date_order)}
                 </ListPageDataTableCell>
 
@@ -245,12 +245,10 @@ export function SalesOrdersTable({
 
                 {/* 7. Total */}
                 <ListPageDataTableCell className="py-3 pr-4 text-right">
-                  <div className="font-semibold text-sm text-brand-navy tabular-nums">
-                    <TableAmountCell
-                      value={order.amount_total}
-                      currency={currency}
-                    />
-                  </div>
+                  <TableAmountCell
+                    value={order.amount_total}
+                    currency={currency}
+                  />
                 </ListPageDataTableCell>
               </ListPageDataTableRow>
             );

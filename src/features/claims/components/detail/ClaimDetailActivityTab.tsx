@@ -1,8 +1,9 @@
 "use client";
 
-import { Activity, Loader2 } from "lucide-react";
+import { Activity } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { ActivityFeedSkeleton } from "@/components/feed/activity-feed";
 import { DetailTabEmptyState } from "@/components/detail/detail-tab-empty-state";
 import { InvoiceDetailActivityTab } from "@/features/invoices/components/detail/InvoiceDetailActivityTab";
 import { fetchInvoice } from "@/features/invoices/services/invoices.service";
@@ -68,12 +69,7 @@ export function ClaimDetailActivityTab({
   }
 
   if (isLoading) {
-    return (
-      <div className="flex items-center gap-2 rounded-xl border border-brand-border bg-white px-4 py-8 text-sm text-brand-muted">
-        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-        Loading activity...
-      </div>
-    );
+    return <ActivityFeedSkeleton rows={6} />;
   }
 
   if (error || !invoice) {

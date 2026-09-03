@@ -120,7 +120,7 @@ describe("CustomersTable", () => {
     }
   });
 
-  it("handles start visit and active visit action buttons", () => {
+  it("handles start visit and close visit action buttons", () => {
     const onStartVisit = vi.fn();
 
     render(
@@ -130,16 +130,28 @@ describe("CustomersTable", () => {
       />,
     );
 
-    // Active visit button for customer 1
-    const activeVisitBtn = screen.getByRole("button", { name: /Active Visit/i });
-    expect(activeVisitBtn).toBeInTheDocument();
-    fireEvent.click(activeVisitBtn);
+    const closeVisitBtn = screen.getByRole("button", { name: /Close visit/i });
+    expect(closeVisitBtn).toBeInTheDocument();
+    fireEvent.click(closeVisitBtn);
     expect(onStartVisit).toHaveBeenCalledWith(MOCK_CUSTOMERS[0]);
 
-    // Start visit icon button for customer 2 (completed visit)
     const startVisitBtn = screen.getByRole("button", { name: "Start visit" });
     expect(startVisitBtn).toBeInTheDocument();
     fireEvent.click(startVisitBtn);
     expect(onStartVisit).toHaveBeenCalledWith(MOCK_CUSTOMERS[1]);
+  });
+
+  it("opens appointment callback from book appointment action", () => {
+    const onBookAppointment = vi.fn();
+
+    render(
+      <CustomersTable
+        customers={MOCK_CUSTOMERS}
+        onBookAppointment={onBookAppointment}
+      />,
+    );
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Book appointment" })[0]);
+    expect(onBookAppointment).toHaveBeenCalledWith(MOCK_CUSTOMERS[0]);
   });
 });

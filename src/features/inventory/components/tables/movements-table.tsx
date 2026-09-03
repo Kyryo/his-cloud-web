@@ -74,7 +74,7 @@ export function MovementsTable({
             <ListPageDataTableCell className="py-3 pr-4 text-right font-semibold tabular-nums text-brand-navy">
               {formatInventoryQuantity(item.quantity)}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 text-xs tabular-nums text-dash-muted">
+            <ListPageDataTableCell className="py-3 text-sm tabular-nums text-dash-muted">
               {formatDisplayDateTime(item.created_at)}
             </ListPageDataTableCell>
           </ListPageDataTableRow>

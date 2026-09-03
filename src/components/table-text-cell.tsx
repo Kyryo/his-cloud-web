@@ -58,7 +58,7 @@ export function TableAmountCell({
     <div className={cn("text-right text-sm tabular-nums", className)}>
       <span className="font-medium text-brand-navy">{formatted}</span>
       {currency ? (
-        <span className="ml-1.5 text-xs font-normal text-brand-muted">{currency}</span>
+        <span className="ml-1.5 text-sm font-normal text-brand-muted">{currency}</span>
       ) : null}
     </div>
   );
