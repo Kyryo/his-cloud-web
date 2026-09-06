@@ -26,7 +26,7 @@ const SidebarTeamSwitcher = memo(function SidebarTeamSwitcher() {
 const SidebarAccount = memo(function SidebarAccount() {
   return (
     <SidebarFooter className="p-2">
-      <div className="rounded-xl bg-brand-tint p-0.5">
+      <div className="rounded-xl border border-dash-border">
         <NavUser />
       </div>
     </SidebarFooter>

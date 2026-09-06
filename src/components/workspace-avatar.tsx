@@ -38,7 +38,7 @@ export function WorkspaceAvatar({
   return (
     <span
       className={cn(
-        "flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-brand-primary text-[11px] font-semibold tracking-wide text-white",
+        "flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dash-border bg-transparent text-[11px] font-semibold tracking-wide text-brand-navy",
         className,
       )}
       aria-hidden="true"

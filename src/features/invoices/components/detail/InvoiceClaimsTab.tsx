@@ -326,7 +326,7 @@ export function InvoiceClaimsTab({
           data-testid="claim-created-success-state"
           action={
             <PrimaryButton asChild>
-              <a href={ROUTES.claimDetail(displayedClaim.uuid)}>View claim</a>
+              <a href={ROUTES.claimDetail(displayedClaim.id ?? displayedClaim.uuid)}>View claim</a>
             </PrimaryButton>
           }
         />
