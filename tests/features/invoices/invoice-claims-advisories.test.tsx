@@ -145,7 +145,7 @@ describe("InvoiceClaimsTab advisories", () => {
     await waitFor(() => {
       expect(screen.getByTestId("claim-workflow-card")).toBeInTheDocument();
     });
-    expect(screen.queryByTestId("workflow-stage-requirements")).not.toBeInTheDocument();
+    expect(screen.getByTestId("workflow-stage-requirements")).toBeInTheDocument();
     expect(screen.getByTestId("invoice-create-claim-button")).toBeEnabled();
     expect(screen.queryByTestId("claim-edit-draft-button")).not.toBeInTheDocument();
     expect(screen.queryByTestId("claim-advisories-panel")).not.toBeInTheDocument();

@@ -4,14 +4,12 @@ import { useRouter } from "next/navigation";
 import { Wallet } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  CustomerDetailRecordList,
-  CustomerDetailRecordListItem,
-} from "@/features/customers/components/detail/CustomerDetailRecordList";
 import { CustomerDetailTabEmptyState } from "@/features/customers/components/detail/CustomerDetailTabEmptyState";
 import { CustomerTabSkeleton } from "@/features/customers/components/detail/CustomerTabSkeleton";
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
+import { InvoiceDetailTabPanel } from "@/features/invoices/components/detail/InvoiceDetailTabPanel";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 import { formatInvoiceAmount } from "@/features/invoices/utils/format-invoice";
 import { PaymentStatusBadge } from "@/features/payments/components/PaymentStatusBadge";
@@ -19,8 +17,6 @@ import { fetchPayments } from "@/features/payments/services/payments.service";
 import type { Payment, PaymentState } from "@/features/payments/types/payment.types";
 import { formatPaymentMethod } from "@/features/payments/utils/format-payment";
 import { ROUTES } from "@/constants/routes";
-import { formatCompactNumber } from "@/utils/format-compact-number";
-import { cn } from "@/lib/utils";
 
 const PAYMENTS_PAGE_SIZE = 20;
 
@@ -105,7 +101,6 @@ export function InvoiceDetailPaymentsTab({
       setTotalCount(count);
       setHasNext(count > nextPayments.length);
       setPage(nextPage);
-      setPage(nextPage);
     } catch (error) {
       setLoadError(
         error instanceof Error ? error.message : "Failed to load more payments.",
@@ -116,87 +111,101 @@ export function InvoiceDetailPaymentsTab({
   }
 
   return (
-    <div
-      className={cn(!isActive && "hidden")}
+    <InvoiceDetailTabPanel
+      isActive={isActive}
       data-testid="invoice-detail-payments-tab"
+      title="Payments"
+      description={
+        totalCount > 0
+          ? `${totalCount} payment${totalCount === 1 ? "" : "s"} recorded against this invoice.`
+          : "Payments applied to this invoice."
+      }
+      action={
+        totalCount > 0 ? (
+          <div className="flex items-center gap-1.5 text-xs text-brand-muted">
+            <span>Collected:</span>
+            <span className="font-semibold tabular-nums text-emerald-700">
+              {formatInvoiceAmount(invoice.amount_paid)}
+            </span>
+          </div>
+        ) : null
+      }
     >
       {isLoading ? (
-        <CustomerTabSkeleton statCards={2} rows={5} />
+        <CustomerTabSkeleton statCards={0} rows={5} />
       ) : loadError && payments.length === 0 ? (
-        <div className="space-y-3">
-          <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-6 text-sm text-red-700">
-            {loadError}
-          </div>
-        </div>
+        <p className="text-sm text-red-700">{loadError}</p>
+      ) : payments.length === 0 ? (
+        <CustomerDetailTabEmptyState
+          icon={Wallet}
+          title="No payments yet"
+          description="Payments recorded against this invoice will appear here."
+          data-testid="invoice-payments-empty-state"
+        />
       ) : (
-        <div className="space-y-4">
-          <dl className="grid grid-cols-2 gap-4">
-            <div>
-              <dt className="text-[11px] font-medium uppercase tracking-wide text-brand-muted">
-                Payments
-              </dt>
-              <dd className="mt-1 text-xl font-semibold tabular-nums text-brand-navy">
-                {formatCompactNumber(totalCount)}
-              </dd>
-            </div>
-            <div>
-              <dt className="text-[11px] font-medium uppercase tracking-wide text-brand-muted">
-                Amount paid
-              </dt>
-              <dd className="mt-1 text-xl font-semibold tabular-nums text-brand-navy">
-                {formatInvoiceAmount(invoice.amount_paid)}
-              </dd>
-            </div>
-          </dl>
-
-          {payments.length === 0 ? (
-            <CustomerDetailTabEmptyState
-              icon={Wallet}
-              title="No payments yet"
-              description="Payments recorded against this invoice will appear here."
-              data-testid="invoice-payments-empty-state"
-            />
-          ) : (
-            <CustomerDetailRecordList
-              title="Payments"
-              description="Payments applied to this invoice."
-              data-testid="invoice-payments-list"
-              footer={
-                hasNext ? (
+        <>
+          <ul
+            className="divide-y divide-dash-border/60"
+            data-testid="invoice-payments-list"
+          >
+            {payments.map((payment) => (
+              <li
+                key={payment.id}
+                className="flex items-start justify-between gap-3 py-3.5 first:pt-0"
+                data-testid={`invoice-payment-${payment.id}`}
+              >
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => router.push(ROUTES.paymentDetail(payment.id))}
+                      className="text-left text-sm font-medium text-brand-navy hover:text-brand-primary"
+                    >
+                      {payment.name}
+                    </button>
+                    <PaymentStatusBadge state={payment.state as PaymentState} />
+                    {payment.payment_method ? (
+                      <Badge variant="outline" className="font-normal text-xs">
+                        {formatPaymentMethod(payment.payment_method)}
+                      </Badge>
+                    ) : null}
+                  </div>
+                  <p className="mt-1 text-xs text-brand-muted">
+                    {formatDisplayDateTime(payment.payment_date ?? "")}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <p className="text-sm font-bold tabular-nums text-brand-navy">
+                    {formatInvoiceAmount(payment.amount)}
+                  </p>
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
-                    disabled={isLoadingMore}
-                    onClick={() => void loadMorePayments()}
+                    className="text-brand-primary hover:text-brand-primary-hover"
+                    onClick={() => router.push(ROUTES.paymentDetail(payment.id))}
                   >
-                    {isLoadingMore ? "Loading..." : "Load more"}
+                    View
                   </Button>
-                ) : null
-              }
-            >
-              {payments.map((payment) => (
-                <CustomerDetailRecordListItem
-                  key={payment.id}
-                  compact
-                  title={payment.name}
-                  badges={<PaymentStatusBadge state={payment.state as PaymentState} />}
-                  description={[
-                    formatInvoiceAmount(payment.amount),
-                    formatPaymentMethod(payment.payment_method),
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")}
-                  dateTime={formatDisplayDateTime(payment.payment_date ?? "")}
-                  onUpdate={() => router.push(ROUTES.paymentDetail(payment.id))}
-                  updateLabel="View payment"
-                  data-testid={`invoice-payment-${payment.id}`}
-                />
-              ))}
-            </CustomerDetailRecordList>
-          )}
-        </div>
+                </div>
+              </li>
+            ))}
+          </ul>
+          {hasNext ? (
+            <div className="mt-4">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isLoadingMore}
+                onClick={() => void loadMorePayments()}
+              >
+                {isLoadingMore ? "Loading..." : "Load more"}
+              </Button>
+            </div>
+          ) : null}
+        </>
       )}
-    </div>
+    </InvoiceDetailTabPanel>
   );
 }
