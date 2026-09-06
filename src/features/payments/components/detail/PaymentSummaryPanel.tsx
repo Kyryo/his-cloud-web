@@ -5,15 +5,13 @@ import Link from "next/link";
 import {
   DetailPageAsidePanelHeader,
   DetailPageAsidePanelSection,
-  DetailPageAsideSummaryAmountRow,
   DetailPageAsideSummaryField,
-  DetailPageAsideSummaryHighlight,
   DetailPageAsideSummarySection,
 } from "@/features/app-shell/components/page-layout";
 import type { Payment } from "@/features/payments/types/payment.types";
 import {
-  formatPaymentAmount,
   formatPaymentAllocationLabel,
+  formatPaymentAmount,
   formatPaymentCustomer,
   formatPaymentDate,
   formatPaymentMethod,
@@ -31,6 +29,12 @@ export function PaymentSummaryPanel({
   payment,
   className,
 }: PaymentSummaryPanelProps) {
+  const allocationLabel = formatPaymentAllocationLabel(payment);
+  const allocationHref =
+    payment.invoice_id || payment.invoice_uuid
+      ? ROUTES.invoiceDetail(payment.invoice_uuid ?? payment.invoice_id)
+      : null;
+
   return (
     <DetailPageAsidePanelSection className={cn(className)}>
       <DetailPageAsidePanelHeader
@@ -38,17 +42,14 @@ export function PaymentSummaryPanel({
         description="Amount and payment details"
       />
 
-      <DetailPageAsideSummaryHighlight title="Payment amount">
-        <dl className="space-y-2.5">
-          <DetailPageAsideSummaryAmountRow
-            label="Amount received"
-            value={formatPaymentAmount(payment.amount)}
-            emphasized
-          />
-        </dl>
-      </DetailPageAsideSummaryHighlight>
+      <DetailPageAsideSummarySection title="Totals" className="border-t-0 pt-0">
+        <DetailPageAsideSummaryField
+          label="Amount received"
+          value={formatPaymentAmount(payment.amount)}
+        />
+      </DetailPageAsideSummarySection>
 
-      <DetailPageAsideSummarySection title="Payment details">
+      <DetailPageAsideSummarySection title="Details">
         <DetailPageAsideSummaryField
           label="State"
           value={formatPaymentStateLabel(payment.state)}
@@ -71,17 +72,15 @@ export function PaymentSummaryPanel({
         <DetailPageAsideSummaryField
           label="Allocation"
           value={
-            payment.invoice_id || payment.invoice_uuid ? (
+            allocationHref ? (
               <Link
-                href={ROUTES.invoiceDetail(
-                  payment.invoice_uuid ?? payment.invoice_id,
-                )}
+                href={allocationHref}
                 className="text-brand-primary hover:underline"
               >
-                {formatPaymentAllocationLabel(payment)}
+                {allocationLabel}
               </Link>
             ) : (
-              formatPaymentAllocationLabel(payment)
+              allocationLabel
             )
           }
         />

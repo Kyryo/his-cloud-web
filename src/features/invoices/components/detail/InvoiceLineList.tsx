@@ -3,6 +3,15 @@ import type { ReactNode } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  ListPageDataTable,
+  ListPageDataTableBody,
+  ListPageDataTableCell,
+  ListPageDataTableHeader,
+  ListPageDataTableHeaderCell,
+  ListPageDataTableHeaderRow,
+  ListPageDataTableRow,
+} from "@/features/app-shell/components/page-layout";
 import { isInsuranceInvoice } from "@/features/claims/services/claims.service";
 import {
   LineRemittanceSettlementBadge,
@@ -30,9 +39,9 @@ function formatQuantity(value: number | string | null | undefined): string {
   }).format(quantity);
 }
 
-function formatTariffCode(value: string | null | undefined): string | null {
+function formatTariffCode(value: string | null | undefined): string {
   const trimmed = value?.trim();
-  return trimmed || null;
+  return trimmed || "—";
 }
 
 type InvoiceLineListProps = {
@@ -46,74 +55,132 @@ export function InvoiceLineList({
 }: InvoiceLineListProps) {
   const lines = invoice.lines ?? [];
   const showNonPayableBadges = isInsuranceInvoice(invoice);
+  const showSplitColumns = lines.some((line) => hasLinePaymentSplit(line));
+  const payableCount = lines.filter((line) => !isInvoiceLineNonPayable(line)).length;
 
   return (
-    <ul className="divide-y divide-dash-border/60" data-testid="invoice-lines-list">
-      {lines.map((line) => {
-        const tariffCode = formatTariffCode(line.tariff_code);
-        const showSplit = hasLinePaymentSplit(line);
+    <div className="space-y-4" data-testid="invoice-lines-list">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-sm font-semibold text-brand-navy">
+            Line items ({lines.length})
+          </h2>
+          <p className="text-xs text-brand-muted">
+            Services, medications, and clinical billables
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          {showNonPayableBadges && payableCount > 0 ? (
+            <Badge variant="success" className="font-normal text-xs">
+              {payableCount} payable
+            </Badge>
+          ) : null}
+          <span className="text-sm font-semibold tabular-nums text-brand-navy">
+            {formatInvoiceAmount(invoice.amount_total)}
+          </span>
+        </div>
+      </div>
 
-        return (
-          <li
-            key={line.id}
-            className="flex items-start justify-between gap-3 py-3"
-          >
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-brand-navy">{line.name}</p>
-              <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                {tariffCode ? (
-                  <Badge variant="outline" className="font-mono font-normal">
-                    {tariffCode}
-                  </Badge>
-                ) : null}
-                <Badge variant="secondary" className="font-normal">
-                  ×{formatQuantity(line.quantity)}
-                </Badge>
-                {showNonPayableBadges && isInvoiceLineNonPayable(line) ? (
-                  <LineNonPayableBadge />
-                ) : showNonPayableBadges ? (
-                  <Badge variant="success" className="font-normal">
-                    Payable
-                  </Badge>
-                ) : null}
-                {shouldShowRemittanceSettlementBadge(
-                  line.remittance_settlement_status,
-                ) ? (
-                  <LineRemittanceSettlementBadge
-                    status={line.remittance_settlement_status}
-                  />
-                ) : null}
-                {showSplit ? (
+      <ListPageDataTable>
+        <ListPageDataTableHeader>
+          <ListPageDataTableHeaderRow>
+            <ListPageDataTableHeaderCell>Item</ListPageDataTableHeaderCell>
+            <ListPageDataTableHeaderCell>Tariff</ListPageDataTableHeaderCell>
+            <ListPageDataTableHeaderCell className="text-right">
+              Qty
+            </ListPageDataTableHeaderCell>
+            <ListPageDataTableHeaderCell className="text-right">
+              Price
+            </ListPageDataTableHeaderCell>
+            {showSplitColumns ? (
+              <>
+                <ListPageDataTableHeaderCell className="text-right">
+                  Insurer
+                </ListPageDataTableHeaderCell>
+                <ListPageDataTableHeaderCell className="text-right">
+                  Client
+                </ListPageDataTableHeaderCell>
+              </>
+            ) : null}
+            <ListPageDataTableHeaderCell className="text-right">
+              Total
+            </ListPageDataTableHeaderCell>
+            <ListPageDataTableHeaderCell className="w-12 pr-4">
+              <span className="sr-only">Actions</span>
+            </ListPageDataTableHeaderCell>
+          </ListPageDataTableHeaderRow>
+        </ListPageDataTableHeader>
+        <ListPageDataTableBody>
+          {lines.map((line) => {
+            const showSplit = showSplitColumns && hasLinePaymentSplit(line);
+
+            return (
+              <ListPageDataTableRow key={line.id}>
+                <ListPageDataTableCell className="py-3">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => onViewDetails(line)}
+                      className="text-left text-sm font-medium text-brand-navy hover:text-brand-primary"
+                    >
+                      {line.name}
+                    </button>
+                    {showNonPayableBadges && isInvoiceLineNonPayable(line) ? (
+                      <LineNonPayableBadge />
+                    ) : showNonPayableBadges ? (
+                      <Badge variant="success" className="font-normal">
+                        Payable
+                      </Badge>
+                    ) : null}
+                    {shouldShowRemittanceSettlementBadge(
+                      line.remittance_settlement_status,
+                    ) ? (
+                      <LineRemittanceSettlementBadge
+                        status={line.remittance_settlement_status}
+                      />
+                    ) : null}
+                  </div>
+                </ListPageDataTableCell>
+                <ListPageDataTableCell className="py-3 font-mono text-xs text-brand-slate">
+                  {formatTariffCode(line.tariff_code)}
+                </ListPageDataTableCell>
+                <ListPageDataTableCell className="py-3 text-right tabular-nums">
+                  {formatQuantity(line.quantity)}
+                </ListPageDataTableCell>
+                <ListPageDataTableCell className="py-3 text-right tabular-nums">
+                  {formatAmountNumber(line.price_unit)}
+                </ListPageDataTableCell>
+                {showSplitColumns ? (
                   <>
-                    <Badge variant="secondary" className="font-normal">
-                      Insurer {formatAmountNumber(line.insurer_due)}
-                    </Badge>
-                    <Badge variant="outline" className="font-normal">
-                      Client {formatAmountNumber(line.client_due)}
-                    </Badge>
+                    <ListPageDataTableCell className="py-3 text-right tabular-nums">
+                      {showSplit ? formatAmountNumber(line.insurer_due) : "—"}
+                    </ListPageDataTableCell>
+                    <ListPageDataTableCell className="py-3 text-right tabular-nums">
+                      {showSplit ? formatAmountNumber(line.client_due) : "—"}
+                    </ListPageDataTableCell>
                   </>
                 ) : null}
-              </div>
-            </div>
-            <div className="flex shrink-0 items-center gap-1">
-              <p className="text-sm font-semibold tabular-nums text-brand-navy">
-                {formatInvoiceAmount(line.price_total)}
-              </p>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-8 text-brand-muted"
-                aria-label={`View details for ${line.name}`}
-                onClick={() => onViewDetails(line)}
-              >
-                <Maximize2 className="size-4" aria-hidden="true" />
-              </Button>
-            </div>
-          </li>
-        );
-      })}
-    </ul>
+                <ListPageDataTableCell className="py-3 text-right font-semibold tabular-nums text-brand-navy">
+                  {formatInvoiceAmount(line.price_total)}
+                </ListPageDataTableCell>
+                <ListPageDataTableCell className="py-3 pr-4">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 text-brand-muted hover:text-brand-navy"
+                    aria-label={`View details for ${line.name}`}
+                    onClick={() => onViewDetails(line)}
+                  >
+                    <Maximize2 className="size-4" aria-hidden="true" />
+                  </Button>
+                </ListPageDataTableCell>
+              </ListPageDataTableRow>
+            );
+          })}
+        </ListPageDataTableBody>
+      </ListPageDataTable>
+    </div>
   );
 }
 

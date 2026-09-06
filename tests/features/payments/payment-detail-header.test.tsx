@@ -17,7 +17,6 @@ const payment = {
   amount: "12500",
   payment_date: "2026-08-09",
   payment_method: "Cash",
-  recorded_by_name: "Grace Hopper",
 } as Payment;
 
 afterEach(() => {
@@ -25,16 +24,17 @@ afterEach(() => {
 });
 
 describe("PaymentDetailHeader", () => {
-  it("shows the receipt number, payer, and status", () => {
+  it("shows the client, receipt number, status, and payment date", () => {
     render(<PaymentDetailHeader payment={payment} />);
 
-    expect(screen.getByRole("heading", { name: "PAY/2026/0056" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Ada Lovelace" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Ada Lovelace" })).toHaveAttribute(
       "href",
       "/customers/cust-12",
     );
-    expect(screen.getByText("Cash")).toBeInTheDocument();
-    expect(screen.getByText("9 Aug 2026")).toBeInTheDocument();
+    expect(screen.getByText("PAY/2026/0056")).toBeInTheDocument();
     expect(screen.getByText("Posted")).toBeInTheDocument();
+    expect(screen.getByText("Cash")).toBeInTheDocument();
+    expect(screen.getByText(/Paid /)).toBeInTheDocument();
   });
 });

@@ -7,7 +7,6 @@ import {
   ActivityFeedSkeleton,
 } from "@/components/feed/activity-feed";
 import { mapBillingActivityItems } from "@/features/billing/utils/map-billing-activity-items";
-import { InvoiceDetailTabPanel } from "@/features/invoices/components/detail/InvoiceDetailTabPanel";
 import { fetchInvoiceActivity } from "@/features/invoices/services/invoice-activity.service";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 
@@ -58,23 +57,22 @@ export function InvoiceDetailActivityTab({
     };
   }, [invoice.id, isActive]);
 
+  if (!isActive) {
+    return null;
+  }
+
+  if (isLoading) {
+    return <ActivityFeedSkeleton rows={6} />;
+  }
+
   return (
-    <InvoiceDetailTabPanel
-      isActive={isActive}
-      data-testid="invoice-activity-tab"
+    <ActivityFeed
       title="Activity"
       description="Recent events recorded for this invoice."
-    >
-      {isLoading ? (
-        <ActivityFeedSkeleton rows={6} />
-      ) : (
-        <ActivityFeed
-          items={items}
-          emptyTitle="No activity yet"
-          emptyDescription="Invoice events will appear here as they happen."
-          data-testid="invoice-activity-timeline"
-        />
-      )}
-    </InvoiceDetailTabPanel>
+      items={items}
+      emptyTitle="No activity yet"
+      emptyDescription="Invoice events will appear here as they happen."
+      data-testid="invoice-activity-timeline"
+    />
   );
 }
