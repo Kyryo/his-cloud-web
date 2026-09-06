@@ -209,6 +209,7 @@ export async function fetchPlatformAdminTenantUsage(
 ): Promise<PlatformAdminUsageResponse> {
   return bffRequest<PlatformAdminUsageResponse>(
     `${BFF_PLATFORM_ADMIN_ROUTES.tenantUsage(tenantUuid)}${buildUsageQuery(filters)}`,
+    { timeoutMs: 90_000 },
   );
 }
 

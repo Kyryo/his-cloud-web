@@ -2,6 +2,8 @@
 
 import { BarChart3 } from "lucide-react";
 import { useMemo, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { FabButton } from "@/components/ui/fab-button";
@@ -19,19 +21,29 @@ import { OpdQueueSummaryStatsCards } from "@/features/clinical-opd/components/Op
 import { OpdQueueTableSkeleton } from "@/features/clinical-opd/components/OpdQueueTableSkeleton";
 import { OpdQueueTable } from "@/features/clinical-opd/components/tables/OpdQueueTable";
 import { useOpdQueue } from "@/features/clinical-opd/hooks/use-clinical-opd";
+import type { OpdQueueEncounter } from "@/features/clinical-opd/types/clinical-opd.types";
 import {
   countActiveOpdQueueFilters,
   DEFAULT_OPD_QUEUE_FILTERS,
-  filterOpdQueueEncounters,
   type OpdQueueListFilterState,
 } from "@/features/clinical-opd/utils/opd-queue-list-filters";
 import { computeOpdQueueStats } from "@/features/clinical-opd/utils/opd-queue-stats";
+import { AddVisitEncounterDialog } from "@/features/visits/components/AddVisitEncounterDialog";
+import { fetchVisit } from "@/features/visits/services/visits.service";
+import type { VisitDetail, VisitEncounter } from "@/features/visits/types/visit.types";
+import { ROUTES } from "@/constants/routes";
+import { BffError } from "@/lib/bff-client";
+import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/providers/toast-provider";
 import { useUser } from "@/providers/user-provider";
 
 const DEFAULT_PAGE_SIZE = 20;
 
 export function OpdQueuePage() {
+  const router = useRouter();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { userData, isLoading: isUserLoading } = useUser();
   const [search, setSearch] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
@@ -40,40 +52,41 @@ export function OpdQueuePage() {
   );
   const [page, setPage] = useState(1);
   const [showStats, setShowStats] = useState(false);
+  const [addEncounterVisit, setAddEncounterVisit] = useState<VisitDetail | null>(
+    null,
+  );
+  const [isAddEncounterOpen, setIsAddEncounterOpen] = useState(false);
+  const [isLoadingAddEncounter, setIsLoadingAddEncounter] = useState(false);
 
+  const statusParam = filters.status === "all" ? undefined : filters.status;
   const {
     data = [],
     isLoading,
     isFetching,
     error,
     refetch,
-  } = useOpdQueue();
+  } = useOpdQueue({
+    status: statusParam,
+    search: activeSearch || undefined,
+  });
 
   const hasAccess = (userData?.groups ?? []).includes("Clinical");
 
   const stats = useMemo(() => computeOpdQueueStats(data), [data]);
 
-  const filteredEncounters = useMemo(
-    () => filterOpdQueueEncounters(data, activeSearch, filters),
-    [activeSearch, data, filters],
-  );
-
-  const totalCount = filteredEncounters.length;
+  const totalCount = data.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / DEFAULT_PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const pageStart = (currentPage - 1) * DEFAULT_PAGE_SIZE;
-  const paginatedEncounters = filteredEncounters.slice(
-    pageStart,
-    pageStart + DEFAULT_PAGE_SIZE,
-  );
+  const paginatedEncounters = data.slice(pageStart, pageStart + DEFAULT_PAGE_SIZE);
   const hasNext = currentPage < totalPages;
   const hasPrevious = currentPage > 1;
 
   const activeFilterCount = countActiveOpdQueueFilters(filters);
   const hasActiveQuery = activeSearch.length > 0 || activeFilterCount > 0;
-  const hasNoRecords = !isLoading && !error && data.length === 0;
+  const hasNoRecords = !isLoading && !error && data.length === 0 && !hasActiveQuery;
   const isFilteredEmpty =
-    !isLoading && !error && filteredEncounters.length === 0 && hasActiveQuery;
+    !isLoading && !error && data.length === 0 && hasActiveQuery;
 
   function handleSearchSubmit() {
     setActiveSearch(search.trim());
@@ -94,6 +107,52 @@ export function OpdQueuePage() {
 
   function handlePageChange(nextPage: number) {
     setPage(nextPage);
+  }
+
+  async function handleAddEncounter(encounter: OpdQueueEncounter) {
+    if (encounter.visit_status !== "active") {
+      toast({
+        title: "Visit is not active",
+        description: "Encounters can only be added to active visits.",
+        variant: "error",
+      });
+      return;
+    }
+
+    try {
+      setIsLoadingAddEncounter(true);
+      const visit = await fetchVisit(encounter.visit_uuid);
+      setAddEncounterVisit(visit);
+      setIsAddEncounterOpen(true);
+    } catch (loadError) {
+      toast({
+        title: "Could not load visit",
+        description:
+          loadError instanceof BffError
+            ? formatBffErrorMessage(loadError.message, loadError.errors)
+            : "Unable to open add encounter.",
+        variant: "error",
+      });
+    } finally {
+      setIsLoadingAddEncounter(false);
+    }
+  }
+
+  async function handleEncounterCreated(created: VisitEncounter) {
+    await queryClient.invalidateQueries({ queryKey: ["opd-queue"] });
+    setIsAddEncounterOpen(false);
+    setAddEncounterVisit(null);
+
+    if (created.department_type === "opd") {
+      router.push(ROUTES.clinicalOpdEncounter(created.visit, created.uuid));
+      return;
+    }
+
+    toast({
+      title: "Encounter added",
+      description: `${created.department_name} was added. Open it from Active Visits if needed.`,
+      variant: "success",
+    });
   }
 
   if (isUserLoading || isLoading) {
@@ -118,7 +177,7 @@ export function OpdQueuePage() {
       <OpdQueuePageHeader
         search={search}
         filters={filters}
-        isLoading={isFetching}
+        isLoading={isFetching || isLoadingAddEncounter}
         onSearchChange={setSearch}
         onSearchSubmit={handleSearchSubmit}
         onClearSearch={handleClearSearch}
@@ -184,7 +243,12 @@ export function OpdQueuePage() {
             </div>
           ) : (
             <>
-              <OpdQueueTable encounters={paginatedEncounters} />
+              <OpdQueueTable
+                encounters={paginatedEncounters}
+                onAddEncounter={(encounter) => {
+                  void handleAddEncounter(encounter);
+                }}
+              />
               <ListPagePagination
                 page={currentPage}
                 pageSize={DEFAULT_PAGE_SIZE}
@@ -198,6 +262,22 @@ export function OpdQueuePage() {
           )}
         </ListPageTableSection>
       </ListPageDataSectionsStack>
+
+      {addEncounterVisit ? (
+        <AddVisitEncounterDialog
+          visit={addEncounterVisit}
+          open={isAddEncounterOpen}
+          onOpenChange={(open) => {
+            setIsAddEncounterOpen(open);
+            if (!open) {
+              setAddEncounterVisit(null);
+            }
+          }}
+          onCreated={(encounter) => {
+            void handleEncounterCreated(encounter);
+          }}
+        />
+      ) : null}
     </ListPageLayout>
   );
 }

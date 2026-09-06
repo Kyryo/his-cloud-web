@@ -1,8 +1,11 @@
 export type OpdQueueEncounter = {
   encounter_uuid: string;
   visit_uuid: string;
+  visit_status: string;
   customer_uuid: string;
   customer_name: string;
+  customer_identifier?: string | null;
+  clinic_name?: string | null;
   department_name: string;
   status: string;
   started_at: string | null;

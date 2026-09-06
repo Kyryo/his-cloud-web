@@ -58,7 +58,7 @@ function defaultUsageFilters(): PlatformAdminUsageFilters {
   return {
     dateFrom: firstOfMonth.toISOString().slice(0, 10),
     dateTo: today.toISOString().slice(0, 10),
-    period: "day",
+    period: "week",
   };
 }
 

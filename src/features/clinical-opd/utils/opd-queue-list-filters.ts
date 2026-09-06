@@ -32,25 +32,13 @@ export function countActiveOpdQueueFilters(
   return filters.status === "all" ? 0 : 1;
 }
 
+/** Status-only client filter for already-fetched queue rows. */
 export function filterOpdQueueEncounters(
   encounters: OpdQueueEncounter[],
-  search: string,
   filters: OpdQueueListFilterState,
 ): OpdQueueEncounter[] {
-  const term = search.trim().toLowerCase();
-
-  return encounters.filter((encounter) => {
-    if (filters.status !== "all" && encounter.status !== filters.status) {
-      return false;
-    }
-
-    if (!term) {
-      return true;
-    }
-
-    return (
-      encounter.customer_name.toLowerCase().includes(term) ||
-      encounter.department_name.toLowerCase().includes(term)
-    );
-  });
+  if (filters.status === "all") {
+    return encounters;
+  }
+  return encounters.filter((encounter) => encounter.status === filters.status);
 }

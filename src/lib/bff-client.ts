@@ -20,16 +20,17 @@ export class BffError extends Error {
 type BffRequestOptions = {
   method?: string;
   body?: FormData | object | null;
+  timeoutMs?: number;
 };
 
 export async function bffRequest<T>(
   path: string,
   options: BffRequestOptions = {},
 ): Promise<T> {
-  const { method = "GET", body } = options;
+  const { method = "GET", body, timeoutMs = BFF_TIMEOUT_MS } = options;
   const isFormData = body instanceof FormData;
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), BFF_TIMEOUT_MS);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch(path, {

@@ -26,8 +26,17 @@ import {
   updateRoleCapabilities,
 } from "@/features/clinical-opd/services/clinical-opd.service";
 
-export function opdQueueQueryKey(status?: string, clinicUuid?: string) {
-  return ["opd-queue", status ?? "all", clinicUuid ?? "all"] as const;
+export function opdQueueQueryKey(options?: {
+  status?: string;
+  clinicUuid?: string;
+  search?: string;
+}) {
+  return [
+    "opd-queue",
+    options?.status ?? "all",
+    options?.clinicUuid ?? "all",
+    options?.search ?? "",
+  ] as const;
 }
 
 async function invalidateEncounterWorkspaceQueries(
@@ -41,10 +50,19 @@ async function invalidateEncounterWorkspaceQueries(
   await queryClient.invalidateQueries({ queryKey: ["opd-queue"] });
 }
 
-export function useOpdQueue(status?: string, clinicUuid?: string) {
+export function useOpdQueue(options?: {
+  status?: string;
+  clinicUuid?: string;
+  search?: string;
+}) {
   return useQuery({
-    queryKey: opdQueueQueryKey(status, clinicUuid),
-    queryFn: () => fetchOpdQueue({ status, clinicUuid }),
+    queryKey: opdQueueQueryKey(options),
+    queryFn: () =>
+      fetchOpdQueue({
+        status: options?.status,
+        clinicUuid: options?.clinicUuid,
+        search: options?.search,
+      }),
   });
 }
 

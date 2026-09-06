@@ -22,7 +22,7 @@ export async function GET(request: Request, context: RouteContext) {
     const query = buildPlatformAdminQuery(request);
     const data = await hmisApiRequest<PlatformAdminUsageResponse>(
       `${PLATFORM_ADMIN_API_PATHS.tenantUsage(tenantUuid)}${query}`,
-      { token: admin.accessToken },
+      { token: admin.accessToken, timeoutMs: 90_000 },
     );
 
     return bffSuccess(data);

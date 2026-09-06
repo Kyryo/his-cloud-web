@@ -22,11 +22,15 @@ type ListResponse<T> = {
 export async function fetchOpdQueue(params?: {
   status?: string;
   clinicUuid?: string;
+  search?: string;
+  limit?: number;
 }) {
-  const search = new URLSearchParams();
-  if (params?.status) search.set("status", params.status);
-  if (params?.clinicUuid) search.set("clinic_uuid", params.clinicUuid);
-  const query = search.toString();
+  const searchParams = new URLSearchParams();
+  if (params?.status) searchParams.set("status", params.status);
+  if (params?.clinicUuid) searchParams.set("clinic_uuid", params.clinicUuid);
+  if (params?.search) searchParams.set("search", params.search);
+  if (params?.limit) searchParams.set("limit", String(params.limit));
+  const query = searchParams.toString();
   const response = await bffRequest<ListResponse<OpdQueueEncounter>>(
     `${BFF_CLINICAL_OPD_ROUTES.queue}${query ? `?${query}` : ""}`,
   );

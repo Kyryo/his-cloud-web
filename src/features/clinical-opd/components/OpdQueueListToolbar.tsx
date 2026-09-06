@@ -56,7 +56,7 @@ export function OpdQueueListToolbar({
       <ListPageSearchToolbar
         search={search}
         searchId="opd-queue-search"
-        placeholder="Search by client or department..."
+        placeholder="Search by name, ID, phone, or department..."
         searchTestId="opd-queue-search"
         searchSubmitTestId="opd-queue-search-submit"
         clearTestId="opd-queue-search-clear"

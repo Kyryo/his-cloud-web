@@ -24,6 +24,7 @@ type HmisRequestOptions = {
   body?: unknown | FormData;
   token?: string;
   headers?: Record<string, string>;
+  timeoutMs?: number;
 };
 
 export type HmisRequestMeta = V1Envelope<unknown>["meta"];
@@ -53,11 +54,12 @@ export async function hmisApiRequestWithMeta<T>(
     throw new HmisApiError("HMIS_API_URL is not configured on the server.");
   }
 
-  const { method = "GET", body, token, headers = {} } = options;
+  const { method = "GET", body, token, headers = {}, timeoutMs = API_TIMEOUT_MS } =
+    options;
   const isFormData = body instanceof FormData;
   const requestId = createRequestId();
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const response = await fetch(`${HMIS_API_URL}${normalizePath(path)}`, {

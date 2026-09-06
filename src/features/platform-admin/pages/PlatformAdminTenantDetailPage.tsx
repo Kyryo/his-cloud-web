@@ -86,41 +86,96 @@ export function PlatformAdminTenantDetailPage({
 
   const load = useCallback(async () => {
     setError(null);
+    setIsLoading(true);
     try {
-      const [
-        tenantData,
-        clinicsData,
-        departmentsData,
-        locationsData,
-        usersData,
-        configurationData,
-        auditData,
-      ] = await Promise.all([
-        fetchPlatformAdminTenant(tenantUuid),
+      const tenantData = await fetchPlatformAdminTenant(tenantUuid);
+      setTenant(tenantData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to load tenant.");
+      setTenant(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [tenantUuid]);
+
+  const loadStructure = useCallback(async () => {
+    try {
+      const [clinicsData, departmentsData, locationsData] = await Promise.all([
         fetchPlatformAdminTenantClinics(tenantUuid),
         fetchPlatformAdminTenantDepartments(tenantUuid),
         fetchPlatformAdminTenantLocations(tenantUuid),
-        fetchPlatformAdminTenantUsers(tenantUuid),
-        fetchPlatformAdminTenantConfiguration(tenantUuid),
-        fetchPlatformAdminTenantAuditEvents(tenantUuid),
       ]);
-      setTenant(tenantData);
       setClinics(clinicsData.results);
       setDepartments(departmentsData.results);
       setLocations(locationsData.results);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Unable to load tenant structure.",
+      );
+    }
+  }, [tenantUuid]);
+
+  const loadUsers = useCallback(async () => {
+    try {
+      const usersData = await fetchPlatformAdminTenantUsers(tenantUuid);
       setUsers(usersData.results);
+    } catch (err) {
+      toast.error(
+        err instanceof Error ? err.message : "Unable to load tenant users.",
+      );
+    }
+  }, [tenantUuid]);
+
+  const loadConfiguration = useCallback(async () => {
+    try {
+      const configurationData =
+        await fetchPlatformAdminTenantConfiguration(tenantUuid);
       setConfiguration(configurationData);
+    } catch (err) {
+      toast.error(
+        err instanceof Error
+          ? err.message
+          : "Unable to load tenant configuration.",
+      );
+    }
+  }, [tenantUuid]);
+
+  const loadAudit = useCallback(async () => {
+    try {
+      const auditData = await fetchPlatformAdminTenantAuditEvents(tenantUuid);
       setAuditEvents(auditData.results);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load tenant.");
-    } finally {
-      setIsLoading(false);
+      toast.error(
+        err instanceof Error ? err.message : "Unable to load audit events.",
+      );
     }
   }, [tenantUuid]);
 
   useEffect(() => {
     void load();
   }, [load]);
+
+  useEffect(() => {
+    if (!tenant) {
+      return;
+    }
+    if (activeTab === "structure") {
+      void loadStructure();
+    } else if (activeTab === "users") {
+      void loadUsers();
+    } else if (activeTab === "configuration") {
+      void loadConfiguration();
+    } else if (activeTab === "audit") {
+      void loadAudit();
+    }
+  }, [
+    activeTab,
+    tenant,
+    loadStructure,
+    loadUsers,
+    loadConfiguration,
+    loadAudit,
+  ]);
 
   async function handleUpdateTenant(payload: PlatformAdminTenantPayload) {
     setIsSaving(true);

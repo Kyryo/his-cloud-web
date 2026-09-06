@@ -1,15 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import type { OpdQueueEncounter } from "@/features/clinical-opd/types/clinical-opd.types";
-import {
-  filterOpdQueueEncounters,
-} from "@/features/clinical-opd/utils/opd-queue-list-filters";
+import { filterOpdQueueEncounters } from "@/features/clinical-opd/utils/opd-queue-list-filters";
 import { computeOpdQueueStats } from "@/features/clinical-opd/utils/opd-queue-stats";
 
 const sampleEncounters: OpdQueueEncounter[] = [
   {
     encounter_uuid: "enc-1",
     visit_uuid: "visit-1",
+    visit_status: "active",
     customer_uuid: "cust-1",
     customer_name: "Jane Doe",
     department_name: "General OPD",
@@ -21,6 +20,7 @@ const sampleEncounters: OpdQueueEncounter[] = [
   {
     encounter_uuid: "enc-2",
     visit_uuid: "visit-2",
+    visit_status: "active",
     customer_uuid: "cust-2",
     customer_name: "John Smith",
     department_name: "Specialist OPD",
@@ -32,17 +32,13 @@ const sampleEncounters: OpdQueueEncounter[] = [
 ];
 
 describe("opd-queue-list-filters", () => {
-  it("filters by search term and status", () => {
+  it("filters by status only (search is server-side)", () => {
     expect(
-      filterOpdQueueEncounters(sampleEncounters, "jane", {
-        status: "all",
-      }),
-    ).toHaveLength(1);
+      filterOpdQueueEncounters(sampleEncounters, { status: "all" }),
+    ).toHaveLength(2);
 
     expect(
-      filterOpdQueueEncounters(sampleEncounters, "", {
-        status: "in_progress",
-      }),
+      filterOpdQueueEncounters(sampleEncounters, { status: "in_progress" }),
     ).toHaveLength(1);
   });
 });
