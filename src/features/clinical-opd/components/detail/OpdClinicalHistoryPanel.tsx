@@ -25,7 +25,7 @@ const HISTORY_SECTIONS: Array<{ id: HistorySectionId; label: string }> = [
   { id: "notes", label: "Notes" },
   { id: "orders", label: "Orders" },
   { id: "diagnoses", label: "Diagnoses" },
-  { id: "medications", label: "Medications/Treatment" },
+  { id: "medications", label: "Treatment" },
 ];
 
 function plainTextFromHtml(value: string): string {
@@ -153,7 +153,7 @@ function MedicationsList({
 }) {
   if (medications.length === 0) {
     return (
-      <HistoryEmptyState message="No medications/treatment on this visit." />
+      <HistoryEmptyState message="No treatment on this visit." />
     );
   }
 
@@ -312,7 +312,7 @@ export function OpdClinicalHistoryPanel() {
             ))}
           </div>
         ) : visits.length === 0 ? (
-          <HistoryEmptyState message="No previous visits for this client at this clinic." />
+          <HistoryEmptyState message="No previous visits for this client." />
         ) : section === "notes" ? (
           <NotesList notes={history?.notes ?? []} />
         ) : section === "orders" ? (
