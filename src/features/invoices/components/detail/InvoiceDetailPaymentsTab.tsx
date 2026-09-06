@@ -5,7 +5,6 @@ import { Wallet } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { StatsCard1, StatsCard1Grid } from "@/components/stats-card1";
 import {
   CustomerDetailRecordList,
   CustomerDetailRecordListItem,
@@ -24,7 +23,6 @@ import { formatCompactNumber } from "@/utils/format-compact-number";
 import { cn } from "@/lib/utils";
 
 const PAYMENTS_PAGE_SIZE = 20;
-const STAT_CARD_CLASS = "border-brand-border bg-white shadow-none";
 
 type InvoiceDetailPaymentsTabProps = {
   invoice: Invoice;
@@ -132,18 +130,24 @@ export function InvoiceDetailPaymentsTab({
         </div>
       ) : (
         <div className="space-y-4">
-          <StatsCard1Grid>
-            <StatsCard1
-              className={STAT_CARD_CLASS}
-              title="Payments recorded"
-              value={formatCompactNumber(totalCount)}
-            />
-            <StatsCard1
-              className={STAT_CARD_CLASS}
-              title="Amount paid"
-              value={formatInvoiceAmount(invoice.amount_paid)}
-            />
-          </StatsCard1Grid>
+          <dl className="grid grid-cols-2 gap-4">
+            <div>
+              <dt className="text-[11px] font-medium uppercase tracking-wide text-brand-muted">
+                Payments
+              </dt>
+              <dd className="mt-1 text-xl font-semibold tabular-nums text-brand-navy">
+                {formatCompactNumber(totalCount)}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-[11px] font-medium uppercase tracking-wide text-brand-muted">
+                Amount paid
+              </dt>
+              <dd className="mt-1 text-xl font-semibold tabular-nums text-brand-navy">
+                {formatInvoiceAmount(invoice.amount_paid)}
+              </dd>
+            </div>
+          </dl>
 
           {payments.length === 0 ? (
             <CustomerDetailTabEmptyState

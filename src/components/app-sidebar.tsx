@@ -26,7 +26,9 @@ const SidebarTeamSwitcher = memo(function SidebarTeamSwitcher() {
 const SidebarAccount = memo(function SidebarAccount() {
   return (
     <SidebarFooter className="p-2">
-      <NavUser />
+      <div className="rounded-xl bg-brand-tint p-0.5">
+        <NavUser />
+      </div>
     </SidebarFooter>
   );
 });

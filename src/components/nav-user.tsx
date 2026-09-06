@@ -64,7 +64,7 @@ export function NavUser() {
               size="lg"
               tooltip="Account"
               data-testid="sidebar-account-trigger"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="rounded-lg bg-transparent hover:bg-white/70 data-[state=open]:bg-white/70"
             >
               <UserIdenticon
                 seed={email || displayName}

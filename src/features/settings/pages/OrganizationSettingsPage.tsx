@@ -110,6 +110,7 @@ export function OrganizationSettingsPage() {
     <SettingsPageLayout
       title="Organization"
       description="Review your organization profile, contact details, and operational footprint."
+      className="max-w-3xl"
     >
       <OrganizationSettingsTabs tenant={tenant} onTenantUpdated={setTenant} />
     </SettingsPageLayout>

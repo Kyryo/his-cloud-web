@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -65,10 +64,6 @@ export function OrganizationContactForm({
     defaultValues: toFormValues(tenant),
   });
 
-  useEffect(() => {
-    form.reset(toFormValues(tenant));
-  }, [form, tenant]);
-
   const onSubmit = form.handleSubmit(async (values) => {
     try {
       const updated = await updateOrganizationContact({
@@ -98,7 +93,7 @@ export function OrganizationContactForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={onSubmit} className="space-y-4">
+      <form onSubmit={onSubmit} className="max-w-xl space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <FormField
             control={form.control}
@@ -197,11 +192,14 @@ export function OrganizationContactForm({
           />
         </div>
 
-        <div className="flex justify-end border-t border-brand-border pt-5">
-          <Button type="submit" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? "Saving..." : "Save changes"}
-          </Button>
-        </div>
+        <Button
+          type="submit"
+          variant="outline"
+          size="sm"
+          disabled={form.formState.isSubmitting}
+        >
+          {form.formState.isSubmitting ? "Saving..." : "Save contact"}
+        </Button>
       </form>
     </Form>
   );

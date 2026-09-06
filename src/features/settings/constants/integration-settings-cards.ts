@@ -1,22 +1,21 @@
-import type { LucideIcon } from "lucide-react";
-import { Mail, ShieldCheck } from "lucide-react";
+import type { AppIconName } from "@/components/icons/app-icon";
 
 import { ROUTES } from "@/constants/routes";
 
-export type IntegrationSettingsCard = {
+export type IntegrationSettingsItem = {
   id: string;
   label: string;
   description: string;
-  icon: LucideIcon;
+  icon: AppIconName;
   href: string;
-  badge?: string;
+  region?: string;
 };
 
 export type IntegrationSettingsSection = {
   id: string;
   title: string;
-  description?: string;
-  items: IntegrationSettingsCard[];
+  description: string;
+  items: IntegrationSettingsItem[];
 };
 
 export function getIntegrationSettingsSections(): IntegrationSettingsSection[] {
@@ -29,25 +28,26 @@ export function getIntegrationSettingsSections(): IntegrationSettingsSection[] {
         {
           id: "email",
           label: "Email",
-          description: "SMTP delivery for appointment notifications and other outbound email.",
-          icon: Mail,
+          description:
+            "SMTP delivery for appointment notifications and other outbound email.",
+          icon: "notification",
           href: ROUTES.settingsIntegrationsEmail,
         },
       ],
     },
     {
       id: "insurance",
-      title: "Insurance integrations",
+      title: "Insurance",
       description: "Connect payers and configure electronic claims for your region.",
       items: [
         {
           id: "masm-eclaims",
           label: "MASM eClaims",
           description:
-            "Credentials, API endpoints, and practitioner mappings for MASM claim submission.",
-          icon: ShieldCheck,
+            "Credentials, API endpoints, and practitioner mappings for claim submission.",
+          icon: "shield",
           href: ROUTES.settingsIntegrationsMasemEclaims,
-          badge: "Malawi",
+          region: "Malawi",
         },
       ],
     },

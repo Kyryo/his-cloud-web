@@ -1,27 +1,22 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import { AppIcon } from "@/components/icons/app-icon";
 import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  DetailPageTabNavItem,
-  DetailPageTabsNavSection,
-} from "@/features/app-shell/components/page-layout";
 import { MasmClinicSettingsSheet } from "@/features/settings/components/integrations/MasmClinicSettingsSheet";
 import { EclaimsPractitionerMappingsPanel } from "@/features/settings/components/integrations/EclaimsPractitionerMappingsPanel";
 import {
   SettingsPageLayout,
   SettingsSection,
+  SettingsUnderlineTabs,
 } from "@/features/settings/components/SettingsPageLayout";
 import { ROUTES } from "@/constants/routes";
 import { fetchOrganizationClinics } from "@/features/settings/services/settings.service";
 import type { OrganizationClinic } from "@/features/settings/types/settings.types";
-import { cn } from "@/lib/utils";
 import { useUser } from "@/providers/user-provider";
 
 type MasmTabId = "connection" | "practitioners";
@@ -33,6 +28,17 @@ const tabs: Array<{ id: MasmTabId; label: string }> = [
 
 function resolveTab(value: string | null): MasmTabId {
   return value === "practitioners" ? "practitioners" : "connection";
+}
+
+function clinicMeta(clinic: OrganizationClinic) {
+  const locationLabel =
+    clinic.location_count === 1
+      ? "1 location"
+      : `${clinic.location_count} locations`;
+
+  return [clinic.code, locationLabel, clinic.operating_hours_display]
+    .filter((value) => Boolean(value))
+    .join(" · ");
 }
 
 export function MasmEclaimsSettingsPage() {
@@ -90,11 +96,6 @@ export function MasmEclaimsSettingsPage() {
     router.replace(`${ROUTES.settingsIntegrationsMasemEclaims}${query}`);
   }
 
-  function handleClinicClick(clinic: OrganizationClinic) {
-    setSelectedClinic(clinic);
-    setSheetOpen(true);
-  }
-
   if (isUserLoading) {
     return <SettingsContentSkeleton />;
   }
@@ -107,7 +108,7 @@ export function MasmEclaimsSettingsPage() {
       >
         <SettingsSection title="Access restricted">
           <div className="space-y-4">
-            <p className="text-sm text-brand-muted">
+            <p className="text-sm text-slate-400">
               You need tenant administrator access to configure MASM.
             </p>
             <Button asChild variant="outline">
@@ -123,85 +124,68 @@ export function MasmEclaimsSettingsPage() {
     <SettingsPageLayout
       title="MASM eClaims"
       description="Configure clinic-scoped payer credentials and practitioner mappings for electronic claims in Malawi."
+      className="max-w-3xl"
     >
-      <div className="w-full">
-        <DetailPageTabsNavSection aria-label="MASM integration sections">
-          {tabs.map((tab) => (
-            <DetailPageTabNavItem
-              key={tab.id}
-              isActive={activeTab === tab.id}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </DetailPageTabNavItem>
-          ))}
-        </DetailPageTabsNavSection>
+      <SettingsUnderlineTabs
+        tabs={tabs}
+        activeTab={activeTab}
+        onChange={setActiveTab}
+        ariaLabel="MASM integration sections"
+      />
 
-        <div className="pt-6">
-          {activeTab === "connection" ? (
-            <div className="space-y-4">
-              <div>
-                <h2 className="text-sm font-semibold text-brand-navy">Clinics</h2>
-                <p className="mt-0.5 text-xs text-brand-muted">
-                  Select a clinic to configure its MASM connection settings.
-                </p>
-              </div>
+      <div className="pt-8">
+        {activeTab === "connection" ? (
+          <div className="space-y-5">
+            <p className="max-w-xl text-sm text-slate-400">
+              Open a clinic to set its MASM Integration API and portal automation.
+            </p>
 
-              {isLoading ? (
-                <SettingsContentSkeleton />
-              ) : error ? (
-                <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                  {error}
-                </div>
-              ) : clinics.length === 0 ? (
-                <p className="py-8 text-center text-sm text-brand-muted">
-                  No clinics are available for this organization yet.
-                </p>
-              ) : (
-                <div className="divide-y divide-brand-border">
-                  {clinics.map((clinic) => (
+            {isLoading ? (
+              <SettingsContentSkeleton rows={4} showHeader={false} />
+            ) : error ? (
+              <p className="text-sm text-red-600">{error}</p>
+            ) : clinics.length === 0 ? (
+              <p className="text-sm text-slate-400">
+                No clinics are available for this organization yet.
+              </p>
+            ) : (
+              <ul className="divide-y divide-brand-border">
+                {clinics.map((clinic) => (
+                  <li key={clinic.id}>
                     <button
-                      key={clinic.id}
                       type="button"
-                      onClick={() => handleClinicClick(clinic)}
-                      className={cn(
-                        "group flex w-full items-center gap-3 py-3 text-left transition-colors",
-                        "hover:text-brand-primary",
-                      )}
+                      onClick={() => {
+                        setSelectedClinic(clinic);
+                        setSheetOpen(true);
+                      }}
+                      className="flex w-full items-center gap-3 py-3.5 text-left"
                       data-testid={`masm-clinic-row-${clinic.id}`}
                     >
                       <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="truncate text-sm font-medium text-brand-navy">
-                            {clinic.name}
-                          </h3>
-                          <Badge
-                            variant={clinic.is_active ? "default" : "outline"}
-                            className="capitalize"
-                          >
-                            {clinic.status.replace(/_/g, " ").toLowerCase()}
-                          </Badge>
-                        </div>
-                        <p className="mt-0.5 text-xs text-brand-muted">
-                          {clinic.code}
-                          {clinic.location_count != null
-                            ? ` · ${clinic.location_count} location${clinic.location_count === 1 ? "" : "s"}`
-                            : null}
+                        <p className="truncate text-sm font-medium text-brand-navy">
+                          {clinic.name}
+                        </p>
+                        <p className="mt-0.5 truncate text-sm text-slate-400">
+                          {clinicMeta(clinic)}
                         </p>
                       </div>
-                      <ChevronRight
-                        className="size-4 shrink-0 text-brand-muted transition-transform group-hover:translate-x-0.5 group-hover:text-brand-primary"
-                        aria-hidden="true"
+                      <span className="shrink-0 text-xs text-slate-400">
+                        {clinic.is_active ? "Active" : "Inactive"}
+                      </span>
+                      <AppIcon
+                        name="chevronRight"
+                        size={16}
+                        className="shrink-0 text-slate-300"
                       />
                     </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ) : (
-            <EclaimsPractitionerMappingsPanel />
-          )}
-        </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ) : (
+          <EclaimsPractitionerMappingsPanel />
+        )}
       </div>
 
       <MasmClinicSettingsSheet

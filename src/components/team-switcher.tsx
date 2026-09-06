@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { Check } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { AppIcon } from "@/components/icons/app-icon";
+import { WorkspaceAvatar } from "@/components/workspace-avatar";
 import {
   Popover,
   PopoverContent,
@@ -19,14 +20,34 @@ import {
 import { ROUTES } from "@/constants/routes";
 import { getActiveClinics } from "@/features/app-shell/utils/workspace-clinics";
 import type { UserClinic } from "@/features/app-shell/utils/workspace-clinics";
+import { fetchOrganizationBranding } from "@/features/settings/services/settings.service";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/providers/user-provider";
 import { useWorkspaceStore } from "@/state/workspace.store";
 
+let cachedLogoUrl: string | null | undefined;
+
+async function loadWorkspaceLogoUrl(): Promise<string | null> {
+  if (cachedLogoUrl !== undefined) {
+    return cachedLogoUrl;
+  }
+
+  try {
+    const branding = await fetchOrganizationBranding();
+    const url = branding.branding_logo_url?.trim() ?? "";
+    cachedLogoUrl = url.length > 0 ? url : null;
+  } catch {
+    cachedLogoUrl = null;
+  }
+
+  return cachedLogoUrl;
+}
+
 export function TeamSwitcher() {
   const { userData, isLoading } = useUser();
   const [open, setOpen] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(cachedLogoUrl ?? null);
   const activeClinicId = useWorkspaceStore((state) => state.activeClinicId);
   const setActiveClinicId = useWorkspaceStore((state) => state.setActiveClinicId);
 
@@ -52,6 +73,23 @@ export function TeamSwitcher() {
   const activeClinicLabel =
     activeClinic?.clinic_name ?? userData?.primary_clinic?.name ?? "Clinic";
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      const url = await loadWorkspaceLogoUrl();
+      if (!cancelled) {
+        setLogoUrl(url);
+      }
+    }
+
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   function handleClinicSelect(clinic: UserClinic) {
     setActiveClinicId(clinic.clinic);
     setOpen(false);
@@ -68,10 +106,10 @@ export function TeamSwitcher() {
               data-testid="sidebar-team-switcher-trigger"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <AppIcon
-                name="building"
-                size={16}
-                className="shrink-0 text-sidebar-foreground/60"
+              <WorkspaceAvatar
+                name={tenantName}
+                src={logoUrl}
+                className="size-8"
               />
               <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-medium text-brand-navy">
@@ -82,7 +120,8 @@ export function TeamSwitcher() {
                 </span>
               </div>
               <AppIcon
-                name="chevronRight"
+                name="chevronUpDown"
+                size={16}
                 className="ml-auto shrink-0 text-sidebar-foreground/50"
               />
             </SidebarMenuButton>
@@ -106,6 +145,10 @@ export function TeamSwitcher() {
                     onClick={() => handleClinicSelect(clinic)}
                     className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground outline-none hover:bg-accent"
                   >
+                    <WorkspaceAvatar
+                      name={clinic.clinic_name}
+                      className="size-6"
+                    />
                     <span className="min-w-0 flex-1 truncate">
                       {clinic.clinic_name}
                     </span>

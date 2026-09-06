@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AddDepartmentDialog } from "@/features/settings/components/AddDepartmentDialog";
-import { OrganizationEmptyState } from "@/features/settings/components/OrganizationEmptyState";
-import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
+import {
+  OrganizationClinicGroup,
+  OrganizationEntityRow,
+  OrganizationTabPanel,
+  groupByClinicName,
+} from "@/features/settings/components/OrganizationTabContent";
 import { UpdateDepartmentDialog } from "@/features/settings/components/UpdateDepartmentDialog";
 import { getDepartmentTypeLabel } from "@/features/settings/constants/department-types";
 import { fetchOrganizationDepartments } from "@/features/settings/services/settings.service";
@@ -17,47 +20,26 @@ type OrganizationDepartmentsTabProps = {
   isActive: boolean;
 };
 
-const columns = [
-  { key: "name", label: "Department" },
-  { key: "code", label: "Code" },
-  { key: "clinic", label: "Clinic" },
-  { key: "type", label: "Type" },
-  { key: "scheduling", label: "Scheduling" },
-  { key: "status", label: "Status" },
-  { key: "actions", label: "" },
-] as const;
-
-function formatStatus(status: string, isActive: boolean) {
-  const label = status.replace(/_/g, " ");
-  return (
-    <Badge variant={isActive ? "default" : "outline"} className="capitalize">
-      {label.toLowerCase()}
-    </Badge>
-  );
-}
-
-function formatScheduling(department: OrganizationDepartment) {
-  const labels = [
+function departmentMeta(department: OrganizationDepartment) {
+  const scheduling = [
     department.requires_appointment ? "Appointment required" : null,
     department.walk_in_allowed ? "Walk-in" : null,
-  ].filter(Boolean);
+  ]
+    .filter((value) => Boolean(value))
+    .join(", ");
 
-  if (labels.length === 0) {
-    return "—";
-  }
-
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {labels.map((label) => (
-        <Badge key={label} variant="secondary">
-          {label}
-        </Badge>
-      ))}
-    </div>
-  );
+  return [
+    department.code,
+    getDepartmentTypeLabel(department.department_type),
+    scheduling,
+  ]
+    .filter((value) => Boolean(value))
+    .join(" · ");
 }
 
-export function OrganizationDepartmentsTab({ isActive }: OrganizationDepartmentsTabProps) {
+export function OrganizationDepartmentsTab({
+  isActive,
+}: OrganizationDepartmentsTabProps) {
   const [departments, setDepartments] = useState<OrganizationDepartment[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -105,6 +87,12 @@ export function OrganizationDepartmentsTab({ isActive }: OrganizationDepartments
     };
   }, [isActive, reloadToken]);
 
+  const clinicGroups = useMemo(
+    () =>
+      groupByClinicName(departments, (department) => department.clinic_name),
+    [departments],
+  );
+
   if (!isActive) {
     return null;
   }
@@ -116,78 +104,52 @@ export function OrganizationDepartmentsTab({ isActive }: OrganizationDepartments
   function handleUpdated(updatedDepartment: OrganizationDepartment) {
     setDepartments((current) =>
       current.map((department) =>
-        department.uuid === updatedDepartment.uuid ? updatedDepartment : department,
+        department.uuid === updatedDepartment.uuid
+          ? updatedDepartment
+          : department,
       ),
     );
   }
 
-  const isEmpty = !isLoading && !error && departments.length === 0;
-
   return (
     <>
-      <OrganizationTabSection
-        title="Departments"
-        description="Departments group clinical and operational work within each clinic, such as OPD or Dental."
-        showHeader={!isEmpty}
-        actions={
-          departments.length > 0 ? (
-            <Button onClick={() => setAddDialogOpen(true)}>Add department</Button>
-          ) : null
+      <OrganizationTabPanel
+        description="Work groups inside each clinic, such as OPD or Dental."
+        action={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setAddDialogOpen(true)}
+          >
+            Add department
+          </Button>
         }
       >
         {isLoading ? (
-          <SettingsContentSkeleton />
+          <SettingsContentSkeleton rows={4} showHeader={false} />
         ) : error ? (
-          <p className="py-8 text-sm text-brand-muted">{error}</p>
+          <p className="text-sm text-red-600">{error}</p>
         ) : departments.length === 0 ? (
-          <OrganizationEmptyState
-            message="No departments have been set up for this organization yet."
-            actionLabel="Add department"
-            onAction={() => setAddDialogOpen(true)}
-          />
+          <p className="text-sm text-slate-400">
+            No departments yet. Add one such as OPD or Dental.
+          </p>
         ) : (
-          <div className="-mx-6 overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-y border-brand-border bg-slate-50/60">
-                  {columns.map((column) => (
-                    <th
-                      key={column.key}
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-brand-muted"
-                    >
-                      {column.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-brand-border">
-                {departments.map((department) => (
-                  <tr key={department.uuid}>
-                    <td className="px-6 py-3.5">
-                      <div className="text-sm font-medium text-brand-navy">
-                        {department.name}
-                      </div>
-                      {department.description ? (
-                        <div className="text-xs text-brand-muted">
-                          {department.description}
-                        </div>
-                      ) : null}
-                    </td>
-                    <td className="px-6 py-3.5 text-sm text-brand-navy">
-                      {department.code}
-                    </td>
-                    <td className="px-6 py-3.5 text-sm text-brand-navy">
-                      {department.clinic_name}
-                    </td>
-                    <td className="px-6 py-3.5 text-sm text-brand-navy">
-                      {getDepartmentTypeLabel(department.department_type)}
-                    </td>
-                    <td className="px-6 py-3.5">{formatScheduling(department)}</td>
-                    <td className="px-6 py-3.5">
-                      {formatStatus(department.status, department.is_active)}
-                    </td>
-                    <td className="px-6 py-3.5 text-right">
+          <div className="space-y-7">
+            {clinicGroups.map((group) => (
+              <OrganizationClinicGroup
+                key={group.clinicName}
+                title={group.clinicName}
+                count={group.items.length}
+              >
+                {group.items.map((department) => (
+                  <OrganizationEntityRow
+                    key={department.uuid}
+                    title={department.name}
+                    description={department.description || undefined}
+                    meta={departmentMeta(department)}
+                    status={department.is_active ? "Active" : "Inactive"}
+                    actions={
                       <Button
                         type="button"
                         variant="ghost"
@@ -197,14 +159,14 @@ export function OrganizationDepartmentsTab({ isActive }: OrganizationDepartments
                       >
                         Update
                       </Button>
-                    </td>
-                  </tr>
+                    }
+                  />
                 ))}
-              </tbody>
-            </table>
+              </OrganizationClinicGroup>
+            ))}
           </div>
         )}
-      </OrganizationTabSection>
+      </OrganizationTabPanel>
 
       <AddDepartmentDialog
         open={addDialogOpen}

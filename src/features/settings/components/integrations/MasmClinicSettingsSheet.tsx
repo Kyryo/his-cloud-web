@@ -10,10 +10,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import {
-  DetailPageTabNavItem,
-  DetailPageTabsNavSection,
-} from "@/features/app-shell/components/page-layout";
+import { SettingsUnderlineTabs } from "@/features/settings/components/SettingsPageLayout";
 import {
   MasmIntegrationSettingsForm,
   MasmPortalAutomationForm,
@@ -30,8 +27,8 @@ import { cn } from "@/lib/utils";
 type SheetTabId = "integration" | "portal";
 
 const sheetTabs: Array<{ id: SheetTabId; label: string }> = [
-  { id: "integration", label: "Integration settings" },
-  { id: "portal", label: "Portal automation" },
+  { id: "integration", label: "Integration" },
+  { id: "portal", label: "Portal" },
 ];
 
 type MasmClinicSettingsSheetProps = {
@@ -57,7 +54,6 @@ export function MasmClinicSettingsSheet({
 
   useEffect(() => {
     if (!open) {
-      setActiveTab("integration");
       return;
     }
     if (clinic == null) {
@@ -74,6 +70,7 @@ export function MasmClinicSettingsSheet({
         setCredential(null);
         const data = await loadMasemClinicSettings(clinic.id);
         if (active) {
+          setActiveTab("integration");
           setIntegration(data.integration);
           setCredential(data.credential);
         }
@@ -111,38 +108,35 @@ export function MasmClinicSettingsSheet({
         <SheetHeader className="border-b border-brand-border px-6 py-5 text-left">
           <SheetTitle>{clinic?.name ?? "Clinic settings"}</SheetTitle>
           <SheetDescription>
-            Configure MASM Integration API and portal automation for this clinic.
+            MASM Integration API and portal automation for this clinic.
           </SheetDescription>
         </SheetHeader>
 
-        <DetailPageTabsNavSection aria-label="Clinic MASM settings sections">
-          {sheetTabs.map((tab) => (
-            <DetailPageTabNavItem
-              key={tab.id}
-              isActive={activeTab === tab.id}
-              onClick={() => setActiveTab(tab.id)}
-            >
-              {tab.label}
-            </DetailPageTabNavItem>
-          ))}
-        </DetailPageTabsNavSection>
+        <div className="px-6">
+          <SettingsUnderlineTabs
+            tabs={sheetTabs}
+            activeTab={activeTab}
+            onChange={setActiveTab}
+            ariaLabel="Clinic MASM settings sections"
+          />
+        </div>
 
         <div className="flex-1 overflow-y-auto px-6 py-6">
           {isLoading ? (
-            <SettingsContentSkeleton variant="form" />
+            <SettingsContentSkeleton rows={5} showHeader={false} />
           ) : error ? (
-            <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {error}
-            </div>
+            <p className="text-sm text-red-600">{error}</p>
           ) : clinic && integration ? (
             activeTab === "integration" ? (
               <MasmIntegrationSettingsForm
+                key={`${clinic.id}-integration-${integration.updated_at}`}
                 clinicId={clinic.id}
                 integration={integration}
                 onUpdated={setIntegration}
               />
             ) : (
               <MasmPortalAutomationForm
+                key={`${clinic.id}-portal-${credential?.updated_at ?? "new"}`}
                 clinicId={clinic.id}
                 credential={credential}
                 onUpdated={setCredential}

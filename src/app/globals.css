@@ -511,6 +511,29 @@
     animation: otp-shake 0.45s ease-in-out;
   }
 
+  @keyframes report-progress {
+    from {
+      transform: translateX(-100%);
+    }
+
+    to {
+      transform: translateX(300%);
+    }
+  }
+
+  .animate-report-progress {
+    animation: report-progress 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-report-progress {
+      animation: none;
+      transform: none;
+      width: 100%;
+      opacity: 0.5;
+    }
+  }
+
   @keyframes dialog-overlay-show {
     from {
       opacity: 0;

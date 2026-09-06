@@ -40,6 +40,7 @@ import {
   StethoscopeIcon,
   Store01Icon,
   Tag01Icon,
+  UnfoldMoreIcon,
   UserIcon,
   UserMultipleIcon,
   Wallet01Icon,
@@ -86,6 +87,7 @@ const APP_ICONS = {
   users: UserMultipleIcon,
   wallet: Wallet01Icon,
   chevronRight: ArrowRight01Icon,
+  chevronUpDown: UnfoldMoreIcon,
 } as const;
 
 export type AppIconName = keyof typeof APP_ICONS;

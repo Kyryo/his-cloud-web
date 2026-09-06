@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 import {
@@ -22,10 +22,14 @@ import {
 import { DateTimeLocalInput } from "@/components/ui/datetime-local-input";
 import { Textarea } from "@/components/ui/textarea";
 import { CareProviderCombobox } from "@/features/appointments/components/CareProviderCombobox";
+import { appFont } from "@/lib/fonts";
+import { cn } from "@/lib/utils";
 import type { CreateAppointmentFormValues } from "@/features/appointments/schemas/appointment.schema";
 import {
   APPOINTMENT_DURATION_PRESETS,
   addMinutesToLocalDateTime,
+  formatAppointmentDurationLabel,
+  formatAppointmentScheduleRange,
   getDurationMinutesBetween,
   parseCustomDurationMinutes,
   resolveDurationSelectValue,
@@ -48,6 +52,30 @@ type AppointmentFormFieldsProps = {
   showDetails?: boolean;
   lockScheduleFields?: boolean;
 };
+
+function AppointmentFormSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="space-y-3">
+      <div>
+        <h3 className="text-xs font-semibold uppercase tracking-wide text-brand-muted">
+          {title}
+        </h3>
+        {description ? (
+          <p className="mt-0.5 text-xs text-brand-muted">{description}</p>
+        ) : null}
+      </div>
+      {children}
+    </section>
+  );
+}
 
 export function AppointmentFormFields({
   form,
@@ -135,6 +163,10 @@ export function AppointmentFormFields({
     );
   }, [clinicSearch, clinics]);
 
+  const lockedSchedule = lockScheduleFields
+    ? formatAppointmentScheduleRange(scheduledStart, scheduledEnd)
+    : null;
+
   const filteredDepartments = useMemo(() => {
     const term = departmentSearch.trim().toLowerCase();
     if (!term) return departments;
@@ -146,19 +178,20 @@ export function AppointmentFormFields({
   }, [departmentSearch, departments]);
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
+      <AppointmentFormSection title="Location">
+      <div className="grid gap-4 sm:grid-cols-2">
       <FormField
         control={form.control}
         name="clinic"
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Clinic <span className="text-red-500">*</span>
+              Clinic <RequiredFieldMarker />
             </FormLabel>
             <Select
               value={field.value}
               open={clinicOpen}
-              disabled={lockScheduleFields}
               onOpenChange={(open) => {
                 setClinicOpen(open);
                 if (!open) {
@@ -166,6 +199,9 @@ export function AppointmentFormFields({
                 }
               }}
               onValueChange={(value) => {
+                if (value === field.value) {
+                  return;
+                }
                 field.onChange(value);
                 form.setValue("department", "");
                 onClinicianChange(null, null);
@@ -179,7 +215,7 @@ export function AppointmentFormFields({
                   <SelectValue placeholder="Select a clinic" />
                 </SelectTrigger>
               </FormControl>
-              <SelectContent>
+              <SelectContent className={cn(appFont.className)}>
                 <div className="border-b border-brand-border p-2">
                   <Input
                     value={clinicSearch}
@@ -216,7 +252,7 @@ export function AppointmentFormFields({
         render={({ field }) => (
           <FormItem>
             <FormLabel>
-              Department <span className="text-red-500">*</span>
+              Department <RequiredFieldMarker />
             </FormLabel>
             <Select
               value={field.value}
@@ -228,14 +264,14 @@ export function AppointmentFormFields({
                 }
               }}
               onValueChange={field.onChange}
-              disabled={lockScheduleFields || !selectedClinicId || departments.length === 0}
+              disabled={!selectedClinicId || departments.length === 0}
             >
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a department" />
                 </SelectTrigger>
               </FormControl>
-              <SelectContent>
+              <SelectContent className={cn(appFont.className)}>
                 <div className="border-b border-brand-border p-2">
                   <Input
                     value={departmentSearch}
@@ -265,6 +301,7 @@ export function AppointmentFormFields({
           </FormItem>
         )}
       />
+      </div>
 
       <FormField
         control={form.control}
@@ -276,7 +313,7 @@ export function AppointmentFormFields({
                 value={field.value ?? null}
                 displayName={selectedClinicianName}
                 clinicUuid={selectedClinicUuid || undefined}
-                disabled={lockScheduleFields || !selectedClinicUuid}
+                disabled={!selectedClinicUuid}
                 onSelect={(provider) => {
                   field.onChange(provider?.id ?? null);
                   onClinicianChange(provider?.id ?? null, provider?.name ?? null);
@@ -284,13 +321,38 @@ export function AppointmentFormFields({
               />
             </FormControl>
             <p className="text-xs text-brand-muted">
-              Optional. Assign a doctor or nurse for this appointment.
+              Optional. Leave unassigned if the provider is not known yet.
             </p>
             <FormMessage />
           </FormItem>
         )}
       />
+      </AppointmentFormSection>
 
+      <AppointmentFormSection
+        title="Time"
+        description={
+          lockScheduleFields
+            ? "This slot was chosen from the calendar."
+            : undefined
+        }
+      >
+      {lockedSchedule ? (
+        <div
+          className="rounded-xl border border-dash-border bg-dash-canvas/50 px-3.5 py-3"
+          data-testid="appointment-locked-schedule"
+        >
+          <p className="text-sm font-semibold text-brand-navy">
+            {lockedSchedule.dateLabel}
+          </p>
+          <p className="mt-0.5 text-sm text-brand-muted">
+            {lockedSchedule.timeLabel}
+            {lockedSchedule.durationLabel
+              ? ` · ${lockedSchedule.durationLabel}`
+              : ""}
+          </p>
+        </div>
+      ) : (
       <div className="grid gap-4 sm:grid-cols-2">
         <FormField
           control={form.control}
@@ -303,7 +365,6 @@ export function AppointmentFormFields({
               <FormControl>
                 <DateTimeLocalInput
                   {...field}
-                  disabled={lockScheduleFields}
                   onChange={(event) => {
                     const nextStart = event.target.value;
                     field.onChange(nextStart);
@@ -321,12 +382,11 @@ export function AppointmentFormFields({
           render={() => (
             <FormItem>
               <FormLabel>
-                Duration (minutes) <RequiredFieldMarker />
+                Duration <RequiredFieldMarker />
               </FormLabel>
               <div className="flex items-start gap-2">
                 <Select
                   value={durationSelectValue}
-                  disabled={lockScheduleFields}
                   onValueChange={(value) =>
                     handleDurationSelectChange(value as AppointmentDurationSelectValue)
                   }
@@ -336,10 +396,10 @@ export function AppointmentFormFields({
                       <SelectValue placeholder="Duration" />
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
+                  <SelectContent className={cn(appFont.className)}>
                     {APPOINTMENT_DURATION_PRESETS.map((minutes) => (
                       <SelectItem key={minutes} value={String(minutes)}>
-                        {minutes}
+                        {formatAppointmentDurationLabel(minutes)}
                       </SelectItem>
                     ))}
                     <SelectItem value="other">Other</SelectItem>
@@ -354,7 +414,6 @@ export function AppointmentFormFields({
                       inputMode="numeric"
                       placeholder="Minutes"
                       className="w-24 shrink-0"
-                      disabled={lockScheduleFields}
                       value={
                         customDurationMinutes ||
                         (forceCustomDuration ? "" : String(derivedDurationMinutes))
@@ -371,9 +430,11 @@ export function AppointmentFormFields({
           )}
         />
       </div>
+      )}
+      </AppointmentFormSection>
 
       {showDetails ? (
-        <>
+        <AppointmentFormSection title="Visit details">
           <FormField
             control={form.control}
             name="reason"
@@ -395,8 +456,8 @@ export function AppointmentFormFields({
                 <FormLabel>Internal notes</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Optional scheduling notes for the care team..."
-                    className="min-h-24 resize-y bg-white"
+                    placeholder="Optional notes for the care team..."
+                    className="min-h-20 resize-y bg-white"
                     {...field}
                   />
                 </FormControl>
@@ -404,7 +465,7 @@ export function AppointmentFormFields({
               </FormItem>
             )}
           />
-        </>
+        </AppointmentFormSection>
       ) : null}
     </div>
   );

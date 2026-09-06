@@ -4,7 +4,7 @@ import Link from "next/link";
 
 import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
-import { IntegrationsSettingsGrid } from "@/features/settings/components/integrations/IntegrationsSettingsGrid";
+import { IntegrationsSettingsList } from "@/features/settings/components/integrations/IntegrationsSettingsList";
 import {
   SettingsPageLayout,
   SettingsSection,
@@ -32,7 +32,7 @@ export function IntegrationsSettingsPage() {
               You need tenant administrator access to configure integrations.
             </p>
             <Button asChild variant="outline">
-              <Link href={ROUTES.settingsAccount}>Back to account</Link>
+              <Link href={ROUTES.settingsAccount}>Back to account settings</Link>
             </Button>
           </div>
         </SettingsSection>
@@ -44,8 +44,9 @@ export function IntegrationsSettingsPage() {
     <SettingsPageLayout
       title="Integrations"
       description="Connect communication and insurance services for your organization."
+      className="max-w-3xl"
     >
-      <IntegrationsSettingsGrid />
+      <IntegrationsSettingsList />
     </SettingsPageLayout>
   );
 }

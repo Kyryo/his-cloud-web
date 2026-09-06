@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   addMinutesToLocalDateTime,
+  formatAppointmentDurationLabel,
+  formatAppointmentScheduleRange,
   getDurationMinutesBetween,
   parseCustomDurationMinutes,
   resolveDurationSelectValue,
@@ -41,6 +43,26 @@ describe("appointment-duration", () => {
     expect(
       resolveDurationSelectValue("2026-07-15T09:00", "2026-07-15T09:30", true),
     ).toBe("other");
+  });
+
+  it("formats duration labels for presets and hours", () => {
+    expect(formatAppointmentDurationLabel(15)).toBe("15 minutes");
+    expect(formatAppointmentDurationLabel(60)).toBe("1 hour");
+    expect(formatAppointmentDurationLabel(120)).toBe("2 hours");
+  });
+
+  it("formats a locked schedule range", () => {
+    const range = formatAppointmentScheduleRange(
+      "2026-07-15T09:00",
+      "2026-07-15T09:30",
+    );
+
+    expect(range).not.toBeNull();
+    expect(range?.dateLabel).toContain("15");
+    expect(range?.dateLabel).toContain("Jul");
+    expect(range?.timeLabel).toContain("09:00");
+    expect(range?.timeLabel).toContain("09:30");
+    expect(range?.durationLabel).toBe("30 minutes");
   });
 
   it("parses custom duration minutes within 1–1440", () => {

@@ -32,9 +32,11 @@ export function FilterSelectField({
 }: FilterSelectFieldProps) {
   return (
     <div>
-      <Label htmlFor={id} className="mb-1.5 block text-sm font-medium text-brand-slate">
-        {label}
-      </Label>
+      {label ? (
+        <Label htmlFor={id} className="mb-1.5 block text-sm font-medium text-brand-slate">
+          {label}
+        </Label>
+      ) : null}
       <Select
         value={value}
         disabled={disabled}

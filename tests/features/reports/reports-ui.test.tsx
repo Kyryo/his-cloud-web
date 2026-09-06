@@ -1,8 +1,8 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { ReportExportShell } from "@/features/reports/components/ReportExportShell";
-import { ReportsCatalogGrid } from "@/features/reports/components/ReportsCatalogGrid";
+import { ReportsCatalogList } from "@/features/reports/components/ReportsCatalogList";
 import { buildReportFiltersPayload } from "@/features/reports/components/ReportFilterForm";
 import {
   getReportCatalogSections,
@@ -16,12 +16,16 @@ import {
 function renderCatalog() {
   return render(
     <ReportExportShell>
-      <ReportsCatalogGrid />
+      <ReportsCatalogList />
     </ReportExportShell>,
   );
 }
 
-describe("ReportsCatalogGrid", () => {
+afterEach(() => {
+  cleanup();
+});
+
+describe("ReportsCatalogList", () => {
   it("renders categorized catalog report buttons", () => {
     renderCatalog();
 
@@ -33,6 +37,38 @@ describe("ReportsCatalogGrid", () => {
       expect(screen.getByTestId(`report-catalog-${report.id}`)).toBeInTheDocument();
       expect(screen.getByText(report.title)).toBeInTheDocument();
     }
+  });
+
+  it("opens a dialog instead of a sheet when a report is selected", () => {
+    renderCatalog();
+
+    fireEvent.click(screen.getByTestId("report-catalog-appointments"));
+
+    expect(screen.getByTestId("report-export-dialog")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Export CSV" })).toBeInTheDocument();
+    expect(screen.queryByTestId("report-export-sheet")).not.toBeInTheDocument();
+  });
+
+  it("applies a quick period preset and reflects it in the summary rail", () => {
+    renderCatalog();
+
+    fireEvent.click(screen.getByTestId("report-catalog-appointments"));
+
+    const todayChip = screen.getByRole("button", { name: "Today" });
+    expect(todayChip).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(screen.getByRole("button", { name: "Last 7 days" }));
+
+    const fromInput = screen.getByLabelText("From") as HTMLInputElement;
+    const toInput = screen.getByLabelText("To") as HTMLInputElement;
+    expect(fromInput.value).not.toBe(toInput.value);
+    expect(screen.getByRole("button", { name: "Last 7 days" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(
+      screen.getByTestId("report-export-summary-period").textContent,
+    ).toContain(" to ");
   });
 });
 

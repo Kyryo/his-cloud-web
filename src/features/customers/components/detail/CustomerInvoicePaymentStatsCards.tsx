@@ -27,7 +27,7 @@ export function CustomerInvoicePaymentStatsCards({
   return (
     <dl
       className={cn(
-        "grid grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x",
+        "grid grid-cols-2 divide-y divide-dash-border/60 border-b border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x",
         className,
       )}
       data-testid="customer-invoice-payment-stats"

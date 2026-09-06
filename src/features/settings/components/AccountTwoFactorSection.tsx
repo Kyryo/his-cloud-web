@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { PasswordInput } from "@/components/password-input";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DestructiveButton,
@@ -215,18 +214,19 @@ function MethodRow({
   children?: ReactNode;
 }) {
   return (
-    <div className="py-4">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+    <div className="py-3.5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="flex min-w-0 items-start gap-3">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-tint text-brand-primary">
-            <Icon className="size-4" aria-hidden="true" />
-          </div>
+          <Icon
+            className="mt-0.5 size-4 shrink-0 text-slate-400"
+            aria-hidden="true"
+          />
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <p className="text-sm font-medium text-brand-navy">{title}</p>
               {badge}
             </div>
-            <p className="mt-0.5 text-sm text-brand-muted">{description}</p>
+            <p className="mt-0.5 text-sm text-slate-400">{description}</p>
           </div>
         </div>
         {actions ? (
@@ -309,9 +309,7 @@ function SecurityKeyCancelledState() {
       className="flex flex-col items-center py-8 text-center"
       data-testid="mfa-webauthn-cancelled"
     >
-      <div className="flex size-12 items-center justify-center rounded-2xl bg-brand-tint text-brand-primary">
-        <KeyRound className="size-6" strokeWidth={1.75} aria-hidden="true" />
-      </div>
+      <KeyRound className="size-5 text-slate-400" aria-hidden="true" />
       <h3 className="mt-4 text-sm font-semibold text-brand-navy">
         Key not added
       </h3>
@@ -380,16 +378,11 @@ function SecurityKeysList({
             key={key.id}
             className="flex flex-col gap-2 px-0 py-3 sm:flex-row sm:items-center sm:gap-3"
           >
-            <div className="flex min-w-0 flex-1 items-center gap-3">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-tint text-brand-primary">
-                <KeyRound className="size-4" aria-hidden="true" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-brand-navy">
-                  {key.name}
-                </p>
-                <p className="text-xs text-brand-muted">{formatKeyMeta(key)}</p>
-              </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-brand-navy">
+                {key.name}
+              </p>
+              <p className="text-sm text-slate-400">{formatKeyMeta(key)}</p>
             </div>
             <div className="flex shrink-0 items-center self-end sm:self-auto">
               <Button
@@ -643,7 +636,9 @@ export function AccountTwoFactorSection() {
   const preferredMethod = status?.preferred_method ?? "email";
 
   function defaultBadge(method: "email" | "totp" | "webauthn") {
-    return preferredMethod === method ? <Badge>Default</Badge> : null;
+    return preferredMethod === method ? (
+      <span className="text-xs text-slate-400">Default</span>
+    ) : null;
   }
 
   function defaultAction(method: "email" | "totp" | "webauthn", canSet: boolean) {
@@ -738,7 +733,7 @@ export function AccountTwoFactorSection() {
               }
               badge={
                 <>
-                  <Badge variant="secondary">Required</Badge>
+                  <span className="text-xs text-slate-400">Required</span>
                   {defaultBadge("email")}
                 </>
               }
@@ -756,11 +751,9 @@ export function AccountTwoFactorSection() {
               }
               badge={
                 <>
-                  {status?.totp.enabled ? (
-                    <Badge variant="success">On</Badge>
-                  ) : (
-                    <Badge variant="outline">Off</Badge>
-                  )}
+                  <span className="text-xs text-slate-400">
+                    {status?.totp.enabled ? "On" : "Off"}
+                  </span>
                   {defaultBadge("totp")}
                 </>
               }
@@ -776,6 +769,7 @@ export function AccountTwoFactorSection() {
                   ) : (
                     <Button
                       type="button"
+                      variant="outline"
                       size="sm"
                       data-testid="mfa-setup-totp"
                       onClick={() => {
@@ -800,11 +794,9 @@ export function AccountTwoFactorSection() {
               }
               badge={
                 <>
-                  {(status?.webauthn.length ?? 0) > 0 ? (
-                    <Badge variant="success">On</Badge>
-                  ) : (
-                    <Badge variant="outline">Off</Badge>
-                  )}
+                  <span className="text-xs text-slate-400">
+                    {(status?.webauthn.length ?? 0) > 0 ? "On" : "Off"}
+                  </span>
                   {defaultBadge("webauthn")}
                 </>
               }
@@ -813,6 +805,7 @@ export function AccountTwoFactorSection() {
                   {defaultAction("webauthn", (status?.webauthn.length ?? 0) > 0)}
                   <Button
                     type="button"
+                    variant="outline"
                     size="sm"
                     data-testid="mfa-add-webauthn"
                     onClick={() => setPasswordDialog("add-webauthn")}
@@ -858,11 +851,9 @@ export function AccountTwoFactorSection() {
               : "Generated automatically when you add an authenticator app or security key."
           }
           badge={
-            status?.recovery_codes.enabled ? (
-              <Badge variant="success">On</Badge>
-            ) : (
-              <Badge variant="outline">Off</Badge>
-            )
+            <span className="text-xs text-slate-400">
+              {status?.recovery_codes.enabled ? "On" : "Off"}
+            </span>
           }
           actions={
             status?.recovery_codes.enabled ? (

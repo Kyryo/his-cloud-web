@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -15,17 +15,12 @@ import {
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { User } from "@/features/auth/types/auth.types";
-import { AccountAppointmentsSection } from "@/features/settings/components/AccountAppointmentsSection";
-import { AccountAppointmentsReportsSection } from "@/features/settings/components/AccountAppointmentsReportsSection";
-import { AccountSalesReportsSection } from "@/features/settings/components/AccountSalesReportsSection";
-import { AssignedClinicsTable } from "@/features/settings/components/AssignedClinicsTable";
-import { SettingsPanelSection } from "@/features/settings/components/SettingsPageLayout";
+import { SettingsFieldRow } from "@/features/settings/components/SettingsPageLayout";
 import { updateProfile } from "@/features/settings/services/settings.service";
 import { useToast } from "@/providers/toast-provider";
 import { useUser } from "@/providers/user-provider";
@@ -199,7 +194,9 @@ function AccountProfileSettingsForm({ user }: AccountProfileSettingsProps) {
       toast({
         variant: "error",
         description:
-          error instanceof Error ? error.message : "Unable to save account settings.",
+          error instanceof Error
+            ? error.message
+            : "Unable to save account settings.",
       });
     } finally {
       setIsSaving(false);
@@ -209,161 +206,148 @@ function AccountProfileSettingsForm({ user }: AccountProfileSettingsProps) {
   const displayName = user.name || "User";
 
   return (
-    <div className="w-full" data-testid="account-profile-settings">
-      <div className="mb-8 flex items-center gap-4">
-        <div className="relative shrink-0">
-          {avatarImage ? (
-            <div
-              className="size-16 rounded-full bg-cover bg-center"
-              style={{ backgroundImage: `url(${avatarImage})` }}
-              role="img"
-              aria-label={`${displayName} avatar`}
-            />
-          ) : (
-            <UserIdenticon
-              seed={user.email}
-              name={displayName}
-              className="size-16 rounded-full text-base"
-            />
-          )}
-          <Button
-            type="button"
-            size="icon"
-            variant="ghost"
-            className="absolute -bottom-1 -right-1 size-7 rounded-full bg-white text-brand-navy hover:bg-slate-50"
-            onClick={() => avatarInputRef.current?.click()}
-            aria-label="Upload avatar"
-          >
-            <Camera className="size-3.5" aria-hidden="true" />
-          </Button>
-        </div>
-        <div className="min-w-0">
-          <p className="truncate text-base font-medium text-brand-navy">
-            {displayName}
-          </p>
-          <p className="truncate text-sm text-brand-muted">{user.email}</p>
-        </div>
-      </div>
+    <div data-testid="account-profile-settings">
+      <p className="max-w-xl text-sm text-slate-400">
+        Your name and photo as they appear to your team, plus language and
+        timezone.
+      </p>
 
       <Form {...form}>
-        <form onSubmit={onSubmit}>
-          <SettingsPanelSection
-            title="Basic information"
-            description="Update how your name and profile details appear across the platform."
-          >
-            <div className="max-w-xl space-y-4">
-              <FormField
-                control={form.control}
-                name="displayName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
+        <form onSubmit={onSubmit} className="mt-5">
+          <SettingsFieldRow label="Photo">
+            <div className="flex items-center gap-3">
+              {avatarImage ? (
+                <div
+                  className="size-12 rounded-full bg-cover bg-center"
+                  style={{ backgroundImage: `url(${avatarImage})` }}
+                  role="img"
+                  aria-label={`${displayName} avatar`}
+                />
+              ) : (
+                <UserIdenticon
+                  seed={user.email}
+                  name={displayName}
+                  className="size-12 rounded-full text-sm"
+                />
+              )}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => avatarInputRef.current?.click()}
+                aria-label="Upload avatar"
+              >
+                Change photo
+              </Button>
+            </div>
+          </SettingsFieldRow>
+
+          <FormField
+            control={form.control}
+            name="displayName"
+            render={({ field }) => (
+              <FormItem className="space-y-0">
+                <SettingsFieldRow
+                  label={
+                    <>
                       Display name
                       <RequiredFieldMarker />
-                    </FormLabel>
-                    <FormControl>
-                      <Input autoComplete="name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    </>
+                  }
+                >
+                  <FormControl>
+                    <Input autoComplete="name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </SettingsFieldRow>
+              </FormItem>
+            )}
+          />
 
-              <FormField
-                control={form.control}
-                name="about"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>About</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        rows={4}
-                        placeholder="Tell your team a little about yourself."
-                      />
-                    </FormControl>
-                    <p className="text-xs text-brand-muted">
-                      Markdown is supported for basic formatting.
-                    </p>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </SettingsPanelSection>
+          <SettingsFieldRow label="Email">
+            <p>{user.email}</p>
+            <p className="mt-1 text-sm text-slate-400">
+              Managed by your administrator.
+            </p>
+          </SettingsFieldRow>
 
-          <AccountAppointmentsSection />
+          <FormField
+            control={form.control}
+            name="about"
+            render={({ field }) => (
+              <FormItem className="space-y-0">
+                <SettingsFieldRow label="About">
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      rows={3}
+                      placeholder="Tell your team a little about yourself."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </SettingsFieldRow>
+              </FormItem>
+            )}
+          />
 
-          <AccountAppointmentsReportsSection />
+          <FormField
+            control={form.control}
+            name="language"
+            render={({ field }) => (
+              <FormItem className="space-y-0">
+                <SettingsFieldRow label="Language">
+                  <FormControl>
+                    <FilterSelectField
+                      id="account-language"
+                      label=""
+                      value={field.value}
+                      options={[...LANGUAGE_OPTIONS]}
+                      onValueChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </SettingsFieldRow>
+              </FormItem>
+            )}
+          />
 
-          <AccountSalesReportsSection />
+          <FormField
+            control={form.control}
+            name="timezone"
+            render={({ field }) => (
+              <FormItem className="space-y-0">
+                <SettingsFieldRow label="Timezone">
+                  <FormControl>
+                    <FilterSelectField
+                      id="account-timezone"
+                      label=""
+                      value={field.value}
+                      options={[...TIMEZONE_OPTIONS]}
+                      onValueChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </SettingsFieldRow>
+              </FormItem>
+            )}
+          />
 
-          <SettingsPanelSection
-            title="Preferences"
-            description="Choose your language and timezone for dates and notifications."
+          <Button
+            type="submit"
+            variant="outline"
+            size="sm"
+            className="mt-5"
+            disabled={isSaving}
           >
-            <div className="grid max-w-xl gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="language"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Language</FormLabel>
-                    <FormControl>
-                      <FilterSelectField
-                        id="account-language"
-                        label=""
-                        value={field.value}
-                        options={[...LANGUAGE_OPTIONS]}
-                        onValueChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="timezone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Timezone</FormLabel>
-                    <FormControl>
-                      <FilterSelectField
-                        id="account-timezone"
-                        label=""
-                        value={field.value}
-                        options={[...TIMEZONE_OPTIONS]}
-                        onValueChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </SettingsPanelSection>
-
-          <SettingsPanelSection
-            title="Assigned clinics"
-            description="Clinics linked to your account and your role at each location."
-          >
-            <AssignedClinicsTable clinics={user.clinics ?? []} />
-          </SettingsPanelSection>
-
-          <div className="flex justify-end border-t border-brand-border pt-8">
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                  Saving...
-                </>
-              ) : (
-                "Save changes"
-              )}
-            </Button>
-          </div>
+            {isSaving ? (
+              <>
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                Saving...
+              </>
+            ) : (
+              "Save profile"
+            )}
+          </Button>
         </form>
       </Form>
 

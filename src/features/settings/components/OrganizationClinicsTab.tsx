@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 
 import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AddClinicDialog } from "@/features/settings/components/AddClinicDialog";
-import { OrganizationEmptyState } from "@/features/settings/components/OrganizationEmptyState";
-import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
+import {
+  OrganizationEntityRow,
+  OrganizationTabPanel,
+} from "@/features/settings/components/OrganizationTabContent";
 import { UpdateClinicDialog } from "@/features/settings/components/UpdateClinicDialog";
 import {
   fetchOrganization,
@@ -19,22 +20,15 @@ type OrganizationClinicsTabProps = {
   isActive: boolean;
 };
 
-const columns = [
-  { key: "name", label: "Clinic" },
-  { key: "code", label: "Code" },
-  { key: "locations", label: "Locations" },
-  { key: "hours", label: "Hours" },
-  { key: "status", label: "Status" },
-  { key: "actions", label: "" },
-] as const;
+function clinicMeta(clinic: OrganizationClinic) {
+  const locationLabel =
+    clinic.location_count === 1
+      ? "1 location"
+      : `${clinic.location_count} locations`;
 
-function formatStatus(status: string, isActive: boolean) {
-  const label = status.replace(/_/g, " ");
-  return (
-    <Badge variant={isActive ? "default" : "outline"} className="capitalize">
-      {label.toLowerCase()}
-    </Badge>
-  );
+  return [clinic.code, locationLabel, clinic.operating_hours_display]
+    .filter((value) => Boolean(value))
+    .join(" · ");
 }
 
 export function OrganizationClinicsTab({ isActive }: OrganizationClinicsTabProps) {
@@ -44,7 +38,9 @@ export function OrganizationClinicsTab({ isActive }: OrganizationClinicsTabProps
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [editingClinic, setEditingClinic] = useState<OrganizationClinic | null>(null);
+  const [editingClinic, setEditingClinic] = useState<OrganizationClinic | null>(
+    null,
+  );
 
   useEffect(() => {
     if (!isActive) {
@@ -103,109 +99,76 @@ export function OrganizationClinicsTab({ isActive }: OrganizationClinicsTabProps
 
   function handleCreated(clinic: OrganizationClinic) {
     setClinics((current) =>
-      [...current, clinic].sort((left, right) => left.name.localeCompare(right.name)),
+      [...current, clinic].sort((left, right) =>
+        left.name.localeCompare(right.name),
+      ),
     );
     setReloadToken((token) => token + 1);
   }
 
   const atClinicLimit = clinics.length >= maxClinics;
   const limitMessage = `Clinic limit reached (${clinics.length}/${maxClinics}). Contact support to increase.`;
-  const isEmpty = !isLoading && !error && clinics.length === 0;
 
   return (
     <>
-      <OrganizationTabSection
-        title="Clinics"
-        description="Configure the clinics within your organization."
-        showHeader={!isEmpty}
-        actions={
-          isEmpty ? null : (
-            <div className="flex flex-col items-end gap-1">
-              <Button
-                type="button"
-                onClick={() => setAddDialogOpen(true)}
-                disabled={atClinicLimit}
-              >
-                Add clinic
-              </Button>
-              {atClinicLimit ? (
-                <p className="max-w-xs text-right text-xs text-brand-muted">
-                  {limitMessage}
-                </p>
-              ) : (
-                <p className="text-xs text-brand-muted">
-                  {clinics.length}/{maxClinics} clinics used
-                </p>
-              )}
-            </div>
-          )
+      <OrganizationTabPanel
+        description="Sites where your teams work. Departments and locations belong to a clinic."
+        action={
+          <div className="flex flex-col items-end gap-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setAddDialogOpen(true)}
+              disabled={atClinicLimit}
+            >
+              Add clinic
+            </Button>
+            {atClinicLimit ? (
+              <p className="max-w-xs text-right text-xs text-slate-400">
+                {limitMessage}
+              </p>
+            ) : (
+              <p className="text-xs text-slate-400">
+                {clinics.length}/{maxClinics} clinics used
+              </p>
+            )}
+          </div>
         }
       >
         {isLoading ? (
-          <SettingsContentSkeleton />
+          <SettingsContentSkeleton rows={4} showHeader={false} />
         ) : error ? (
-          <p className="py-8 text-sm text-brand-muted">{error}</p>
-        ) : isEmpty ? (
-          <OrganizationEmptyState
-            message="No clinics have been set up for this organization yet."
-            actionLabel="Add clinic"
-            onAction={() => setAddDialogOpen(true)}
-            actionDisabled={atClinicLimit}
-          >
-            {atClinicLimit ? (
-              <p className="mt-3 text-xs text-brand-muted">{limitMessage}</p>
-            ) : null}
-          </OrganizationEmptyState>
+          <p className="text-sm text-red-600">{error}</p>
+        ) : clinics.length === 0 ? (
+          <p className="text-sm text-slate-400">
+            No clinics yet. Add a clinic to start configuring departments and
+            locations.
+          </p>
         ) : (
-          <div className="-mx-6 overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-y border-brand-border bg-slate-50/60">
-                  {columns.map((column) => (
-                    <th
-                      key={column.key}
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-brand-muted"
-                    >
-                      {column.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-brand-border">
-                {clinics.map((clinic) => (
-                  <tr key={clinic.uuid}>
-                    <td className="px-6 py-3.5 text-sm font-medium text-brand-navy">
-                      {clinic.name}
-                    </td>
-                    <td className="px-6 py-3.5 text-sm text-brand-navy">{clinic.code}</td>
-                    <td className="px-6 py-3.5 text-sm text-brand-navy">
-                      {clinic.location_count}
-                    </td>
-                    <td className="px-6 py-3.5 text-sm text-brand-muted">
-                      {clinic.operating_hours_display || "—"}
-                    </td>
-                    <td className="px-6 py-3.5">
-                      {formatStatus(clinic.status, clinic.is_active)}
-                    </td>
-                    <td className="px-6 py-3.5 text-right">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 text-brand-muted hover:text-brand-navy"
-                        onClick={() => setEditingClinic(clinic)}
-                      >
-                        Update
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ul className="divide-y divide-brand-border">
+            {clinics.map((clinic) => (
+              <OrganizationEntityRow
+                key={clinic.uuid}
+                title={clinic.name}
+                meta={clinicMeta(clinic)}
+                status={clinic.is_active ? "Active" : "Inactive"}
+                actions={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-brand-muted hover:text-brand-navy"
+                    onClick={() => setEditingClinic(clinic)}
+                  >
+                    Update
+                  </Button>
+                }
+              />
+            ))}
+          </ul>
         )}
-      </OrganizationTabSection>
+      </OrganizationTabPanel>
 
       <AddClinicDialog
         open={addDialogOpen}

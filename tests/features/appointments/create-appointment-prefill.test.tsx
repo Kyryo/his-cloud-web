@@ -89,11 +89,14 @@ describe("CreateAppointmentDialog calendar slot prefill", () => {
     await waitFor(() => {
       expect(fetchClinicsMock).toHaveBeenCalled();
     });
-
-    const continueButton = await screen.findByRole("button", {
-      name: "Continue",
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId("create-appointment-loading"),
+      ).not.toBeInTheDocument();
     });
-    fireEvent.click(continueButton);
+    expect(
+      (await screen.findAllByText("Dr Strange · Physician")).length,
+    ).toBeGreaterThan(0);
 
     const submitButton = await screen.findByRole("button", {
       name: "Schedule appointment",
@@ -130,15 +133,18 @@ describe("CreateAppointmentDialog calendar slot prefill", () => {
     await waitFor(() => {
       expect(fetchClinicsMock).toHaveBeenCalled();
     });
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId("create-appointment-loading"),
+      ).not.toBeInTheDocument();
+    });
 
     fireEvent.click(await screen.findByRole("button", { name: "Pick Jane Doe" }));
-    fireEvent.click(await screen.findByRole("button", { name: "Continue" }));
 
     expect(
       (await screen.findAllByText("Dr Strange · Physician")).length,
     ).toBeGreaterThan(0);
 
-    fireEvent.click(await screen.findByRole("button", { name: "Continue" }));
     fireEvent.click(
       await screen.findByRole("button", { name: "Schedule appointment" }),
     );

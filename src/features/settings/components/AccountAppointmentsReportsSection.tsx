@@ -3,48 +3,18 @@
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
-import { StatusBanner } from "@/components/ui/status-banner";
 import { Button } from "@/components/ui/button";
 import {
   useAppointmentsReportSubscription,
   useUpdateAppointmentsReportSubscription,
 } from "@/features/notifications/hooks/use-appointments-report-subscription";
 import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
-import { SettingsPanelSection } from "@/features/settings/components/SettingsPageLayout";
+import {
+  SettingsPanelSection,
+  SettingsPreferenceToggle,
+} from "@/features/settings/components/SettingsPageLayout";
 import { useTenantEmailConfiguration } from "@/features/settings/hooks/use-tenant-email-configuration";
 import { useToast } from "@/providers/toast-provider";
-
-type PreferenceToggleProps = {
-  label: string;
-  description: string;
-  checked: boolean;
-  disabled?: boolean;
-  onChange: (checked: boolean) => void;
-};
-
-function PreferenceToggle({
-  label,
-  description,
-  checked,
-  disabled = false,
-  onChange,
-}: PreferenceToggleProps) {
-  return (
-    <div className="flex items-center justify-between gap-4 py-3">
-      <div>
-        <p className="text-sm font-medium text-brand-navy">{label}</p>
-        <p className="text-xs text-brand-muted">{description}</p>
-      </div>
-      <input
-        type="checkbox"
-        checked={checked}
-        disabled={disabled}
-        onChange={(event) => onChange(event.target.checked)}
-        className="size-4 rounded border-brand-border text-brand-primary focus:ring-brand-primary disabled:cursor-not-allowed disabled:opacity-50"
-      />
-    </div>
-  );
-}
 
 export function AccountAppointmentsReportsSection() {
   const { toast } = useToast();
@@ -89,8 +59,8 @@ export function AccountAppointmentsReportsSection() {
 
   return (
     <SettingsPanelSection
-      title="Appointments report emails"
-      description="Receive a morning list of today's appointments with client outstanding balances."
+      title="Appointments"
+      description="A morning list of today's appointments with client outstanding balances."
       action={
         <Button
           type="button"
@@ -105,30 +75,29 @@ export function AccountAppointmentsReportsSection() {
               Saving...
             </>
           ) : (
-            "Save preferences"
+            "Save"
           )}
         </Button>
       }
     >
       {subscriptionQuery.isError ? (
-        <StatusBanner
-          variant="error"
-          message="Could not load your appointments report preferences. Try again later."
-        />
+        <p className="text-sm text-red-600">
+          Could not load your appointments report preferences. Try again later.
+        </p>
       ) : null}
 
       {!emailConfigurationQuery.isLoading && !tenantReportsEnabled ? (
-        <StatusBanner
-          variant="info"
-          message="Your organization has not enabled appointments report emails yet. Ask a tenant admin to turn this on under Settings → Integrations → Email."
-        />
+        <p className="text-sm text-slate-400">
+          Your organization has not enabled these emails yet. Ask an admin to
+          turn them on under Integrations → Email.
+        </p>
       ) : null}
 
       {subscriptionQuery.isLoading ? (
         <SettingsContentSkeleton rows={2} showHeader={false} />
       ) : (
         <div className="divide-y divide-brand-border">
-          <PreferenceToggle
+          <SettingsPreferenceToggle
             label="Receive appointments report emails"
             description="Turn off to stop daily appointments report emails."
             checked={isActive}
@@ -136,7 +105,7 @@ export function AccountAppointmentsReportsSection() {
               setDraft({ dailyEnabled, isActive: checked })
             }
           />
-          <PreferenceToggle
+          <SettingsPreferenceToggle
             label="Daily report"
             description="Today's appointments for clinics you can access, sent each morning."
             checked={dailyEnabled}

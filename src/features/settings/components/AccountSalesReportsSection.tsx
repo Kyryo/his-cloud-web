@@ -3,48 +3,18 @@
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
-import { StatusBanner } from "@/components/ui/status-banner";
 import { Button } from "@/components/ui/button";
 import {
   useSalesReportSubscription,
   useUpdateSalesReportSubscription,
 } from "@/features/notifications/hooks/use-sales-report-subscription";
 import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
-import { SettingsPanelSection } from "@/features/settings/components/SettingsPageLayout";
+import {
+  SettingsPanelSection,
+  SettingsPreferenceToggle,
+} from "@/features/settings/components/SettingsPageLayout";
 import { useTenantEmailConfiguration } from "@/features/settings/hooks/use-tenant-email-configuration";
 import { useToast } from "@/providers/toast-provider";
-
-type PreferenceToggleProps = {
-  label: string;
-  description: string;
-  checked: boolean;
-  disabled?: boolean;
-  onChange: (checked: boolean) => void;
-};
-
-function PreferenceToggle({
-  label,
-  description,
-  checked,
-  disabled = false,
-  onChange,
-}: PreferenceToggleProps) {
-  return (
-    <div className="flex items-center justify-between gap-4 py-3">
-      <div>
-        <p className="text-sm font-medium text-brand-navy">{label}</p>
-        <p className="text-xs text-brand-muted">{description}</p>
-      </div>
-      <input
-        type="checkbox"
-        checked={checked}
-        disabled={disabled}
-        onChange={(event) => onChange(event.target.checked)}
-        className="size-4 rounded border-brand-border text-brand-primary focus:ring-brand-primary disabled:cursor-not-allowed disabled:opacity-50"
-      />
-    </div>
-  );
-}
 
 export function AccountSalesReportsSection() {
   const { toast } = useToast();
@@ -95,8 +65,8 @@ export function AccountSalesReportsSection() {
 
   return (
     <SettingsPanelSection
-      title="Sales report emails"
-      description="Receive scheduled summaries of visits, orders, invoices, and claims."
+      title="Sales"
+      description="Scheduled summaries of visits, orders, invoices, and claims."
       action={
         <Button
           type="button"
@@ -111,30 +81,29 @@ export function AccountSalesReportsSection() {
               Saving...
             </>
           ) : (
-            "Save preferences"
+            "Save"
           )}
         </Button>
       }
     >
       {subscriptionQuery.isError ? (
-        <StatusBanner
-          variant="error"
-          message="Could not load your sales report preferences. Try again later."
-        />
+        <p className="text-sm text-red-600">
+          Could not load your sales report preferences. Try again later.
+        </p>
       ) : null}
 
       {!emailConfigurationQuery.isLoading && !tenantReportsEnabled ? (
-        <StatusBanner
-          variant="info"
-          message="Your organization has not enabled sales report emails yet. Ask a tenant admin to turn this on under Settings → Integrations → Email."
-        />
+        <p className="text-sm text-slate-400">
+          Your organization has not enabled these emails yet. Ask an admin to
+          turn them on under Integrations → Email.
+        </p>
       ) : null}
 
       {subscriptionQuery.isLoading ? (
         <SettingsContentSkeleton rows={3} showHeader={false} />
       ) : (
         <div className="divide-y divide-brand-border">
-          <PreferenceToggle
+          <SettingsPreferenceToggle
             label="Receive sales report emails"
             description="Turn off to stop all scheduled sales report emails."
             checked={isActive}
@@ -147,7 +116,7 @@ export function AccountSalesReportsSection() {
               })
             }
           />
-          <PreferenceToggle
+          <SettingsPreferenceToggle
             label="Daily report"
             description="Summary for the previous day, sent each morning."
             checked={dailyEnabled}
@@ -161,7 +130,7 @@ export function AccountSalesReportsSection() {
               })
             }
           />
-          <PreferenceToggle
+          <SettingsPreferenceToggle
             label="Weekly report"
             description="Summary for the previous Monday through Sunday."
             checked={weeklyEnabled}
@@ -175,7 +144,7 @@ export function AccountSalesReportsSection() {
               })
             }
           />
-          <PreferenceToggle
+          <SettingsPreferenceToggle
             label="Monthly report"
             description="Summary for the previous calendar month."
             checked={monthlyEnabled}

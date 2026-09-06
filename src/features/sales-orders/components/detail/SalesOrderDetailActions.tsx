@@ -137,6 +137,12 @@ export function SalesOrderDetailActions({
 
   return (
     <div className={cn("flex shrink-0 flex-wrap items-center gap-2", className)}>
+      <SalesOrderConvertToInvoiceAction
+        order={order}
+        onOrderUpdated={onOrderUpdated}
+        hasDraftSplitMismatch={hasDraftSplitMismatch}
+      />
+
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -209,12 +215,6 @@ export function SalesOrderDetailActions({
           setRecalculateOpen(open);
         }}
         onConfirm={handleRecalculate}
-      />
-
-      <SalesOrderConvertToInvoiceAction
-        order={order}
-        onOrderUpdated={onOrderUpdated}
-        hasDraftSplitMismatch={hasDraftSplitMismatch}
       />
     </div>
   );

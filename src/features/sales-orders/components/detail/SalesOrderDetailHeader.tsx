@@ -28,7 +28,7 @@ export function SalesOrderDetailHeader({
   const hasPricelist = Boolean(order.pricelist_name?.trim());
 
   return (
-    <DetailPageHeaderSection>
+    <DetailPageHeaderSection className="border-b-0">
       <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
@@ -55,9 +55,7 @@ export function SalesOrderDetailHeader({
           </div>
         </div>
 
-        {actions ? (
-          <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
-        ) : null}
+        {actions ? <div className="ml-auto shrink-0">{actions}</div> : null}
       </div>
     </DetailPageHeaderSection>
   );

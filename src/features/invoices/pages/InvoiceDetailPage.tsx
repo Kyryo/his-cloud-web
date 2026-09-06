@@ -8,6 +8,7 @@ import { InvoiceDetailTabs } from "@/features/invoices/components/detail/Invoice
 import { InvoiceInternalReferenceDialog } from "@/features/invoices/components/detail/InvoiceInternalReferenceDialog";
 import { fetchInvoice } from "@/features/invoices/services/invoices.service";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
+import type { InvoiceDetailTabId } from "@/features/invoices/utils/invoice-detail-tabs";
 import { RecordPaymentDialog } from "@/features/payments/components/RecordPaymentDialog";
 import {
   DetailPageLayout,
@@ -19,21 +20,13 @@ type InvoiceDetailPageProps = {
   invoiceId: string;
 };
 
-type InvoiceDetailTabId =
-  | "lines"
-  | "client"
-  | "claim"
-  | "payments"
-  | "diagnoses"
-  | "activity";
-
 export function InvoiceDetailPage({ invoiceId }: InvoiceDetailPageProps) {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
   const [internalReferenceOpen, setInternalReferenceOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<InvoiceDetailTabId>("lines");
+  const [activeTab, setActiveTab] = useState<InvoiceDetailTabId>("client");
 
   useAppBreadcrumb(invoice?.name || (invoice ? `Invoice #${invoice.id}` : null));
 

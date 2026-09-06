@@ -115,6 +115,18 @@ export function InvoiceDetailActions({
   return (
     <>
       <div className={cn("flex shrink-0 flex-wrap items-center gap-2", className)}>
+        {showPrimaryPayment ? (
+          <PrimaryButton
+            type="button"
+            onClick={onRecordPayment}
+            disabled={!canRecordPayment}
+            title={canRecordPayment ? undefined : "This invoice is fully paid."}
+            data-testid="record-payment-button"
+          >
+            Record payment
+          </PrimaryButton>
+        ) : null}
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -181,18 +193,6 @@ export function InvoiceDetailActions({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
-        {showPrimaryPayment ? (
-          <PrimaryButton
-            type="button"
-            onClick={onRecordPayment}
-            disabled={!canRecordPayment}
-            title={canRecordPayment ? undefined : "This invoice is fully paid."}
-            data-testid="record-payment-button"
-          >
-            Record payment
-          </PrimaryButton>
-        ) : null}
       </div>
 
       <Dialog open={cancelConfirmOpen} onOpenChange={setCancelConfirmOpen}>

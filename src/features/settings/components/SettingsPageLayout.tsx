@@ -94,6 +94,94 @@ export function SettingsDetailGrid({
   );
 }
 
+export function SettingsUnderlineTabs<T extends string>({
+  tabs,
+  activeTab,
+  onChange,
+  ariaLabel,
+}: {
+  tabs: Array<{ id: T; label: string }>;
+  activeTab: T;
+  onChange: (id: T) => void;
+  ariaLabel: string;
+}) {
+  return (
+    <nav
+      className="flex gap-5 overflow-x-auto border-b border-brand-border [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      aria-label={ariaLabel}
+    >
+      {tabs.map((tab) => {
+        const isActive = activeTab === tab.id;
+
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => onChange(tab.id)}
+            className={cn(
+              "shrink-0 pb-2.5 text-sm transition-colors",
+              isActive
+                ? "font-medium text-brand-navy shadow-[inset_0_-2px_0_0_currentColor]"
+                : "text-slate-400 hover:text-brand-navy",
+            )}
+            aria-current={isActive ? "page" : undefined}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </nav>
+  );
+}
+
+export function SettingsPreferenceToggle({
+  label,
+  description,
+  checked,
+  disabled = false,
+  onChange,
+  testId,
+}: {
+  label: string;
+  description: string;
+  checked: boolean;
+  disabled?: boolean;
+  onChange: (checked: boolean) => void;
+  testId?: string;
+}) {
+  return (
+    <label className="flex items-center justify-between gap-4 py-3.5">
+      <span className="min-w-0">
+        <span className="block text-sm font-medium text-brand-navy">{label}</span>
+        <span className="mt-0.5 block text-sm text-slate-400">{description}</span>
+      </span>
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        data-testid={testId}
+        onChange={(event) => onChange(event.target.checked)}
+        className="size-4 shrink-0 rounded border-brand-border text-brand-primary focus:ring-brand-primary disabled:cursor-not-allowed disabled:opacity-50"
+      />
+    </label>
+  );
+}
+
+export function SettingsFieldRow({
+  label,
+  children,
+}: {
+  label: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <div className="grid grid-cols-1 items-start gap-1.5 border-b border-brand-border py-3.5 last:border-b-0 sm:grid-cols-[9rem_minmax(0,1fr)] sm:gap-6">
+      <div className="text-sm text-slate-400">{label}</div>
+      <div className="min-w-0 text-sm text-brand-navy">{children}</div>
+    </div>
+  );
+}
+
 type SettingsPanelSectionProps = {
   title: string;
   description?: string;

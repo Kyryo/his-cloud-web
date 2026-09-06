@@ -136,7 +136,7 @@ export function CustomerDetailHeader({
         </div>
 
         {/* Right: Actions */}
-        {actions ? <div className="shrink-0">{actions}</div> : null}
+        {actions ? <div className="ml-auto shrink-0">{actions}</div> : null}
       </div>
     </DetailPageHeaderSection>
   );

@@ -214,7 +214,7 @@ export function AppointmentsDayPanel({
 
         <div className="mt-6 space-y-6">
           {!clinicUuid ? (
-            <AppointmentClinicEmptyState className="py-8" />
+            <AppointmentClinicEmptyState compact />
           ) : (
             <>
               <FilterSelectField

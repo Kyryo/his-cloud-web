@@ -1,10 +1,13 @@
 "use client";
 
+import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { isInsuranceInvoice } from "@/features/claims/services/claims.service";
+import { InvoiceDetailMoney } from "@/features/invoices/components/detail/InvoiceDetailMoney";
 import { InvoiceStatusBadge } from "@/features/invoices/components/InvoiceStatusBadge";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
+import { collectInvoiceHeaderFacts } from "@/features/invoices/utils/collect-invoice-header-facts";
 import {
   formatInvoiceCustomer,
   formatInvoiceDate,
@@ -41,6 +44,7 @@ export function InvoiceDetailHeader({ invoice, actions }: InvoiceDetailHeaderPro
     ? formatClaimStatusMeta(invoice.claim_status)
     : null;
   const secondaryParts = [paymentLabel, claimLabel].filter(Boolean);
+  const facts = collectInvoiceHeaderFacts(invoice);
 
   return (
     <DetailPageHeaderSection>
@@ -70,10 +74,31 @@ export function InvoiceDetailHeader({ invoice, actions }: InvoiceDetailHeaderPro
           </div>
         </div>
 
-        {actions ? (
-          <div className="flex shrink-0 flex-wrap items-center gap-2">{actions}</div>
-        ) : null}
+        {actions ? <div className="ml-auto shrink-0">{actions}</div> : null}
       </div>
+
+      <div className="mt-5 border-t border-dash-border/80 pt-4">
+        <InvoiceDetailMoney invoice={invoice} />
+      </div>
+
+      {facts.length > 0 ? (
+        <dl className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs">
+          {facts.map((fact) => (
+            <div key={fact.key} className="min-w-0">
+              <dt className="text-brand-muted">{fact.label}</dt>
+              <dd className="mt-0.5 text-sm text-brand-navy">
+                {fact.href ? (
+                  <Link href={fact.href} className="text-brand-primary hover:underline">
+                    {fact.value}
+                  </Link>
+                ) : (
+                  fact.value
+                )}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
     </DetailPageHeaderSection>
   );
 }

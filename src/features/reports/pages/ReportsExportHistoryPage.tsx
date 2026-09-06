@@ -1,12 +1,17 @@
 "use client";
 
+import Link from "next/link";
+
+import { PrimaryButton } from "@/components/ui/app-buttons";
 import {
+  ListPageHeaderActions,
   ListPageHeaderSection,
   ListPageHeaderTitleBlock,
   ListPageHeaderTopRow,
   ListPageLayout,
 } from "@/features/app-shell/components/page-layout";
-import { ReportExportHistoryTable } from "@/features/reports/components/ReportExportHistoryTable";
+import { ReportsExportHistoryList } from "@/features/reports/components/ReportsExportHistoryList";
+import { ROUTES } from "@/constants/routes";
 
 export function ReportsExportHistoryPage() {
   return (
@@ -15,12 +20,17 @@ export function ReportsExportHistoryPage() {
         <ListPageHeaderTopRow>
           <ListPageHeaderTitleBlock
             title="Export history"
-            description="Track the status of queued exports and download completed CSV files."
+            description="Download finished files, or cancel one that is still generating."
           />
+          <ListPageHeaderActions>
+            <PrimaryButton asChild size="sm">
+              <Link href={ROUTES.reportsExports}>New export</Link>
+            </PrimaryButton>
+          </ListPageHeaderActions>
         </ListPageHeaderTopRow>
       </ListPageHeaderSection>
 
-      <ReportExportHistoryTable />
+      <ReportsExportHistoryList />
     </ListPageLayout>
   );
 }

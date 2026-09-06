@@ -1,13 +1,21 @@
 "use client";
 
-import { Maximize2, Plus, Trash2 } from "lucide-react";
-import { useRef, useState, useEffect, type MutableRefObject } from "react";
+import { Plus } from "lucide-react";
+import {
+  useRef,
+  useState,
+  useEffect,
+  type MutableRefObject,
+  type ReactNode,
+} from "react";
 
 import { LineItemsEmptyState } from "@/components/detail/line-items-empty-state";
 import { SecondaryButton } from "@/components/ui/app-buttons";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { StatusBanner } from "@/components/ui/status-banner";
+import {
+  SalesOrderEditableLineList,
+  SalesOrderReadOnlyLineList,
+} from "@/features/sales-orders/components/detail/SalesOrderLineList";
 import { AdjustLineSplitDialog } from "@/features/sales-orders/components/detail/AdjustLineSplitDialog";
 import { AssignSalesOrderLineTeethDialog } from "@/features/sales-orders/components/detail/AssignSalesOrderLineTeethDialog";
 import {
@@ -18,38 +26,25 @@ import type {
   InventoryProductPricelistItem,
   ProductTariffCode,
 } from "@/features/inventory/types/inventory.types";
-import { LineNonPayableBadge } from "@/features/sales-orders/components/detail/LineNonPayableBadge";
 import {
   LinePricingBreakdownDialog,
   shouldShowLineOdontogramTab,
 } from "@/features/sales-orders/components/detail/LinePricingBreakdownDialog";
 import { NonPayableLineDialog } from "@/features/sales-orders/components/detail/NonPayableLineDialog";
-import {
-  SalesOrderLineProductPicker,
-  type SalesOrderLineProductSelection,
-} from "@/features/sales-orders/components/detail/SalesOrderLineProductPicker";
+import type { SalesOrderLineProductSelection } from "@/features/sales-orders/components/detail/SalesOrderLineProductPicker";
 import { SalesOrderPendingChangesBar } from "@/features/sales-orders/components/detail/SalesOrderPendingChangesBar";
 import { SalesOrderProviderSelector } from "@/features/sales-orders/components/detail/SalesOrderProviderSelector";
 import { useSalesOrderLinesEditor } from "@/features/sales-orders/hooks/use-sales-order-lines-editor";
 import { setSalesOrderLineDentalTeeth } from "@/features/sales-orders/services/sales-orders.service";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
+import type { SalesOrderLineDraft } from "@/features/sales-orders/types/sales-order-line-draft";
 import {
-  calculateSalesOrderLineDraftTotal,
-  type SalesOrderLineDraft,
-} from "@/features/sales-orders/types/sales-order-line-draft";
-import {
-  formatSalesOrderAmount,
-  formatSalesOrderCurrency,
-} from "@/features/sales-orders/utils/format-sales-order";
-import {
-  isSalesOrderLineNonPayable,
   orderHasPricelist,
   resolveInitialLineIsPayable,
 } from "@/features/sales-orders/utils/sales-order-line-payability";
 import { canEditSalesOrderLines } from "@/features/sales-orders/utils/sales-order-status";
 import { getLineSplitMismatch } from "@/features/sales-orders/utils/sales-order-line-split-mismatch";
 import { useEnterEscapeShortcuts } from "@/hooks/use-enter-escape-shortcuts";
-import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
 type SalesOrderLinesEditorProps = {
@@ -58,25 +53,6 @@ type SalesOrderLinesEditorProps = {
   onOrderUpdated: (order: SalesOrder) => void;
   onSplitMismatchChange?: (hasMismatch: boolean) => void;
 };
-
-function formatQuantity(value: number | string | null | undefined): string {
-  if (value === null || value === undefined || value === "") {
-    return "—";
-  }
-
-  const quantity = Number(value);
-  if (!Number.isFinite(quantity)) {
-    return String(value);
-  }
-
-  return new Intl.NumberFormat(undefined, {
-    maximumFractionDigits: 2,
-  }).format(quantity);
-}
-
-function formatTariffCode(value: string | null | undefined): string {
-  return value?.trim() ? value : "—";
-}
 
 function findOrderPricelistMembership(
   order: SalesOrder,
@@ -201,36 +177,26 @@ function handleSalesOrderLineProductSelect(
   })();
 }
 
-function isRowEditing(
-  line: SalesOrderLineDraft,
-  editingRowKey: string | null,
-): boolean {
-  return line.isNew === true || editingRowKey === line.key;
-}
-
-function SalesOrderLinesHeader({
+function SalesOrderLinesToolbar({
   order,
   canEdit,
   onOrderUpdated,
-  description,
+  action,
 }: {
   order: SalesOrder;
   canEdit: boolean;
   onOrderUpdated: (order: SalesOrder) => void;
-  description: string;
+  action?: ReactNode;
 }) {
   return (
-    <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-      <div className="space-y-1">
-        <h3 className="text-sm font-semibold text-brand-navy">Line items</h3>
-        <p className="text-xs text-brand-muted">{description}</p>
-      </div>
+    <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
       <SalesOrderProviderSelector
         order={order}
         canEdit={canEdit}
         onOrderUpdated={onOrderUpdated}
         className="shrink-0"
       />
+      {action}
     </div>
   );
 }
@@ -243,7 +209,6 @@ export function SalesOrderLinesEditor({
 }: SalesOrderLinesEditorProps) {
   const { toast } = useToast();
   const canEdit = canEditSalesOrderLines(order.state);
-  const currency = formatSalesOrderCurrency(order);
   const selectionTokenByLineKeyRef = useRef<Map<string, number>>(new Map());
   const [breakdownLineId, setBreakdownLineId] = useState<number | null>(null);
   const [splitDialogLineKey, setSplitDialogLineKey] = useState<string | null>(null);
@@ -301,80 +266,27 @@ export function SalesOrderLinesEditor({
 
     return (
       <>
-        <SalesOrderLinesHeader
+        <SalesOrderLinesToolbar
           order={order}
           canEdit={false}
           onOrderUpdated={onOrderUpdated}
-          description="Line items on this sales order."
         />
-        <div className="overflow-hidden rounded-xl border border-brand-border bg-white">
-        <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead>
-              <tr className="border-b border-brand-border bg-slate-50/80">
-                <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
-                  Item
-                </th>
-                <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
-                  Code
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
-                  Qty
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
-                  Unit price
-                </th>
-                <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
-                  Total
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-brand-border">
-              {lines.map((line) => (
-                <tr key={line.id}>
-                  <td className="px-4 py-3 text-sm text-brand-navy">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span>{line.name}</span>
-                      {isSalesOrderLineNonPayable(order, line) ? (
-                        <LineNonPayableBadge
-                          onClick={(() => {
-                            const lineId = line.id;
-                            return lineId != null
-                              ? () => setNonPayableLineId(lineId)
-                              : undefined;
-                          })()}
-                        />
-                      ) : null}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-sm font-mono text-brand-slate">
-                    {formatTariffCode(line.tariff_code)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-sm text-brand-slate">
-                    {formatQuantity(line.quantity)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-sm text-brand-slate">
-                    {formatSalesOrderAmount(line.price_unit)}
-                  </td>
-                  <td className="px-4 py-3 text-right text-sm font-medium text-brand-navy">
-                    {formatSalesOrderAmount(line.price_total)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr className="border-t border-brand-border bg-slate-50/80 font-semibold text-brand-navy">
-                <td className="px-4 py-3 text-sm" colSpan={4}>
-                  Order total
-                </td>
-                <td className="px-4 py-3 text-right text-sm">
-                  {formatSalesOrderAmount(order.amount_total, currency)}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-        </div>
+        <SalesOrderReadOnlyLineList
+          order={order}
+          onNonPayableClick={setNonPayableLineId}
+        />
+        <NonPayableLineDialog
+          open={nonPayableLineId != null}
+          onOpenChange={(open) => {
+            if (!open) {
+              setNonPayableLineId(null);
+            }
+          }}
+          order={order}
+          line={nonPayableLine}
+          canEdit={false}
+          onOrderUpdated={onOrderUpdated}
+        />
       </>
     );
   }
@@ -383,11 +295,28 @@ export function SalesOrderLinesEditor({
 
   return (
     <>
-      <SalesOrderLinesHeader
+      <SalesOrderLinesToolbar
         order={order}
         canEdit={canEdit}
         onOrderUpdated={onOrderUpdated}
-        description="Edit line items inline, then save or discard your changes below."
+        action={
+          hasRows ? (
+            <SecondaryButton
+              type="button"
+              disabled={editor.isSaving || editor.splitMismatchKeys.size > 0}
+              title={
+                editor.splitMismatchKeys.size > 0
+                  ? "Resolve client/insurance split mismatch first"
+                  : undefined
+              }
+              onClick={editor.addLine}
+              data-testid="add-sales-order-line-item-button"
+            >
+              <Plus className="size-4" aria-hidden="true" />
+              Add line item
+            </SecondaryButton>
+          ) : undefined
+        }
       />
 
       {!hasRows ? (
@@ -433,223 +362,35 @@ export function SalesOrderLinesEditor({
             </StatusBanner>
           ) : null}
 
-          <div className="overflow-hidden rounded-xl border border-brand-border bg-white">
-          <div className="overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-b border-brand-border bg-slate-50/80">
-                  <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
-                    Item
-                  </th>
-                  <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
-                    Code
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
-                    Qty
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
-                    Unit price
-                  </th>
-                  <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
-                    Total
-                  </th>
-                  <th className="w-24 px-2 py-3">
-                    <span className="sr-only">Actions</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-brand-border">
-                {editor.draftLines.map((line) => {
-                  const isEditing = isRowEditing(line, editor.editingRowKey);
-                  const isActiveRow =
-                    editor.activeRowKey === line.key ||
-                    editor.editingRowKey === line.key;
-                  const lineTotal =
-                    isEditing || line.isNew
-                      ? calculateSalesOrderLineDraftTotal(line)
-                      : Number(line.price_total ?? 0);
-
-                  return (
-                    <tr
-                      key={line.key}
-                      className={cn(
-                        "group transition-colors",
-                        !isEditing && !line.isNew && "cursor-pointer",
-                        isActiveRow && "bg-sky-50/80",
-                      )}
-                      onClick={() => {
-                        if (!line.isNew && !isEditing && !editor.isSaving) {
-                          editor.setEditingRowKey(line.key);
-                          editor.setActiveRowKey(line.key);
-                        }
-                      }}
-                    >
-                      <td className="px-4 py-3">
-                        <div className="flex flex-wrap items-center gap-1.5">
-                          {isEditing ? (
-                            <SalesOrderLineProductPicker
-                              id={`so-line-product-${line.key}`}
-                              value={line.product_uuid ?? null}
-                              displayLabel={line.productName}
-                              autoOpen={line.isNew === true}
-                              disabled={editor.isSaving}
-                              onFocus={() => editor.setActiveRowKey(line.key)}
-                              onSelect={(selection) => {
-                                handleSalesOrderLineProductSelect(line.key, selection, {
-                                  order,
-                                  selectionTokenByLineKeyRef,
-                                  updateLine: editor.updateLine,
-                                });
-                              }}
-                            />
-                          ) : (
-                            <span className="text-sm font-medium text-brand-navy">
-                              {line.productName ?? "—"}
-                            </span>
-                          )}
-                          {!isEditing && !line.isNew ? (
-                            <span className="text-xs text-brand-muted opacity-0 transition-opacity group-hover:opacity-100">
-                              Click to edit
-                            </span>
-                          ) : null}
-                          {isSalesOrderLineNonPayable(order, line) ? (
-                            <LineNonPayableBadge
-                              onClick={(() => {
-                                const lineId = line.id;
-                                return lineId != null
-                                  ? () => setNonPayableLineId(lineId)
-                                  : undefined;
-                              })()}
-                            />
-                          ) : null}
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="font-mono text-sm text-brand-slate">
-                          {formatTariffCode(line.tariff_code)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        {isEditing ? (
-                          <Input
-                            type="number"
-                            min="0"
-                            step="any"
-                            value={line.quantity}
-                            disabled={editor.isSaving}
-                            className="ml-auto h-9 w-24 text-right"
-                            onFocus={() => editor.setActiveRowKey(line.key)}
-                            onChange={(event) =>
-                              editor.updateLine(line.key, {
-                                quantity: event.target.value,
-                              })
-                            }
-                          />
-                        ) : (
-                          <span className="text-sm text-brand-slate">
-                            {formatQuantity(line.quantity)}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        {isEditing ? (
-                          <Input
-                            type="number"
-                            min="0"
-                            step="any"
-                            value={line.price_unit}
-                            disabled={editor.isSaving}
-                            className="ml-auto h-9 w-28 text-right"
-                            onFocus={() => editor.setActiveRowKey(line.key)}
-                            onChange={(event) =>
-                              editor.updateLine(line.key, {
-                                price_unit: event.target.value,
-                                priceUnitOverridden: true,
-                              })
-                            }
-                            onBlur={() => {
-                              if (getLineSplitMismatch(line)) {
-                                setSplitDialogLineKey(line.key);
-                              }
-                            }}
-                          />
-                        ) : (
-                          <span className="text-sm text-brand-slate">
-                            {formatSalesOrderAmount(line.price_unit)}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-right text-sm font-medium text-brand-navy">
-                        {formatSalesOrderAmount(lineTotal)}
-                      </td>
-                      <td className="px-2 py-3">
-                        <div className="flex justify-end gap-0.5">
-                          {line.id ? (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="icon"
-                              disabled={editor.isSaving}
-                              className="size-8 text-brand-muted opacity-0 transition-opacity hover:text-brand-navy group-hover:opacity-100"
-                              aria-label={`View details for ${line.productName ?? "line item"}`}
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                setBreakdownLineId(line.id ?? null);
-                              }}
-                            >
-                              <Maximize2 className="size-4" aria-hidden="true" />
-                            </Button>
-                          ) : null}
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            disabled={editor.isSaving}
-                            className="size-8 text-brand-muted opacity-0 transition-opacity hover:text-red-600 group-hover:opacity-100"
-                            aria-label={`Remove ${line.productName ?? "line item"}`}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              editor.removeLine(line.key);
-                            }}
-                          >
-                            <Trash2 className="size-4" aria-hidden="true" />
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-              <tfoot>
-                <tr className="border-t border-brand-border bg-slate-50/80 font-semibold text-brand-navy">
-                  <td className="px-4 py-3 text-sm" colSpan={4}>
-                    Order total
-                  </td>
-                  <td className="px-4 py-3 text-right text-sm">
-                    {formatSalesOrderAmount(order.amount_total, currency)}
-                  </td>
-                  <td />
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-          <div className="border-t border-brand-border px-4 py-3">
-            <SecondaryButton
-              type="button"
-              disabled={editor.isSaving || editor.splitMismatchKeys.size > 0}
-              title={
-                editor.splitMismatchKeys.size > 0
-                  ? "Resolve client/insurance split mismatch first"
-                  : undefined
+          <SalesOrderEditableLineList
+            order={order}
+            lines={editor.draftLines}
+            editingRowKey={editor.editingRowKey}
+            activeRowKey={editor.activeRowKey}
+            isSaving={editor.isSaving}
+            onEdit={(key) => {
+              editor.setEditingRowKey(key);
+              editor.setActiveRowKey(key);
+            }}
+            onActivate={editor.setActiveRowKey}
+            onUpdate={editor.updateLine}
+            onSelectProduct={(key, selection) => {
+              handleSalesOrderLineProductSelect(key, selection, {
+                order,
+                selectionTokenByLineKeyRef,
+                updateLine: editor.updateLine,
+              });
+            }}
+            onRemove={editor.removeLine}
+            onViewDetails={setBreakdownLineId}
+            onNonPayableClick={setNonPayableLineId}
+            onPriceBlur={(key) => {
+              const line = editor.draftLines.find((item) => item.key === key);
+              if (line && getLineSplitMismatch(line)) {
+                setSplitDialogLineKey(key);
               }
-              onClick={editor.addLine}
-              data-testid="add-sales-order-line-item-button"
-            >
-              <Plus className="size-4" aria-hidden="true" />
-              Add line item
-            </SecondaryButton>
-          </div>
-        </div>
+            }}
+          />
         </>
       )}
 
