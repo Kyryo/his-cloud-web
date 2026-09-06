@@ -1,8 +1,12 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { cleanup, render, screen, within } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
 
-import { SalesOrderReadOnlyLineList } from "@/features/sales-orders/components/detail/SalesOrderLineList";
+import {
+  SalesOrderEditableLineList,
+  SalesOrderReadOnlyLineList,
+} from "@/features/sales-orders/components/detail/SalesOrderLineList";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
+import type { SalesOrderLineDraft } from "@/features/sales-orders/types/sales-order-line-draft";
 
 const order = {
   id: 81,
@@ -24,14 +28,65 @@ const order = {
   ],
 } as unknown as SalesOrder;
 
+afterEach(() => {
+  cleanup();
+});
+
 describe("SalesOrderReadOnlyLineList", () => {
-  it("renders line items as a list instead of a table", () => {
+  it("aligns each line value under the matching header", () => {
     render(<SalesOrderReadOnlyLineList order={order} />);
 
-    expect(screen.getByTestId("sales-order-lines-list")).toBeInTheDocument();
-    expect(screen.queryByRole("table")).not.toBeInTheDocument();
-    expect(screen.getByText("Consultation")).toBeInTheDocument();
-    expect(screen.getByText(/CONS-01/)).toBeInTheDocument();
-    expect(screen.getAllByText("15,000.00").length).toBeGreaterThan(0);
+    const table = screen.getByRole("table");
+    const headers = within(table)
+      .getAllByRole("columnheader")
+      .map((header) => header.textContent?.trim());
+    expect(headers).toEqual(["Item", "Qty", "Price", "Total", "Actions"]);
+
+    const row = within(table).getAllByRole("row")[1];
+    const cells = within(row).getAllByRole("cell");
+    expect(cells[0]).toHaveTextContent("Consultation");
+    expect(cells[0]).toHaveTextContent("CONS-01");
+    expect(cells[1]).toHaveTextContent("1");
+    expect(cells[2]).toHaveTextContent("15,000.00");
+    expect(cells[3]).toHaveTextContent("15,000.00");
+  });
+});
+
+describe("SalesOrderEditableLineList", () => {
+  it("renders the add action below the last row", () => {
+    const lines = [
+      {
+        key: "line-1",
+        productName: "Consultation",
+        tariff_code: "CONS-01",
+        quantity: "1",
+        price_unit: "15000",
+        price_total: "15000",
+        product_id: 3,
+      },
+    ] as SalesOrderLineDraft[];
+
+    render(
+      <SalesOrderEditableLineList
+        order={order}
+        lines={lines}
+        editingRowKey={null}
+        activeRowKey={null}
+        isSaving={false}
+        footerAction={<button type="button">Add line item</button>}
+        onEdit={() => undefined}
+        onActivate={() => undefined}
+        onUpdate={() => undefined}
+        onSelectProduct={() => undefined}
+        onRemove={() => undefined}
+        onViewDetails={() => undefined}
+        onPriceBlur={() => undefined}
+      />,
+    );
+
+    const table = screen.getByTestId("sales-order-lines-list");
+    const add = screen.getByRole("button", { name: "Add line item" });
+    expect(table.contains(add)).toBe(true);
+    expect(add.closest("tfoot")).toBeTruthy();
   });
 });

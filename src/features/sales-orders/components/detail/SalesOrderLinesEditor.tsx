@@ -6,7 +6,6 @@ import {
   useState,
   useEffect,
   type MutableRefObject,
-  type ReactNode,
 } from "react";
 
 import { LineItemsEmptyState } from "@/components/detail/line-items-empty-state";
@@ -181,12 +180,10 @@ function SalesOrderLinesToolbar({
   order,
   canEdit,
   onOrderUpdated,
-  action,
 }: {
   order: SalesOrder;
   canEdit: boolean;
   onOrderUpdated: (order: SalesOrder) => void;
-  action?: ReactNode;
 }) {
   return (
     <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
@@ -196,8 +193,30 @@ function SalesOrderLinesToolbar({
         onOrderUpdated={onOrderUpdated}
         className="shrink-0"
       />
-      {action}
     </div>
+  );
+}
+
+function AddLineItemButton({
+  disabled,
+  disabledReason,
+  onClick,
+}: {
+  disabled: boolean;
+  disabledReason?: string;
+  onClick: () => void;
+}) {
+  return (
+    <SecondaryButton
+      type="button"
+      disabled={disabled}
+      title={disabledReason}
+      onClick={onClick}
+      data-testid="add-sales-order-line-item-button"
+    >
+      <Plus className="size-4" aria-hidden="true" />
+      Add line item
+    </SecondaryButton>
   );
 }
 
@@ -292,6 +311,19 @@ export function SalesOrderLinesEditor({
   }
 
   const hasRows = editor.draftLines.length > 0;
+  const addDisabled =
+    editor.isSaving || editor.splitMismatchKeys.size > 0;
+  const addDisabledReason =
+    editor.splitMismatchKeys.size > 0
+      ? "Resolve client/insurance split mismatch first"
+      : undefined;
+  const addLineButton = (
+    <AddLineItemButton
+      disabled={addDisabled}
+      disabledReason={addDisabledReason}
+      onClick={editor.addLine}
+    />
+  );
 
   return (
     <>
@@ -299,45 +331,12 @@ export function SalesOrderLinesEditor({
         order={order}
         canEdit={canEdit}
         onOrderUpdated={onOrderUpdated}
-        action={
-          hasRows ? (
-            <SecondaryButton
-              type="button"
-              disabled={editor.isSaving || editor.splitMismatchKeys.size > 0}
-              title={
-                editor.splitMismatchKeys.size > 0
-                  ? "Resolve client/insurance split mismatch first"
-                  : undefined
-              }
-              onClick={editor.addLine}
-              data-testid="add-sales-order-line-item-button"
-            >
-              <Plus className="size-4" aria-hidden="true" />
-              Add line item
-            </SecondaryButton>
-          ) : undefined
-        }
       />
 
       {!hasRows ? (
         <LineItemsEmptyState
           data-testid="sales-order-lines-empty-state"
-          action={
-            <SecondaryButton
-              type="button"
-              disabled={editor.isSaving || editor.splitMismatchKeys.size > 0}
-              title={
-                editor.splitMismatchKeys.size > 0
-                  ? "Resolve client/insurance split mismatch first"
-                  : undefined
-              }
-              onClick={editor.addLine}
-              data-testid="add-sales-order-line-item-button"
-            >
-              <Plus className="size-4" aria-hidden="true" />
-              Add line item
-            </SecondaryButton>
-          }
+          action={addLineButton}
         />
       ) : (
         <>
@@ -368,6 +367,7 @@ export function SalesOrderLinesEditor({
             editingRowKey={editor.editingRowKey}
             activeRowKey={editor.activeRowKey}
             isSaving={editor.isSaving}
+            footerAction={addLineButton}
             onEdit={(key) => {
               editor.setEditingRowKey(key);
               editor.setActiveRowKey(key);

@@ -64,20 +64,17 @@ export function ClaimDetailReferenceTab({
 
   return (
     <>
-      <section
-        className="rounded-xl border border-brand-border bg-white"
-        data-testid="claim-reference-list"
-      >
-        <div className="border-b border-brand-border px-4 py-2.5">
+      <section data-testid="claim-reference-list">
+        <div className="pb-3">
           <h3 className="text-sm font-semibold text-brand-navy">Reference</h3>
           <p className="mt-0.5 text-xs text-brand-muted">
             Payer portal links and screenshots for this claim.
           </p>
         </div>
 
-        <ol className="divide-y divide-brand-border">
+        <ol className="divide-y divide-dash-border/60">
           {rows.map((row) => (
-            <li key={row.id} className="px-4 py-2.5">
+            <li key={row.id} className="py-3 first:pt-0">
               <div className="flex gap-2.5">
                 <div className="flex size-7 shrink-0 items-center justify-center rounded-full border border-brand-border bg-slate-50 text-brand-primary">
                   <Link2 className="size-3" aria-hidden="true" />

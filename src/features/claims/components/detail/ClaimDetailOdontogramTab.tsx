@@ -306,20 +306,18 @@ export function ClaimDetailOdontogramTab({
         />
       </div>
 
-      <div className="rounded-lg border border-brand-border bg-white">
-        <div className="border-b border-brand-border px-3 py-2">
-          <h3 className="text-xs font-semibold text-brand-navy">Line items</h3>
-          <p className="text-[11px] leading-snug text-brand-muted">
-            Click a tooth to assign it to a line.
-          </p>
-        </div>
-        <ul className="divide-y divide-brand-border">
+      <div>
+        <h3 className="text-sm font-semibold text-brand-navy">Line items</h3>
+        <p className="mt-0.5 text-xs text-brand-muted">
+          Click a tooth to assign it to a line.
+        </p>
+        <ul className="mt-3 divide-y divide-dash-border/60">
           {lineItems.map((line) => {
             const teeth = getLineToothNumbers(line);
             return (
               <li
                 key={line.id}
-                className="flex min-h-8 items-center justify-between gap-2 px-3 py-1.5"
+                className="flex min-h-8 items-center justify-between gap-2 py-2 first:pt-0"
                 data-testid={`claim-odontogram-line-${line.id}`}
               >
                 <div className="flex min-w-0 items-baseline gap-2">

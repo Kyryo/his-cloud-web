@@ -1,10 +1,19 @@
 "use client";
 
-import { Activity, Plus, Stethoscope } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { Plus } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { SecondaryButton } from "@/components/ui/app-buttons";
 import { TableTextCell } from "@/components/table-text-cell";
+import {
+  ListPageDataTable,
+  ListPageDataTableBody,
+  ListPageDataTableCell,
+  ListPageDataTableHeader,
+  ListPageDataTableHeaderCell,
+  ListPageDataTableHeaderRow,
+  ListPageDataTableRow,
+} from "@/features/app-shell/components/page-layout";
 import { AddClaimVitalsDialog } from "@/features/claims/components/AddClaimVitalsDialog";
 import { AddEncounterDiagnosisDialog } from "@/features/clinical/components/AddEncounterDiagnosisDialog";
 import {
@@ -44,34 +53,6 @@ function formatVitals(claim: ClaimDetail): string {
     parts.push(`BP ${vitals.systolic_pressure}/${vitals.diastolic_pressure}`);
   }
   return parts.join(" · ");
-}
-
-function CardEmptyState({
-  icon: Icon,
-  title,
-  description,
-  action,
-  testId,
-}: {
-  icon: typeof Activity;
-  title: string;
-  description: string;
-  action?: ReactNode;
-  testId?: string;
-}) {
-  return (
-    <div
-      className="mt-4 flex flex-col items-center justify-center rounded-lg border border-dashed border-brand-border bg-slate-50/60 px-4 py-10 text-center"
-      data-testid={testId}
-    >
-      <div className="flex size-10 items-center justify-center rounded-xl bg-white text-brand-muted shadow-sm ring-1 ring-brand-border">
-        <Icon className="size-5" strokeWidth={1.75} aria-hidden="true" />
-      </div>
-      <p className="mt-3 text-sm font-medium text-brand-navy">{title}</p>
-      <p className="mt-1 max-w-sm text-sm text-brand-muted">{description}</p>
-      {action ? <div className="mt-4">{action}</div> : null}
-    </div>
-  );
 }
 
 export function ClaimDetailClinicalTab({
@@ -163,7 +144,7 @@ export function ClaimDetailClinicalTab({
 
   return (
     <div className="space-y-4" data-testid="claim-detail-clinical-tab">
-      <section className="rounded-xl border border-brand-border bg-white p-6">
+      <section>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="text-sm font-semibold text-brand-navy">
@@ -173,23 +154,22 @@ export function ClaimDetailClinicalTab({
               Vital signs included on this insurance claim.
             </p>
           </div>
-          {hasVitals ? addVitalsButton : null}
+          {addVitalsButton}
         </div>
 
         {hasVitals ? (
           <p className="mt-4 text-sm text-brand-slate">{formatVitals(claim)}</p>
         ) : (
-          <CardEmptyState
-            icon={Activity}
-            title="No vital signs on this claim"
-            description="We did not find any vital signs snapshotted for this claim."
-            action={addVitalsButton}
-            testId="claim-vitals-empty"
-          />
+          <p
+            className="mt-4 text-sm text-brand-muted"
+            data-testid="claim-vitals-empty"
+          >
+            No vital signs on this claim.
+          </p>
         )}
       </section>
 
-      <section className="rounded-xl border border-brand-border bg-white p-6">
+      <section>
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="text-sm font-semibold text-brand-navy">
@@ -199,49 +179,52 @@ export function ClaimDetailClinicalTab({
               Diagnoses included on this insurance claim.
             </p>
           </div>
-          {hasClaimDiagnoses ? addDiagnosisButton : null}
+          {addDiagnosisButton}
         </div>
 
         {!hasClaimDiagnoses ? (
-          <CardEmptyState
-            icon={Stethoscope}
-            title="No diagnoses on this claim"
-            description="We did not find any diagnoses snapshotted for this claim."
-            action={addDiagnosisButton}
-            testId="claim-diagnoses-empty"
-          />
+          <p
+            className="mt-4 text-sm text-brand-muted"
+            data-testid="claim-diagnoses-empty"
+          >
+            No diagnoses on this claim.
+          </p>
         ) : (
-          <div className="mt-4 overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-b border-brand-border text-left text-xs font-medium text-brand-muted">
-                  <th className="px-2 py-2">Code</th>
-                  <th className="px-2 py-2">Standard</th>
-                  <th className="px-2 py-2">Description</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-brand-border">
+          <div className="mt-4">
+            <ListPageDataTable>
+              <ListPageDataTableHeader>
+                <ListPageDataTableHeaderRow>
+                  <ListPageDataTableHeaderCell>Code</ListPageDataTableHeaderCell>
+                  <ListPageDataTableHeaderCell>
+                    Standard
+                  </ListPageDataTableHeaderCell>
+                  <ListPageDataTableHeaderCell>
+                    Description
+                  </ListPageDataTableHeaderCell>
+                </ListPageDataTableHeaderRow>
+              </ListPageDataTableHeader>
+              <ListPageDataTableBody>
                 {claim.diagnoses.map((diagnosis) => (
-                  <tr key={diagnosis.id}>
-                    <td className="px-2 py-2">
+                  <ListPageDataTableRow key={diagnosis.id}>
+                    <ListPageDataTableCell>
                       <TableTextCell className="font-mono text-sm text-brand-navy">
                         {diagnosis.code}
                       </TableTextCell>
-                    </td>
-                    <td className="px-2 py-2">
+                    </ListPageDataTableCell>
+                    <ListPageDataTableCell>
                       <TableTextCell className="text-brand-slate">
                         {diagnosis.standard || "—"}
                       </TableTextCell>
-                    </td>
-                    <td className="px-2 py-2">
+                    </ListPageDataTableCell>
+                    <ListPageDataTableCell>
                       <TableTextCell className="text-brand-slate">
                         {diagnosis.description || "—"}
                       </TableTextCell>
-                    </td>
-                  </tr>
+                    </ListPageDataTableCell>
+                  </ListPageDataTableRow>
                 ))}
-              </tbody>
-            </table>
+              </ListPageDataTableBody>
+            </ListPageDataTable>
           </div>
         )}
       </section>

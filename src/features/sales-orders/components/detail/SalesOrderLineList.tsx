@@ -5,22 +5,24 @@ import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  ListPageDataTable,
+  ListPageDataTableBody,
+  ListPageDataTableCell,
+  ListPageDataTableHeader,
+  ListPageDataTableHeaderCell,
+  ListPageDataTableHeaderRow,
+  ListPageDataTableRow,
+} from "@/features/app-shell/components/page-layout";
 import { LineNonPayableBadge } from "@/features/sales-orders/components/detail/LineNonPayableBadge";
 import { SalesOrderLineProductPicker } from "@/features/sales-orders/components/detail/SalesOrderLineProductPicker";
 import type { SalesOrderLineProductSelection } from "@/features/sales-orders/components/detail/SalesOrderLineProductPicker";
 import type { SalesOrderLineDraft } from "@/features/sales-orders/types/sales-order-line-draft";
 import { calculateSalesOrderLineDraftTotal } from "@/features/sales-orders/types/sales-order-line-draft";
-import type { SalesOrder, SalesOrderLine } from "@/features/sales-orders/types/sales-order.types";
+import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
 import { formatSalesOrderAmount } from "@/features/sales-orders/utils/format-sales-order";
 import { isSalesOrderLineNonPayable } from "@/features/sales-orders/utils/sales-order-line-payability";
 import { cn } from "@/lib/utils";
-
-const LINE_COLS =
-  "sm:grid-cols-[minmax(0,1.4fr)_4.5rem_6.75rem_6.75rem_auto]";
-const LINE_GRID = cn(
-  "grid grid-cols-1 items-start gap-x-3 gap-y-2 sm:items-center",
-  LINE_COLS,
-);
 
 function formatQuantity(value: number | string | null | undefined): string {
   if (value === null || value === undefined || value === "") {
@@ -41,23 +43,6 @@ function formatTariffCode(value: string | null | undefined): string {
   return value?.trim() ? value : "—";
 }
 
-function LineListHeader() {
-  return (
-    <div
-      className={cn(
-        "hidden border-b border-dash-border/70 pb-2 text-[11px] font-medium uppercase tracking-wide text-brand-muted sm:grid sm:items-center sm:gap-x-3",
-        LINE_COLS,
-      )}
-    >
-      <span>Item</span>
-      <span className="text-right">Qty</span>
-      <span className="text-right">Price</span>
-      <span className="text-right">Total</span>
-      <span className="sr-only">Actions</span>
-    </div>
-  );
-}
-
 function LineListShell({
   children,
   footer,
@@ -67,9 +52,35 @@ function LineListShell({
 }) {
   return (
     <div data-testid="sales-order-lines-list">
-      <LineListHeader />
-      <ul className="divide-y divide-dash-border/60">{children}</ul>
-      {footer ? <div className="pt-3">{footer}</div> : null}
+      <ListPageDataTable>
+        <ListPageDataTableHeader>
+          <ListPageDataTableHeaderRow>
+            <ListPageDataTableHeaderCell>Item</ListPageDataTableHeaderCell>
+            <ListPageDataTableHeaderCell className="text-right">
+              Qty
+            </ListPageDataTableHeaderCell>
+            <ListPageDataTableHeaderCell className="text-right">
+              Price
+            </ListPageDataTableHeaderCell>
+            <ListPageDataTableHeaderCell className="text-right">
+              Total
+            </ListPageDataTableHeaderCell>
+            <ListPageDataTableHeaderCell className="w-20 pr-4">
+              <span className="sr-only">Actions</span>
+            </ListPageDataTableHeaderCell>
+          </ListPageDataTableHeaderRow>
+        </ListPageDataTableHeader>
+        <ListPageDataTableBody>{children}</ListPageDataTableBody>
+        {footer ? (
+          <tfoot>
+            <tr>
+              <td colSpan={5} className="px-4 py-3">
+                {footer}
+              </td>
+            </tr>
+          </tfoot>
+        ) : null}
+      </ListPageDataTable>
     </div>
   );
 }
@@ -86,8 +97,8 @@ export function SalesOrderReadOnlyLineList({
   return (
     <LineListShell>
       {lines.map((line) => (
-        <li key={line.id} className={cn(LINE_GRID, "py-3")}>
-          <div className="min-w-0">
+        <ListPageDataTableRow key={line.id}>
+          <ListPageDataTableCell className="py-3">
             <div className="flex flex-wrap items-center gap-1.5">
               <p className="text-sm font-medium text-brand-navy">{line.name}</p>
               {isSalesOrderLineNonPayable(order, line) ? (
@@ -103,20 +114,18 @@ export function SalesOrderReadOnlyLineList({
             <p className="mt-0.5 font-mono text-xs text-brand-muted">
               {formatTariffCode(line.tariff_code)}
             </p>
-          </div>
-          <p className="text-sm tabular-nums text-brand-slate sm:text-right">
-            <span className="mr-1 text-xs text-brand-muted sm:hidden">Qty</span>
+          </ListPageDataTableCell>
+          <ListPageDataTableCell className="py-3 text-right tabular-nums">
             {formatQuantity(line.quantity)}
-          </p>
-          <p className="text-sm tabular-nums text-brand-slate sm:text-right">
-            <span className="mr-1 text-xs text-brand-muted sm:hidden">Price</span>
+          </ListPageDataTableCell>
+          <ListPageDataTableCell className="py-3 text-right tabular-nums">
             {formatSalesOrderAmount(line.price_unit)}
-          </p>
-          <p className="text-sm font-medium tabular-nums text-brand-navy sm:text-right">
+          </ListPageDataTableCell>
+          <ListPageDataTableCell className="py-3 text-right font-medium tabular-nums text-brand-navy">
             {formatSalesOrderAmount(line.price_total)}
-          </p>
-          <span className="hidden sm:block" />
-        </li>
+          </ListPageDataTableCell>
+          <ListPageDataTableCell className="py-3 pr-4" />
+        </ListPageDataTableRow>
       ))}
     </LineListShell>
   );
@@ -227,12 +236,11 @@ function EditableLineRow({
   onPriceBlur: (key: string) => void;
 }) {
   return (
-    <li
+    <ListPageDataTableRow
       className={cn(
-        LINE_GRID,
-        "group py-3",
+        "group",
         !isEditing && !line.isNew && "cursor-pointer",
-        isActive && "sm:-mx-2 sm:rounded-md sm:px-2",
+        isActive && "bg-dash-panel/60",
       )}
       onClick={() => {
         if (!line.isNew && !isEditing && !isSaving) {
@@ -241,7 +249,7 @@ function EditableLineRow({
         }
       }}
     >
-      <div className="min-w-0">
+      <ListPageDataTableCell className="py-3">
         {isEditing ? (
           <SalesOrderLineProductPicker
             id={`so-line-product-${line.key}`}
@@ -273,45 +281,38 @@ function EditableLineRow({
             </p>
           </>
         )}
-      </div>
+      </ListPageDataTableCell>
 
-      {isEditing ? (
-        <label className="block">
-          <span className="mb-1 block text-xs text-brand-muted sm:sr-only">
-            Qty
-          </span>
+      <ListPageDataTableCell className="py-3">
+        {isEditing ? (
           <Input
             type="number"
             min="0"
             step="any"
             value={line.quantity}
             disabled={isSaving}
-            className="h-9 text-right"
+            aria-label="Qty"
+            className="ml-auto h-9 w-20 text-right"
             onFocus={() => onActivate(line.key)}
             onChange={(event) =>
               onUpdate(line.key, { quantity: event.target.value })
             }
           />
-        </label>
-      ) : (
-        <p className="text-sm tabular-nums text-brand-slate sm:text-right">
-          <span className="mr-1 text-xs text-brand-muted sm:hidden">Qty</span>
-          {formatQuantity(line.quantity)}
-        </p>
-      )}
+        ) : (
+          <p className="text-right tabular-nums">{formatQuantity(line.quantity)}</p>
+        )}
+      </ListPageDataTableCell>
 
-      {isEditing ? (
-        <label className="block">
-          <span className="mb-1 block text-xs text-brand-muted sm:sr-only">
-            Price
-          </span>
+      <ListPageDataTableCell className="py-3">
+        {isEditing ? (
           <Input
             type="number"
             min="0"
             step="any"
             value={line.price_unit}
             disabled={isSaving}
-            className="h-9 text-right"
+            aria-label="Price"
+            className="ml-auto h-9 w-28 text-right"
             onFocus={() => onActivate(line.key)}
             onChange={(event) =>
               onUpdate(line.key, {
@@ -321,26 +322,27 @@ function EditableLineRow({
             }
             onBlur={() => onPriceBlur(line.key)}
           />
-        </label>
-      ) : (
-        <p className="text-sm tabular-nums text-brand-slate sm:text-right">
-          <span className="mr-1 text-xs text-brand-muted sm:hidden">Price</span>
-          {formatSalesOrderAmount(line.price_unit)}
-        </p>
-      )}
+        ) : (
+          <p className="text-right tabular-nums">
+            {formatSalesOrderAmount(line.price_unit)}
+          </p>
+        )}
+      </ListPageDataTableCell>
 
-      <p className="text-sm font-medium tabular-nums text-brand-navy sm:text-right">
+      <ListPageDataTableCell className="py-3 text-right font-medium tabular-nums text-brand-navy">
         {formatSalesOrderAmount(lineTotal)}
-      </p>
+      </ListPageDataTableCell>
 
-      <LineRowActions
-        line={line}
-        isSaving={isSaving}
-        alwaysVisible={isEditing}
-        onViewDetails={onViewDetails}
-        onRemove={onRemove}
-      />
-    </li>
+      <ListPageDataTableCell className="py-3 pr-4">
+        <LineRowActions
+          line={line}
+          isSaving={isSaving}
+          alwaysVisible={isEditing}
+          onViewDetails={onViewDetails}
+          onRemove={onRemove}
+        />
+      </ListPageDataTableCell>
+    </ListPageDataTableRow>
   );
 }
 
@@ -358,7 +360,7 @@ function LineRowActions({
   onRemove: (key: string) => void;
 }) {
   return (
-    <div className="flex justify-end gap-0.5 sm:justify-self-end">
+    <div className="flex justify-end gap-0.5">
       {line.id ? (
         <Button
           type="button"

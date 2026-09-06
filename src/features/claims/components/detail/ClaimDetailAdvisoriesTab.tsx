@@ -45,6 +45,7 @@ export function ClaimDetailAdvisoriesTab({
         onClaimUpdated={onClaimUpdated}
         onSubmit={onRequestSubmit}
         showSubmitInQueue
+        surface="plain"
       />
     </div>
   );

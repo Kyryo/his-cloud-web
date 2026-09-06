@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Shield } from "lucide-react";
 
+import { Badge } from "@/components/ui/badge";
 import {
   DetailPageAsidePanelHeader,
   DetailPageAsidePanelSection,
   DetailPageAsideSummaryAmountRow,
   DetailPageAsideSummaryField,
-  DetailPageAsideSummaryHighlight,
   DetailPageAsideSummarySection,
   DetailPageAsideSummaryTotalRow,
 } from "@/features/app-shell/components/page-layout";
@@ -19,6 +20,7 @@ import type { Invoice } from "@/features/invoices/types/invoice.types";
 import { formatInvoiceAmount } from "@/features/invoices/utils/format-invoice";
 import {
   formatInvoiceInsurerDueLabel,
+  getInvoiceOutstandingBalance,
   hasInvoiceBalance,
   sumInvoiceClientDue,
   sumInvoiceInsurerDue,
@@ -31,6 +33,37 @@ type ClaimSummaryPanelProps = {
   className?: string;
   onOpenVisit?: () => void;
 };
+
+function parseAmount(value: string | number | null | undefined): number {
+  const amount = Number(value);
+  return Number.isFinite(amount) ? amount : 0;
+}
+
+function sumClaimLineBilling(claim: ClaimDetail) {
+  let insurerDue = 0;
+  let clientDue = 0;
+  let lineTotal = 0;
+  let invoiceAmount = 0;
+
+  for (const claimInvoice of claim.claim_invoices ?? []) {
+    invoiceAmount += parseAmount(claimInvoice.amount);
+    for (const line of claimInvoice.line_items ?? []) {
+      insurerDue += parseAmount(line.payer_due);
+      clientDue += parseAmount(line.client_due);
+      if (line.total != null && line.total !== "") {
+        lineTotal += parseAmount(line.total);
+      } else {
+        lineTotal += parseAmount(line.unit_price) * parseAmount(line.quantity);
+      }
+    }
+  }
+
+  return {
+    insurerDue,
+    clientDue,
+    total: invoiceAmount || lineTotal || insurerDue + clientDue,
+  };
+}
 
 function formatClaimDate(value: string | null | undefined): string {
   if (!value) {
@@ -49,22 +82,10 @@ function formatClaimDate(value: string | null | undefined): string {
   });
 }
 
-function formatVitals(claim: ClaimDetail): string {
-  const vitals = claim.vitals ?? {};
-  const parts: string[] = [];
-  if (vitals.height != null && vitals.height !== "") {
-    parts.push(`Height ${vitals.height}`);
-  }
-  if (vitals.weight != null && vitals.weight !== "") {
-    parts.push(`Weight ${vitals.weight}`);
-  }
-  if (vitals.systolic_pressure != null && vitals.diastolic_pressure != null) {
-    parts.push(`BP ${vitals.systolic_pressure}/${vitals.diastolic_pressure}`);
-  }
-  return parts.length > 0 ? parts.join(" · ") : "—";
-}
-
-function formatInsuranceDueLabel(claim: ClaimDetail, invoice: Invoice | null): string {
+function formatInsuranceDueLabel(
+  claim: ClaimDetail,
+  invoice: Invoice | null,
+): string {
   if (invoice) {
     return formatInvoiceInsurerDueLabel(invoice);
   }
@@ -80,10 +101,11 @@ export function ClaimSummaryPanel({
   const invoiceRef =
     claim.invoice_uuid ?? claim.invoice_id ?? claim.invoice ?? null;
   const [invoice, setInvoice] = useState<Invoice | null>(null);
+  const displayedInvoice = invoiceRef ? invoice : null;
+  const fallback = sumClaimLineBilling(claim);
 
   useEffect(() => {
     if (!invoiceRef) {
-      setInvoice(null);
       return;
     }
 
@@ -105,20 +127,41 @@ export function ClaimSummaryPanel({
     return () => {
       cancelled = true;
     };
-  }, [
-    invoiceRef,
-    claim.updated_at,
-    claim.latest_advisor_evaluation?.id,
-  ]);
+  }, [invoiceRef, claim.updated_at, claim.latest_advisor_evaluation?.id]);
 
-  const insurerDue = invoice ? sumInvoiceInsurerDue(invoice) : 0;
-  const clientDue = invoice ? sumInvoiceClientDue(invoice) : 0;
-  const amountTotal = invoice
-    ? Number(invoice.amount_total ?? insurerDue + clientDue)
-    : insurerDue + clientDue;
-  const amountPaid = Number(invoice?.amount_paid ?? 0);
-  const amountResidual = Number(invoice?.amount_residual ?? 0);
-  const hasBalance = invoice ? hasInvoiceBalance(invoice) : amountResidual > 0;
+  const insurerDue = displayedInvoice
+    ? sumInvoiceInsurerDue(displayedInvoice)
+    : fallback.insurerDue;
+  const clientDue = displayedInvoice
+    ? sumInvoiceClientDue(displayedInvoice)
+    : fallback.clientDue;
+  const amountTotal = displayedInvoice
+    ? Number(displayedInvoice.amount_total ?? insurerDue + clientDue)
+    : fallback.total;
+  const amountPaid = displayedInvoice
+    ? Number(displayedInvoice.amount_paid ?? 0)
+    : null;
+  const amountResidual = displayedInvoice
+    ? getInvoiceOutstandingBalance(displayedInvoice)
+    : null;
+  const hasBalance = displayedInvoice
+    ? hasInvoiceBalance(displayedInvoice)
+    : false;
+  const showPaymentSplit = insurerDue > 0 || clientDue > 0;
+  const membershipNumber = claim.membership_number?.trim() || "";
+  const practitionerNumber = claim.practitioner_number?.trim() || "";
+  const serviceProviderCode = claim.service_provider_code?.trim() || "";
+  const externalClaimId = claim.external_claim_id?.trim() || "";
+  const payerCode = claim.payer_code?.trim() || "";
+  const payerStatus = claim.payer_status_label?.trim() || claim.payer_status?.trim() || "";
+  const hasCoverageDetails = Boolean(
+    payerCode ||
+      membershipNumber ||
+      practitionerNumber ||
+      serviceProviderCode ||
+      externalClaimId,
+  );
+  const customerName = claim.customer_name?.trim() || "—";
 
   return (
     <DetailPageAsidePanelSection className={cn(className)}>
@@ -127,75 +170,131 @@ export function ClaimSummaryPanel({
         description="Billing totals and claim details"
       />
 
-      <DetailPageAsideSummaryHighlight title="Billing summary">
-        <dl className="space-y-2.5">
-          <DetailPageAsideSummaryAmountRow
-            label={formatInsuranceDueLabel(claim, invoice)}
-            value={formatInvoiceAmount(insurerDue)}
-          />
-          <DetailPageAsideSummaryAmountRow
-            label="Client due"
-            value={formatInvoiceAmount(clientDue)}
-          />
-          <DetailPageAsideSummaryTotalRow
+      <div data-testid="claim-summary-totals">
+        <DetailPageAsideSummarySection title="Totals" className="border-t-0 pt-0">
+          <DetailPageAsideSummaryField
+            label="Total"
             value={formatInvoiceAmount(amountTotal)}
-            showDivider
           />
-        </dl>
-      </DetailPageAsideSummaryHighlight>
-
-      <div
-        className={cn(
-          "mt-3 rounded-xl border p-4",
-          hasBalance
-            ? "border-red-200 bg-red-50/70"
-            : "border-emerald-200 bg-emerald-50/80",
-        )}
-      >
-        <dl className="space-y-2.5">
-          <DetailPageAsideSummaryAmountRow
+          <DetailPageAsideSummaryField
             label="Paid"
-            value={formatInvoiceAmount(amountPaid)}
+            value={
+              amountPaid == null ? "—" : formatInvoiceAmount(amountPaid)
+            }
           />
-          <DetailPageAsideSummaryAmountRow
+          <DetailPageAsideSummaryField
             label="Balance"
-            value={formatInvoiceAmount(amountResidual)}
-            variant={hasBalance ? "danger" : "default"}
-            emphasized={hasBalance}
+            value={
+              amountResidual == null ? (
+                "—"
+              ) : (
+                <span className={hasBalance ? "text-red-600" : undefined}>
+                  {formatInvoiceAmount(amountResidual)}
+                </span>
+              )
+            }
           />
-        </dl>
+        </DetailPageAsideSummarySection>
       </div>
 
-      <DetailPageAsideSummarySection title="Claim details">
+      <DetailPageAsideSummarySection title="Billing">
+        {showPaymentSplit ? (
+          <>
+            <DetailPageAsideSummaryAmountRow
+              label={formatInsuranceDueLabel(claim, displayedInvoice)}
+              value={formatInvoiceAmount(insurerDue)}
+            />
+            <DetailPageAsideSummaryAmountRow
+              label="Client due"
+              value={formatInvoiceAmount(clientDue)}
+            />
+            <div
+              className="border-t border-dash-border/80 pt-2"
+              role="presentation"
+            />
+          </>
+        ) : null}
+        <DetailPageAsideSummaryTotalRow
+          value={formatInvoiceAmount(amountTotal)}
+        />
+      </DetailPageAsideSummarySection>
+
+      {hasCoverageDetails ? (
+        <DetailPageAsideSummarySection title="Coverage">
+          {payerCode ? (
+            <DetailPageAsideSummaryField
+              label="Payer"
+              value={
+                <span className="inline-flex items-center gap-1.5 font-medium text-brand-navy">
+                  <Shield
+                    className="size-3.5 text-brand-primary"
+                    aria-hidden="true"
+                  />
+                  {payerCode}
+                </span>
+              }
+            />
+          ) : null}
+          {membershipNumber ? (
+            <DetailPageAsideSummaryField
+              label="Membership no."
+              value={
+                <Badge variant="outline" className="font-mono font-normal">
+                  {membershipNumber}
+                </Badge>
+              }
+            />
+          ) : null}
+          {practitionerNumber ? (
+            <DetailPageAsideSummaryField
+              label="Practitioner no."
+              value={
+                <span className="font-mono text-xs">{practitionerNumber}</span>
+              }
+            />
+          ) : null}
+          {serviceProviderCode ? (
+            <DetailPageAsideSummaryField
+              label="Service provider"
+              value={
+                <span className="font-mono text-xs">{serviceProviderCode}</span>
+              }
+            />
+          ) : null}
+          {externalClaimId ? (
+            <DetailPageAsideSummaryField
+              label="External claim ID"
+              value={
+                <span className="font-mono text-xs">{externalClaimId}</span>
+              }
+            />
+          ) : null}
+        </DetailPageAsideSummarySection>
+      ) : null}
+
+      <DetailPageAsideSummarySection title="Details">
         <DetailPageAsideSummaryField
           label="Status"
           value={<ClaimStatusBadge status={claim.status} />}
         />
+        {payerStatus ? (
+          <DetailPageAsideSummaryField label="Payer status" value={payerStatus} />
+        ) : null}
         <DetailPageAsideSummaryField
           label="Client"
-          value={claim.customer_name?.trim() || "—"}
+          value={
+            claim.customer_uuid ? (
+              <Link
+                href={ROUTES.customerDetail(claim.customer_uuid)}
+                className="text-brand-primary hover:underline"
+              >
+                {customerName}
+              </Link>
+            ) : (
+              customerName
+            )
+          }
         />
-        <DetailPageAsideSummaryField
-          label="Membership number"
-          value={claim.membership_number || "—"}
-        />
-        <DetailPageAsideSummaryField
-          label="Payer"
-          value={claim.payer_code || "—"}
-        />
-        <DetailPageAsideSummaryField
-          label="Practitioner number"
-          value={claim.practitioner_number || "—"}
-        />
-        <DetailPageAsideSummaryField
-          label="Service provider code"
-          value={claim.service_provider_code || "—"}
-        />
-        <DetailPageAsideSummaryField
-          label="External claim ID"
-          value={claim.external_claim_id || "—"}
-        />
-        <DetailPageAsideSummaryField label="Vitals" value={formatVitals(claim)} />
         <DetailPageAsideSummaryField
           label="Created"
           value={formatClaimDate(claim.created_at)}
@@ -212,7 +311,7 @@ export function ClaimSummaryPanel({
                 href={ROUTES.invoiceDetail(invoiceRef)}
                 className="text-brand-primary hover:underline"
               >
-                View invoice
+                {claim.invoice_name?.trim() || "View invoice"}
               </Link>
             ) : (
               "—"

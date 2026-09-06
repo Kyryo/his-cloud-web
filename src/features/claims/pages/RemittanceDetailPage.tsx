@@ -432,12 +432,12 @@ export function RemittanceDetailPage() {
                 />
               ) : isFilteredEmpty ? (
                 <div
-                  className="rounded-xl border border-brand-border bg-white px-6 py-10 text-center"
+                  className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center"
                   data-testid="remittance-rows-filtered-empty"
                 >
-                  <p className="text-sm font-medium text-brand-navy">
+                  <h2 className="text-base font-semibold text-brand-navy">
                     No matching line items
-                  </p>
+                  </h2>
                   <p className="mt-1 text-sm text-brand-muted">
                     Try a different search term or clear your filters.
                   </p>

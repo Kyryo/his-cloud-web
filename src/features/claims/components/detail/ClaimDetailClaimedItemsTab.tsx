@@ -6,6 +6,15 @@ import Link from "next/link";
 import { DetailTabEmptyState } from "@/components/detail/detail-tab-empty-state";
 import { SecondaryButton } from "@/components/ui/app-buttons";
 import {
+  ListPageDataTable,
+  ListPageDataTableBody,
+  ListPageDataTableCell,
+  ListPageDataTableHeader,
+  ListPageDataTableHeaderCell,
+  ListPageDataTableHeaderRow,
+  ListPageDataTableRow,
+} from "@/features/app-shell/components/page-layout";
+import {
   LineRemittanceSettlementBadge,
   shouldShowRemittanceSettlementBadge,
 } from "@/features/claims/components/LineRemittanceSettlementBadge";
@@ -72,99 +81,88 @@ export function ClaimDetailClaimedItemsTab({
           description="This claim has no claimed line items yet."
         />
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {claimInvoices.map((claimInvoice) => (
-            <div
-              key={claimInvoice.id}
-              className="rounded-xl border border-brand-border bg-white"
-            >
-              <div className="border-b border-brand-border px-4 py-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <h3 className="text-sm font-semibold text-brand-navy">
-                      Claimed items
-                    </h3>
-                    <p className="mt-0.5 text-xs text-brand-muted">
-                      Line items submitted on this insurance claim.
-                    </p>
-                  </div>
-                  {invoiceRef ? (
-                    <SecondaryButton asChild size="sm" className="px-4">
-                      <Link href={ROUTES.invoiceDetail(invoiceRef)}>
-                        View invoice
-                      </Link>
-                    </SecondaryButton>
-                  ) : null}
+            <div key={claimInvoice.id} className="space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div>
+                  <h3 className="text-sm font-semibold text-brand-navy">
+                    Claimed items
+                  </h3>
+                  <p className="mt-0.5 text-xs text-brand-muted">
+                    Line items submitted on this insurance claim.
+                  </p>
                 </div>
+                {invoiceRef ? (
+                  <SecondaryButton asChild size="sm" className="px-4">
+                    <Link href={ROUTES.invoiceDetail(invoiceRef)}>
+                      View invoice
+                    </Link>
+                  </SecondaryButton>
+                ) : null}
               </div>
 
               {(claimInvoice.line_items?.length ?? 0) === 0 ? (
-                <p className="px-4 py-8 text-center text-sm text-brand-muted">
+                <p className="py-8 text-center text-sm text-brand-muted">
                   No line items on this claim invoice.
                 </p>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full">
-                    <thead>
-                      <tr className="border-b border-brand-border bg-slate-50/80">
-                        <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
-                          Date
-                        </th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
-                          Product
-                        </th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
-                          Code
-                        </th>
-                        <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
-                          Qty
-                        </th>
-                        <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
-                          Unit price (MWK)
-                        </th>
-                        <th className="px-4 py-3 text-right text-sm font-medium text-brand-muted">
-                          Total (MWK)
-                        </th>
-                        <th className="px-4 py-3 text-left text-sm font-medium text-brand-muted">
-                          <span className="sr-only">Remittance</span>
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-brand-border">
-                      {claimInvoice.line_items.map((line) => (
-                        <tr key={line.id}>
-                          <td className="px-4 py-3 text-sm text-brand-slate">
-                            {formatLineDate(line.date_created)}
-                          </td>
-                          <td className="px-4 py-3 text-sm font-medium text-brand-navy">
-                            {formatLineName(line)}
-                          </td>
-                          <td className="px-4 py-3 text-sm font-mono text-brand-slate">
-                            {formatTariffCode(line.tariff_code)}
-                          </td>
-                          <td className="px-4 py-3 text-right text-sm text-brand-slate">
-                            {line.quantity}
-                          </td>
-                          <td className="px-4 py-3 text-right text-sm text-brand-slate">
-                            {formatAmountNumber(line.unit_price)}
-                          </td>
-                          <td className="px-4 py-3 text-right text-sm font-medium text-brand-navy">
-                            {formatAmountNumber(lineTotal(line))}
-                          </td>
-                          <td className="px-4 py-3 text-left">
-                            {shouldShowRemittanceSettlementBadge(
-                              line.remittance_settlement_status,
-                            ) ? (
-                              <LineRemittanceSettlementBadge
-                                status={line.remittance_settlement_status}
-                              />
-                            ) : null}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <ListPageDataTable>
+                  <ListPageDataTableHeader>
+                    <ListPageDataTableHeaderRow>
+                      <ListPageDataTableHeaderCell>Date</ListPageDataTableHeaderCell>
+                      <ListPageDataTableHeaderCell>
+                        Product
+                      </ListPageDataTableHeaderCell>
+                      <ListPageDataTableHeaderCell>Code</ListPageDataTableHeaderCell>
+                      <ListPageDataTableHeaderCell className="text-right">
+                        Qty
+                      </ListPageDataTableHeaderCell>
+                      <ListPageDataTableHeaderCell className="text-right">
+                        Unit price (MWK)
+                      </ListPageDataTableHeaderCell>
+                      <ListPageDataTableHeaderCell className="text-right">
+                        Total (MWK)
+                      </ListPageDataTableHeaderCell>
+                      <ListPageDataTableHeaderCell>
+                        <span className="sr-only">Remittance</span>
+                      </ListPageDataTableHeaderCell>
+                    </ListPageDataTableHeaderRow>
+                  </ListPageDataTableHeader>
+                  <ListPageDataTableBody>
+                    {claimInvoice.line_items.map((line) => (
+                      <ListPageDataTableRow key={line.id}>
+                        <ListPageDataTableCell>
+                          {formatLineDate(line.date_created)}
+                        </ListPageDataTableCell>
+                        <ListPageDataTableCell className="font-medium text-brand-navy">
+                          {formatLineName(line)}
+                        </ListPageDataTableCell>
+                        <ListPageDataTableCell className="font-mono">
+                          {formatTariffCode(line.tariff_code)}
+                        </ListPageDataTableCell>
+                        <ListPageDataTableCell className="text-right">
+                          {line.quantity}
+                        </ListPageDataTableCell>
+                        <ListPageDataTableCell className="text-right">
+                          {formatAmountNumber(line.unit_price)}
+                        </ListPageDataTableCell>
+                        <ListPageDataTableCell className="text-right font-medium text-brand-navy">
+                          {formatAmountNumber(lineTotal(line))}
+                        </ListPageDataTableCell>
+                        <ListPageDataTableCell>
+                          {shouldShowRemittanceSettlementBadge(
+                            line.remittance_settlement_status,
+                          ) ? (
+                            <LineRemittanceSettlementBadge
+                              status={line.remittance_settlement_status}
+                            />
+                          ) : null}
+                        </ListPageDataTableCell>
+                      </ListPageDataTableRow>
+                    ))}
+                  </ListPageDataTableBody>
+                </ListPageDataTable>
               )}
             </div>
           ))}

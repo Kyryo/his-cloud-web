@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { UserRound } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
-import { ClientAvatar } from "@/components/client-avatar";
 import { Badge } from "@/components/ui/badge";
 import { SecondaryButton } from "@/components/ui/app-buttons";
+import { Skeleton } from "@/components/ui/skeleton";
 import { CustomerDetailTabEmptyState } from "@/features/customers/components/detail/CustomerDetailTabEmptyState";
-import { CustomerTabSkeleton } from "@/features/customers/components/detail/CustomerTabSkeleton";
 import { fetchCustomer } from "@/features/customers/services/customers.service";
 import type { Customer } from "@/features/customers/types/customer.types";
 import {
@@ -19,7 +18,6 @@ import {
 import { formatCustomerVisitStatusLabel } from "@/features/customers/utils/customer-visit-status";
 import { formatVisitStartedBy } from "@/features/customers/utils/format-visit-started-by";
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
-import { SalesOrderLinkedDetailsTable } from "@/features/sales-orders/components/detail/SalesOrderLinkedDetailsTable";
 import { fetchVisit } from "@/features/visits/services/visits.service";
 import type { VisitDetail } from "@/features/visits/types/visit.types";
 import { ROUTES } from "@/constants/routes";
@@ -29,21 +27,62 @@ type ClaimDetailClientTabProps = {
   isActive: boolean;
 };
 
-function visitDetailRows(visit: VisitDetail | null) {
-  return [
-    {
-      label: "Visit date",
-      value: visit?.visit_date ? formatDisplayDateTime(visit.visit_date) : "—",
-    },
-    {
-      label: "Clinic",
-      value: visit?.clinic_name || "—",
-    },
-    {
-      label: "Started by",
-      value: visit ? formatVisitStartedBy(visit) : "—",
-    },
-  ];
+function RecordSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section>
+      <h3 className="text-[11px] font-medium uppercase tracking-wide text-brand-muted">
+        {title}
+      </h3>
+      <div className="mt-3 divide-y divide-dash-border/60">{children}</div>
+    </section>
+  );
+}
+
+function RecordRow({
+  label,
+  value,
+}: {
+  label: string;
+  value: ReactNode;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 py-2.5 first:pt-0">
+      <dt className="shrink-0 text-sm text-brand-muted">{label}</dt>
+      <dd className="text-right text-sm text-brand-navy">{value}</dd>
+    </div>
+  );
+}
+
+function ClientTabSkeleton() {
+  return (
+    <div className="space-y-6" data-testid="claim-detail-client-visit-tab">
+      <Skeleton className="h-8 w-48" />
+      <Skeleton className="h-24 w-full" />
+      <Skeleton className="h-24 w-full" />
+    </div>
+  );
+}
+
+function VisitRows({ visit }: { visit: VisitDetail | null }) {
+  return (
+    <>
+      <RecordRow
+        label="Visit date"
+        value={visit?.visit_date ? formatDisplayDateTime(visit.visit_date) : "—"}
+      />
+      <RecordRow label="Clinic" value={visit?.clinic_name || "—"} />
+      <RecordRow
+        label="Started by"
+        value={visit ? formatVisitStartedBy(visit) : "—"}
+      />
+    </>
+  );
 }
 
 export function ClaimDetailClientTab({
@@ -65,9 +104,9 @@ export function ClaimDetailClientTab({
     }
 
     let cancelled = false;
-    setHasLoaded(false);
 
     void (async () => {
+      setHasLoaded(false);
       setIsLoading(true);
       setLoadError(null);
 
@@ -124,32 +163,29 @@ export function ClaimDetailClientTab({
   }
 
   if (isLoading || !hasLoaded) {
-    return <CustomerTabSkeleton rows={7} />;
+    return <ClientTabSkeleton />;
   }
 
   if (!customerUuid) {
     return (
-      <div className="space-y-4" data-testid="claim-detail-client-visit-tab">
-        <SalesOrderLinkedDetailsTable
-          rows={[
-            { label: "Client", value: claim.customer_name || "—" },
-            ...visitDetailRows(visit),
-          ]}
-        />
+      <div className="space-y-8" data-testid="claim-detail-client-visit-tab">
         <CustomerDetailTabEmptyState
           icon={UserRound}
           title="Client profile unavailable"
           description="The full client profile could not be loaded for this claim."
           data-testid="claim-detail-client-empty-state"
         />
+        <RecordSection title="Visit">
+          <RecordRow label="Client" value={claim.customer_name || "—"} />
+          <VisitRows visit={visit} />
+        </RecordSection>
       </div>
     );
   }
 
   if (loadError || !customer) {
     return (
-      <div className="space-y-4" data-testid="claim-detail-client-visit-tab">
-        <SalesOrderLinkedDetailsTable rows={visitDetailRows(visit)} />
+      <div className="space-y-8" data-testid="claim-detail-client-visit-tab">
         <CustomerDetailTabEmptyState
           icon={UserRound}
           title="Client unavailable"
@@ -159,51 +195,86 @@ export function ClaimDetailClientTab({
           }
           data-testid="claim-detail-client-unavailable-state"
         />
+        <RecordSection title="Visit">
+          <VisitRows visit={visit} />
+        </RecordSection>
       </div>
     );
   }
 
   const fullName = formatCustomerName(customer);
+  const phone = customer.phone_number?.trim() || "";
+  const email = customer.email?.trim() || "";
 
   return (
-    <div className="space-y-4" data-testid="claim-detail-client-visit-tab">
-      <div className="flex items-center gap-4 rounded-xl border border-brand-border bg-white p-5">
-        <ClientAvatar name={fullName} className="size-12 text-sm" />
-        <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="truncate text-base font-semibold text-brand-navy">
-              {fullName}
-            </h2>
-            <Badge variant="secondary" className="font-normal">
-              {customer.gender}
-            </Badge>
+    <div className="space-y-8" data-testid="claim-detail-client-visit-tab">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="truncate text-base font-semibold text-brand-navy">
+            {fullName}
+          </h2>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            {customer.customer_identifier ? (
+              <Badge variant="outline" className="font-mono font-normal">
+                {customer.customer_identifier}
+              </Badge>
+            ) : null}
+            {customer.gender ? (
+              <Badge variant="secondary" className="font-normal">
+                {customer.gender}
+              </Badge>
+            ) : null}
             {!customer.is_active ? (
               <Badge variant="outline" className="font-normal">
                 Inactive
               </Badge>
             ) : null}
           </div>
-          <p className="mt-1 font-mono text-xs text-brand-muted">
-            {customer.customer_identifier}
-          </p>
         </div>
         <SecondaryButton asChild className="shrink-0">
           <Link href={ROUTES.customerDetail(customer.uuid)}>View client</Link>
         </SecondaryButton>
       </div>
 
-      <SalesOrderLinkedDetailsTable
-        rows={[
-          { label: "Age", value: formatAdaptiveAge(customer.dob) },
-          { label: "Phone", value: customer.phone_number || "—" },
-          { label: "Email", value: customer.email || "—" },
-          {
-            label: "Visit status",
-            value: formatCustomerVisitStatusLabel(customer.visit_status),
-          },
-          ...visitDetailRows(visit),
-        ]}
-      />
+      {phone || email ? (
+        <RecordSection title="Contact">
+          {phone ? (
+            <RecordRow
+              label="Phone"
+              value={
+                <a
+                  href={`tel:${phone}`}
+                  className="underline-offset-4 hover:underline"
+                >
+                  {phone}
+                </a>
+              }
+            />
+          ) : null}
+          {email ? (
+            <RecordRow
+              label="Email"
+              value={
+                <a
+                  href={`mailto:${email}`}
+                  className="break-all underline-offset-4 hover:underline"
+                >
+                  {email}
+                </a>
+              }
+            />
+          ) : null}
+        </RecordSection>
+      ) : null}
+
+      <RecordSection title="Visit">
+        <RecordRow label="Age" value={formatAdaptiveAge(customer.dob)} />
+        <RecordRow
+          label="Visit status"
+          value={formatCustomerVisitStatusLabel(customer.visit_status)}
+        />
+        <VisitRows visit={visit} />
+      </RecordSection>
     </div>
   );
 }
