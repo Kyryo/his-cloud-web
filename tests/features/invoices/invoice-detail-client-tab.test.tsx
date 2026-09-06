@@ -128,12 +128,12 @@ describe("InvoiceDetailClientTab", () => {
     });
 
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    const tab = screen.getByTestId("invoice-detail-client-tab");
     expect(screen.getByRole("heading", { name: "Jane Doe" })).toBeInTheDocument();
-    expect(screen.getByText("P-001")).toBeInTheDocument();
-    expect(screen.getByText("Female")).toBeInTheDocument();
-    expect(screen.getByText("In clinic")).toBeInTheDocument();
-    expect(screen.getByText("MASM · VIP")).toBeInTheDocument();
-    expect(screen.getByText("On this invoice")).toBeInTheDocument();
+    expect(tab).toHaveTextContent(/P-001 · Female · \d+ years/);
+    expect(tab).toHaveTextContent("In clinic");
+    expect(tab).toHaveTextContent("MASM · VIP");
+    expect(tab).toHaveTextContent("On this invoice");
     expect(screen.getByRole("link", { name: "View client" })).toHaveAttribute(
       "href",
       "/customers/customer-1",

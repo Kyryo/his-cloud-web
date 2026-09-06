@@ -130,14 +130,17 @@ describe("SalesOrderDetailClientTab", () => {
     });
 
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    const tab = screen.getByTestId("sales-order-client-tab");
     expect(screen.getByRole("heading", { name: "Jane Doe" })).toBeInTheDocument();
-    expect(screen.getByText(/P-001 · Female · \d+ years · In clinic/)).toBeInTheDocument();
+    expect(tab).toHaveTextContent(/P-001 · Female · \d+ years/);
+    expect(tab).toHaveTextContent("In clinic");
     expect(screen.getByRole("link", { name: "+265111222333" })).toHaveAttribute(
       "href",
       "tel:+265111222333",
     );
     expect(screen.getByText("MASM · VIP")).toBeInTheDocument();
-    expect(screen.getByText(/MEM123-001 · Principal member · Primary/)).toBeInTheDocument();
+    expect(screen.getByText("MEM123-001")).toBeInTheDocument();
+    expect(screen.getByText("Principal member · Primary")).toBeInTheDocument();
     expect(screen.getByText("On this order")).toBeInTheDocument();
     expect(screen.getByText("15,000.00 MWK")).toBeInTheDocument();
     expect(screen.getByText("5,000.00 MWK")).toBeInTheDocument();

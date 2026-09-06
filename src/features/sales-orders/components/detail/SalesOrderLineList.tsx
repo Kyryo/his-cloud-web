@@ -56,6 +56,7 @@ function LineListShell({
         <ListPageDataTableHeader>
           <ListPageDataTableHeaderRow>
             <ListPageDataTableHeaderCell>Item</ListPageDataTableHeaderCell>
+            <ListPageDataTableHeaderCell>Tariff</ListPageDataTableHeaderCell>
             <ListPageDataTableHeaderCell className="text-right">
               Qty
             </ListPageDataTableHeaderCell>
@@ -74,7 +75,7 @@ function LineListShell({
         {footer ? (
           <tfoot>
             <tr>
-              <td colSpan={5} className="px-4 py-3">
+              <td colSpan={6} className="px-4 py-3">
                 {footer}
               </td>
             </tr>
@@ -111,9 +112,9 @@ export function SalesOrderReadOnlyLineList({
                 />
               ) : null}
             </div>
-            <p className="mt-0.5 font-mono text-xs text-brand-muted">
-              {formatTariffCode(line.tariff_code)}
-            </p>
+          </ListPageDataTableCell>
+          <ListPageDataTableCell className="py-3 font-mono text-xs text-brand-slate">
+            {formatTariffCode(line.tariff_code)}
           </ListPageDataTableCell>
           <ListPageDataTableCell className="py-3 text-right tabular-nums">
             {formatQuantity(line.quantity)}
@@ -276,11 +277,12 @@ function EditableLineRow({
                 />
               ) : null}
             </div>
-            <p className="mt-0.5 font-mono text-xs text-brand-muted">
-              {formatTariffCode(line.tariff_code)}
-            </p>
           </>
         )}
+      </ListPageDataTableCell>
+
+      <ListPageDataTableCell className="py-3 font-mono text-xs text-brand-slate">
+        {formatTariffCode(line.tariff_code)}
       </ListPageDataTableCell>
 
       <ListPageDataTableCell className="py-3">

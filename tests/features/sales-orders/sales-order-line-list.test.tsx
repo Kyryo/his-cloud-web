@@ -40,15 +40,15 @@ describe("SalesOrderReadOnlyLineList", () => {
     const headers = within(table)
       .getAllByRole("columnheader")
       .map((header) => header.textContent?.trim());
-    expect(headers).toEqual(["Item", "Qty", "Price", "Total", "Actions"]);
+    expect(headers).toEqual(["Item", "Tariff", "Qty", "Price", "Total", "Actions"]);
 
     const row = within(table).getAllByRole("row")[1];
     const cells = within(row).getAllByRole("cell");
     expect(cells[0]).toHaveTextContent("Consultation");
-    expect(cells[0]).toHaveTextContent("CONS-01");
-    expect(cells[1]).toHaveTextContent("1");
-    expect(cells[2]).toHaveTextContent("15,000.00");
+    expect(cells[1]).toHaveTextContent("CONS-01");
+    expect(cells[2]).toHaveTextContent("1");
     expect(cells[3]).toHaveTextContent("15,000.00");
+    expect(cells[4]).toHaveTextContent("15,000.00");
   });
 });
 

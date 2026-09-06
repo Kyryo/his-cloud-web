@@ -589,7 +589,11 @@ export function SalesOrderProviderSelector({
               />
             </button>
           </PopoverTrigger>
-          <PopoverContent align="end" className={popoverSurfaceClassName}>
+          <PopoverContent
+            side="right"
+            align="start"
+            className={popoverSurfaceClassName}
+          >
             <ProvidersPanelContent
               providers={providers}
               canEdit={false}
@@ -625,7 +629,11 @@ export function SalesOrderProviderSelector({
             Assign provider
           </SecondaryButton>
         </PopoverTrigger>
-        <PopoverContent align="end" className={popoverSurfaceClassName}>
+        <PopoverContent
+          side="right"
+          align="start"
+          className={popoverSurfaceClassName}
+        >
           <ProviderSearchPanel
             title="Assign provider"
             description="Select who provided care for this order."
@@ -660,7 +668,11 @@ export function SalesOrderProviderSelector({
             />
           </button>
         </PopoverTrigger>
-        <PopoverContent align="end" className={popoverSurfaceClassName}>
+        <PopoverContent
+          side="right"
+          align="start"
+          className={popoverSurfaceClassName}
+        >
           {panelMode === "add" ? (
             <ProviderSearchPanel
               title="Add provider"
