@@ -3,11 +3,17 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { AppIcon } from "@/components/icons/app-icon";
+import { Badge } from "@/components/ui/badge";
 import { ROUTES } from "@/constants/routes";
+import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
 import { PaymentStatusBadge } from "@/features/payments/components/PaymentStatusBadge";
 import type { Payment } from "@/features/payments/types/payment.types";
-import { formatPaymentCustomer } from "@/features/payments/utils/format-payment";
-import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
+import {
+  formatPaymentCustomer,
+  formatPaymentDate,
+  formatPaymentMethod,
+} from "@/features/payments/utils/format-payment";
 
 type PaymentDetailHeaderProps = {
   payment: Payment;
@@ -17,6 +23,7 @@ type PaymentDetailHeaderProps = {
 export function PaymentDetailHeader({ payment, actions }: PaymentDetailHeaderProps) {
   const paymentLabel = payment.name || `Payment #${payment.id}`;
   const customerName = formatPaymentCustomer(payment);
+  const method = formatPaymentMethod(payment.payment_method);
 
   return (
     <DetailPageHeaderSection className="border-b-0 pb-3">
@@ -39,6 +46,20 @@ export function PaymentDetailHeader({ payment, actions }: PaymentDetailHeaderPro
               {paymentLabel}
             </span>
             <PaymentStatusBadge state={payment.state} />
+            {method !== "—" ? (
+              <Badge variant="outline" className="gap-1 font-normal text-brand-slate">
+                <AppIcon
+                  name="creditCard"
+                  size={12}
+                  className="size-3 text-brand-primary"
+                />
+                {method}
+              </Badge>
+            ) : null}
+          </div>
+
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-brand-muted">
+            <span>Paid {formatPaymentDate(payment.payment_date)}</span>
           </div>
         </div>
 

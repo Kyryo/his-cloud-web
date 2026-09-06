@@ -3,6 +3,15 @@ import type { ReactNode } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  ListPageDataTable,
+  ListPageDataTableBody,
+  ListPageDataTableCell,
+  ListPageDataTableHeader,
+  ListPageDataTableHeaderCell,
+  ListPageDataTableHeaderRow,
+  ListPageDataTableRow,
+} from "@/features/app-shell/components/page-layout";
 import { isInsuranceInvoice } from "@/features/claims/services/claims.service";
 import {
   LineRemittanceSettlementBadge,
@@ -30,32 +39,9 @@ function formatQuantity(value: number | string | null | undefined): string {
   }).format(quantity);
 }
 
-function formatTariffCode(value: string | null | undefined): string | null {
+function formatTariffCode(value: string | null | undefined): string {
   const trimmed = value?.trim();
-  return trimmed || null;
-}
-
-function LineFact({
-  label,
-  value,
-  variant = "outline",
-  mono = false,
-}: {
-  label: string;
-  value: string;
-  variant?: "outline" | "secondary";
-  mono?: boolean;
-}) {
-  return (
-    <Badge variant={variant} className="gap-1 font-normal">
-      <span className="text-[10px] font-medium uppercase tracking-wide text-brand-muted">
-        {label}
-      </span>
-      <span className={mono ? "font-mono text-brand-navy" : "text-brand-navy"}>
-        {value}
-      </span>
-    </Badge>
-  );
+  return trimmed || "—";
 }
 
 type InvoiceLineListProps = {
@@ -69,11 +55,12 @@ export function InvoiceLineList({
 }: InvoiceLineListProps) {
   const lines = invoice.lines ?? [];
   const showNonPayableBadges = isInsuranceInvoice(invoice);
+  const showSplitColumns = lines.some((line) => hasLinePaymentSplit(line));
   const payableCount = lines.filter((line) => !isInvoiceLineNonPayable(line)).length;
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-dash-border/80 pb-3">
+    <div className="space-y-4" data-testid="invoice-lines-list">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-sm font-semibold text-brand-navy">
             Line items ({lines.length})
@@ -94,85 +81,105 @@ export function InvoiceLineList({
         </div>
       </div>
 
-      <ul className="divide-y divide-dash-border/60" data-testid="invoice-lines-list">
-        {lines.map((line) => {
-          const tariffCode = formatTariffCode(line.tariff_code);
-          const showSplit = hasLinePaymentSplit(line);
+      <ListPageDataTable>
+        <ListPageDataTableHeader>
+          <ListPageDataTableHeaderRow>
+            <ListPageDataTableHeaderCell>Item</ListPageDataTableHeaderCell>
+            <ListPageDataTableHeaderCell>Tariff</ListPageDataTableHeaderCell>
+            <ListPageDataTableHeaderCell className="text-right">
+              Qty
+            </ListPageDataTableHeaderCell>
+            <ListPageDataTableHeaderCell className="text-right">
+              Price
+            </ListPageDataTableHeaderCell>
+            {showSplitColumns ? (
+              <>
+                <ListPageDataTableHeaderCell className="text-right">
+                  Insurer
+                </ListPageDataTableHeaderCell>
+                <ListPageDataTableHeaderCell className="text-right">
+                  Client
+                </ListPageDataTableHeaderCell>
+              </>
+            ) : null}
+            <ListPageDataTableHeaderCell className="text-right">
+              Total
+            </ListPageDataTableHeaderCell>
+            <ListPageDataTableHeaderCell className="w-12 pr-4">
+              <span className="sr-only">Actions</span>
+            </ListPageDataTableHeaderCell>
+          </ListPageDataTableHeaderRow>
+        </ListPageDataTableHeader>
+        <ListPageDataTableBody>
+          {lines.map((line) => {
+            const showSplit = showSplitColumns && hasLinePaymentSplit(line);
 
-          return (
-            <li
-              key={line.id}
-              className="flex items-start justify-between gap-3 py-3.5 first:pt-0"
-            >
-              <div className="min-w-0 flex-1">
-                <button
-                  type="button"
-                  onClick={() => onViewDetails(line)}
-                  className="text-left text-sm font-medium text-brand-navy hover:text-brand-primary"
-                >
-                  {line.name}
-                </button>
-                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                  {tariffCode ? (
-                    <LineFact label="Tariff" value={tariffCode} mono />
-                  ) : null}
-                  <LineFact
-                    label="Qty"
-                    value={formatQuantity(line.quantity)}
-                    variant="secondary"
-                  />
-                  <LineFact
-                    label="Price"
-                    value={formatAmountNumber(line.price_unit)}
-                  />
-                  {showNonPayableBadges && isInvoiceLineNonPayable(line) ? (
-                    <LineNonPayableBadge />
-                  ) : showNonPayableBadges ? (
-                    <Badge variant="success" className="font-normal">
-                      Payable
-                    </Badge>
-                  ) : null}
-                  {shouldShowRemittanceSettlementBadge(
-                    line.remittance_settlement_status,
-                  ) ? (
-                    <LineRemittanceSettlementBadge
-                      status={line.remittance_settlement_status}
-                    />
-                  ) : null}
-                  {showSplit ? (
-                    <>
-                      <LineFact
-                        label="Insurer"
-                        value={formatAmountNumber(line.insurer_due)}
-                        variant="secondary"
+            return (
+              <ListPageDataTableRow key={line.id}>
+                <ListPageDataTableCell className="py-3">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => onViewDetails(line)}
+                      className="text-left text-sm font-medium text-brand-navy hover:text-brand-primary"
+                    >
+                      {line.name}
+                    </button>
+                    {showNonPayableBadges && isInvoiceLineNonPayable(line) ? (
+                      <LineNonPayableBadge />
+                    ) : showNonPayableBadges ? (
+                      <Badge variant="success" className="font-normal">
+                        Payable
+                      </Badge>
+                    ) : null}
+                    {shouldShowRemittanceSettlementBadge(
+                      line.remittance_settlement_status,
+                    ) ? (
+                      <LineRemittanceSettlementBadge
+                        status={line.remittance_settlement_status}
                       />
-                      <LineFact
-                        label="Client"
-                        value={formatAmountNumber(line.client_due)}
-                      />
-                    </>
-                  ) : null}
-                </div>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <p className="text-sm font-semibold tabular-nums text-brand-navy">
+                    ) : null}
+                  </div>
+                </ListPageDataTableCell>
+                <ListPageDataTableCell className="py-3 font-mono text-xs text-brand-slate">
+                  {formatTariffCode(line.tariff_code)}
+                </ListPageDataTableCell>
+                <ListPageDataTableCell className="py-3 text-right tabular-nums">
+                  {formatQuantity(line.quantity)}
+                </ListPageDataTableCell>
+                <ListPageDataTableCell className="py-3 text-right tabular-nums">
+                  {formatAmountNumber(line.price_unit)}
+                </ListPageDataTableCell>
+                {showSplitColumns ? (
+                  <>
+                    <ListPageDataTableCell className="py-3 text-right tabular-nums">
+                      {showSplit ? formatAmountNumber(line.insurer_due) : "—"}
+                    </ListPageDataTableCell>
+                    <ListPageDataTableCell className="py-3 text-right tabular-nums">
+                      {showSplit ? formatAmountNumber(line.client_due) : "—"}
+                    </ListPageDataTableCell>
+                  </>
+                ) : null}
+                <ListPageDataTableCell className="py-3 text-right font-semibold tabular-nums text-brand-navy">
                   {formatInvoiceAmount(line.price_total)}
-                </p>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 text-brand-muted hover:text-brand-navy"
-                  aria-label={`View details for ${line.name}`}
-                  onClick={() => onViewDetails(line)}
-                >
-                  <Maximize2 className="size-4" aria-hidden="true" />
-                </Button>
-              </div>
-            </li>
-          );
-        })}
-      </ul>
+                </ListPageDataTableCell>
+                <ListPageDataTableCell className="py-3 pr-4">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 text-brand-muted hover:text-brand-navy"
+                    aria-label={`View details for ${line.name}`}
+                    onClick={() => onViewDetails(line)}
+                  >
+                    <Maximize2 className="size-4" aria-hidden="true" />
+                  </Button>
+                </ListPageDataTableCell>
+              </ListPageDataTableRow>
+            );
+          })}
+        </ListPageDataTableBody>
+      </ListPageDataTable>
     </div>
   );
 }

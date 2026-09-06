@@ -44,16 +44,16 @@ afterEach(() => {
 });
 
 describe("InvoiceSummaryPanel", () => {
-  it("shows 3 key figures at the top of the summary", () => {
+  it("shows total, paid, and balance as stacked summary fields", () => {
     render(<InvoiceSummaryPanel invoice={invoice} />);
 
     const stats = screen.getByTestId("invoice-summary-stats");
     expect(stats).toHaveTextContent("Total");
-    expect(stats).toHaveTextContent("10,000.00");
+    expect(stats).toHaveTextContent("10,000.00 MWK");
     expect(stats).toHaveTextContent("Paid");
-    expect(stats).toHaveTextContent("2,500.00");
+    expect(stats).toHaveTextContent("2,500.00 MWK");
     expect(stats).toHaveTextContent("Balance");
-    expect(stats).toHaveTextContent("7,500.00");
+    expect(stats).toHaveTextContent("7,500.00 MWK");
   });
 
   it("shows billing split and coverage details", () => {

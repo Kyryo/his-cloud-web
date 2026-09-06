@@ -33,7 +33,6 @@ import {
   sumInvoiceInsurerDue,
 } from "@/features/invoices/utils/sum-invoice-billing";
 import { collectInvoicePaymentRules } from "@/features/invoices/utils/collect-invoice-payment-rules";
-import { formatAmountNumber } from "@/features/sales-orders/utils/format-sales-order";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
 
@@ -66,47 +65,28 @@ export function InvoiceSummaryPanel({
         description="Billing totals and invoice details"
       />
 
-      {/* 3 Stats: Total, Paid, Balance */}
-      <dl
-        className="grid grid-cols-3 divide-x divide-dash-border/60 border-y border-dash-border/80 py-3"
-        data-testid="invoice-summary-stats"
-      >
-        <div className="pr-2">
-          <dt className="text-[10px] font-semibold uppercase tracking-wider text-dash-muted">
-            Total
-          </dt>
-          <dd className="mt-1 text-sm font-bold tabular-nums text-brand-navy">
-            {formatAmountNumber(invoice.amount_total)}
-          </dd>
-          <span className="text-[9px] uppercase tracking-wider text-dash-muted">MWK</span>
-        </div>
-        <div className="px-2">
-          <dt className="text-[10px] font-semibold uppercase tracking-wider text-dash-muted">
-            Paid
-          </dt>
-          <dd className="mt-1 text-sm font-bold tabular-nums text-emerald-700">
-            {formatAmountNumber(invoice.amount_paid)}
-          </dd>
-          <span className="text-[9px] uppercase tracking-wider text-dash-muted">MWK</span>
-        </div>
-        <div className="pl-2">
-          <dt className="text-[10px] font-semibold uppercase tracking-wider text-dash-muted">
-            Balance
-          </dt>
-          <dd
-            className={cn(
-              "mt-1 text-sm font-bold tabular-nums",
-              hasBalance ? "text-red-600" : "text-emerald-700",
-            )}
-          >
-            {formatAmountNumber(balanceAmount)}
-          </dd>
-          <span className="text-[9px] uppercase tracking-wider text-dash-muted">MWK</span>
-        </div>
-      </dl>
+      <div data-testid="invoice-summary-stats">
+        <DetailPageAsideSummarySection title="Totals" className="border-t-0 pt-0">
+          <DetailPageAsideSummaryField
+            label="Total"
+            value={formatInvoiceAmount(invoice.amount_total)}
+          />
+          <DetailPageAsideSummaryField
+            label="Paid"
+            value={formatInvoiceAmount(invoice.amount_paid)}
+          />
+          <DetailPageAsideSummaryField
+            label="Balance"
+            value={
+              <span className={hasBalance ? "text-red-600" : undefined}>
+                {formatInvoiceAmount(balanceAmount)}
+              </span>
+            }
+          />
+        </DetailPageAsideSummarySection>
+      </div>
 
-      {/* Billing & Payer Split */}
-      <DetailPageAsideSummarySection title="Billing" className="border-t-0 pt-0">
+      <DetailPageAsideSummarySection title="Billing">
         {showPaymentSplit ? (
           <>
             <DetailPageAsideSummaryAmountRow
