@@ -11,6 +11,7 @@ import type {
   UpdateVisitPreAuthorizationPayload,
   VisitDetail,
   VisitEncounter,
+  VisitEncounterBillingModePayload,
   VisitEncounterCreatePayload,
   VisitMemberBenefitsSnapshot,
   VisitQueueSummary,
@@ -158,6 +159,17 @@ export async function createVisitEncounter(
     method: "POST",
     body: payload,
   });
+}
+
+export async function changeVisitEncounterBillingMode(
+  visitUuid: string,
+  encounterUuid: string,
+  payload: VisitEncounterBillingModePayload,
+): Promise<VisitEncounter> {
+  return bffRequest<VisitEncounter>(
+    BFF_VISITS_ROUTES.encounterBillingMode(visitUuid, encounterUuid),
+    { method: "POST", body: payload },
+  );
 }
 
 export async function runVisitEncounterAction(

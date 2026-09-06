@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import { OpdActivityTabPanel } from "@/features/clinical-opd/components/tabs/OpdActivityTabPanel";
+import { OpdClientTabPanel } from "@/features/clinical-opd/components/tabs/OpdClientTabPanel";
 import { OpdDiagnosesTabPanel } from "@/features/clinical-opd/components/tabs/OpdDiagnosesTabPanel";
 import { OpdMedicationsTabPanel } from "@/features/clinical-opd/components/tabs/OpdMedicationsTabPanel";
 import { OpdOrdersTabPanel } from "@/features/clinical-opd/components/tabs/OpdOrdersTabPanel";
@@ -86,5 +87,7 @@ export function OpdEncounterTabPage({ tab }: OpdEncounterTabPageProps) {
           isActive
         />
       );
+    case "client":
+      return <OpdClientTabPanel isActive />;
   }
 }

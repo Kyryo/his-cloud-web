@@ -16,15 +16,15 @@ export function OpdQueuePageSkeleton() {
         <ListPageToolbarSkeleton showFilter />
       </ListPageHeaderSection>
 
-      <ListPageDataSectionsStack>
+      <ListPageDataSectionsStack className="space-y-0">
         <ListPageStatsSection>
           <OpdQueueSummaryStatsCards stats={null} isLoading />
         </ListPageStatsSection>
-      </ListPageDataSectionsStack>
 
-      <ListPageTableSection>
-        <OpdQueueTableSkeleton rows={8} />
-      </ListPageTableSection>
+        <ListPageTableSection>
+          <OpdQueueTableSkeleton rows={8} />
+        </ListPageTableSection>
+      </ListPageDataSectionsStack>
     </ListPageLayout>
   );
 }

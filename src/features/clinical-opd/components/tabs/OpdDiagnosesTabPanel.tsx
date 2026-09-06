@@ -1,5 +1,7 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
+
 import { EncounterDiagnosisPanel } from "@/features/clinical/components/EncounterDiagnosisPanel";
 import { OpdPhysicianTabShell } from "@/features/clinical-opd/components/detail/OpdPhysicianTabShell";
 import { OpdEncounterTabSkeleton } from "@/features/clinical-opd/components/detail/OpdEncounterTabSkeleton";
@@ -15,6 +17,8 @@ export function OpdDiagnosesTabPanel({
   encounterUuid,
   isActive = true,
 }: OpdDiagnosesTabPanelProps) {
+  const queryClient = useQueryClient();
+
   if (!isActive) {
     return null;
   }
@@ -29,6 +33,12 @@ export function OpdDiagnosesTabPanel({
         visitUuid={visitUuid}
         encounterUuid={encounterUuid}
         sourcePlatform="CLINICAL"
+        onDiagnosesChanged={async () => {
+          await queryClient.invalidateQueries({ queryKey: ["opd-queue"] });
+          await queryClient.invalidateQueries({
+            queryKey: ["encounter-timeline", visitUuid, encounterUuid],
+          });
+        }}
       />
     </OpdPhysicianTabShell>
   );

@@ -4,7 +4,8 @@ import {
   handleInventoryListGet,
 } from "@/lib/server/inventory-bff-handlers";
 
-const PRODUCT_LIST_QUERY_KEYS = [
+/** Allowlist of list filters forwarded to HMIS (incl. OPD order-tab classification flags). */
+export const PRODUCT_LIST_QUERY_KEYS = [
   "page",
   "page_size",
   "q",
@@ -14,6 +15,11 @@ const PRODUCT_LIST_QUERY_KEYS = [
   "purchase_ok",
   "default_code",
   "barcode",
+  "is_lab_test",
+  "is_radiology",
+  "is_procedure",
+  "is_sundry",
+  "procedure_context",
 ] as const;
 
 export async function GET(request: Request) {

@@ -16,12 +16,12 @@ export function OpdQueueSummaryStatsCards({
   if (isLoading) {
     return (
       <div
-        className="grid grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
+        className="grid grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
         data-testid="opd-queue-summary-stats"
         aria-busy="true"
       >
         {Array.from({ length: 4 }, (_, index) => (
-          <div key={index} className="p-3.5 sm:p-4">
+          <div key={index} className="px-3.5 py-3 sm:px-4 sm:py-3.5">
             <Skeleton className="h-3.5 w-20" />
             <Skeleton className="mt-2.5 h-8 w-16" />
             <Skeleton className="mt-1.5 h-3 w-28" />
@@ -38,10 +38,10 @@ export function OpdQueueSummaryStatsCards({
 
   return (
     <dl
-      className="grid grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
+      className="grid grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
       data-testid="opd-queue-summary-stats"
     >
-      <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
+      <div className="px-3.5 py-3 transition-colors hover:bg-dash-canvas/40 sm:px-4 sm:py-3.5">
         <div className="flex items-center gap-2">
           <span className="size-2 shrink-0 rounded-full bg-brand-primary" />
           <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
@@ -54,7 +54,7 @@ export function OpdQueueSummaryStatsCards({
         <p className="mt-0.5 text-xs text-brand-muted">Active OPD queue</p>
       </div>
 
-      <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
+      <div className="px-3.5 py-3 transition-colors hover:bg-dash-canvas/40 sm:px-4 sm:py-3.5">
         <div className="flex items-center gap-2">
           <span className="size-2 shrink-0 rounded-full bg-slate-400" />
           <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
@@ -67,7 +67,7 @@ export function OpdQueueSummaryStatsCards({
         <p className="mt-0.5 text-xs text-brand-muted">Awaiting clinical review</p>
       </div>
 
-      <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
+      <div className="px-3.5 py-3 transition-colors hover:bg-dash-canvas/40 sm:px-4 sm:py-3.5">
         <div className="flex items-center gap-2">
           {inProgressCount > 0 ? (
             <span className="relative flex size-2 shrink-0">
@@ -93,7 +93,7 @@ export function OpdQueueSummaryStatsCards({
         </p>
       </div>
 
-      <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
+      <div className="px-3.5 py-3 transition-colors hover:bg-dash-canvas/40 sm:px-4 sm:py-3.5">
         <div className="flex items-center gap-2">
           <span className="size-2 shrink-0 rounded-full bg-emerald-500" />
           <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">

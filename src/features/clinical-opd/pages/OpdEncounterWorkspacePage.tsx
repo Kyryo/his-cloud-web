@@ -40,7 +40,6 @@ export function OpdEncounterWorkspacePage({
   const { data: queue = [], isLoading: isQueueLoading } = useOpdQueue();
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [isCustomerLoading, setIsCustomerLoading] = useState(false);
-  const [showSummaryPanel, setShowSummaryPanel] = useState(false);
 
   const encounter = useMemo(
     () =>
@@ -163,13 +162,7 @@ export function OpdEncounterWorkspacePage({
           actions={<OpdEncounterActions customer={customer} />}
         />
         <DetailPageTabsSection>
-          <OpdEncounterWorkspaceBody
-            customer={customer}
-            showSummaryPanel={showSummaryPanel}
-            onToggleSummaryPanel={() =>
-              setShowSummaryPanel((current) => !current)
-            }
-          >
+          <OpdEncounterWorkspaceBody>
             {isCustomerLoading && !customer ? (
               <OpdEncounterTabSkeleton className="pt-4" rows={4} />
             ) : (

@@ -26,10 +26,24 @@ export const CLINICAL_OPD_API_PATHS = {
     prescriptionUuid: string,
   ) =>
     `/clinical/visits/${visitUuid}/encounters/${encounterUuid}/prescriptions/${prescriptionUuid}/finalize/`,
+  cancelPrescription: (
+    visitUuid: string,
+    encounterUuid: string,
+    prescriptionUuid: string,
+  ) =>
+    `/clinical/visits/${visitUuid}/encounters/${encounterUuid}/prescriptions/${prescriptionUuid}/cancel/`,
   encounterOrders: (visitUuid: string, encounterUuid: string) =>
     `/clinical/visits/${visitUuid}/encounters/${encounterUuid}/orders/`,
+  cancelOrder: (
+    visitUuid: string,
+    encounterUuid: string,
+    orderUuid: string,
+  ) =>
+    `/clinical/visits/${visitUuid}/encounters/${encounterUuid}/orders/${orderUuid}/cancel/`,
   encounterTimeline: (visitUuid: string, encounterUuid: string) =>
     `/clinical/visits/${visitUuid}/encounters/${encounterUuid}/timeline/`,
   encounterHistorySummary: (visitUuid: string, encounterUuid: string) =>
     `/clinical/visits/${visitUuid}/encounters/${encounterUuid}/history-summary/`,
+  encounterClinicalHistory: (visitUuid: string, encounterUuid: string) =>
+    `/clinical/visits/${visitUuid}/encounters/${encounterUuid}/clinical-history/`,
 } as const;

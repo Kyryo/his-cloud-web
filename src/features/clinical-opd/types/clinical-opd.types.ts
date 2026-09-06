@@ -63,11 +63,32 @@ export type EncounterPrescription = {
   frequency: string;
   duration: string;
   quantity: string;
+  clinical_uom: string;
+  charge_quantity: string;
   instructions: string;
   is_prn: boolean;
   clinical_notes: string;
   status: string;
+  visit_order_uuid: string | null;
   prescribed_by_name: string | null;
+};
+
+export type EncounterClinicalOrder = {
+  uuid: string;
+  item_type: string;
+  item_type_display: string;
+  description: string;
+  clinical_quantity: string;
+  clinical_uom: string;
+  charge_quantity: string;
+  quantity: string;
+  status: string;
+  status_display: string;
+  ordered_at: string | null;
+  product: number | null;
+  product_uuid: string | null;
+  created_by_name: string | null;
+  is_active: boolean;
 };
 
 export type ClinicalTimelineEvent = {
@@ -76,6 +97,42 @@ export type ClinicalTimelineEvent = {
   summary: string;
   actor: string | null;
   object_uuid: string;
+};
+
+export type ClinicalHistoryVisit = {
+  visit_uuid: string;
+  encounter_uuid: string;
+  visit_date: string | null;
+  department: string | null;
+  status: string;
+  started_at: string | null;
+  ended_at: string | null;
+};
+
+export type ClinicalHistoryNote = {
+  kind: "physical_exam" | "clinical_note" | "nursing_note";
+  uuid: string;
+  title: string;
+  body: string;
+  occurred_at: string | null;
+  recorded_by_name: string | null;
+};
+
+export type ClinicalVisitHistory = {
+  visits: ClinicalHistoryVisit[];
+  selected_visit_uuid: string | null;
+  selected_encounter_uuid: string | null;
+  notes: ClinicalHistoryNote[];
+  orders: EncounterClinicalOrder[];
+  diagnoses: Array<{
+    uuid: string;
+    code: string;
+    description: string;
+    status: string;
+    is_primary: boolean;
+    created_at: string;
+  }>;
+  medications: EncounterPrescription[];
 };
 
 export type ClinicalRoleCapability = {
@@ -101,7 +158,8 @@ export type ClinicalCapabilityKey =
   | "view_orders_tab"
   | "view_diagnoses_tab"
   | "view_medications_tab"
-  | "view_activity_tab";
+  | "view_activity_tab"
+  | "view_client_tab";
 
 export type MyClinicalCapabilities = {
   capabilities: ClinicalCapabilityKey[];

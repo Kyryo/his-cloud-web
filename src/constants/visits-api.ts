@@ -18,6 +18,8 @@ export const VISITS_API_PATHS = {
     `/visits/${visitUuid}/encounters/${encounterUuid}/complete/`,
   encounterCancel: (visitUuid: string, encounterUuid: string) =>
     `/visits/${visitUuid}/encounters/${encounterUuid}/cancel/`,
+  encounterBillingMode: (visitUuid: string, encounterUuid: string) =>
+    `/visits/${visitUuid}/encounters/${encounterUuid}/billing-mode/`,
   customerVisits: (customerUuid: string, query?: { limit?: number }) => {
     const params = new URLSearchParams({
       customer_uuid: customerUuid,

@@ -83,6 +83,7 @@ export type InventoryProductMeta = {
   is_sundry?: boolean;
   liquid_or_cream?: boolean;
   is_lab_test?: boolean;
+  is_radiology?: boolean;
   is_procedure?: boolean;
   dental_only_procedure?: boolean;
   opd_only_procedure?: boolean;

@@ -12,6 +12,15 @@ describe("opd-encounter-tabs", () => {
     expect(opdEncounterTabHref("visit-1", "enc-1")).toBe(
       "/clinical/opd/visit-1/enc-1",
     );
+    expect(opdEncounterTabHref("visit-1", "enc-1", "activity")).toBe(
+      "/clinical/opd/visit-1/enc-1",
+    );
+    expect(opdEncounterTabHref("visit-1", "enc-1", "vital-signs")).toBe(
+      "/clinical/opd/visit-1/enc-1/vital-signs",
+    );
+    expect(opdEncounterTabHref("visit-1", "enc-1", "client")).toBe(
+      "/clinical/opd/visit-1/enc-1/client",
+    );
     expect(opdEncounterTabHref("visit-1", "enc-1", "diagnoses")).toBe(
       "/clinical/opd/visit-1/enc-1/diagnoses",
     );
@@ -27,18 +36,25 @@ describe("opd-encounter-tabs", () => {
     ).toBe("medications");
     expect(
       opdEncounterTabFromPathname(
-        "/clinical/opd/visit-1/enc-1/activity",
+        "/clinical/opd/visit-1/enc-1/vital-signs",
         "visit-1",
         "enc-1",
       ),
-    ).toBe("activity");
+    ).toBe("vital-signs");
+    expect(
+      opdEncounterTabFromPathname(
+        "/clinical/opd/visit-1/enc-1/client",
+        "visit-1",
+        "enc-1",
+      ),
+    ).toBe("client");
     expect(
       opdEncounterTabFromPathname(
         "/clinical/opd/visit-1/enc-1",
         "visit-1",
         "enc-1",
       ),
-    ).toBe("vital-signs");
+    ).toBe("activity");
   });
 
   it("filters visible tabs by workspace tab capabilities", () => {
@@ -47,16 +63,18 @@ describe("opd-encounter-tabs", () => {
     ).toEqual(["vital-signs"]);
     expect(
       getVisibleOpdEncounterTabs([
+        "view_activity_tab",
         "view_physical_examination_tab",
         "view_diagnoses_tab",
         "view_medications_tab",
-        "view_activity_tab",
+        "view_client_tab",
       ]).map((tab) => tab.id),
     ).toEqual([
+      "activity",
       "physical-examination",
       "diagnoses",
       "medications",
-      "activity",
+      "client",
     ]);
   });
 
@@ -73,5 +91,11 @@ describe("opd-encounter-tabs", () => {
         "nurse",
       ),
     ).toBe("vital-signs");
+    expect(
+      getDefaultOpdEncounterTab(
+        ["view_activity_tab", "view_vital_signs_tab", "view_client_tab"],
+        "physician",
+      ),
+    ).toBe("activity");
   });
 });

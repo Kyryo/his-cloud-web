@@ -1,28 +1,44 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
+  cancelOrder,
+  cancelPrescription,
   createClinicalNote,
   createEncounterObservation,
   createNursingNote,
+  createOrder,
   createPhysicalExam,
-  updatePhysicalExam,
   createPrescription,
   fetchClinicalNotes,
+  fetchEncounterClinicalHistory,
   fetchEncounterObservations,
   fetchEncounterTimeline,
   fetchNursingNotes,
   fetchObservationDefinitions,
   fetchOpdQueue,
+  fetchOrders,
   fetchPhysicalExams,
   fetchPrescriptions,
   fetchRoleCapabilities,
   fetchMyClinicalCapabilities,
   finalizePrescription,
+  updatePhysicalExam,
   updateRoleCapabilities,
 } from "@/features/clinical-opd/services/clinical-opd.service";
 
 export function opdQueueQueryKey(status?: string, clinicUuid?: string) {
   return ["opd-queue", status ?? "all", clinicUuid ?? "all"] as const;
+}
+
+async function invalidateEncounterWorkspaceQueries(
+  queryClient: ReturnType<typeof useQueryClient>,
+  visitUuid: string,
+  encounterUuid: string,
+) {
+  await queryClient.invalidateQueries({
+    queryKey: ["encounter-timeline", visitUuid, encounterUuid],
+  });
+  await queryClient.invalidateQueries({ queryKey: ["opd-queue"] });
 }
 
 export function useOpdQueue(status?: string, clinicUuid?: string) {
@@ -64,6 +80,10 @@ export function useEncounterWorkspace(
     queryKey: ["encounter-prescriptions", visitUuid, encounterUuid],
     queryFn: () => fetchPrescriptions(visitUuid, encounterUuid),
   });
+  const orders = useQuery({
+    queryKey: ["encounter-orders", visitUuid, encounterUuid],
+    queryFn: () => fetchOrders(visitUuid, encounterUuid),
+  });
   const timeline = useQuery({
     queryKey: ["encounter-timeline", visitUuid, encounterUuid],
     queryFn: () => fetchEncounterTimeline(visitUuid, encounterUuid),
@@ -75,6 +95,7 @@ export function useEncounterWorkspace(
     physicalExams,
     clinicalNotes,
     prescriptions,
+    orders,
     timeline,
   };
 }
@@ -88,9 +109,11 @@ export function useCreateObservation(visitUuid: string, encounterUuid: string) {
       await queryClient.invalidateQueries({
         queryKey: ["encounter-observations", visitUuid, encounterUuid],
       });
-      await queryClient.invalidateQueries({
-        queryKey: ["encounter-timeline", visitUuid, encounterUuid],
-      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
     },
   });
 }
@@ -104,9 +127,11 @@ export function useCreateNursingNote(visitUuid: string, encounterUuid: string) {
       await queryClient.invalidateQueries({
         queryKey: ["encounter-nursing-notes", visitUuid, encounterUuid],
       });
-      await queryClient.invalidateQueries({
-        queryKey: ["encounter-timeline", visitUuid, encounterUuid],
-      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
     },
   });
 }
@@ -120,9 +145,11 @@ export function useCreatePhysicalExam(visitUuid: string, encounterUuid: string) 
       await queryClient.invalidateQueries({
         queryKey: ["encounter-physical-exams", visitUuid, encounterUuid],
       });
-      await queryClient.invalidateQueries({
-        queryKey: ["encounter-timeline", visitUuid, encounterUuid],
-      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
     },
   });
 }
@@ -141,9 +168,11 @@ export function useUpdatePhysicalExam(visitUuid: string, encounterUuid: string) 
       await queryClient.invalidateQueries({
         queryKey: ["encounter-physical-exams", visitUuid, encounterUuid],
       });
-      await queryClient.invalidateQueries({
-        queryKey: ["encounter-timeline", visitUuid, encounterUuid],
-      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
     },
   });
 }
@@ -157,9 +186,11 @@ export function useCreateClinicalNote(visitUuid: string, encounterUuid: string) 
       await queryClient.invalidateQueries({
         queryKey: ["encounter-clinical-notes", visitUuid, encounterUuid],
       });
-      await queryClient.invalidateQueries({
-        queryKey: ["encounter-timeline", visitUuid, encounterUuid],
-      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
     },
   });
 }
@@ -203,6 +234,11 @@ export function useCreatePrescription(visitUuid: string, encounterUuid: string) 
       await queryClient.invalidateQueries({
         queryKey: ["encounter-prescriptions", visitUuid, encounterUuid],
       });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
     },
   });
 }
@@ -217,8 +253,112 @@ export function useFinalizePrescription(visitUuid: string, encounterUuid: string
         queryKey: ["encounter-prescriptions", visitUuid, encounterUuid],
       });
       await queryClient.invalidateQueries({
-        queryKey: ["encounter-timeline", visitUuid, encounterUuid],
+        queryKey: ["encounter-orders", visitUuid, encounterUuid],
       });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
     },
+  });
+}
+
+export function useCancelPrescription(visitUuid: string, encounterUuid: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (prescriptionUuid: string) =>
+      cancelPrescription(visitUuid, encounterUuid, prescriptionUuid),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-prescriptions", visitUuid, encounterUuid],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-orders", visitUuid, encounterUuid],
+      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
+    },
+  });
+}
+
+export function useEncounterOrders(visitUuid: string, encounterUuid: string) {
+  return useQuery({
+    queryKey: ["encounter-orders", visitUuid, encounterUuid],
+    queryFn: () => fetchOrders(visitUuid, encounterUuid),
+  });
+}
+
+export function useCreateOrder(visitUuid: string, encounterUuid: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: Record<string, unknown>) =>
+      createOrder(visitUuid, encounterUuid, payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-orders", visitUuid, encounterUuid],
+      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
+    },
+  });
+}
+
+export function useCancelOrder(visitUuid: string, encounterUuid: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (orderUuid: string) =>
+      cancelOrder(visitUuid, encounterUuid, orderUuid),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-orders", visitUuid, encounterUuid],
+      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
+    },
+  });
+}
+
+export function encounterClinicalHistoryQueryKey(
+  visitUuid: string,
+  encounterUuid: string,
+  historyEncounterUuid?: string | null,
+) {
+  return [
+    "encounter-clinical-history",
+    visitUuid,
+    encounterUuid,
+    historyEncounterUuid ?? "latest",
+  ] as const;
+}
+
+export function useEncounterClinicalHistory(
+  visitUuid: string,
+  encounterUuid: string,
+  historyEncounterUuid?: string | null,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: encounterClinicalHistoryQueryKey(
+      visitUuid,
+      encounterUuid,
+      historyEncounterUuid,
+    ),
+    queryFn: () =>
+      fetchEncounterClinicalHistory(
+        visitUuid,
+        encounterUuid,
+        historyEncounterUuid,
+      ),
+    enabled: enabled && Boolean(visitUuid && encounterUuid),
   });
 }

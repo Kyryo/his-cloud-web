@@ -45,6 +45,21 @@ function buildCatalogQuery(filters: CatalogListFilters = {}): string {
   if (filters.barcode) params.set("barcode", filters.barcode);
   if (filters.include_inactive) params.set("include_inactive", "true");
   if (filters.currency_code) params.set("currency_code", filters.currency_code);
+  if (filters.is_lab_test !== undefined) {
+    params.set("is_lab_test", String(filters.is_lab_test));
+  }
+  if (filters.is_radiology !== undefined) {
+    params.set("is_radiology", String(filters.is_radiology));
+  }
+  if (filters.is_procedure !== undefined) {
+    params.set("is_procedure", String(filters.is_procedure));
+  }
+  if (filters.is_sundry !== undefined) {
+    params.set("is_sundry", String(filters.is_sundry));
+  }
+  if (filters.procedure_context) {
+    params.set("procedure_context", filters.procedure_context);
+  }
   const query = params.toString();
   return query ? `?${query}` : "";
 }

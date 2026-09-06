@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { useCallback, useState } from "react";
 
 import {
   Dialog,
@@ -22,6 +23,8 @@ type SectionedDialogProps = {
   headerExtra?: ReactNode;
   className?: string;
   contentClassName?: string;
+  /** When false, outside click / Escape shake instead of closing. */
+  dismissible?: boolean;
   "data-testid"?: string;
 };
 
@@ -35,15 +38,45 @@ export function SectionedDialog({
   headerExtra,
   className,
   contentClassName,
+  dismissible = true,
   "data-testid": dataTestId,
 }: SectionedDialogProps) {
+  const [isShaking, setIsShaking] = useState(false);
+
+  const triggerShake = useCallback(() => {
+    setIsShaking(false);
+    requestAnimationFrame(() => {
+      setIsShaking(true);
+    });
+  }, []);
+
+  const handleDismissAttempt = useCallback(
+    (event: { preventDefault: () => void }) => {
+      if (dismissible) {
+        return;
+      }
+      event.preventDefault();
+      triggerShake();
+    },
+    [dismissible, triggerShake],
+  );
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
           "flex max-h-[90vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl",
+          isShaking && "animate-otp-shake",
           className,
         )}
+        onPointerDownOutside={handleDismissAttempt}
+        onInteractOutside={handleDismissAttempt}
+        onEscapeKeyDown={handleDismissAttempt}
+        onAnimationEnd={(event) => {
+          if (event.animationName === "otp-shake") {
+            setIsShaking(false);
+          }
+        }}
         data-testid={dataTestId}
       >
         <div

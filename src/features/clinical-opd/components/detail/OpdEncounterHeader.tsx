@@ -3,7 +3,7 @@
 import { Building2, Calendar, CreditCard, Hash, Mail, Phone } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { ClientAvatar } from "@/components/client-avatar";
+import { UserIdenticon } from "@/components/UserIdenticon";
 import { Badge } from "@/components/ui/badge";
 import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
 import { OpdEncounterStatusBadge } from "@/features/clinical-opd/components/OpdEncounterStatusBadge";
@@ -31,14 +31,21 @@ export function OpdEncounterHeader({
     ? formatCustomerName(customer)
     : (encounter?.customer_name ?? "OPD encounter");
   const ageDisplay = customer ? formatAdaptiveAge(customer.dob) : null;
+  const identiconSeed =
+    customer?.uuid ||
+    customer?.customer_identifier ||
+    encounter?.customer_uuid ||
+    fullName;
 
   return (
     <DetailPageHeaderSection className="border-b border-dash-border/80 bg-white px-4 py-4 sm:px-6 sm:py-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex min-w-0 flex-1 items-start gap-3.5 sm:gap-4">
-          <ClientAvatar
+          <UserIdenticon
+            seed={identiconSeed}
             name={fullName}
-            className="size-12 shrink-0 text-base font-semibold shadow-2xs ring-2 ring-dash-border/70 sm:size-14 sm:text-lg"
+            className="size-12 shrink-0 rounded-lg shadow-2xs sm:size-14"
+            fallbackClassName="text-base font-semibold sm:text-lg"
           />
 
           <div className="min-w-0 flex-1 space-y-2">

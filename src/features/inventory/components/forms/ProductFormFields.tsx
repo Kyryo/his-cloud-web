@@ -49,6 +49,7 @@ export function ProductFormFields({
 }: ProductFormFieldsProps) {
   const isSundry = form.watch("is_sundry");
   const isLabTest = form.watch("is_lab_test");
+  const isRadiology = form.watch("is_radiology");
   const isStorableProduct = productType === "product";
   const isServiceProduct = productType === "service";
 
@@ -261,7 +262,6 @@ export function ProductFormFields({
                     field.onChange(checked);
                     if (checked) {
                       form.setValue("is_drug", false);
-                      form.setValue("liquid_or_cream", false);
                     }
                   }}
                   data-testid={`${testIdPrefix}-is-sundry`}
@@ -281,14 +281,14 @@ export function ProductFormFields({
                   Liquid or cream
                 </FormLabel>
                 <p className="text-xs text-brand-muted">
-                  Only available for drug products.
+                  Available for drug or sundry products.
                 </p>
                 <FormMessage />
               </div>
               <FormControl>
                 <Switch
                   checked={field.value}
-                  disabled={!isDrug}
+                  disabled={!isDrug && !isSundry}
                   onCheckedChange={field.onChange}
                   data-testid={`${testIdPrefix}-liquid-or-cream`}
                 />
@@ -308,22 +308,57 @@ export function ProductFormFields({
                 </FormLabel>
                 <p className="text-xs text-brand-muted">
                   Only service products can be marked as lab tests. Cannot be
-                  combined with procedures.
+                  combined with radiology or procedures.
                 </p>
                 <FormMessage />
               </div>
               <FormControl>
                 <Switch
                   checked={field.value}
-                  disabled={!isServiceProduct || isProcedure}
+                  disabled={!isServiceProduct || isProcedure || isRadiology}
                   onCheckedChange={(checked) => {
                     field.onChange(checked);
                     if (checked) {
                       form.setValue("is_procedure", false);
+                      form.setValue("is_radiology", false);
                       form.setValue("procedure_scope", "");
                     }
                   }}
                   data-testid={`${testIdPrefix}-is-lab-test`}
+                />
+              </FormControl>
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="is_radiology"
+          render={({ field }) => (
+            <FormItem className="flex items-center justify-between gap-4 space-y-0 rounded-lg border border-brand-border p-4">
+              <div className="space-y-1">
+                <FormLabel className="text-sm font-medium text-brand-navy">
+                  Radiology
+                </FormLabel>
+                <p className="text-xs text-brand-muted">
+                  Only service products can be marked as radiology. Cannot be
+                  combined with lab tests or procedures.
+                </p>
+                <FormMessage />
+              </div>
+              <FormControl>
+                <Switch
+                  checked={field.value}
+                  disabled={!isServiceProduct || isProcedure || isLabTest}
+                  onCheckedChange={(checked) => {
+                    field.onChange(checked);
+                    if (checked) {
+                      form.setValue("is_procedure", false);
+                      form.setValue("is_lab_test", false);
+                      form.setValue("procedure_scope", "");
+                    }
+                  }}
+                  data-testid={`${testIdPrefix}-is-radiology`}
                 />
               </FormControl>
             </FormItem>
@@ -341,18 +376,19 @@ export function ProductFormFields({
                 </FormLabel>
                 <p className="text-xs text-brand-muted">
                   Only service products can be marked as procedures. Cannot be
-                  combined with lab tests.
+                  combined with lab tests or radiology.
                 </p>
                 <FormMessage />
               </div>
               <FormControl>
                 <Switch
                   checked={field.value}
-                  disabled={!isServiceProduct || isLabTest}
+                  disabled={!isServiceProduct || isLabTest || isRadiology}
                   onCheckedChange={(checked) => {
                     field.onChange(checked);
                     if (checked) {
                       form.setValue("is_lab_test", false);
+                      form.setValue("is_radiology", false);
                     }
                   }}
                   data-testid={`${testIdPrefix}-is-procedure`}
@@ -437,12 +473,15 @@ export function ProductFormFields({
                 Can be purchased
               </FormLabel>
               <p className="text-xs text-brand-muted">
-                Allow this product on purchase orders and receipts.
+                {productType === "service"
+                  ? "Service products cannot be purchased."
+                  : "Allow this product on purchase orders and receipts."}
               </p>
             </div>
             <FormControl>
               <Switch
                 checked={field.value}
+                disabled={productType === "service"}
                 onCheckedChange={field.onChange}
                 data-testid={`${testIdPrefix}-purchase-ok`}
               />

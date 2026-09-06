@@ -20,6 +20,7 @@ import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb"
 import { CustomerVisitStatusBadge } from "@/features/customers/components/CustomerVisitStatusBadge";
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { formatVisitStartedBy } from "@/features/customers/utils/format-visit-started-by";
+import { AddVisitEncounterDialog } from "@/features/visits/components/AddVisitEncounterDialog";
 import {
   closeVisit,
   fetchVisit,
@@ -68,6 +69,7 @@ export function VisitDetailPage({ visitUuid }: VisitDetailPageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionKey, setActionKey] = useState<string | null>(null);
+  const [addEncounterOpen, setAddEncounterOpen] = useState(false);
 
   useAppBreadcrumb(visit?.customer_name ?? null);
 
@@ -257,11 +259,23 @@ export function VisitDetailPage({ visitUuid }: VisitDetailPageProps) {
 
         <DetailPageMainSection>
           <div className="rounded-2xl border border-brand-border bg-white">
-            <div className="border-b border-brand-border px-6 py-4">
-              <h2 className="text-base font-semibold text-brand-navy">Encounters</h2>
-              <p className="text-sm text-brand-muted">
-                Department-level clinical units inside this visit.
-              </p>
+            <div className="flex flex-wrap items-start justify-between gap-3 border-b border-brand-border px-6 py-4">
+              <div>
+                <h2 className="text-base font-semibold text-brand-navy">Encounters</h2>
+                <p className="text-sm text-brand-muted">
+                  Department-level clinical units inside this visit.
+                </p>
+              </div>
+              {visit.status === "active" ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => setAddEncounterOpen(true)}
+                  data-testid="visit-add-encounter-button"
+                >
+                  Add encounter
+                </Button>
+              ) : null}
             </div>
 
             {visit.encounters.length === 0 ? (
@@ -286,6 +300,13 @@ export function VisitDetailPage({ visitUuid }: VisitDetailPageProps) {
                         {encounter.location_name || "No location"} ·{" "}
                         {encounter.clinician_name || "Unassigned clinician"}
                       </p>
+                      {encounter.billing_mode ? (
+                        <p className="mt-1 text-xs text-brand-muted">
+                          {encounter.billing_mode === "separate_department"
+                            ? "Separate bill for this department"
+                            : "One bill for this visit"}
+                        </p>
+                      ) : null}
                       {encounter.started_at ? (
                         <p className="mt-1 text-xs text-brand-muted">
                           Started {formatDisplayDateTime(encounter.started_at)}
@@ -331,6 +352,15 @@ export function VisitDetailPage({ visitUuid }: VisitDetailPageProps) {
           </div>
         </DetailPageMainSection>
       </DetailPageTabsSection>
+
+      <AddVisitEncounterDialog
+        visit={visit}
+        open={addEncounterOpen}
+        onOpenChange={setAddEncounterOpen}
+        onCreated={() => {
+          void loadVisit();
+        }}
+      />
     </DetailPageLayout>
   );
 }

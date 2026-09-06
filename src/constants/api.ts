@@ -103,6 +103,8 @@ export const BFF_VISITS_ROUTES = {
     `/api/visits/${visitUuid}/encounters/${encounterUuid}/complete`,
   encounterCancel: (visitUuid: string, encounterUuid: string) =>
     `/api/visits/${visitUuid}/encounters/${encounterUuid}/cancel`,
+  encounterBillingMode: (visitUuid: string, encounterUuid: string) =>
+    `/api/visits/${visitUuid}/encounters/${encounterUuid}/billing-mode`,
   consultationServicesCatalog: "/api/consultation-services/catalog",
 } as const;
 
@@ -154,10 +156,24 @@ export const BFF_CLINICAL_OPD_ROUTES = {
     prescriptionUuid: string,
   ) =>
     `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/prescriptions/${prescriptionUuid}/finalize`,
+  cancelPrescription: (
+    visitUuid: string,
+    encounterUuid: string,
+    prescriptionUuid: string,
+  ) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/prescriptions/${prescriptionUuid}/cancel`,
   encounterOrders: (visitUuid: string, encounterUuid: string) =>
     `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/orders`,
+  cancelOrder: (
+    visitUuid: string,
+    encounterUuid: string,
+    orderUuid: string,
+  ) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/orders/${orderUuid}/cancel`,
   encounterTimeline: (visitUuid: string, encounterUuid: string) =>
     `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/timeline`,
+  encounterClinicalHistory: (visitUuid: string, encounterUuid: string) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/clinical-history`,
 } as const;
 
 /** Browser-facing BFF insurance catalog routes (same origin). */

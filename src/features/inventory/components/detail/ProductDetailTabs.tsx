@@ -69,6 +69,7 @@ export function ProductDetailTabs({
           <ProductDetailSummaryTab
             product={product}
             isActive={activeTab === "summary"}
+            onProductUpdated={onProductUpdated}
           />
           <ProductDetailTariffCodesTab
             product={product}

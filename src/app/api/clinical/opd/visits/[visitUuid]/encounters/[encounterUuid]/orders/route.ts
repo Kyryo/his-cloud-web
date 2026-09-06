@@ -1,14 +1,9 @@
 import { CLINICAL_OPD_API_PATHS } from "@/constants/clinical-opd-api";
-import { handleClinicalCreate } from "@/lib/server/clinical-bff-handlers";
+import { buildEncounterListHandlers } from "@/lib/server/clinical-opd-bff";
 
-type RouteContext = {
-  params: Promise<{ visitUuid: string; encounterUuid: string }>;
-};
+const handlers = buildEncounterListHandlers(
+  CLINICAL_OPD_API_PATHS.encounterOrders,
+);
 
-export async function POST(request: Request, context: RouteContext) {
-  const { visitUuid, encounterUuid } = await context.params;
-  return handleClinicalCreate(
-    request,
-    CLINICAL_OPD_API_PATHS.encounterOrders(visitUuid, encounterUuid),
-  );
-}
+export const GET = handlers.GET;
+export const POST = handlers.POST;

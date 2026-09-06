@@ -238,7 +238,7 @@ function PhysicalExaminationFormSection({
             form={PHYSICAL_EXAM_FORM_ID}
             disabled={isSaving}
           >
-            {isSaving ? "Saving..." : "Save examination"}
+            {isSaving ? "Saving..." : "Save"}
           </Button>
           <Button
             type="button"

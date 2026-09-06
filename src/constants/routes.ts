@@ -86,16 +86,25 @@ export const ROUTES = {
   clinicalOpdEncounterTab: (
     visitUuid: string,
     encounterUuid: string,
-    tab?: "vital-signs" | "physical-examination" | "orders" | "diagnoses" | "medications",
+    tab?:
+      | "activity"
+      | "vital-signs"
+      | "physical-examination"
+      | "orders"
+      | "diagnoses"
+      | "medications"
+      | "client",
   ) => {
     const base = `/clinical/opd/${visitUuid}/${encounterUuid}`;
     const segments: Record<string, string> = {
+      "vital-signs": "vital-signs",
       "physical-examination": "physical-examination",
       orders: "orders",
       diagnoses: "diagnoses",
       medications: "medications",
+      client: "client",
     };
-    if (!tab || tab === "vital-signs") {
+    if (!tab || tab === "activity") {
       return base;
     }
     return `${base}/${segments[tab]}`;

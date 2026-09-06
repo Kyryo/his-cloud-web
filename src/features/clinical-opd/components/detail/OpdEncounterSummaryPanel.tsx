@@ -10,6 +10,7 @@ import {
   DetailPageAsideSummarySection,
 } from "@/features/app-shell/components/page-layout";
 import { OpdEncounterStatusBadge } from "@/features/clinical-opd/components/OpdEncounterStatusBadge";
+import { OpdEncounterBillingModeControl } from "@/features/clinical-opd/components/detail/OpdEncounterBillingModeControl";
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
 import { ROUTES } from "@/constants/routes";
 import { formatOpdEncounterPaymentLabel } from "@/features/clinical-opd/utils/format-opd-encounter-payment";
@@ -25,30 +26,43 @@ import { cn } from "@/lib/utils";
 type OpdEncounterSummaryPanelProps = {
   customer: Customer | null;
   className?: string;
+  variant?: "aside" | "tab";
+  "data-testid"?: string;
 };
 
 export function OpdEncounterSummaryPanel({
   customer,
   className,
+  variant = "aside",
+  "data-testid": dataTestId = "opd-encounter-summary-panel",
 }: OpdEncounterSummaryPanelProps) {
   const { encounter, visitUuid, encounterUuid } = useOpdEncounterWorkspace();
   const fullName = customer
     ? formatCustomerName(customer)
     : (encounter?.customer_name ?? "—");
+  const isTab = variant === "tab";
 
   return (
     <aside
       className={cn(
-        "border-t border-dash-border/80 bg-white px-4 py-5 sm:px-6",
-        "xl:border-l xl:border-t-0 xl:px-5 xl:pt-3 xl:pb-5",
+        isTab
+          ? "rounded-xl border border-dash-border/80 bg-white px-4 py-5 sm:px-5"
+          : [
+              "border-t border-dash-border/80 bg-white px-4 py-5 sm:px-6",
+              "xl:border-l xl:border-t-0 xl:px-5 xl:pt-3 xl:pb-5",
+            ],
         className,
       )}
-      data-testid="opd-encounter-summary-panel"
+      data-testid={dataTestId}
     >
-      <div className="space-y-4 xl:sticky xl:top-4">
+      <div className={cn("space-y-4", !isTab && "xl:sticky xl:top-4")}>
         <DetailPageAsidePanelHeader
-          title="Encounter summary"
-          description="Current outpatient visit details"
+          title={isTab ? "Client & visit" : "Encounter summary"}
+          description={
+            isTab
+              ? "Client profile and current outpatient visit details"
+              : "Current outpatient visit details"
+          }
         />
 
         <DetailPageAsideSummarySection title="Encounter" className="border-t-0 pt-0">
@@ -77,6 +91,15 @@ export function OpdEncounterSummaryPanel({
           <DetailPageAsideSummaryField
             label="Payment"
             value={encounter ? formatOpdEncounterPaymentLabel(encounter) : "—"}
+          />
+          <DetailPageAsideSummaryField
+            label="Billing mode"
+            value={
+              <OpdEncounterBillingModeControl
+                visitUuid={visitUuid}
+                encounterUuid={encounterUuid}
+              />
+            }
           />
           <DetailPageAsideSummaryField
             label="Visit UUID"

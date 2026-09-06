@@ -8,6 +8,7 @@ import {
   History,
   NotebookPen,
   Pill,
+  PlayCircle,
   Scan,
   Stethoscope,
 } from "lucide-react";
@@ -27,10 +28,12 @@ const EVENT_ICONS: Record<string, LucideIcon> = {
   diagnosis: ClipboardList,
   clinical_note: FileText,
   order: FlaskConical,
+  order_cancelled: FlaskConical,
   prescription: Pill,
   clinical_activity: History,
   encounter_status: History,
   radiology: Scan,
+  visit_started: PlayCircle,
 };
 
 const EVENT_TONES: Record<string, ActivityIconTone> = {
@@ -40,9 +43,11 @@ const EVENT_TONES: Record<string, ActivityIconTone> = {
   diagnosis: "warning",
   clinical_note: "neutral",
   order: "info",
+  order_cancelled: "danger",
   prescription: "success",
   radiology: "info",
   encounter_status: "neutral",
+  visit_started: "success",
 };
 
 function mapClinicalEventToFeedItem(

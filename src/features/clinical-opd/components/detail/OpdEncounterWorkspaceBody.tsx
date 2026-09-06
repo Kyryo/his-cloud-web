@@ -1,61 +1,57 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
 
-import { FabButton } from "@/components/ui/fab-button";
-import { PanelRight } from "lucide-react";
-
-import { OpdEncounterSummaryPanel } from "@/features/clinical-opd/components/detail/OpdEncounterSummaryPanel";
+import { OpdClinicalHistoryPanel } from "@/features/clinical-opd/components/detail/OpdClinicalHistoryPanel";
+import { OpdEncounterVitalsStatsStrip } from "@/features/clinical-opd/components/detail/OpdEncounterVitalsStatsStrip";
 import { OpdEncounterWorkspaceChrome } from "@/features/clinical-opd/components/detail/OpdEncounterWorkspaceChrome";
-import type { Customer } from "@/features/customers/types/customer.types";
-import { cn } from "@/lib/utils";
+import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
+import { useEncounterWorkspace } from "@/features/clinical-opd/hooks/use-clinical-opd";
+import { opdEncounterTabFromPathname } from "@/features/clinical-opd/utils/opd-encounter-tabs";
+import { isOpdPhysicianHistoryTab } from "@/features/clinical-opd/utils/opd-physician-history-tabs";
 
 type OpdEncounterWorkspaceBodyProps = {
   children: ReactNode;
-  customer: Customer | null;
-  showSummaryPanel: boolean;
-  onToggleSummaryPanel: () => void;
 };
 
 export function OpdEncounterWorkspaceBody({
   children,
-  customer,
-  showSummaryPanel,
-  onToggleSummaryPanel,
 }: OpdEncounterWorkspaceBodyProps) {
+  const pathname = usePathname();
+  const { visitUuid, encounterUuid } = useOpdEncounterWorkspace();
+  const activeTab = opdEncounterTabFromPathname(
+    pathname,
+    visitUuid,
+    encounterUuid,
+  );
+  const showHistoryLayout = isOpdPhysicianHistoryTab(activeTab);
+  const { observations } = useEncounterWorkspace(visitUuid, encounterUuid);
+
   return (
-    <>
-      <div
-        className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_23rem]"
-        data-testid="opd-encounter-workspace-grid"
-      >
-        <div className="order-1 min-w-0 xl:col-start-1 xl:row-start-1">
-          <OpdEncounterWorkspaceChrome />
-          <div className="px-4 pb-4 sm:px-6">{children}</div>
+    <div className="min-w-0" data-testid="opd-encounter-workspace-grid">
+      <OpdEncounterWorkspaceChrome />
+
+      {showHistoryLayout ? (
+        <div
+          className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_24rem]"
+          data-testid="opd-physician-history-layout"
+        >
+          <div className="min-w-0">
+            <OpdEncounterVitalsStatsStrip
+              observations={observations.data ?? []}
+              isLoading={observations.isLoading}
+            />
+            <div className="px-4 pb-4 sm:px-6">{children}</div>
+          </div>
+          <OpdClinicalHistoryPanel />
         </div>
-
-        <OpdEncounterSummaryPanel
-          customer={customer}
-          className={cn(
-            "order-2 xl:col-start-2 xl:row-start-1 xl:self-stretch",
-            !showSummaryPanel && "hidden xl:block",
-          )}
-        />
-      </div>
-
-      <FabButton
-        label={
-          showSummaryPanel
-            ? "Hide encounter summary"
-            : "Show encounter summary"
-        }
-        icon={PanelRight}
-        variant="outline"
-        hideFrom="xl"
-        className="bg-white"
-        onClick={onToggleSummaryPanel}
-        data-testid="opd-encounter-summary-fab"
-      />
-    </>
+      ) : (
+        <>
+          <div className="border-b border-dash-border/80" role="presentation" />
+          <div className="px-4 pb-4 sm:px-6">{children}</div>
+        </>
+      )}
+    </div>
   );
 }

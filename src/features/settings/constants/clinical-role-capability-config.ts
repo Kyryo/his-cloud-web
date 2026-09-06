@@ -6,12 +6,13 @@ export type ClinicalRoleCapabilityMeta = {
 };
 
 export const CLINICAL_WORKSPACE_TAB_CAPABILITIES: ClinicalRoleCapabilityMeta[] = [
+  { key: "view_activity_tab", label: "Activity" },
   { key: "view_vital_signs_tab", label: "Vital signs" },
   { key: "view_physical_examination_tab", label: "Physical examination" },
   { key: "view_orders_tab", label: "Orders" },
   { key: "view_diagnoses_tab", label: "Diagnoses" },
   { key: "view_medications_tab", label: "Medications" },
-  { key: "view_activity_tab", label: "Activity" },
+  { key: "view_client_tab", label: "Client" },
 ];
 
 export const CLINICAL_ROLE_ACTION_CAPABILITIES: ClinicalRoleCapabilityMeta[] = [

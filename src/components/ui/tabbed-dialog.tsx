@@ -24,6 +24,7 @@ type TabbedDialogProps = {
   footer?: ReactNode;
   className?: string;
   contentClassName?: string;
+  dismissible?: boolean;
   "data-testid"?: string;
 };
 
@@ -39,6 +40,7 @@ export function TabbedDialog({
   footer,
   className,
   contentClassName,
+  dismissible = true,
   "data-testid": dataTestId,
 }: TabbedDialogProps) {
   const tabNav =
@@ -98,6 +100,7 @@ export function TabbedDialog({
       headerExtra={tabNav}
       className={className}
       contentClassName={contentClassName}
+      dismissible={dismissible}
       data-testid={dataTestId}
     >
       {children}

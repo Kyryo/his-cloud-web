@@ -40,6 +40,7 @@ export type VisitEncounter = {
   clinician: number | null;
   clinician_name: string | null;
   status: string;
+  billing_mode: "shared_visit" | "separate_department";
   started_at: string | null;
   ended_at: string | null;
   notes: string;
@@ -134,6 +135,11 @@ export type VisitEncounterCreatePayload = {
   location?: string | null;
   clinician?: number | null;
   notes?: string;
+  billing_mode?: "shared_visit" | "separate_department";
+};
+
+export type VisitEncounterBillingModePayload = {
+  billing_mode: "shared_visit" | "separate_department";
 };
 
 export type FetchVisitsOptions = {

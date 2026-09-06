@@ -10,6 +10,7 @@ export type ProductDetailField = {
 
 type ProductDetailFieldListProps = {
   title?: string;
+  action?: ReactNode;
   fields: ProductDetailField[];
   className?: string;
   "data-testid"?: string;
@@ -17,13 +18,14 @@ type ProductDetailFieldListProps = {
 
 export function ProductDetailFieldList({
   title,
+  action,
   fields,
   className,
   "data-testid": dataTestId,
 }: ProductDetailFieldListProps) {
   const visibleFields = fields.filter((field) => !field.hidden);
 
-  if (visibleFields.length === 0) {
+  if (visibleFields.length === 0 && !action) {
     return null;
   }
 
@@ -35,20 +37,31 @@ export function ProductDetailFieldList({
       )}
       data-testid={dataTestId}
     >
-      {title ? (
-        <h3 className="mb-3 text-sm font-semibold text-brand-navy">{title}</h3>
+      {title || action ? (
+        <div className="mb-3 flex items-start justify-between gap-3">
+          {title ? (
+            <h3 className="text-sm font-semibold text-brand-navy">{title}</h3>
+          ) : (
+            <span />
+          )}
+          {action}
+        </div>
       ) : null}
-      <dl className="space-y-3">
-        {visibleFields.map((field) => (
-          <div
-            key={field.label}
-            className="flex items-start justify-between gap-4"
-          >
-            <dt className="text-brand-muted">{field.label}</dt>
-            <dd className="text-right font-medium text-brand-navy">{field.value}</dd>
-          </div>
-        ))}
-      </dl>
+      {visibleFields.length > 0 ? (
+        <dl className="space-y-3">
+          {visibleFields.map((field) => (
+            <div
+              key={field.label}
+              className="flex items-start justify-between gap-4"
+            >
+              <dt className="text-brand-muted">{field.label}</dt>
+              <dd className="text-right font-medium text-brand-navy">
+                {field.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
     </section>
   );
 }

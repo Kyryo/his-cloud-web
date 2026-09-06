@@ -32,6 +32,7 @@ import { CustomerVisitStatusBadge } from "@/features/customers/components/Custom
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { formatVisitStartedBy } from "@/features/customers/utils/format-visit-started-by";
 import { EditVisitPaymentDialog } from "@/features/visits/components/EditVisitPaymentDialog";
+import { AddVisitEncounterDialog } from "@/features/visits/components/AddVisitEncounterDialog";
 import { VisitMemberBenefitsTab } from "@/features/visits/components/VisitMemberBenefitsTab";
 import { OpenEncountersCloseNotice } from "@/features/visits/components/OpenEncountersCloseNotice";
 import { VisitPreAuthorizationTab } from "@/features/visits/components/VisitPreAuthorizationTab";
@@ -118,6 +119,7 @@ export function VisitDetailDialog({
   const [reopenConfirmOpen, setReopenConfirmOpen] = useState(false);
   const [reopenError, setReopenError] = useState<string | null>(null);
   const [editPaymentOpen, setEditPaymentOpen] = useState(false);
+  const [addEncounterOpen, setAddEncounterOpen] = useState(false);
 
   const loadVisit = useCallback(async () => {
     if (!visitUuid) {
@@ -431,11 +433,23 @@ export function VisitDetailDialog({
             />
           ) : (
             <section className="overflow-hidden rounded-xl border border-brand-border bg-white">
-              <div className="border-b border-brand-border px-4 py-3">
-                <p className="text-sm font-medium text-brand-navy">Encounters</p>
-                <p className="text-xs text-brand-muted">
-                  Department-level clinical units inside this visit.
-                </p>
+              <div className="flex flex-wrap items-start justify-between gap-3 border-b border-brand-border px-4 py-3">
+                <div>
+                  <p className="text-sm font-medium text-brand-navy">Encounters</p>
+                  <p className="text-xs text-brand-muted">
+                    Department-level clinical units inside this visit.
+                  </p>
+                </div>
+                {visit.status === "active" ? (
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => setAddEncounterOpen(true)}
+                    data-testid="visit-add-encounter-button"
+                  >
+                    Add encounter
+                  </Button>
+                ) : null}
               </div>
 
               {visit.encounters.length === 0 ? (
@@ -460,6 +474,13 @@ export function VisitDetailDialog({
                           {encounter.location_name || "No location"} ·{" "}
                           {encounter.clinician_name || "Unassigned clinician"}
                         </p>
+                        {encounter.billing_mode ? (
+                          <p className="mt-1 text-xs text-brand-muted">
+                            {encounter.billing_mode === "separate_department"
+                              ? "Separate bill for this department"
+                              : "One bill for this visit"}
+                          </p>
+                        ) : null}
                         {encounter.started_at ? (
                           <p className="mt-1 text-xs text-brand-muted">
                             Started {formatDisplayDateTime(encounter.started_at)}
@@ -506,6 +527,18 @@ export function VisitDetailDialog({
           )
         ) : null}
       </TabbedDialog>
+
+      {visit ? (
+        <AddVisitEncounterDialog
+          visit={visit}
+          open={addEncounterOpen}
+          onOpenChange={setAddEncounterOpen}
+          onCreated={() => {
+            void loadVisit();
+            onVisitUpdated?.();
+          }}
+        />
+      ) : null}
 
       <Dialog
         open={closeConfirmOpen}

@@ -1,7 +1,7 @@
 "use client";
 
 import { HoverPreviewCard } from "@/components/hover-preview-card";
-import { ClientAvatar } from "@/components/client-avatar";
+import { UserIdenticon } from "@/components/UserIdenticon";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { formatDisplayDateTime } from "@/features/inventory/utils/format-inventory";
 
@@ -55,9 +55,11 @@ export function RecordCreatedByMeta({
                 className="rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 aria-label={`Created by ${creatorLabel}`}
               >
-                <ClientAvatar
+                <UserIdenticon
+                  seed={createdByEmail?.trim() || creatorLabel}
                   name={creatorLabel}
-                  className="size-6 [&_span]:text-[10px]"
+                  className="size-6 rounded-full"
+                  fallbackClassName="text-[10px]"
                 />
               </button>
             }

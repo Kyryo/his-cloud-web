@@ -20,6 +20,8 @@ type DetailRecordListItemProps = {
   onUpdate?: () => void;
   updateLabel?: string;
   menuActions?: DetailRecordRowMenuAction[];
+  /** Rendered after the ellipsis menu (e.g. add-another control). */
+  afterMenu?: ReactNode;
   onRowClick?: () => void;
   compact?: boolean;
   "data-testid"?: string;
@@ -36,6 +38,7 @@ export function DetailRecordListItem({
   onUpdate,
   updateLabel = "Update",
   menuActions,
+  afterMenu,
   onRowClick,
   compact = false,
   "data-testid": testId,
@@ -119,6 +122,9 @@ export function DetailRecordListItem({
                   <DetailRecordRowMenu actions={menuActions} />
                 </div>
               ) : null}
+              {afterMenu ? (
+                <div onClick={(event) => event.stopPropagation()}>{afterMenu}</div>
+              ) : null}
             </div>
           </div>
         </div>
@@ -131,6 +137,7 @@ type DetailRecordListProps = {
   title: ReactNode;
   description?: string;
   action?: ReactNode;
+  toolbar?: ReactNode;
   children: ReactNode;
   footer?: ReactNode;
   className?: string;
@@ -141,6 +148,7 @@ export function DetailRecordList({
   title,
   description,
   action,
+  toolbar,
   children,
   footer,
   className,
@@ -160,6 +168,11 @@ export function DetailRecordList({
         </div>
         {action}
       </div>
+      {toolbar ? (
+        <div className="border-b border-dash-border/80 px-4 py-2.5 sm:px-5">
+          {toolbar}
+        </div>
+      ) : null}
       <ol className="divide-y divide-dash-border/60">{children}</ol>
       {footer ? (
         <div className="border-t border-dash-border/80 px-4 py-2.5 sm:px-5">

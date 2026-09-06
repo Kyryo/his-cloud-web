@@ -21,6 +21,7 @@ function encounter(
     clinician: null,
     clinician_name: null,
     status: "waiting",
+    billing_mode: "shared_visit",
     started_at: null,
     ended_at: null,
     notes: "",

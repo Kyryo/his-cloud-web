@@ -1,12 +1,13 @@
 import type { ClinicalCapabilityKey } from "@/features/clinical-opd/types/clinical-opd.types";
 
 export type OpdEncounterTabId =
+  | "activity"
   | "vital-signs"
   | "physical-examination"
   | "orders"
   | "diagnoses"
   | "medications"
-  | "activity";
+  | "client";
 
 export type OpdEncounterTab = {
   id: OpdEncounterTabId;
@@ -17,9 +18,15 @@ export type OpdEncounterTab = {
 
 export const OPD_ENCOUNTER_TABS: OpdEncounterTab[] = [
   {
+    id: "activity",
+    label: "Activity",
+    segment: null,
+    requiredCapability: "view_activity_tab",
+  },
+  {
     id: "vital-signs",
     label: "Vital signs",
-    segment: null,
+    segment: "vital-signs",
     requiredCapability: "view_vital_signs_tab",
   },
   {
@@ -47,10 +54,10 @@ export const OPD_ENCOUNTER_TABS: OpdEncounterTab[] = [
     requiredCapability: "view_medications_tab",
   },
   {
-    id: "activity",
-    label: "Activity",
-    segment: "activity",
-    requiredCapability: "view_activity_tab",
+    id: "client",
+    label: "Client",
+    segment: "client",
+    requiredCapability: "view_client_tab",
   },
 ];
 
@@ -61,7 +68,7 @@ const TAB_SEGMENTS = new Set(
 export function opdEncounterTabHref(
   visitUuid: string,
   encounterUuid: string,
-  tabId: OpdEncounterTabId = "vital-signs",
+  tabId: OpdEncounterTabId = "activity",
 ): string {
   const tab = OPD_ENCOUNTER_TABS.find((item) => item.id === tabId);
   if (!tab?.segment) {
@@ -77,20 +84,20 @@ export function opdEncounterTabFromPathname(
 ): OpdEncounterTabId {
   const prefix = `/clinical/opd/${visitUuid}/${encounterUuid}`;
   if (pathname !== prefix && !pathname.startsWith(`${prefix}/`)) {
-    return "vital-signs";
+    return "activity";
   }
 
   const segment = pathname.slice(prefix.length).replace(/^\//, "").split("/")[0];
   if (!segment) {
-    return "vital-signs";
+    return "activity";
   }
 
   if (!TAB_SEGMENTS.has(segment)) {
-    return "vital-signs";
+    return "activity";
   }
 
   const tab = OPD_ENCOUNTER_TABS.find((item) => item.segment === segment);
-  return tab?.id ?? "vital-signs";
+  return tab?.id ?? "activity";
 }
 
 export function getVisibleOpdEncounterTabs(capabilities: string[]) {
@@ -105,7 +112,7 @@ export function getDefaultOpdEncounterTab(
 ): OpdEncounterTabId {
   const visibleTabs = getVisibleOpdEncounterTabs(capabilities);
   if (visibleTabs.length === 0) {
-    return "vital-signs";
+    return "activity";
   }
 
   const preferredTabByRole: Record<string, OpdEncounterTabId> = {

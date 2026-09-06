@@ -61,6 +61,7 @@ export const createInventoryProductClassificationSchema = z.object({
   is_sundry: z.boolean(),
   liquid_or_cream: z.boolean(),
   is_lab_test: z.boolean(),
+  is_radiology: z.boolean(),
   is_procedure: z.boolean(),
   procedure_scope: z.enum([
     "",
@@ -107,10 +108,10 @@ export const createInventoryProductSchema = createInventoryProductGeneralSchema
       });
     }
 
-    if (values.liquid_or_cream && !values.is_drug) {
+    if (values.liquid_or_cream && !values.is_drug && !values.is_sundry) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "Only drug products can be liquid or cream.",
+        message: "Only drug or sundry products can be liquid or cream.",
         path: ["liquid_or_cream"],
       });
     }
@@ -131,11 +132,43 @@ export const createInventoryProductSchema = createInventoryProductGeneralSchema
       });
     }
 
+    if (values.is_radiology && values.product_type !== "service") {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Only service products can be radiology items.",
+        path: ["is_radiology"],
+      });
+    }
+
     if (values.is_procedure && values.is_lab_test) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: "A product cannot be both a procedure and a lab test.",
         path: ["is_lab_test"],
+      });
+    }
+
+    if (values.is_procedure && values.is_radiology) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "A product cannot be both a procedure and a radiology item.",
+        path: ["is_radiology"],
+      });
+    }
+
+    if (values.is_lab_test && values.is_radiology) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "A product cannot be both a lab test and a radiology item.",
+        path: ["is_radiology"],
+      });
+    }
+
+    if (values.product_type === "service" && values.purchase_ok) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Service products cannot be purchased.",
+        path: ["purchase_ok"],
       });
     }
 
@@ -192,6 +225,7 @@ export const createInventoryProductDefaultValues: CreateInventoryProductFormValu
   is_sundry: false,
   liquid_or_cream: false,
   is_lab_test: false,
+  is_radiology: false,
   is_procedure: false,
   procedure_scope: "",
   sale_ok: true,
@@ -231,6 +265,7 @@ export function toCreateInventoryProductPayload(
     is_sundry: parsed.is_sundry,
     liquid_or_cream: parsed.liquid_or_cream,
     is_lab_test: parsed.is_lab_test,
+    is_radiology: parsed.is_radiology,
     is_procedure: parsed.is_procedure,
     ...procedureScopeToFlags(parsed.procedure_scope),
   };
@@ -332,6 +367,7 @@ export function toInventoryProductFormValues(
     is_sundry: Boolean(meta.is_sundry),
     liquid_or_cream: Boolean(meta.liquid_or_cream),
     is_lab_test: Boolean(meta.is_lab_test),
+    is_radiology: Boolean(meta.is_radiology),
     is_procedure: Boolean(meta.is_procedure),
     procedure_scope: procedureScopeFromMeta(meta),
     sale_ok: product.sale_ok ?? true,

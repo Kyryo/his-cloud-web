@@ -25,6 +25,7 @@ const classificationTabFields: Array<keyof CreateInventoryProductFormValues> = [
   "is_sundry",
   "liquid_or_cream",
   "is_lab_test",
+  "is_radiology",
   "is_procedure",
   "procedure_scope",
 ];

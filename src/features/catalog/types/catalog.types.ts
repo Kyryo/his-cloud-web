@@ -166,6 +166,12 @@ export type CatalogListFilters = {
   barcode?: string;
   include_inactive?: boolean;
   currency_code?: string;
+  is_lab_test?: boolean;
+  is_radiology?: boolean;
+  is_procedure?: boolean;
+  is_sundry?: boolean;
+  /** Department context for procedure scope (opd | dental | ipd | physio). */
+  procedure_context?: "opd" | "dental" | "ipd" | "physio";
 };
 
 export type CreateCatalogProductPayload = {

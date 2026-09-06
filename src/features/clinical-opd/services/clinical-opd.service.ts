@@ -2,7 +2,9 @@ import { BFF_CLINICAL_OPD_ROUTES } from "@/constants/api";
 import type {
   ClinicalRoleCapability,
   ClinicalTimelineEvent,
+  ClinicalVisitHistory,
   EncounterClinicalNote,
+  EncounterClinicalOrder,
   EncounterNursingNote,
   EncounterObservation,
   EncounterPhysicalExam,
@@ -161,12 +163,69 @@ export async function finalizePrescription(
   );
 }
 
+export async function cancelPrescription(
+  visitUuid: string,
+  encounterUuid: string,
+  prescriptionUuid: string,
+) {
+  return bffRequest<EncounterPrescription>(
+    BFF_CLINICAL_OPD_ROUTES.cancelPrescription(
+      visitUuid,
+      encounterUuid,
+      prescriptionUuid,
+    ),
+    { method: "POST", body: {} },
+  );
+}
+
+export async function fetchOrders(visitUuid: string, encounterUuid: string) {
+  const response = await bffRequest<ListResponse<EncounterClinicalOrder>>(
+    BFF_CLINICAL_OPD_ROUTES.encounterOrders(visitUuid, encounterUuid),
+  );
+  return response.results;
+}
+
+export async function createOrder(
+  visitUuid: string,
+  encounterUuid: string,
+  payload: Record<string, unknown>,
+) {
+  return bffRequest<EncounterClinicalOrder>(
+    BFF_CLINICAL_OPD_ROUTES.encounterOrders(visitUuid, encounterUuid),
+    { method: "POST", body: payload },
+  );
+}
+
+export async function cancelOrder(
+  visitUuid: string,
+  encounterUuid: string,
+  orderUuid: string,
+) {
+  return bffRequest<EncounterClinicalOrder>(
+    BFF_CLINICAL_OPD_ROUTES.cancelOrder(visitUuid, encounterUuid, orderUuid),
+    { method: "POST", body: {} },
+  );
+}
+
 export async function fetchEncounterTimeline(
   visitUuid: string,
   encounterUuid: string,
 ) {
   return bffRequest<ClinicalTimelineEvent[]>(
     BFF_CLINICAL_OPD_ROUTES.encounterTimeline(visitUuid, encounterUuid),
+  );
+}
+
+export async function fetchEncounterClinicalHistory(
+  visitUuid: string,
+  encounterUuid: string,
+  historyEncounterUuid?: string | null,
+) {
+  const query = historyEncounterUuid
+    ? `?history_encounter_uuid=${encodeURIComponent(historyEncounterUuid)}`
+    : "";
+  return bffRequest<ClinicalVisitHistory>(
+    `${BFF_CLINICAL_OPD_ROUTES.encounterClinicalHistory(visitUuid, encounterUuid)}${query}`,
   );
 }
 
