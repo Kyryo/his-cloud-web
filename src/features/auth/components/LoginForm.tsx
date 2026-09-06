@@ -41,6 +41,7 @@ import {
   getWebAuthnAssertion,
   webAuthnErrorMessage,
 } from "@/features/auth/utils/webauthn";
+import { useSessionStore } from "@/state/session.store";
 
 type LoginStep =
   | "credentials"
@@ -147,6 +148,7 @@ export function LoginForm() {
         ...values,
         pending_mfa_token: pendingMfaToken,
       });
+      useSessionStore.getState().hydrate(result.user);
       markAuthenticatedSession();
       router.push(destinationForUser(result.user));
     } catch (error) {
@@ -202,6 +204,7 @@ export function LoginForm() {
   }
 
   async function completeAlternateSignin(user: User) {
+    useSessionStore.getState().hydrate(user);
     markAuthenticatedSession();
     router.push(destinationForUser(user));
   }

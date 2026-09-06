@@ -1,5 +1,5 @@
-import { PageLoader } from "@/components/page-loader";
+import { AppContentLoadingFallback } from "@/features/app-shell/components/AppContentLoadingFallback";
 
 export default function Loading() {
-  return <PageLoader />;
+  return <AppContentLoadingFallback />;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { memo, useMemo, type ComponentProps } from "react";
 import { usePathname } from "next/navigation";
 
 import { NavMain } from "@/components/nav-main";
@@ -16,7 +16,23 @@ import {
 import { buildSidebarNavItems } from "@/features/app-shell/utils/build-sidebar-nav";
 import { useUser } from "@/providers/user-provider";
 
-export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
+const SidebarTeamSwitcher = memo(function SidebarTeamSwitcher() {
+  return (
+    <SidebarHeader className="px-3 pt-3">
+      <TeamSwitcher />
+    </SidebarHeader>
+  );
+});
+
+const SidebarAccount = memo(function SidebarAccount() {
+  return (
+    <SidebarFooter className="p-2">
+      <NavUser />
+    </SidebarFooter>
+  );
+});
+
+export function AppSidebar(props: ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
   const { userData } = useUser();
   const userGroups = useMemo(() => userData?.groups ?? [], [userData?.groups]);
@@ -31,15 +47,11 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar collapsible="icon" className="border-r-transparent" {...props}>
-      <SidebarHeader className="px-3 pt-3">
-        <TeamSwitcher />
-      </SidebarHeader>
+      <SidebarTeamSwitcher />
       <SidebarContent>
         <NavMain items={navItems} />
       </SidebarContent>
-      <SidebarFooter className="p-2">
-        <NavUser />
-      </SidebarFooter>
+      <SidebarAccount />
       <SidebarRail />
     </Sidebar>
   );

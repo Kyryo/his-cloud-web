@@ -29,6 +29,7 @@ import {
   verifySignupEmail,
 } from "@/features/auth/services/auth.service";
 import { configureOnboardingModules } from "@/features/auth/services/onboarding.service";
+import { useSessionStore } from "@/state/session.store";
 import {
   signupCredentialsSchema,
   signupOtpSchema,
@@ -239,7 +240,7 @@ export function SignUpForm() {
         code: otp.code,
       });
 
-      await verifySignup({
+      const signup = await verifySignup({
         email: credentials.email,
         password: credentials.password,
         name: profile.name,
@@ -248,6 +249,7 @@ export function SignUpForm() {
         verification_token: verified.verification_token,
       });
       await configureOnboardingModules(DEFAULT_SIGNUP_GROUPS);
+      useSessionStore.getState().hydrate(signup.user);
       markAuthenticatedSession();
       router.push(ROUTES.postAuth);
     } catch (error) {

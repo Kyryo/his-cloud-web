@@ -1,41 +1,35 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 
-import { PageLoader } from "@/components/page-loader";
-import { checkSession } from "@/features/auth/services/auth.service";
+import { AppInitializationScreen } from "@/features/app-shell/components/AppInitializationScreen";
 import { handleSessionExpired } from "@/lib/handle-session-expired";
+import { useSessionStore } from "@/state/session.store";
 
 type AuthGuardProps = {
   children: ReactNode;
 };
 
 export function AuthGuard({ children }: AuthGuardProps) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const status = useSessionStore((state) => state.status);
+  const user = useSessionStore((state) => state.user);
+  const initialize = useSessionStore((state) => state.initialize);
 
   useEffect(() => {
-    async function verifyAuth() {
-      try {
-        const session = await checkSession();
-        if (session.authenticated) {
-          setIsAuthenticated(true);
-          setIsLoading(false);
-          return;
-        }
+    void initialize();
+  }, [initialize]);
 
-        await handleSessionExpired();
-      } catch {
-        await handleSessionExpired();
-      }
+  useEffect(() => {
+    if (status !== "unauthenticated") {
+      return;
     }
 
-    void verifyAuth();
-  }, []);
+    void handleSessionExpired();
+  }, [status]);
 
-  if (isLoading) {
-    return <PageLoader fullScreen />;
+  if (status === "ready" && user) {
+    return children;
   }
 
-  return isAuthenticated ? <>{children}</> : null;
+  return <AppInitializationScreen />;
 }

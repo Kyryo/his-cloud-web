@@ -16,64 +16,27 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import type { User } from "@/features/auth/types/auth.types";
-import {
-  readActiveClinicId,
-  writeActiveClinicId,
-} from "@/features/app-shell/utils/active-clinic";
+import { getActiveClinics } from "@/features/app-shell/utils/workspace-clinics";
+import type { UserClinic } from "@/features/app-shell/utils/workspace-clinics";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/providers/user-provider";
-
-type UserClinic = NonNullable<User["clinics"]>[number];
-
-function getActiveClinics(user: User | null): UserClinic[] {
-  return (user?.clinics ?? []).filter((clinic) => clinic.is_active);
-}
-
-function resolveInitialClinicId(user: User | null): number | null {
-  const clinics = getActiveClinics(user);
-  if (clinics.length === 0) {
-    return user?.primary_clinic?.id ?? null;
-  }
-
-  if (typeof window !== "undefined") {
-    const storedId = readActiveClinicId();
-    if (
-      storedId &&
-      clinics.some((clinic) => clinic.clinic === storedId)
-    ) {
-      return storedId;
-    }
-  }
-
-  const primary = clinics.find((clinic) => clinic.is_primary);
-  return primary?.clinic ?? clinics[0]?.clinic ?? user?.primary_clinic?.id ?? null;
-}
+import { useWorkspaceStore } from "@/state/workspace.store";
 
 export function TeamSwitcher() {
   const { isMobile } = useSidebar();
   const { userData, isLoading } = useUser();
-  const [manualClinicId, setManualClinicId] = React.useState<number | null>(
-    () => {
-      if (typeof window === "undefined") {
-        return null;
-      }
-      return readActiveClinicId();
-    },
-  );
+  const activeClinicId = useWorkspaceStore((state) => state.activeClinicId);
+  const setActiveClinicId = useWorkspaceStore((state) => state.setActiveClinicId);
 
   const clinics = getActiveClinics(userData);
-  const activeClinicId = React.useMemo(() => {
-    if (
-      manualClinicId &&
-      clinics.some((clinic) => clinic.clinic === manualClinicId)
-    ) {
-      return manualClinicId;
-    }
-
-    return resolveInitialClinicId(userData);
-  }, [clinics, manualClinicId, userData]);
+  const resolvedClinicId =
+    activeClinicId && clinics.some((clinic) => clinic.clinic === activeClinicId)
+      ? activeClinicId
+      : (clinics.find((clinic) => clinic.is_primary)?.clinic ??
+        clinics[0]?.clinic ??
+        userData?.primary_clinic?.id ??
+        null);
 
   const tenantName =
     userData?.tenant?.name ??
@@ -81,7 +44,7 @@ export function TeamSwitcher() {
     "Organization";
 
   const activeClinic =
-    clinics.find((clinic) => clinic.clinic === activeClinicId) ??
+    clinics.find((clinic) => clinic.clinic === resolvedClinicId) ??
     clinics.find((clinic) => clinic.is_primary) ??
     clinics[0];
 
@@ -89,8 +52,7 @@ export function TeamSwitcher() {
     activeClinic?.clinic_name ?? userData?.primary_clinic?.name ?? "Clinic";
 
   function handleClinicSelect(clinic: UserClinic) {
-    setManualClinicId(clinic.clinic);
-    writeActiveClinicId(clinic.clinic);
+    setActiveClinicId(clinic.clinic);
   }
 
   return (

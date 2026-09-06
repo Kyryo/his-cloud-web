@@ -3,6 +3,7 @@
 import Link from "next/link";
 
 import { AppIcon } from "@/components/icons/app-icon";
+import { useWorkspaceStore } from "@/state/workspace.store";
 import {
   Collapsible,
   CollapsibleContent,
@@ -22,6 +23,9 @@ import type { SidebarNavItem } from "@/features/app-shell/utils/build-sidebar-na
 import { cn } from "@/lib/utils";
 
 function NavMenuItems({ items }: { items: SidebarNavItem[] }) {
+  const openNavSections = useWorkspaceStore((state) => state.openNavSections);
+  const setNavSectionOpen = useWorkspaceStore((state) => state.setNavSectionOpen);
+
   return (
     <SidebarMenu>
       {items.map((item) =>
@@ -29,7 +33,8 @@ function NavMenuItems({ items }: { items: SidebarNavItem[] }) {
           <Collapsible
             key={item.title}
             asChild
-            defaultOpen={item.isActive}
+            open={openNavSections[item.title] ?? Boolean(item.isActive)}
+            onOpenChange={(open) => setNavSectionOpen(item.title, open)}
             className="group/collapsible"
           >
             <SidebarMenuItem>

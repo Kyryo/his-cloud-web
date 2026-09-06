@@ -150,6 +150,20 @@ export async function getCurrentUser(): Promise<User | null> {
   }
 }
 
+/** One-shot workspace bootstrap. Session already includes the user. */
+export async function bootstrapSession(): Promise<User | null> {
+  const session = await checkSession();
+  if (!session.authenticated) {
+    return null;
+  }
+
+  if (session.user) {
+    return session.user;
+  }
+
+  return getCurrentUser();
+}
+
 export async function refreshAccessToken(): Promise<boolean> {
   try {
     await bffRequest<{ ok: boolean }>(BFF_AUTH_ROUTES.refresh, {

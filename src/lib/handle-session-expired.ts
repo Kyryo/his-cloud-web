@@ -32,6 +32,9 @@ export async function handleSessionExpired(): Promise<void> {
 
   isRedirecting = true;
 
+  const { useSessionStore } = await import("@/state/session.store");
+  useSessionStore.getState().reset();
+
   try {
     await fetch(BFF_AUTH_ROUTES.session, {
       method: "DELETE",
