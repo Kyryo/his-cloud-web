@@ -1,5 +1,5 @@
-import { render, screen } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { SalesOrderDetailTabs } from "@/features/sales-orders/components/detail/SalesOrderDetailTabs";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
@@ -22,7 +22,9 @@ vi.mock("@/features/sales-orders/components/detail/SalesOrderDetailActivityTab",
 }));
 
 vi.mock("@/features/sales-orders/components/detail/SalesOrderSummaryPanel", () => ({
-  SalesOrderSummaryPanel: () => null,
+  SalesOrderSummaryPanel: () => (
+    <aside data-testid="sales-order-summary-panel">Order summary</aside>
+  ),
 }));
 
 const order = {
@@ -32,6 +34,10 @@ const order = {
   state: "draft",
   lines: [{ id: 1, name: "Consultation" }],
 } as unknown as SalesOrder;
+
+afterEach(() => {
+  cleanup();
+});
 
 describe("sales order detail tabs", () => {
   it("defines icons for every section", () => {
@@ -54,5 +60,20 @@ describe("sales order detail tabs", () => {
     expect(screen.getByRole("button", { name: "Visit" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Client" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Activity" })).toBeInTheDocument();
+  });
+
+  it("places the order summary after the main content", () => {
+    render(
+      <SalesOrderDetailTabs order={order} onOrderUpdated={vi.fn()} />,
+    );
+
+    const tabs = screen.getByTestId("sales-order-detail-tabs");
+    const main = tabs.querySelector("main");
+    const summary = screen.getByTestId("sales-order-summary-panel");
+
+    expect(main).toBeTruthy();
+    expect(
+      Boolean(main && main.compareDocumentPosition(summary) & Node.DOCUMENT_POSITION_FOLLOWING),
+    ).toBe(true);
   });
 });

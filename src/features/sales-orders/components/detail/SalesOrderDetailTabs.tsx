@@ -1,6 +1,6 @@
 "use client";
 
-import { PanelLeft } from "lucide-react";
+import { PanelRight } from "lucide-react";
 import { useState } from "react";
 
 import { AppIcon } from "@/components/icons/app-icon";
@@ -58,16 +58,7 @@ export function SalesOrderDetailTabs({
         ))}
       </DetailPageTabsNavSection>
 
-      <DetailPageMainAsideGrid className="xl:grid-cols-[23rem_minmax(0,1fr)]">
-        <SalesOrderSummaryPanel
-          order={order}
-          onOrderUpdated={onOrderUpdated}
-          className={cn(
-            "xl:border-l-0 xl:border-r",
-            !showSummaryPanel && "hidden xl:block",
-          )}
-        />
-
+      <DetailPageMainAsideGrid>
         <DetailPageMainSection>
           <SalesOrderDetailLinesTab
             order={order}
@@ -88,13 +79,19 @@ export function SalesOrderDetailTabs({
             isActive={activeTab === "activity"}
           />
         </DetailPageMainSection>
+
+        <SalesOrderSummaryPanel
+          order={order}
+          onOrderUpdated={onOrderUpdated}
+          className={cn(!showSummaryPanel && "hidden xl:block")}
+        />
       </DetailPageMainAsideGrid>
 
       <FabButton
         label={
           showSummaryPanel ? "Hide order summary" : "Show order summary"
         }
-        icon={PanelLeft}
+        icon={PanelRight}
         variant="outline"
         hideFrom="xl"
         className="bg-white"
