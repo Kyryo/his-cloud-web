@@ -1,7 +1,6 @@
 import type { AppIconName } from "@/components/icons/app-icon";
 
 export const INVOICE_DETAIL_TAB_IDS = [
-  "lines",
   "client",
   "claim",
   "payments",
@@ -18,7 +17,6 @@ export type InvoiceDetailTab = {
 };
 
 export const INVOICE_DETAIL_TABS: InvoiceDetailTab[] = [
-  { id: "lines", label: "Line items", icon: "clipboard" },
   { id: "client", label: "Client", icon: "user" },
   { id: "claim", label: "Claim", icon: "shield" },
   { id: "payments", label: "Payments", icon: "wallet" },

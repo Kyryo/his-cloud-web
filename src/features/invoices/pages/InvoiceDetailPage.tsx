@@ -26,7 +26,7 @@ export function InvoiceDetailPage({ invoiceId }: InvoiceDetailPageProps) {
   const [error, setError] = useState<string | null>(null);
   const [recordPaymentOpen, setRecordPaymentOpen] = useState(false);
   const [internalReferenceOpen, setInternalReferenceOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<InvoiceDetailTabId>("lines");
+  const [activeTab, setActiveTab] = useState<InvoiceDetailTabId>("client");
 
   useAppBreadcrumb(invoice?.name || (invoice ? `Invoice #${invoice.id}` : null));
 

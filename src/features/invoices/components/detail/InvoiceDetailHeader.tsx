@@ -1,20 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { Shield } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { Badge } from "@/components/ui/badge";
-import { ROUTES } from "@/constants/routes";
 import { isInsuranceInvoice } from "@/features/claims/services/claims.service";
-import { InvoicePaymentStatusBadge } from "@/features/invoices/components/InvoicePaymentStatusBadge";
+import { InvoiceDetailMoney } from "@/features/invoices/components/detail/InvoiceDetailMoney";
 import { InvoiceStatusBadge } from "@/features/invoices/components/InvoiceStatusBadge";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
+import { collectInvoiceHeaderFacts } from "@/features/invoices/utils/collect-invoice-header-facts";
 import {
   formatInvoiceCustomer,
   formatInvoiceDate,
 } from "@/features/invoices/utils/format-invoice";
-import { formatInvoiceInsuranceLabel } from "@/features/invoices/utils/format-invoice-insurance";
+import { formatInvoicePaymentStatusLabel } from "@/features/invoices/utils/invoice-payment-status";
 import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
 
 type InvoiceDetailHeaderProps = {
@@ -38,79 +36,39 @@ function formatClaimStatusMeta(status: Invoice["claim_status"]): string {
 export function InvoiceDetailHeader({ invoice, actions }: InvoiceDetailHeaderProps) {
   const invoiceLabel = invoice.name || `Invoice #${invoice.id}`;
   const customerName = formatInvoiceCustomer(invoice);
-  const isInsurance = isInsuranceInvoice(invoice);
-  const insuranceLabel = formatInvoiceInsuranceLabel(invoice);
-  const claimMeta = isInsurance ? formatClaimStatusMeta(invoice.claim_status) : null;
+  const showClaimMeta = isInsuranceInvoice(invoice);
+  const paymentLabel = invoice.payment_status
+    ? formatInvoicePaymentStatusLabel(invoice.payment_status)
+    : null;
+  const claimLabel = showClaimMeta
+    ? formatClaimStatusMeta(invoice.claim_status)
+    : null;
+  const secondaryParts = [paymentLabel, claimLabel].filter(Boolean);
+  const facts = collectInvoiceHeaderFacts(invoice);
 
   return (
-    <DetailPageHeaderSection className="border-b-0 pb-3">
+    <DetailPageHeaderSection>
       <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2.5">
             <h1 className="truncate text-lg font-semibold text-brand-navy sm:text-xl">
-              {invoice.customer_uuid ? (
-                <Link
-                  href={ROUTES.customerDetail(invoice.customer_uuid)}
-                  className="hover:text-brand-primary hover:underline"
-                >
-                  {customerName}
-                </Link>
-              ) : (
-                customerName
-              )}
+              {customerName}
             </h1>
-            <span className="font-mono text-xs font-medium text-brand-slate">
-              {invoiceLabel}
-            </span>
             <InvoiceStatusBadge state={invoice.state} />
-            {invoice.payment_status ? (
-              <InvoicePaymentStatusBadge status={invoice.payment_status} />
-            ) : null}
-            {isInsurance && insuranceLabel !== "—" ? (
-              <Badge variant="outline" className="gap-1 font-normal text-brand-slate">
-                <Shield className="size-3 text-brand-primary" aria-hidden="true" />
-                {insuranceLabel}
-              </Badge>
-            ) : null}
           </div>
 
-          <div
-            className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-brand-muted"
-            data-testid="invoice-header-meta"
-          >
+          <p className="mt-1 font-mono text-sm text-brand-muted">{invoiceLabel}</p>
+
+          <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-brand-muted">
             <span>Invoiced {formatInvoiceDate(invoice.invoice_date)}</span>
-            {invoice.sales_order_id ? (
+            {secondaryParts.length > 0 ? (
               <>
                 <span aria-hidden="true" className="text-brand-border">
                   ·
                 </span>
-                <span>
-                  Order:{" "}
-                  <Link
-                    href={ROUTES.salesOrderDetail(
-                      invoice.sales_order_uuid ?? invoice.sales_order_id,
-                    )}
-                    className="font-medium text-brand-primary hover:underline"
-                  >
-                    {invoice.sales_order_name || `#${invoice.sales_order_id}`}
-                  </Link>
+                <span data-testid="invoice-header-secondary-status">
+                  {secondaryParts.join(" · ")}
                 </span>
-              </>
-            ) : null}
-            {claimMeta ? (
-              <>
-                <span aria-hidden="true" className="text-brand-border">
-                  ·
-                </span>
-                <span data-testid="invoice-header-secondary-status">{claimMeta}</span>
-              </>
-            ) : null}
-            {invoice.internal_reference ? (
-              <>
-                <span aria-hidden="true" className="text-brand-border">
-                  ·
-                </span>
-                <span>Ref: {invoice.internal_reference}</span>
               </>
             ) : null}
           </div>
@@ -118,6 +76,29 @@ export function InvoiceDetailHeader({ invoice, actions }: InvoiceDetailHeaderPro
 
         {actions ? <div className="ml-auto shrink-0">{actions}</div> : null}
       </div>
+
+      <div className="mt-5 border-t border-dash-border/80 pt-4">
+        <InvoiceDetailMoney invoice={invoice} />
+      </div>
+
+      {facts.length > 0 ? (
+        <dl className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs">
+          {facts.map((fact) => (
+            <div key={fact.key} className="min-w-0">
+              <dt className="text-brand-muted">{fact.label}</dt>
+              <dd className="mt-0.5 text-sm text-brand-navy">
+                {fact.href ? (
+                  <Link href={fact.href} className="text-brand-primary hover:underline">
+                    {fact.value}
+                  </Link>
+                ) : (
+                  fact.value
+                )}
+              </dd>
+            </div>
+          ))}
+        </dl>
+      ) : null}
     </DetailPageHeaderSection>
   );
 }

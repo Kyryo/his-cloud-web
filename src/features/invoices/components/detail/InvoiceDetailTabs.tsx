@@ -1,12 +1,9 @@
 "use client";
 
-import { PanelRight } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { AppIcon } from "@/components/icons/app-icon";
-import { FabButton } from "@/components/ui/fab-button";
 import {
-  DetailPageMainAsideGrid,
   DetailPageMainSection,
   DetailPageTabNavItem,
   DetailPageTabsNavSection,
@@ -19,14 +16,12 @@ import { InvoiceDetailLinesTab } from "@/features/invoices/components/detail/Inv
 import { InvoiceDetailPaymentsTab } from "@/features/invoices/components/detail/InvoiceDetailPaymentsTab";
 import { InvoiceDetailActivityTab } from "@/features/invoices/components/detail/InvoiceDetailActivityTab";
 import { InvoiceDiagnosesTab } from "@/features/invoices/components/detail/InvoiceDiagnosesTab";
-import { InvoiceSummaryPanel } from "@/features/invoices/components/detail/InvoiceSummaryPanel";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 import { hasInvoiceClaimReadinessIssues } from "@/features/invoices/utils/invoice-claim-readiness";
 import {
   INVOICE_DETAIL_TABS,
   type InvoiceDetailTabId,
 } from "@/features/invoices/utils/invoice-detail-tabs";
-import { cn } from "@/lib/utils";
 
 type InvoiceDetailTabsProps = {
   invoice: Invoice;
@@ -53,8 +48,9 @@ export function InvoiceDetailTabs({
   );
 
   const [internalActiveTab, setInternalActiveTab] =
-    useState<InvoiceDetailTabId>("lines");
+    useState<InvoiceDetailTabId>("client");
   const activeTab = controlledActiveTab ?? internalActiveTab;
+  const lineCount = invoice.lines?.length ?? invoice.line_ids?.length ?? 0;
 
   function handleTabChange(tab: InvoiceDetailTabId) {
     if (onActiveTabChange) {
@@ -64,28 +60,34 @@ export function InvoiceDetailTabs({
     setInternalActiveTab(tab);
   }
 
-  const [showSummaryPanel, setShowSummaryPanel] = useState(false);
-  const lineCount = invoice.lines?.length ?? invoice.line_ids?.length ?? 0;
-
   return (
     <DetailPageTabsSection>
+      <section className="border-b border-dash-border/80 px-4 py-4 sm:px-6">
+        <div className="mb-3 flex items-baseline justify-between gap-3">
+          <h2 className="text-sm font-semibold text-brand-navy">Items</h2>
+          <p className="text-xs text-brand-muted">
+            {lineCount} {lineCount === 1 ? "line" : "lines"}
+          </p>
+        </div>
+        <InvoiceDetailLinesTab
+          invoice={invoice}
+          isActive
+          onInvoiceRefresh={onInvoiceRefresh}
+        />
+      </section>
+
       <DetailPageTabsNavSection aria-label="Invoice sections">
         {tabs.map((tab) => (
           <DetailPageTabNavItem
             key={tab.id}
             isActive={activeTab === tab.id}
             onClick={() => handleTabChange(tab.id)}
-            className="inline-flex items-center justify-start gap-1.5 px-3 py-2 text-left"
+            className="inline-flex items-center justify-start gap-1 px-2 py-1.5 text-left"
           >
             <span aria-hidden="true" className="inline-flex">
               <AppIcon name={tab.icon} size={14} className="size-3.5" />
             </span>
-            <span>{tab.label}</span>
-            {tab.id === "lines" && lineCount > 0 ? (
-              <span className="rounded-full bg-slate-100 px-1.5 py-0.2 text-[11px] font-medium text-brand-slate">
-                {lineCount}
-              </span>
-            ) : null}
+            {tab.label}
             {tab.id === "claim" && claimTabHasIssues ? (
               <span
                 className="size-2 rounded-full bg-red-500"
@@ -96,55 +98,33 @@ export function InvoiceDetailTabs({
         ))}
       </DetailPageTabsNavSection>
 
-      <DetailPageMainAsideGrid>
-        <DetailPageMainSection className="px-4 py-5 sm:px-6">
-          <InvoiceDetailLinesTab
-            invoice={invoice}
-            isActive={activeTab === "lines"}
-            onInvoiceRefresh={onInvoiceRefresh}
-          />
-          <InvoiceDetailClientTab
-            invoice={invoice}
-            isActive={activeTab === "client"}
-          />
-          {showClaimTab ? (
-            <InvoiceClaimsTab
-              invoice={invoice}
-              isActive={activeTab === "claim"}
-              onInvoiceRefresh={onInvoiceRefresh}
-              onClaimIndicatorChange={setClaimTabHasIssues}
-            />
-          ) : null}
-          <InvoiceDetailPaymentsTab
-            invoice={invoice}
-            isActive={activeTab === "payments"}
-          />
-          <InvoiceDiagnosesTab
-            invoice={invoice}
-            isActive={activeTab === "diagnoses"}
-            onInvoiceRefresh={onInvoiceRefresh}
-          />
-          <InvoiceDetailActivityTab
-            invoice={invoice}
-            isActive={activeTab === "activity"}
-          />
-        </DetailPageMainSection>
-
-        <InvoiceSummaryPanel
+      <DetailPageMainSection>
+        <InvoiceDetailClientTab
           invoice={invoice}
-          className={cn(!showSummaryPanel && "hidden xl:block")}
+          isActive={activeTab === "client"}
         />
-      </DetailPageMainAsideGrid>
-
-      <FabButton
-        label={showSummaryPanel ? "Hide invoice summary" : "Show invoice summary"}
-        icon={PanelRight}
-        variant="outline"
-        hideFrom="xl"
-        className="bg-white"
-        onClick={() => setShowSummaryPanel((current) => !current)}
-        data-testid="invoice-summary-fab"
-      />
+        {showClaimTab ? (
+          <InvoiceClaimsTab
+            invoice={invoice}
+            isActive={activeTab === "claim"}
+            onInvoiceRefresh={onInvoiceRefresh}
+            onClaimIndicatorChange={setClaimTabHasIssues}
+          />
+        ) : null}
+        <InvoiceDetailPaymentsTab
+          invoice={invoice}
+          isActive={activeTab === "payments"}
+        />
+        <InvoiceDiagnosesTab
+          invoice={invoice}
+          isActive={activeTab === "diagnoses"}
+          onInvoiceRefresh={onInvoiceRefresh}
+        />
+        <InvoiceDetailActivityTab
+          invoice={invoice}
+          isActive={activeTab === "activity"}
+        />
+      </DetailPageMainSection>
     </DetailPageTabsSection>
   );
 }
