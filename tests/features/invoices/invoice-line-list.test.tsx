@@ -29,7 +29,10 @@ describe("InvoiceLineList", () => {
     expect(screen.getByTestId("invoice-lines-list")).toBeInTheDocument();
     expect(screen.queryByRole("table")).not.toBeInTheDocument();
     expect(screen.getByText("Consultation")).toBeInTheDocument();
+    expect(screen.getByText("Tariff")).toBeInTheDocument();
     expect(screen.getByText("CONS-01")).toBeInTheDocument();
+    expect(screen.getByText("Qty")).toBeInTheDocument();
+    expect(screen.getByText("Price")).toBeInTheDocument();
     expect(screen.getAllByText("15,000.00 MWK").length).toBeGreaterThan(0);
   });
 });

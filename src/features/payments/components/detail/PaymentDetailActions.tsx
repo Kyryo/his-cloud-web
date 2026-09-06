@@ -193,6 +193,25 @@ export function PaymentDetailActions({
   return (
     <>
       <div className={cn("flex shrink-0 flex-wrap items-center gap-2", className)}>
+        <PrimaryButton
+          type="button"
+          onClick={() => void handleDownloadReceipt()}
+          disabled={isDownloadingPdf}
+          data-testid="download-receipt-button"
+        >
+          {isDownloadingPdf ? (
+            <>
+              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+              Downloading...
+            </>
+          ) : (
+            <>
+              <FileDown className="size-4" aria-hidden="true" />
+              Download receipt
+            </>
+          )}
+        </PrimaryButton>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -241,25 +260,6 @@ export function PaymentDetailActions({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
-        <PrimaryButton
-          type="button"
-          onClick={() => void handleDownloadReceipt()}
-          disabled={isDownloadingPdf}
-          data-testid="download-receipt-button"
-        >
-          {isDownloadingPdf ? (
-            <>
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              Downloading...
-            </>
-          ) : (
-            <>
-              <FileDown className="size-4" aria-hidden="true" />
-              Download receipt
-            </>
-          )}
-        </PrimaryButton>
       </div>
 
       <SendReceiptEmailDialog

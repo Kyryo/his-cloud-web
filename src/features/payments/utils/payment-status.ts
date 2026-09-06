@@ -5,5 +5,8 @@ export function formatPaymentStateLabel(state: PaymentState): string {
   if (!normalized) {
     return "Unknown";
   }
+  if (normalized === "cancel") {
+    return "Cancelled";
+  }
   return normalized.replace(/_/g, " ").replace(/\b\w/g, (char) => char.toUpperCase());
 }

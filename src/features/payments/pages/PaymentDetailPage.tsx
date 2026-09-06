@@ -2,20 +2,47 @@
 
 import { useEffect, useState } from "react";
 
+import { Skeleton } from "@/components/ui/skeleton";
 import { PaymentDetailActions } from "@/features/payments/components/detail/PaymentDetailActions";
 import { PaymentDetailHeader } from "@/features/payments/components/detail/PaymentDetailHeader";
-import { PaymentDetailTabs } from "@/features/payments/components/detail/PaymentDetailTabs";
+import { PaymentDetailView } from "@/features/payments/components/detail/PaymentDetailView";
 import { fetchPayment } from "@/features/payments/services/payments.service";
 import type { Payment } from "@/features/payments/types/payment.types";
 import {
+  DetailPageHeaderSection,
   DetailPageLayout,
-  DetailPageSkeleton,
 } from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
 
 type PaymentDetailPageProps = {
   paymentId: string;
 };
+
+function PaymentDetailSkeleton() {
+  return (
+    <DetailPageLayout data-testid="payment-detail-skeleton">
+      <DetailPageHeaderSection>
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="h-4 w-28" />
+            <Skeleton className="h-6 w-16 rounded-full" />
+          </div>
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-36 rounded-full" />
+            <Skeleton className="h-10 w-10 rounded-full" />
+          </div>
+        </div>
+      </DetailPageHeaderSection>
+      <div className="px-4 py-6 sm:px-6 sm:py-8">
+        <Skeleton className="h-3 w-16" />
+        <Skeleton className="mt-3 h-12 w-52" />
+        <Skeleton className="mt-8 h-5 w-40" />
+        <Skeleton className="mt-4 h-20 w-full max-w-md" />
+      </div>
+    </DetailPageLayout>
+  );
+}
 
 export function PaymentDetailPage({ paymentId }: PaymentDetailPageProps) {
   const [payment, setPayment] = useState<Payment | null>(null);
@@ -52,12 +79,7 @@ export function PaymentDetailPage({ paymentId }: PaymentDetailPageProps) {
   }, [paymentId]);
 
   if (isLoading) {
-    return (
-      <DetailPageSkeleton
-        tabCount={2}
-        data-testid="payment-detail-skeleton"
-      />
-    );
+    return <PaymentDetailSkeleton />;
   }
 
   if (error || !payment) {
@@ -82,7 +104,7 @@ export function PaymentDetailPage({ paymentId }: PaymentDetailPageProps) {
           />
         }
       />
-      <PaymentDetailTabs payment={payment} />
+      <PaymentDetailView payment={payment} />
     </DetailPageLayout>
   );
 }

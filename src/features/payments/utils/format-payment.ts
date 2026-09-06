@@ -1,6 +1,10 @@
 import type { Payment } from "@/features/payments/types/payment.types";
 import { formatInvoiceAmount } from "@/features/invoices/utils/format-invoice";
-import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
+import {
+  formatDisplayDate,
+  formatDisplayDateTime,
+} from "@/features/customers/utils/format-customer";
+import { ROUTES } from "@/constants/routes";
 
 export function formatPaymentCustomer(payment: Payment): string {
   return payment.customer_name?.trim() || "No customer";
@@ -11,6 +15,13 @@ export function formatPaymentDate(value: string | null | undefined): string {
     return "—";
   }
   return formatDisplayDateTime(value);
+}
+
+export function formatPaymentDay(value: string | null | undefined): string {
+  if (!value) {
+    return "—";
+  }
+  return formatDisplayDate(value);
 }
 
 export function formatPaymentAmount(
@@ -35,4 +46,20 @@ export function formatPaymentAllocationLabel(payment: Payment): string {
     return `#${payment.invoice_id}`;
   }
   return "—";
+}
+
+export function getPaymentAllocationHref(payment: Payment): string | null {
+  if (payment.invoice_id || payment.invoice_uuid) {
+    return ROUTES.invoiceDetail(payment.invoice_uuid ?? payment.invoice_id);
+  }
+  return null;
+}
+
+export function formatPaymentRecordedBy(payment: Payment): string | null {
+  const name = payment.recorded_by_name?.trim();
+  if (name) {
+    return name;
+  }
+  const email = payment.recorded_by_email?.trim();
+  return email || null;
 }

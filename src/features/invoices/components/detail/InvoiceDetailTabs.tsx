@@ -1,6 +1,6 @@
 "use client";
 
-import { PanelLeft } from "lucide-react";
+import { PanelRight } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { AppIcon } from "@/components/icons/app-icon";
@@ -96,15 +96,7 @@ export function InvoiceDetailTabs({
         ))}
       </DetailPageTabsNavSection>
 
-      <DetailPageMainAsideGrid className="xl:grid-cols-[22rem_minmax(0,1fr)]">
-        <InvoiceSummaryPanel
-          invoice={invoice}
-          className={cn(
-            "xl:border-l-0 xl:border-r",
-            !showSummaryPanel && "hidden xl:block",
-          )}
-        />
-
+      <DetailPageMainAsideGrid>
         <DetailPageMainSection className="px-4 py-5 sm:px-6">
           <InvoiceDetailLinesTab
             invoice={invoice}
@@ -137,11 +129,16 @@ export function InvoiceDetailTabs({
             isActive={activeTab === "activity"}
           />
         </DetailPageMainSection>
+
+        <InvoiceSummaryPanel
+          invoice={invoice}
+          className={cn(!showSummaryPanel && "hidden xl:block")}
+        />
       </DetailPageMainAsideGrid>
 
       <FabButton
         label={showSummaryPanel ? "Hide invoice summary" : "Show invoice summary"}
-        icon={PanelLeft}
+        icon={PanelRight}
         variant="outline"
         hideFrom="xl"
         className="bg-white"

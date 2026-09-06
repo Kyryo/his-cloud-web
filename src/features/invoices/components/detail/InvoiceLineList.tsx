@@ -35,6 +35,29 @@ function formatTariffCode(value: string | null | undefined): string | null {
   return trimmed || null;
 }
 
+function LineFact({
+  label,
+  value,
+  variant = "outline",
+  mono = false,
+}: {
+  label: string;
+  value: string;
+  variant?: "outline" | "secondary";
+  mono?: boolean;
+}) {
+  return (
+    <Badge variant={variant} className="gap-1 font-normal">
+      <span className="text-[10px] font-medium uppercase tracking-wide text-brand-muted">
+        {label}
+      </span>
+      <span className={mono ? "font-mono text-brand-navy" : "text-brand-navy"}>
+        {value}
+      </span>
+    </Badge>
+  );
+}
+
 type InvoiceLineListProps = {
   invoice: Invoice;
   onViewDetails: (line: InvoiceLine) => void;
@@ -91,13 +114,17 @@ export function InvoiceLineList({
                 </button>
                 <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
                   {tariffCode ? (
-                    <Badge variant="outline" className="font-mono font-normal">
-                      {tariffCode}
-                    </Badge>
+                    <LineFact label="Tariff" value={tariffCode} mono />
                   ) : null}
-                  <Badge variant="secondary" className="font-normal">
-                    ×{formatQuantity(line.quantity)}
-                  </Badge>
+                  <LineFact
+                    label="Qty"
+                    value={formatQuantity(line.quantity)}
+                    variant="secondary"
+                  />
+                  <LineFact
+                    label="Price"
+                    value={formatAmountNumber(line.price_unit)}
+                  />
                   {showNonPayableBadges && isInvoiceLineNonPayable(line) ? (
                     <LineNonPayableBadge />
                   ) : showNonPayableBadges ? (
@@ -114,12 +141,15 @@ export function InvoiceLineList({
                   ) : null}
                   {showSplit ? (
                     <>
-                      <Badge variant="secondary" className="font-normal">
-                        Insurer {formatAmountNumber(line.insurer_due)}
-                      </Badge>
-                      <Badge variant="outline" className="font-normal">
-                        Client {formatAmountNumber(line.client_due)}
-                      </Badge>
+                      <LineFact
+                        label="Insurer"
+                        value={formatAmountNumber(line.insurer_due)}
+                        variant="secondary"
+                      />
+                      <LineFact
+                        label="Client"
+                        value={formatAmountNumber(line.client_due)}
+                      />
                     </>
                   ) : null}
                 </div>
