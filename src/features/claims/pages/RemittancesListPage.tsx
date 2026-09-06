@@ -4,6 +4,7 @@ import { BarChart3 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { FabButton } from "@/components/ui/fab-button";
 import { ROUTES } from "@/constants/routes";
 import {
@@ -11,16 +12,14 @@ import {
   ListPageLayout,
   ListPagePagination,
   ListPageStatsSection,
-  ListPageToolbarSkeleton,
+  ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
 import { useListThenStats } from "@/features/app-shell/hooks/use-list-then-stats";
-import { RemittanceListToolbar } from "@/features/claims/components/RemittanceListToolbar";
-import {
-  REMITTANCE_TABLE_SKELETON_COLUMNS,
-  RemittancesTable,
-} from "@/features/claims/components/RemittancesTable";
-import { RemittanceSummaryStatsCards } from "@/features/claims/components/RemittanceSummaryStatsCards";
+import { RemittancesEmptyState } from "@/features/claims/components/RemittancesEmptyState";
 import { RemittancesPageHeader } from "@/features/claims/components/RemittancesPageHeader";
+import { RemittanceSummaryStatsCards } from "@/features/claims/components/RemittanceSummaryStatsCards";
+import { RemittancesTable } from "@/features/claims/components/RemittancesTable";
+import { RemittancesTableSkeleton } from "@/features/claims/components/RemittancesTableSkeleton";
 import { UploadRemittanceDialog } from "@/features/claims/components/UploadRemittanceDialog";
 import {
   fetchRemittanceBatches,
@@ -33,8 +32,6 @@ import {
   DEFAULT_REMITTANCE_LIST_FILTERS,
   type RemittanceListFilterState,
 } from "@/features/claims/utils/remittance-list-filters";
-import { InventoryListPageContent } from "@/features/inventory/components/list/InventoryListPageContent";
-import { InventoryListTableSkeleton } from "@/features/inventory/components/list/InventoryListTable";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -169,6 +166,20 @@ export function RemittancesListPage() {
     setPage(1);
   }, []);
 
+  const handleClearSearchAndFilters = useCallback(() => {
+    setIsRefreshing(true);
+    setSearch("");
+    setActiveSearch("");
+    setFilters(DEFAULT_REMITTANCE_LIST_FILTERS);
+    setPage(1);
+  }, []);
+
+  const handleFiltersApply = useCallback((nextFilters: RemittanceListFilterState) => {
+    setIsRefreshing(true);
+    setFilters(nextFilters);
+    setPage(1);
+  }, []);
+
   const activeFilterCount = countActiveRemittanceFilters(filters);
   const hasActiveQuery = activeSearch.length > 0 || activeFilterCount > 0;
   const isFilteredEmpty =
@@ -178,7 +189,16 @@ export function RemittancesListPage() {
 
   return (
     <ListPageLayout data-testid="remittances-list-page">
-      <RemittancesPageHeader onUploadClick={() => setUploadOpen(true)} />
+      <RemittancesPageHeader
+        search={search}
+        filters={filters}
+        isLoading={isRefreshing}
+        onSearchChange={setSearch}
+        onSearchSubmit={handleSearchSubmit}
+        onClearSearch={handleClearSearch}
+        onFiltersApply={handleFiltersApply}
+        onUploadClick={() => setUploadOpen(true)}
+      />
 
       {!hasNoRecords ? (
         <FabButton
@@ -191,71 +211,79 @@ export function RemittancesListPage() {
         />
       ) : null}
 
+      <FabButton
+        label="Upload remittance"
+        onClick={() => setUploadOpen(true)}
+        data-testid="remittance-upload-fab"
+      />
+
       {!hasNoRecords ? (
         <ListPageDataSectionsStack>
           <ListPageStatsSection className={cn(!showStats && "hidden sm:block")}>
             <RemittanceSummaryStatsCards stats={stats} isLoading={isStatsLoading} />
           </ListPageStatsSection>
-          {isLoading ? (
-            <ListPageToolbarSkeleton />
-          ) : (
-            <RemittanceListToolbar
-              search={search}
-              filters={filters}
-              isLoading={isRefreshing}
-              onSearchChange={setSearch}
-              onSearchSubmit={handleSearchSubmit}
-              onClearSearch={handleClearSearch}
-              onFiltersApply={(nextFilters) => {
-                setIsRefreshing(true);
-                setFilters(nextFilters);
-                setPage(1);
-              }}
-            />
-          )}
         </ListPageDataSectionsStack>
       ) : null}
 
-      <InventoryListPageContent
-        isLoading={isLoading}
-        loadingMessage="Loading remittances…"
-        loadingFallback={
-          <InventoryListTableSkeleton columns={[...REMITTANCE_TABLE_SKELETON_COLUMNS]} />
-        }
-        error={error}
-        onRetry={() => void reload()}
-        errorTitle="Could not load remittances"
-        hasNoRecords={hasNoRecords}
-        emptyState={
-          <div className="rounded-xl border border-dashed border-brand-border bg-white px-6 py-14 text-center">
-            <p className="text-sm font-medium text-brand-navy">No remittances yet</p>
-            <p className="mt-2 text-sm text-brand-muted">
-              Upload a payer remittance file to reconcile settlements.
-            </p>
+      <ListPageTableSection>
+        {isLoading ? (
+          <RemittancesTableSkeleton rows={8} />
+        ) : error ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+            <h2 className="text-sm font-semibold text-red-800">
+              Could not load remittances
+            </h2>
+            <p className="mt-2 text-sm text-red-700">{error}</p>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-4"
+              onClick={() => void reload()}
+            >
+              Try again
+            </Button>
           </div>
-        }
-        isFilteredEmpty={isFilteredEmpty}
-        filteredEmptyTitle="No matching remittances"
-      >
-        <>
-          <RemittancesTable
-            batches={batches}
-            onRowClick={(batch) => router.push(ROUTES.remittanceDetail(batch.uuid))}
-          />
-          <ListPagePagination
-            page={page}
-            pageSize={DEFAULT_PAGE_SIZE}
-            totalCount={totalCount}
-            hasNext={hasNext}
-            hasPrevious={hasPrevious}
-            isLoading={isRefreshing}
-            onPageChange={(nextPage) => {
-              setIsRefreshing(true);
-              setPage(nextPage);
-            }}
-          />
-        </>
-      </InventoryListPageContent>
+        ) : hasNoRecords ? (
+          <RemittancesEmptyState onUploadClick={() => setUploadOpen(true)} />
+        ) : isFilteredEmpty ? (
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center">
+            <h2 className="text-base font-semibold text-brand-navy">
+              No matching remittances
+            </h2>
+            <p className="mt-1 text-sm text-brand-muted">
+              Adjust your search or filters and try again.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-4"
+              onClick={handleClearSearchAndFilters}
+            >
+              Clear search & filters
+            </Button>
+          </div>
+        ) : (
+          <>
+            <RemittancesTable
+              batches={batches}
+              onRowClick={(batch) => router.push(ROUTES.remittanceDetail(batch.uuid))}
+            />
+            <ListPagePagination
+              page={page}
+              pageSize={DEFAULT_PAGE_SIZE}
+              totalCount={totalCount}
+              hasNext={hasNext}
+              hasPrevious={hasPrevious}
+              isLoading={isRefreshing}
+              onPageChange={(nextPage) => {
+                setIsRefreshing(true);
+                setPage(nextPage);
+              }}
+            />
+          </>
+        )}
+      </ListPageTableSection>
 
       <UploadRemittanceDialog
         open={uploadOpen}

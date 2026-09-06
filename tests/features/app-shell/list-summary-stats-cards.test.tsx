@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from "vitest";
 
 import { AppointmentSummaryStatsCards } from "@/features/appointments/components/AppointmentSummaryStatsCards";
 import { ClaimSummaryStatsCards } from "@/features/claims/components/ClaimSummaryStatsCards";
+import { RejectionSummaryStatsCards } from "@/features/claims/components/RejectionSummaryStatsCards";
 import { RemittanceSummaryStatsCards } from "@/features/claims/components/RemittanceSummaryStatsCards";
 import { InvoiceSummaryStatsCards } from "@/features/invoices/components/InvoiceSummaryStatsCards";
 import { PaymentSummaryStatsCards } from "@/features/payments/components/PaymentSummaryStatsCards";
@@ -145,5 +146,24 @@ describe("list page summary stat cards", () => {
     expect(screen.getByText("In progress")).toBeInTheDocument();
     expect(screen.getByText("Processed")).toBeInTheDocument();
     expect(screen.getByText("Needs review")).toBeInTheDocument();
+  });
+
+  it("renders rejection card labels", () => {
+    render(
+      <RejectionSummaryStatsCards
+        stats={{
+          claimed: { count: 4, total: "800.00" },
+          pay_to_provider: { count: 2, total: "120.00" },
+          matched: { count: 3, total: "600.00" },
+          with_reason: { count: 1, total: "200.00" },
+        }}
+      />,
+    );
+
+    expect(screen.getByTestId("rejection-summary-stats")).toBeInTheDocument();
+    expect(screen.getByText("Claimed amount")).toBeInTheDocument();
+    expect(screen.getByText("Pay to you")).toBeInTheDocument();
+    expect(screen.getByText("Matched lines")).toBeInTheDocument();
+    expect(screen.getByText("With reason code")).toBeInTheDocument();
   });
 });

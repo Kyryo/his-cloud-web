@@ -1,8 +1,12 @@
 "use client";
 
-import { StatsCard1, StatsCard1Grid } from "@/components/stats-card1";
-import { ListPageCountAmountValue } from "@/features/app-shell/components/page-layout";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { RemittanceSummaryStats } from "@/features/claims/types/remittances.types";
+import { formatSalesOrderAmount } from "@/features/sales-orders/utils/format-sales-order";
+import {
+  formatCompactAmount,
+  formatCompactNumber,
+} from "@/utils/format-compact-number";
 
 type RemittanceSummaryStatsCardsProps = {
   stats: RemittanceSummaryStats | null;
@@ -15,6 +19,24 @@ export function RemittanceSummaryStatsCards({
   stats,
   isLoading = false,
 }: RemittanceSummaryStatsCardsProps) {
+  if (isLoading) {
+    return (
+      <div
+        className="grid grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
+        data-testid="remittance-summary-stats"
+        aria-busy="true"
+      >
+        {Array.from({ length: 4 }, (_, index) => (
+          <div key={index} className="p-3.5 sm:p-4">
+            <Skeleton className="h-3.5 w-20" />
+            <Skeleton className="mt-2.5 h-8 w-16" />
+            <Skeleton className="mt-1.5 h-3 w-28" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
   const buckets = stats ?? {
     all: EMPTY_BUCKET,
     in_progress: EMPTY_BUCKET,
@@ -23,55 +45,97 @@ export function RemittanceSummaryStatsCards({
   };
 
   return (
-    <StatsCard1Grid data-testid="remittance-summary-stats">
-      <StatsCard1
-        title="All remittances"
-        icon="shield"
-        tone="teal"
-        isLoading={isLoading}
-        value={
-          <ListPageCountAmountValue
-            count={buckets.all.count}
-            total={buckets.all.total}
-          />
-        }
-      />
-      <StatsCard1
-        title="In progress"
-        icon="transfer"
-        tone="amber"
-        isLoading={isLoading}
-        value={
-          <ListPageCountAmountValue
-            count={buckets.in_progress.count}
-            total={buckets.in_progress.total}
-          />
-        }
-      />
-      <StatsCard1
-        title="Processed"
-        icon="wallet"
-        tone="violet"
-        isLoading={isLoading}
-        value={
-          <ListPageCountAmountValue
-            count={buckets.processed.count}
-            total={buckets.processed.total}
-          />
-        }
-      />
-      <StatsCard1
-        title="Needs review"
-        icon="clipboard"
-        tone="rose"
-        isLoading={isLoading}
-        value={
-          <ListPageCountAmountValue
-            count={buckets.needs_review.count}
-            total={buckets.needs_review.total}
-          />
-        }
-      />
-    </StatsCard1Grid>
+    <dl
+      className="grid grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
+      data-testid="remittance-summary-stats"
+    >
+      <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
+        <div className="flex items-center gap-2">
+          <span className="size-2 shrink-0 rounded-full bg-blue-500" />
+          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
+            All remittances
+          </dt>
+        </div>
+        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          {formatCompactNumber(buckets.all.count)}
+        </dd>
+        <p
+          className="mt-0.5 text-xs text-brand-muted"
+          title={formatSalesOrderAmount(buckets.all.total, "MWK")}
+        >
+          {formatCompactAmount(buckets.all.total)} MWK · Total volume
+        </p>
+      </div>
+
+      <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
+        <div className="flex items-center gap-2">
+          <span className="size-2 shrink-0 rounded-full bg-amber-500" />
+          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
+            In progress
+          </dt>
+        </div>
+        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          {formatCompactNumber(buckets.in_progress.count)}
+        </dd>
+        <p
+          className="mt-0.5 text-xs text-brand-muted"
+          title={formatSalesOrderAmount(buckets.in_progress.total, "MWK")}
+        >
+          {formatCompactAmount(buckets.in_progress.total)} MWK · Processing
+        </p>
+      </div>
+
+      <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
+        <div className="flex items-center gap-2">
+          <span className="size-2 shrink-0 rounded-full bg-emerald-500" />
+          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
+            Processed
+          </dt>
+        </div>
+        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          {formatCompactNumber(buckets.processed.count)}
+        </dd>
+        <p
+          className="mt-0.5 text-xs text-brand-muted"
+          title={formatSalesOrderAmount(buckets.processed.total, "MWK")}
+        >
+          <span className="font-medium text-emerald-700">
+            {formatCompactAmount(buckets.processed.total)} MWK
+          </span>{" "}
+          · Settled
+        </p>
+      </div>
+
+      <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
+        <div className="flex items-center gap-2">
+          {buckets.needs_review.count > 0 ? (
+            <span className="relative flex size-2 shrink-0">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-rose-400 opacity-75" />
+              <span className="relative inline-flex size-2 rounded-full bg-rose-500" />
+            </span>
+          ) : (
+            <span className="size-2 shrink-0 rounded-full bg-rose-500" />
+          )}
+          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
+            Needs review
+          </dt>
+        </div>
+        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          {formatCompactNumber(buckets.needs_review.count)}
+        </dd>
+        <p
+          className="mt-0.5 text-xs text-brand-muted"
+          title={formatSalesOrderAmount(buckets.needs_review.total, "MWK")}
+        >
+          {buckets.needs_review.count > 0 ? (
+            <span className="font-medium text-rose-700">
+              {formatCompactAmount(buckets.needs_review.total)} MWK · Attention
+            </span>
+          ) : (
+            <>{formatCompactAmount(buckets.needs_review.total)} MWK · Attention</>
+          )}
+        </p>
+      </div>
+    </dl>
   );
 }

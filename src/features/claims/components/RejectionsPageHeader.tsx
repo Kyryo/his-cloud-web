@@ -1,20 +1,39 @@
 "use client";
 
-import {
-  ListPageHeaderSection,
-  ListPageHeaderTitleBlock,
-  ListPageHeaderTopRow,
-} from "@/features/app-shell/components/page-layout";
+import { ListPageHeaderSection } from "@/features/app-shell/components/page-layout";
+import { RejectionListToolbar } from "@/features/claims/components/RejectionListToolbar";
+import type { RejectionListFilterState } from "@/features/claims/utils/rejection-list-filters";
 
-export function RejectionsPageHeader() {
+type RejectionsPageHeaderProps = {
+  search: string;
+  filters: RejectionListFilterState;
+  isLoading?: boolean;
+  onSearchChange: (value: string) => void;
+  onSearchSubmit: () => void;
+  onClearSearch: () => void;
+  onFiltersApply: (filters: RejectionListFilterState) => void;
+};
+
+export function RejectionsPageHeader({
+  search,
+  filters,
+  isLoading = false,
+  onSearchChange,
+  onSearchSubmit,
+  onClearSearch,
+  onFiltersApply,
+}: RejectionsPageHeaderProps) {
   return (
     <ListPageHeaderSection>
-      <ListPageHeaderTopRow>
-        <ListPageHeaderTitleBlock
-          title="Rejections"
-          description="Payer denial lines and manually rejected remittance lines across all remittance files."
-        />
-      </ListPageHeaderTopRow>
+      <RejectionListToolbar
+        search={search}
+        filters={filters}
+        isLoading={isLoading}
+        onSearchChange={onSearchChange}
+        onSearchSubmit={onSearchSubmit}
+        onClearSearch={onClearSearch}
+        onFiltersApply={onFiltersApply}
+      />
     </ListPageHeaderSection>
   );
 }

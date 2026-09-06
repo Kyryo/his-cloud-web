@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { ListPageSearchToolbar } from "@/features/app-shell/components/page-layout";
 import { RemittanceFiltersSheet } from "@/features/claims/components/RemittanceFiltersSheet";
 import type { RemittanceListFilterState } from "@/features/claims/utils/remittance-list-filters";
@@ -12,6 +14,7 @@ type RemittanceListToolbarProps = {
   onSearchSubmit: () => void;
   onClearSearch: () => void;
   onFiltersApply: (filters: RemittanceListFilterState) => void;
+  trailing?: ReactNode;
 };
 
 export function RemittanceListToolbar({
@@ -22,6 +25,7 @@ export function RemittanceListToolbar({
   onSearchSubmit,
   onClearSearch,
   onFiltersApply,
+  trailing,
 }: RemittanceListToolbarProps) {
   return (
     <ListPageSearchToolbar
@@ -42,6 +46,7 @@ export function RemittanceListToolbar({
           onApply={onFiltersApply}
         />
       }
+      trailing={trailing}
     />
   );
 }

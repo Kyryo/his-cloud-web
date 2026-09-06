@@ -31,29 +31,27 @@ type RejectionsTableProps = {
 
 const columns = [
   { key: "remittance", label: "Remittance" },
-  { key: "treatment_date", label: "Treatment date" },
+  {
+    key: "treatment_date",
+    label: "Treatment date",
+    className: "hidden md:table-cell",
+  },
   { key: "member", label: "Member #" },
   { key: "patient", label: "Patient" },
-  { key: "code", label: "Code" },
-  { key: "claimed", label: "Claimed", align: "right" as const },
-  { key: "pay_to_you", label: "Pay to you", align: "right" as const },
+  { key: "code", label: "Code", className: "hidden lg:table-cell" },
+  {
+    key: "claimed",
+    label: "Claimed",
+    className: "hidden text-right lg:table-cell",
+  },
+  {
+    key: "pay_to_you",
+    label: "Pay to you",
+    className: "hidden text-right xl:table-cell",
+  },
   { key: "reason", label: "Reason" },
-  { key: "actions", label: "", align: "right" as const },
+  { key: "actions", label: "", className: "w-12 text-right" },
 ] as const;
-
-export const REJECTION_TABLE_SKELETON_COLUMNS = columns.map((column) => ({
-  key: column.key,
-  label: column.label,
-  headerClassName:
-    column.align === "right" ? "text-right" : column.key === "actions" ? "w-12" : undefined,
-}));
-
-function columnHeaderClass(key: string, align?: "right") {
-  if (align === "right" || key === "actions") {
-    return "text-right";
-  }
-  return undefined;
-}
 
 function hasRejectionReason(row: RemittanceRejectionRow): boolean {
   return Boolean(row.reason_code?.trim());
@@ -71,7 +69,7 @@ export function RejectionsTable({
           {columns.map((column) => (
             <ListPageDataTableHeaderCell
               key={column.key}
-              className={columnHeaderClass(column.key, column.align)}
+              className={"className" in column ? column.className : undefined}
             >
               {column.label}
             </ListPageDataTableHeaderCell>
@@ -79,17 +77,7 @@ export function RejectionsTable({
         </ListPageDataTableHeaderRow>
       </ListPageDataTableHeader>
       <ListPageDataTableBody>
-        {rows.length === 0 ? (
-          <ListPageDataTableRow>
-            <ListPageDataTableCell
-              colSpan={columns.length}
-              className="py-10 text-center text-sm text-brand-muted"
-            >
-              No rejected remittance lines found.
-            </ListPageDataTableCell>
-          </ListPageDataTableRow>
-        ) : (
-          rows.map((row) => {
+        {rows.map((row) => {
             const claimRef = row.matched_claim_uuid ?? row.matched_claim_id;
             const invoiceRef = row.matched_invoice_uuid ?? row.matched_invoice_id;
 
@@ -117,7 +105,7 @@ export function RejectionsTable({
                     {row.batch_payer_code}
                   </p>
                 </ListPageDataTableCell>
-                <ListPageDataTableCell className="whitespace-nowrap text-sm text-brand-slate">
+                <ListPageDataTableCell className="hidden whitespace-nowrap text-sm text-brand-slate md:table-cell">
                   {row.service_date || "—"}
                 </ListPageDataTableCell>
                 <ListPageDataTableCell className="font-mono text-sm text-brand-slate">
@@ -126,13 +114,13 @@ export function RejectionsTable({
                 <ListPageDataTableCell className="text-sm font-medium text-brand-navy">
                   {row.patient_name || row.member_name || "—"}
                 </ListPageDataTableCell>
-                <ListPageDataTableCell className="text-sm text-brand-slate">
+                <ListPageDataTableCell className="hidden text-sm text-brand-slate lg:table-cell">
                   {row.procedure_code || "—"}
                 </ListPageDataTableCell>
-                <ListPageDataTableCell className="text-right text-sm tabular-nums text-brand-slate">
+                <ListPageDataTableCell className="hidden text-right text-sm tabular-nums text-brand-slate lg:table-cell">
                   {row.amount_claimed ?? "—"}
                 </ListPageDataTableCell>
-                <ListPageDataTableCell className="text-right text-sm tabular-nums text-brand-slate">
+                <ListPageDataTableCell className="hidden text-right text-sm tabular-nums text-brand-slate xl:table-cell">
                   {row.pay_to_provider ?? "—"}
                 </ListPageDataTableCell>
                 <ListPageDataTableCell className="text-sm">
@@ -197,8 +185,7 @@ export function RejectionsTable({
                 </ListPageDataTableCell>
               </ListPageDataTableRow>
             );
-          })
-        )}
+          })}
       </ListPageDataTableBody>
     </ListPageDataTable>
   );

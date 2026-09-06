@@ -4,6 +4,7 @@ import { BarChart3 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { Button } from "@/components/ui/button";
 import { FabButton } from "@/components/ui/fab-button";
 import { ROUTES } from "@/constants/routes";
 import {
@@ -11,16 +12,14 @@ import {
   ListPageLayout,
   ListPagePagination,
   ListPageStatsSection,
-  ListPageToolbarSkeleton,
+  ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
 import { useListThenStats } from "@/features/app-shell/hooks/use-list-then-stats";
-import { RejectionListToolbar } from "@/features/claims/components/RejectionListToolbar";
-import {
-  REJECTION_TABLE_SKELETON_COLUMNS,
-  RejectionsTable,
-} from "@/features/claims/components/RejectionsTable";
-import { RejectionSummaryStatsCards } from "@/features/claims/components/RejectionSummaryStatsCards";
+import { RejectionsEmptyState } from "@/features/claims/components/RejectionsEmptyState";
 import { RejectionsPageHeader } from "@/features/claims/components/RejectionsPageHeader";
+import { RejectionSummaryStatsCards } from "@/features/claims/components/RejectionSummaryStatsCards";
+import { RejectionsTable } from "@/features/claims/components/RejectionsTable";
+import { RejectionsTableSkeleton } from "@/features/claims/components/RejectionsTableSkeleton";
 import {
   fetchRemittanceRejections,
   fetchRemittanceRejectionSummaryStats,
@@ -32,8 +31,6 @@ import {
   DEFAULT_REJECTION_LIST_FILTERS,
   type RejectionListFilterState,
 } from "@/features/claims/utils/rejection-list-filters";
-import { InventoryListPageContent } from "@/features/inventory/components/list/InventoryListPageContent";
-import { InventoryListTableSkeleton } from "@/features/inventory/components/list/InventoryListTable";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_PAGE_SIZE = 20;
@@ -154,6 +151,20 @@ export function RejectionsListPage() {
     setPage(1);
   }, []);
 
+  const handleClearSearchAndFilters = useCallback(() => {
+    setIsRefreshing(true);
+    setSearch("");
+    setActiveSearch("");
+    setFilters(DEFAULT_REJECTION_LIST_FILTERS);
+    setPage(1);
+  }, []);
+
+  const handleFiltersApply = useCallback((nextFilters: RejectionListFilterState) => {
+    setIsRefreshing(true);
+    setFilters(nextFilters);
+    setPage(1);
+  }, []);
+
   const activeFilterCount = countActiveRejectionFilters(filters);
   const hasActiveQuery = activeSearch.length > 0 || activeFilterCount > 0;
   const isFilteredEmpty =
@@ -163,7 +174,15 @@ export function RejectionsListPage() {
 
   return (
     <ListPageLayout data-testid="rejections-list-page">
-      <RejectionsPageHeader />
+      <RejectionsPageHeader
+        search={search}
+        filters={filters}
+        isLoading={isRefreshing}
+        onSearchChange={setSearch}
+        onSearchSubmit={handleSearchSubmit}
+        onClearSearch={handleClearSearch}
+        onFiltersApply={handleFiltersApply}
+      />
 
       {!hasNoRecords ? (
         <FabButton
@@ -181,69 +200,70 @@ export function RejectionsListPage() {
           <ListPageStatsSection className={cn(!showStats && "hidden sm:block")}>
             <RejectionSummaryStatsCards stats={stats} isLoading={isStatsLoading} />
           </ListPageStatsSection>
-          {isLoading ? (
-            <ListPageToolbarSkeleton />
-          ) : (
-            <RejectionListToolbar
-              search={search}
-              filters={filters}
-              isLoading={isRefreshing}
-              onSearchChange={setSearch}
-              onSearchSubmit={handleSearchSubmit}
-              onClearSearch={handleClearSearch}
-              onFiltersApply={(nextFilters) => {
-                setIsRefreshing(true);
-                setFilters(nextFilters);
-                setPage(1);
-              }}
-            />
-          )}
         </ListPageDataSectionsStack>
       ) : null}
 
-      <InventoryListPageContent
-        isLoading={isLoading}
-        loadingMessage="Loading rejections…"
-        loadingFallback={
-          <InventoryListTableSkeleton columns={[...REJECTION_TABLE_SKELETON_COLUMNS]} />
-        }
-        error={error}
-        onRetry={() => void reload()}
-        errorTitle="Could not load rejections"
-        hasNoRecords={hasNoRecords}
-        emptyState={
-          <div className="rounded-xl border border-dashed border-brand-border bg-white px-6 py-14 text-center">
-            <p className="text-sm font-medium text-brand-navy">No rejections yet</p>
-            <p className="mt-2 text-sm text-brand-muted">
-              Rejected remittance lines will appear here when you reject lines on a
-              remittance file.
-            </p>
+      <ListPageTableSection>
+        {isLoading ? (
+          <RejectionsTableSkeleton rows={8} />
+        ) : error ? (
+          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+            <h2 className="text-sm font-semibold text-red-800">
+              Could not load rejections
+            </h2>
+            <p className="mt-2 text-sm text-red-700">{error}</p>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-4"
+              onClick={() => void reload()}
+            >
+              Try again
+            </Button>
           </div>
-        }
-        isFilteredEmpty={isFilteredEmpty}
-        filteredEmptyTitle="No matching rejections"
-      >
-        <>
-          <RejectionsTable
-            rows={rows}
-            onRowClick={(row) =>
-              router.push(ROUTES.remittanceDetail(row.batch_uuid))
-            }
-          />
-          <ListPagePagination
-            page={page}
-            pageSize={DEFAULT_PAGE_SIZE}
-            totalCount={totalCount}
-            hasNext={hasNext}
-            hasPrevious={hasPrevious}
-            isLoading={isRefreshing}
-            onPageChange={(nextPage) => {
-              setIsRefreshing(true);
-              setPage(nextPage);
-            }}
-          />
-        </>
-      </InventoryListPageContent>
+        ) : hasNoRecords ? (
+          <RejectionsEmptyState />
+        ) : isFilteredEmpty ? (
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center">
+            <h2 className="text-base font-semibold text-brand-navy">
+              No matching rejections
+            </h2>
+            <p className="mt-1 text-sm text-brand-muted">
+              Adjust your search or filters and try again.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="mt-4"
+              onClick={handleClearSearchAndFilters}
+            >
+              Clear search & filters
+            </Button>
+          </div>
+        ) : (
+          <>
+            <RejectionsTable
+              rows={rows}
+              onRowClick={(row) =>
+                router.push(ROUTES.remittanceDetail(row.batch_uuid))
+              }
+            />
+            <ListPagePagination
+              page={page}
+              pageSize={DEFAULT_PAGE_SIZE}
+              totalCount={totalCount}
+              hasNext={hasNext}
+              hasPrevious={hasPrevious}
+              isLoading={isRefreshing}
+              onPageChange={(nextPage) => {
+                setIsRefreshing(true);
+                setPage(nextPage);
+              }}
+            />
+          </>
+        )}
+      </ListPageTableSection>
     </ListPageLayout>
   );
 }
