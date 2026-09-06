@@ -2,7 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { AppIcon } from "@/components/icons/app-icon";
 import { PageLoader } from "@/components/page-loader";
+import { UserIdenticon } from "@/components/UserIdenticon";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -10,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SettingsPanelSection } from "@/features/settings/components/SettingsPageLayout";
 import {
   CLINICAL_STAFF_ROLE_OPTIONS,
   formatOrganizationUserRole,
@@ -22,46 +26,54 @@ import type {
   OrganizationUser,
   OrganizationUserRole,
 } from "@/features/settings/types/settings.types";
+import {
+  filterClinicalStaff,
+  groupClinicalStaff,
+  isAssignableClinicalRole,
+  isClinicalStaffUser,
+} from "@/features/settings/utils/clinical-staff-roles";
 import { useToast } from "@/providers/toast-provider";
 
 const UNASSIGNED_ROLE_VALUE = "__unassigned__";
 
-function isClinicalStaffUser(user: OrganizationUser) {
-  return (
-    user.groups.includes("Clinical") ||
-    user.user_role === "nurse" ||
-    user.user_role === "physician"
-  );
+function staffMeta(user: OrganizationUser) {
+  const parts = [user.email];
+  if (user.primary_clinic?.name) {
+    parts.push(user.primary_clinic.name);
+  }
+  return parts.join(" · ");
 }
 
 export function ClinicalStaffRolesSection() {
   const { toast } = useToast();
   const [users, setUsers] = useState<OrganizationUser[]>([]);
+  const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [savingUserId, setSavingUserId] = useState<number | null>(null);
 
   useEffect(() => {
-    let active = true;
+    let cancelled = false;
 
     async function loadUsers() {
-      setIsLoading(true);
       try {
         const response = await fetchOrganizationUsers({ pageSize: 200 });
-        if (active) {
-          setUsers(response.results.filter(isClinicalStaffUser));
+        if (cancelled) {
+          return;
         }
+        setUsers(response.results.filter(isClinicalStaffUser));
       } catch (error) {
-        if (active) {
-          setUsers([]);
-          toast({
-            title: "Could not load clinical staff",
-            description:
-              error instanceof Error ? error.message : "Something went wrong.",
-            variant: "error",
-          });
+        if (cancelled) {
+          return;
         }
+        setUsers([]);
+        toast({
+          title: "Could not load clinical staff",
+          description:
+            error instanceof Error ? error.message : "Something went wrong.",
+          variant: "error",
+        });
       } finally {
-        if (active) {
+        if (!cancelled) {
           setIsLoading(false);
         }
       }
@@ -70,7 +82,7 @@ export function ClinicalStaffRolesSection() {
     void loadUsers();
 
     return () => {
-      active = false;
+      cancelled = true;
     };
   }, [toast]);
 
@@ -81,11 +93,21 @@ export function ClinicalStaffRolesSection() {
       ),
     [users],
   );
+  const visibleUsers = useMemo(
+    () => filterClinicalStaff(sortedUsers, query),
+    [sortedUsers, query],
+  );
+  const groups = useMemo(
+    () => groupClinicalStaff(visibleUsers),
+    [visibleUsers],
+  );
 
   async function handleRoleChange(userId: number, userRole: OrganizationUserRole) {
     setSavingUserId(userId);
     try {
-      const updatedUser = await updateOrganizationUser(userId, { user_role: userRole });
+      const updatedUser = await updateOrganizationUser(userId, {
+        user_role: userRole,
+      });
       setUsers((current) =>
         current.map((user) => (user.id === userId ? updatedUser : user)),
       );
@@ -107,72 +129,138 @@ export function ClinicalStaffRolesSection() {
   }
 
   return (
-    <section>
+    <SettingsPanelSection
+      title="Clinical staff"
+      description="Assign each clinical user as a nurse or physician. Roles control what they can do in OPD."
+      action={
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <Button asChild variant="ghost" size="sm">
+            <Link href={ROUTES.settingsClinicalRoleCapabilities}>
+              Role access
+            </Link>
+          </Button>
+          <Button asChild variant="outline" size="sm">
+            <Link href={ROUTES.settingsUserManagement}>Manage users</Link>
+          </Button>
+        </div>
+      }
+    >
       {isLoading ? (
         <PageLoader />
       ) : sortedUsers.length === 0 ? (
-        <p className="text-sm text-brand-muted">
-          No clinical staff found. Add users to the Clinical group in User
-          Management, then assign them as a nurse or physician here.
-        </p>
+        <div className="py-6">
+          <p className="text-sm text-slate-400">
+            No clinical staff yet. Add users to the Clinical group, then assign
+            them here as a nurse or physician.
+          </p>
+          <Button asChild variant="outline" size="sm" className="mt-4">
+            <Link href={ROUTES.settingsUserManagement}>Open user management</Link>
+          </Button>
+        </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-brand-border">
-          <table className="min-w-full text-sm">
-            <thead className="bg-slate-50/80 text-left text-brand-muted">
-              <tr>
-                <th className="px-4 py-3 font-medium">User</th>
-                <th className="px-4 py-3 font-medium">Clinical role</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-brand-border">
-              {sortedUsers.map((user) => (
-                <tr key={user.id}>
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-brand-navy">{user.name}</div>
-                    <div className="text-xs text-brand-muted">{user.email}</div>
-                  </td>
-                  <td className="px-4 py-3">
-                    <Select
-                      value={
-                        user.user_role === "nurse" || user.user_role === "physician"
-                          ? user.user_role
-                          : UNASSIGNED_ROLE_VALUE
-                      }
-                      disabled={savingUserId === user.id}
-                      onValueChange={(value) =>
-                        void handleRoleChange(
-                          user.id,
-                          value === UNASSIGNED_ROLE_VALUE
-                            ? ""
-                            : (value as OrganizationUserRole),
-                        )
-                      }
+        <div className="space-y-6">
+          <div className="relative max-w-sm">
+            <AppIcon
+              name="search"
+              size={16}
+              className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-slate-400"
+            />
+            <Input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search name, email, or clinic"
+              className="pl-9"
+              aria-label="Search clinical staff"
+            />
+          </div>
+
+          {groups.length === 0 ? (
+            <p className="py-6 text-sm text-slate-400">
+              No staff match “{query.trim()}”.
+            </p>
+          ) : (
+            groups.map((group) => (
+              <div key={group.id}>
+                <div className="flex items-baseline justify-between gap-3 pb-2">
+                  <h4 className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400">
+                    {group.title}
+                  </h4>
+                  <p className="text-xs text-slate-400">{group.users.length}</p>
+                </div>
+                <ul className="divide-y divide-brand-border">
+                  {group.users.map((user) => (
+                    <li
+                      key={user.id}
+                      className="flex flex-col gap-3 py-3.5 sm:flex-row sm:items-center sm:gap-4"
                     >
-                      <SelectTrigger className="w-full max-w-[220px]">
-                        <SelectValue placeholder="Select role" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {CLINICAL_STAFF_ROLE_OPTIONS.map((option) => (
-                          <SelectItem
-                            key={option.value || UNASSIGNED_ROLE_VALUE}
-                            value={
-                              option.value === ""
-                                ? UNASSIGNED_ROLE_VALUE
-                                : option.value
-                            }
-                          >
-                            {option.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                      <div className="flex min-w-0 flex-1 items-center gap-3">
+                        <UserIdenticon
+                          seed={user.email}
+                          name={user.name}
+                          className="size-9 rounded-full"
+                        />
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="truncate text-sm font-medium text-brand-navy">
+                              {user.name}
+                            </p>
+                            {user.is_active ? null : (
+                              <span className="text-xs text-slate-400">
+                                Inactive
+                              </span>
+                            )}
+                          </div>
+                          <p className="truncate text-sm text-slate-400">
+                            {staffMeta(user)}
+                          </p>
+                        </div>
+                      </div>
+                      <Select
+                        value={
+                          user.user_role === "nurse" ||
+                          user.user_role === "physician"
+                            ? user.user_role
+                            : UNASSIGNED_ROLE_VALUE
+                        }
+                        disabled={savingUserId === user.id}
+                        onValueChange={(value) => {
+                          const nextRole =
+                            value === UNASSIGNED_ROLE_VALUE ? "" : value;
+                          if (!isAssignableClinicalRole(nextRole)) {
+                            return;
+                          }
+                          void handleRoleChange(user.id, nextRole);
+                        }}
+                      >
+                        <SelectTrigger
+                          className="w-full sm:w-40"
+                          aria-label={`Clinical role for ${user.name}`}
+                        >
+                          <SelectValue placeholder="Select role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CLINICAL_STAFF_ROLE_OPTIONS.map((option) => (
+                            <SelectItem
+                              key={option.value || UNASSIGNED_ROLE_VALUE}
+                              value={
+                                option.value === ""
+                                  ? UNASSIGNED_ROLE_VALUE
+                                  : option.value
+                              }
+                            >
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))
+          )}
         </div>
       )}
-    </section>
+    </SettingsPanelSection>
   );
 }

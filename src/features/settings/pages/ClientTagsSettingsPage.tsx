@@ -46,11 +46,7 @@ export function ClientTagsSettingsPage() {
       title="Client tags"
       description="Define the tags staff can assign to clients and use when filtering lists."
     >
-      <div className="overflow-hidden rounded-xl border border-brand-border bg-white">
-        <div className="px-6 py-8">
-          <ClientTagsSettingsTab isActive />
-        </div>
-      </div>
+      <ClientTagsSettingsTab isActive />
     </SettingsPageLayout>
   );
 }

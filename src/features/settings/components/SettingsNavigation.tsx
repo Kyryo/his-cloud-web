@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
+import { AppIcon } from "@/components/icons/app-icon";
 import {
   Select,
   SelectContent,
@@ -31,12 +32,10 @@ function SettingsNavList({
   pathname: string;
 }) {
   return (
-    <nav aria-label="Settings" className="space-y-6">
+    <nav aria-label="Settings" className="space-y-7">
       {categories.map((category) => (
-        <div key={category.label} className="space-y-1">
-          <p
-            className="px-3 text-[11px] font-medium uppercase tracking-[0.12em] text-brand-muted"
-          >
+        <div key={category.label} className="space-y-1.5">
+          <p className="px-2.5 text-[11px] font-medium uppercase tracking-[0.14em] text-slate-400">
             {category.label}
           </p>
           <ul className="space-y-0.5">
@@ -48,13 +47,18 @@ function SettingsNavList({
                   <Link
                     href={item.href}
                     className={cn(
-                      "block rounded-md px-3 py-2 text-sm transition-colors",
+                      "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm transition-colors",
                       isActive
-                        ? "bg-brand-tint font-medium text-brand-primary"
-                        : "text-brand-navy hover:bg-slate-50",
+                        ? "bg-slate-100 font-medium text-brand-navy"
+                        : "text-slate-600 hover:bg-slate-50 hover:text-brand-navy",
                     )}
                     aria-current={isActive ? "page" : undefined}
                   >
+                    <AppIcon
+                      name={item.icon}
+                      size={16}
+                      className={isActive ? "text-brand-navy" : "text-slate-400"}
+                    />
                     {item.label}
                   </Link>
                 </li>
@@ -76,7 +80,7 @@ export function SettingsNavigation({ isTenantAdmin }: SettingsNavigationProps) {
 
   return (
     <>
-      <div className="lg:hidden">
+      <div className="shrink-0 lg:hidden">
         <Select
           value={activeItem?.href ?? flatItems[0]?.href}
           onValueChange={(value) => router.push(value)}
@@ -99,7 +103,7 @@ export function SettingsNavigation({ isTenantAdmin }: SettingsNavigationProps) {
         </Select>
       </div>
 
-      <div className="hidden shrink-0 lg:block lg:w-52">
+      <div className="hidden min-h-0 w-56 shrink-0 overflow-y-auto lg:block">
         <SettingsNavList categories={categories} pathname={pathname} />
       </div>
     </>

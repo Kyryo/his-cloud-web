@@ -103,7 +103,7 @@ export function InventoryApprovalPolicyTab({
       title="Approval policy"
       description="Tenant-wide rules for purchase orders, internal orders, and stock adjustments."
     >
-      <div className="flex items-start justify-between gap-4 rounded-xl border border-brand-border p-4">
+      <div className="flex items-start justify-between gap-4 py-2">
         <div>
           <p className="text-sm font-medium text-brand-navy">
             Allow submitters to approve their own documents

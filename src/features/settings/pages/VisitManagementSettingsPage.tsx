@@ -46,11 +46,7 @@ export function VisitManagementSettingsPage() {
       title="Visit Management"
       description="Configure consultation services staff use when registering patient visits."
     >
-      <div className="overflow-hidden rounded-xl border border-brand-border bg-white">
-        <div className="px-6 py-8">
-          <OrganizationServicesTab isActive />
-        </div>
-      </div>
+      <OrganizationServicesTab isActive />
     </SettingsPageLayout>
   );
 }

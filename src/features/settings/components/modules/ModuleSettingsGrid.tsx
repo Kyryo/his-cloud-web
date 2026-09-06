@@ -27,7 +27,7 @@ export function ModuleSettingsGrid() {
             </p>
           </div>
 
-          <div className="space-y-2">
+          <div className="divide-y divide-brand-border">
             {configurable.map((module) => {
               return (
                 <Link
@@ -37,8 +37,8 @@ export function ModuleSettingsGrid() {
                 >
                   <div
                     className={cn(
-                      "flex items-center gap-3 rounded-lg border border-dash-border bg-white px-4 py-3 transition-colors",
-                      "hover:border-brand-primary/40 hover:bg-brand-tint/30",
+                      "flex items-center gap-3 py-3 transition-colors",
+                      "hover:text-brand-primary",
                     )}
                   >
                     <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-brand-tint text-brand-primary">
@@ -81,12 +81,12 @@ export function ModuleSettingsGrid() {
             </p>
           </div>
 
-          <div className="space-y-2">
+          <div className="divide-y divide-brand-border">
             {upcoming.map((module) => {
               return (
                 <div
                   key={module.id}
-                  className="flex items-center gap-3 rounded-lg border border-dash-border bg-white px-4 py-3 opacity-60"
+                  className="flex items-center gap-3 py-3 opacity-60"
                   aria-disabled="true"
                 >
                   <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-dash-canvas text-dash-muted">

@@ -38,7 +38,7 @@ export function OrganizationSettingsTabs({
   const [activeTab, setActiveTab] = useState<OrganizationTabId>("general");
 
   return (
-    <div className="overflow-hidden rounded-xl border border-brand-border bg-white">
+    <div>
       <DetailPageTabsNavSection aria-label="Organization sections">
         {tabs.map((tab) => (
           <DetailPageTabNavItem
@@ -51,7 +51,7 @@ export function OrganizationSettingsTabs({
         ))}
       </DetailPageTabsNavSection>
 
-      <div className="px-6 py-8">
+      <div className="pt-6">
         {activeTab === "general" ? (
           <OrganizationGeneralTab tenant={tenant} onTenantUpdated={onTenantUpdated} />
         ) : null}

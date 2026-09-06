@@ -18,14 +18,12 @@ export function SettingsPageLayout({
   className,
 }: SettingsPageLayoutProps) {
   return (
-    <div className={cn("space-y-6", className)}>
-      <header className="space-y-1">
-        <h2 className="text-xl font-semibold tracking-tight text-brand-navy">
-          {title}
-        </h2>
-        <p className="max-w-2xl text-sm text-brand-muted">{description}</p>
-      </header>
-      <div className="space-y-6">{children}</div>
+    <div className={cn("w-full min-w-0 space-y-8", className)}>
+      <h2 className="sr-only">{title}</h2>
+      {description ? (
+        <p className="sr-only">{description}</p>
+      ) : null}
+      <div>{children}</div>
     </div>
   );
 }
@@ -49,17 +47,17 @@ export function SettingsSection({
   return (
     <section
       className={cn(
-        "overflow-hidden rounded-xl border border-brand-border bg-white",
+        "min-w-0 space-y-5 border-t border-brand-border py-8 first:border-t-0 first:pt-0",
         className,
       )}
     >
-      <div className="border-b border-brand-border px-6 py-4">
-        <h2 className="text-base font-semibold text-brand-navy">{title}</h2>
+      <div className="space-y-1">
+        <h3 className="text-base font-semibold text-brand-navy">{title}</h3>
         {description ? (
-          <p className="mt-1 text-sm text-brand-muted">{description}</p>
+          <p className="text-sm text-slate-400">{description}</p>
         ) : null}
       </div>
-      <div className={cn(!flush && "px-6 py-5")}>{children}</div>
+      <div className={cn(!flush && "space-y-5")}>{children}</div>
     </section>
   );
 }
@@ -99,6 +97,7 @@ export function SettingsDetailGrid({
 type SettingsPanelSectionProps = {
   title: string;
   description?: string;
+  action?: ReactNode;
   children: ReactNode;
   className?: string;
 };
@@ -107,16 +106,25 @@ type SettingsPanelSectionProps = {
 export function SettingsPanelSection({
   title,
   description,
+  action,
   children,
   className,
 }: SettingsPanelSectionProps) {
   return (
-    <section className={cn("space-y-5", className)}>
-      <div className="space-y-1">
-        <h2 className="text-sm font-semibold text-brand-navy">{title}</h2>
-        {description ? (
-          <p className="text-sm text-brand-muted">{description}</p>
-        ) : null}
+    <section
+      className={cn(
+        "min-w-0 space-y-5 border-t border-brand-border py-8 first:border-t-0 first:pt-0",
+        className,
+      )}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="space-y-1">
+          <h3 className="text-base font-semibold text-brand-navy">{title}</h3>
+          {description ? (
+            <p className="text-sm text-slate-400">{description}</p>
+          ) : null}
+        </div>
+        {action}
       </div>
       {children}
     </section>

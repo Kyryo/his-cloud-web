@@ -94,9 +94,9 @@ export function InventoryApprovalHistoryTab({
       title="Approval history"
       description="Recent approval activity across inventory documents."
     >
-      <div className="overflow-hidden rounded-xl border border-brand-border">
+      <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
-          <thead className="border-b border-brand-border bg-brand-tint/40 text-left text-xs uppercase tracking-wide text-brand-muted">
+          <thead className="border-b border-brand-border text-left text-xs uppercase tracking-wide text-brand-muted">
             <tr>
               <th className="px-4 py-3 font-medium">Document</th>
               <th className="px-4 py-3 font-medium">Reference</th>

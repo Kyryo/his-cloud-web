@@ -172,7 +172,7 @@ function RecoveryCodesPanel({
         variant="error"
         message="Store these codes in a safe place. They will not be shown again."
       />
-      <ul className="grid grid-cols-2 gap-2 rounded-lg border border-brand-border bg-slate-50 p-4 font-mono text-sm">
+      <ul className="grid grid-cols-2 gap-2 py-1 font-mono text-sm">
         {codes.map((code) => (
           <li key={code}>{code}</li>
         ))}
@@ -214,7 +214,7 @@ function MethodRow({
   children?: ReactNode;
 }) {
   return (
-    <div className="px-6 py-5">
+    <div className="py-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="flex min-w-0 items-start gap-3">
           <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-brand-tint text-brand-primary">
@@ -285,7 +285,7 @@ function SecretKeyRow({ secret }: { secret: string }) {
   }
 
   return (
-    <div className="flex items-center gap-2 rounded-lg border border-brand-border bg-slate-50 px-3 py-2">
+    <div className="flex items-center gap-2 py-1">
       <code className="min-w-0 flex-1 break-all font-mono text-xs text-brand-navy">
         {secret}
       </code>
@@ -305,7 +305,7 @@ function SecretKeyRow({ secret }: { secret: string }) {
 function SecurityKeyCancelledState() {
   return (
     <div
-      className="flex flex-col items-center rounded-xl border border-dashed border-brand-border bg-slate-50/70 px-6 py-10 text-center"
+      className="flex flex-col items-center py-8 text-center"
       data-testid="mfa-webauthn-cancelled"
     >
       <div className="flex size-12 items-center justify-center rounded-2xl bg-brand-tint text-brand-primary">
@@ -373,14 +373,11 @@ function SecurityKeysList({
           {keys.length === 1 ? "1 key" : `${keys.length} keys`}
         </p>
       </div>
-      <ul className="overflow-hidden rounded-lg border border-brand-border">
-        {keys.map((key, index) => (
+      <ul className="divide-y divide-brand-border">
+        {keys.map((key) => (
           <li
             key={key.id}
-            className={cn(
-              "flex flex-col gap-2 px-3.5 py-3 sm:flex-row sm:items-center sm:gap-3",
-              index > 0 && "border-t border-brand-border",
-            )}
+            className="flex flex-col gap-2 px-0 py-3 sm:flex-row sm:items-center sm:gap-3"
           >
             <div className="flex min-w-0 flex-1 items-center gap-3">
               <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brand-tint text-brand-primary">
@@ -710,7 +707,7 @@ export function AccountTwoFactorSection() {
       ) : null}
 
       {!statusQuery.isLoading && status && !extraFactorEnabled ? (
-        <div className="rounded-xl border border-brand-border bg-brand-tint/60 px-5 py-4">
+        <div className="py-1">
           <p className="text-sm font-medium text-brand-navy">
             Add a backup sign-in method
           </p>
@@ -727,7 +724,7 @@ export function AccountTwoFactorSection() {
         flush
       >
         {statusQuery.isLoading ? (
-          <p className="px-6 py-5 text-sm text-brand-muted">
+          <p className="text-sm text-brand-muted">
             Loading security settings...
           </p>
         ) : (

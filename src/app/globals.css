@@ -75,6 +75,12 @@
     --color-brand-border: #e8e8e8;
   }
 
+  html.app-authenticated-shell,
+  html.app-authenticated-shell body {
+    height: 100svh;
+    overflow: hidden;
+  }
+
   body {
     @apply bg-background font-sans text-foreground antialiased;
   }

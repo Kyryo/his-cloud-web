@@ -91,7 +91,7 @@ function CheckboxField({
   onChange: (checked: boolean) => void;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 rounded-lg border border-brand-border bg-white px-4 py-3">
+    <div className="flex items-center justify-between gap-4 py-3">
       <div>
         <p className="text-sm font-medium text-brand-navy">{label}</p>
         <p className="text-xs text-brand-muted">{description}</p>

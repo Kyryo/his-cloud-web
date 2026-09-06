@@ -220,7 +220,7 @@ export function InventoryClinicConfigurationTab({
         {rows.map((row) => (
           <div
             key={row.clinic.id}
-            className="rounded-xl border border-brand-border p-4"
+            className="border-b border-brand-border py-4 last:border-b-0"
           >
             <div className="mb-4">
               <h3 className="font-semibold text-brand-navy">{row.clinic.name}</h3>

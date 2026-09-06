@@ -21,7 +21,7 @@ export function FinanceOperationsSettingsTabs() {
   const [activeTab, setActiveTab] = useState<FinanceOperationsTabId>("payers");
 
   return (
-    <div className="overflow-hidden rounded-xl border border-brand-border bg-white">
+    <div>
       <DetailPageTabsNavSection aria-label="Finance and operations sections">
         {tabs.map((tab) => (
           <DetailPageTabNavItem
@@ -34,7 +34,7 @@ export function FinanceOperationsSettingsTabs() {
         ))}
       </DetailPageTabsNavSection>
 
-      <div className="px-6 py-8">
+      <div className="pt-6">
         <OrganizationPayersTab isActive={activeTab === "payers"} />
         <OrganizationPayerSchemesTab isActive={activeTab === "schemes"} />
         <OrganizationPricelistsTab isActive={activeTab === "pricelists"} />

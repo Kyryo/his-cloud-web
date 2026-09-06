@@ -3,11 +3,11 @@
 import { useEffect } from "react";
 
 import { AppSidebar } from "@/components/app-sidebar";
+import { AppHeader } from "@/features/app-shell/components/AppHeader";
 import { ModuleAccessGate } from "@/features/app-shell/components/ModuleAccessGate";
 import {
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
 } from "@/components/ui/sidebar";
 
 import { AppBreadcrumbProvider } from "@/features/app-shell/providers/app-breadcrumb-provider";
@@ -30,22 +30,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <SidebarProvider className={`${AUTHENTICATED_SHELL_CLASS} bg-dash-canvas`}>
+    <SidebarProvider className={`${AUTHENTICATED_SHELL_CLASS} h-svh overflow-hidden bg-dash-canvas`}>
       <AppSidebar />
-      <SidebarInset className="bg-dash-canvas">
+      <SidebarInset className="min-h-0 overflow-hidden bg-dash-canvas">
         <AppBreadcrumbProvider>
-          <header className="flex h-12 shrink-0 items-center px-4 md:hidden">
-            <SidebarTrigger />
-          </header>
-          <div className="flex min-h-0 flex-1 flex-col p-4">
-            <div
-              className={cn(
-                "flex min-h-0 flex-1 flex-col overflow-hidden rounded-2xl bg-dash-panel shadow-[0_1px_2px_rgb(15_23_42/0.04),0_8px_24px_rgb(15_23_42/0.04)]",
-                "has-[[data-page-surface=card]]:overflow-visible has-[[data-page-surface=card]]:rounded-none has-[[data-page-surface=card]]:bg-transparent has-[[data-page-surface=card]]:shadow-none",
-              )}
-            >
-              <div className="flex min-h-0 flex-1 flex-col overflow-auto has-[[data-page-surface=card]]:overflow-hidden">
-                <ModuleAccessGate>{children}</ModuleAccessGate>
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+            <AppHeader />
+            <div className="flex min-h-0 flex-1 flex-col overflow-hidden pl-4 pr-0 pb-4">
+              <div
+                className={cn(
+                  "flex min-h-0 flex-1 flex-col overflow-hidden rounded-l-2xl rounded-r-none bg-dash-panel shadow-[0_1px_2px_rgb(15_23_42/0.04),0_8px_24px_rgb(15_23_42/0.04)]",
+                  "has-[[data-page-surface=card]]:rounded-none has-[[data-page-surface=card]]:bg-transparent has-[[data-page-surface=card]]:shadow-none",
+                )}
+              >
+                <div className="relative flex min-h-0 flex-1 flex-col overflow-auto">
+                  <ModuleAccessGate>{children}</ModuleAccessGate>
+                </div>
               </div>
             </div>
           </div>

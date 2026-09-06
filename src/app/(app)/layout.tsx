@@ -10,7 +10,7 @@ import { ToastProvider } from "@/providers/toast-provider";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <div className={`${appFont.className} ${appFont.variable} min-h-svh bg-dash-canvas`}>
+    <div className={`${appFont.className} ${appFont.variable} h-svh overflow-hidden bg-dash-canvas`}>
       <QueryProvider>
         <ToastProvider>
           <AuthGuard>

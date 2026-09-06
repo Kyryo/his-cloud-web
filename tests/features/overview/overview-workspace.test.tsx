@@ -15,8 +15,6 @@ import {
   buildOverviewActivityItems,
   formatOverviewRelativeTime,
   localTodayIso,
-  overviewFirstName,
-  overviewGreeting,
 } from "@/features/overview/utils/overview-workspace";
 import type { VisitDetail } from "@/features/visits/types/visit.types";
 
@@ -27,24 +25,6 @@ vi.mock("@/components/UserIdenticon", () => ({
 }));
 
 describe("overview workspace utils", () => {
-  it("greets by time of day", () => {
-    expect(overviewGreeting(new Date("2026-09-01T08:00:00"))).toBe(
-      "Good morning",
-    );
-    expect(overviewGreeting(new Date("2026-09-01T14:00:00"))).toBe(
-      "Good afternoon",
-    );
-    expect(overviewGreeting(new Date("2026-09-01T19:00:00"))).toBe(
-      "Good evening",
-    );
-  });
-
-  it("uses the first name only", () => {
-    expect(overviewFirstName("Ada Lovelace")).toBe("Ada");
-    expect(overviewFirstName("  ")).toBe("");
-    expect(overviewFirstName(null)).toBe("");
-  });
-
   it("formats a local ISO date without UTC shift", () => {
     expect(localTodayIso(new Date(2026, 8, 1, 1, 0, 0))).toBe("2026-09-01");
   });

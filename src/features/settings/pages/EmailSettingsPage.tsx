@@ -42,9 +42,7 @@ export function EmailSettingsPage() {
       title="Email Settings"
       description="Configure SMTP delivery for appointment notifications and other outbound email."
     >
-      <div className="overflow-hidden rounded-xl border border-brand-border bg-white">
-        <EmailSettingsForm />
-      </div>
+      <EmailSettingsForm />
     </SettingsPageLayout>
   );
 }

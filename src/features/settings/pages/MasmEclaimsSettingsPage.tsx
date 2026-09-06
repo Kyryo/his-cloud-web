@@ -50,7 +50,6 @@ export function MasmEclaimsSettingsPage() {
 
   useEffect(() => {
     if (!isTenantAdmin) {
-      setIsLoading(false);
       return;
     }
 
@@ -125,7 +124,7 @@ export function MasmEclaimsSettingsPage() {
       title="MASM eClaims"
       description="Configure clinic-scoped payer credentials and practitioner mappings for electronic claims in Malawi."
     >
-      <div className="w-full overflow-hidden rounded-xl border border-brand-border bg-white">
+      <div className="w-full">
         <DetailPageTabsNavSection aria-label="MASM integration sections">
           {tabs.map((tab) => (
             <DetailPageTabNavItem
@@ -138,7 +137,7 @@ export function MasmEclaimsSettingsPage() {
           ))}
         </DetailPageTabsNavSection>
 
-        <div className="px-6 py-6">
+        <div className="pt-6">
           {activeTab === "connection" ? (
             <div className="space-y-4">
               <div>
@@ -159,15 +158,15 @@ export function MasmEclaimsSettingsPage() {
                   No clinics are available for this organization yet.
                 </p>
               ) : (
-                <div className="space-y-2">
+                <div className="divide-y divide-brand-border">
                   {clinics.map((clinic) => (
                     <button
                       key={clinic.id}
                       type="button"
                       onClick={() => handleClinicClick(clinic)}
                       className={cn(
-                        "group flex w-full items-center gap-3 rounded-lg border border-brand-border bg-white px-4 py-3 text-left transition-colors",
-                        "hover:border-brand-primary/40 hover:bg-brand-tint/30",
+                        "group flex w-full items-center gap-3 py-3 text-left transition-colors",
+                        "hover:text-brand-primary",
                       )}
                       data-testid={`masm-clinic-row-${clinic.id}`}
                     >

@@ -26,9 +26,9 @@ export function OrganizationTabSection({
       {showHeader ? (
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-1">
-            <h2 className="text-sm font-semibold text-brand-navy">{title}</h2>
+            <h3 className="text-base font-semibold text-brand-navy">{title}</h3>
             {description ? (
-              <p className="text-sm text-brand-muted">{description}</p>
+              <p className="text-sm text-slate-400">{description}</p>
             ) : null}
           </div>
           {actions ? (

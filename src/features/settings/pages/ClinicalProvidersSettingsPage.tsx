@@ -44,6 +44,7 @@ export function ClinicalProvidersSettingsPage() {
     <SettingsPageLayout
       title="Providers"
       description="Assign nurses and physicians. Provider roles determine which OPD workspace tabs each user can access."
+      className="max-w-3xl"
     >
       <ClinicalStaffRolesSection />
     </SettingsPageLayout>

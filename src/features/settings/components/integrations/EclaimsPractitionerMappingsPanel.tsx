@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2, Pencil, Plus } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import { EclaimsPractitionerMappingDialog } from "@/features/settings/components/integrations/EclaimsPractitionerMappingDialog";
@@ -46,7 +46,7 @@ export function EclaimsPractitionerMappingsPanel({
     null,
   );
 
-  const loadData = useCallback(async () => {
+  async function loadData() {
     setIsLoading(true);
     setError(null);
     try {
@@ -70,11 +70,49 @@ export function EclaimsPractitionerMappingsPanel({
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }
 
   useEffect(() => {
-    void loadData();
-  }, [loadData]);
+    let cancelled = false;
+
+    async function run() {
+      try {
+        const [mappingResponse, clinicResponse, schemes] = await Promise.all([
+          fetchEClaimPractitionerMappings(),
+          fetchOrganizationClinics(),
+          fetchInsuranceSchemes(),
+        ]);
+        if (cancelled) {
+          return;
+        }
+        setMappings(mappingResponse.results);
+        setClinics(clinicResponse.results);
+        setInsuranceSchemes(schemes);
+        setError(null);
+      } catch (loadError) {
+        if (cancelled) {
+          return;
+        }
+        setMappings([]);
+        setClinics([]);
+        setInsuranceSchemes([]);
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Could not load practitioner mappings.",
+        );
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function openCreateDialog() {
     setEditingMapping(null);
@@ -141,7 +179,7 @@ export function EclaimsPractitionerMappingsPanel({
       </div>
 
       {mappings.length === 0 ? (
-        <div className="mt-6 rounded-lg border border-dashed border-brand-border bg-slate-50/50 px-4 py-10 text-center">
+        <div className="mt-6 py-8 text-center">
           <p className="text-sm text-brand-muted">No practitioner mappings configured yet.</p>
           <PrimaryButton type="button" className="mt-4" onClick={openCreateDialog}>
             <Plus className="size-4" aria-hidden="true" />
@@ -149,10 +187,10 @@ export function EclaimsPractitionerMappingsPanel({
           </PrimaryButton>
         </div>
       ) : (
-        <div className="mt-4 overflow-hidden rounded-lg border border-brand-border">
+        <div className="mt-4 overflow-x-auto">
           <table className="min-w-full">
             <thead>
-              <tr className="border-b border-brand-border bg-slate-50/60">
+              <tr className="border-b border-brand-border">
                 <th className="px-4 py-2.5 text-left text-xs font-medium text-brand-muted">
                   Clinic
                 </th>

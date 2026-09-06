@@ -353,7 +353,7 @@ export function OrganizationBrandingTab({
                 />
               </div>
 
-              <div className="rounded-xl border border-brand-border bg-slate-50/70 p-4">
+              <div className="py-1">
                 <p className="text-xs font-medium uppercase tracking-wide text-brand-muted">
                   Preview
                 </p>

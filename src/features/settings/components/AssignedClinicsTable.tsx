@@ -22,7 +22,7 @@ export function AssignedClinicsTable({
     return (
       <div
         className={cn(
-          "rounded-lg border border-dashed border-brand-border px-4 py-8 text-center text-sm text-brand-muted",
+          "py-2 text-sm text-brand-muted",
           className,
         )}
       >
@@ -32,11 +32,10 @@ export function AssignedClinicsTable({
   }
 
   return (
-    <div className={cn("overflow-hidden rounded-lg border border-brand-border", className)}>
-      <div className="overflow-x-auto">
+    <div className={cn("overflow-x-auto", className)}>
         <table className="min-w-full">
           <thead>
-            <tr className="border-b border-brand-border bg-slate-50/80">
+            <tr className="border-b border-brand-border">
               {columns.map((column) => (
                 <th
                   key={column.key}
@@ -50,7 +49,7 @@ export function AssignedClinicsTable({
           </thead>
           <tbody className="divide-y divide-brand-border">
             {clinics.map((clinic) => (
-              <tr key={clinic.id} className="bg-white">
+              <tr key={clinic.id}>
                 <td className="px-4 py-3">
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="text-sm font-medium text-brand-navy">
@@ -77,7 +76,6 @@ export function AssignedClinicsTable({
             ))}
           </tbody>
         </table>
-      </div>
     </div>
   );
 }

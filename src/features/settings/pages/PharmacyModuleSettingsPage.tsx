@@ -257,7 +257,7 @@ export function PharmacyModuleSettingsPage() {
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between rounded-lg border border-brand-border px-4 py-3">
+                  <div className="flex items-center justify-between gap-4 py-3">
                     <div>
                       <Label
                         htmlFor={`require-confirm-${row.clinic.id}`}
@@ -281,7 +281,7 @@ export function PharmacyModuleSettingsPage() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between rounded-lg border border-brand-border px-4 py-3">
+                  <div className="flex items-center justify-between gap-4 py-3">
                     <div>
                       <Label
                         htmlFor={`invoice-after-${row.clinic.id}`}

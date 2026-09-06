@@ -76,7 +76,7 @@ export function AccountProfileForm({ user }: AccountProfileFormProps) {
 
   return (
     <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-      <div className="flex items-center gap-4 rounded-lg border border-brand-border bg-slate-50/70 p-4 lg:w-56 lg:flex-col lg:items-start">
+      <div className="flex items-center gap-4 lg:w-56 lg:flex-col lg:items-start">
         <UserIdenticon seed={user.email} name={user.name} className="size-14" />
         <div className="min-w-0 space-y-1">
           <p className="truncate font-medium text-brand-navy">{user.name || "User"}</p>

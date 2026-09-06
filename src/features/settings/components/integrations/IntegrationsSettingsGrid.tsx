@@ -25,7 +25,7 @@ export function IntegrationsSettingsGrid() {
             ) : null}
           </div>
 
-          <div className="space-y-2">
+          <div className="divide-y divide-brand-border">
             {section.items.map((integration) => {
               const Icon = integration.icon;
 
@@ -37,8 +37,8 @@ export function IntegrationsSettingsGrid() {
                 >
                   <div
                     className={cn(
-                      "flex items-center gap-3 rounded-lg border border-brand-border bg-white px-4 py-3 transition-colors",
-                      "hover:border-brand-primary/40 hover:bg-brand-tint/30",
+                      "flex items-center gap-3 py-3 transition-colors",
+                      "hover:text-brand-primary",
                     )}
                   >
                     <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-brand-tint text-brand-primary">
