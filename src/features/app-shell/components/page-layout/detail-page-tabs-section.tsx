@@ -28,17 +28,22 @@ type DetailPageTabsNavSectionProps = {
   children: ReactNode;
   "aria-label": string;
   className?: string;
+  navClassName?: string;
 };
 
 export function DetailPageTabsNavSection({
   children,
   "aria-label": ariaLabel,
   className,
+  navClassName,
 }: DetailPageTabsNavSectionProps) {
   return (
     <div className={cn("overflow-y-hidden border-b border-dash-border/80 bg-white", className)}>
       <nav
-        className="scrollbar-hide flex gap-0.5 overflow-x-auto overflow-y-hidden overscroll-y-none px-4 sm:px-6"
+        className={cn(
+          "scrollbar-hide flex gap-0.5 overflow-x-auto overflow-y-hidden overscroll-y-none px-4 sm:px-6",
+          navClassName,
+        )}
         aria-label={ariaLabel}
       >
         {children}

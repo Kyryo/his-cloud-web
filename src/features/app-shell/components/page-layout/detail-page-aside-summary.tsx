@@ -93,6 +93,7 @@ export function DetailPageAsideSummaryAmountRow({
       </dt>
       <dd
         className={cn(
+          "tabular-nums",
           emphasized
             ? "font-medium text-brand-navy"
             : "font-normal text-brand-slate",

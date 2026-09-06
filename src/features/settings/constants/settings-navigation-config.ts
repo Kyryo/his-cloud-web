@@ -1,8 +1,10 @@
+import type { AppIconName } from "@/components/icons/app-icon";
 import { ROUTES } from "@/constants/routes";
 
 export type SettingsNavigationItem = {
   label: string;
   href: string;
+  icon: AppIconName;
   /** Match child routes (e.g. modules/*, integrations/*). */
   matchPrefix?: boolean;
   adminOnly?: boolean;
@@ -13,85 +15,85 @@ export type SettingsNavigationCategory = {
   items: SettingsNavigationItem[];
 };
 
-export const SETTINGS_WORKSPACE_DESCRIPTION =
-  "Manage your organization, users, workflows, and integrations.";
+const SETTINGS_BREADCRUMB_OVERRIDES: Record<string, string> = {
+  [ROUTES.settingsModuleInventory]: "Inventory",
+  [ROUTES.settingsModulePharmacy]: "Pharmacy",
+  [ROUTES.settingsIntegrationsEmail]: "Email",
+  [ROUTES.settingsIntegrationsMasemEclaims]: "MASM eClaims",
+};
 
 const SETTINGS_NAV_CATEGORIES: SettingsNavigationCategory[] = [
   {
-    label: "General",
+    label: "Account",
+    items: [
+      {
+        label: "Account",
+        href: ROUTES.settingsAccount,
+        icon: "user",
+      },
+      {
+        label: "Security",
+        href: ROUTES.settingsSecurity,
+        icon: "shield",
+      },
+    ],
+  },
+  {
+    label: "Workspace",
     items: [
       {
         label: "Organization",
         href: ROUTES.settingsOrganization,
+        icon: "building",
         adminOnly: true,
-      },
-      {
-        label: "Account",
-        href: ROUTES.settingsAccount,
-      },
-    ],
-  },
-  {
-    label: "Security & Access",
-    items: [
-      {
-        label: "Security",
-        href: ROUTES.settingsSecurity,
       },
       {
         label: "User Management",
         href: ROUTES.settingsUserManagement,
+        icon: "users",
         adminOnly: true,
       },
-    ],
-  },
-  {
-    label: "Operations",
-    items: [
       {
         label: "Visit Management",
         href: ROUTES.settingsVisitManagement,
+        icon: "calendar",
         adminOnly: true,
       },
       {
         label: "Client tags",
         href: ROUTES.settingsClientTags,
+        icon: "tag",
         adminOnly: true,
       },
       {
         label: "Finance & Operations",
         href: ROUTES.settingsFinanceOperations,
+        icon: "wallet",
         adminOnly: true,
       },
       {
         label: "Modules",
         href: ROUTES.settingsModules,
+        icon: "layers",
         matchPrefix: true,
         adminOnly: true,
       },
-    ],
-  },
-  {
-    label: "EMR",
-    items: [
       {
         label: "Providers",
         href: ROUTES.settingsClinicalProviders,
+        icon: "stethoscope",
         adminOnly: true,
       },
       {
         label: "Clinical role capabilities",
         href: ROUTES.settingsClinicalRoleCapabilities,
+        icon: "clipboard",
         adminOnly: true,
       },
-    ],
-  },
-  {
-    label: "Integrations",
-    items: [
       {
         label: "Integrations",
         href: ROUTES.settingsIntegrations,
+        icon: "plug",
         matchPrefix: true,
         adminOnly: true,
       },
@@ -138,4 +140,17 @@ export function findActiveSettingsNavigationItem(
   }
 
   return undefined;
+}
+
+export function resolveSettingsBreadcrumbLabel(
+  pathname: string,
+  categories: SettingsNavigationCategory[],
+): string {
+  const path = pathname.split("?")[0] ?? pathname;
+  const override = SETTINGS_BREADCRUMB_OVERRIDES[path];
+  if (override) {
+    return override;
+  }
+
+  return findActiveSettingsNavigationItem(pathname, categories)?.label ?? "Settings";
 }

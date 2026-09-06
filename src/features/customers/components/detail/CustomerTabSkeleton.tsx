@@ -16,7 +16,7 @@ export function CustomerTabSkeleton({
     <div className={cn("space-y-5", className)} data-testid="customer-tab-skeleton">
       {statCards > 0 ? (
         <div
-          className="grid grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
+          className="grid grid-cols-2 divide-y divide-dash-border/60 border-b border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
           aria-busy="true"
         >
           {Array.from({ length: statCards }).map((_, index) => (

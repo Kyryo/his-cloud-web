@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
-import { Badge } from "@/components/ui/badge";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { AddPayerDialog } from "@/features/settings/components/AddPayerDialog";
-import { OrganizationEmptyState } from "@/features/settings/components/OrganizationEmptyState";
-import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
+import { SettingsPanelSection } from "@/features/settings/components/SettingsPageLayout";
 import { fetchOrganizationPayers } from "@/features/settings/services/settings.service";
 import type { OrganizationPayer } from "@/features/settings/types/settings.types";
 
@@ -15,28 +13,10 @@ type OrganizationPayersTabProps = {
   isActive: boolean;
 };
 
-const payerColumns = [
-  { key: "name", label: "Payer" },
-  { key: "code", label: "Code" },
-  { key: "contact", label: "Contact" },
-  { key: "status", label: "Status" },
-] as const;
-
-function formatContact(payer: OrganizationPayer) {
-  if (!payer.email && !payer.phone_number) {
-    return "—";
-  }
-
-  return (
-    <div className="space-y-0.5">
-      {payer.email ? (
-        <div className="text-sm text-brand-navy">{payer.email}</div>
-      ) : null}
-      {payer.phone_number ? (
-        <div className="text-xs text-brand-muted">{payer.phone_number}</div>
-      ) : null}
-    </div>
-  );
+function payerMeta(payer: OrganizationPayer) {
+  return [payer.code, payer.email, payer.phone_number]
+    .filter((value) => Boolean(value))
+    .join(" · ");
 }
 
 export function OrganizationPayersTab({ isActive }: OrganizationPayersTabProps) {
@@ -93,71 +73,65 @@ export function OrganizationPayersTab({ isActive }: OrganizationPayersTabProps) 
     setReloadToken((current) => current + 1);
   }
 
-  const isEmpty = !isLoading && !error && payers.length === 0;
-
   return (
     <>
-      <OrganizationTabSection
+      <SettingsPanelSection
         title="Payers"
-        description="Configure the insurance companies and funding partners that your organization works with."
-        showHeader={!isEmpty}
-        actions={
-          payers.length > 0 ? (
-            <Button onClick={() => setAddPayerDialogOpen(true)}>Add payer</Button>
-          ) : null
+        description="Insurance companies and funding partners used on invoices."
+        action={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setAddPayerDialogOpen(true)}
+          >
+            Add payer
+          </Button>
         }
       >
         {isLoading ? (
-          <div className="py-16">
-            <PageLoader />
-          </div>
+          <SettingsContentSkeleton rows={4} showHeader={false} />
         ) : error ? (
-          <p className="py-8 text-sm text-brand-muted">{error}</p>
+          <p className="text-sm text-red-600">{error}</p>
         ) : payers.length === 0 ? (
-          <OrganizationEmptyState
-            message="No payers have been configured for this organization yet."
-            actionLabel="Add payer"
-            onAction={() => setAddPayerDialogOpen(true)}
-          />
+          <p className="text-sm text-slate-400">
+            No payers yet. Add an insurer or funding partner to start billing
+            schemes.
+          </p>
         ) : (
-          <div className="-mx-6 overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-y border-brand-border bg-slate-50/60">
-                  {payerColumns.map((column) => (
-                    <th
-                      key={column.key}
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-brand-muted"
-                    >
-                      {column.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-brand-border">
-                {payers.map((payer) => (
-                  <tr key={payer.uuid}>
-                    <td className="px-6 py-3.5">
-                      <div className="text-sm font-medium text-brand-navy">{payer.name}</div>
-                      {payer.description ? (
-                        <div className="text-xs text-brand-muted">{payer.description}</div>
-                      ) : null}
-                    </td>
-                    <td className="px-6 py-3.5 text-sm text-brand-navy">{payer.code || "—"}</td>
-                    <td className="px-6 py-3.5">{formatContact(payer)}</td>
-                    <td className="px-6 py-3.5">
-                      <Badge variant={payer.is_active ? "default" : "outline"}>
-                        {payer.is_active ? "Active" : "Inactive"}
-                      </Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ul className="divide-y divide-brand-border">
+            {payers.map((payer) => {
+              const meta = payerMeta(payer);
+
+              return (
+                <li
+                  key={payer.uuid}
+                  className="flex items-start justify-between gap-4 py-3.5"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-brand-navy">
+                      {payer.name}
+                    </p>
+                    {payer.description ? (
+                      <p className="mt-0.5 text-sm text-slate-400">
+                        {payer.description}
+                      </p>
+                    ) : null}
+                    {meta ? (
+                      <p className="mt-0.5 truncate text-sm text-slate-400">
+                        {meta}
+                      </p>
+                    ) : null}
+                  </div>
+                  <span className="shrink-0 text-xs text-slate-400">
+                    {payer.is_active ? "Active" : "Inactive"}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
         )}
-      </OrganizationTabSection>
+      </SettingsPanelSection>
 
       <AddPayerDialog
         open={addPayerDialogOpen}

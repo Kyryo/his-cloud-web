@@ -1,14 +1,4 @@
-import type { LucideIcon } from "lucide-react";
-import {
-  ArrowLeftRight,
-  CalendarDays,
-  FileSpreadsheet,
-  FileText,
-  Package,
-  Receipt,
-  ShoppingCart,
-  Wallet,
-} from "lucide-react";
+import type { AppIconName } from "@/components/icons/app-icon";
 
 import type { ReportFilterResource } from "@/features/reports/services/report-filter-options.service";
 
@@ -37,7 +27,7 @@ export type ReportCatalogItem = {
   category: ReportCategory;
   title: string;
   description: string;
-  icon: LucideIcon;
+  icon: AppIconName;
   filters: ReportFilterField[];
 };
 
@@ -77,7 +67,7 @@ export const REPORT_CATALOG: ReportCatalogItem[] = [
     category: "sales",
     title: "Sales orders",
     description: "Order headers with customer, provider, and amounts.",
-    icon: ShoppingCart,
+    icon: "clipboard",
     filters: [
       { name: "date_from", label: "From", type: "date" },
       { name: "date_to", label: "To", type: "date" },
@@ -104,7 +94,7 @@ export const REPORT_CATALOG: ReportCatalogItem[] = [
     category: "sales",
     title: "Sales order lines",
     description: "Line-level product, quantity, and pricing details.",
-    icon: FileText,
+    icon: "file",
     filters: [
       { name: "date_from", label: "From", type: "date" },
       { name: "date_to", label: "To", type: "date" },
@@ -118,7 +108,7 @@ export const REPORT_CATALOG: ReportCatalogItem[] = [
     category: "revenue",
     title: "Invoices",
     description: "Posted invoices with payment totals and balances.",
-    icon: Receipt,
+    icon: "invoice",
     filters: [
       { name: "date_from", label: "From", type: "date" },
       { name: "date_to", label: "To", type: "date" },
@@ -141,7 +131,7 @@ export const REPORT_CATALOG: ReportCatalogItem[] = [
     category: "revenue",
     title: "Receivables aging",
     description: "Open invoice balances grouped by aging bucket.",
-    icon: Wallet,
+    icon: "wallet",
     filters: [
       { name: "as_of_date", label: "As of date", type: "date" },
       { name: "customer_uuid", label: "Customer", type: "resource", resource: "customers" },
@@ -154,7 +144,7 @@ export const REPORT_CATALOG: ReportCatalogItem[] = [
     category: "revenue",
     title: "Payments",
     description: "Customer payments with method and invoice linkage.",
-    icon: FileSpreadsheet,
+    icon: "creditCard",
     filters: [
       { name: "date_from", label: "From", type: "date" },
       { name: "date_to", label: "To", type: "date" },
@@ -178,7 +168,7 @@ export const REPORT_CATALOG: ReportCatalogItem[] = [
     category: "inventory",
     title: "Purchases",
     description: "Purchase orders with vendor and receiving location.",
-    icon: Package,
+    icon: "package",
     filters: [
       { name: "date_from", label: "From", type: "date" },
       { name: "date_to", label: "To", type: "date" },
@@ -204,7 +194,7 @@ export const REPORT_CATALOG: ReportCatalogItem[] = [
     category: "inventory",
     title: "Internal orders",
     description: "Stock transfers between locations.",
-    icon: ArrowLeftRight,
+    icon: "transfer",
     filters: [
       { name: "date_from", label: "From", type: "date" },
       { name: "date_to", label: "To", type: "date" },
@@ -242,7 +232,7 @@ export const REPORT_CATALOG: ReportCatalogItem[] = [
     category: "scheduling",
     title: "Appointments",
     description: "Clinic appointments with client outstanding balances.",
-    icon: CalendarDays,
+    icon: "calendar",
     filters: [
       { name: "scheduled_from", label: "From", type: "date" },
       { name: "scheduled_to", label: "To", type: "date" },
@@ -265,8 +255,18 @@ export const REPORT_CATALOG: ReportCatalogItem[] = [
   },
 ];
 
+export function getReportCategoryTitle(category: ReportCategory): string {
+  return REPORT_CATEGORY_META[category].title;
+}
+
 export function getReportCatalogItem(id: string): ReportCatalogItem | undefined {
   return REPORT_CATALOG.find((item) => item.id === id);
+}
+
+export function getReportCatalogItemByType(
+  reportType: string,
+): ReportCatalogItem | undefined {
+  return REPORT_CATALOG.find((item) => item.reportType === reportType);
 }
 
 export function getReportTypeLabel(reportType: string): string {

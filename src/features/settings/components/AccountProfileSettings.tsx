@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, ImageIcon, Loader2, Trash2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -8,29 +8,19 @@ import { z } from "zod";
 
 import { UserIdenticon } from "@/components/UserIdenticon";
 import { FilterSelectField } from "@/components/filter-select-field";
+import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { User } from "@/features/auth/types/auth.types";
-import { AccountAppointmentsSection } from "@/features/settings/components/AccountAppointmentsSection";
-import { AccountAppointmentsReportsSection } from "@/features/settings/components/AccountAppointmentsReportsSection";
-import { AccountSalesReportsSection } from "@/features/settings/components/AccountSalesReportsSection";
-import { AssignedClinicsTable } from "@/features/settings/components/AssignedClinicsTable";
+import { SettingsFieldRow } from "@/features/settings/components/SettingsPageLayout";
 import { updateProfile } from "@/features/settings/services/settings.service";
 import { useToast } from "@/providers/toast-provider";
 import { useUser } from "@/providers/user-provider";
@@ -48,7 +38,6 @@ type StoredAccountPreferences = {
   about: string;
   language: string;
   timezone: string;
-  coverImage?: string | null;
   avatarImage?: string | null;
 };
 
@@ -74,37 +63,28 @@ function preferencesStorageKey(userId: number) {
   return `hmis-account-preferences-${userId}`;
 }
 
+function defaultPreferences(): StoredAccountPreferences {
+  return {
+    about: "",
+    language: "en",
+    timezone: "Africa/Blantyre",
+    avatarImage: null,
+  };
+}
+
 function readStoredPreferences(userId: number): StoredAccountPreferences {
   if (typeof window === "undefined") {
-    return {
-      about: "",
-      language: "en",
-      timezone: "Africa/Blantyre",
-      coverImage: null,
-      avatarImage: null,
-    };
+    return defaultPreferences();
   }
 
   try {
     const raw = window.localStorage.getItem(preferencesStorageKey(userId));
     if (!raw) {
-      return {
-        about: "",
-        language: "en",
-        timezone: "Africa/Blantyre",
-        coverImage: null,
-        avatarImage: null,
-      };
+      return defaultPreferences();
     }
-    return JSON.parse(raw) as StoredAccountPreferences;
+    return { ...defaultPreferences(), ...JSON.parse(raw) };
   } catch {
-    return {
-      about: "",
-      language: "en",
-      timezone: "Africa/Blantyre",
-      coverImage: null,
-      avatarImage: null,
-    };
+    return defaultPreferences();
   }
 }
 
@@ -118,46 +98,60 @@ function readImageFile(file: File): Promise<string> {
 }
 
 export function AccountProfileSettings({ user }: AccountProfileSettingsProps) {
+  return <AccountProfileSettingsForm key={user.id} user={user} />;
+}
+
+function AccountProfileSettingsForm({ user }: AccountProfileSettingsProps) {
   const { toast } = useToast();
   const { refreshUser } = useUser();
-  const coverInputRef = useRef<HTMLInputElement>(null);
   const avatarInputRef = useRef<HTMLInputElement>(null);
-  const [coverImage, setCoverImage] = useState<string | null>(null);
-  const [avatarImage, setAvatarImage] = useState<string | null>(null);
+  const stored = readStoredPreferences(user.id);
+  const [avatarImage, setAvatarImage] = useState<string | null>(
+    stored.avatarImage ?? null,
+  );
   const [isSaving, setIsSaving] = useState(false);
 
   const form = useForm<AccountProfileFormValues>({
     resolver: zodResolver(accountProfileSchema),
     defaultValues: {
       displayName: user.name || "",
-      about: "",
-      language: "en",
-      timezone: "Africa/Blantyre",
+      about: stored.about,
+      language: stored.language,
+      timezone: stored.timezone,
     },
   });
 
   useEffect(() => {
-    const stored = readStoredPreferences(user.id);
-    setCoverImage(stored.coverImage ?? null);
-    setAvatarImage(stored.avatarImage ?? null);
-    form.reset({
-      displayName: user.name || "",
-      about: stored.about,
-      language: stored.language,
-      timezone: stored.timezone,
-    });
+    let cancelled = false;
+
+    async function hydrate() {
+      await Promise.resolve();
+      if (cancelled) {
+        return;
+      }
+      const nextStored = readStoredPreferences(user.id);
+      setAvatarImage(nextStored.avatarImage ?? null);
+      form.reset({
+        displayName: user.name || "",
+        about: nextStored.about,
+        language: nextStored.language,
+        timezone: nextStored.timezone,
+      });
+    }
+
+    void hydrate();
+    return () => {
+      cancelled = true;
+    };
   }, [form, user.id, user.name]);
 
-  async function handleImageChange(
-    file: File | undefined,
-    setter: (value: string | null) => void,
-  ) {
+  async function handleAvatarChange(file: File | undefined) {
     if (!file) {
       return;
     }
     try {
       const dataUrl = await readImageFile(file);
-      setter(dataUrl);
+      setAvatarImage(dataUrl);
     } catch (error) {
       toast({
         variant: "error",
@@ -184,7 +178,6 @@ export function AccountProfileSettings({ user }: AccountProfileSettingsProps) {
         about: values.about,
         language: values.language,
         timezone: values.timezone,
-        coverImage,
         avatarImage,
       };
       window.localStorage.setItem(
@@ -201,245 +194,170 @@ export function AccountProfileSettings({ user }: AccountProfileSettingsProps) {
       toast({
         variant: "error",
         description:
-          error instanceof Error ? error.message : "Unable to save account settings.",
+          error instanceof Error
+            ? error.message
+            : "Unable to save account settings.",
       });
     } finally {
       setIsSaving(false);
     }
   });
 
-  const displayName = form.watch("displayName") || user.name || "User";
+  const displayName = user.name || "User";
 
   return (
-    <div className="w-full space-y-6" data-testid="account-profile-settings">
-      <Card className="overflow-hidden border-brand-border shadow-sm">
-        <div className="relative">
-          <div
-            className="relative h-40 bg-gradient-to-br from-slate-700 via-slate-800 to-slate-900 sm:h-48"
-            style={
-              coverImage
-                ? {
-                    backgroundImage: `url(${coverImage})`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                  }
-                : undefined
-            }
-          >
-            <div className="absolute inset-0 bg-black/35" />
-            <div className="absolute bottom-4 right-4 flex gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant="secondary"
-                className="bg-white/90 text-brand-navy hover:bg-white"
-                onClick={() => coverInputRef.current?.click()}
-              >
-                <ImageIcon className="size-4" aria-hidden="true" />
-                Change cover
-              </Button>
-              {coverImage ? (
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="secondary"
-                  className="bg-white/90 text-brand-navy hover:bg-white"
-                  onClick={() => setCoverImage(null)}
-                >
-                  <Trash2 className="size-4" aria-hidden="true" />
-                  Remove
-                </Button>
-              ) : null}
-            </div>
-          </div>
-
-          <div className="relative px-6 pb-6 pt-0">
-            <div className="absolute -top-12 left-6">
-              <div className="relative">
-                <div className="rounded-full border-4 border-white bg-white shadow-sm">
-                  {avatarImage ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={avatarImage}
-                      alt=""
-                      className="size-24 rounded-full object-cover"
-                    />
-                  ) : (
-                    <UserIdenticon
-                      seed={user.email}
-                      name={displayName}
-                      className="size-24 rounded-full text-base"
-                    />
-                  )}
-                </div>
-                <Button
-                  type="button"
-                  size="icon"
-                  variant="secondary"
-                  className="absolute bottom-0 right-0 size-8 rounded-full border border-brand-border bg-white shadow-sm"
-                  onClick={() => avatarInputRef.current?.click()}
-                  aria-label="Upload avatar"
-                >
-                  <Camera className="size-4" aria-hidden="true" />
-                </Button>
-              </div>
-            </div>
-
-            <div className="pt-16">
-              <h2 className="text-lg font-semibold text-brand-navy">{displayName}</h2>
-              <p className="text-sm text-brand-muted">{user.email}</p>
-            </div>
-          </div>
-        </div>
-      </Card>
+    <div data-testid="account-profile-settings">
+      <p className="max-w-xl text-sm text-slate-400">
+        Your name and photo as they appear to your team, plus language and
+        timezone.
+      </p>
 
       <Form {...form}>
-        <form className="space-y-6" onSubmit={onSubmit}>
-          <Card className="border-brand-border shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg">Basic information</CardTitle>
-              <CardDescription>
-                Update how your name and profile details appear across the platform.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <FormField
-                control={form.control}
-                name="displayName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Display name</FormLabel>
-                    <FormControl>
-                      <Input autoComplete="name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="about"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>About</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        rows={4}
-                        placeholder="Tell your team a little about yourself."
-                      />
-                    </FormControl>
-                    <p className="text-xs text-brand-muted">
-                      Markdown is supported for basic formatting.
-                    </p>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
-
-          <AccountAppointmentsSection />
-
-          <AccountAppointmentsReportsSection />
-
-          <AccountSalesReportsSection />
-
-          <Card className="border-brand-border shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg">Preferences</CardTitle>
-              <CardDescription>
-                Choose your language and timezone for dates and notifications.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-4 sm:grid-cols-2">
-              <FormField
-                control={form.control}
-                name="language"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Language</FormLabel>
-                    <FormControl>
-                      <FilterSelectField
-                        id="account-language"
-                        label=""
-                        value={field.value}
-                        options={[...LANGUAGE_OPTIONS]}
-                        onValueChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="timezone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Timezone</FormLabel>
-                    <FormControl>
-                      <FilterSelectField
-                        id="account-timezone"
-                        label=""
-                        value={field.value}
-                        options={[...TIMEZONE_OPTIONS]}
-                        onValueChange={field.onChange}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </CardContent>
-          </Card>
-
-          <Card className="border-brand-border shadow-sm">
-            <CardHeader>
-              <CardTitle className="text-lg">Assigned clinics</CardTitle>
-              <CardDescription>
-                Clinics linked to your account and your role at each location.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <AssignedClinicsTable clinics={user.clinics ?? []} />
-            </CardContent>
-          </Card>
-
-          <div className="flex justify-end">
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                  Saving...
-                </>
+        <form onSubmit={onSubmit} className="mt-5">
+          <SettingsFieldRow label="Photo">
+            <div className="flex items-center gap-3">
+              {avatarImage ? (
+                <div
+                  className="size-12 rounded-full bg-cover bg-center"
+                  style={{ backgroundImage: `url(${avatarImage})` }}
+                  role="img"
+                  aria-label={`${displayName} avatar`}
+                />
               ) : (
-                "Save changes"
+                <UserIdenticon
+                  seed={user.email}
+                  name={displayName}
+                  className="size-12 rounded-full text-sm"
+                />
               )}
-            </Button>
-          </div>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => avatarInputRef.current?.click()}
+                aria-label="Upload avatar"
+              >
+                Change photo
+              </Button>
+            </div>
+          </SettingsFieldRow>
+
+          <FormField
+            control={form.control}
+            name="displayName"
+            render={({ field }) => (
+              <FormItem className="space-y-0">
+                <SettingsFieldRow
+                  label={
+                    <>
+                      Display name
+                      <RequiredFieldMarker />
+                    </>
+                  }
+                >
+                  <FormControl>
+                    <Input autoComplete="name" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </SettingsFieldRow>
+              </FormItem>
+            )}
+          />
+
+          <SettingsFieldRow label="Email">
+            <p>{user.email}</p>
+            <p className="mt-1 text-sm text-slate-400">
+              Managed by your administrator.
+            </p>
+          </SettingsFieldRow>
+
+          <FormField
+            control={form.control}
+            name="about"
+            render={({ field }) => (
+              <FormItem className="space-y-0">
+                <SettingsFieldRow label="About">
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      rows={3}
+                      placeholder="Tell your team a little about yourself."
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </SettingsFieldRow>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="language"
+            render={({ field }) => (
+              <FormItem className="space-y-0">
+                <SettingsFieldRow label="Language">
+                  <FormControl>
+                    <FilterSelectField
+                      id="account-language"
+                      label=""
+                      value={field.value}
+                      options={[...LANGUAGE_OPTIONS]}
+                      onValueChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </SettingsFieldRow>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="timezone"
+            render={({ field }) => (
+              <FormItem className="space-y-0">
+                <SettingsFieldRow label="Timezone">
+                  <FormControl>
+                    <FilterSelectField
+                      id="account-timezone"
+                      label=""
+                      value={field.value}
+                      options={[...TIMEZONE_OPTIONS]}
+                      onValueChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </SettingsFieldRow>
+              </FormItem>
+            )}
+          />
+
+          <Button
+            type="submit"
+            variant="outline"
+            size="sm"
+            className="mt-5"
+            disabled={isSaving}
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                Saving...
+              </>
+            ) : (
+              "Save profile"
+            )}
+          </Button>
         </form>
       </Form>
 
-      <input
-        ref={coverInputRef}
-        type="file"
-        accept="image/*"
-        className="hidden"
-        onChange={(event) => {
-          void handleImageChange(event.target.files?.[0], setCoverImage);
-          event.target.value = "";
-        }}
-      />
       <input
         ref={avatarInputRef}
         type="file"
         accept="image/*"
         className="hidden"
         onChange={(event) => {
-          void handleImageChange(event.target.files?.[0], setAvatarImage);
+          void handleAvatarChange(event.target.files?.[0]);
           event.target.value = "";
         }}
       />

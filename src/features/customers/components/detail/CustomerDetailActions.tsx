@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarPlus, Loader2, MoreVertical, Pencil, UserX } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import { DestructiveButton, SecondaryButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
@@ -41,6 +41,7 @@ type CustomerDetailActionsProps = {
   onEditDetails: () => void;
   onScheduleAppointment?: () => void;
   onCustomerUpdated: (customer: Customer) => void;
+  children?: ReactNode;
   className?: string;
 };
 
@@ -49,6 +50,7 @@ export function CustomerDetailActions({
   onEditDetails,
   onScheduleAppointment,
   onCustomerUpdated,
+  children,
   className,
 }: CustomerDetailActionsProps) {
   const { toast } = useToast();
@@ -95,7 +97,21 @@ export function CustomerDetailActions({
 
   return (
     <>
-      <div className={cn("flex shrink-0 flex-wrap items-center gap-2", className)}>
+      <div className={cn("flex shrink-0 flex-wrap items-center justify-end gap-2", className)}>
+        {onScheduleAppointment ? (
+          <SecondaryButton
+            type="button"
+            onClick={onScheduleAppointment}
+            className="hidden items-center gap-1.5 md:inline-flex"
+            data-testid="customer-schedule-appointment-button"
+          >
+            <CalendarPlus className="size-3.5" aria-hidden="true" />
+            <span>Schedule</span>
+          </SecondaryButton>
+        ) : null}
+
+        {children}
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -154,18 +170,6 @@ export function CustomerDetailActions({
             ) : null}
           </DropdownMenuContent>
         </DropdownMenu>
-
-        {onScheduleAppointment ? (
-          <SecondaryButton
-            type="button"
-            onClick={onScheduleAppointment}
-            className="hidden items-center gap-1.5 md:inline-flex"
-            data-testid="customer-schedule-appointment-button"
-          >
-            <CalendarPlus className="size-3.5" aria-hidden="true" />
-            <span>Schedule</span>
-          </SecondaryButton>
-        ) : null}
       </div>
 
       <Dialog open={voidConfirmOpen} onOpenChange={setVoidConfirmOpen}>

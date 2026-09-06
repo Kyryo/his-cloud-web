@@ -1,8 +1,8 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
+import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { UpdateTenantCurrencyDialog } from "@/features/settings/components/UpdateTenantCurrencyDialog";
 import { fetchOrganizationCurrency } from "@/features/settings/services/settings.service";
@@ -49,12 +49,7 @@ export function OrganizationCurrencySection() {
   }, []);
 
   if (isLoading) {
-    return (
-      <span className="inline-flex items-center gap-2 text-sm text-brand-muted">
-        <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
-        Loading...
-      </span>
-    );
+    return <Skeleton className="h-4 w-24" />;
   }
 
   if (loadError) {

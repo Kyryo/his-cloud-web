@@ -30,30 +30,6 @@ export function localTodayIso(now = new Date()): string {
   return `${year}-${month}-${day}`;
 }
 
-export function overviewGreeting(now = new Date()): string {
-  const hour = now.getHours();
-  if (hour < 12) {
-    return "Good morning";
-  }
-  if (hour < 17) {
-    return "Good afternoon";
-  }
-  return "Good evening";
-}
-
-export function overviewFirstName(fullName: string | null | undefined): string {
-  const first = fullName?.trim().split(/\s+/)[0];
-  return first ?? "";
-}
-
-export function formatOverviewHeadingDate(now = new Date()): string {
-  return new Intl.DateTimeFormat("en-GB", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  }).format(now);
-}
-
 export function formatOverviewTime(value: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {

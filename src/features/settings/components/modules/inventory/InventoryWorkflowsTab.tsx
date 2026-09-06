@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -205,7 +205,7 @@ export function InventoryWorkflowsTab({ isActive }: InventoryWorkflowsTabProps) 
   }
 
   if (isLoading) {
-    return <PageLoader message="Loading approval workflows..." />;
+    return <SettingsContentSkeleton />;
   }
 
   if (error) {
@@ -280,11 +280,11 @@ export function InventoryWorkflowsTab({ isActive }: InventoryWorkflowsTabProps) 
             />
           </div>
         ) : (
-          <div className="mt-6 space-y-3">
+          <div className="mt-6">
             {workflows.map((workflow) => (
               <div
                 key={workflow.uuid}
-                className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-border p-4"
+                className="flex flex-wrap items-center justify-between gap-3 border-b border-brand-border py-4 last:border-b-0"
               >
                 <button
                   type="button"
@@ -350,7 +350,7 @@ export function InventoryWorkflowsTab({ isActive }: InventoryWorkflowsTabProps) 
               {workflowSteps.map((step) => (
                 <li
                   key={step.uuid}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-brand-border px-4 py-3"
+                  className="flex items-center justify-between gap-3 border-b border-brand-border py-3 last:border-b-0"
                 >
                   <div>
                     <p className="font-medium text-brand-navy">

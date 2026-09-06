@@ -5,22 +5,14 @@ import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useForm, type FieldErrors } from "react-hook-form";
 
+import { ClientAvatar } from "@/components/client-avatar";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { TabbedDialog } from "@/components/ui/tabbed-dialog";
-import { Textarea } from "@/components/ui/textarea";
+import { SectionedDialog } from "@/components/ui/sectioned-dialog";
 import { AppointmentClinicEmptyState } from "@/features/appointments/components/AppointmentClinicEmptyState";
 import { AppointmentFormFields } from "@/features/appointments/components/AppointmentFormFields";
 import {
-  appointmentScheduleTabFields,
   createAppointmentDefaultValues,
   createAppointmentSchema,
   resolveAppointmentErrorTab,
@@ -58,17 +50,64 @@ type CreateAppointmentDialogProps = {
   };
 };
 
-type CreateAppointmentTab = "client" | "schedule" | "details";
+function AppointmentClientCard({
+  customer,
+  onChangeClient,
+}: {
+  customer: Customer;
+  onChangeClient?: () => void;
+}) {
+  const name = formatCustomerName(customer);
+  const meta = [customer.customer_identifier, customer.phone_number]
+    .filter(Boolean)
+    .join(" · ");
 
-const SCHEDULE_TABS = [
-  { id: "schedule" as const, label: "Schedule" },
-  { id: "details" as const, label: "Details" },
-];
+  return (
+    <section className="space-y-2">
+      <p className="text-xs font-semibold uppercase tracking-wide text-brand-muted">
+        Client
+      </p>
+      <div className="flex items-center gap-3 rounded-xl border border-dash-border bg-white px-3 py-2.5">
+        <ClientAvatar name={name} />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-brand-navy">{name}</p>
+          {meta ? (
+            <p className="truncate text-xs text-brand-muted">{meta}</p>
+          ) : null}
+        </div>
+        {onChangeClient ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="shrink-0 text-brand-muted"
+            onClick={onChangeClient}
+          >
+            Change
+          </Button>
+        ) : null}
+      </div>
+    </section>
+  );
+}
 
-const FULL_TABS = [
-  { id: "client" as const, label: "Client" },
-  ...SCHEDULE_TABS,
-];
+function AppointmentDialogSkeleton() {
+  return (
+    <div
+      className="space-y-4"
+      aria-busy="true"
+      data-testid="create-appointment-loading"
+    >
+      <div className="h-16 animate-pulse rounded-xl bg-slate-100" />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="h-16 animate-pulse rounded-xl bg-slate-100" />
+        <div className="h-16 animate-pulse rounded-xl bg-slate-100" />
+      </div>
+      <div className="h-16 animate-pulse rounded-xl bg-slate-100" />
+      <span className="sr-only">Loading appointment form</span>
+    </div>
+  );
+}
 
 export function CreateAppointmentDialog({
   customer: initialCustomer,
@@ -87,16 +126,19 @@ export function CreateAppointmentDialog({
   const [selectedClinicianName, setSelectedClinicianName] = useState<string | null>(
     null,
   );
-  const [activeTab, setActiveTab] = useState<CreateAppointmentTab>(
-    requiresClientSelection ? "client" : "schedule",
-  );
   const [clinics, setClinics] = useState<ClinicalClinic[]>([]);
   const [departments, setDepartments] = useState<ClinicalDepartment[]>([]);
   const [isLoadingContext, setIsLoadingContext] = useState(false);
 
   const form = useForm<CreateAppointmentFormValues>({
     resolver: zodResolver(createAppointmentSchema),
-    defaultValues: createAppointmentDefaultValues(),
+    defaultValues: createAppointmentDefaultValues({
+      clinic: initialSchedule?.clinic,
+      department: initialSchedule?.department,
+      clinician: initialSchedule?.clinician,
+      scheduled_start: initialSchedule?.scheduled_start,
+      scheduled_end: initialSchedule?.scheduled_end,
+    }),
   });
 
   const selectedClinicUuid = form.watch("clinic");
@@ -109,7 +151,6 @@ export function CreateAppointmentDialog({
     () => (customer ? formatCustomerName(customer) : ""),
     [customer],
   );
-  const tabs = requiresClientSelection ? FULL_TABS : SCHEDULE_TABS;
   const lockScheduleFields = Boolean(initialSchedule?.scheduled_start);
 
   const loadDepartments = useCallback(async (clinicId: number) => {
@@ -118,9 +159,8 @@ export function CreateAppointmentDialog({
     return nextDepartments;
   }, []);
 
-  function navigateToErrorTab(errors: FieldErrors<CreateAppointmentFormValues>) {
+  function focusFirstError(errors: FieldErrors<CreateAppointmentFormValues>) {
     const tab = resolveAppointmentErrorTab(errors);
-    setActiveTab(tab);
     const firstField = resolveFirstAppointmentErrorField(errors, tab);
     if (firstField) {
       requestAnimationFrame(() => {
@@ -134,30 +174,26 @@ export function CreateAppointmentDialog({
       return;
     }
 
-    setActiveTab(
-      initialSchedule?.scheduled_start
-        ? requiresClientSelection
-          ? "client"
-          : "schedule"
-        : requiresClientSelection
-          ? "client"
-          : "schedule",
-    );
-    if (requiresClientSelection) {
-      setSelectedCustomer(null);
-    }
-    setSelectedClinicianName(initialSchedule?.clinicianName ?? null);
-
-    if (!hasAssignedClinic) {
-      setClinics([]);
-      setDepartments([]);
-      setIsLoadingContext(false);
-      return;
-    }
-
     let active = true;
 
     async function loadContext() {
+      await Promise.resolve();
+      if (!active) {
+        return;
+      }
+
+      if (requiresClientSelection) {
+        setSelectedCustomer(null);
+      }
+      setSelectedClinicianName(initialSchedule?.clinicianName ?? null);
+
+      if (!hasAssignedClinic) {
+        setClinics([]);
+        setDepartments([]);
+        setIsLoadingContext(false);
+        return;
+      }
+
       setIsLoadingContext(true);
 
       try {
@@ -237,7 +273,6 @@ export function CreateAppointmentDialog({
           title: "Select a client",
           description: "Choose a client before scheduling the appointment.",
         });
-        setActiveTab("client");
         return;
       }
 
@@ -260,7 +295,7 @@ export function CreateAppointmentDialog({
               form.setError(field as keyof CreateAppointmentFormValues, { message });
             }
           }
-          navigateToErrorTab(
+          focusFirstError(
             fieldErrors as FieldErrors<CreateAppointmentFormValues>,
           );
           toast({
@@ -279,37 +314,24 @@ export function CreateAppointmentDialog({
       }
     },
     (errors) => {
-      navigateToErrorTab(errors);
+      focusFirstError(errors);
     },
   );
-
-  async function handleContinueToDetails() {
-    const isValid = await form.trigger([...appointmentScheduleTabFields]);
-    if (isValid) {
-      setActiveTab("details");
-      return;
-    }
-
-    navigateToErrorTab(form.formState.errors);
-  }
 
   const isSubmitting = form.formState.isSubmitting;
   const isDialogLoading = isLoadingContext || (open && isUserLoading);
   const showClinicEmptyState = !isDialogLoading && !hasAssignedClinic;
 
   return (
-    <TabbedDialog
+    <SectionedDialog
       open={open}
       onOpenChange={onOpenChange}
       title="Schedule appointment"
       description={
         customerName
-          ? `Book an appointment for ${customerName}.`
-          : "Search for a client, then choose when and where to meet."
+          ? `Reserve clinic time for ${customerName}.`
+          : "Choose a client, then set the location, time, and visit details."
       }
-      tabs={tabs}
-      activeTab={activeTab}
-      onTabChange={(tabId) => setActiveTab(tabId as CreateAppointmentTab)}
       className={appFont.className}
       data-testid="create-appointment-dialog"
       footer={
@@ -321,25 +343,7 @@ export function CreateAppointmentDialog({
           >
             Cancel
           </SecondaryButton>
-          {activeTab === "client" ? (
-            showClinicEmptyState ? null : (
-              <PrimaryButton
-                type="button"
-                disabled={!selectedCustomer}
-                onClick={() => setActiveTab("schedule")}
-              >
-                Continue
-              </PrimaryButton>
-            )
-          ) : showClinicEmptyState ? null : activeTab === "schedule" ? (
-            <PrimaryButton
-              type="button"
-              disabled={isDialogLoading}
-              onClick={() => void handleContinueToDetails()}
-            >
-              Continue
-            </PrimaryButton>
-          ) : (
+          {showClinicEmptyState ? null : (
             <PrimaryButton
               type="button"
               disabled={isSubmitting || isDialogLoading || !customer}
@@ -358,31 +362,31 @@ export function CreateAppointmentDialog({
         </>
       }
     >
-      {activeTab === "client" ? (
-        isDialogLoading ? (
-          <div className="flex items-center justify-center gap-2 py-10 text-sm text-brand-muted">
-            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            Loading clinics...
-          </div>
-        ) : showClinicEmptyState ? (
-          <AppointmentClinicEmptyState />
-        ) : (
-          <CustomerAppointmentPicker
-            customer={selectedCustomer}
-            onCustomerChange={setSelectedCustomer}
-          />
-        )
-      ) : isDialogLoading ? (
-        <div className="flex items-center justify-center gap-2 py-10 text-sm text-brand-muted">
-          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-          Loading clinics...
-        </div>
+      {isDialogLoading ? (
+        <AppointmentDialogSkeleton />
       ) : showClinicEmptyState ? (
-        <AppointmentClinicEmptyState />
+        <AppointmentClinicEmptyState compact />
       ) : (
-        <Form {...form}>
-          <form className="space-y-5">
-            {activeTab === "schedule" ? (
+        <div className="space-y-6">
+          {requiresClientSelection && !customer ? (
+            <CustomerAppointmentPicker
+              customer={selectedCustomer}
+              onCustomerChange={setSelectedCustomer}
+              disabled={isDialogLoading}
+            />
+          ) : customer ? (
+            <AppointmentClientCard
+              customer={customer}
+              onChangeClient={
+                requiresClientSelection
+                  ? () => setSelectedCustomer(null)
+                  : undefined
+              }
+            />
+          ) : null}
+
+          <Form {...form}>
+            <form className="space-y-4" onSubmit={(event) => event.preventDefault()}>
               <AppointmentFormFields
                 form={form}
                 clinics={clinics}
@@ -407,46 +411,12 @@ export function CreateAppointmentDialog({
                     );
                   })();
                 }}
-                showDetails={false}
                 lockScheduleFields={lockScheduleFields}
               />
-            ) : (
-              <>
-                <FormField
-                  control={form.control}
-                  name="reason"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Reason for visit</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Follow-up, new complaint..." {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="notes"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Internal notes</FormLabel>
-                      <FormControl>
-                        <Textarea
-                          placeholder="Optional scheduling notes for the care team..."
-                          className="min-h-24 resize-y bg-white"
-                          {...field}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
-            )}
-          </form>
-        </Form>
+            </form>
+          </Form>
+        </div>
       )}
-    </TabbedDialog>
+    </SectionedDialog>
   );
 }

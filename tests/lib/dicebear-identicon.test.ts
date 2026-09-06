@@ -32,27 +32,19 @@ describe("buildSidebarNavItems", () => {
             }),
           ]),
         }),
-        expect.objectContaining({
-          title: "Settings",
-          url: ROUTES.settingsAccount,
-          isActive: false,
-        }),
       ]),
     );
+    expect(items.some((item) => item.title === "Settings")).toBe(false);
   });
 
-  it("includes organization settings for tenant admins", () => {
+  it("does not include Settings in the sidebar", () => {
     const items = buildSidebarNavItems(
       ["Registration"],
       ROUTES.settingsOrganization,
       true,
     );
 
-    const settings = items.find((item) => item.title === "Settings");
-
-    expect(settings?.isActive).toBe(true);
-    expect(settings?.items).toBeUndefined();
-    expect(settings?.url).toBe(ROUTES.settingsAccount);
+    expect(items.some((item) => item.title === "Settings")).toBe(false);
   });
 
   it("groups only authorized therapy disciplines under Therapy", () => {

@@ -1,31 +1,53 @@
 "use client";
 
-import * as React from "react";
-import { AppIcon } from "@/components/icons/app-icon";
+import Link from "next/link";
+import { Check } from "lucide-react";
+import { useEffect, useState } from "react";
 
+import { AppIcon } from "@/components/icons/app-icon";
+import { WorkspaceAvatar } from "@/components/workspace-avatar";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Separator } from "@/components/ui/separator";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar";
+import { ROUTES } from "@/constants/routes";
 import { getActiveClinics } from "@/features/app-shell/utils/workspace-clinics";
 import type { UserClinic } from "@/features/app-shell/utils/workspace-clinics";
+import { fetchOrganizationBranding } from "@/features/settings/services/settings.service";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/providers/user-provider";
 import { useWorkspaceStore } from "@/state/workspace.store";
 
+let cachedLogoUrl: string | null | undefined;
+
+async function loadWorkspaceLogoUrl(): Promise<string | null> {
+  if (cachedLogoUrl !== undefined) {
+    return cachedLogoUrl;
+  }
+
+  try {
+    const branding = await fetchOrganizationBranding();
+    const url = branding.branding_logo_url?.trim() ?? "";
+    cachedLogoUrl = url.length > 0 ? url : null;
+  } catch {
+    cachedLogoUrl = null;
+  }
+
+  return cachedLogoUrl;
+}
+
 export function TeamSwitcher() {
-  const { isMobile } = useSidebar();
   const { userData, isLoading } = useUser();
+  const [open, setOpen] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | null>(cachedLogoUrl ?? null);
   const activeClinicId = useWorkspaceStore((state) => state.activeClinicId);
   const setActiveClinicId = useWorkspaceStore((state) => state.setActiveClinicId);
 
@@ -51,70 +73,107 @@ export function TeamSwitcher() {
   const activeClinicLabel =
     activeClinic?.clinic_name ?? userData?.primary_clinic?.name ?? "Clinic";
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function load() {
+      const url = await loadWorkspaceLogoUrl();
+      if (!cancelled) {
+        setLogoUrl(url);
+      }
+    }
+
+    void load();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   function handleClinicSelect(clinic: UserClinic) {
     setActiveClinicId(clinic.clinic);
+    setOpen(false);
   }
 
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
             <SidebarMenuButton
               size="lg"
+              tooltip="Switch workspace"
+              data-testid="sidebar-team-switcher-trigger"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                <AppIcon name="building" size={16} />
-              </div>
-              <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold text-brand-navy">
-                  {isLoading ? "Loading..." : tenantName}
+              <WorkspaceAvatar
+                name={tenantName}
+                src={logoUrl}
+                className="size-8"
+              />
+              <div className="grid min-w-0 flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium text-brand-navy">
+                  {isLoading ? "Loading..." : activeClinicLabel}
                 </span>
                 <span className="truncate text-xs text-dash-muted">
-                  {activeClinicLabel}
+                  {tenantName}
                 </span>
               </div>
-              <AppIcon name="chevronRight" className="ml-auto rotate-90" />
+              <AppIcon
+                name="chevronUpDown"
+                size={16}
+                className="ml-auto shrink-0 text-sidebar-foreground/50"
+              />
             </SidebarMenuButton>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className={cn(
-              "w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg",
-              appFont.className,
-            )}
+          </PopoverTrigger>
+          <PopoverContent
+            data-testid="sidebar-team-switcher-popover"
+            side="right"
             align="start"
-            side={isMobile ? "bottom" : "right"}
-            sideOffset={4}
+            sideOffset={8}
+            className={cn(appFont.className, "w-56 p-1.5")}
           >
-            <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Clinics
-            </DropdownMenuLabel>
             {clinics.length > 0 ? (
-              clinics.map((clinic) => (
-                <DropdownMenuItem
-                  key={clinic.id}
-                  onClick={() => handleClinicSelect(clinic)}
-                  className="gap-2 p-2"
-                >
-                  <div className="flex size-6 items-center justify-center rounded-md border">
-                    <AppIcon name="building" size={14} />
-                  </div>
-                  <div className="grid flex-1 text-left leading-tight">
-                    <span className="truncate text-sm">{clinic.clinic_name}</span>
-                    <span className="truncate text-xs text-muted-foreground">
-                      {clinic.role}
+              clinics.map((clinic) => {
+                const isActive = clinic.clinic === resolvedClinicId;
+
+                return (
+                  <button
+                    key={clinic.id}
+                    type="button"
+                    data-testid={`clinic-option-${clinic.clinic}`}
+                    onClick={() => handleClinicSelect(clinic)}
+                    className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm text-foreground outline-none hover:bg-accent"
+                  >
+                    <WorkspaceAvatar
+                      name={clinic.clinic_name}
+                      className="size-6"
+                    />
+                    <span className="min-w-0 flex-1 truncate">
+                      {clinic.clinic_name}
                     </span>
-                  </div>
-                </DropdownMenuItem>
-              ))
+                    {isActive ? (
+                      <Check className="size-4 shrink-0 text-brand-primary" aria-hidden />
+                    ) : null}
+                  </button>
+                );
+              })
             ) : (
-              <DropdownMenuItem disabled className="text-muted-foreground">
+              <p className="px-2 py-1.5 text-sm text-muted-foreground">
                 No clinics assigned
-              </DropdownMenuItem>
+              </p>
             )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+            <Separator className="my-1.5" />
+            <Link
+              href={ROUTES.settingsOrganization}
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-foreground outline-none hover:bg-accent"
+            >
+              <AppIcon name="settings" size={16} />
+              <span>Organization settings</span>
+            </Link>
+          </PopoverContent>
+        </Popover>
       </SidebarMenuItem>
     </SidebarMenu>
   );

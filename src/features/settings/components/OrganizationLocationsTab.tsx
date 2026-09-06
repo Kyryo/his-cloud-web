@@ -1,13 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
-import { Badge } from "@/components/ui/badge";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { AddLocationDialog } from "@/features/settings/components/AddLocationDialog";
-import { OrganizationEmptyState } from "@/features/settings/components/OrganizationEmptyState";
-import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
+import {
+  OrganizationClinicGroup,
+  OrganizationEntityRow,
+  OrganizationTabPanel,
+  groupByClinicName,
+} from "@/features/settings/components/OrganizationTabContent";
 import { UpdateLocationDialog } from "@/features/settings/components/UpdateLocationDialog";
 import { fetchOrganizationLocations } from "@/features/settings/services/settings.service";
 import type { OrganizationLocation } from "@/features/settings/types/settings.types";
@@ -16,33 +19,26 @@ type OrganizationLocationsTabProps = {
   isActive: boolean;
 };
 
-const columns = [
-  { key: "name", label: "Location" },
-  { key: "code", label: "Code" },
-  { key: "clinic", label: "Clinic" },
-  { key: "hours", label: "Hours" },
-  { key: "status", label: "Status" },
-  { key: "actions", label: "" },
-] as const;
-
-function formatStatus(status: string, isActive: boolean) {
-  const label = status.replace(/_/g, " ");
-  return (
-    <Badge variant={isActive ? "default" : "outline"} className="capitalize">
-      {label.toLowerCase()}
-    </Badge>
-  );
+function locationMeta(location: OrganizationLocation) {
+  return [
+    location.code,
+    location.department_name,
+    location.operating_hours_display,
+  ]
+    .filter((value) => Boolean(value))
+    .join(" · ");
 }
 
-export function OrganizationLocationsTab({ isActive }: OrganizationLocationsTabProps) {
+export function OrganizationLocationsTab({
+  isActive,
+}: OrganizationLocationsTabProps) {
   const [locations, setLocations] = useState<OrganizationLocation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [editingLocation, setEditingLocation] = useState<OrganizationLocation | null>(
-    null,
-  );
+  const [editingLocation, setEditingLocation] =
+    useState<OrganizationLocation | null>(null);
 
   useEffect(() => {
     if (!isActive) {
@@ -83,6 +79,11 @@ export function OrganizationLocationsTab({ isActive }: OrganizationLocationsTabP
     };
   }, [isActive, reloadToken]);
 
+  const clinicGroups = useMemo(
+    () => groupByClinicName(locations, (location) => location.clinic_name),
+    [locations],
+  );
+
   if (!isActive) {
     return null;
   }
@@ -99,68 +100,44 @@ export function OrganizationLocationsTab({ isActive }: OrganizationLocationsTabP
     );
   }
 
-  const isEmpty = !isLoading && !error && locations.length === 0;
-
   return (
     <>
-      <OrganizationTabSection
-        title="Locations"
-        description="Locations are places where care is delivered or inventory is managed, such as a Pharmacy."
-        showHeader={!isEmpty}
-        actions={
-          locations.length > 0 ? (
-            <Button onClick={() => setAddDialogOpen(true)}>Add location</Button>
-          ) : null
+      <OrganizationTabPanel
+        description="Rooms and stores where care is delivered or stock is held."
+        action={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setAddDialogOpen(true)}
+          >
+            Add location
+          </Button>
         }
       >
         {isLoading ? (
-          <div className="py-16">
-            <PageLoader />
-          </div>
+          <SettingsContentSkeleton rows={4} showHeader={false} />
         ) : error ? (
-          <p className="py-8 text-sm text-brand-muted">{error}</p>
+          <p className="text-sm text-red-600">{error}</p>
         ) : locations.length === 0 ? (
-          <OrganizationEmptyState
-            message="No locations have been set up for this organization yet."
-            actionLabel="Add location"
-            onAction={() => setAddDialogOpen(true)}
-          />
+          <p className="text-sm text-slate-400">
+            No locations yet. Add a place such as a pharmacy or consulting room.
+          </p>
         ) : (
-          <div className="-mx-6 overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-y border-brand-border bg-slate-50/60">
-                  {columns.map((column) => (
-                    <th
-                      key={column.key}
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-brand-muted"
-                    >
-                      {column.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-brand-border">
-                {locations.map((location) => (
-                  <tr key={location.uuid}>
-                    <td className="px-6 py-3.5 text-sm font-medium text-brand-navy">
-                      {location.name}
-                    </td>
-                    <td className="px-6 py-3.5 text-sm text-brand-navy">
-                      {location.code}
-                    </td>
-                    <td className="px-6 py-3.5">
-                      <div className="text-sm text-brand-navy">{location.clinic_name}</div>
-                      <div className="text-xs text-brand-muted">{location.clinic_code}</div>
-                    </td>
-                    <td className="px-6 py-3.5 text-sm text-brand-muted">
-                      {location.operating_hours_display || "—"}
-                    </td>
-                    <td className="px-6 py-3.5">
-                      {formatStatus(location.status, location.is_active)}
-                    </td>
-                    <td className="px-6 py-3.5 text-right">
+          <div className="space-y-7">
+            {clinicGroups.map((group) => (
+              <OrganizationClinicGroup
+                key={group.clinicName}
+                title={group.clinicName}
+                count={group.items.length}
+              >
+                {group.items.map((location) => (
+                  <OrganizationEntityRow
+                    key={location.uuid}
+                    title={location.name}
+                    meta={locationMeta(location)}
+                    status={location.is_active ? "Active" : "Inactive"}
+                    actions={
                       <Button
                         type="button"
                         variant="ghost"
@@ -170,14 +147,14 @@ export function OrganizationLocationsTab({ isActive }: OrganizationLocationsTabP
                       >
                         Update
                       </Button>
-                    </td>
-                  </tr>
+                    }
+                  />
                 ))}
-              </tbody>
-            </table>
+              </OrganizationClinicGroup>
+            ))}
           </div>
         )}
-      </OrganizationTabSection>
+      </OrganizationTabPanel>
 
       <AddLocationDialog
         open={addDialogOpen}

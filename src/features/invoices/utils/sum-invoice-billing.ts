@@ -77,3 +77,15 @@ export function getInvoiceOutstandingBalance(invoice: Invoice): number {
 export function hasInvoiceBalance(invoice: Invoice): boolean {
   return getInvoiceOutstandingBalance(invoice) > 0;
 }
+
+export function getInvoicePaidPercent(invoice: Invoice): number {
+  const total = Number(invoice.amount_total ?? 0);
+  const paid = Number(invoice.amount_paid ?? 0);
+  if (!Number.isFinite(total) || total <= 0) {
+    return 0;
+  }
+  if (!Number.isFinite(paid) || paid <= 0) {
+    return 0;
+  }
+  return Math.min(100, Math.round((paid / total) * 100));
+}

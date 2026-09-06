@@ -1,14 +1,12 @@
 "use client";
 
-import { Loader2, Star } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
-import { Badge } from "@/components/ui/badge";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { AddPricelistDialog } from "@/features/settings/components/AddPricelistDialog";
-import { OrganizationEmptyState } from "@/features/settings/components/OrganizationEmptyState";
-import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
+import { SettingsPanelSection } from "@/features/settings/components/SettingsPageLayout";
 import { UpdatePricelistDialog } from "@/features/settings/components/UpdatePricelistDialog";
 import {
   fetchOrganizationDefaultPricelist,
@@ -24,19 +22,28 @@ type OrganizationPricelistsTabProps = {
   isActive: boolean;
 };
 
-const columns = [
-  { key: "name", label: "Pricelist" },
-  { key: "uuid", label: "ID" },
-  { key: "currency", label: "Currency" },
-  { key: "status", label: "Status" },
-  { key: "actions", label: "" },
-] as const;
+function pricelistMeta(
+  pricelist: OrganizationPricelist,
+  isDefault: boolean,
+) {
+  const parts = [pricelist.currency_code];
+  if (isDefault) {
+    parts.push("Default");
+  }
+  return parts.filter((value) => Boolean(value)).join(" · ");
+}
 
-export function OrganizationPricelistsTab({ isActive }: OrganizationPricelistsTabProps) {
+export function OrganizationPricelistsTab({
+  isActive,
+}: OrganizationPricelistsTabProps) {
   const { toast } = useToast();
   const [pricelists, setPricelists] = useState<OrganizationPricelist[]>([]);
-  const [defaultPricelistUuid, setDefaultPricelistUuid] = useState<string | null>(null);
-  const [settingDefaultUuid, setSettingDefaultUuid] = useState<string | null>(null);
+  const [defaultPricelistUuid, setDefaultPricelistUuid] = useState<string | null>(
+    null,
+  );
+  const [settingDefaultUuid, setSettingDefaultUuid] = useState<string | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
@@ -130,15 +137,15 @@ export function OrganizationPricelistsTab({ isActive }: OrganizationPricelistsTa
         title: "Default pricelist updated",
         description: `${pricelist.name} is now the organization default.`,
       });
-    } catch (error) {
+    } catch (setDefaultError) {
       toast({
         variant: "error",
         title: "Could not set default pricelist",
         description:
-          error instanceof BffError
-            ? formatBffErrorMessage(error.message, error.errors)
-            : error instanceof Error
-              ? error.message
+          setDefaultError instanceof BffError
+            ? formatBffErrorMessage(setDefaultError.message, setDefaultError.errors)
+            : setDefaultError instanceof Error
+              ? setDefaultError.message
               : "Something went wrong.",
       });
     } finally {
@@ -146,117 +153,91 @@ export function OrganizationPricelistsTab({ isActive }: OrganizationPricelistsTa
     }
   }
 
-  const isEmpty = !isLoading && !error && pricelists.length === 0;
-
   return (
     <>
-      <OrganizationTabSection
+      <SettingsPanelSection
         title="Pricelists"
-        description="ERP pricelists used for cash billing and payer scheme tariffs."
-        showHeader={!isEmpty}
-        actions={
-          pricelists.length > 0 ? (
-            <Button onClick={() => setAddDialogOpen(true)}>Add pricelist</Button>
-          ) : null
+        description="Tariffs used for cash billing and payer scheme rates."
+        action={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setAddDialogOpen(true)}
+          >
+            Add pricelist
+          </Button>
         }
       >
         {isLoading ? (
-          <div className="py-16">
-            <PageLoader />
-          </div>
+          <SettingsContentSkeleton rows={4} showHeader={false} />
         ) : error ? (
-          <p className="py-8 text-sm text-brand-muted">{error}</p>
+          <p className="text-sm text-red-600">{error}</p>
         ) : pricelists.length === 0 ? (
-          <OrganizationEmptyState
-            message="No pricelists have been configured for this organization yet."
-            actionLabel="Add pricelist"
-            onAction={() => setAddDialogOpen(true)}
-          />
+          <p className="text-sm text-slate-400">
+            No pricelists yet. Add a tariff to use on cash and insurance invoices.
+          </p>
         ) : (
-          <div className="-mx-6 overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-y border-brand-border bg-slate-50/60">
-                  {columns.map((column) => (
-                    <th
-                      key={column.key}
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-brand-muted"
-                    >
-                      {column.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-brand-border">
-                {pricelists.map((pricelist) => {
-                  const isDefault = defaultPricelistUuid === pricelist.uuid;
-                  const isSettingDefault = settingDefaultUuid === pricelist.uuid;
+          <ul className="divide-y divide-brand-border">
+            {pricelists.map((pricelist) => {
+              const isDefault = defaultPricelistUuid === pricelist.uuid;
+              const isSettingDefault = settingDefaultUuid === pricelist.uuid;
+              const meta = pricelistMeta(pricelist, isDefault);
 
-                  return (
-                    <tr key={pricelist.uuid}>
-                      <td className="px-6 py-3.5 text-sm font-medium text-brand-navy">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span>{pricelist.name}</span>
-                          {isDefault ? (
-                            <Badge variant="outline" className="gap-1">
-                              <Star
-                                className="size-3 fill-current text-amber-500"
-                                aria-hidden="true"
-                              />
-                              Default
-                            </Badge>
-                          ) : null}
-                        </div>
-                      </td>
-                      <td className="px-6 py-3.5 font-mono text-sm text-brand-navy">
-                        {pricelist.uuid}
-                      </td>
-                      <td className="px-6 py-3.5 text-sm text-brand-navy">
-                        {pricelist.currency_code}
-                      </td>
-                      <td className="px-6 py-3.5">
-                        <Badge variant={pricelist.is_active ? "default" : "outline"}>
-                          {pricelist.is_active ? "Active" : "Archived"}
-                        </Badge>
-                      </td>
-                      <td className="px-6 py-3.5 text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          {pricelist.is_active && !isDefault ? (
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 text-brand-muted hover:text-brand-navy"
-                              disabled={isSettingDefault}
-                              onClick={() => void handleSetDefault(pricelist)}
-                            >
-                              {isSettingDefault ? (
-                                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                              ) : (
-                                "Set default"
-                              )}
-                            </Button>
-                          ) : null}
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 text-brand-muted hover:text-brand-navy"
-                            onClick={() => setEditingPricelist(pricelist)}
-                          >
-                            Update
-                          </Button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+              return (
+                <li
+                  key={pricelist.uuid}
+                  className="flex flex-col gap-3 py-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-brand-navy">
+                      {pricelist.name}
+                    </p>
+                    {meta ? (
+                      <p className="mt-0.5 truncate text-sm text-slate-400">
+                        {meta}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <span className="text-xs text-slate-400">
+                      {pricelist.is_active ? "Active" : "Archived"}
+                    </span>
+                    {pricelist.is_active && !isDefault ? (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 text-brand-muted hover:text-brand-navy"
+                        disabled={isSettingDefault}
+                        onClick={() => void handleSetDefault(pricelist)}
+                      >
+                        {isSettingDefault ? (
+                          <Loader2
+                            className="size-4 animate-spin"
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          "Set default"
+                        )}
+                      </Button>
+                    ) : null}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 text-brand-muted hover:text-brand-navy"
+                      onClick={() => setEditingPricelist(pricelist)}
+                    >
+                      Update
+                    </Button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         )}
-      </OrganizationTabSection>
+      </SettingsPanelSection>
 
       <AddPricelistDialog
         open={addDialogOpen}

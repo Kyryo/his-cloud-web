@@ -3,6 +3,7 @@
 import { Loader2 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { Badge } from "@/components/ui/badge";
 import { PrimaryButton } from "@/components/ui/app-buttons";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ROUTES } from "@/constants/routes";
@@ -33,7 +34,6 @@ import {
 } from "@/features/invoices/utils/invoice-claim-readiness";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
-import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
 export type InvoiceClaimCreateAction = {
@@ -79,9 +79,11 @@ export function InvoiceClaimsTab({
     onUpdate: setClaim,
   });
 
+  const isInsurance = isInsuranceInvoice(invoice);
+  const displayedClaim = isInsurance ? claim : null;
+
   useEffect(() => {
     if (!isInsuranceInvoice(invoice)) {
-      setClaim(null);
       return;
     }
 
@@ -129,23 +131,23 @@ export function InvoiceClaimsTab({
     if (!isActive) {
       return;
     }
-    onClaimChange?.(claim);
-  }, [claim, isActive, onClaimChange]);
+    onClaimChange?.(displayedClaim);
+  }, [displayedClaim, isActive, onClaimChange]);
 
   useEffect(() => {
     if (!onClaimIndicatorChange) {
       return;
     }
 
-    if (claim) {
-      onClaimIndicatorChange(isClaimSubmitBlockedByAdvisories(claim));
+    if (displayedClaim) {
+      onClaimIndicatorChange(isClaimSubmitBlockedByAdvisories(displayedClaim));
       return;
     }
 
     onClaimIndicatorChange(
       getInvoiceClaimReadinessItems(invoice, null).some((item) => !item.met),
     );
-  }, [claim, invoice, onClaimIndicatorChange]);
+  }, [displayedClaim, invoice, onClaimIndicatorChange]);
 
   async function handleClaimUpdated(updated: ClaimDetail) {
     setClaim(updated);
@@ -184,7 +186,10 @@ export function InvoiceClaimsTab({
   }
 
   const handleCreateClaimRef = useRef(handleCreateClaim);
-  handleCreateClaimRef.current = handleCreateClaim;
+
+  useEffect(() => {
+    handleCreateClaimRef.current = handleCreateClaim;
+  });
 
   useEffect(() => {
     if (!onCreateClaimActionChange) {
@@ -195,18 +200,18 @@ export function InvoiceClaimsTab({
       layout !== "requirements" ||
       !isActive ||
       !isInsuranceInvoice(invoice) ||
-      claim
+      displayedClaim
     ) {
       onCreateClaimActionChange(null);
       return;
     }
 
-    const readinessItems = getInvoiceClaimSystemReadinessItems(invoice, claim);
-    const requirementItems = getClaimRequirementCheckItems(invoice, claim);
+    const readinessItems = getInvoiceClaimSystemReadinessItems(invoice, displayedClaim);
+    const requirementItems = getClaimRequirementCheckItems(invoice, displayedClaim);
     const disabledReason = getCreateClaimDisabledReasonFromItems(
       readinessItems,
       requirementItems,
-      claim,
+      displayedClaim,
     );
 
     onCreateClaimActionChange({
@@ -218,7 +223,7 @@ export function InvoiceClaimsTab({
       },
     });
   }, [
-    claim,
+    displayedClaim,
     invoice,
     isActive,
     isCreating,
@@ -228,7 +233,7 @@ export function InvoiceClaimsTab({
   ]);
 
   async function handleRequestSubmit() {
-    if (!claim || isClaimSubmitBlockedByAdvisories(claim)) {
+    if (!displayedClaim || isClaimSubmitBlockedByAdvisories(displayedClaim)) {
       return;
     }
     setSubmitOpen(true);
@@ -238,7 +243,7 @@ export function InvoiceClaimsTab({
     return null;
   }
 
-  if (!isInsuranceInvoice(invoice)) {
+  if (!isInsurance) {
     if (layout === "requirements") {
       return (
         <p className="text-sm text-brand-muted">
@@ -248,44 +253,72 @@ export function InvoiceClaimsTab({
     }
 
     return (
-      <div className="rounded-xl border border-brand-border bg-white p-6">
-        <p className="text-sm text-brand-muted">
-          Claims are only available for insurance invoices linked to a visit.
-        </p>
-      </div>
+      <p className="text-sm text-brand-muted">
+        Claims are only available for insurance invoices linked to a visit.
+      </p>
     );
   }
 
-  const readinessItems = getInvoiceClaimSystemReadinessItems(invoice, claim);
-  const requirementItems = getClaimRequirementCheckItems(invoice, claim);
+  const readinessItems = getInvoiceClaimSystemReadinessItems(invoice, displayedClaim);
+  const requirementItems = getClaimRequirementCheckItems(invoice, displayedClaim);
   const claimableLineCount = getInvoiceClaimableLines(invoice.lines).length;
   const hasExcludedLines = invoiceHasNonPayableLines(invoice.lines);
 
   const nonPayableNotice = hasExcludedLines ? (
     <p
-      className="rounded-lg border border-amber-200 bg-amber-50/80 px-3 py-2 text-sm text-amber-900"
+      className="flex flex-wrap items-center gap-2 text-sm text-brand-muted"
       data-testid="invoice-claim-non-payable-notice"
     >
-      {claimableLineCount} payable item{claimableLineCount === 1 ? "" : "s"}{" "}
-      will be included in the claim. Non-payable items on this invoice are
-      excluded because they are paid by the customer.
+      <Badge variant="warning" className="font-normal">
+        {claimableLineCount} payable
+      </Badge>
+      Non-payable items are excluded because they are paid by the customer.
     </p>
   ) : null;
 
+  const claimStatus = String(displayedClaim?.status || invoice.claim_status || "").toLowerCase();
+  const payerCode = displayedClaim?.payer_code?.trim() || invoice.claim_payer_code?.trim();
+
   return (
-    <div className="space-y-4" data-testid="invoice-claims-tab">
+    <div className="space-y-5" data-testid="invoice-claims-tab">
+      {layout === "workflow" ? (
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Badge
+            variant={
+              claimStatus === "approved" || claimStatus === "submitted"
+                ? "success"
+                : claimStatus === "rejected" || claimStatus === "cancelled"
+                  ? "destructive"
+                  : claimStatus
+                    ? "warning"
+                    : "secondary"
+            }
+            className="font-normal capitalize"
+          >
+            {claimStatus ? claimStatus.replace(/_/g, " ") : "Not started"}
+          </Badge>
+          {payerCode ? (
+            <Badge variant="outline" className="font-normal">
+              {payerCode.toUpperCase()}
+            </Badge>
+          ) : null}
+          <Badge variant="secondary" className="font-normal">
+            {claimableLineCount} payable
+          </Badge>
+          {hasExcludedLines ? (
+            <Badge variant="warning" className="font-normal">
+              Some excluded
+            </Badge>
+          ) : null}
+        </div>
+      ) : null}
+
       {isLoading ? (
-        <div
-          className={cn(
-            "flex items-center gap-2 text-sm text-brand-muted",
-            layout === "workflow" &&
-              "rounded-xl border border-brand-border bg-white p-6",
-          )}
-        >
+        <div className="flex items-center gap-2 text-sm text-brand-muted">
           <Loader2 className="size-4 animate-spin" aria-hidden="true" />
           Loading claim...
         </div>
-      ) : layout === "requirements" && claim ? (
+      ) : layout === "requirements" && displayedClaim ? (
         <EmptyState
           variant="success"
           title="Claim created"
@@ -293,13 +326,13 @@ export function InvoiceClaimsTab({
           data-testid="claim-created-success-state"
           action={
             <PrimaryButton asChild>
-              <a href={ROUTES.claimDetail(claim.uuid)}>View claim</a>
+              <a href={ROUTES.claimDetail(displayedClaim.uuid)}>View claim</a>
             </PrimaryButton>
           }
         />
       ) : (
         <ClaimWorkflowCard
-          claim={claim}
+          claim={displayedClaim}
           readinessItems={readinessItems}
           requirementItems={requirementItems}
           onClaimUpdated={(updated) => void handleClaimUpdated(updated)}
@@ -311,15 +344,16 @@ export function InvoiceClaimsTab({
           }
           showSubmitInQueue={layout === "workflow"}
           layout={layout}
+          surface={layout === "workflow" ? "plain" : "card"}
           onAddDiagnosis={
             canAddDiagnosis ? () => setAddDiagnosisOpen(true) : undefined
           }
         />
       )}
 
-      {layout === "workflow" && claim ? (
+      {layout === "workflow" && displayedClaim ? (
         <SubmitClaimDialog
-          claim={claim}
+          claim={displayedClaim}
           open={submitOpen}
           onOpenChange={setSubmitOpen}
           onSuccess={(submitted) => void handleClaimUpdated(submitted)}

@@ -80,6 +80,47 @@ export function resolveDurationSelectValue(
 /**
  * Parse a custom duration input. Returns null when empty or invalid.
  */
+export function formatAppointmentDurationLabel(minutes: number): string {
+  if (minutes === 60) {
+    return "1 hour";
+  }
+
+  if (minutes > 60 && minutes % 60 === 0) {
+    return `${minutes / 60} hours`;
+  }
+
+  return `${minutes} minutes`;
+}
+
+export function formatAppointmentScheduleRange(
+  startLocalDateTime: string,
+  endLocalDateTime: string,
+): { dateLabel: string; timeLabel: string; durationLabel: string } | null {
+  const start = new Date(startLocalDateTime);
+  const end = new Date(endLocalDateTime);
+
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+    return null;
+  }
+
+  const minutes = getDurationMinutesBetween(startLocalDateTime, endLocalDateTime);
+  const timeFormat = new Intl.DateTimeFormat("en-GB", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  return {
+    dateLabel: new Intl.DateTimeFormat("en-GB", {
+      weekday: "short",
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    }).format(start),
+    timeLabel: `${timeFormat.format(start)} – ${timeFormat.format(end)}`,
+    durationLabel: minutes ? formatAppointmentDurationLabel(minutes) : "",
+  };
+}
+
 export function parseCustomDurationMinutes(value: string): number | null {
   const trimmed = value.trim();
   if (!trimmed) {

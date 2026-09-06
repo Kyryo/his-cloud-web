@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CUSTOMER_DETAIL_TABS,
   customerDetailTabFromPathname,
   customerDetailTabHref,
   isCustomerDetailTabSegment,
@@ -41,6 +42,10 @@ describe("customer detail tab routes", () => {
         CUSTOMER_ID,
       ),
     ).toBe("summary");
+  });
+
+  it("assigns an icon to every client tab", () => {
+    expect(CUSTOMER_DETAIL_TABS.every((tab) => Boolean(tab.icon))).toBe(true);
   });
 
   it("accepts known tab segments and the empty summary segment", () => {

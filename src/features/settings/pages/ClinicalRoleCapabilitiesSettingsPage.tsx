@@ -3,13 +3,16 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import {
   useRoleCapabilities,
   useUpdateRoleCapabilities,
 } from "@/features/clinical-opd/hooks/use-clinical-opd";
-import { ClinicalRoleCapabilityToggleCard } from "@/features/settings/components/ClinicalRoleCapabilityToggleCard";
+import {
+  ClinicalRoleCapabilitiesMatrix,
+  type ClinicalCapabilityRoleKey,
+} from "@/features/settings/components/ClinicalRoleCapabilitiesMatrix";
 import {
   SettingsPageLayout,
   SettingsSection,
@@ -21,27 +24,6 @@ import {
 import { ROUTES } from "@/constants/routes";
 import { useUser } from "@/providers/user-provider";
 
-const ROLES = [
-  { key: "nurse", title: "Nurses" },
-  { key: "physician", title: "Physicians" },
-] as const;
-
-type CapabilityGroup = {
-  title: string;
-  capabilities: typeof CLINICAL_WORKSPACE_TAB_CAPABILITIES;
-};
-
-const CAPABILITY_GROUPS: CapabilityGroup[] = [
-  {
-    title: "Workspace tabs",
-    capabilities: CLINICAL_WORKSPACE_TAB_CAPABILITIES,
-  },
-  {
-    title: "Actions",
-    capabilities: CLINICAL_ROLE_ACTION_CAPABILITIES,
-  },
-];
-
 export function ClinicalRoleCapabilitiesSettingsPage() {
   const { userData, isLoading: isUserLoading } = useUser();
   const { data = [], isLoading } = useRoleCapabilities();
@@ -50,7 +32,7 @@ export function ClinicalRoleCapabilitiesSettingsPage() {
   const isTenantAdmin = Boolean(userData?.is_admin);
 
   if (isUserLoading || isLoading) {
-    return <PageLoader />;
+    return <SettingsContentSkeleton variant="matrix" />;
   }
 
   if (!isTenantAdmin) {
@@ -74,14 +56,8 @@ export function ClinicalRoleCapabilitiesSettingsPage() {
     );
   }
 
-  function isEnabled(role: string, capability: string) {
-    return data.some(
-      (entry) => entry.user_role === role && entry.capability === capability,
-    );
-  }
-
   async function toggleCapability(
-    role: string,
+    role: ClinicalCapabilityRoleKey,
     capability: string,
     enabled: boolean,
   ) {
@@ -100,45 +76,37 @@ export function ClinicalRoleCapabilitiesSettingsPage() {
     <SettingsPageLayout
       title="Clinical role capabilities"
       description="Configure which OPD workspace tabs and clinical actions nurses and physicians may access."
+      className="max-w-3xl"
     >
-      <div className="space-y-10">
-        {ROLES.map((role) => (
-          <section key={role.key} className="space-y-6">
-            <h2 className="text-base font-semibold text-brand-navy">
-              {role.title}
-            </h2>
+      <SettingsSection
+        title="Workspace tabs"
+        description="Choose which visit workspace tabs each role can open."
+        flush
+      >
+        <ClinicalRoleCapabilitiesMatrix
+          capabilities={CLINICAL_WORKSPACE_TAB_CAPABILITIES}
+          entries={data}
+          updatingKey={updatingKey}
+          onToggle={(role, capability, enabled) =>
+            void toggleCapability(role, capability, enabled)
+          }
+        />
+      </SettingsSection>
 
-            {CAPABILITY_GROUPS.map((group) => (
-              <div key={`${role.key}-${group.title}`} className="space-y-3">
-                <h3 className="text-sm font-medium text-brand-muted">
-                  {group.title}
-                </h3>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {group.capabilities.map((capability) => {
-                    const controlId = `${role.key}-${capability.key}`;
-                    const checked = isEnabled(role.key, capability.key);
-                    const disabled =
-                      updatingKey === `${role.key}:${capability.key}`;
-
-                    return (
-                      <ClinicalRoleCapabilityToggleCard
-                        key={controlId}
-                        id={controlId}
-                        label={capability.label}
-                        checked={checked}
-                        disabled={disabled}
-                        onCheckedChange={(enabled) =>
-                          void toggleCapability(role.key, capability.key, enabled)
-                        }
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </section>
-        ))}
-      </div>
+      <SettingsSection
+        title="Actions"
+        description="Choose what each role can record or order during a visit."
+        flush
+      >
+        <ClinicalRoleCapabilitiesMatrix
+          capabilities={CLINICAL_ROLE_ACTION_CAPABILITIES}
+          entries={data}
+          updatingKey={updatingKey}
+          onToggle={(role, capability, enabled) =>
+            void toggleCapability(role, capability, enabled)
+          }
+        />
+      </SettingsSection>
     </SettingsPageLayout>
   );
 }

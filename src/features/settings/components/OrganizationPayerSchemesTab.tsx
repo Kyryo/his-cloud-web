@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
-import { Badge } from "@/components/ui/badge";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { AddPayerSchemeDialog } from "@/features/settings/components/AddPayerSchemeDialog";
-import { OrganizationEmptyState } from "@/features/settings/components/OrganizationEmptyState";
-import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
+import { SettingsPanelSection } from "@/features/settings/components/SettingsPageLayout";
 import { UpdatePayerSchemeStatusDialog } from "@/features/settings/components/UpdatePayerSchemeStatusDialog";
 import {
   fetchOrganizationPayerSchemes,
@@ -22,13 +20,11 @@ type OrganizationPayerSchemesTabProps = {
   isActive: boolean;
 };
 
-const schemeColumns = [
-  { key: "name", label: "Scheme" },
-  { key: "payer", label: "Payer" },
-  { key: "code", label: "Code" },
-  { key: "status", label: "Status" },
-  { key: "actions", label: "Actions" },
-] as const;
+function schemeMeta(scheme: OrganizationPayerScheme) {
+  return [scheme.insurance_company_name, scheme.code]
+    .filter((value) => Boolean(value))
+    .join(" · ");
+}
 
 export function OrganizationPayerSchemesTab({
   isActive,
@@ -105,100 +101,79 @@ export function OrganizationPayerSchemesTab({
     setEditingScheme(null);
   }
 
-  const isEmpty = !isLoading && !error && schemes.length === 0;
-
   return (
     <>
-      <OrganizationTabSection
+      <SettingsPanelSection
         title="Payer schemes"
-        description="Insurance schemes offered by payers."
-        showHeader={!isEmpty}
-        actions={
-          schemes.length > 0 && canAddScheme ? (
-            <Button onClick={() => setAddSchemeDialogOpen(true)}>Add scheme</Button>
-          ) : null
+        description="Plans offered by each payer, including the tariff they use."
+        action={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={!canAddScheme}
+            onClick={() => setAddSchemeDialogOpen(true)}
+          >
+            Add scheme
+          </Button>
         }
       >
         {isLoading ? (
-          <div className="py-16">
-            <PageLoader />
-          </div>
+          <SettingsContentSkeleton rows={4} showHeader={false} />
         ) : error ? (
-          <p className="py-8 text-sm text-brand-muted">{error}</p>
+          <p className="text-sm text-red-600">{error}</p>
         ) : schemes.length === 0 ? (
-          <OrganizationEmptyState
-            message={
-              canAddScheme
-                ? "No payer schemes have been configured for this organization yet."
-                : "Add a payer before creating payer schemes."
-            }
-            actionLabel="Add scheme"
-            actionDisabled={!canAddScheme}
-            onAction={() => setAddSchemeDialogOpen(true)}
-          />
+          <p className="text-sm text-slate-400">
+            {canAddScheme
+              ? "No schemes yet. Add a plan for a payer to use on visits and invoices."
+              : "Add a payer before creating schemes."}
+          </p>
         ) : (
-          <div className="-mx-6 overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-y border-brand-border bg-slate-50/60">
-                  {schemeColumns.map((column) => (
-                    <th
-                      key={column.key}
-                      scope="col"
-                      className={
-                        column.key === "actions"
-                          ? "px-6 py-3 text-right text-xs font-medium text-brand-muted"
-                          : "px-6 py-3 text-left text-xs font-medium text-brand-muted"
-                      }
+          <ul className="divide-y divide-brand-border">
+            {schemes.map((scheme) => {
+              const meta = schemeMeta(scheme);
+
+              return (
+                <li
+                  key={scheme.uuid}
+                  className="flex flex-col gap-3 py-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-brand-navy">
+                      {scheme.name}
+                    </p>
+                    {scheme.description ? (
+                      <p className="mt-0.5 text-sm text-slate-400">
+                        {scheme.description}
+                      </p>
+                    ) : null}
+                    {meta ? (
+                      <p className="mt-0.5 truncate text-sm text-slate-400">
+                        {meta}
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <span className="text-xs text-slate-400">
+                      {scheme.is_active ? "Active" : "Inactive"}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 text-brand-muted hover:text-brand-navy"
+                      onClick={() => setEditingScheme(scheme)}
+                      data-testid={`payer-scheme-update-${scheme.uuid}`}
                     >
-                      {column.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-brand-border">
-                {schemes.map((scheme) => (
-                  <tr key={scheme.uuid}>
-                    <td className="px-6 py-3.5">
-                      <div className="text-sm font-medium text-brand-navy">
-                        {scheme.name}
-                      </div>
-                      {scheme.description ? (
-                        <div className="text-xs text-brand-muted">
-                          {scheme.description}
-                        </div>
-                      ) : null}
-                    </td>
-                    <td className="px-6 py-3.5 text-sm text-brand-navy">
-                      {scheme.insurance_company_name}
-                    </td>
-                    <td className="px-6 py-3.5 text-sm text-brand-navy">
-                      {scheme.code || "—"}
-                    </td>
-                    <td className="px-6 py-3.5">
-                      <Badge variant={scheme.is_active ? "default" : "outline"}>
-                        {scheme.is_active ? "Active" : "Inactive"}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-3.5 text-right">
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-8"
-                        onClick={() => setEditingScheme(scheme)}
-                        data-testid={`payer-scheme-update-${scheme.uuid}`}
-                      >
-                        Update
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      Update
+                    </Button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         )}
-      </OrganizationTabSection>
+      </SettingsPanelSection>
 
       <AddPayerSchemeDialog
         open={addSchemeDialogOpen}

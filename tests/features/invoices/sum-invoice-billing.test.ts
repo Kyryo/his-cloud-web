@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 import {
   formatInvoiceInsurerDueLabel,
+  getInvoicePaidPercent,
   hasInvoiceBalance,
   hasInvoicePaymentSplit,
   sumInvoiceClientDue,
@@ -94,5 +95,23 @@ describe("sum-invoice-billing", () => {
   it("detects positive invoice balance", () => {
     expect(hasInvoiceBalance(buildInvoice({ amount_residual: "25.00" }))).toBe(true);
     expect(hasInvoiceBalance(buildInvoice({ amount_residual: "0" }))).toBe(false);
+  });
+
+  it("computes percent paid from totals", () => {
+    expect(
+      getInvoicePaidPercent(
+        buildInvoice({ amount_total: "200", amount_paid: "50" }),
+      ),
+    ).toBe(25);
+    expect(
+      getInvoicePaidPercent(
+        buildInvoice({ amount_total: "100", amount_paid: "0" }),
+      ),
+    ).toBe(0);
+    expect(
+      getInvoicePaidPercent(
+        buildInvoice({ amount_total: "80", amount_paid: "100" }),
+      ),
+    ).toBe(100);
   });
 });

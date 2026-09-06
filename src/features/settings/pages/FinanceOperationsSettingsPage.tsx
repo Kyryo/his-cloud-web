@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { FinanceOperationsSettingsTabs } from "@/features/settings/components/FinanceOperationsSettingsTabs";
 import {
@@ -17,7 +17,7 @@ export function FinanceOperationsSettingsPage() {
   const isTenantAdmin = Boolean(userData?.is_admin);
 
   if (isUserLoading) {
-    return <PageLoader />;
+    return <SettingsContentSkeleton />;
   }
 
   if (!isTenantAdmin) {
@@ -45,6 +45,7 @@ export function FinanceOperationsSettingsPage() {
     <SettingsPageLayout
       title="Finance & Operations"
       description="Manage payers, insurance schemes, and ERP pricelists for billing."
+      className="max-w-3xl"
     >
       <FinanceOperationsSettingsTabs />
     </SettingsPageLayout>

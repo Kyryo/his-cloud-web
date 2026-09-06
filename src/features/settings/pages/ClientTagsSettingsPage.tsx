@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { ClientTagsSettingsTab } from "@/features/settings/components/ClientTagsSettingsTab";
 import {
@@ -17,7 +17,7 @@ export function ClientTagsSettingsPage() {
   const isTenantAdmin = Boolean(userData?.is_admin);
 
   if (isUserLoading) {
-    return <PageLoader />;
+    return <SettingsContentSkeleton />;
   }
 
   if (!isTenantAdmin) {
@@ -45,12 +45,9 @@ export function ClientTagsSettingsPage() {
     <SettingsPageLayout
       title="Client tags"
       description="Define the tags staff can assign to clients and use when filtering lists."
+      className="max-w-3xl"
     >
-      <div className="overflow-hidden rounded-xl border border-brand-border bg-white">
-        <div className="px-6 py-8">
-          <ClientTagsSettingsTab isActive />
-        </div>
-      </div>
+      <ClientTagsSettingsTab isActive />
     </SettingsPageLayout>
   );
 }

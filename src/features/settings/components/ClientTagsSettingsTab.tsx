@@ -2,12 +2,10 @@
 
 import { useEffect, useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
-import { Badge } from "@/components/ui/badge";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { AddClientTagDialog } from "@/features/settings/components/AddClientTagDialog";
-import { OrganizationEmptyState } from "@/features/settings/components/OrganizationEmptyState";
-import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
+import { SettingsPanelSection } from "@/features/settings/components/SettingsPageLayout";
 import { UpdateClientTagDialog } from "@/features/settings/components/UpdateClientTagDialog";
 import { TagBadge } from "@/features/tags/components/TagBadge";
 import { TAG_TARGET_TYPES } from "@/features/tags/constants/tag-target-types";
@@ -18,13 +16,6 @@ import { useToast } from "@/providers/toast-provider";
 type ClientTagsSettingsTabProps = {
   isActive: boolean;
 };
-
-const columns = [
-  { key: "name", label: "Name" },
-  { key: "color", label: "Color" },
-  { key: "status", label: "Status" },
-  { key: "actions", label: "" },
-] as const;
 
 export function ClientTagsSettingsTab({ isActive }: ClientTagsSettingsTabProps) {
   const { toast } = useToast();
@@ -122,91 +113,74 @@ export function ClientTagsSettingsTab({ isActive }: ClientTagsSettingsTabProps) 
     }
   }
 
-  const isEmpty = !isLoading && !error && tags.length === 0;
-
   return (
     <>
-      <OrganizationTabSection
+      <SettingsPanelSection
         title="Client tags"
-        description="Manage the tag catalog staff can assign to clients."
-        showHeader={!isEmpty}
-        actions={
-          <Button type="button" onClick={() => setAddDialogOpen(true)}>
+        description="Tags staff can assign to clients and use when filtering lists."
+        action={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setAddDialogOpen(true)}
+          >
             Add tag
           </Button>
         }
       >
-        {isLoading ? <PageLoader /> : null}
-        {!isLoading && error ? (
+        {isLoading ? (
+          <SettingsContentSkeleton rows={4} showHeader={false} />
+        ) : error ? (
           <p className="text-sm text-red-600">{error}</p>
-        ) : null}
-        {isEmpty ? (
-          <OrganizationEmptyState
-            title="No client tags yet"
-            description="Create tags to help staff categorize and filter clients."
-            actionLabel="Add tag"
-            onAction={() => setAddDialogOpen(true)}
-          />
-        ) : null}
-        {!isLoading && !error && tags.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="border-b border-brand-border text-left text-xs uppercase tracking-wide text-brand-muted">
-                  {columns.map((column) => (
-                    <th key={column.key} className="px-3 py-2 font-medium">
-                      {column.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {tags.map((tag) => (
-                  <tr key={tag.uuid} className="border-b border-brand-border/70">
-                    <td className="px-3 py-3">
-                      <div className="space-y-1">
-                        <TagBadge tag={tag} />
-                        {tag.description ? (
-                          <p className="text-xs text-brand-muted">{tag.description}</p>
-                        ) : null}
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 font-mono text-xs text-brand-muted">
-                      {tag.color || "—"}
-                    </td>
-                    <td className="px-3 py-3">
-                      <Badge variant={tag.is_active ? "default" : "outline"}>
-                        {tag.is_active ? "Active" : "Archived"}
-                      </Badge>
-                    </td>
-                    <td className="px-3 py-3">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setEditingTag(tag)}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          disabled={archivingUuid === tag.uuid}
-                          onClick={() => void handleArchive(tag)}
-                        >
-                          Archive
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : null}
-      </OrganizationTabSection>
+        ) : tags.length === 0 ? (
+          <p className="text-sm text-slate-400">
+            No tags yet. Add a tag so staff can categorize and filter clients.
+          </p>
+        ) : (
+          <ul className="divide-y divide-brand-border">
+            {tags.map((tag) => (
+              <li
+                key={tag.uuid}
+                className="flex flex-col gap-3 py-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4"
+              >
+                <div className="min-w-0">
+                  <TagBadge tag={tag} />
+                  {tag.description ? (
+                    <p className="mt-1.5 text-sm text-slate-400">
+                      {tag.description}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <span className="text-xs text-slate-400">
+                    {tag.is_active ? "Active" : "Archived"}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-brand-muted hover:text-brand-navy"
+                    onClick={() => setEditingTag(tag)}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-brand-muted hover:text-brand-navy"
+                    disabled={archivingUuid === tag.uuid}
+                    onClick={() => void handleArchive(tag)}
+                  >
+                    Archive
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </SettingsPanelSection>
 
       <AddClientTagDialog
         open={addDialogOpen}

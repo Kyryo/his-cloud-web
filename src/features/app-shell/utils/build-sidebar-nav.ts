@@ -8,7 +8,6 @@ import {
   isMostSpecificNavItemActive,
   isNavItemActive,
   isReportsNavActive,
-  isSettingsNavActive,
   sortModules,
 } from "@/features/app-shell/constants/navigation-config";
 import { ROUTES } from "@/constants/routes";
@@ -176,16 +175,6 @@ export function buildSidebarNavItems(
           isActive: isNavItemActive(pathname, ROUTES.reportsExportHistory),
         },
       ],
-    });
-  }
-
-  if (!isPlatformAdmin) {
-    items.push({
-      title: "Settings",
-      url: ROUTES.settingsAccount,
-      icon: "settings",
-      section: "admin",
-      isActive: isSettingsNavActive(pathname),
     });
   }
 

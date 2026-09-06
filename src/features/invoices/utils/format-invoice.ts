@@ -1,6 +1,7 @@
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 import { formatSalesOrderAmount } from "@/features/sales-orders/utils/format-sales-order";
 import { formatDisplayDate } from "@/features/customers/utils/format-customer";
+import { getInvoiceOutstandingBalance } from "@/features/invoices/utils/sum-invoice-billing";
 
 export function formatInvoiceCustomer(invoice: Invoice): string {
   return invoice.customer_name?.trim() || "No customer";
@@ -55,4 +56,22 @@ export function formatInvoicePricelist(
 ): string {
   const trimmed = invoice.pricelist_name?.trim();
   return trimmed || "No pricelist";
+}
+
+export function formatInvoiceCollectionCopy(invoice: Invoice): string {
+  const paid = Number(invoice.amount_paid ?? 0);
+  const balance = getInvoiceOutstandingBalance(invoice);
+  const paidLabel = formatInvoiceAmount(invoice.amount_paid);
+  const totalLabel = formatInvoiceAmount(invoice.amount_total);
+  const balanceLabel = formatInvoiceAmount(balance);
+
+  if (!Number.isFinite(paid) || paid <= 0) {
+    return `${balanceLabel} is due. No payment recorded yet.`;
+  }
+
+  if (balance <= 0) {
+    return `Settled. ${totalLabel} received.`;
+  }
+
+  return `${balanceLabel} is still due. ${paidLabel} of ${totalLabel} received.`;
 }

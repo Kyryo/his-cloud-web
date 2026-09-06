@@ -28,7 +28,7 @@ export function InventoryModuleSettingsTabs() {
   const [activeTab, setActiveTab] = useState<InventoryModuleTabId>("clinic-config");
 
   return (
-    <div className="overflow-hidden rounded-xl border border-brand-border bg-white">
+    <div>
       <DetailPageTabsNavSection aria-label="Inventory module settings">
         {tabs.map((tab) => (
           <DetailPageTabNavItem
@@ -41,7 +41,7 @@ export function InventoryModuleSettingsTabs() {
         ))}
       </DetailPageTabsNavSection>
 
-      <div className="px-6 py-8">
+      <div className="pt-6">
         <InventoryClinicConfigurationTab isActive={activeTab === "clinic-config"} />
         <InventoryApprovalPolicyTab isActive={activeTab === "approval-policy"} />
         <InventoryWorkflowsTab isActive={activeTab === "workflows"} />

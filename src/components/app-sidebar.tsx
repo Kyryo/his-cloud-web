@@ -11,14 +11,13 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail,
 } from "@/components/ui/sidebar";
 import { buildSidebarNavItems } from "@/features/app-shell/utils/build-sidebar-nav";
 import { useUser } from "@/providers/user-provider";
 
 const SidebarTeamSwitcher = memo(function SidebarTeamSwitcher() {
   return (
-    <SidebarHeader className="px-3 pt-3">
+    <SidebarHeader className="pt-3">
       <TeamSwitcher />
     </SidebarHeader>
   );
@@ -27,7 +26,9 @@ const SidebarTeamSwitcher = memo(function SidebarTeamSwitcher() {
 const SidebarAccount = memo(function SidebarAccount() {
   return (
     <SidebarFooter className="p-2">
-      <NavUser />
+      <div className="rounded-xl bg-brand-tint p-0.5">
+        <NavUser />
+      </div>
     </SidebarFooter>
   );
 });
@@ -52,7 +53,6 @@ export function AppSidebar(props: ComponentProps<typeof Sidebar>) {
         <NavMain items={navItems} />
       </SidebarContent>
       <SidebarAccount />
-      <SidebarRail />
     </Sidebar>
   );
 }

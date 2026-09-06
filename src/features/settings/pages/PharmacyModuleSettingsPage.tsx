@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -182,7 +182,7 @@ export function PharmacyModuleSettingsPage() {
   }
 
   if (isUserLoading) {
-    return <PageLoader />;
+    return <SettingsContentSkeleton />;
   }
 
   if (!isTenantAdmin) {
@@ -214,7 +214,7 @@ export function PharmacyModuleSettingsPage() {
       description="Configure when sales orders enter the pharmacy queue and invoice timing."
     >
       {isLoading ? (
-        <PageLoader />
+        <SettingsContentSkeleton />
       ) : (
         <div className="space-y-6">
           {rows.map((row) => (
@@ -257,7 +257,7 @@ export function PharmacyModuleSettingsPage() {
                     </p>
                   </div>
 
-                  <div className="flex items-center justify-between rounded-lg border border-brand-border px-4 py-3">
+                  <div className="flex items-center justify-between gap-4 py-3">
                     <div>
                       <Label
                         htmlFor={`require-confirm-${row.clinic.id}`}
@@ -281,7 +281,7 @@ export function PharmacyModuleSettingsPage() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between rounded-lg border border-brand-border px-4 py-3">
+                  <div className="flex items-center justify-between gap-4 py-3">
                     <div>
                       <Label
                         htmlFor={`invoice-after-${row.clinic.id}`}

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { ClinicalStaffRolesSection } from "@/features/settings/components/ClinicalStaffRolesSection";
 import {
@@ -17,7 +17,7 @@ export function ClinicalProvidersSettingsPage() {
   const isTenantAdmin = Boolean(userData?.is_admin);
 
   if (isUserLoading) {
-    return <PageLoader />;
+    return <SettingsContentSkeleton variant="staff" />;
   }
 
   if (!isTenantAdmin) {
@@ -44,6 +44,7 @@ export function ClinicalProvidersSettingsPage() {
     <SettingsPageLayout
       title="Providers"
       description="Assign nurses and physicians. Provider roles determine which OPD workspace tabs each user can access."
+      className="max-w-3xl"
     >
       <ClinicalStaffRolesSection />
     </SettingsPageLayout>

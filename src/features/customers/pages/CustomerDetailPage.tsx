@@ -184,18 +184,17 @@ export function CustomerDetailPage({
           customer={customer}
           onManageTagsClick={handleManageTagsClick}
           actions={
-            <div className="flex shrink-0 flex-wrap items-center gap-2">
-              <CustomerDetailActions
-                customer={customer}
-                onEditDetails={() => setUpdateDialogOpen(true)}
-                onScheduleAppointment={() => setAppointmentDialogOpen(true)}
-                onCustomerUpdated={handleCustomerUpdated}
-              />
+            <CustomerDetailActions
+              customer={customer}
+              onEditDetails={() => setUpdateDialogOpen(true)}
+              onScheduleAppointment={() => setAppointmentDialogOpen(true)}
+              onCustomerUpdated={handleCustomerUpdated}
+            >
               <CustomerVisitActionButton
                 customer={customer}
                 onVisitChanged={handleVisitChanged}
               />
-            </div>
+            </CustomerDetailActions>
           }
         />
         <DetailPageTabsSection>

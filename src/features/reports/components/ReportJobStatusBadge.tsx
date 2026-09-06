@@ -16,10 +16,15 @@ const STATUS_VARIANT: Record<
 > = {
   queued: "secondary",
   running: "default",
-  completed: "default",
+  completed: "secondary",
   failed: "destructive",
   cancelled: "outline",
   expired: "outline",
+};
+
+const STATUS_CLASS: Partial<Record<ReportJobStatus, string>> = {
+  queued: "text-brand-primary",
+  completed: "text-brand-primary",
 };
 
 type ReportJobStatusBadgeProps = {
@@ -28,7 +33,7 @@ type ReportJobStatusBadgeProps = {
 
 export function ReportJobStatusBadge({ status }: ReportJobStatusBadgeProps) {
   return (
-    <Badge variant={STATUS_VARIANT[status]} className="capitalize">
+    <Badge variant={STATUS_VARIANT[status]} className={STATUS_CLASS[status]}>
       {STATUS_LABELS[status]}
     </Badge>
   );

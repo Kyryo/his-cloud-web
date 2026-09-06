@@ -2,20 +2,22 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
-import { PrimaryButton } from "@/components/ui/app-buttons";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import {
+  SettingsFieldRow,
+  SettingsPreferenceToggle,
+} from "@/features/settings/components/SettingsPageLayout";
 import {
   fetchMasemPayerIntegration,
   fetchMasmPortalCredential,
@@ -147,10 +149,6 @@ export function MasmIntegrationSettingsForm({
     defaultValues: toIntegrationValues(integration),
   });
 
-  useEffect(() => {
-    form.reset(toIntegrationValues(integration));
-  }, [form, integration]);
-
   async function handleSubmit(values: IntegrationFormValues) {
     try {
       const updatedIntegration = await updateMasemPayerIntegration(
@@ -158,7 +156,6 @@ export function MasmIntegrationSettingsForm({
         values.is_enabled
           ? {
               is_enabled: true,
-              // Keep the row usable for claim workflows when the feature is turned on.
               is_active: true,
               send_total_amount: values.send_total_amount,
               client_key: values.client_key.trim(),
@@ -200,150 +197,140 @@ export function MasmIntegrationSettingsForm({
   }
 
   const isSubmitting = form.formState.isSubmitting;
-  const isEnabled = form.watch("is_enabled");
+  const isEnabled = useWatch({ control: form.control, name: "is_enabled" });
+  const sendTotalAmount = useWatch({
+    control: form.control,
+    name: "send_total_amount",
+  });
 
   return (
     <Form {...form}>
-      <form className="space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
-        <div className="rounded-lg border border-brand-border bg-brand-surface/40 px-4 py-3 text-sm text-brand-muted">
+      <form onSubmit={form.handleSubmit(handleSubmit)}>
+        <p className="text-sm text-slate-400">
           Credentials are clinic-scoped. Claim submit uses the MASM Integration
           API for this clinic.
+        </p>
+
+        <div className="mt-5 divide-y divide-brand-border">
+          <SettingsPreferenceToggle
+            label="Integration enabled"
+            description="Allow claim submit via the MASM Integration API for this clinic."
+            checked={isEnabled}
+            disabled={isSubmitting}
+            onChange={(checked) =>
+              form.setValue("is_enabled", checked, { shouldValidate: true })
+            }
+          />
+          <SettingsPreferenceToggle
+            label="Send total amount to MASM"
+            description="When off, only the payer due is submitted. When on, payer and client due are sent."
+            checked={sendTotalAmount}
+            disabled={!isEnabled || isSubmitting}
+            onChange={(checked) => form.setValue("send_total_amount", checked)}
+            testId="masm-send-total-amount-switch"
+          />
         </div>
 
-        <div className="grid gap-4">
-          <label className="flex items-center justify-between gap-4 rounded-lg border border-brand-border bg-white px-4 py-3">
-            <div>
-              <p className="text-sm font-medium text-brand-navy">
-                Integration enabled
-              </p>
-              <p className="text-xs text-brand-muted">
-                Allow claim submit via the MASM Integration API for this clinic.
-              </p>
-            </div>
-            <input
-              type="checkbox"
-              checked={isEnabled}
-              disabled={isSubmitting}
-              onChange={(event) =>
-                form.setValue("is_enabled", event.target.checked, {
-                  shouldValidate: true,
-                })
-              }
-              className="size-4 rounded border-brand-border text-brand-primary focus:ring-brand-primary"
-            />
-          </label>
+        <div className="mt-2">
+          <FormField
+            control={form.control}
+            name="client_key"
+            render={({ field }) => (
+              <FormItem className="space-y-0">
+                <SettingsFieldRow label="Client key">
+                  <FormControl>
+                    <Input
+                      {...field}
+                      autoComplete="off"
+                      disabled={!isEnabled || isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </SettingsFieldRow>
+              </FormItem>
+            )}
+          />
 
-          <label className="flex items-center justify-between gap-4 rounded-lg border border-brand-border bg-white px-4 py-3">
-            <div>
-              <p className="text-sm font-medium text-brand-navy">
-                Send total amount to MASM
-              </p>
-              <p className="text-xs text-brand-muted">
-                When off, only the payer due is submitted. When on, payer +
-                client due (line total) is sent.
-              </p>
-            </div>
-            <input
-              type="checkbox"
-              checked={form.watch("send_total_amount")}
-              disabled={!isEnabled || isSubmitting}
-              onChange={(event) =>
-                form.setValue("send_total_amount", event.target.checked)
-              }
-              className="size-4 rounded border-brand-border text-brand-primary focus:ring-brand-primary"
-              data-testid="masm-send-total-amount-switch"
-            />
-          </label>
+          <FormField
+            control={form.control}
+            name="client_secret"
+            render={({ field }) => (
+              <FormItem className="space-y-0">
+                <SettingsFieldRow label="Client secret">
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="password"
+                      autoComplete="new-password"
+                      disabled={!isEnabled || isSubmitting}
+                      placeholder={
+                        integration.has_client_secret
+                          ? "Leave blank to keep the current secret"
+                          : "Enter client secret"
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </SettingsFieldRow>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="sso_url"
+            render={({ field }) => (
+              <FormItem className="space-y-0">
+                <SettingsFieldRow label="SSO URL">
+                  <FormControl>
+                    <Input
+                      {...field}
+                      autoComplete="off"
+                      disabled={!isEnabled || isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </SettingsFieldRow>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="api_base_url"
+            render={({ field }) => (
+              <FormItem className="space-y-0">
+                <SettingsFieldRow label="API base URL">
+                  <FormControl>
+                    <Input
+                      {...field}
+                      autoComplete="off"
+                      disabled={!isEnabled || isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </SettingsFieldRow>
+              </FormItem>
+            )}
+          />
         </div>
 
-        <FormField
-          control={form.control}
-          name="client_key"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Client key</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  autoComplete="off"
-                  disabled={!isEnabled || isSubmitting}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="client_secret"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Client secret</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  type="password"
-                  autoComplete="new-password"
-                  disabled={!isEnabled || isSubmitting}
-                  placeholder={
-                    integration.has_client_secret
-                      ? "Leave blank to keep the current secret"
-                      : "Enter client secret"
-                  }
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="sso_url"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>SSO URL</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  autoComplete="off"
-                  disabled={!isEnabled || isSubmitting}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="api_base_url"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>API base URL</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  autoComplete="off"
-                  disabled={!isEnabled || isSubmitting}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <PrimaryButton type="submit" disabled={isSubmitting}>
+        <Button
+          type="submit"
+          variant="outline"
+          size="sm"
+          className="mt-5"
+          disabled={isSubmitting}
+        >
           {isSubmitting ? (
             <>
               <Loader2 className="size-4 animate-spin" aria-hidden="true" />
               Saving...
             </>
           ) : (
-            "Save changes"
+            "Save integration"
           )}
-        </PrimaryButton>
+        </Button>
       </form>
     </Form>
   );
@@ -365,10 +352,6 @@ export function MasmPortalAutomationForm({
     resolver: zodResolver(portalSchema),
     defaultValues: toPortalValues(credential),
   });
-
-  useEffect(() => {
-    form.reset(toPortalValues(credential));
-  }, [form, credential]);
 
   async function handleSubmit(values: PortalFormValues) {
     try {
@@ -412,91 +395,96 @@ export function MasmPortalAutomationForm({
   }
 
   const isSubmitting = form.formState.isSubmitting;
-  const isPortalEnabled = form.watch("portal_is_enabled");
+  const isPortalEnabled = useWatch({
+    control: form.control,
+    name: "portal_is_enabled",
+  });
 
   return (
     <Form {...form}>
-      <form className="space-y-6" onSubmit={form.handleSubmit(handleSubmit)}>
-        <div className="rounded-lg border border-brand-border bg-brand-surface/40 px-4 py-3 text-sm text-brand-muted">
-          Operator login used by claims-engine to close submitted claims on the
-          MASM portal so staff do not close drafts manually.
-        </div>
+      <form onSubmit={form.handleSubmit(handleSubmit)}>
+        <p className="text-sm text-slate-400">
+          Operator login used to close submitted claims on the MASM portal so
+          staff do not close drafts manually.
+        </p>
 
-        <label className="flex items-center justify-between gap-4 rounded-lg border border-brand-border bg-white px-4 py-3">
-          <div>
-            <p className="text-sm font-medium text-brand-navy">
-              Portal automation enabled
-            </p>
-            <p className="text-xs text-brand-muted">
-              Required for automatic close-after-submit.
-            </p>
-          </div>
-          <input
-            type="checkbox"
+        <div className="mt-5 divide-y divide-brand-border">
+          <SettingsPreferenceToggle
+            label="Portal automation enabled"
+            description="Required for automatic close-after-submit."
             checked={isPortalEnabled}
             disabled={isSubmitting}
-            onChange={(event) =>
-              form.setValue("portal_is_enabled", event.target.checked, {
+            onChange={(checked) =>
+              form.setValue("portal_is_enabled", checked, {
                 shouldValidate: true,
               })
             }
-            className="size-4 rounded border-brand-border text-brand-primary focus:ring-brand-primary"
           />
-        </label>
+        </div>
 
-        <FormField
-          control={form.control}
-          name="operator_email"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Portal operator email</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  autoComplete="off"
-                  type="email"
-                  disabled={!isPortalEnabled || isSubmitting}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <div className="mt-2">
+          <FormField
+            control={form.control}
+            name="operator_email"
+            render={({ field }) => (
+              <FormItem className="space-y-0">
+                <SettingsFieldRow label="Operator email">
+                  <FormControl>
+                    <Input
+                      {...field}
+                      autoComplete="off"
+                      type="email"
+                      disabled={!isPortalEnabled || isSubmitting}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </SettingsFieldRow>
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="portal_password"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Portal operator password</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  type="password"
-                  autoComplete="new-password"
-                  disabled={!isPortalEnabled || isSubmitting}
-                  placeholder={
-                    credential?.has_password
-                      ? "Leave blank to keep the current password"
-                      : "Enter portal password"
-                  }
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="portal_password"
+            render={({ field }) => (
+              <FormItem className="space-y-0">
+                <SettingsFieldRow label="Password">
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="password"
+                      autoComplete="new-password"
+                      disabled={!isPortalEnabled || isSubmitting}
+                      placeholder={
+                        credential?.has_password
+                          ? "Leave blank to keep the current password"
+                          : "Enter portal password"
+                      }
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </SettingsFieldRow>
+              </FormItem>
+            )}
+          />
+        </div>
 
-        <PrimaryButton type="submit" disabled={isSubmitting}>
+        <Button
+          type="submit"
+          variant="outline"
+          size="sm"
+          className="mt-5"
+          disabled={isSubmitting}
+        >
           {isSubmitting ? (
             <>
               <Loader2 className="size-4 animate-spin" aria-hidden="true" />
               Saving...
             </>
           ) : (
-            "Save changes"
+            "Save portal"
           )}
-        </PrimaryButton>
+        </Button>
       </form>
     </Form>
   );

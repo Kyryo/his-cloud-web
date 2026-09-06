@@ -8,7 +8,6 @@ import {
   DetailPageAsidePanelSection,
   DetailPageAsideSummaryAmountRow,
   DetailPageAsideSummaryField,
-  DetailPageAsideSummaryHighlight,
   DetailPageAsideSummarySection,
   DetailPageAsideSummaryTotalRow,
 } from "@/features/app-shell/components/page-layout";
@@ -110,8 +109,9 @@ export function SalesOrderSummaryPanel({
         description="Billing totals and order details"
       />
 
-      <DetailPageAsideSummaryHighlight
-        title="Billing summary"
+      <DetailPageAsideSummarySection
+        title="Billing"
+        className="border-t-0 pt-0"
         action={
           canEditSplit ? (
             <EditButton
@@ -122,36 +122,30 @@ export function SalesOrderSummaryPanel({
           ) : null
         }
       >
-        <dl className="space-y-2.5">
-          {showPaymentSplit ? (
-            <>
-              <DetailPageAsideSummaryAmountRow
-                label={insurerDueLabel}
-                value={formatSalesOrderAmount(insurerDueTotal)}
-              />
-              <DetailPageAsideSummaryAmountRow
-                label="Client due"
-                value={formatSalesOrderAmount(clientDueTotal)}
-              />
-              <div
-                className="border-t border-brand-border pt-2.5"
-                role="presentation"
-              />
-            </>
-          ) : null}
-          <DetailPageAsideSummaryAmountRow
-            label="Gross amount"
-            value={formatSalesOrderAmount(order.amount_untaxed)}
-          />
-          <DetailPageAsideSummaryAmountRow
-            label="Tax"
-            value={formatSalesOrderAmount(order.amount_tax)}
-          />
-          <DetailPageAsideSummaryTotalRow
-            value={formatSalesOrderAmount(order.amount_total, currency)}
-          />
-        </dl>
-      </DetailPageAsideSummaryHighlight>
+        {showPaymentSplit ? (
+          <>
+            <DetailPageAsideSummaryAmountRow
+              label={insurerDueLabel}
+              value={formatSalesOrderAmount(insurerDueTotal)}
+            />
+            <DetailPageAsideSummaryAmountRow
+              label="Client due"
+              value={formatSalesOrderAmount(clientDueTotal)}
+            />
+          </>
+        ) : null}
+        <DetailPageAsideSummaryAmountRow
+          label="Gross amount"
+          value={formatSalesOrderAmount(order.amount_untaxed)}
+        />
+        <DetailPageAsideSummaryAmountRow
+          label="Tax"
+          value={formatSalesOrderAmount(order.amount_tax)}
+        />
+        <DetailPageAsideSummaryTotalRow
+          value={formatSalesOrderAmount(order.amount_total, currency)}
+        />
+      </DetailPageAsideSummarySection>
 
       <DetailPageAsideSummarySection title="Order details">
         <DetailPageAsideSummaryField

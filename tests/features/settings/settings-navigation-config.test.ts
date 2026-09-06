@@ -5,6 +5,7 @@ import {
   buildSettingsNavigation,
   findActiveSettingsNavigationItem,
   isSettingsNavigationItemActive,
+  resolveSettingsBreadcrumbLabel,
 } from "@/features/settings/constants/settings-navigation-config";
 
 describe("settings navigation config", () => {
@@ -56,5 +57,30 @@ describe("settings navigation config", () => {
         categories,
       )?.label,
     ).toBe("Integrations");
+  });
+
+  it("resolves breadcrumb labels for nested settings pages", () => {
+    const categories = buildSettingsNavigation(true);
+
+    expect(
+      resolveSettingsBreadcrumbLabel(ROUTES.settingsAccount, categories),
+    ).toBe("Account");
+    expect(
+      resolveSettingsBreadcrumbLabel(ROUTES.settingsModulePharmacy, categories),
+    ).toBe("Pharmacy");
+    expect(
+      resolveSettingsBreadcrumbLabel(
+        ROUTES.settingsIntegrationsMasemEclaims,
+        categories,
+      ),
+    ).toBe("MASM eClaims");
+  });
+
+  it("assigns icons to every settings nav item", () => {
+    const categories = buildSettingsNavigation(true);
+    const items = categories.flatMap((category) => category.items);
+
+    expect(items.length).toBeGreaterThan(0);
+    expect(items.every((item) => Boolean(item.icon))).toBe(true);
   });
 });

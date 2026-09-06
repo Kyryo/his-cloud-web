@@ -33,7 +33,7 @@ export function CustomerDetailHeader({
     customer.uuid || customer.customer_identifier || fullName;
 
   return (
-    <DetailPageHeaderSection className="border-b border-dash-border/80 bg-white px-4 py-4 sm:px-6 sm:py-5">
+    <DetailPageHeaderSection className="border-b-0 bg-white px-4 py-4 sm:px-6 sm:py-5">
       <div className="flex flex-wrap items-start justify-between gap-4">
         {/* Left: Avatar & Patient Identity */}
         <div className="flex min-w-0 flex-1 items-start gap-3.5 sm:gap-4">
@@ -136,7 +136,7 @@ export function CustomerDetailHeader({
         </div>
 
         {/* Right: Actions */}
-        {actions ? <div className="shrink-0">{actions}</div> : null}
+        {actions ? <div className="ml-auto shrink-0">{actions}</div> : null}
       </div>
     </DetailPageHeaderSection>
   );

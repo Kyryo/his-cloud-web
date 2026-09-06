@@ -10,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { appFont } from "@/lib/fonts";
 import {
   fetchReportFilterOptions,
   type ReportFilterOption,
@@ -44,19 +45,25 @@ export function ReportResourceSelect({
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
-    const cached = optionsCache.get(resource);
-    if (cached) {
-      setOptions(cached);
-      setIsLoading(false);
-      setHasError(false);
-      return;
-    }
-
     let cancelled = false;
-    setIsLoading(true);
-    setHasError(false);
 
-    void (async () => {
+    async function loadOptions() {
+      await Promise.resolve();
+      if (cancelled) {
+        return;
+      }
+
+      const cached = optionsCache.get(resource);
+      if (cached) {
+        setOptions(cached);
+        setIsLoading(false);
+        setHasError(false);
+        return;
+      }
+
+      setIsLoading(true);
+      setHasError(false);
+
       try {
         const result = await fetchReportFilterOptions(resource);
         optionsCache.set(resource, result);
@@ -72,7 +79,9 @@ export function ReportResourceSelect({
           setIsLoading(false);
         }
       }
-    })();
+    }
+
+    void loadOptions();
 
     return () => {
       cancelled = true;
@@ -87,16 +96,18 @@ export function ReportResourceSelect({
 
   return (
     <div className="space-y-1.5">
-      <Label htmlFor={id}>{label}</Label>
+      <Label htmlFor={id} className="text-brand-navy">
+        {label}
+      </Label>
       <Select
         value={value || ALL_OPTION}
         disabled={isLoading || hasError}
         onValueChange={(next) => onChange(next === ALL_OPTION ? "" : next)}
       >
-        <SelectTrigger id={id}>
+        <SelectTrigger id={id} className={appFont.className}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent position="popper" className={appFont.className}>
           <SelectItem value={ALL_OPTION}>{`All ${label.toLowerCase()}`}</SelectItem>
           {options.map((option) => (
             <SelectItem key={option.value} value={option.value}>

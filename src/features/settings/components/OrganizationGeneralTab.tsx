@@ -1,8 +1,7 @@
-import { Badge } from "@/components/ui/badge";
 import { OrganizationContactForm } from "@/features/settings/components/OrganizationContactForm";
 import { OrganizationCurrencySection } from "@/features/settings/components/OrganizationCurrencySection";
-import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
-import { SettingsDetailGrid } from "@/features/settings/components/SettingsPageLayout";
+import { OrganizationFieldRow } from "@/features/settings/components/OrganizationTabContent";
+import { SettingsSection } from "@/features/settings/components/SettingsPageLayout";
 import type { TenantDetail } from "@/features/settings/types/settings.types";
 
 type OrganizationGeneralTabProps = {
@@ -18,54 +17,58 @@ function formatValue(value: string | number | null | undefined) {
   return String(value);
 }
 
-function formatStatus(status: string, isActive: boolean) {
-  const label = status.replace(/_/g, " ");
-  return (
-    <Badge variant={isActive ? "default" : "outline"} className="capitalize">
-      {label.toLowerCase()}
-    </Badge>
-  );
-}
-
 export function OrganizationGeneralTab({
   tenant,
   onTenantUpdated,
 }: OrganizationGeneralTabProps) {
-  return (
-    <div className="divide-y divide-brand-border">
-      <OrganizationTabSection
-        title="Organization profile"
-        description="Core details for your healthcare organization."
-        className="pb-8"
-      >
-        <SettingsDetailGrid
-          tone="panel"
-          items={[
-            { label: "Name", value: tenant.name },
-            { label: "Code", value: tenant.code },
-            {
-              label: "Status",
-              value: formatStatus(tenant.status, tenant.is_active),
-            },
-            { label: "Country", value: formatValue(tenant.country) },
-            {
-              label: "Currency",
-              value: <OrganizationCurrencySection />,
-            },
-            { label: "Description", value: formatValue(tenant.description) },
-            { label: "Clinics", value: tenant.clinic_count },
-            { label: "Locations", value: tenant.location_count },
-          ]}
-        />
-      </OrganizationTabSection>
+  const identityMeta = [
+    tenant.code,
+    tenant.is_active ? "Active" : "Inactive",
+    tenant.country,
+  ]
+    .filter((value) => Boolean(value))
+    .join(" · ");
 
-      <OrganizationTabSection
-        title="Contact & address"
-        description="These details will appear on invoices, receipts, and other official documents."
-        className="pt-8"
+  return (
+    <div className="space-y-8">
+      <div>
+        <p className="text-base font-semibold text-brand-navy">{tenant.name}</p>
+        {identityMeta ? (
+          <p className="mt-1 text-sm text-slate-400">{identityMeta}</p>
+        ) : null}
+      </div>
+
+      <SettingsSection
+        title="Details"
+        description="Identifiers and billing defaults for this organization."
+        flush
       >
-        <OrganizationContactForm tenant={tenant} onUpdated={onTenantUpdated} />
-      </OrganizationTabSection>
+        <div>
+          <OrganizationFieldRow label="Code">
+            {formatValue(tenant.code)}
+          </OrganizationFieldRow>
+          <OrganizationFieldRow label="Country">
+            {formatValue(tenant.country)}
+          </OrganizationFieldRow>
+          <OrganizationFieldRow label="Currency">
+            <OrganizationCurrencySection />
+          </OrganizationFieldRow>
+          <OrganizationFieldRow label="Description">
+            {formatValue(tenant.description)}
+          </OrganizationFieldRow>
+        </div>
+      </SettingsSection>
+
+      <SettingsSection
+        title="Contact"
+        description="Shown on invoices, receipts, and other official documents."
+      >
+        <OrganizationContactForm
+          key={`${tenant.uuid}-${tenant.updated_at}`}
+          tenant={tenant}
+          onUpdated={onTenantUpdated}
+        />
+      </SettingsSection>
     </div>
   );
 }

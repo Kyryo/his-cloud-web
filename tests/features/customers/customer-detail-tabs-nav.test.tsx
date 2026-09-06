@@ -34,6 +34,7 @@ describe("CustomerDetailTabs", () => {
       `/customers/${CUSTOMER_ID}/invoices`,
     );
     expect(invoices).toHaveAttribute("aria-current", "page");
+    expect(invoices.querySelector("svg")).toBeTruthy();
 
     expect(screen.getByRole("link", { name: "Summary" })).toHaveAttribute(
       "href",

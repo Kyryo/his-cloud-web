@@ -2,12 +2,12 @@
 
 import { useEffect, useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
-import { Badge } from "@/components/ui/badge";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
+import { UserIdenticon } from "@/components/UserIdenticon";
 import { Button } from "@/components/ui/button";
+import { portalGroupLabel } from "@/constants/portal-groups";
 import { AddUserDialog } from "@/features/settings/components/AddUserDialog";
-import { OrganizationEmptyState } from "@/features/settings/components/OrganizationEmptyState";
-import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
+import { SettingsPanelSection } from "@/features/settings/components/SettingsPageLayout";
 import { UpdateUserDialog } from "@/features/settings/components/UpdateUserDialog";
 import { formatOrganizationUserRole } from "@/features/settings/schemas/organization-user.schema";
 import { fetchOrganizationUsers } from "@/features/settings/services/user-management.service";
@@ -17,33 +17,21 @@ type UserManagementUsersTabProps = {
   isActive: boolean;
 };
 
-const userColumns = [
-  { key: "name", label: "User" },
-  { key: "access", label: "Access" },
-  { key: "clinicalRole", label: "Clinical role" },
-  { key: "status", label: "Status" },
-  { key: "groups", label: "Groups" },
-  { key: "clinic", label: "Primary clinic" },
-  { key: "actions", label: "" },
-] as const;
+function userMeta(user: OrganizationUser) {
+  const groups = [...new Set(user.groups)]
+    .map((group) => portalGroupLabel(group))
+    .join(", ");
 
-function formatGroups(groups: string[]) {
-  const uniqueGroups = [...new Set(groups)];
-  if (uniqueGroups.length === 0) {
-    return <span className="text-sm text-brand-muted">—</span>;
-  }
-
-  return (
-    <div className="flex flex-wrap gap-1.5">
-      {uniqueGroups.map((group) => (
-        <Badge key={group} variant="outline" className="font-normal">
-          {group}
-        </Badge>
-      ))}
-    </div>
-  );
+  return [
+    user.email,
+    user.is_admin ? "Administrator" : "Staff",
+    formatOrganizationUserRole(user.user_role),
+    groups,
+    user.primary_clinic?.name,
+  ]
+    .filter((value) => Boolean(value))
+    .join(" · ");
 }
-
 
 export function UserManagementUsersTab({ isActive }: UserManagementUsersTabProps) {
   const [users, setUsers] = useState<OrganizationUser[]>([]);
@@ -105,92 +93,71 @@ export function UserManagementUsersTab({ isActive }: UserManagementUsersTabProps
     );
   }
 
-  const isEmpty = !isLoading && !error && users.length === 0;
-
   return (
     <>
-      <OrganizationTabSection
+      <SettingsPanelSection
         title="Users"
-        description="Manage team members who can access your organization."
-        showHeader={!isEmpty}
-        actions={
-          users.length > 0 ? (
-            <Button onClick={() => setAddDialogOpen(true)}>Add user</Button>
-          ) : null
+        description="Team members who can sign in to this organization."
+        action={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setAddDialogOpen(true)}
+          >
+            Add user
+          </Button>
         }
       >
         {isLoading ? (
-          <div className="py-16">
-            <PageLoader />
-          </div>
+          <SettingsContentSkeleton variant="staff" showHeader={false} />
         ) : error ? (
-          <p className="py-8 text-sm text-brand-muted">{error}</p>
+          <p className="text-sm text-red-600">{error}</p>
         ) : users.length === 0 ? (
-          <OrganizationEmptyState
-            message="No users have been added to this organization yet."
-            actionLabel="Add user"
-            onAction={() => setAddDialogOpen(true)}
-          />
+          <p className="text-sm text-slate-400">
+            No users yet. Invite a teammate to give them access.
+          </p>
         ) : (
-          <div className="-mx-6 overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-y border-brand-border bg-slate-50/60">
-                  {userColumns.map((column) => (
-                    <th
-                      key={column.key}
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-brand-muted"
-                    >
-                      {column.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-brand-border">
-                {users.map((user) => (
-                  <tr key={user.id}>
-                    <td className="px-6 py-3.5">
-                      <div className="text-sm font-medium text-brand-navy">{user.name}</div>
-                      <div className="mt-0.5 text-xs text-brand-muted">{user.email}</div>
-                    </td>
-                    <td className="px-6 py-3.5">
-                      <Badge variant={user.is_admin ? "default" : "secondary"}>
-                        {user.is_admin ? "Administrator" : "Staff"}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-3.5 text-sm text-brand-navy">
-                      {formatOrganizationUserRole(user.user_role)}
-                    </td>
-                    <td className="px-6 py-3.5">
-                      <div className="flex flex-col items-start gap-1.5">
-                        <Badge variant={user.is_active ? "success" : "outline"}>
-                          {user.is_active ? "Active" : "Inactive"}
-                        </Badge>
-                      </div>
-                    </td>
-                    <td className="px-6 py-3.5">{formatGroups(user.groups)}</td>
-                    <td className="px-6 py-3.5 text-sm text-brand-navy">
-                      {user.primary_clinic?.name ?? "—"}
-                    </td>
-                    <td className="px-6 py-3.5 text-right">
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 text-brand-muted hover:text-brand-navy"
-                        onClick={() => setEditingUser(user)}
-                      >
-                        Update
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ul className="divide-y divide-brand-border">
+            {users.map((user) => (
+              <li
+                key={user.id}
+                className="flex flex-col gap-3 py-3.5 sm:flex-row sm:items-center sm:gap-4"
+              >
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <UserIdenticon
+                    seed={user.email}
+                    name={user.name}
+                    className="size-9 rounded-full"
+                  />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-brand-navy">
+                      {user.name}
+                    </p>
+                    <p className="truncate text-sm text-slate-400">
+                      {userMeta(user)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <span className="text-xs text-slate-400">
+                    {user.is_active ? "Active" : "Inactive"}
+                  </span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-brand-muted hover:text-brand-navy"
+                    onClick={() => setEditingUser(user)}
+                  >
+                    Update
+                  </Button>
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
-      </OrganizationTabSection>
+      </SettingsPanelSection>
 
       <AddUserDialog
         open={addDialogOpen}

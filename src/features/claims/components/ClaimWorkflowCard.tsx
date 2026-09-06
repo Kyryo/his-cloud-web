@@ -25,11 +25,11 @@ import {
 } from "@/features/claims/utils/claim-workflow-stages";
 import { isClaimReadyToSubmit } from "@/features/claims/utils/claim-advisory-status";
 import {
-  isBlockingRequirementItem,
   getCreateClaimChecklistItems,
   getCreateClaimDisabledReasonFromItems,
   type InvoiceClaimReadinessItem,
 } from "@/features/invoices/utils/invoice-claim-readiness";
+import { cn } from "@/lib/utils";
 
 export type ClaimWorkflowCardProps = {
   claim: ClaimDetail | null;
@@ -52,6 +52,8 @@ export type ClaimWorkflowCardProps = {
    * "requirements" shows only the Requirements checks.
    */
   layout?: "workflow" | "requirements";
+  /** "plain" drops the outer card chrome for invoice detail. */
+  surface?: "card" | "plain";
 };
 
 /**
@@ -71,6 +73,7 @@ export function ClaimWorkflowCard({
   onAddDiagnosis,
   className,
   layout = "workflow",
+  surface = "card",
 }: ClaimWorkflowCardProps) {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const checklistItems = getCreateClaimChecklistItems(
@@ -141,6 +144,7 @@ export function ClaimWorkflowCard({
         items={checklistItems}
         footerActions={requirementsFooter}
         onAddDiagnosis={onAddDiagnosis}
+        variant={surface === "plain" ? "plain" : "card"}
       />
     </div>
   );
@@ -336,13 +340,20 @@ export function ClaimWorkflowCard({
     <>
       {notice && !showRequirements ? notice : null}
       <WorkflowCard
-        title="Claim workflow"
-        description="Complete each stage in order. Expand a stage to see what needs attention."
+        title={surface === "plain" ? undefined : "Claim workflow"}
+        description={
+          surface === "plain"
+            ? undefined
+            : "Complete each stage in order. Expand a stage to see what needs attention."
+        }
         stages={stages}
         headerActions={
           showRequirements ? null : editDraftButton || createClaimButton
         }
-        className={className}
+        className={cn(
+          surface === "plain" && "rounded-none border-0 bg-transparent",
+          className,
+        )}
         data-testid="claim-workflow-card"
       />
       {claim && isDraft ? (

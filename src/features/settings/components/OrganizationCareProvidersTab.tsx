@@ -1,16 +1,17 @@
 "use client";
 
-import { Loader2, Pencil, Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
-import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   CareProviderDialog,
   type CareProviderFormValues,
 } from "@/features/settings/components/CareProviderDialog";
-import { OrganizationEmptyState } from "@/features/settings/components/OrganizationEmptyState";
-import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
+import {
+  OrganizationEntityRow,
+  OrganizationTabPanel,
+} from "@/features/settings/components/OrganizationTabContent";
 import {
   createCareProvider,
   fetchCareProviderRecords,
@@ -24,12 +25,13 @@ type OrganizationCareProvidersTabProps = {
   isActive: boolean;
 };
 
-const columns = [
-  { key: "name", label: "Provider" },
-  { key: "account", label: "Login" },
-  { key: "status", label: "Status" },
-  { key: "actions", label: "" },
-] as const;
+function providerLogin(provider: CareProviderRecord) {
+  if (provider.user_email?.endsWith("@placeholder.local")) {
+    return "No login";
+  }
+
+  return provider.user_email ?? "Linked user";
+}
 
 export function OrganizationCareProvidersTab({
   isActive,
@@ -39,9 +41,8 @@ export function OrganizationCareProvidersTab({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingProvider, setEditingProvider] = useState<CareProviderRecord | null>(
-    null,
-  );
+  const [editingProvider, setEditingProvider] =
+    useState<CareProviderRecord | null>(null);
 
   const loadProviders = useCallback(async () => {
     setIsLoading(true);
@@ -158,81 +159,61 @@ export function OrganizationCareProvidersTab({
 
   return (
     <>
-      <OrganizationTabSection
-        title="Care providers"
-        description="Maintain the tenant provider directory used on billing and clinical workflows."
-        actions={
-          <PrimaryButton type="button" onClick={openCreateDialog}>
-            <Plus className="size-4" aria-hidden="true" />
+      <OrganizationTabPanel
+        description="People who appear on billing and clinical records."
+        action={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={openCreateDialog}
+          >
             Add provider
-          </PrimaryButton>
+          </Button>
         }
       >
         {isLoading ? (
-          <div className="flex items-center gap-2 py-10 text-sm text-brand-muted">
-            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            Loading providers...
-          </div>
+          <SettingsContentSkeleton variant="staff" showHeader={false} />
         ) : error ? (
-          <div className="space-y-4 py-6">
-            <p className="text-sm text-destructive">{error}</p>
-            <SecondaryButton type="button" onClick={() => void loadProviders()}>
+          <div className="space-y-3">
+            <p className="text-sm text-red-600">{error}</p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => void loadProviders()}
+            >
               Retry
-            </SecondaryButton>
+            </Button>
           </div>
         ) : providers.length === 0 ? (
-          <OrganizationEmptyState
-            message="No care providers have been registered yet."
-            actionLabel="Add provider"
-            onAction={openCreateDialog}
-          />
+          <p className="text-sm text-slate-400">
+            No care providers yet. Add a provider for billing and clinical work.
+          </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead>
-                <tr className="border-b border-brand-border text-left text-brand-muted">
-                  {columns.map((column) => (
-                    <th key={column.key} className="px-3 py-2 font-medium">
-                      {column.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {providers.map((provider) => (
-                  <tr key={provider.id} className="border-b border-brand-border/70">
-                    <td className="px-3 py-3 font-medium text-brand-foreground">
-                      {provider.display_name}
-                    </td>
-                    <td className="px-3 py-3">
-                      <Badge variant="secondary">
-                        {provider.user_email?.endsWith("@placeholder.local")
-                          ? "No login (inactive placeholder)"
-                          : (provider.user_email ?? "Linked user")}
-                      </Badge>
-                    </td>
-                    <td className="px-3 py-3">
-                      <Badge variant={provider.is_active ? "default" : "outline"}>
-                        {provider.is_active ? "Active" : "Inactive"}
-                      </Badge>
-                    </td>
-                    <td className="px-3 py-3 text-right">
-                      <SecondaryButton
-                        type="button"
-                        size="sm"
-                        onClick={() => openEditDialog(provider)}
-                      >
-                        <Pencil className="size-4" aria-hidden="true" />
-                        Edit
-                      </SecondaryButton>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ul className="divide-y divide-brand-border">
+            {providers.map((provider) => (
+              <OrganizationEntityRow
+                key={provider.id}
+                title={provider.display_name}
+                meta={providerLogin(provider)}
+                status={provider.is_active ? "Active" : "Inactive"}
+                actions={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-brand-muted hover:text-brand-navy"
+                    onClick={() => openEditDialog(provider)}
+                  >
+                    Edit
+                  </Button>
+                }
+              />
+            ))}
+          </ul>
         )}
-      </OrganizationTabSection>
+      </OrganizationTabPanel>
 
       <CareProviderDialog
         open={dialogOpen}

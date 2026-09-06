@@ -1,10 +1,15 @@
 "use client";
 
-import { Loader2, Pencil, Plus } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
+import { Button } from "@/components/ui/button";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { EclaimsPractitionerMappingDialog } from "@/features/settings/components/integrations/EclaimsPractitionerMappingDialog";
+import {
+  OrganizationClinicGroup,
+  OrganizationEntityRow,
+  groupByClinicName,
+} from "@/features/settings/components/OrganizationTabContent";
 import { fetchEClaimPractitionerMappings } from "@/features/claims/services/claims.service";
 import type { EClaimPractitionerMapping } from "@/features/claims/types/claims.types";
 import { fetchInsuranceSchemes } from "@/features/customers/services/insurance-schemes.service";
@@ -33,6 +38,13 @@ function formatSchemeLabel(
   return `${scheme.name} · ${scheme.insurance_company_name}`;
 }
 
+function mappingMeta(mapping: EClaimPractitionerMapping) {
+  const providerCode =
+    coerceToOptionalString(mapping.service_provider_code) || "No provider code";
+
+  return `${mapping.practitioner_number} · ${providerCode}`;
+}
+
 export function EclaimsPractitionerMappingsPanel({
   className,
 }: EclaimsPractitionerMappingsPanelProps) {
@@ -42,11 +54,24 @@ export function EclaimsPractitionerMappingsPanel({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingMapping, setEditingMapping] = useState<EClaimPractitionerMapping | null>(
-    null,
+  const [editingMapping, setEditingMapping] =
+    useState<EClaimPractitionerMapping | null>(null);
+
+  const clinicNameById = useMemo(
+    () => new Map(clinics.map((clinic) => [clinic.id, clinic.name])),
+    [clinics],
   );
 
-  const loadData = useCallback(async () => {
+  const clinicGroups = useMemo(
+    () =>
+      groupByClinicName(
+        mappings,
+        (mapping) => clinicNameById.get(mapping.clinic) ?? `Clinic ${mapping.clinic}`,
+      ),
+    [clinicNameById, mappings],
+  );
+
+  async function loadData() {
     setIsLoading(true);
     setError(null);
     try {
@@ -70,19 +95,52 @@ export function EclaimsPractitionerMappingsPanel({
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }
 
   useEffect(() => {
-    void loadData();
-  }, [loadData]);
+    let cancelled = false;
+
+    async function run() {
+      try {
+        const [mappingResponse, clinicResponse, schemes] = await Promise.all([
+          fetchEClaimPractitionerMappings(),
+          fetchOrganizationClinics(),
+          fetchInsuranceSchemes(),
+        ]);
+        if (cancelled) {
+          return;
+        }
+        setMappings(mappingResponse.results);
+        setClinics(clinicResponse.results);
+        setInsuranceSchemes(schemes);
+        setError(null);
+      } catch (loadError) {
+        if (cancelled) {
+          return;
+        }
+        setMappings([]);
+        setClinics([]);
+        setInsuranceSchemes([]);
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "Could not load practitioner mappings.",
+        );
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   function openCreateDialog() {
     setEditingMapping(null);
-    setDialogOpen(true);
-  }
-
-  function openEditDialog(mapping: EClaimPractitionerMapping) {
-    setEditingMapping(mapping);
     setDialogOpen(true);
   }
 
@@ -98,110 +156,81 @@ export function EclaimsPractitionerMappingsPanel({
     });
   }
 
-  if (isLoading) {
-    return (
-      <div className={className}>
-        <div className="flex items-center gap-2 py-8 text-sm text-brand-muted">
-          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-          Loading practitioner mappings...
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className={className}>
-        <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-          {error}
-        </div>
-        <SecondaryButton type="button" className="mt-4" onClick={() => void loadData()}>
-          Retry
-        </SecondaryButton>
-      </div>
-    );
-  }
-
   return (
     <div className={className}>
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="text-sm font-semibold text-brand-navy">Practitioner mappings</h2>
-          <p className="mt-1 text-sm text-brand-muted">
-            Link clinics and insurance schemes to payer-specific provider and practitioner
-            numbers used during claim submission.
-          </p>
-        </div>
-        {mappings.length > 0 ? (
-          <PrimaryButton type="button" onClick={openCreateDialog}>
-            <Plus className="size-4" aria-hidden="true" />
-            Add mapping
-          </PrimaryButton>
-        ) : null}
+      <div className="flex items-start justify-between gap-4">
+        <p className="max-w-xl text-sm text-slate-400">
+          Link clinics and insurance schemes to payer provider and practitioner
+          numbers used when submitting claims.
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={openCreateDialog}
+        >
+          Add mapping
+        </Button>
       </div>
 
-      {mappings.length === 0 ? (
-        <div className="mt-6 rounded-lg border border-dashed border-brand-border bg-slate-50/50 px-4 py-10 text-center">
-          <p className="text-sm text-brand-muted">No practitioner mappings configured yet.</p>
-          <PrimaryButton type="button" className="mt-4" onClick={openCreateDialog}>
-            <Plus className="size-4" aria-hidden="true" />
-            Add your first mapping
-          </PrimaryButton>
-        </div>
-      ) : (
-        <div className="mt-4 overflow-hidden rounded-lg border border-brand-border">
-          <table className="min-w-full">
-            <thead>
-              <tr className="border-b border-brand-border bg-slate-50/60">
-                <th className="px-4 py-2.5 text-left text-xs font-medium text-brand-muted">
-                  Clinic
-                </th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium text-brand-muted">
-                  Scheme
-                </th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium text-brand-muted">
-                  Practitioner
-                </th>
-                <th className="px-4 py-2.5 text-left text-xs font-medium text-brand-muted">
-                  Provider code
-                </th>
-                <th className="px-4 py-2.5 text-right text-xs font-medium text-brand-muted">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-brand-border bg-white">
-              {mappings.map((mapping) => (
-                <tr key={mapping.uuid}>
-                  <td className="px-4 py-3 text-sm text-brand-navy">
-                    {clinics.find((clinic) => clinic.id === mapping.clinic)?.name ??
-                      mapping.clinic}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-brand-muted">
-                    {formatSchemeLabel(mapping.insurance_scheme, insuranceSchemes)}
-                  </td>
-                  <td className="px-4 py-3 text-sm text-brand-navy">
-                    {mapping.practitioner_number}
-                  </td>
-                  <td className="px-4 py-3 text-sm font-mono text-brand-navy">
-                    {coerceToOptionalString(mapping.service_provider_code) || "—"}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <SecondaryButton
-                      type="button"
-                      className="h-8 px-2"
-                      onClick={() => openEditDialog(mapping)}
-                    >
-                      <Pencil className="size-3.5" aria-hidden="true" />
-                      Edit
-                    </SecondaryButton>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+      <div className="mt-5">
+        {isLoading ? (
+          <SettingsContentSkeleton rows={4} showHeader={false} />
+        ) : error ? (
+          <div className="space-y-3">
+            <p className="text-sm text-red-600">{error}</p>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => void loadData()}
+            >
+              Retry
+            </Button>
+          </div>
+        ) : mappings.length === 0 ? (
+          <p className="text-sm text-slate-400">
+            No practitioner mappings yet. Add a mapping to connect a clinic and
+            scheme to MASM identifiers.
+          </p>
+        ) : (
+          <div className="space-y-6">
+            {clinicGroups.map((group) => (
+              <OrganizationClinicGroup
+                key={group.clinicName}
+                title={group.clinicName}
+                count={group.items.length}
+              >
+                {group.items.map((mapping) => (
+                  <OrganizationEntityRow
+                    key={mapping.uuid}
+                    title={formatSchemeLabel(
+                      mapping.insurance_scheme,
+                      insuranceSchemes,
+                    )}
+                    meta={mappingMeta(mapping)}
+                    status={mapping.is_active ? "Active" : "Inactive"}
+                    actions={
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 text-brand-muted hover:text-brand-navy"
+                        onClick={() => {
+                          setEditingMapping(mapping);
+                          setDialogOpen(true);
+                        }}
+                      >
+                        Update
+                      </Button>
+                    }
+                  />
+                ))}
+              </OrganizationClinicGroup>
+            ))}
+          </div>
+        )}
+      </div>
 
       <EclaimsPractitionerMappingDialog
         open={dialogOpen}

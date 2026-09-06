@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { EmailSettingsForm } from "@/features/settings/components/integrations/EmailSettingsForm";
 import { SettingsPageLayout, SettingsSection } from "@/features/settings/components/SettingsPageLayout";
@@ -14,7 +14,7 @@ export function EmailSettingsPage() {
   const isTenantAdmin = Boolean(userData?.is_admin);
 
   if (isLoading) {
-    return <PageLoader />;
+    return <SettingsContentSkeleton variant="form" />;
   }
 
   if (!isTenantAdmin) {
@@ -42,9 +42,7 @@ export function EmailSettingsPage() {
       title="Email Settings"
       description="Configure SMTP delivery for appointment notifications and other outbound email."
     >
-      <div className="overflow-hidden rounded-xl border border-brand-border bg-white">
-        <EmailSettingsForm />
-      </div>
+      <EmailSettingsForm />
     </SettingsPageLayout>
   );
 }

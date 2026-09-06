@@ -1,5 +1,5 @@
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 
 export default function Loading() {
-  return <PageLoader message="Loading integrations..." />;
+  return <SettingsContentSkeleton />;
 }

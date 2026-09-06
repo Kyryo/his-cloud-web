@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { Label } from "@/components/ui/label";
+import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
 import { SearchableSelect, SelectItem } from "@/components/ui/searchable-select";
 import { fetchCustomers } from "@/features/customers/services/customers.service";
 import type { Customer } from "@/features/customers/types/customer.types";
@@ -90,9 +91,11 @@ export function CustomerAppointmentPicker({
   return (
     <div className="space-y-2">
       <div>
-        <Label htmlFor="appointment-client-select">Client</Label>
+        <Label htmlFor="appointment-client-select">
+          Client <RequiredFieldMarker />
+        </Label>
         <p className="mt-1 text-xs text-brand-muted">
-          Search by name, identifier, phone number, or internal reference.
+          Search by name, identifier, phone, or reference.
         </p>
       </div>
 

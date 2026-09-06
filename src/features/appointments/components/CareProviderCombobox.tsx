@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/select";
 import { fetchCareProviders } from "@/features/appointments/services/appointments.service";
 import type { CareProvider } from "@/features/appointments/types/appointment.types";
+import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 
 type ProviderOption = {
@@ -129,8 +130,13 @@ export function CareProviderCombobox({
           }
         }}
         onValueChange={(nextValue) => {
+          if (!nextValue) {
+            return;
+          }
           const selected = options.find((option) => String(option.id) === nextValue);
-          onSelect(selected?.provider ?? null);
+          if (selected) {
+            onSelect(selected.provider);
+          }
         }}
         disabled={disabled || !clinicUuid || isSearching}
       >
@@ -145,7 +151,7 @@ export function CareProviderCombobox({
             }
           />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className={cn(appFont.className)}>
           <div className="border-b border-brand-border p-2">
             <Input
               value={search}

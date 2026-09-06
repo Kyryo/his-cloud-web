@@ -6,17 +6,20 @@ import type { ChangeEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
-import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-  FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
+import {
+  OrganizationFieldRow,
+  OrganizationTabPanel,
+} from "@/features/settings/components/OrganizationTabContent";
 import {
   organizationBrandingSchema,
   type OrganizationBrandingFormValues,
@@ -60,18 +63,19 @@ function ColorField({
   const pickerValue = /^#[0-9a-fA-F]{6}$/.test(value) ? value : "#000000";
 
   return (
-    <div className="flex items-center gap-3">
+    <div className="flex max-w-sm items-center gap-3">
       <input
         type="color"
         value={pickerValue}
         onChange={(event) => onChange(event.target.value)}
-        className="size-10 shrink-0 cursor-pointer rounded-lg border border-brand-border bg-white p-1"
+        className="size-8 shrink-0 cursor-pointer rounded-md border border-brand-border bg-white p-0.5"
         aria-label={`${label} color picker`}
       />
       <Input
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder="#2563EB"
+        className="font-mono"
       />
     </div>
   );
@@ -232,172 +236,122 @@ export function OrganizationBrandingTab({
   }
 
   if (isLoading && !hasLoaded) {
-    return (
-      <div className="flex items-center gap-2 py-10 text-sm text-brand-muted">
-        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-        Loading branding...
-      </div>
-    );
+    return <SettingsContentSkeleton variant="form" />;
   }
 
   if (loadError && !hasLoaded) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-6 text-sm text-red-700">
-        {loadError}
-      </div>
+      <p className="text-sm text-red-600">{loadError}</p>
     );
   }
 
   return (
-    <div className="space-y-8">
-      <OrganizationTabSection
-        title="Brand appearance"
-        description="Customize colors and logo used across your organization's workspace."
-      >
-        <Form {...form}>
-          <form
-            onSubmit={(event) => void handleSubmit(event)}
-            className="space-y-6"
-          >
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_220px]">
-              <div className="space-y-5">
-                <div className="space-y-2">
-                  {previewImageUrl ? (
-                    <div className="flex h-24 w-full max-w-xs items-center justify-start rounded-lg bg-white p-3">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={previewImageUrl}
-                        alt="Organization logo"
-                        className="max-h-full max-w-full object-contain rounded-full"
-                      />
-                    </div>
-                  ) : null}
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="sr-only"
-                    onChange={(event) => void handleBrandingLogoChange(event)}
-                  />
-                  <SecondaryButton
-                    type="button"
-                    disabled={isSaving || isPreparingImage}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    {isPreparingImage ? (
-                      <Loader2
-                        className="size-4 animate-spin"
-                        aria-hidden="true"
-                      />
-                    ) : (
-                      <Upload className="size-4" aria-hidden="true" />
-                    )}
-                    {watchedValues.branding_logo_url || selectedBrandingLogo
-                      ? "Change image"
-                      : "Select image"}
-                  </SecondaryButton>
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="branding_primary_color"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Primary color</FormLabel>
-                      <FormControl>
-                        <ColorField
-                          label="Primary"
-                          value={field.value}
-                          onChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
+    <OrganizationTabPanel description="Logo and colors used on documents and the workspace.">
+      <Form {...form}>
+        <form
+          onSubmit={(event) => void handleSubmit(event)}
+          className="space-y-1"
+        >
+          <OrganizationFieldRow label="Logo">
+            <div className="flex items-center gap-3">
+              {previewImageUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={previewImageUrl}
+                  alt="Organization logo"
+                  className="size-10 rounded-md object-contain"
                 />
-
-                <FormField
-                  control={form.control}
-                  name="branding_secondary_color"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Secondary color</FormLabel>
-                      <FormControl>
-                        <ColorField
-                          label="Secondary"
-                          value={field.value}
-                          onChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="branding_accent_color"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Accent color</FormLabel>
-                      <FormControl>
-                        <ColorField
-                          label="Accent"
-                          value={field.value}
-                          onChange={field.onChange}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="rounded-xl border border-brand-border bg-slate-50/70 p-4">
-                <p className="text-xs font-medium uppercase tracking-wide text-brand-muted">
-                  Preview
-                </p>
-                <div
-                  className="mt-4 overflow-hidden rounded-lg border border-brand-border bg-white"
-                  style={{
-                    borderTopColor:
-                      watchedValues.branding_primary_color || undefined,
-                    borderTopWidth: watchedValues.branding_primary_color
-                      ? "3px"
-                      : undefined,
-                  }}
-                >
-                  <div
-                    className="px-4 py-3 text-sm font-semibold text-white"
-                    style={{
-                      backgroundColor:
-                        watchedValues.branding_primary_color || "#1e293b",
-                    }}
-                  ></div>
-                  <div className="space-y-2 px-4 py-3 text-sm">
-                    <div
-                      className="h-2 rounded-full"
-                      style={{
-                        backgroundColor:
-                          watchedValues.branding_secondary_color || "#e2e8f0",
-                      }}
-                    />
-                    <div
-                      className="inline-flex rounded-full px-3 py-1 text-xs font-medium text-white"
-                      style={{
-                        backgroundColor:
-                          watchedValues.branding_accent_color || "#64748b",
-                      }}
-                    >
-                      Accent
-                    </div>
-                  </div>
-                </div>
-              </div>
+              ) : (
+                <span className="text-slate-400">No logo</span>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                onChange={(event) => void handleBrandingLogoChange(event)}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={isSaving || isPreparingImage}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {isPreparingImage ? (
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                ) : (
+                  <Upload className="size-4" aria-hidden="true" />
+                )}
+                {watchedValues.branding_logo_url || selectedBrandingLogo
+                  ? "Change"
+                  : "Upload"}
+              </Button>
             </div>
+          </OrganizationFieldRow>
 
-            <PrimaryButton
+          <FormField
+            control={form.control}
+            name="branding_primary_color"
+            render={({ field }) => (
+              <FormItem>
+                <OrganizationFieldRow label="Primary">
+                  <FormControl>
+                    <ColorField
+                      label="Primary"
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </OrganizationFieldRow>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="branding_secondary_color"
+            render={({ field }) => (
+              <FormItem>
+                <OrganizationFieldRow label="Secondary">
+                  <FormControl>
+                    <ColorField
+                      label="Secondary"
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </OrganizationFieldRow>
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="branding_accent_color"
+            render={({ field }) => (
+              <FormItem>
+                <OrganizationFieldRow label="Accent">
+                  <FormControl>
+                    <ColorField
+                      label="Accent"
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </OrganizationFieldRow>
+              </FormItem>
+            )}
+          />
+
+          <div className="pt-5">
+            <Button
               type="submit"
+              variant="outline"
+              size="sm"
               disabled={isSaving || isPreparingImage}
             >
               {isSaving ? (
@@ -408,10 +362,10 @@ export function OrganizationBrandingTab({
               ) : (
                 "Save branding"
               )}
-            </PrimaryButton>
-          </form>
-        </Form>
-      </OrganizationTabSection>
-    </div>
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </OrganizationTabPanel>
   );
 }
