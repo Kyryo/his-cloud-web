@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Pencil, Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
@@ -10,6 +10,7 @@ import {
   type CareProviderFormValues,
 } from "@/features/settings/components/CareProviderDialog";
 import { OrganizationEmptyState } from "@/features/settings/components/OrganizationEmptyState";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
 import {
   createCareProvider,
@@ -169,10 +170,7 @@ export function OrganizationCareProvidersTab({
         }
       >
         {isLoading ? (
-          <div className="flex items-center gap-2 py-10 text-sm text-brand-muted">
-            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-            Loading providers...
-          </div>
+          <SettingsContentSkeleton variant="staff" />
         ) : error ? (
           <div className="space-y-4 py-6">
             <p className="text-sm text-destructive">{error}</p>

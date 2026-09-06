@@ -5,7 +5,7 @@ import { ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -96,7 +96,7 @@ export function MasmEclaimsSettingsPage() {
   }
 
   if (isUserLoading) {
-    return <PageLoader />;
+    return <SettingsContentSkeleton />;
   }
 
   if (!isTenantAdmin) {
@@ -148,7 +148,7 @@ export function MasmEclaimsSettingsPage() {
               </div>
 
               {isLoading ? (
-                <PageLoader />
+                <SettingsContentSkeleton />
               ) : error ? (
                 <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {error}

@@ -9,6 +9,7 @@ import {
   useSalesReportSubscription,
   useUpdateSalesReportSubscription,
 } from "@/features/notifications/hooks/use-sales-report-subscription";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { SettingsPanelSection } from "@/features/settings/components/SettingsPageLayout";
 import { useTenantEmailConfiguration } from "@/features/settings/hooks/use-tenant-email-configuration";
 import { useToast } from "@/providers/toast-provider";
@@ -130,7 +131,7 @@ export function AccountSalesReportsSection() {
       ) : null}
 
       {subscriptionQuery.isLoading ? (
-        <p className="text-sm text-brand-muted">Loading preferences...</p>
+        <SettingsContentSkeleton rows={3} showHeader={false} />
       ) : (
         <div className="divide-y divide-brand-border">
           <PreferenceToggle

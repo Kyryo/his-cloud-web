@@ -6,7 +6,7 @@ import {
 } from "@/features/app-shell/constants/navigation-config";
 import { ROUTES } from "@/constants/routes";
 
-export type ModuleSettingsCard = {
+export type ModuleSettingsItem = {
   id: string;
   label: string;
   description: string;
@@ -18,6 +18,7 @@ export type ModuleSettingsCard = {
 const MODULE_DESCRIPTIONS: Record<string, string> = {
   Registration: "Client registration, visits, and front desk workflows.",
   Billing: "Sales orders, invoices, and payment configuration.",
+  Claims: "Insurance claims, submissions, and remittance settings.",
   Orders: "Clinical and service order routing.",
   Dispensation: "Pharmacy dispensing and medication workflows.",
   Lab: "Laboratory orders, results, and catalog settings.",
@@ -25,9 +26,10 @@ const MODULE_DESCRIPTIONS: Record<string, string> = {
   Inventory: "Stock, purchasing, transfers, and approval workflows.",
   Dental: "Dental clinic charting and procedure settings.",
   Clinical: "Patient records and clinical documentation.",
+  Therapy: "Therapy sessions, plans, and documentation settings.",
 };
 
-export function getModuleSettingsCards(): ModuleSettingsCard[] {
+export function getModuleSettingsItems(): ModuleSettingsItem[] {
   return moduleOrder.map((moduleId) => {
     const isInventory = moduleId === "Inventory";
     const isPharmacy = moduleId === "Dispensation";

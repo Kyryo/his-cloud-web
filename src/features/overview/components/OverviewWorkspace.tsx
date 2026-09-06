@@ -35,7 +35,7 @@ export function OverviewWorkspace() {
     <div className="space-y-8">
       {isLoading ? (
         <div className="space-y-8" aria-busy="true">
-          <div className="grid grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x">
+          <div className="grid grid-cols-2 divide-y divide-dash-border/60 border-b border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x">
             {Array.from({ length: 4 }, (_, index) => (
               <div key={index} className="p-4">
                 <Skeleton className="h-4 w-20" />
@@ -58,7 +58,7 @@ export function OverviewWorkspace() {
       ) : (
         <>
           {/* Cardless Clinic Pulse Bar */}
-          <dl className="grid grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 py-1 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x">
+          <dl className="grid grid-cols-2 divide-y divide-dash-border/60 border-b border-dash-border/80 py-1 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x">
             <OverviewCount
               label="Active visits"
               value={data?.activeVisitCount ?? 0}

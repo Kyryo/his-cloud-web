@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { OrganizationSettingsTabs } from "@/features/settings/components/OrganizationSettingsTabs";
 import {
@@ -63,11 +63,11 @@ export function OrganizationSettingsPage() {
   }, [isTenantAdmin, isUserLoading]);
 
   if (isUserLoading) {
-    return <PageLoader />;
+    return <SettingsContentSkeleton />;
   }
 
   if (isTenantAdmin && isLoading) {
-    return <PageLoader />;
+    return <SettingsContentSkeleton />;
   }
 
   if (!isTenantAdmin) {

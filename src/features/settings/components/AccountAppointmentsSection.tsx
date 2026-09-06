@@ -9,6 +9,7 @@ import { fetchMyClinicianAppointments } from "@/features/appointments/services/a
 import type { Appointment } from "@/features/appointments/types/appointment.types";
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { ROUTES } from "@/constants/routes";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { SettingsPanelSection } from "@/features/settings/components/SettingsPageLayout";
 
 export function AccountAppointmentsSection() {
@@ -58,7 +59,7 @@ export function AccountAppointmentsSection() {
       }
     >
       {isLoading ? (
-        <p className="text-sm text-brand-muted">Loading appointments...</p>
+        <SettingsContentSkeleton rows={3} showHeader={false} />
       ) : loadError ? (
         <p className="text-sm text-red-600">{loadError}</p>
       ) : appointments.length === 0 ? (

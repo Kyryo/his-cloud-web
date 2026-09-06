@@ -63,14 +63,8 @@ describe("ClinicalStaffRolesSection", () => {
     expect(
       screen.getByRole("combobox", { name: "Clinical role for Pia Mdala" }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Manage users" })).toHaveAttribute(
-      "href",
-      "/settings/user-management",
-    );
-    expect(screen.getByRole("link", { name: "Role access" })).toHaveAttribute(
-      "href",
-      "/settings/clinical-role-capabilities",
-    );
+    expect(screen.queryByRole("link", { name: "Manage users" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: "Role access" })).not.toBeInTheDocument();
   });
 
   it("shows an empty state when no clinical staff exist", async () => {
@@ -82,7 +76,7 @@ describe("ClinicalStaffRolesSection", () => {
       expect(screen.getByText(/No clinical staff yet/)).toBeInTheDocument();
     });
     expect(
-      screen.getByRole("link", { name: "Open user management" }),
-    ).toBeInTheDocument();
+      screen.queryByRole("link", { name: "Open user management" }),
+    ).not.toBeInTheDocument();
   });
 });

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
 import {
   fetchTenantConfiguration,
@@ -84,7 +84,7 @@ export function InventoryApprovalPolicyTab({
   }
 
   if (isLoading) {
-    return <PageLoader message="Loading approval policy..." />;
+    return <SettingsContentSkeleton />;
   }
 
   if (error) {

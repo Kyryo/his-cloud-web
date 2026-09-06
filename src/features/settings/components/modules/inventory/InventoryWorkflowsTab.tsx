@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -205,7 +205,7 @@ export function InventoryWorkflowsTab({ isActive }: InventoryWorkflowsTabProps) 
   }
 
   if (isLoading) {
-    return <PageLoader message="Loading approval workflows..." />;
+    return <SettingsContentSkeleton />;
   }
 
   if (error) {

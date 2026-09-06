@@ -1,6 +1,6 @@
 "use client";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { AccountProfileSettings } from "@/features/settings/components/AccountProfileSettings";
 import { SettingsPageLayout } from "@/features/settings/components/SettingsPageLayout";
 import { useUser } from "@/providers/user-provider";
@@ -9,7 +9,7 @@ export function AccountSettingsPage() {
   const { userData, isLoading } = useUser();
 
   if (isLoading) {
-    return <PageLoader />;
+    return <SettingsContentSkeleton variant="form" />;
   }
 
   if (!userData) {

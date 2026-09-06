@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { AddClinicDialog } from "@/features/settings/components/AddClinicDialog";
@@ -142,9 +142,7 @@ export function OrganizationClinicsTab({ isActive }: OrganizationClinicsTabProps
         }
       >
         {isLoading ? (
-          <div className="py-16">
-            <PageLoader />
-          </div>
+          <SettingsContentSkeleton />
         ) : error ? (
           <p className="py-8 text-sm text-brand-muted">{error}</p>
         ) : isEmpty ? (

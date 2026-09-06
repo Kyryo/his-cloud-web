@@ -2,13 +2,13 @@
 
 import Link from "next/link";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import {
   SettingsPageLayout,
   SettingsSection,
 } from "@/features/settings/components/SettingsPageLayout";
-import { ModuleSettingsGrid } from "@/features/settings/components/modules/ModuleSettingsGrid";
+import { ModuleSettingsList } from "@/features/settings/components/modules/ModuleSettingsList";
 import { ROUTES } from "@/constants/routes";
 import { useUser } from "@/providers/user-provider";
 
@@ -17,7 +17,7 @@ export function ModulesSettingsPage() {
   const isTenantAdmin = Boolean(userData?.is_admin);
 
   if (isLoading) {
-    return <PageLoader />;
+    return <SettingsContentSkeleton />;
   }
 
   if (!isTenantAdmin) {
@@ -44,8 +44,9 @@ export function ModulesSettingsPage() {
     <SettingsPageLayout
       title="Modules"
       description="Configure operational modules for your organization. Additional modules will become available here over time."
+      className="max-w-3xl"
     >
-      <ModuleSettingsGrid />
+      <ModuleSettingsList />
     </SettingsPageLayout>
   );
 }

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -182,7 +182,7 @@ export function PharmacyModuleSettingsPage() {
   }
 
   if (isUserLoading) {
-    return <PageLoader />;
+    return <SettingsContentSkeleton />;
   }
 
   if (!isTenantAdmin) {
@@ -214,7 +214,7 @@ export function PharmacyModuleSettingsPage() {
       description="Configure when sales orders enter the pharmacy queue and invoice timing."
     >
       {isLoading ? (
-        <PageLoader />
+        <SettingsContentSkeleton />
       ) : (
         <div className="space-y-6">
           {rows.map((row) => (

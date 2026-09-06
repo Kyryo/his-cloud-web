@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { IntegrationsSettingsGrid } from "@/features/settings/components/integrations/IntegrationsSettingsGrid";
 import {
@@ -17,7 +17,7 @@ export function IntegrationsSettingsPage() {
   const isTenantAdmin = Boolean(userData?.is_admin);
 
   if (isLoading) {
-    return <PageLoader />;
+    return <SettingsContentSkeleton />;
   }
 
   if (!isTenantAdmin) {

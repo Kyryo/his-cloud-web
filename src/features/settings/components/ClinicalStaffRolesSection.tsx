@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { AppIcon } from "@/components/icons/app-icon";
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { UserIdenticon } from "@/components/UserIdenticon";
 import { Input } from "@/components/ui/input";
 import {
@@ -132,31 +132,14 @@ export function ClinicalStaffRolesSection() {
     <SettingsPanelSection
       title="Clinical staff"
       description="Assign each clinical user as a nurse or physician. Roles control what they can do in OPD."
-      action={
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <Button asChild variant="ghost" size="sm">
-            <Link href={ROUTES.settingsClinicalRoleCapabilities}>
-              Role access
-            </Link>
-          </Button>
-          <Button asChild variant="outline" size="sm">
-            <Link href={ROUTES.settingsUserManagement}>Manage users</Link>
-          </Button>
-        </div>
-      }
     >
       {isLoading ? (
-        <PageLoader />
+        <SettingsContentSkeleton variant="staff" />
       ) : sortedUsers.length === 0 ? (
-        <div className="py-6">
-          <p className="text-sm text-slate-400">
-            No clinical staff yet. Add users to the Clinical group, then assign
-            them here as a nurse or physician.
-          </p>
-          <Button asChild variant="outline" size="sm" className="mt-4">
-            <Link href={ROUTES.settingsUserManagement}>Open user management</Link>
-          </Button>
-        </div>
+        <p className="py-6 text-sm text-slate-400">
+          No clinical staff yet. Add users to the Clinical group, then assign
+          them here as a nurse or physician.
+        </p>
       ) : (
         <div className="space-y-6">
           <div className="relative max-w-sm">

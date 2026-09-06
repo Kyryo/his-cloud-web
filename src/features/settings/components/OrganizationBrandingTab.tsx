@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import {
   Form,
   FormControl,
@@ -232,12 +233,7 @@ export function OrganizationBrandingTab({
   }
 
   if (isLoading && !hasLoaded) {
-    return (
-      <div className="flex items-center gap-2 py-10 text-sm text-brand-muted">
-        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-        Loading branding...
-      </div>
-    );
+    return <SettingsContentSkeleton variant="form" />;
   }
 
   if (loadError && !hasLoaded) {

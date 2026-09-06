@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import {
   Sheet,
   SheetContent,
@@ -129,7 +129,7 @@ export function MasmClinicSettingsSheet({
 
         <div className="flex-1 overflow-y-auto px-6 py-6">
           {isLoading ? (
-            <PageLoader />
+            <SettingsContentSkeleton variant="form" />
           ) : error ? (
             <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {error}

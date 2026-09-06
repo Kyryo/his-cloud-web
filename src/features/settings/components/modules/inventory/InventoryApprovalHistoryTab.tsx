@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Badge } from "@/components/ui/badge";
 import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
 import { InventoryEmptyState } from "@/features/inventory/components/InventoryEmptyState";
@@ -69,7 +69,7 @@ export function InventoryApprovalHistoryTab({
   }
 
   if (isLoading) {
-    return <PageLoader message="Loading approval history..." />;
+    return <SettingsContentSkeleton />;
   }
 
   if (error) {

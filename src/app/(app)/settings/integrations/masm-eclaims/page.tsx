@@ -1,11 +1,11 @@
 import { Suspense } from "react";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { MasmEclaimsSettingsPage } from "@/features/settings/pages/MasmEclaimsSettingsPage";
 
 export default function Page() {
   return (
-    <Suspense fallback={<PageLoader />}>
+    <Suspense fallback={<SettingsContentSkeleton />}>
       <MasmEclaimsSettingsPage />
     </Suspense>
   );

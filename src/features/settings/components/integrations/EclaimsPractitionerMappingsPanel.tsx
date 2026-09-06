@@ -1,9 +1,10 @@
 "use client";
 
-import { Loader2, Pencil, Plus } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { EclaimsPractitionerMappingDialog } from "@/features/settings/components/integrations/EclaimsPractitionerMappingDialog";
 import { fetchEClaimPractitionerMappings } from "@/features/claims/services/claims.service";
 import type { EClaimPractitionerMapping } from "@/features/claims/types/claims.types";
@@ -139,10 +140,7 @@ export function EclaimsPractitionerMappingsPanel({
   if (isLoading) {
     return (
       <div className={className}>
-        <div className="flex items-center gap-2 py-8 text-sm text-brand-muted">
-          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-          Loading practitioner mappings...
-        </div>
+        <SettingsContentSkeleton />
       </div>
     );
   }

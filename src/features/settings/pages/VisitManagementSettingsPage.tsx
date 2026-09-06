@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { OrganizationServicesTab } from "@/features/settings/components/OrganizationServicesTab";
 import {
@@ -17,7 +17,7 @@ export function VisitManagementSettingsPage() {
   const isTenantAdmin = Boolean(userData?.is_admin);
 
   if (isUserLoading) {
-    return <PageLoader />;
+    return <SettingsContentSkeleton />;
   }
 
   if (!isTenantAdmin) {
@@ -45,6 +45,7 @@ export function VisitManagementSettingsPage() {
     <SettingsPageLayout
       title="Visit Management"
       description="Configure consultation services staff use when registering patient visits."
+      className="max-w-3xl"
     >
       <OrganizationServicesTab isActive />
     </SettingsPageLayout>

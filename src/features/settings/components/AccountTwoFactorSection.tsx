@@ -37,6 +37,7 @@ import {
   useSetPreferredMfaMethod,
   useSetupTotp,
 } from "@/features/settings/hooks/use-mfa";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { SettingsSection } from "@/features/settings/components/SettingsPageLayout";
 import {
   mfaPasswordSchema,
@@ -724,9 +725,7 @@ export function AccountTwoFactorSection() {
         flush
       >
         {statusQuery.isLoading ? (
-          <p className="text-sm text-brand-muted">
-            Loading security settings...
-          </p>
+          <SettingsContentSkeleton rows={3} showHeader={false} />
         ) : (
           <div className="divide-y divide-brand-border">
             <MethodRow

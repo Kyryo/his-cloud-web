@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { UserManagementSettingsTabs } from "@/features/settings/components/UserManagementSettingsTabs";
@@ -17,7 +17,7 @@ export function UserManagementSettingsPage() {
   const isTenantAdmin = Boolean(userData?.is_admin);
 
   if (isLoading) {
-    return <PageLoader />;
+    return <SettingsContentSkeleton />;
   }
 
   if (!isTenantAdmin) {
@@ -45,6 +45,7 @@ export function UserManagementSettingsPage() {
     <SettingsPageLayout
       title="User Management"
       description="Invite team members, manage access groups, and keep your organization roster up to date."
+      className="max-w-3xl"
     >
       <UserManagementSettingsTabs />
     </SettingsPageLayout>

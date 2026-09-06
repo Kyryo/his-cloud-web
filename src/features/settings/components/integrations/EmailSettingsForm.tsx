@@ -10,6 +10,7 @@ import {
   DetailPageTabNavItem,
   DetailPageTabsNavSection,
 } from "@/features/app-shell/components/page-layout";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { PrimaryButton } from "@/components/ui/app-buttons";
 import {
   Form,
@@ -543,12 +544,7 @@ export function EmailSettingsForm() {
   const configurationQuery = useTenantEmailConfiguration();
 
   if (configurationQuery.isLoading) {
-    return (
-      <div className="flex items-center gap-2 px-6 py-10 text-sm text-brand-muted">
-        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-        Loading email settings...
-      </div>
-    );
+    return <SettingsContentSkeleton variant="form" />;
   }
 
   if (configurationQuery.isError) {

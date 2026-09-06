@@ -2,25 +2,19 @@
 
 import { useEffect, useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
+import { isPortalGroupName, portalGroupLabel } from "@/constants/portal-groups";
 import { AddGroupDialog } from "@/features/settings/components/AddGroupDialog";
 import { ManageGroupMembersDialog } from "@/features/settings/components/ManageGroupMembersDialog";
-import { OrganizationEmptyState } from "@/features/settings/components/OrganizationEmptyState";
-import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
+import { SettingsPanelSection } from "@/features/settings/components/SettingsPageLayout";
 import { UpdateGroupDialog } from "@/features/settings/components/UpdateGroupDialog";
 import { fetchOrganizationGroups } from "@/features/settings/services/user-management.service";
 import type { OrganizationGroup } from "@/features/settings/types/settings.types";
-import { isPortalGroupName, portalGroupLabel } from "@/constants/portal-groups";
 
 type UserManagementGroupsTabProps = {
   isActive: boolean;
 };
-
-const groupColumns = [
-  { key: "name", label: "Group" },
-  { key: "actions", label: "" },
-] as const;
 
 export function UserManagementGroupsTab({ isActive }: UserManagementGroupsTabProps) {
   const [groups, setGroups] = useState<OrganizationGroup[]>([]);
@@ -83,85 +77,79 @@ export function UserManagementGroupsTab({ isActive }: UserManagementGroupsTabPro
     );
   }
 
-  const isEmpty = !isLoading && !error && groups.length === 0;
-
   return (
     <>
-      <OrganizationTabSection
+      <SettingsPanelSection
         title="Groups"
-        description="Organize permissions by assigning users to groups."
-        showHeader={!isEmpty}
-        actions={
-          groups.length > 0 ? (
-            <Button onClick={() => setAddDialogOpen(true)}>Add group</Button>
-          ) : null
+        description="Permission sets you assign to users."
+        action={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setAddDialogOpen(true)}
+          >
+            Add group
+          </Button>
         }
       >
         {isLoading ? (
-          <div className="py-16">
-            <PageLoader />
-          </div>
+          <SettingsContentSkeleton rows={4} showHeader={false} />
         ) : error ? (
-          <p className="py-8 text-sm text-brand-muted">{error}</p>
+          <p className="text-sm text-red-600">{error}</p>
         ) : groups.length === 0 ? (
-          <OrganizationEmptyState
-            message="No permission groups have been created yet."
-            actionLabel="Add group"
-            onAction={() => setAddDialogOpen(true)}
-          />
+          <p className="text-sm text-slate-400">
+            No groups yet. Add a group to organize access.
+          </p>
         ) : (
-          <div className="-mx-6 overflow-x-auto">
-            <table className="min-w-full">
-              <thead>
-                <tr className="border-y border-brand-border bg-slate-50/60">
-                  {groupColumns.map((column) => (
-                    <th
-                      key={column.key}
-                      scope="col"
-                      className="px-6 py-3 text-left text-xs font-medium text-brand-muted"
+          <ul className="divide-y divide-brand-border">
+            {groups.map((group) => {
+              const label = portalGroupLabel(group.name);
+              const isPortalGroup = isPortalGroupName(group.name);
+
+              return (
+                <li
+                  key={group.id}
+                  className="flex flex-col gap-3 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-brand-navy">
+                      {label}
+                    </p>
+                    {isPortalGroup ? (
+                      <p className="mt-0.5 text-sm text-slate-400">
+                        Built-in module group
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 text-brand-muted hover:text-brand-navy"
+                      onClick={() => setManagingGroup(group)}
                     >
-                      {column.label}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-brand-border">
-                {groups.map((group) => (
-                  <tr key={group.id}>
-                    <td className="px-6 py-3.5 text-sm font-medium text-brand-navy">
-                      {portalGroupLabel(group.name)}
-                    </td>
-                    <td className="px-6 py-3.5">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 text-brand-muted hover:text-brand-navy"
-                          onClick={() => setManagingGroup(group)}
-                        >
-                          Members
-                        </Button>
-                        {!isPortalGroupName(group.name) ? (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 text-brand-muted hover:text-brand-navy"
-                            onClick={() => setEditingGroup(group)}
-                          >
-                            Update
-                          </Button>
-                        ) : null}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      Members
+                    </Button>
+                    {isPortalGroup ? null : (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 text-brand-muted hover:text-brand-navy"
+                        onClick={() => setEditingGroup(group)}
+                      >
+                        Update
+                      </Button>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
         )}
-      </OrganizationTabSection>
+      </SettingsPanelSection>
 
       <AddGroupDialog
         open={addDialogOpen}

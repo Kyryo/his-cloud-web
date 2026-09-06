@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import {
   useRoleCapabilities,
@@ -32,7 +32,7 @@ export function ClinicalRoleCapabilitiesSettingsPage() {
   const isTenantAdmin = Boolean(userData?.is_admin);
 
   if (isUserLoading || isLoading) {
-    return <PageLoader />;
+    return <SettingsContentSkeleton variant="matrix" />;
   }
 
   if (!isTenantAdmin) {

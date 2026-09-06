@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { OrganizationTabSection } from "@/features/settings/components/OrganizationTabSection";
 import { InventoryEmptyState } from "@/features/inventory/components/InventoryEmptyState";
@@ -139,7 +139,7 @@ export function InventoryClinicConfigurationTab({
   }
 
   if (isLoading) {
-    return <PageLoader message="Loading clinic configuration..." />;
+    return <SettingsContentSkeleton />;
   }
 
   if (error) {

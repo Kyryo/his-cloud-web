@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { PageLoader } from "@/components/page-loader";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -36,8 +36,8 @@ export function SettingsWorkspaceLayout({ children }: SettingsWorkspaceLayoutPro
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center">
-        <PageLoader />
+      <div className="absolute inset-0 overflow-y-auto px-5 pt-8 md:px-10 lg:px-14">
+        <SettingsContentSkeleton />
       </div>
     );
   }
