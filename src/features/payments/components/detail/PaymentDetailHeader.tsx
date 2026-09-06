@@ -1,13 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { ROUTES } from "@/constants/routes";
 import { PaymentStatusBadge } from "@/features/payments/components/PaymentStatusBadge";
 import type { Payment } from "@/features/payments/types/payment.types";
-import {
-  formatPaymentCustomer,
-  formatPaymentDate,
-} from "@/features/payments/utils/format-payment";
+import { formatPaymentCustomer } from "@/features/payments/utils/format-payment";
 import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
 
 type PaymentDetailHeaderProps = {
@@ -20,23 +19,30 @@ export function PaymentDetailHeader({ payment, actions }: PaymentDetailHeaderPro
   const customerName = formatPaymentCustomer(payment);
 
   return (
-    <DetailPageHeaderSection>
+    <DetailPageHeaderSection className="border-b-0 pb-3">
       <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2.5">
             <h1 className="truncate text-lg font-semibold text-brand-navy sm:text-xl">
-              {customerName}
+              {payment.customer_uuid ? (
+                <Link
+                  href={ROUTES.customerDetail(payment.customer_uuid)}
+                  className="hover:text-brand-primary hover:underline"
+                >
+                  {customerName}
+                </Link>
+              ) : (
+                customerName
+              )}
             </h1>
+            <span className="font-mono text-xs font-medium text-brand-slate">
+              {paymentLabel}
+            </span>
             <PaymentStatusBadge state={payment.state} />
           </div>
-
-          <p className="mt-1 font-mono text-sm text-brand-muted">{paymentLabel}</p>
-
-          <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-brand-muted">
-            <span>Paid {formatPaymentDate(payment.payment_date)}</span>
-          </div>
         </div>
-        {actions}
+
+        {actions ? <div className="ml-auto shrink-0">{actions}</div> : null}
       </div>
     </DetailPageHeaderSection>
   );
