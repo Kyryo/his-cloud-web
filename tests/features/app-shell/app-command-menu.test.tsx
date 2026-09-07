@@ -45,7 +45,7 @@ describe("AppCommandMenu", () => {
   it("opens the command list and navigates to a page", () => {
     render(<AppCommandMenu />);
 
-    fireEvent.click(screen.getByTestId("app-command-menu-trigger"));
+    fireEvent.keyDown(window, { key: "k", metaKey: true });
 
     expect(screen.getByTestId("app-command-menu-list")).toBeInTheDocument();
     expect(screen.getByText("Clients")).toBeInTheDocument();
