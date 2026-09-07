@@ -590,7 +590,7 @@ export function SalesOrderProviderSelector({
             </button>
           </PopoverTrigger>
           <PopoverContent
-            side="right"
+            side="left"
             align="start"
             className={popoverSurfaceClassName}
           >
@@ -630,7 +630,7 @@ export function SalesOrderProviderSelector({
           </SecondaryButton>
         </PopoverTrigger>
         <PopoverContent
-          side="right"
+          side="left"
           align="start"
           className={popoverSurfaceClassName}
         >
@@ -669,7 +669,7 @@ export function SalesOrderProviderSelector({
           </button>
         </PopoverTrigger>
         <PopoverContent
-          side="right"
+          side="left"
           align="start"
           className={popoverSurfaceClassName}
         >

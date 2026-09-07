@@ -17,7 +17,7 @@ export const ROUTES = {
   /** Clinic home: recent activity and clients. */
   overview: "/overview",
   /** Default destination after successful sign-in / sign-up. */
-  postAuth: "/overview",
+  postAuth: "/customers",
   contacts: "/contacts",
   ourProducts: "/our-products",
   pricing: "/pricing",

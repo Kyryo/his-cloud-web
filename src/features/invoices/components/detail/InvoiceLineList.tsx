@@ -21,7 +21,6 @@ import type { Invoice, InvoiceLine } from "@/features/invoices/types/invoice.typ
 import { formatInvoiceAmount } from "@/features/invoices/utils/format-invoice";
 import { isInvoiceLineNonPayable } from "@/features/invoices/utils/invoice-line-payability";
 import { LineNonPayableBadge } from "@/features/sales-orders/components/detail/LineNonPayableBadge";
-import { hasLinePaymentSplit } from "@/features/sales-orders/types/line-payment-split.types";
 import { formatAmountNumber } from "@/features/sales-orders/utils/format-sales-order";
 
 function formatQuantity(value: number | string | null | undefined): string {
@@ -55,7 +54,6 @@ export function InvoiceLineList({
 }: InvoiceLineListProps) {
   const lines = invoice.lines ?? [];
   const showNonPayableBadges = isInsuranceInvoice(invoice);
-  const showSplitColumns = lines.some((line) => hasLinePaymentSplit(line));
   const payableCount = lines.filter((line) => !isInvoiceLineNonPayable(line)).length;
 
   return (
@@ -92,16 +90,6 @@ export function InvoiceLineList({
             <ListPageDataTableHeaderCell className="text-right">
               Price
             </ListPageDataTableHeaderCell>
-            {showSplitColumns ? (
-              <>
-                <ListPageDataTableHeaderCell className="text-right">
-                  Insurer
-                </ListPageDataTableHeaderCell>
-                <ListPageDataTableHeaderCell className="text-right">
-                  Client
-                </ListPageDataTableHeaderCell>
-              </>
-            ) : null}
             <ListPageDataTableHeaderCell className="text-right">
               Total
             </ListPageDataTableHeaderCell>
@@ -111,10 +99,7 @@ export function InvoiceLineList({
           </ListPageDataTableHeaderRow>
         </ListPageDataTableHeader>
         <ListPageDataTableBody>
-          {lines.map((line) => {
-            const showSplit = showSplitColumns && hasLinePaymentSplit(line);
-
-            return (
+          {lines.map((line) => (
               <ListPageDataTableRow key={line.id}>
                 <ListPageDataTableCell className="py-3">
                   <div className="flex flex-wrap items-center gap-1.5">
@@ -150,16 +135,6 @@ export function InvoiceLineList({
                 <ListPageDataTableCell className="py-3 text-right tabular-nums">
                   {formatAmountNumber(line.price_unit)}
                 </ListPageDataTableCell>
-                {showSplitColumns ? (
-                  <>
-                    <ListPageDataTableCell className="py-3 text-right tabular-nums">
-                      {showSplit ? formatAmountNumber(line.insurer_due) : "—"}
-                    </ListPageDataTableCell>
-                    <ListPageDataTableCell className="py-3 text-right tabular-nums">
-                      {showSplit ? formatAmountNumber(line.client_due) : "—"}
-                    </ListPageDataTableCell>
-                  </>
-                ) : null}
                 <ListPageDataTableCell className="py-3 text-right font-semibold tabular-nums text-brand-navy">
                   {formatInvoiceAmount(line.price_total)}
                 </ListPageDataTableCell>
@@ -176,8 +151,7 @@ export function InvoiceLineList({
                   </Button>
                 </ListPageDataTableCell>
               </ListPageDataTableRow>
-            );
-          })}
+            ))}
         </ListPageDataTableBody>
       </ListPageDataTable>
     </div>

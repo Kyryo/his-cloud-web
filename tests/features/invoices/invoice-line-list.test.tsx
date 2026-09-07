@@ -39,7 +39,7 @@ describe("InvoiceLineList", () => {
     expect(screen.getAllByText("15,000.00 MWK").length).toBeGreaterThan(0);
   });
 
-  it("adds insurer and client columns when a line has a payment split", () => {
+  it("does not show insurer or client columns when a line has a payment split", () => {
     render(
       <InvoiceLineList
         invoice={
@@ -59,9 +59,9 @@ describe("InvoiceLineList", () => {
       />,
     );
 
-    expect(screen.getByRole("columnheader", { name: "Insurer" })).toBeInTheDocument();
-    expect(screen.getByRole("columnheader", { name: "Client" })).toBeInTheDocument();
-    expect(screen.getByText("10,000.00")).toBeInTheDocument();
-    expect(screen.getByText("5,000.00")).toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Insurer" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Client" })).not.toBeInTheDocument();
+    expect(screen.queryByText("10,000.00")).not.toBeInTheDocument();
+    expect(screen.queryByText("5,000.00")).not.toBeInTheDocument();
   });
 });
