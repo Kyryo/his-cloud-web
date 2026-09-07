@@ -98,7 +98,6 @@ export function RejectionsTable({
                       id: row.batch_id,
                       display_filename: row.batch_display_filename,
                       original_filename: row.batch_display_filename,
-                      payer_code: row.batch_payer_code,
                     })}
                   </Link>
                   <p className="truncate text-sm text-brand-muted">

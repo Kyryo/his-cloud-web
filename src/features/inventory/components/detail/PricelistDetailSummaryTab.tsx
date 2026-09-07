@@ -60,6 +60,7 @@ export function PricelistDetailSummaryTab({
       );
       setPack(config.selected_packs[0] ?? null);
       toast({
+        variant: "success",
         title: nextPack
           ? `${config.selected_packs[0]?.name ?? nextPack.name} will run on claims billed to this pricelist.`
           : "Only global claim-quality checks will run for this pricelist.",
@@ -67,9 +68,9 @@ export function PricelistDetailSummaryTab({
     } catch (error) {
       const message =
         error instanceof BffError
-          ? formatBffErrorMessage(error, "Could not save the advisor pack.")
+          ? formatBffErrorMessage(error.message, error.errors)
           : "Could not save the advisor pack.";
-      toast({ title: message, variant: "destructive" });
+      toast({ title: message, variant: "error" });
     } finally {
       setIsSaving(false);
     }

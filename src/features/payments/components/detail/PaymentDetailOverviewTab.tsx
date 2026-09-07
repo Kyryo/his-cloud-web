@@ -41,10 +41,9 @@ export function PaymentDetailOverviewTab({
   const notes = payment.note?.trim() || "";
   const recordedBy = payment.recorded_by_name?.trim() || payment.recorded_by_email?.trim() || "";
   const allocationLabel = formatPaymentAllocationLabel(payment);
+  const invoiceRef = payment.invoice_uuid ?? payment.invoice_id ?? null;
   const allocationHref =
-    payment.invoice_id || payment.invoice_uuid
-      ? ROUTES.invoiceDetail(payment.invoice_uuid ?? payment.invoice_id)
-      : null;
+    invoiceRef != null ? ROUTES.invoiceDetail(invoiceRef) : null;
 
   return (
     <section

@@ -1,4 +1,3 @@
-import { CLINICAL_OPD_API_PATHS } from "@/constants/clinical-opd-api";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
 import { handleClinicalCreate } from "@/lib/server/clinical-bff-handlers";
 import { hmisApiRequest } from "@/lib/server/hmis-api";

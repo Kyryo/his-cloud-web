@@ -77,14 +77,15 @@ export function SalesOrderDetailClientTab({
       return;
     }
 
+    const resolvedCustomerUuid = customerUuid;
     let cancelled = false;
 
     async function loadClient() {
       const [customerResult, insuranceResult, billingResult] =
         await Promise.allSettled([
-          fetchCustomer(customerUuid),
-          fetchCustomerInsurance(customerUuid),
-          fetchCustomerBillingSummary(customerUuid),
+          fetchCustomer(resolvedCustomerUuid),
+          fetchCustomerInsurance(resolvedCustomerUuid),
+          fetchCustomerBillingSummary(resolvedCustomerUuid),
         ]);
 
       if (cancelled) {

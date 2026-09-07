@@ -85,7 +85,7 @@ export function CustomerDetailBenefitsTab({
     }
 
     let cancelled = false;
-    let timer: ReturnType<typeof setInterval> | null = null;
+    let timer: number | null = null;
 
     function stopPolling() {
       if (timer) {

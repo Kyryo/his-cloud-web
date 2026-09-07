@@ -12,7 +12,7 @@ import {
 } from "@/utils/format-compact-number";
 
 type RemittanceDetailSummaryCardsProps = {
-  stats: RemittanceBatchRowSummaryStats | null;
+  stats?: RemittanceBatchRowSummaryStats | null;
   isLoading?: boolean;
 };
 

@@ -3,8 +3,19 @@ import type {
   ClaimDetail,
 } from "@/features/claims/types/claims.types";
 
+type ClaimAdvisoryStatusFields = {
+  advisory_status?: ClaimDetail["advisory_status"];
+  latest_advisor_evaluation?:
+    | Pick<
+        NonNullable<ClaimDetail["latest_advisor_evaluation"]>,
+        "status" | "id" | "deterministic_count" | "ai_count"
+      >
+    | ClaimDetail["latest_advisor_evaluation"]
+    | null;
+};
+
 export function isClaimAdvisoryProcessing(
-  claim: Pick<ClaimDetail, "advisory_status" | "latest_advisor_evaluation"> | null,
+  claim: ClaimAdvisoryStatusFields | null,
 ): boolean {
   const status = resolveClaimAdvisoryStatus(claim);
   if (status === "pending" || status === "processing") {
@@ -28,7 +39,7 @@ export function isAdvisoryStatusSnapshotProcessing(
 }
 
 export function resolveClaimAdvisoryStatus(
-  claim: Pick<ClaimDetail, "advisory_status" | "latest_advisor_evaluation"> | null,
+  claim: ClaimAdvisoryStatusFields | null,
 ): string {
   if (!claim) {
     return "pending";

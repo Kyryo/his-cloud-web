@@ -1,5 +1,8 @@
 import { BFF_CUSTOMERS_ROUTES } from "@/constants/api";
-import type { CustomerMemberBenefitsSnapshot } from "@/features/customers/types/customer-benefits.types";
+import type {
+  CustomerMemberBenefitsSnapshot,
+  CustomerMemberBenefitsStatus,
+} from "@/features/customers/types/customer-benefits.types";
 import { bffRequest } from "@/lib/bff-client";
 
 export async function fetchCustomerMemberBenefits(

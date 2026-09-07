@@ -35,9 +35,11 @@ export function InventoryTableSkeleton({
             <ListPageDataTableHeaderCell
               key={column.key}
               className={
-                column.align === "right"
+                "align" in column && column.align === "right"
                   ? "text-right pr-4"
-                  : column.className
+                  : "className" in column
+                    ? column.className
+                    : undefined
               }
             >
               {column.label}
@@ -52,10 +54,10 @@ export function InventoryTableSkeleton({
               <ListPageDataTableCell
                 key={column.key}
                 className={
-                  column.align === "right" ? "py-3 pr-4 text-right" : "py-3"
+                  "align" in column && column.align === "right" ? "py-3 pr-4 text-right" : "py-3"
                 }
               >
-                {column.align === "right" ? (
+                {"align" in column && column.align === "right" ? (
                   <div className="flex justify-end">
                     <Skeleton className="h-4 w-16" />
                   </div>

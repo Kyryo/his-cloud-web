@@ -84,11 +84,11 @@ export function CustomerDetailPage({
   }, [customerId]);
 
   useEffect(() => {
-    const customerUuid = customer?.uuid;
-    if (!customerUuid) {
+    if (!customer?.uuid) {
       return;
     }
 
+    const customerUuid = customer.uuid;
     let cancelled = false;
 
     async function loadInsurance() {

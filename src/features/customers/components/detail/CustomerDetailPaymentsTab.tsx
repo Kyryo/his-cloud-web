@@ -159,8 +159,8 @@ export function CustomerDetailPaymentsTab({
             onRowClick={(payment) =>
               payment.applies_to_opening_balance
                 ? undefined
-                : payment.invoice_uuid
-                  ? router.push(ROUTES.invoiceDetail(payment.invoice_uuid))
+                : payment.invoice_id
+                  ? router.push(ROUTES.invoiceDetail(payment.invoice_id))
                   : undefined
             }
           />

@@ -33,7 +33,7 @@ export function PaymentsTableSkeleton({
       <ListPageDataTableHeader>
         <ListPageDataTableHeaderRow>
           {columns.map((column) => (
-            <ListPageDataTableHeaderCell key={column.key} className={column.className}>
+            <ListPageDataTableHeaderCell key={column.key} className={"className" in column ? column.className : undefined}>
               {column.label}
             </ListPageDataTableHeaderCell>
           ))}

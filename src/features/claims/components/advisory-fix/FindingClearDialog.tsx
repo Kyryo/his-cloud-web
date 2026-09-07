@@ -54,6 +54,8 @@ export function FindingClearDialog({
     return null;
   }
 
+  const activeFinding = finding;
+
   async function handleClear() {
     const note = reason.trim();
     if (!note) {
@@ -67,8 +69,8 @@ export function FindingClearDialog({
     setIsSaving(true);
     try {
       await createClaimAdvisoryClearance(claim.id, {
-        code: finding.code,
-        source: finding.source ?? "rules",
+        code: activeFinding.code,
+        source: activeFinding.source ?? "rules",
         reason: note,
       });
       onOpenChange(false);

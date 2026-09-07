@@ -55,7 +55,7 @@ export function PaymentsTable({ payments, onRowClick, className }: PaymentsTable
       <ListPageDataTableHeader>
         <ListPageDataTableHeaderRow>
           {columns.map((column) => (
-            <ListPageDataTableHeaderCell key={column.key} className={column.className}>
+            <ListPageDataTableHeaderCell key={column.key} className={"className" in column ? column.className : undefined}>
               {column.label}
             </ListPageDataTableHeaderCell>
           ))}
@@ -66,10 +66,9 @@ export function PaymentsTable({ payments, onRowClick, className }: PaymentsTable
           const paymentLabel = payment.name || `#${payment.id}`;
           const customerName = formatPaymentCustomer(payment);
           const allocationLabel = formatPaymentAllocationLabel(payment);
+          const invoiceRef = payment.invoice_uuid ?? payment.invoice_id ?? null;
           const invoiceHref =
-            payment.invoice_uuid ?? payment.invoice_id
-              ? ROUTES.invoiceDetail(payment.invoice_uuid ?? payment.invoice_id)
-              : null;
+            invoiceRef != null ? ROUTES.invoiceDetail(invoiceRef) : null;
 
           return (
             <ListPageDataTableRow

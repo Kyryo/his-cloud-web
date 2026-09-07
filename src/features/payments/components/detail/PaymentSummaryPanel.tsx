@@ -30,10 +30,9 @@ export function PaymentSummaryPanel({
   className,
 }: PaymentSummaryPanelProps) {
   const allocationLabel = formatPaymentAllocationLabel(payment);
+  const invoiceRef = payment.invoice_uuid ?? payment.invoice_id ?? null;
   const allocationHref =
-    payment.invoice_id || payment.invoice_uuid
-      ? ROUTES.invoiceDetail(payment.invoice_uuid ?? payment.invoice_id)
-      : null;
+    invoiceRef != null ? ROUTES.invoiceDetail(invoiceRef) : null;
 
   return (
     <DetailPageAsidePanelSection className={cn(className)}>

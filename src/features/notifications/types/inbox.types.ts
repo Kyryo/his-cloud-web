@@ -22,6 +22,7 @@ export type InboxItem = {
   read_at: string | null;
   occurred_at: string;
   href: string;
+  category?: string | null;
   payload: Record<string, unknown>;
 };
 

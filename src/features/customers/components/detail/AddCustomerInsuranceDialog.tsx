@@ -108,17 +108,22 @@ export function AddCustomerInsuranceDialog({
       onCreated(insurance);
       onOpenChange(false);
     } catch (error) {
-      if (error instanceof BffError && error.fieldErrors) {
-        mapBffErrorsToForm(error.fieldErrors, form.setError);
+      if (error instanceof BffError) {
+        const fieldErrors = mapBffErrorsToForm(error.errors);
+        for (const [field, message] of Object.entries(fieldErrors)) {
+          form.setError(field as keyof CreateCustomerInsuranceFormValues, {
+            message,
+          });
+        }
       }
 
       toast({
         variant: "error",
         title: "Could not add insurance",
-        description: formatBffErrorMessage(
-          error,
-          "Failed to create insurance. Please check your inputs.",
-        ),
+        description:
+          error instanceof BffError
+            ? formatBffErrorMessage(error.message, error.errors)
+            : "Failed to create insurance. Please check your inputs.",
       });
     }
   }
@@ -145,6 +150,8 @@ export function AddCustomerInsuranceDialog({
               form={form}
               schemes={schemes}
               isLoadingSchemes={isLoadingSchemes}
+              isSubmitting={form.formState.isSubmitting}
+              customerFullName={customerFullName}
             />
 
             <DialogFooter className="gap-2 sm:gap-0">

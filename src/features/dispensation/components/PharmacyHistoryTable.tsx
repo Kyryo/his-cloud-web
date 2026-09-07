@@ -41,9 +41,11 @@ export function PharmacyHistoryTable({
             <ListPageDataTableHeaderCell
               key={column.key}
               className={
-                column.align === "right"
+                "align" in column && column.align === "right"
                   ? "text-right pr-4"
-                  : column.className
+                  : "className" in column
+                    ? column.className
+                    : undefined
               }
             >
               {column.label}

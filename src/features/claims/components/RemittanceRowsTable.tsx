@@ -51,7 +51,11 @@ export const REMITTANCE_ROWS_TABLE_SKELETON_COLUMNS = columns.map((column) => ({
   key: column.key,
   label: column.label,
   headerClassName:
-    column.align === "right" ? "text-right" : column.key === "actions" ? "w-12" : undefined,
+    "align" in column && column.align === "right"
+      ? "text-right"
+      : column.key === "actions"
+        ? "w-12"
+        : undefined,
 }));
 
 function columnHeaderClass(key: string, align?: "right") {
@@ -114,7 +118,10 @@ export function RemittanceRowsTable({
           {columns.map((column) => (
             <ListPageDataTableHeaderCell
               key={column.key}
-              className={columnHeaderClass(column.key, column.align)}
+              className={columnHeaderClass(
+                column.key,
+                "align" in column ? column.align : undefined,
+              )}
             >
               {column.label}
             </ListPageDataTableHeaderCell>

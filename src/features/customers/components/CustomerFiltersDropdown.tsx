@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowUpDown, Check, RotateCcw, SlidersHorizontal, Tag as TagIcon, X } from "lucide-react";
+import { ArrowUpDown, Check, RotateCcw, SlidersHorizontal, Tag as TagIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";

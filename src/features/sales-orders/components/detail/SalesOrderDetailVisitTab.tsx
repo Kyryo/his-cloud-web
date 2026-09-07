@@ -70,11 +70,12 @@ export function SalesOrderDetailVisitTab({
       return;
     }
 
+    const resolvedVisitUuid = visitUuid;
     let cancelled = false;
 
     async function loadVisit() {
       try {
-        const record = await fetchVisit(visitUuid);
+        const record = await fetchVisit(resolvedVisitUuid);
         if (!cancelled) {
           setVisit(record);
           setLoadError(null);

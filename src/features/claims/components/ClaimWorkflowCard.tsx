@@ -99,7 +99,11 @@ export function ClaimWorkflowCard({
   const showRequirements = shouldShowRequirementsStage(requirements, claim);
   const isDraft = String(claim?.status ?? "").toLowerCase() === "draft";
   const canSubmit =
-    Boolean(claim) && isDraft && isClaimReadyToSubmit(claim) && Boolean(onSubmit);
+    Boolean(claim) &&
+    isDraft &&
+    claim !== null &&
+    isClaimReadyToSubmit(claim) &&
+    Boolean(onSubmit);
   const createClaimDisabledReason = getCreateClaimDisabledReasonFromItems(
     readinessItems,
     requirementItems,

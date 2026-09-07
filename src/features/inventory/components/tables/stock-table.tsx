@@ -40,7 +40,7 @@ export function StockTable({ items, onRowClick, className }: StockTableProps) {
           {columns.map((column) => (
             <ListPageDataTableHeaderCell
               key={column.key}
-              className={column.align === "right" ? "text-right pr-4" : undefined}
+              className={"align" in column && column.align === "right" ? "text-right pr-4" : undefined}
             >
               {column.label}
             </ListPageDataTableHeaderCell>

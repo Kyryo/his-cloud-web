@@ -206,7 +206,7 @@ export function CustomersListPage() {
   function handleFiltersApply(
     nextFilters: Pick<
       CustomerListFilterState,
-      "gender" | "activeStatus" | "ordering"
+      "gender" | "activeStatus" | "ordering" | "tags"
     >,
   ) {
     setIsRefreshing(true);

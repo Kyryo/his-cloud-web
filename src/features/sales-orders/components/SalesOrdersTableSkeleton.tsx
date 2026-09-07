@@ -35,7 +35,7 @@ export function SalesOrdersTableSkeleton({
           {columns.map((column) => (
             <ListPageDataTableHeaderCell
               key={column.key}
-              className={column.className}
+              className={"className" in column ? column.className : undefined}
             >
               {column.label}
             </ListPageDataTableHeaderCell>

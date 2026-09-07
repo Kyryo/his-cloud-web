@@ -100,7 +100,7 @@ export function UpdateCustomerInsuranceDialog({
     try {
       const updatedInsurance = await updateCustomerInsurance(
         customer.uuid,
-        insurance.id,
+        insurance.uuid,
         toCustomerInsurancePayload(values),
       );
       toast({
@@ -111,17 +111,22 @@ export function UpdateCustomerInsuranceDialog({
       onUpdated(updatedInsurance);
       onOpenChange(false);
     } catch (error) {
-      if (error instanceof BffError && error.fieldErrors) {
-        mapBffErrorsToForm(error.fieldErrors, form.setError);
+      if (error instanceof BffError) {
+        const fieldErrors = mapBffErrorsToForm(error.errors);
+        for (const [field, message] of Object.entries(fieldErrors)) {
+          form.setError(field as keyof CreateCustomerInsuranceFormValues, {
+            message,
+          });
+        }
       }
 
       toast({
         variant: "error",
         title: "Could not update insurance",
-        description: formatBffErrorMessage(
-          error,
-          "Failed to update insurance. Please check your inputs.",
-        ),
+        description:
+          error instanceof BffError
+            ? formatBffErrorMessage(error.message, error.errors)
+            : "Failed to update insurance. Please check your inputs.",
       });
     }
   }
@@ -148,6 +153,8 @@ export function UpdateCustomerInsuranceDialog({
               form={form}
               schemes={schemes}
               isLoadingSchemes={isLoadingSchemes}
+              isSubmitting={form.formState.isSubmitting}
+              customerFullName={customerFullName}
             />
 
             <DialogFooter className="gap-2 sm:gap-0">

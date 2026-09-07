@@ -2,10 +2,9 @@ import { CLAIMS_API_PATHS } from "@/constants/claims-api";
 import type {
   RemittanceRejectionListResponse,
   RemittanceRejectionRow,
-  RemittanceRejectionSummaryStats,
 } from "@/features/claims/types/remittances.types";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
-import { hmisApiRequest, hmisApiRequestWithMeta } from "@/lib/server/hmis-api";
+import { hmisApiRequestWithMeta } from "@/lib/server/hmis-api";
 import { requireAccessToken } from "@/lib/server/require-access-token";
 
 export async function GET(request: Request) {

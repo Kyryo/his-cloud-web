@@ -124,7 +124,9 @@ export function InventoryListSearchToolbar({
             variant={variant}
             filters={filters}
             isLoading={isLoading}
-            onApply={onFiltersApply}
+            onApply={(nextFilters) =>
+              onFiltersApply(nextFilters as InventoryListSearchFilters)
+            }
           />
         }
         trailing={trailing}

@@ -44,9 +44,7 @@ export const createCustomerSchema = z
     internal_reference: z
       .string()
       .trim()
-      .max(255, "Internal reference cannot exceed 255 characters.")
-      .optional()
-      .default(""),
+      .max(255, "Internal reference cannot exceed 255 characters."),
   })
   .superRefine((values, ctx) => {
     if (values.dob) {

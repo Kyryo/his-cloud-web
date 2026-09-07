@@ -216,7 +216,7 @@ export function CustomerDetailSalesOrdersTab({
         <>
           <CustomerSalesOrdersTable
             orders={orders}
-            onRowClick={(order) => router.push(ROUTES.salesOrderDetail(order.uuid))}
+            onRowClick={(order) => router.push(ROUTES.salesOrderDetail(order.id))}
           />
           <ListPagePagination
             page={page}

@@ -181,11 +181,11 @@ function resolveIqFixPlan(finding: AdvisorFinding): AdvisoryFixPlan {
   const kinds = new Set(
     targets.flatMap((target) => kindsForRemediationTarget(target)),
   );
-  const primaryKinds = kindsForRemediationTarget(targets[0]).filter(
-    (item) => item !== "unsupported",
-  );
-  const kind = primaryKinds[0] ?? "unsupported";
-  const canApply = !(kinds.size === 1 && kinds.has("unsupported")) && kind !== "unsupported";
+  const primaryKinds = kindsForRemediationTarget(targets[0]);
+  const kind =
+    primaryKinds.find((item) => item !== "unsupported") ?? "unsupported";
+  const canApply =
+    !(kinds.size === 1 && kinds.has("unsupported")) && kind !== "unsupported";
   return {
     kind,
     canApply,
