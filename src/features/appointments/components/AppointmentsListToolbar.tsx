@@ -84,11 +84,12 @@ export function AppointmentsListToolbar({
       <ListPageSearchToolbar
         search={search}
         searchId="appointments-search"
-        placeholder="Search by name, ID, phone, clinic, or department..."
+        placeholder="Name, ID, phone, clinic, or department"
         searchTestId="appointments-search"
         searchSubmitTestId="appointments-search-submit"
         clearTestId="appointments-search-clear"
         isLoading={isLoading}
+        showSearchButton={false}
         onSearchChange={onSearchChange}
         onSearchSubmit={onSearchSubmit}
         onClearSearch={onClearSearch}

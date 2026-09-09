@@ -6,6 +6,7 @@ import type { FetchAppointmentsOptions } from "@/features/appointments/types/app
 import type { PaginatedListResponse } from "@/types/api.types";
 
 const DEFAULT_PAGE_SIZE = 20;
+export const APPOINTMENT_SEARCH_DEBOUNCE_MS = 300;
 
 const EMPTY_EXTRA_FILTERS: Omit<
   FetchAppointmentsOptions,
@@ -77,8 +78,21 @@ export function useAppointmentsList<T>({
   }, [enabled, fetchFn, listFilters]);
 
   useEffect(() => {
+    const handle = window.setTimeout(() => {
+      const nextSearch = search.trim();
+      setActiveSearch((current) => (current === nextSearch ? current : nextSearch));
+      setPage(1);
+    }, APPOINTMENT_SEARCH_DEBOUNCE_MS);
+
+    return () => {
+      window.clearTimeout(handle);
+    };
+  }, [search]);
+
+  const showLoading = enabled && isLoading;
+
+  useEffect(() => {
     if (!enabled) {
-      setIsLoading(false);
       return;
     }
 
@@ -125,20 +139,20 @@ export function useAppointmentsList<T>({
     pageSize,
     search,
     activeSearch,
-    isLoading,
+    isLoading: showLoading,
     isRefreshing,
     error,
     isUnauthorized,
     hasNext,
     hasPrevious,
     hasNoRecords:
-      !isLoading &&
+      !showLoading &&
       !error &&
       items.length === 0 &&
       !activeSearch &&
       !hasActiveFilters,
     isFilteredEmpty:
-      !isLoading &&
+      !showLoading &&
       !error &&
       items.length === 0 &&
       (Boolean(activeSearch) || hasActiveFilters),

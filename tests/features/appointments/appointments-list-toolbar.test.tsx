@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { AppointmentsListToolbar } from "@/features/appointments/components/AppointmentsListToolbar";
@@ -17,16 +17,14 @@ afterEach(() => {
 });
 
 describe("AppointmentsListToolbar", () => {
-  it("reuses the shared search field, search button, and add filter button", () => {
-    const onSearchSubmit = vi.fn();
-
+  it("uses a search field without a Search button", () => {
     render(
       <AppointmentsListToolbar
         search="jane"
         filters={DEFAULT_APPOINTMENT_FILTERS}
         viewMode="list"
         onSearchChange={vi.fn()}
-        onSearchSubmit={onSearchSubmit}
+        onSearchSubmit={vi.fn()}
         onClearSearch={vi.fn()}
         onFiltersApply={vi.fn()}
         onViewModeChange={vi.fn()}
@@ -34,19 +32,18 @@ describe("AppointmentsListToolbar", () => {
     );
 
     const search = screen.getByTestId("appointments-search");
-    const searchButton = screen.getByTestId("appointments-search-submit");
     const filterButton = screen.getByTestId("appointments-filters-button");
 
-    expect(search.compareDocumentPosition(searchButton)).toBe(
+    expect(search).toHaveAttribute(
+      "placeholder",
+      "Name, ID, phone, clinic, or department",
+    );
+    expect(screen.queryByTestId("appointments-search-submit")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Search" })).not.toBeInTheDocument();
+    expect(search.compareDocumentPosition(filterButton)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
-    expect(searchButton.compareDocumentPosition(filterButton)).toBe(
-      Node.DOCUMENT_POSITION_FOLLOWING,
-    );
-    expect(searchButton).toHaveTextContent("Search");
     expect(filterButton).toHaveTextContent("Add filter");
-
-    fireEvent.click(searchButton);
-    expect(onSearchSubmit).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("button", { name: /board/i })).toBeInTheDocument();
   });
 });

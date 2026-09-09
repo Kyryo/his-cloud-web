@@ -11,3 +11,7 @@ export function canConfirmAppointment(appointment: Appointment) {
 export function canCancelAppointment(appointment: Appointment) {
   return appointment.status === "scheduled" || appointment.status === "confirmed";
 }
+
+export function canMarkAppointmentNoShow(appointment: Appointment) {
+  return appointment.status === "scheduled" || appointment.status === "confirmed";
+}
