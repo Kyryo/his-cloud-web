@@ -43,8 +43,11 @@ export function resolveAppointmentRangeBounds(
   visibleMonth: Date,
   filters: { scheduledFrom: string; scheduledTo: string },
 ): { scheduledFrom: string; scheduledTo: string } {
-  const monthStart = format(startOfMonth(visibleMonth), "yyyy-MM-dd");
-  const monthEnd = format(endOfMonth(visibleMonth), "yyyy-MM-dd");
+  const monthStart = format(
+    startOfWeek(startOfMonth(visibleMonth)),
+    "yyyy-MM-dd",
+  );
+  const monthEnd = format(endOfWeek(endOfMonth(visibleMonth)), "yyyy-MM-dd");
 
   let from = monthStart;
   let to = monthEnd;
