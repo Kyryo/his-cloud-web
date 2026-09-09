@@ -69,7 +69,7 @@ export function AppointmentsCalendarNav({
         : isSameDay(focusDate, new Date());
 
   return (
-    <div className="flex min-h-16 flex-wrap items-center justify-between gap-x-5 gap-y-3 border-b border-border bg-background px-4 py-3 sm:px-6">
+    <div className="flex min-h-12 flex-wrap items-center justify-between gap-x-5 gap-y-2 bg-background px-4 py-2 sm:px-6">
       <div className="flex min-w-0 items-center gap-1">
         <Button
           type="button"

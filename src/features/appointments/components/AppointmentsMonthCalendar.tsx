@@ -108,7 +108,7 @@ export function AppointmentsMonthCalendar({
       className="-mx-4 flex min-h-0 flex-1 flex-col md:-mx-6"
       data-testid="appointments-month-calendar"
     >
-      <div className="flex min-h-0 flex-1 flex-col overflow-hidden border-y border-border bg-background">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden border-b border-border bg-background">
         <AppointmentsCalendarNav
           focusDate={calendarView === "month" ? visibleMonth : agendaDay}
           view={calendarView}

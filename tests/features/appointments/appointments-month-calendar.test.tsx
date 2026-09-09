@@ -99,7 +99,10 @@ describe("AppointmentsMonthCalendar", () => {
         `appointments-calendar-day-${getAppointmentDayKey("2026-09-01T12:00:00.000Z")}`,
       ),
     );
-    expect(screen.getByRole("complementary", { name: "Selected day agenda" })).toHaveTextContent("Habiba Osman");
+    const agenda = screen.getByRole("complementary", { name: "Selected day agenda" });
+    expect(agenda).toHaveTextContent("Habiba Osman");
+    expect(agenda).toHaveTextContent("Dr. Vipin Vijayan");
+    expect(agenda).toHaveTextContent("DV");
     expect(onDaySelect).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole("button", { name: "Find a time" }));
     expect(onDaySelect).toHaveBeenCalled();

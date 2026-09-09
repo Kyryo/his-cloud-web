@@ -13,13 +13,13 @@ import {
 import { cn } from "@/lib/utils";
 
 const APPOINTMENT_ROW_STYLE: Record<Appointment["status"], string> = {
-  scheduled: "border-slate-400 hover:bg-slate-50",
+  scheduled: "border-stone-400 hover:bg-stone-50",
   confirmed: "border-brand-primary hover:bg-brand-primary/5",
-  in_progress: "border-amber-500 hover:bg-amber-50/60",
-  completed: "border-emerald-500 hover:bg-emerald-50/60",
-  cancelled: "border-red-400 opacity-55 hover:bg-red-50/60",
-  no_show: "border-rose-500 opacity-55 hover:bg-rose-50/60",
-  rescheduled: "border-violet-400 hover:bg-violet-50/60",
+  in_progress: "border-brand-amber hover:bg-amber-50/70",
+  completed: "border-brand-green hover:bg-brand-green-tint",
+  cancelled: "border-red-500 opacity-55 hover:bg-red-50/70",
+  no_show: "border-rose-600 opacity-55 hover:bg-rose-50/70",
+  rescheduled: "border-violet-500 hover:bg-violet-50/70",
 };
 
 type AppointmentsCalendarDayCellProps = {

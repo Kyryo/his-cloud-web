@@ -34,6 +34,26 @@ export const APPOINTMENT_BOARD_ACCENT: Record<AppointmentStatus, string> = {
   rescheduled: "bg-violet-400",
 };
 
+export const APPOINTMENT_STATUS_LINE: Record<AppointmentStatus, string> = {
+  scheduled: "border-l-stone-400",
+  confirmed: "border-l-brand-primary",
+  in_progress: "border-l-brand-amber",
+  completed: "border-l-brand-green",
+  cancelled: "border-l-red-500",
+  no_show: "border-l-rose-600",
+  rescheduled: "border-l-violet-500",
+};
+
+export const APPOINTMENT_STATUS_PILL: Record<AppointmentStatus, string> = {
+  scheduled: "bg-stone-200/80 text-stone-700",
+  confirmed: "bg-brand-primary text-white",
+  in_progress: "bg-brand-amber/15 text-brand-amber",
+  completed: "bg-brand-green-tint text-brand-green",
+  cancelled: "bg-red-50 text-red-700",
+  no_show: "bg-rose-50 text-rose-800",
+  rescheduled: "bg-violet-50 text-violet-800",
+};
+
 export type AppointmentBoardColumn = {
   status: AppointmentStatus;
   label: string;
