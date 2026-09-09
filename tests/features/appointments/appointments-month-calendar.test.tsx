@@ -89,3 +89,28 @@ it("selects an adjacent month and supports keyboard day selection", () => {
   fireEvent.keyDown(screen.getByTestId("appointments-calendar-day-2026-08-30"), { key: "Enter" });
   expect(onVisibleMonthChange).toHaveBeenCalledWith(new Date(2026, 7, 1));
 });
+
+it("switches between month, week, and day views", () => {
+  render(
+    <AppointmentsMonthCalendar
+      visibleMonth={new Date(2026, 8, 1)}
+      appointments={[buildAppointment()]}
+      onVisibleMonthChange={vi.fn()}
+      onDaySelect={vi.fn()}
+    />,
+  );
+
+  expect(screen.getByRole("group", { name: "Calendar view" })).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole("button", { name: "Week" }));
+  expect(screen.getByTestId("appointments-week-view")).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole("button", { name: "Day" }));
+  expect(screen.getByTestId("appointments-day-view")).toBeInTheDocument();
+
+  const currentDayTitle = screen.getByRole("heading", { level: 2 }).textContent;
+  fireEvent.click(screen.getByRole("button", { name: "Next day" }));
+  expect(screen.getByRole("heading", { level: 2 }).textContent).not.toBe(
+    currentDayTitle,
+  );
+});

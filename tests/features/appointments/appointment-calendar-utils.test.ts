@@ -109,7 +109,7 @@ describe("appointment-calendar-utils", () => {
     expect(formatAppointmentCountBadge(100)).toBe("99+");
   });
 
-  it("intersects visible month with manual date filters", () => {
+  it("intersects the visible calendar grid with manual date filters", () => {
     const bounds = resolveAppointmentRangeBounds(new Date("2026-07-15"), {
       scheduledFrom: "2026-07-10",
       scheduledTo: "2026-08-01",
@@ -117,7 +117,7 @@ describe("appointment-calendar-utils", () => {
 
     expect(bounds).toEqual({
       scheduledFrom: "2026-07-10",
-      scheduledTo: "2026-07-31",
+      scheduledTo: "2026-08-01",
     });
   });
 

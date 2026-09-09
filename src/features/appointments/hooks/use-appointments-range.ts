@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { fetchAppointments } from "@/features/appointments/services/appointments.service";
 import type {
@@ -54,6 +54,7 @@ export function useAppointmentsRange({
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hasLoadedRef = useRef(false);
 
   const rangeBounds = useMemo(
     () =>
@@ -92,15 +93,25 @@ export function useAppointmentsRange({
   }, [enabled, fetchOptions]);
 
   useEffect(() => {
-    if (!enabled) {
-      setIsLoading(false);
-      return;
-    }
-
     let active = true;
 
     async function load() {
-      setIsLoading(true);
+      await Promise.resolve();
+      if (!active) {
+        return;
+      }
+
+      if (!enabled) {
+        setIsLoading(false);
+        setIsRefreshing(false);
+        return;
+      }
+
+      if (hasLoadedRef.current) {
+        setIsRefreshing(true);
+      } else {
+        setIsLoading(true);
+      }
       setError(null);
 
       try {
@@ -116,7 +127,9 @@ export function useAppointmentsRange({
         }
       } finally {
         if (active) {
+          hasLoadedRef.current = true;
           setIsLoading(false);
+          setIsRefreshing(false);
         }
       }
     }
