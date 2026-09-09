@@ -47,6 +47,7 @@ export function ListPageSearchField({
         id={id}
         type="search"
         placeholder={placeholder}
+        aria-label={placeholder}
         value={value}
         disabled={disabled}
         className="h-10 w-full rounded-lg border-dash-border bg-white pl-9"
@@ -153,6 +154,7 @@ type ListPageSearchToolbarProps = {
   searchSubmitTestId?: string;
   clearTestId?: string;
   isLoading?: boolean;
+  showSearchButton?: boolean;
   onSearchChange: (value: string) => void;
   onSearchSubmit: () => void;
   onClearSearch: () => void;
@@ -169,6 +171,7 @@ export function ListPageSearchToolbar({
   searchSubmitTestId,
   clearTestId,
   isLoading = false,
+  showSearchButton = true,
   onSearchChange,
   onSearchSubmit,
   onClearSearch,
@@ -191,11 +194,13 @@ export function ListPageSearchToolbar({
           data-testid={searchTestId}
         />
         <ListPageToolbarActions>
-          <ListPageSearchButton
-            disabled={isLoading}
-            onClick={onSearchSubmit}
-            data-testid={searchSubmitTestId}
-          />
+          {showSearchButton ? (
+            <ListPageSearchButton
+              disabled={isLoading}
+              onClick={onSearchSubmit}
+              data-testid={searchSubmitTestId}
+            />
+          ) : null}
           {filter}
           {search ? (
             <ListPageClearSearchButton

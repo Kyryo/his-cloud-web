@@ -19,7 +19,7 @@ import type { Appointment } from "@/features/appointments/types/appointment.type
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 
-export type AppointmentTableAction = "confirm" | "cancel" | "start";
+export type AppointmentTableAction = "confirm" | "cancel" | "start" | "no-show";
 
 type AppointmentActionConfirmDialogProps = {
   action: AppointmentTableAction | null;
@@ -51,6 +51,13 @@ function getConfirmCopy(action: AppointmentTableAction, appointment: Appointment
         description: `Begin a clinic visit for ${appointment.patient_name} from this appointment.`,
         confirmLabel: "Start visit",
         destructive: false,
+      };
+    case "no-show":
+      return {
+        title: "Mark as no show?",
+        description: `Record that ${appointment.patient_name} did not attend this appointment.`,
+        confirmLabel: "Mark no show",
+        destructive: true,
       };
   }
 }

@@ -24,6 +24,8 @@ import {
   AppointmentsDayPanel,
   type AppointmentCreateSchedulePrefill,
 } from "@/features/appointments/components/AppointmentsDayPanel";
+import { AppointmentsBoard } from "@/features/appointments/components/AppointmentsBoard";
+import { AppointmentsBoardSkeleton } from "@/features/appointments/components/AppointmentsBoardSkeleton";
 import { AppointmentsCalendarSkeleton } from "@/features/appointments/components/AppointmentsCalendarSkeleton";
 import { AppointmentsMonthCalendar } from "@/features/appointments/components/AppointmentsMonthCalendar";
 import { AppointmentsPageHeader } from "@/features/appointments/components/AppointmentsPageHeader";
@@ -50,6 +52,7 @@ import {
   DEFAULT_APPOINTMENT_FILTERS,
   type AppointmentListFilterState,
 } from "@/features/appointments/utils/appointment-list-filters";
+import { useAppointmentBoardStore } from "@/features/appointments/stores/appointment-board.store";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
@@ -147,7 +150,6 @@ export function AppointmentsListPage() {
   });
 
   const handleSearchSubmit = useCallback(() => {
-    setViewMode("list");
     submitListSearch();
   }, [submitListSearch]);
 
@@ -161,7 +163,8 @@ export function AppointmentsListPage() {
     visibleMonth,
     extraFilters: calendarExtraFilters,
     search: activeSearch || undefined,
-    enabled: viewMode === "calendar" && hasAssignedClinic,
+    enabled:
+      (viewMode === "calendar" && hasAssignedClinic) || viewMode === "board",
   });
 
   const reloadStats = useCallback(async () => {
@@ -206,21 +209,27 @@ export function AppointmentsListPage() {
 
   const handleAction = async (
     appointment: Appointment,
-    action: "confirm" | "cancel",
+    action: "confirm" | "cancel" | "no-show",
   ) => {
     setActionUuid(appointment.uuid);
 
     try {
       await runAppointmentAction(appointment.uuid, action);
+      useAppointmentBoardStore.getState().commit(appointment.uuid);
       toast({
         variant: "success",
         title: "Appointment updated",
         description:
-          action === "confirm" ? "Appointment confirmed." : "Appointment cancelled.",
+          action === "confirm"
+            ? "Appointment confirmed."
+            : action === "no-show"
+              ? "Marked as no show."
+              : "Appointment cancelled.",
       });
       setPendingAction(null);
       await reloadAll();
     } catch (err) {
+      useAppointmentBoardStore.getState().revert(appointment.uuid);
       toast({
         variant: "error",
         title: "Action could not be completed",
@@ -268,12 +277,14 @@ export function AppointmentsListPage() {
   };
 
   const isListView = viewMode === "list";
+  const isBoardView = viewMode === "board";
+  const isCalendarView = viewMode === "calendar";
   const activeError = isListView ? error : calendarError;
   const activeLoading = isListView
     ? isLoading
-    : hasAssignedClinic
-      ? isCalendarLoading
-      : false;
+    : isCalendarView && !hasAssignedClinic
+      ? false
+      : isCalendarLoading;
 
   if (isUnauthorized) {
     return <InventoryListAccessDenied />;
@@ -281,7 +292,10 @@ export function AppointmentsListPage() {
 
   return (
     <>
-      <ListPageLayout data-testid="appointments-page">
+      <ListPageLayout
+        data-testid="appointments-page"
+        className={cn(isBoardView && "overflow-hidden sm:pb-3")}
+      >
         <AppointmentsPageHeader
           search={search}
           filters={filters}
@@ -332,10 +346,14 @@ export function AppointmentsListPage() {
           </ListPageDataSectionsStack>
         ) : null}
 
-        <ListPageTableSection>
+        <ListPageTableSection
+          className={cn(isBoardView && "flex min-h-0 flex-1 flex-col")}
+        >
           {activeLoading ? (
             isListView ? (
               <AppointmentsTableSkeleton rows={8} />
+            ) : isBoardView ? (
+              <AppointmentsBoardSkeleton />
             ) : (
               <AppointmentsCalendarSkeleton visibleMonth={visibleMonth} />
             )
@@ -401,6 +419,21 @@ export function AppointmentsListPage() {
                 onPageChange={handlePageChange}
               />
             </>
+          ) : isBoardView ? (
+            <AppointmentsBoard
+              appointments={calendarAppointments}
+              statusFilter={filters.status}
+              onSelectAppointment={(appointment) =>
+                setSelectedAppointmentUuid(appointment.uuid)
+              }
+              onActionRequest={(appointment, action) => {
+                if (action === "confirm") {
+                  void handleAction(appointment, "confirm");
+                  return;
+                }
+                setPendingAction({ appointment, action });
+              }}
+            />
           ) : !hasAssignedClinic ? (
             <AppointmentClinicEmptyState className="rounded-2xl border border-dash-border bg-white py-16" />
           ) : (
@@ -452,6 +485,9 @@ export function AppointmentsListPage() {
         isSubmitting={Boolean(actionUuid)}
         onOpenChange={(open) => {
           if (!open) {
+            if (pendingAction) {
+              useAppointmentBoardStore.getState().revert(pendingAction.appointment.uuid);
+            }
             setPendingAction(null);
           }
         }}

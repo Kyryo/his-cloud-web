@@ -4,6 +4,7 @@ import type { Appointment } from "@/features/appointments/types/appointment.type
 import {
   canCancelAppointment,
   canConfirmAppointment,
+  canMarkAppointmentNoShow,
   canStartAppointmentVisit,
 } from "@/features/appointments/utils/appointment-action-availability";
 
@@ -16,6 +17,7 @@ describe("appointment action availability", () => {
     expect(canStartAppointmentVisit(appointment)).toBe(true);
     expect(canConfirmAppointment(appointment)).toBe(true);
     expect(canCancelAppointment(appointment)).toBe(true);
+    expect(canMarkAppointmentNoShow(appointment)).toBe(true);
   });
 
   it("locks confirm on confirmed appointments and all actions after completion", () => {
