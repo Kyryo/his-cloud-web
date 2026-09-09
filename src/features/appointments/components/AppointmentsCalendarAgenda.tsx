@@ -38,7 +38,7 @@ export function AppointmentsCalendarAgenda({
   return (
     <aside
       aria-label="Selected day agenda"
-      className="flex min-h-0 flex-col border-t border-border bg-background xl:border-t-0 xl:border-l"
+      className="flex h-full min-h-0 flex-col border-t border-border bg-background xl:border-t-0 xl:border-l"
     >
       <div className="flex min-h-16 items-center justify-between gap-3 border-b border-border px-5">
         <div className="min-w-0">

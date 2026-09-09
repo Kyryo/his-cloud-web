@@ -1,6 +1,7 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, it } from "vitest";
 
+import { ROUTES } from "@/constants/routes";
 import { AppointmentsViewToggle } from "@/features/appointments/components/AppointmentsViewToggle";
 
 afterEach(() => {
@@ -8,20 +9,24 @@ afterEach(() => {
 });
 
 describe("AppointmentsViewToggle", () => {
-  it("offers table, board, and calendar views", () => {
-    const onViewModeChange = vi.fn();
+  it("links table, board, and calendar views", () => {
+    render(<AppointmentsViewToggle viewMode="list" />);
 
-    render(
-      <AppointmentsViewToggle
-        viewMode="list"
-        onViewModeChange={onViewModeChange}
-      />,
+    expect(screen.getByRole("link", { name: /table/i })).toHaveAttribute(
+      "href",
+      ROUTES.appointments,
     );
-
-    fireEvent.click(screen.getByRole("button", { name: /board/i }));
-    expect(onViewModeChange).toHaveBeenCalledWith("board");
-
-    fireEvent.click(screen.getByRole("button", { name: /calendar/i }));
-    expect(onViewModeChange).toHaveBeenCalledWith("calendar");
+    expect(screen.getByRole("link", { name: /board/i })).toHaveAttribute(
+      "href",
+      ROUTES.appointmentsBoard,
+    );
+    expect(screen.getByRole("link", { name: /calendar/i })).toHaveAttribute(
+      "href",
+      ROUTES.appointmentsCalendar,
+    );
+    expect(screen.getByRole("link", { name: /table/i })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
   });
 });

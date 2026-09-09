@@ -26,7 +26,6 @@ type AppointmentsListToolbarProps = {
   onSearchSubmit: () => void;
   onClearSearch: () => void;
   onFiltersApply: (filters: AppointmentListFilterState) => void;
-  onViewModeChange: (mode: AppointmentsViewMode) => void;
   trailing?: ReactNode;
   className?: string;
 };
@@ -40,7 +39,6 @@ export function AppointmentsListToolbar({
   onSearchSubmit,
   onClearSearch,
   onFiltersApply,
-  onViewModeChange,
   trailing,
   className,
 }: AppointmentsListToolbarProps) {
@@ -102,10 +100,7 @@ export function AppointmentsListToolbar({
         }
         trailing={
           <div className="flex items-center gap-3">
-            <AppointmentsViewToggle
-              viewMode={viewMode}
-              onViewModeChange={onViewModeChange}
-            />
+            <AppointmentsViewToggle viewMode={viewMode} />
             {trailing}
           </div>
         }

@@ -16,7 +16,6 @@ type AppointmentsPageHeaderProps = {
   onSearchSubmit: () => void;
   onClearSearch: () => void;
   onFiltersApply: (filters: AppointmentListFilterState) => void;
-  onViewModeChange: (mode: AppointmentsViewMode) => void;
   onNewAppointment: () => void;
 };
 
@@ -29,7 +28,6 @@ export function AppointmentsPageHeader({
   onSearchSubmit,
   onClearSearch,
   onFiltersApply,
-  onViewModeChange,
   onNewAppointment,
 }: AppointmentsPageHeaderProps) {
   return (
@@ -43,7 +41,6 @@ export function AppointmentsPageHeader({
         onSearchSubmit={onSearchSubmit}
         onClearSearch={onClearSearch}
         onFiltersApply={onFiltersApply}
-        onViewModeChange={onViewModeChange}
         trailing={
           <Button
             size="sm"

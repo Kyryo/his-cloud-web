@@ -17,11 +17,16 @@ import {
   isSameWeek,
   startOfWeek,
 } from "date-fns";
+import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
+import {
+  appointmentsCalendarHref,
+  type AppointmentsCalendarView,
+} from "@/features/appointments/utils/appointment-views";
 import { cn } from "@/lib/utils";
 
-export type AppointmentsCalendarView = "month" | "week" | "day";
+export type { AppointmentsCalendarView };
 
 const CALENDAR_VIEWS: Array<{
   icon: IconSvgElement;
@@ -39,7 +44,6 @@ type AppointmentsCalendarNavProps = {
   isLoading?: boolean;
   onNavigate: (direction: -1 | 1) => void;
   onToday: () => void;
-  onViewChange: (view: AppointmentsCalendarView) => void;
 };
 
 export function AppointmentsCalendarNav({
@@ -48,7 +52,6 @@ export function AppointmentsCalendarNav({
   isLoading = false,
   onNavigate,
   onToday,
-  onViewChange,
 }: AppointmentsCalendarNavProps) {
   const weekStart = startOfWeek(focusDate);
   const weekEnd = endOfWeek(focusDate);
@@ -119,29 +122,35 @@ export function AppointmentsCalendarNav({
           aria-label="Calendar view"
           role="group"
         >
-          {CALENDAR_VIEWS.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              aria-label={option.label}
-              aria-pressed={view === option.value}
-              disabled={isLoading}
-              onClick={() => onViewChange(option.value)}
-              className={cn(
-                "relative flex h-8 items-center gap-1.5 px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary disabled:opacity-50 sm:px-2.5 sm:text-xs",
-                "after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:bg-transparent",
-                view === option.value &&
-                  "text-brand-primary after:bg-brand-primary",
-              )}
-            >
-              <HugeiconsIcon
-                icon={option.icon}
-                size={17}
-                strokeWidth={1.8}
-              />
-              <span className="hidden sm:inline">{option.label}</span>
-            </button>
-          ))}
+          {CALENDAR_VIEWS.map((option) => {
+            const isCurrent = view === option.value;
+
+            return (
+              <Link
+                key={option.value}
+                href={appointmentsCalendarHref(option.value)}
+                replace
+                scroll={false}
+                aria-label={option.label}
+                aria-current={isCurrent ? "page" : undefined}
+                aria-disabled={isLoading || undefined}
+                tabIndex={isLoading ? -1 : undefined}
+                className={cn(
+                  "relative flex h-8 items-center gap-1.5 px-2 text-[11px] font-medium text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary sm:px-2.5 sm:text-xs",
+                  "after:absolute after:inset-x-2 after:bottom-0 after:h-0.5 after:bg-transparent",
+                  isCurrent && "text-brand-primary after:bg-brand-primary",
+                  isLoading && "pointer-events-none opacity-50",
+                )}
+              >
+                <HugeiconsIcon
+                  icon={option.icon}
+                  size={17}
+                  strokeWidth={1.8}
+                />
+                <span className="hidden sm:inline">{option.label}</span>
+              </Link>
+            );
+          })}
         </div>
       </div>
     </div>

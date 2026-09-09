@@ -80,6 +80,8 @@ export const ROUTES = {
   pharmacyHistory: "/pharmacy/history",
   activeVisits: "/active-visits",
   appointments: "/appointments",
+  appointmentsBoard: "/appointments/board",
+  appointmentsCalendar: "/appointments/calendar",
   clinicalOpd: "/clinical/opd",
   clinicalOpdEncounter: (visitUuid: string, encounterUuid: string) =>
     `/clinical/opd/${visitUuid}/${encounterUuid}`,

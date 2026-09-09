@@ -40,6 +40,17 @@ describe("buildAppBreadcrumbs", () => {
     ]);
   });
 
+  it("keeps the appointments breadcrumb for board and calendar routes", () => {
+    expect(buildAppBreadcrumbs(ROUTES.appointmentsBoard)).toEqual([
+      { label: "Front Desk" },
+      { label: "Appointments" },
+    ]);
+    expect(buildAppBreadcrumbs(ROUTES.appointmentsCalendar)).toEqual([
+      { label: "Front Desk" },
+      { label: "Appointments" },
+    ]);
+  });
+
   it("returns front desk and active visits for the active visits list", () => {
     expect(buildAppBreadcrumbs(ROUTES.activeVisits)).toEqual([
       { label: "Front Desk" },

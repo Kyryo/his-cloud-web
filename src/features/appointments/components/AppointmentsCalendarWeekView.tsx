@@ -29,7 +29,7 @@ export function AppointmentsCalendarWeekView({
 }: AppointmentsCalendarWeekViewProps) {
   return (
     <div
-      className="max-h-[calc(100dvh-14rem)] overflow-auto overscroll-contain"
+      className="min-h-0"
       data-testid="appointments-week-view"
     >
       <div className="grid min-h-[620px] min-w-[980px] grid-cols-7 divide-x divide-border">

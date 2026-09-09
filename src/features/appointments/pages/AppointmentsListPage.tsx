@@ -1,7 +1,8 @@
 "use client";
 
 import { BarChart3 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { FabButton } from "@/components/ui/fab-button";
@@ -30,7 +31,6 @@ import { AppointmentsCalendarSkeleton } from "@/features/appointments/components
 import { AppointmentsMonthCalendar } from "@/features/appointments/components/AppointmentsMonthCalendar";
 import { AppointmentsPageHeader } from "@/features/appointments/components/AppointmentsPageHeader";
 import { AppointmentsTableSkeleton } from "@/features/appointments/components/AppointmentsTableSkeleton";
-import type { AppointmentsViewMode } from "@/features/appointments/components/AppointmentsViewToggle";
 import { CreateAppointmentDialog } from "@/features/appointments/components/CreateAppointmentDialog";
 import { StartVisitFromAppointmentDialog } from "@/features/appointments/components/StartVisitFromAppointmentDialog";
 import { AppointmentsTable } from "@/features/appointments/components/tables/appointments-table";
@@ -53,11 +53,15 @@ import {
   type AppointmentListFilterState,
 } from "@/features/appointments/utils/appointment-list-filters";
 import { useAppointmentBoardStore } from "@/features/appointments/stores/appointment-board.store";
+import { parseAppointmentsViewFromPath } from "@/features/appointments/utils/appointment-views";
+import { usePageActivity } from "@/features/app-shell/hooks/use-page-activity";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
 export function AppointmentsListPage() {
+  const pathname = usePathname();
+  const viewMode = parseAppointmentsViewFromPath(pathname);
   const { toast } = useToast();
   const [actionUuid, setActionUuid] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -78,7 +82,6 @@ export function AppointmentsListPage() {
   const [filters, setFilters] = useState<AppointmentListFilterState>(
     DEFAULT_APPOINTMENT_FILTERS,
   );
-  const [viewMode, setViewMode] = useState<AppointmentsViewMode>("list");
   const [visibleMonth, setVisibleMonth] = useState(() => new Date());
   const [selectedDay, setSelectedDay] = useState<Date | null>(null);
   const [dayPanelOpen, setDayPanelOpen] = useState(false);
@@ -286,6 +289,13 @@ export function AppointmentsListPage() {
       ? false
       : isCalendarLoading;
 
+  usePageActivity(
+    !isUnauthorized &&
+      (activeLoading ||
+        isRefreshing ||
+        ((isBoardView || isCalendarView) && isCalendarRefreshing)),
+  );
+
   if (isUnauthorized) {
     return <InventoryListAccessDenied />;
   }
@@ -308,7 +318,6 @@ export function AppointmentsListPage() {
             setFilters(nextFilters);
             resetPage();
           }}
-          onViewModeChange={setViewMode}
           onNewAppointment={() => {
             setCreatePrefill(undefined);
             setCreateOpen(true);
@@ -439,16 +448,22 @@ export function AppointmentsListPage() {
           ) : !hasAssignedClinic ? (
             <AppointmentClinicEmptyState className="rounded-2xl border border-dash-border bg-white py-16" />
           ) : (
-            <AppointmentsMonthCalendar
-              visibleMonth={visibleMonth}
-              appointments={calendarAppointments}
-              isLoading={isCalendarLoading || isCalendarRefreshing}
-              onVisibleMonthChange={setVisibleMonth}
-              onDaySelect={handleDaySelect}
-              onAppointmentSelect={(appointment) =>
-                setSelectedAppointmentUuid(appointment.uuid)
+            <Suspense
+              fallback={
+                <AppointmentsCalendarSkeleton visibleMonth={visibleMonth} />
               }
-            />
+            >
+              <AppointmentsMonthCalendar
+                visibleMonth={visibleMonth}
+                appointments={calendarAppointments}
+                isLoading={isCalendarLoading || isCalendarRefreshing}
+                onVisibleMonthChange={setVisibleMonth}
+                onDaySelect={handleDaySelect}
+                onAppointmentSelect={(appointment) =>
+                  setSelectedAppointmentUuid(appointment.uuid)
+                }
+              />
+            </Suspense>
           )}
         </ListPageTableSection>
       </ListPageLayout>
