@@ -182,7 +182,7 @@ describe("buildAppBreadcrumbs", () => {
 
   it("returns reports overview breadcrumbs", () => {
     expect(buildAppBreadcrumbs(ROUTES.reportsOverview)).toEqual([
-      { label: "Reports & Insights" },
+      { label: "Reports" },
       { label: "Overview" },
     ]);
   });

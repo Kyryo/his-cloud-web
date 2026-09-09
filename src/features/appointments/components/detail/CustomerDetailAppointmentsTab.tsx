@@ -237,6 +237,18 @@ export function CustomerDetailAppointmentsTab({
           }
         }}
         onUpdated={() => void loadAppointments()}
+        onActionRequest={(appointment, action) => {
+          setSelectedAppointmentUuid(null);
+          if (action === "start") {
+            setStartingAppointment(appointment);
+            return;
+          }
+          if (action === "confirm") {
+            void handleAction(appointment, "confirm");
+            return;
+          }
+          setPendingAction({ appointment, action });
+        }}
       />
 
       {startingAppointment ? (

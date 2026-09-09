@@ -23,19 +23,12 @@ import {
 import { AppointmentStatusBadge } from "@/features/appointments/components/AppointmentStatusBadge";
 import type { AppointmentTableAction } from "@/features/appointments/components/AppointmentActionConfirmDialog";
 import type { Appointment } from "@/features/appointments/types/appointment.types";
+import {
+  canCancelAppointment,
+  canConfirmAppointment,
+  canStartAppointmentVisit,
+} from "@/features/appointments/utils/appointment-action-availability";
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
-
-function canStartVisit(appointment: Appointment) {
-  return ["scheduled", "confirmed"].includes(appointment.status);
-}
-
-function canConfirm(appointment: Appointment) {
-  return appointment.status === "scheduled";
-}
-
-function canCancel(appointment: Appointment) {
-  return ["scheduled", "confirmed"].includes(appointment.status);
-}
 
 type AppointmentsTableProps = {
   appointments: Appointment[];
@@ -91,7 +84,8 @@ export function AppointmentsTable({
       </ListPageDataTableHeader>
       <ListPageDataTableBody>
         {appointments.map((appointment) => {
-          const showOverflow = canConfirm(appointment) || canCancel(appointment);
+          const showOverflow =
+            canConfirmAppointment(appointment) || canCancelAppointment(appointment);
 
           return (
             <ListPageDataTableRow
@@ -153,7 +147,7 @@ export function AppointmentsTable({
                   className="flex items-center justify-end gap-1.5"
                   onClick={(event) => event.stopPropagation()}
                 >
-                  {canStartVisit(appointment) ? (
+                  {canStartAppointmentVisit(appointment) ? (
                     <SecondaryButton
                       type="button"
                       size="sm"
@@ -179,7 +173,7 @@ export function AppointmentsTable({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="w-44">
-                        {canConfirm(appointment) ? (
+                        {canConfirmAppointment(appointment) ? (
                           <DropdownMenuItem
                             disabled={actionUuid === appointment.uuid}
                             onClick={() => onActionRequest(appointment, "confirm")}
@@ -187,7 +181,7 @@ export function AppointmentsTable({
                             Confirm
                           </DropdownMenuItem>
                         ) : null}
-                        {canCancel(appointment) ? (
+                        {canCancelAppointment(appointment) ? (
                           <DropdownMenuItem
                             disabled={actionUuid === appointment.uuid}
                             className="text-red-600 focus:text-red-600"

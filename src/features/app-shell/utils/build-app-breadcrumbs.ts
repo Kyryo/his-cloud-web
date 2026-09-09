@@ -123,21 +123,21 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
 
   if (isReportsNavActive(pathname)) {
     if (pathname === ROUTES.reportsOverview) {
-      return [{ label: "Reports & Insights" }, { label: "Overview" }];
+      return [{ label: "Reports" }, { label: "Overview" }];
     }
     if (pathname === ROUTES.reportsAnalytics) {
-      return [{ label: "Reports & Insights" }, { label: "Analytics" }];
+      return [{ label: "Reports" }, { label: "Analytics" }];
     }
     if (pathname === ROUTES.reportsAppointmentsToday) {
-      return [{ label: "Reports & Insights" }, { label: "Today's appointments" }];
+      return [{ label: "Reports" }, { label: "Today's appointments" }];
     }
     if (pathname === ROUTES.reportsExports) {
-      return [{ label: "Reports & Insights" }, { label: "Reports" }];
+      return [{ label: "Reports" }, { label: "Reports" }];
     }
     if (pathname === ROUTES.reportsExportHistory) {
-      return [{ label: "Reports & Insights" }, { label: "Export history" }];
+      return [{ label: "Reports" }, { label: "Export history" }];
     }
-    return [{ label: "Reports & Insights" }];
+    return [{ label: "Reports" }];
   }
 
   const navItem = findNavItemByPathname(pathname);

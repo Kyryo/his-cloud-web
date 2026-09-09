@@ -20,7 +20,7 @@ describe("buildSidebarNavItems overview", () => {
 
   it("does not nest Overview under Reports", () => {
     const items = buildSidebarNavItems(["Billing"], ROUTES.reportsExports);
-    const reports = items.find((item) => item.title === "Reports & Insights");
+    const reports = items.find((item) => item.title === "Reports");
 
     expect(reports?.url).toBe(ROUTES.reportsExports);
     expect(reports?.items?.map((item) => item.title)).toEqual([

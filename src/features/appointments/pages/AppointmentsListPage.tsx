@@ -440,6 +440,10 @@ export function AppointmentsListPage() {
           }
         }}
         onUpdated={() => void reloadAll()}
+        onActionRequest={(appointment, action) => {
+          setSelectedAppointmentUuid(null);
+          setPendingAction({ appointment, action });
+        }}
       />
 
       <AppointmentActionConfirmDialog

@@ -153,7 +153,7 @@ export function buildSidebarNavItems(
 
   if (!isPlatformAdmin && canAccessReports(userGroups)) {
     items.push({
-      title: "Reports & Insights",
+      title: "Reports",
       url: ROUTES.reportsExports,
       icon: "analytics",
       section: "admin",
