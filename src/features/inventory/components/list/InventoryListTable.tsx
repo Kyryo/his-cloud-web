@@ -45,7 +45,7 @@ export function InventoryListTable<T>({
       <div className="overflow-x-auto">
         <table className="min-w-full">
           <thead>
-            <tr className="border-b border-dash-border/80 bg-slate-50/70">
+            <tr className="border-b border-dash-border/80 bg-white">
               {columns.map((column) => (
                 <th
                   key={column.key}
@@ -126,7 +126,7 @@ export function InventoryListTableSkeleton({
       <div className="overflow-x-auto">
         <table className="min-w-full">
           <thead>
-            <tr className="border-b border-dash-border/80 bg-slate-50/70">
+            <tr className="border-b border-dash-border/80 bg-white">
               {columns.map((column) => (
                 <th
                   key={column.key}

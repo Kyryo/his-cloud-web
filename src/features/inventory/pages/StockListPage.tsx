@@ -1,19 +1,21 @@
 "use client";
 
 import { Store } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
   ListPageLayout,
   ListPagePagination,
+  ListPageStatsSection,
   ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
-import { InventoryListPageHeaderBar } from "@/features/inventory/components/InventoryListPageHeaderBar";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
 import { InventoryListEmptyState } from "@/features/inventory/components/list/InventoryListEmptyState";
 import { InventoryListFilteredEmpty } from "@/features/inventory/components/list/InventoryListFilteredEmpty";
 import { StockDetailDialog } from "@/features/inventory/components/StockDetailDialog";
+import { StockOnHandInsights } from "@/features/inventory/components/StockOnHandInsights";
+import { StockPageHeader } from "@/features/inventory/components/StockPageHeader";
 import { InventoryTableSkeleton } from "@/features/inventory/components/tables/InventoryTableSkeleton";
 import {
   STOCK_TABLE_SKELETON_COLUMNS,
@@ -32,6 +34,7 @@ import {
   DEFAULT_STOCK_SHEET_FILTERS,
   type StockSheetFilters,
 } from "@/features/inventory/utils/inventory-list-filters";
+import { summarizeStockItems } from "@/features/inventory/utils/stock-quantity-status";
 
 export function StockListPage() {
   const [selectedStock, setSelectedStock] = useState<InventoryStock | null>(null);
@@ -70,6 +73,8 @@ export function StockListPage() {
     countActiveSheetFilters: countActiveStockFilters,
   });
 
+  const pageInsights = useMemo(() => summarizeStockItems(items), [items]);
+
   const applyFilters = useCallback(
     (nextFilters: InventoryListSearchFilters) => {
       handleFiltersApply(nextFilters as StockSheetFilters);
@@ -101,8 +106,7 @@ export function StockListPage() {
         onOpenChange={setDetailOpen}
       />
 
-      <InventoryListPageHeaderBar
-        variant="stock"
+      <StockPageHeader
         search={search}
         filters={sheetFilters}
         isLoading={isRefreshing}
@@ -111,6 +115,16 @@ export function StockListPage() {
         onClearSearch={handleClearSearch}
         onFiltersApply={applyFilters}
       />
+
+      {!hasNoRecords && !error && !isFilteredEmpty ? (
+        <ListPageStatsSection>
+          <StockOnHandInsights
+            totalLines={totalCount}
+            insights={pageInsights}
+            isLoading={isLoading}
+          />
+        </ListPageStatsSection>
+      ) : null}
 
       <ListPageTableSection>
         {isLoading ? (

@@ -5,7 +5,9 @@ import type {
   StockAdjustmentStatus,
 } from "@/features/inventory/types/inventory.types";
 import {
+  formatAdjustmentTypeLabel,
   formatInternalOrderStatusLabel,
+  formatMovementTypeLabel,
   formatPurchaseStatusLabel,
   formatStockAdjustmentStatusLabel,
 } from "@/features/inventory/utils/format-inventory";
@@ -114,6 +116,61 @@ export function StockAdjustmentStatusBadge({
       className={cn("font-normal", className)}
     >
       {formatStockAdjustmentStatusLabel(status)}
+    </Badge>
+  );
+}
+
+function getAdjustmentTypeVariant(type: string): BadgeVariant {
+  switch (type) {
+    case "QUANTITY":
+      return "warning";
+    case "COST":
+      return "secondary";
+    default:
+      return "outline";
+  }
+}
+
+function getMovementTypeVariant(type: string): BadgeVariant {
+  switch (type) {
+    case "PURCHASE_RECEIPT":
+    case "INTERNAL_ORDER_IN":
+      return "success";
+    case "INTERNAL_ORDER_OUT":
+      return "default";
+    case "ADJUSTMENT_QTY":
+      return "warning";
+    case "RETURN_TO_VENDOR":
+      return "destructive";
+    default:
+      return "outline";
+  }
+}
+
+export function AdjustmentTypeBadge({
+  type,
+  className,
+}: StatusBadgeProps & { type: string }) {
+  return (
+    <Badge
+      variant={getAdjustmentTypeVariant(type)}
+      className={cn("font-normal", className)}
+    >
+      {formatAdjustmentTypeLabel(type)}
+    </Badge>
+  );
+}
+
+export function MovementTypeBadge({
+  type,
+  className,
+}: StatusBadgeProps & { type: string }) {
+  return (
+    <Badge
+      variant={getMovementTypeVariant(type)}
+      className={cn("font-normal", className)}
+    >
+      {formatMovementTypeLabel(type)}
     </Badge>
   );
 }

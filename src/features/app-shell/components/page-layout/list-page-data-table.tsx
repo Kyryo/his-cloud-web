@@ -51,7 +51,7 @@ export function ListPageDataTableHeaderRow({
   return (
     <tr
       className={cn(
-        "border-b border-dash-border/80 bg-dash-canvas/40",
+        "border-b border-dash-border/80 bg-white",
         className,
       )}
     >

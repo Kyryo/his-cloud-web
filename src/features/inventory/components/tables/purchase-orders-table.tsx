@@ -9,6 +9,7 @@ import {
   ListPageDataTableHeaderRow,
   ListPageDataTableRow,
 } from "@/features/app-shell/components/page-layout";
+import { InventoryDocumentIdentity } from "@/features/inventory/components/InventoryDocumentIdentity";
 import { PurchaseStatusBadge } from "@/features/inventory/components/InventoryStatusBadge";
 import type { PurchaseOrder } from "@/features/inventory/types/inventory.types";
 import {
@@ -23,7 +24,7 @@ type PurchaseOrdersTableProps = {
 };
 
 const columns = [
-  { key: "reference", label: "Reference" },
+  { key: "order", label: "Order" },
   { key: "vendor", label: "Vendor" },
   { key: "status", label: "Status" },
   { key: "delivery", label: "Delivery" },
@@ -31,6 +32,15 @@ const columns = [
 ] as const;
 
 export const PURCHASE_ORDERS_TABLE_SKELETON_COLUMNS = columns;
+
+function getPurchaseOrderSubtitle(order: PurchaseOrder): string | null {
+  const parts = [
+    order.lpo_number ? `LPO ${order.lpo_number}` : null,
+    order.grn_number ? `GRN ${order.grn_number}` : null,
+  ].filter(Boolean);
+
+  return parts.length > 0 ? parts.join(" · ") : null;
+}
 
 export function PurchaseOrdersTable({
   orders,
@@ -44,7 +54,11 @@ export function PurchaseOrdersTable({
           {columns.map((column) => (
             <ListPageDataTableHeaderCell
               key={column.key}
-              className={"align" in column && column.align === "right" ? "text-right pr-4" : undefined}
+              className={
+                "align" in column && column.align === "right"
+                  ? "text-right pr-4"
+                  : undefined
+              }
             >
               {column.label}
             </ListPageDataTableHeaderCell>
@@ -57,12 +71,20 @@ export function PurchaseOrdersTable({
             key={order.uuid}
             className="group cursor-pointer transition-colors hover:bg-slate-50/70"
             onClick={() => onRowClick?.(order)}
+            data-testid={`purchase-order-row-${order.uuid}`}
           >
-            <ListPageDataTableCell className="py-3 font-mono text-sm font-semibold text-brand-navy group-hover:text-brand-primary">
-              {order.reference_number}
+            <ListPageDataTableCell className="py-3">
+              <InventoryDocumentIdentity
+                kind="purchase-order"
+                mark={order.reference_number}
+                title={order.reference_number}
+                subtitle={getPurchaseOrderSubtitle(order)}
+              />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 text-sm font-medium text-brand-navy">
-              {order.vendor_name}
+            <ListPageDataTableCell className="py-3">
+              <span className="block truncate text-sm font-medium text-brand-navy">
+                {order.vendor_name || "—"}
+              </span>
             </ListPageDataTableCell>
             <ListPageDataTableCell className="py-3">
               <PurchaseStatusBadge status={order.status} />
@@ -70,8 +92,10 @@ export function PurchaseOrdersTable({
             <ListPageDataTableCell className="py-3 text-sm tabular-nums text-dash-muted">
               {formatDisplayDate(order.delivery_date)}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 pr-4 text-right text-sm font-semibold tabular-nums text-brand-navy">
-              {formatInventoryAmount(order.total_value)}
+            <ListPageDataTableCell className="py-3 pr-4 text-right">
+              <p className="text-base font-semibold tabular-nums text-brand-navy">
+                {formatInventoryAmount(order.total_value)}
+              </p>
             </ListPageDataTableCell>
           </ListPageDataTableRow>
         ))}
