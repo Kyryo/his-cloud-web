@@ -52,3 +52,64 @@ export function formatPharmacyQueueDispenseStatusLabel(
       return "Complete";
   }
 }
+
+export function getLineDispenseStatus(line: {
+  quantity: string | number;
+  dispensed_quantity: string | number;
+}): PharmacyQueueDispenseStatus {
+  if (isLineFullyDispensed(line)) {
+    return "complete";
+  }
+  if (Number(line.dispensed_quantity) <= 0) {
+    return "waiting";
+  }
+  return "partial";
+}
+
+export type QueueLineSummary = {
+  lineCount: number;
+  remainingLineCount: number;
+  orderedQuantity: number;
+  dispensedQuantity: number;
+  remainingQuantity: number;
+  status: PharmacyQueueDispenseStatus;
+  progressPercent: number;
+};
+
+export function summarizeQueueLines(
+  lines: readonly {
+    quantity: string | number;
+    dispensed_quantity: string | number;
+  }[],
+): QueueLineSummary {
+  let remainingLineCount = 0;
+  let orderedQuantity = 0;
+  let dispensedQuantity = 0;
+
+  for (const line of lines) {
+    orderedQuantity += Number(line.quantity) || 0;
+    dispensedQuantity += Number(line.dispensed_quantity) || 0;
+    if (!isLineFullyDispensed(line)) {
+      remainingLineCount += 1;
+    }
+  }
+
+  const remainingQuantity = Math.max(0, orderedQuantity - dispensedQuantity);
+  const progressPercent =
+    orderedQuantity > 0
+      ? Math.min(100, Math.round((dispensedQuantity / orderedQuantity) * 100))
+      : 0;
+
+  return {
+    lineCount: lines.length,
+    remainingLineCount,
+    orderedQuantity,
+    dispensedQuantity,
+    remainingQuantity,
+    status: getPharmacyQueueDispenseStatus({
+      dispensable_line_count: lines.length,
+      remaining_line_count: remainingLineCount,
+    }),
+    progressPercent,
+  };
+}

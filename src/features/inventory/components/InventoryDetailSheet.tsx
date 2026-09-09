@@ -115,19 +115,16 @@ export function InventoryDetailMetrics({
   items: readonly InventoryDetailMetric[];
 }) {
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <dl className="grid grid-cols-2 divide-x divide-dash-border/70 border-y border-dash-border/70">
       {items.map((item) => (
-        <div
-          key={item.label}
-          className="rounded-2xl border border-dash-border/80 bg-white px-4 py-3"
-        >
-          <p className="text-xs text-dash-muted">{item.label}</p>
-          <p className="mt-1 text-lg font-semibold tabular-nums text-brand-navy">
+        <div key={item.label} className="px-0 py-3 first:pr-4 last:pl-4">
+          <dt className="text-xs text-dash-muted">{item.label}</dt>
+          <dd className="mt-1 text-lg font-semibold tabular-nums text-brand-navy">
             {item.value}
-          </p>
+          </dd>
         </div>
       ))}
-    </div>
+    </dl>
   );
 }
 
