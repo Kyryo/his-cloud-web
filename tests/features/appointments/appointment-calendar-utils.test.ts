@@ -2,10 +2,13 @@ import { describe, expect, it } from "vitest";
 
 import type { Appointment } from "@/features/appointments/types/appointment.types";
 import {
+  buildCalendarMonthSummary,
   countAppointmentsByDay,
   formatAppointmentCountBadge,
+  formatCalendarChipName,
   generateDaySlots,
   getAppointmentDayKey,
+  getCalendarDayPreview,
   mapAppointmentsToSlots,
   resolveAppointmentRangeBounds,
   resolveDepartmentSlotMinutes,
@@ -50,6 +53,54 @@ describe("appointment-calendar-utils", () => {
 
     expect(dayKey).toBeTruthy();
     expect(counts.get(dayKey)).toBe(1);
+  });
+
+  it("builds a first-name chip preview and month summary", () => {
+    expect(formatCalendarChipName("Habiba Osman")).toBe("Habiba");
+
+    const preview = getCalendarDayPreview(
+      [
+        makeAppointment({
+          uuid: "a",
+          scheduled_start: "2026-09-09T08:00:00.000Z",
+          scheduled_end: "2026-09-09T08:30:00.000Z",
+        }),
+        makeAppointment({
+          uuid: "b",
+          scheduled_start: "2026-09-09T09:00:00.000Z",
+          scheduled_end: "2026-09-09T09:30:00.000Z",
+        }),
+        makeAppointment({
+          uuid: "c",
+          scheduled_start: "2026-09-09T10:00:00.000Z",
+          scheduled_end: "2026-09-09T10:30:00.000Z",
+        }),
+        makeAppointment({
+          uuid: "d",
+          scheduled_start: "2026-09-09T11:00:00.000Z",
+          scheduled_end: "2026-09-09T11:30:00.000Z",
+        }),
+      ],
+      3,
+    );
+
+    expect(preview.visible).toHaveLength(3);
+    expect(preview.overflow).toBe(1);
+    expect(
+      buildCalendarMonthSummary([
+        makeAppointment({
+          status: "in_progress",
+          scheduled_start: "2026-09-09T08:00:00.000Z",
+          scheduled_end: "2026-09-09T08:30:00.000Z",
+        }),
+        makeAppointment({
+          uuid: "b",
+          status: "scheduled",
+          scheduled_start: "2026-09-09T09:00:00.000Z",
+          scheduled_end: "2026-09-09T09:30:00.000Z",
+        }),
+      ]),
+    ).toEqual({ total: 2, inProgress: 1 });
   });
 
   it("caps appointment count badges at 99+", () => {

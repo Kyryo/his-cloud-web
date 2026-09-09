@@ -294,7 +294,7 @@ export function AppointmentsListPage() {
     <>
       <ListPageLayout
         data-testid="appointments-page"
-        className={cn(isBoardView && "overflow-hidden sm:pb-3")}
+        className={cn((isBoardView || isCalendarView) && "overflow-hidden sm:pb-3")}
       >
         <AppointmentsPageHeader
           search={search}
@@ -347,7 +347,9 @@ export function AppointmentsListPage() {
         ) : null}
 
         <ListPageTableSection
-          className={cn(isBoardView && "flex min-h-0 flex-1 flex-col")}
+          className={cn(
+            (isBoardView || isCalendarView) && "flex min-h-0 flex-1 flex-col",
+          )}
         >
           {activeLoading ? (
             isListView ? (
@@ -443,6 +445,9 @@ export function AppointmentsListPage() {
               isLoading={isCalendarLoading || isCalendarRefreshing}
               onVisibleMonthChange={setVisibleMonth}
               onDaySelect={handleDaySelect}
+              onAppointmentSelect={(appointment) =>
+                setSelectedAppointmentUuid(appointment.uuid)
+              }
             />
           )}
         </ListPageTableSection>

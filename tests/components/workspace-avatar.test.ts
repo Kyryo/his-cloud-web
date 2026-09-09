@@ -22,11 +22,25 @@ describe("getWorkspaceInitials", () => {
 });
 
 describe("getWorkspaceAvatarTone", () => {
-  it("picks a stable brand tone for a workspace name", () => {
+  it("picks a stable tinted tone for a workspace name", () => {
     const tone = getWorkspaceAvatarTone("Princeton-Plainsboro");
 
-    expect(tone.bg).toMatch(/^bg-brand-/);
-    expect(tone.text).toBe("text-white");
+    expect(tone.bg).toContain("linear-gradient");
+    expect(tone.text).toMatch(/^text-\[#/);
+    expect(tone.ring).toMatch(/^ring-\[#/);
     expect(getWorkspaceAvatarTone("Princeton-Plainsboro")).toEqual(tone);
+  });
+
+  it("can assign different tones to different workspace names", () => {
+    const names = [
+      "Princeton-Plainsboro",
+      "Walk-in Clinic",
+      "Diagnostics Department",
+      "Sigma",
+      "Coastal Wellness",
+    ];
+    const tones = new Set(names.map((name) => getWorkspaceAvatarTone(name).bg));
+
+    expect(tones.size).toBeGreaterThan(1);
   });
 });

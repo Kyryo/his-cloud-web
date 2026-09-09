@@ -99,6 +99,44 @@ export function countAppointmentsByDay(
   return counts;
 }
 
+const CALENDAR_CHIP_TIME = new Intl.DateTimeFormat("en-GB", {
+  hour: "2-digit",
+  minute: "2-digit",
+});
+
+export function formatCalendarChipTime(startIso: string): string {
+  const start = new Date(startIso);
+  if (Number.isNaN(start.getTime())) {
+    return "—";
+  }
+
+  return CALENDAR_CHIP_TIME.format(start);
+}
+
+export function formatCalendarChipName(patientName: string): string {
+  return patientName.trim().split(/\s+/)[0] || "Client";
+}
+
+export function getCalendarDayPreview(
+  appointments: Appointment[],
+  visibleCount = 3,
+): { visible: Appointment[]; overflow: number } {
+  return {
+    visible: appointments.slice(0, visibleCount),
+    overflow: Math.max(0, appointments.length - visibleCount),
+  };
+}
+
+export function buildCalendarMonthSummary(appointments: Appointment[]): {
+  total: number;
+  inProgress: number;
+} {
+  return {
+    total: appointments.length,
+    inProgress: appointments.filter((item) => item.status === "in_progress").length,
+  };
+}
+
 export function formatAppointmentCountBadge(count: number): string | null {
   if (count <= 0) {
     return null;
