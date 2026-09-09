@@ -5,6 +5,7 @@ import { addMonths, format, subMonths } from "date-fns";
 import { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { Appointment } from "@/features/appointments/types/appointment.types";
 import {
   countAppointmentsByDay,
@@ -86,12 +87,7 @@ export function AppointmentsMonthCalendar({
             ))}
           </div>
 
-          <div
-            className={cn(
-              "grid grid-cols-7 gap-2",
-              isLoading && "opacity-60",
-            )}
-          >
+          <div className="grid grid-cols-7 gap-2">
             {calendarDays.map((day) => {
               const dayKey = format(day, "yyyy-MM-dd");
               const count = dayCounts.get(dayKey) ?? 0;
@@ -123,7 +119,9 @@ export function AppointmentsMonthCalendar({
                     {format(day, "d")}
                   </span>
 
-                  {badge ? (
+                  {isLoading && inMonth ? (
+                    <Skeleton className="mt-auto h-5 w-[4.5rem] rounded-full" />
+                  ) : badge ? (
                     <span className="mt-auto inline-flex w-fit max-w-full items-center rounded-full bg-brand-primary/10 px-2 py-0.5 text-xs font-medium text-brand-primary">
                       <span className="truncate">
                         {count === 1 ? "1 appointment" : `${badge} appointments`}

@@ -57,15 +57,6 @@ vi.mock("@/providers/user-provider", () => ({
   }),
 }));
 
-vi.mock("@/features/settings/services/settings.service", () => ({
-  fetchOrganizationBranding: vi.fn().mockResolvedValue({
-    branding_logo_url: "",
-    branding_primary_color: "",
-    branding_secondary_color: "",
-    branding_accent_color: "",
-  }),
-}));
-
 function renderTeamSwitcher() {
   return render(
     <SidebarProvider>

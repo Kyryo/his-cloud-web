@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { getWorkspaceInitials } from "@/components/workspace-avatar";
+import {
+  getWorkspaceAvatarTone,
+  getWorkspaceInitials,
+} from "@/components/workspace-avatar";
 
 describe("getWorkspaceInitials", () => {
   it("uses the first two words of a multi-word name", () => {
@@ -15,5 +18,15 @@ describe("getWorkspaceInitials", () => {
 
   it("falls back when the name is empty", () => {
     expect(getWorkspaceInitials("   ")).toBe("?");
+  });
+});
+
+describe("getWorkspaceAvatarTone", () => {
+  it("picks a stable brand tone for a workspace name", () => {
+    const tone = getWorkspaceAvatarTone("Princeton-Plainsboro");
+
+    expect(tone.bg).toMatch(/^bg-brand-/);
+    expect(tone.text).toBe("text-white");
+    expect(getWorkspaceAvatarTone("Princeton-Plainsboro")).toEqual(tone);
   });
 });

@@ -24,6 +24,7 @@ import {
   AppointmentsDayPanel,
   type AppointmentCreateSchedulePrefill,
 } from "@/features/appointments/components/AppointmentsDayPanel";
+import { AppointmentsCalendarSkeleton } from "@/features/appointments/components/AppointmentsCalendarSkeleton";
 import { AppointmentsMonthCalendar } from "@/features/appointments/components/AppointmentsMonthCalendar";
 import { AppointmentsPageHeader } from "@/features/appointments/components/AppointmentsPageHeader";
 import { AppointmentsTableSkeleton } from "@/features/appointments/components/AppointmentsTableSkeleton";
@@ -336,9 +337,7 @@ export function AppointmentsListPage() {
             isListView ? (
               <AppointmentsTableSkeleton rows={8} />
             ) : (
-              <div className="py-12 text-center text-sm text-brand-muted">
-                Loading calendar...
-              </div>
+              <AppointmentsCalendarSkeleton visibleMonth={visibleMonth} />
             )
           ) : activeError ? (
             <div className="rounded-xl border border-red-200 bg-red-50 p-6">
