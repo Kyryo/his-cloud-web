@@ -1,50 +1,58 @@
 "use client";
 
-import { CalendarDays } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   ListPageHeaderSection,
-  ListPageHeaderTitleBlock,
-  ListPageHeaderTopRow,
   ListPageLayout,
+  ListPagePagination,
 } from "@/features/app-shell/components/page-layout";
-import { AppointmentStatusBadge } from "@/features/appointments/components/AppointmentStatusBadge";
+import { AppointmentDetailDialog } from "@/features/appointments/components/AppointmentDetailDialog";
 import { useAppointmentsList } from "@/features/appointments/hooks/use-appointments-list";
 import { useUserAssociatedClinics } from "@/features/appointments/hooks/use-user-associated-clinics";
 import { fetchAppointments } from "@/features/appointments/services/appointments.service";
 import type { Appointment } from "@/features/appointments/types/appointment.types";
-import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
-import { InventoryListEmptyState } from "@/features/inventory/components/list/InventoryListEmptyState";
-import { InventoryListPageContent } from "@/features/inventory/components/list/InventoryListPageContent";
+import { TodaysAppointmentsBoard } from "@/features/reports/components/TodaysAppointmentsBoard";
+import { TodaysAppointmentsBoardToolbar } from "@/features/reports/components/TodaysAppointmentsBoardToolbar";
 import {
-  InventoryListPagination,
-  InventoryListTable,
-  type InventoryListTableColumn,
-} from "@/features/inventory/components/list/InventoryListTable";
-import { formatInvoiceAmount } from "@/features/invoices/utils/format-invoice";
+  type BoardGroupBy,
+  type BoardStatusFilter,
+  localTodayIso,
+} from "@/features/reports/utils/todays-appointments-board";
 
-function localTodayIso(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+function BoardSkeleton() {
+  return (
+    <div className="space-y-5" aria-busy="true" data-testid="todays-appointments-skeleton">
+      <div className="flex border-y border-dash-border/80">
+        {Array.from({ length: 6 }, (_, index) => (
+          <div
+            key={index}
+            className="h-[4.75rem] flex-1 border-r border-dash-border/60 last:border-r-0"
+          />
+        ))}
+      </div>
+      <div className="space-y-3 pt-2">
+        {Array.from({ length: 6 }, (_, index) => (
+          <div key={index} className="h-12 border-b border-dash-border/40" />
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export function TodaysAppointmentsReportPage() {
   const today = useMemo(() => localTodayIso(), []);
   const { clinics, isLoading: isClinicsLoading } = useUserAssociatedClinics();
-  const [clinicUuid, setClinicUuid] = useState<string>("all");
+  const [clinicUuid, setClinicUuid] = useState("all");
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<BoardStatusFilter>("all");
+  const [groupBy, setGroupBy] = useState<BoardGroupBy>("time");
+  const [now, setNow] = useState(() => new Date());
+  const [selectedAppointmentUuid, setSelectedAppointmentUuid] = useState<
+    string | null
+  >(null);
 
   const extraFilters = useMemo(
     () => ({
@@ -58,52 +66,20 @@ export function TodaysAppointmentsReportPage() {
 
   const list = useAppointmentsList<Appointment>({
     fetchFn: fetchAppointments,
-    pageSize: 50,
+    pageSize: 200,
     extraFilters,
     hasActiveFilters: clinicUuid !== "all",
   });
 
-  const columns: InventoryListTableColumn<Appointment>[] = [
-    {
-      key: "scheduled_start",
-      label: "Scheduled",
-      render: (appointment) => formatDisplayDateTime(appointment.scheduled_start),
-    },
-    {
-      key: "patient",
-      label: "Client",
-      cellClassName: "font-medium text-brand-navy",
-      render: (appointment) => appointment.patient_name,
-    },
-    {
-      key: "clinic",
-      label: "Clinic",
-      render: (appointment) => appointment.clinic_name || "—",
-    },
-    {
-      key: "department",
-      label: "Department",
-      render: (appointment) => appointment.department_name || "—",
-    },
-    {
-      key: "clinician",
-      label: "Care provider",
-      render: (appointment) => appointment.clinician_name || "Unassigned",
-    },
-    {
-      key: "status",
-      label: "Status",
-      render: (appointment) => <AppointmentStatusBadge status={appointment.status} />,
-    },
-    {
-      key: "outstanding_balance",
-      label: "Outstanding balance",
-      cellClassName: "text-right tabular-nums",
-      headerClassName: "text-right",
-      render: (appointment) =>
-        formatInvoiceAmount(appointment.outstanding_balance ?? "0.00"),
-    },
-  ];
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      setNow(new Date());
+    }, 30_000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   if (list.isUnauthorized) {
     return (
@@ -114,75 +90,87 @@ export function TodaysAppointmentsReportPage() {
   return (
     <ListPageLayout data-testid="todays-appointments-report-page">
       <ListPageHeaderSection>
-        <ListPageHeaderTopRow>
-          <ListPageHeaderTitleBlock
-            title="Today's appointments"
-            description={`Appointments for ${today} with client outstanding balances.`}
-          />
-          <div className="flex flex-wrap items-center gap-2">
-            <Select
-              value={clinicUuid}
-              onValueChange={setClinicUuid}
-              disabled={isClinicsLoading}
-            >
-              <SelectTrigger className="w-[220px]">
-                <SelectValue placeholder="All clinics" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All clinics</SelectItem>
-                {clinics.map((clinic) => (
-                  <SelectItem key={clinic.uuid} value={clinic.uuid}>
-                    {clinic.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => void list.reload()}
-              disabled={list.isRefreshing || list.isLoading}
-            >
-              Refresh
-            </Button>
-          </div>
-        </ListPageHeaderTopRow>
+        <TodaysAppointmentsBoardToolbar
+          search={search}
+          onSearchChange={setSearch}
+          groupBy={groupBy}
+          onGroupByChange={setGroupBy}
+          clinicUuid={clinicUuid}
+          onClinicChange={(value) => {
+            setClinicUuid(value);
+            setStatusFilter("all");
+            list.resetPage();
+          }}
+          clinics={clinics}
+          isClinicsLoading={isClinicsLoading}
+          onRefresh={() => void list.reload()}
+          isRefreshing={list.isRefreshing || list.isLoading}
+        />
       </ListPageHeaderSection>
 
-      <InventoryListPageContent
-        isLoading={list.isLoading}
-        loadingMessage="Loading today's appointments…"
-        error={list.error}
-        onRetry={() => void list.reload()}
-        errorTitle="Unable to load appointments"
-        hasNoRecords={list.hasNoRecords}
-        emptyState={
-          <InventoryListEmptyState
-            icon={CalendarDays}
-            title="No appointments today"
-            description="There are no appointments scheduled for today in clinics you can access."
-          />
-        }
-        isFilteredEmpty={list.isFilteredEmpty}
-        filteredEmptyTitle="No appointments for this clinic"
-      >
-        <div className="space-y-2">
-          <InventoryListTable
-            columns={columns}
-            items={list.items}
-            getRowKey={(row) => row.uuid}
-          />
-          <InventoryListPagination
-            page={list.page}
-            pageSize={list.pageSize}
-            totalCount={list.totalCount}
-            hasNext={list.hasNext}
-            hasPrevious={list.hasPrevious}
-            isLoading={list.isRefreshing}
-            onPageChange={list.handlePageChange}
-          />
+      {list.isLoading ? (
+        <BoardSkeleton />
+      ) : list.error ? (
+        <div className="border-y border-red-200 py-6">
+          <h2 className="text-sm font-semibold text-red-800">
+            Unable to load appointments
+          </h2>
+          <p className="mt-1 text-sm text-red-700">{list.error}</p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="mt-4"
+            onClick={() => void list.reload()}
+          >
+            Try again
+          </Button>
         </div>
-      </InventoryListPageContent>
+      ) : list.hasNoRecords || list.isFilteredEmpty ? (
+        <p className="py-20 text-center text-sm text-dash-muted">
+          {list.isFilteredEmpty
+            ? "No appointments for this clinic today."
+            : "Nothing is booked for today in clinics you can access."}
+        </p>
+      ) : (
+        <>
+          <TodaysAppointmentsBoard
+            appointments={list.items}
+            now={now}
+            search={search}
+            statusFilter={statusFilter}
+            onStatusFilterChange={setStatusFilter}
+            groupBy={groupBy}
+            onSelectAppointment={(appointment) =>
+              setSelectedAppointmentUuid(appointment.uuid)
+            }
+          />
+          {list.totalCount > list.pageSize ? (
+            <ListPagePagination
+              page={list.page}
+              pageSize={list.pageSize}
+              totalCount={list.totalCount}
+              hasNext={list.hasNext}
+              hasPrevious={list.hasPrevious}
+              isLoading={list.isRefreshing}
+              onPageChange={list.handlePageChange}
+            />
+          ) : null}
+        </>
+      )}
+
+      <AppointmentDetailDialog
+        appointmentUuid={selectedAppointmentUuid}
+        open={Boolean(selectedAppointmentUuid)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedAppointmentUuid(null);
+          }
+        }}
+        onUpdated={() => {
+          void list.reload();
+        }}
+      />
     </ListPageLayout>
   );
 }

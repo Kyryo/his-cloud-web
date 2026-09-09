@@ -3,7 +3,7 @@
 import * as React from "react";
 import { type DialogProps } from "@radix-ui/react-dialog";
 import { Command as CommandPrimitive } from "cmdk";
-import { Search } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 
 import {
   Dialog,
@@ -29,7 +29,15 @@ const Command = React.forwardRef<
 ));
 Command.displayName = CommandPrimitive.displayName;
 
-function CommandDialog({ children, ...props }: DialogProps) {
+type CommandDialogProps = DialogProps & {
+  shouldFilter?: boolean;
+};
+
+function CommandDialog({
+  children,
+  shouldFilter,
+  ...props
+}: CommandDialogProps) {
   return (
     <Dialog {...props}>
       <DialogContent
@@ -40,9 +48,12 @@ function CommandDialog({ children, ...props }: DialogProps) {
       >
         <DialogTitle className="sr-only">Command menu</DialogTitle>
         <DialogDescription className="sr-only">
-          Search pages and jump to a destination.
+          Search clients, sales orders, invoices, and pages.
         </DialogDescription>
-        <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-4 [&_[cmdk-input-wrapper]_svg]:w-4 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-2">
+        <Command
+          shouldFilter={shouldFilter}
+          className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-input-wrapper]_svg]:h-4 [&_[cmdk-input-wrapper]_svg]:w-4 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-2"
+        >
           {children}
         </Command>
       </DialogContent>
@@ -52,10 +63,18 @@ function CommandDialog({ children, ...props }: DialogProps) {
 
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
->(({ className, ...props }, ref) => (
+  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & {
+    isLoading?: boolean;
+  }
+>(({ className, isLoading = false, ...props }, ref) => (
   <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
-    <Search className="mr-2 size-4 shrink-0 text-muted-foreground" />
+    {isLoading ? (
+      <div className="mr-2 size-4 shrink-0 animate-spin text-muted-foreground">
+        <Loader2 className="size-4" aria-hidden="true" />
+      </div>
+    ) : (
+      <Search className="mr-2 size-4 shrink-0 text-muted-foreground" />
+    )}
     <CommandPrimitive.Input
       ref={ref}
       className={cn(

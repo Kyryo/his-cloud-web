@@ -300,7 +300,7 @@ export function AppointmentsListPage() {
           }}
         />
 
-        {!hasNoRecords ? (
+        {isListView && !hasNoRecords ? (
           <FabButton
             label={showStats ? "Hide stats" : "Show stats"}
             icon={BarChart3}
@@ -320,7 +320,7 @@ export function AppointmentsListPage() {
           data-testid="new-appointment-fab"
         />
 
-        {!hasNoRecords ? (
+        {isListView && !hasNoRecords ? (
           <ListPageDataSectionsStack>
             <ListPageStatsSection className={cn(!showStats && "hidden sm:block")}>
               <AppointmentSummaryStatsCards
