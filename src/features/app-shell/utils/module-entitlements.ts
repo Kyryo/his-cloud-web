@@ -53,6 +53,8 @@ export function resolvePortalModuleForPath(
     pathname.startsWith(`${ROUTES.invoices}/`) ||
     pathname === ROUTES.payments ||
     pathname.startsWith(`${ROUTES.payments}/`) ||
+    pathname === ROUTES.receivables ||
+    pathname.startsWith(`${ROUTES.receivables}/`) ||
     pathname === ROUTES.inventoryProducts ||
     pathname.startsWith(`${ROUTES.inventoryProducts}/`) ||
     pathname === ROUTES.inventoryPricelists ||

@@ -10,6 +10,7 @@ describe("module entitlements", () => {
   it("resolves portal modules from pathnames", () => {
     expect(resolvePortalModuleForPath(ROUTES.customers)).toBe("Registration");
     expect(resolvePortalModuleForPath(ROUTES.salesOrders)).toBe("Billing");
+    expect(resolvePortalModuleForPath(ROUTES.receivables)).toBe("Billing");
     expect(resolvePortalModuleForPath(ROUTES.claims)).toBe("Claims");
     expect(resolvePortalModuleForPath(ROUTES.claimsRemittances)).toBe("Claims");
     expect(resolvePortalModuleForPath(ROUTES.inventoryStock)).toBe("Inventory");
