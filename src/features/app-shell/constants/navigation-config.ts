@@ -97,6 +97,13 @@ export const navigation: NavigationItem[] = [
     enabledInWebNew: true,
   },
   {
+    name: "Receivables",
+    href: ROUTES.receivables,
+    icon: "creditCard",
+    requiredGroup: "Billing",
+    enabledInWebNew: true,
+  },
+  {
     name: "Submissions",
     href: ROUTES.claims,
     icon: "shield",

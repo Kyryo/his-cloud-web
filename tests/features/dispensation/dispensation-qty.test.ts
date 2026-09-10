@@ -3,9 +3,11 @@ import { describe, expect, it } from "vitest";
 import {
   formatDispensationQuantity,
   formatPharmacyQueueDispenseStatusLabel,
+  getLineDispenseStatus,
   getPharmacyQueueDispenseStatus,
   isLineFullyDispensed,
   remainingQuantity,
+  summarizeQueueLines,
 } from "@/features/dispensation/utils/dispensation-qty";
 
 describe("remainingQuantity", () => {
@@ -66,5 +68,38 @@ describe("formatPharmacyQueueDispenseStatusLabel", () => {
     expect(formatPharmacyQueueDispenseStatusLabel("waiting")).toBe("Waiting");
     expect(formatPharmacyQueueDispenseStatusLabel("partial")).toBe("Partial");
     expect(formatPharmacyQueueDispenseStatusLabel("complete")).toBe("Complete");
+  });
+});
+
+describe("getLineDispenseStatus", () => {
+  it("classifies a line from dispensed versus ordered", () => {
+    expect(
+      getLineDispenseStatus({ quantity: "4", dispensed_quantity: "0" }),
+    ).toBe("waiting");
+    expect(
+      getLineDispenseStatus({ quantity: "4", dispensed_quantity: "2" }),
+    ).toBe("partial");
+    expect(
+      getLineDispenseStatus({ quantity: "4", dispensed_quantity: "4" }),
+    ).toBe("complete");
+  });
+});
+
+describe("summarizeQueueLines", () => {
+  it("rolls up remaining lines and progress", () => {
+    expect(
+      summarizeQueueLines([
+        { quantity: "4", dispensed_quantity: "0" },
+        { quantity: "6", dispensed_quantity: "6" },
+      ]),
+    ).toEqual({
+      lineCount: 2,
+      remainingLineCount: 1,
+      orderedQuantity: 10,
+      dispensedQuantity: 6,
+      remainingQuantity: 4,
+      status: "partial",
+      progressPercent: 60,
+    });
   });
 });

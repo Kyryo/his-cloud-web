@@ -27,7 +27,6 @@ describe("AppointmentsListToolbar", () => {
         onSearchSubmit={vi.fn()}
         onClearSearch={vi.fn()}
         onFiltersApply={vi.fn()}
-        onViewModeChange={vi.fn()}
       />,
     );
 
@@ -44,6 +43,6 @@ describe("AppointmentsListToolbar", () => {
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
     expect(filterButton).toHaveTextContent("Add filter");
-    expect(screen.getByRole("button", { name: /board/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /board/i })).toBeInTheDocument();
   });
 });

@@ -256,6 +256,13 @@ export const BFF_INVOICES_ROUTES = {
     `/api/invoices/${invoiceId}/lines/${lineId}/sync-tariff-code`,
 } as const;
 
+/** Browser-facing BFF receivables routes (same origin). */
+export const BFF_RECEIVABLES_ROUTES = {
+  debtors: "/api/receivables/debtors",
+  invoices: "/api/receivables/invoices",
+  summaryStats: "/api/receivables/summary-stats",
+} as const;
+
 /** Browser-facing BFF invoice activity routes (same origin). */
 export const BFF_INVOICE_ACTIVITY_ROUTES = {
   detail: (invoiceId: number | string) => `/api/invoices/${invoiceId}/activity`,

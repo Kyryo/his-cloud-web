@@ -150,7 +150,11 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
       ];
     }
 
-    if (pathname === ROUTES.appointments) {
+    if (
+      pathname === ROUTES.appointments ||
+      pathname === ROUTES.appointmentsBoard ||
+      pathname === ROUTES.appointmentsCalendar
+    ) {
       return [
         { label: getModuleLabel("Registration") },
         { label: "Appointments" },
@@ -237,6 +241,13 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
       return [
         { label: getModuleLabel("Billing") },
         { label: "Payments" },
+      ];
+    }
+
+    if (pathname === ROUTES.receivables) {
+      return [
+        { label: getModuleLabel("Billing") },
+        { label: "Receivables" },
       ];
     }
 

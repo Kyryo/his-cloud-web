@@ -3,16 +3,21 @@
 import {
   DetailPageAsidePanelHeader,
   DetailPageAsidePanelSection,
-  DetailPageAsideSummaryAmountRow,
   DetailPageAsideSummaryField,
-  DetailPageAsideSummaryHighlight,
   DetailPageAsideSummarySection,
 } from "@/features/app-shell/components/page-layout";
+import { PharmacyQueueDispenseStatusBadge } from "@/features/dispensation/components/PharmacyQueueDispenseStatusBadge";
+import { PharmacyQueueLineProgress } from "@/features/dispensation/components/PharmacyQueueLineProgress";
 import type { DispensationQueueDetail } from "@/features/dispensation/types/dispensation.types";
-import { formatDispensationQuantity } from "@/features/dispensation/utils/dispensation-qty";
 import {
-  formatSalesOrderDateTime,
-} from "@/features/sales-orders/utils/format-sales-order";
+  formatDispensationQuantity,
+  summarizeQueueLines,
+} from "@/features/dispensation/utils/dispensation-qty";
+import { formatSalesOrderDateTime } from "@/features/sales-orders/utils/format-sales-order";
+import {
+  formatSalesOrderInvoiceStatusLabel,
+  formatSalesOrderStateLabel,
+} from "@/features/sales-orders/utils/sales-order-status";
 import { cn } from "@/lib/utils";
 
 type PharmacyQueueSummaryPanelProps = {
@@ -24,51 +29,49 @@ export function PharmacyQueueSummaryPanel({
   detail,
   className,
 }: PharmacyQueueSummaryPanelProps) {
-  const totalOrdered = detail.lines.reduce(
-    (sum, line) => sum + Number(line.quantity || 0),
-    0,
-  );
-  const totalDispensed = detail.lines.reduce(
-    (sum, line) => sum + Number(line.dispensed_quantity || 0),
-    0,
-  );
-  const totalRemaining = detail.lines.reduce(
-    (sum, line) => sum + Number(line.remaining_quantity || 0),
-    0,
-  );
+  const summary = summarizeQueueLines(detail.lines);
 
   return (
     <DetailPageAsidePanelSection className={cn(className)}>
       <DetailPageAsidePanelHeader
-        title="Queue details"
-        description="Dispensation progress and order context"
+        title="Dispensation"
+        description="Progress against this sales order"
       />
 
-      <DetailPageAsideSummaryHighlight title="Dispensation progress">
-        <dl className="space-y-3">
-          <DetailPageAsideSummaryAmountRow
-            label="Lines waiting"
-            value={String(
-              detail.lines.filter((line) => Number(line.remaining_quantity) > 0).length,
-            )}
-          />
-          <DetailPageAsideSummaryAmountRow
-            label="Ordered quantity"
-            value={formatDispensationQuantity(totalOrdered)}
-          />
-          <DetailPageAsideSummaryAmountRow
-            label="Dispensed quantity"
-            value={formatDispensationQuantity(totalDispensed)}
-          />
-          <DetailPageAsideSummaryAmountRow
-            label="Remaining quantity"
-            value={formatDispensationQuantity(totalRemaining)}
-          />
-        </dl>
-      </DetailPageAsideSummaryHighlight>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs text-dash-muted">Remaining</p>
+          <p className="mt-1 text-3xl font-semibold tracking-tight tabular-nums text-brand-navy">
+            {formatDispensationQuantity(summary.remainingQuantity)}
+          </p>
+          <p className="mt-1 text-xs text-brand-muted">
+            {summary.progressPercent}% dispensed
+          </p>
+        </div>
+        <PharmacyQueueDispenseStatusBadge status={summary.status} />
+      </div>
+      <PharmacyQueueLineProgress
+        ordered={summary.orderedQuantity}
+        dispensed={summary.dispensedQuantity}
+      />
 
-      <DetailPageAsideSummarySection title="Order details">
-        <DetailPageAsideSummaryField label="Order" value={detail.name} />
+      <DetailPageAsideSummarySection title="Progress">
+        <DetailPageAsideSummaryField
+          label="Lines waiting"
+          value={String(summary.remainingLineCount)}
+        />
+        <DetailPageAsideSummaryField
+          label="Ordered"
+          value={formatDispensationQuantity(summary.orderedQuantity)}
+        />
+        <DetailPageAsideSummaryField
+          label="Dispensed"
+          value={formatDispensationQuantity(summary.dispensedQuantity)}
+        />
+      </DetailPageAsideSummarySection>
+
+      <DetailPageAsideSummarySection title="Order">
+        <DetailPageAsideSummaryField label="Reference" value={detail.name} />
         <DetailPageAsideSummaryField
           label="Client"
           value={detail.customer_name || "—"}
@@ -77,13 +80,16 @@ export function PharmacyQueueSummaryPanel({
           label="Clinic"
           value={detail.clinic_name || "—"}
         />
-        <DetailPageAsideSummaryField label="State" value={detail.state} />
         <DetailPageAsideSummaryField
-          label="Invoice"
-          value={detail.invoice_status}
+          label="State"
+          value={formatSalesOrderStateLabel(detail.state)}
         />
         <DetailPageAsideSummaryField
-          label="Order date"
+          label="Invoice"
+          value={formatSalesOrderInvoiceStatusLabel(detail.invoice_status)}
+        />
+        <DetailPageAsideSummaryField
+          label="Ordered"
           value={formatSalesOrderDateTime(detail.date_order)}
         />
       </DetailPageAsideSummarySection>

@@ -1,13 +1,15 @@
 "use client";
 
 import { format } from "date-fns";
-import { CalendarDays, Plus, UserRound } from "lucide-react";
+import { CalendarDays, Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { AppointmentsClinicianChip } from "@/features/appointments/components/AppointmentsClinicianChip";
 import type { Appointment } from "@/features/appointments/types/appointment.types";
 import {
-  APPOINTMENT_BOARD_ACCENT,
   APPOINTMENT_BOARD_LABELS,
+  APPOINTMENT_STATUS_LINE,
+  APPOINTMENT_STATUS_PILL,
 } from "@/features/appointments/utils/appointment-board";
 import { formatCalendarChipTime } from "@/features/appointments/utils/appointment-calendar-utils";
 import { cn } from "@/lib/utils";
@@ -38,9 +40,9 @@ export function AppointmentsCalendarAgenda({
   return (
     <aside
       aria-label="Selected day agenda"
-      className="flex min-h-0 flex-col border-t border-border bg-background xl:border-t-0 xl:border-l"
+      className="flex h-full min-h-0 flex-col border-t border-border bg-white xl:border-t-0 xl:border-l-2 xl:border-l-brand-primary"
     >
-      <div className="flex min-h-16 items-center justify-between gap-3 border-b border-border px-5">
+      <div className="flex min-h-12 items-center justify-between gap-3 border-b border-border px-5">
         <div className="min-w-0">
           <h3 className="truncate text-sm font-semibold tracking-tight text-foreground">
             {format(day, "EEEE, d MMM")}
@@ -103,34 +105,37 @@ export function AppointmentsCalendarAgenda({
                     ? onAppointmentSelect(appointment)
                     : onSchedule()
                 }
-                className="group grid w-full grid-cols-[3.25rem_minmax(0,1fr)] gap-3 px-5 py-4 text-left transition-colors hover:bg-muted/35 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-primary disabled:opacity-50"
+                className="group grid w-full grid-cols-[3.25rem_minmax(0,1fr)] gap-3 px-5 py-4 text-left transition-colors hover:bg-stone-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-primary disabled:opacity-50"
               >
-                <span className="pt-0.5 text-xs font-semibold tabular-nums text-foreground">
+                <span className="pt-0.5 text-xs font-semibold tabular-nums text-brand-navy">
                   {formatCalendarChipTime(appointment.scheduled_start)}
                 </span>
-                <span className="min-w-0 border-l border-border pl-3">
+                <span
+                  className={cn(
+                    "min-w-0 border-l-2 pl-3",
+                    APPOINTMENT_STATUS_LINE[appointment.status],
+                  )}
+                >
                   <span className="flex items-start justify-between gap-2">
-                    <span className="truncate text-sm font-semibold text-foreground group-hover:text-brand-primary">
+                    <span className="truncate text-sm font-semibold text-brand-navy group-hover:text-brand-primary">
                       {appointment.patient_name}
                     </span>
-                    <span className="flex shrink-0 items-center gap-1.5 text-[10px] font-medium text-muted-foreground">
-                      <span
-                        aria-hidden="true"
-                        className={cn(
-                          "size-1.5 rounded-full",
-                          APPOINTMENT_BOARD_ACCENT[appointment.status],
-                        )}
-                      />
+                    <span
+                      className={cn(
+                        "shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
+                        APPOINTMENT_STATUS_PILL[appointment.status],
+                      )}
+                    >
                       {APPOINTMENT_BOARD_LABELS[appointment.status]}
                     </span>
                   </span>
-                  <span className="mt-1 block truncate text-xs text-muted-foreground">
+                  <span className="mt-1 block truncate text-xs text-brand-muted">
                     {appointment.department_name}
                   </span>
-                  <span className="mt-2 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
-                    <UserRound className="size-3 shrink-0" />
-                    {appointment.clinician_name || "Unassigned"}
-                  </span>
+                  <AppointmentsClinicianChip
+                    name={appointment.clinician_name}
+                    className="mt-2"
+                  />
                 </span>
               </button>
             ))}

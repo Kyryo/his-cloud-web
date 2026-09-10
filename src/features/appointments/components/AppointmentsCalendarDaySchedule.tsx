@@ -1,9 +1,10 @@
 "use client";
 
 import { format } from "date-fns";
-import { Plus, UserRound } from "lucide-react";
+import { Plus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { AppointmentsClinicianChip } from "@/features/appointments/components/AppointmentsClinicianChip";
 import type { Appointment } from "@/features/appointments/types/appointment.types";
 import {
   APPOINTMENT_BOARD_ACCENT,
@@ -105,10 +106,10 @@ export function AppointmentsCalendarDaySchedule({
                           <span className="mt-1 block truncate text-xs text-muted-foreground">
                             {appointment.department_name}
                           </span>
-                          <span className="mt-1.5 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
-                            <UserRound className="size-3 shrink-0" />
-                            {appointment.clinician_name || "Unassigned"}
-                          </span>
+                          <AppointmentsClinicianChip
+                            name={appointment.clinician_name}
+                            className="mt-1.5"
+                          />
                         </span>
                         <span className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
                           <span

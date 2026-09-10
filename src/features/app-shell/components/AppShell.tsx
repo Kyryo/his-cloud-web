@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 
 import { AppSidebar } from "@/components/app-sidebar";
 import { AppHeader } from "@/features/app-shell/components/AppHeader";
 import { ModuleAccessGate } from "@/features/app-shell/components/ModuleAccessGate";
+import { PageActivityBar } from "@/features/app-shell/components/PageActivityBar";
 import {
   SidebarInset,
   SidebarProvider,
@@ -31,6 +32,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <SidebarProvider className={`${AUTHENTICATED_SHELL_CLASS} h-svh overflow-hidden bg-dash-canvas`}>
+      <Suspense fallback={null}>
+        <PageActivityBar />
+      </Suspense>
       <AppSidebar />
       <SidebarInset className="min-h-0 overflow-hidden bg-dash-canvas">
         <AppBreadcrumbProvider>

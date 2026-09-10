@@ -9,15 +9,13 @@ import {
   startOfMonth,
   startOfWeek,
 } from "date-fns";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useMemo, useState } from "react";
 
 import { AppointmentsCalendarAgenda } from "@/features/appointments/components/AppointmentsCalendarAgenda";
 import { AppointmentsCalendarDaySchedule } from "@/features/appointments/components/AppointmentsCalendarDaySchedule";
 import { AppointmentsCalendarDayCell } from "@/features/appointments/components/AppointmentsCalendarDayCell";
-import {
-  AppointmentsCalendarNav,
-  type AppointmentsCalendarView,
-} from "@/features/appointments/components/AppointmentsCalendarNav";
+import { AppointmentsCalendarNav } from "@/features/appointments/components/AppointmentsCalendarNav";
 import { AppointmentsCalendarWeekView } from "@/features/appointments/components/AppointmentsCalendarWeekView";
 import type { Appointment } from "@/features/appointments/types/appointment.types";
 import {
@@ -26,6 +24,11 @@ import {
   isInVisibleMonth,
   isToday,
 } from "@/features/appointments/utils/appointment-calendar-utils";
+import {
+  APPOINTMENTS_CALENDAR_VIEW_PARAM,
+  appointmentsCalendarHref,
+  parseAppointmentsCalendarView,
+} from "@/features/appointments/utils/appointment-views";
 import { cn } from "@/lib/utils";
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -47,8 +50,11 @@ export function AppointmentsMonthCalendar({
   onDaySelect,
   onAppointmentSelect,
 }: AppointmentsMonthCalendarProps) {
-  const [calendarView, setCalendarView] =
-    useState<AppointmentsCalendarView>("month");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const calendarView = parseAppointmentsCalendarView(
+    searchParams.get(APPOINTMENTS_CALENDAR_VIEW_PARAM),
+  );
   const [selectedDay, setSelectedDay] = useState(() => new Date());
   const agendaDay = isSameMonth(selectedDay, visibleMonth)
     ? selectedDay
@@ -102,21 +108,23 @@ export function AppointmentsMonthCalendar({
       className="-mx-4 flex min-h-0 flex-1 flex-col md:-mx-6"
       data-testid="appointments-month-calendar"
     >
-      <div className="min-h-0 border-y border-border bg-background">
+      <div className="flex min-h-0 flex-1 flex-col overflow-hidden border-b border-border bg-background">
         <AppointmentsCalendarNav
           focusDate={calendarView === "month" ? visibleMonth : agendaDay}
           view={calendarView}
           isLoading={isLoading}
           onNavigate={handleNavigate}
           onToday={handleToday}
-          onViewChange={setCalendarView}
         />
 
         {calendarView === "month" ? (
-          <div className="grid min-h-0 grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px]">
-            <div className="min-w-0 overflow-x-auto bg-background">
+          <div className="grid min-h-0 flex-1 grid-cols-1 overflow-auto xl:grid-cols-[minmax(0,1fr)_320px] xl:overflow-hidden">
+            <div
+              className="h-full min-h-0 min-w-0 overflow-auto overscroll-contain bg-background"
+              data-testid="appointments-calendar-month-grid"
+            >
               <div className="flex min-w-[700px] flex-col">
-                <div className="grid grid-cols-7 border-b border-border bg-muted/30">
+                <div className="sticky top-0 z-10 grid grid-cols-7 border-b border-border bg-muted/30">
                   {WEEKDAY_LABELS.map((label) => (
                     <div
                       key={label}
@@ -170,19 +178,21 @@ export function AppointmentsMonthCalendar({
             />
           </div>
         ) : calendarView === "week" ? (
-          <AppointmentsCalendarWeekView
-            days={weekDays}
-            appointmentsByDay={appointmentsByDay}
-            disabled={isLoading}
-            onDayOpen={(day) => {
-              changeFocusDate(day);
-              setCalendarView("day");
-            }}
-            onSchedule={onDaySelect}
-            onAppointmentSelect={onAppointmentSelect}
-          />
+          <div className="min-h-0 flex-1 overflow-auto overscroll-contain">
+            <AppointmentsCalendarWeekView
+              days={weekDays}
+              appointmentsByDay={appointmentsByDay}
+              disabled={isLoading}
+              onDayOpen={(day) => {
+                changeFocusDate(day);
+                router.replace(appointmentsCalendarHref("day"), { scroll: false });
+              }}
+              onSchedule={onDaySelect}
+              onAppointmentSelect={onAppointmentSelect}
+            />
+          </div>
         ) : (
-          <div className="max-h-[calc(100dvh-14rem)] overflow-auto overscroll-contain">
+          <div className="min-h-0 flex-1 overflow-auto overscroll-contain">
             <AppointmentsCalendarDaySchedule
               day={agendaDay}
               appointments={

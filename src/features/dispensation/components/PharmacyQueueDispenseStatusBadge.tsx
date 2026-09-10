@@ -11,9 +11,10 @@ import {
 import { cn } from "@/lib/utils";
 
 type PharmacyQueueDispenseStatusBadgeProps = {
-  dispensableLineCount: number;
-  remainingLineCount: number;
   className?: string;
+  status?: PharmacyQueueDispenseStatus;
+  dispensableLineCount?: number;
+  remainingLineCount?: number;
 };
 
 function getVariant(status: PharmacyQueueDispenseStatus): StatusPillVariant {
@@ -39,14 +40,17 @@ function getIcon(status: PharmacyQueueDispenseStatus) {
 }
 
 export function PharmacyQueueDispenseStatusBadge({
-  dispensableLineCount,
-  remainingLineCount,
+  status: statusProp,
+  dispensableLineCount = 0,
+  remainingLineCount = 0,
   className,
 }: PharmacyQueueDispenseStatusBadgeProps) {
-  const status = getPharmacyQueueDispenseStatus({
-    dispensable_line_count: dispensableLineCount,
-    remaining_line_count: remainingLineCount,
-  });
+  const status =
+    statusProp ??
+    getPharmacyQueueDispenseStatus({
+      dispensable_line_count: dispensableLineCount,
+      remaining_line_count: remainingLineCount,
+    });
 
   return (
     <StatusPill

@@ -2,7 +2,7 @@
 
 import { Shuffle } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { FabButton } from "@/components/ui/fab-button";
@@ -10,9 +10,11 @@ import { ROUTES } from "@/constants/routes";
 import {
   ListPageLayout,
   ListPagePagination,
+  ListPageStatsSection,
   ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
 import { CreateInternalOrderDialog } from "@/features/inventory/components/CreateInternalOrderDialog";
+import { InventoryListInsights } from "@/features/inventory/components/InventoryListInsights";
 import {
   InventoryListPageHeaderBar,
   InventoryListPrimaryAction,
@@ -31,6 +33,7 @@ import type {
   InternalOrder,
   InventoryListFilters,
 } from "@/features/inventory/types/inventory.types";
+import { summarizeInternalOrders } from "@/features/inventory/utils/inventory-document-insights";
 import type { InventoryListSearchFilters } from "@/features/inventory/utils/inventory-list-filter-chips";
 import {
   buildInternalOrderListFilters,
@@ -74,6 +77,11 @@ export function InternalOrdersListPage() {
     buildExtraFilters: buildInternalOrderListFilters,
     countActiveSheetFilters: countActiveInternalOrderFilters,
   });
+
+  const insights = useMemo(
+    () => summarizeInternalOrders(items, totalCount),
+    [items, totalCount],
+  );
 
   const applyFilters = useCallback(
     (nextFilters: InventoryListSearchFilters) => {
@@ -136,6 +144,16 @@ export function InternalOrdersListPage() {
         onClick={handleCreate}
         data-testid="add-internal-order-fab"
       />
+
+      {!hasNoRecords && !error && !isFilteredEmpty ? (
+        <ListPageStatsSection>
+          <InventoryListInsights
+            cards={insights}
+            isLoading={isLoading}
+            data-testid="internal-order-insights"
+          />
+        </ListPageStatsSection>
+      ) : null}
 
       <ListPageTableSection>
         {isLoading ? (

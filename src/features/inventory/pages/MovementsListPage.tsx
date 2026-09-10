@@ -1,14 +1,16 @@
 "use client";
 
 import { ArrowLeftRight } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
   ListPageLayout,
   ListPagePagination,
+  ListPageStatsSection,
   ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
+import { InventoryListInsights } from "@/features/inventory/components/InventoryListInsights";
 import { InventoryListPageHeaderBar } from "@/features/inventory/components/InventoryListPageHeaderBar";
 import { MovementDetailDialog } from "@/features/inventory/components/MovementDetailDialog";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
@@ -25,6 +27,7 @@ import type {
   InventoryListFilters,
   InventoryMovement,
 } from "@/features/inventory/types/inventory.types";
+import { summarizeMovements } from "@/features/inventory/utils/inventory-document-insights";
 import type { InventoryListSearchFilters } from "@/features/inventory/utils/inventory-list-filter-chips";
 import {
   buildMovementListFilters,
@@ -71,6 +74,11 @@ export function MovementsListPage() {
     countActiveSheetFilters: countActiveMovementFilters,
   });
 
+  const insights = useMemo(
+    () => summarizeMovements(items, totalCount),
+    [items, totalCount],
+  );
+
   const applyFilters = useCallback(
     (nextFilters: InventoryListSearchFilters) => {
       handleFiltersApply(nextFilters as MovementSheetFilters);
@@ -110,6 +118,16 @@ export function MovementsListPage() {
         onClearSearch={handleClearSearch}
         onFiltersApply={applyFilters}
       />
+
+      {!hasNoRecords && !error && !isFilteredEmpty ? (
+        <ListPageStatsSection>
+          <InventoryListInsights
+            cards={insights}
+            isLoading={isLoading}
+            data-testid="movement-insights"
+          />
+        </ListPageStatsSection>
+      ) : null}
 
       <ListPageTableSection>
         {isLoading ? (

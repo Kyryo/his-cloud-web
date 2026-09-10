@@ -2,7 +2,7 @@
 
 import { ClipboardList } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { FabButton } from "@/components/ui/fab-button";
@@ -10,9 +10,11 @@ import { ROUTES } from "@/constants/routes";
 import {
   ListPageLayout,
   ListPagePagination,
+  ListPageStatsSection,
   ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
 import { CreateStockAdjustmentDialog } from "@/features/inventory/components/CreateStockAdjustmentDialog";
+import { InventoryListInsights } from "@/features/inventory/components/InventoryListInsights";
 import {
   InventoryListPageHeaderBar,
   InventoryListPrimaryAction,
@@ -31,6 +33,7 @@ import type {
   InventoryListFilters,
   StockAdjustment,
 } from "@/features/inventory/types/inventory.types";
+import { summarizeStockAdjustments } from "@/features/inventory/utils/inventory-document-insights";
 import type { InventoryListSearchFilters } from "@/features/inventory/utils/inventory-list-filter-chips";
 import {
   buildStockAdjustmentListFilters,
@@ -74,6 +77,11 @@ export function StockAdjustmentsListPage() {
     buildExtraFilters: buildStockAdjustmentListFilters,
     countActiveSheetFilters: countActiveStockAdjustmentFilters,
   });
+
+  const insights = useMemo(
+    () => summarizeStockAdjustments(items, totalCount),
+    [items, totalCount],
+  );
 
   const applyFilters = useCallback(
     (nextFilters: InventoryListSearchFilters) => {
@@ -136,6 +144,16 @@ export function StockAdjustmentsListPage() {
         onClick={handleCreate}
         data-testid="add-stock-adjustment-fab"
       />
+
+      {!hasNoRecords && !error && !isFilteredEmpty ? (
+        <ListPageStatsSection>
+          <InventoryListInsights
+            cards={insights}
+            isLoading={isLoading}
+            data-testid="stock-adjustment-insights"
+          />
+        </ListPageStatsSection>
+      ) : null}
 
       <ListPageTableSection>
         {isLoading ? (

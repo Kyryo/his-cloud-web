@@ -14,7 +14,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { ROUTES } from "@/constants/routes";
-import { DetailPageLayout } from "@/features/app-shell/components/page-layout";
+import {
+  DetailPageLayout,
+  DetailPageSkeleton,
+} from "@/features/app-shell/components/page-layout";
 import { DispenseSelectedDialog } from "@/features/dispensation/components/DispenseSelectedDialog";
 import { EditQueueLineDialog } from "@/features/dispensation/components/EditQueueLineDialog";
 import { PharmacyQueueDetailHeader } from "@/features/dispensation/components/PharmacyQueueDetailHeader";
@@ -49,7 +52,10 @@ export function PharmacyQueueDetailPage({
   const [detail, setDetail] = useState<DispensationQueueDetail | null>(null);
   const [salesOrder, setSalesOrder] = useState<SalesOrder | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedLineUuids, setSelectedLineUuids] = useState<string[]>([]);
+  const [lineSelection, setLineSelection] = useState<{
+    key: string;
+    uuids: string[];
+  }>({ key: "", uuids: [] });
   const [dispenseSelectedOpen, setDispenseSelectedOpen] = useState(false);
   const [lineToEdit, setLineToEdit] = useState<DispensationQueueLine | null>(null);
   const [lineToDelete, setLineToDelete] = useState<DispensationQueueLine | null>(null);
@@ -93,18 +99,22 @@ export function PharmacyQueueDetailPage({
     };
   }, [loadDetail]);
 
-  useEffect(() => {
-    if (!detail) {
-      setSelectedLineUuids([]);
-      return;
-    }
-
-    setSelectedLineUuids(
-      detail.lines
-        .filter((line) => !isLineFullyDispensed(line))
-        .map((line) => line.uuid),
-    );
-  }, [detail]);
+  const remainingLineUuids = useMemo(
+    () =>
+      detail
+        ? detail.lines
+            .filter((line) => !isLineFullyDispensed(line))
+            .map((line) => line.uuid)
+        : [],
+    [detail],
+  );
+  const selectionKey = detail
+    ? `${detail.uuid}:${remainingLineUuids.join(",")}`
+    : "";
+  const selectedLineUuids =
+    lineSelection.key === selectionKey
+      ? lineSelection.uuids
+      : remainingLineUuids;
 
   const selectedLines = useMemo(() => {
     if (!detail) {
@@ -112,6 +122,13 @@ export function PharmacyQueueDetailPage({
     }
     return detail.lines.filter((line) => selectedLineUuids.includes(line.uuid));
   }, [detail, selectedLineUuids]);
+
+  const handleSelectedLineUuidsChange = useCallback(
+    (uuids: string[]) => {
+      setLineSelection({ key: selectionKey, uuids });
+    },
+    [selectionKey],
+  );
 
   const editableLine = useMemo<SalesOrderLine | null>(() => {
     if (!salesOrder || !lineToEdit) {
@@ -150,23 +167,23 @@ export function PharmacyQueueDetailPage({
   }, [lineToDelete, loadDetail, salesOrder, toast]);
 
   if (isLoading) {
-    return (
-      <DetailPageLayout>
-        <div className="px-6 py-6">
-          <p className="text-sm text-brand-muted">Loading order…</p>
-        </div>
-      </DetailPageLayout>
-    );
+    return <DetailPageSkeleton data-testid="pharmacy-queue-detail-skeleton" />;
   }
 
   if (!detail || !salesOrder) {
     return (
       <DetailPageLayout>
-        <div className="px-6 py-6">
-          <p className="text-sm text-brand-muted">Order not found in queue.</p>
+        <div className="flex min-h-[min(360px,calc(100vh-16rem))] flex-col items-center justify-center px-6 py-16 text-center">
+          <h2 className="text-lg font-semibold text-brand-navy">
+            Order not found in queue
+          </h2>
+          <p className="mt-2 max-w-sm text-sm text-brand-muted">
+            This sales order is no longer waiting to be dispensed, or the link is
+            invalid.
+          </p>
           <SecondaryButton
             type="button"
-            className="mt-4"
+            className="mt-6"
             onClick={() => router.push(ROUTES.pharmacyQueue)}
           >
             Back to queue
@@ -180,6 +197,7 @@ export function PharmacyQueueDetailPage({
     <DetailPageLayout data-testid="pharmacy-queue-detail-page">
       <PharmacyQueueDetailHeader
         detail={detail}
+        customerUuid={salesOrder.customer_uuid}
         actions={
           <PrimaryButton
             type="button"
@@ -199,7 +217,7 @@ export function PharmacyQueueDetailPage({
         detail={detail}
         salesOrder={salesOrder}
         selectedLineUuids={selectedLineUuids}
-        onSelectedLineUuidsChange={setSelectedLineUuids}
+        onSelectedLineUuidsChange={handleSelectedLineUuidsChange}
         canManageLines={canManageLines === true}
         onEdit={setLineToEdit}
         onDelete={setLineToDelete}
