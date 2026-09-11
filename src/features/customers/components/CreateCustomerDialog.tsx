@@ -42,6 +42,7 @@ import {
   toCustomerWritePayload,
   type CreateCustomerFormValues,
 } from "@/features/customers/schemas/customer.schema";
+import { splitClientSearchName } from "@/features/customers/utils/format-customer";
 import { createCustomerAddress } from "@/features/customers/services/customer-addresses.service";
 import { createCustomerInsurance } from "@/features/customers/services/customer-insurance.service";
 import { createCustomerNote } from "@/features/customers/services/customer-notes.service";
@@ -59,6 +60,7 @@ type CreateCustomerDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated: (customer: Customer) => void;
+  initialName?: string;
 };
 
 type CreateCustomerTab =
@@ -81,6 +83,7 @@ export function CreateCustomerDialog({
   open,
   onOpenChange,
   onCreated,
+  initialName = "",
 }: CreateCustomerDialogProps) {
   const router = useRouter();
   const { toast } = useToast();
@@ -93,7 +96,10 @@ export function CreateCustomerDialog({
 
   const personalForm = useForm<CreateCustomerFormValues>({
     resolver: zodResolver(createCustomerSchema),
-    defaultValues: createCustomerDefaultValues,
+    defaultValues: {
+      ...createCustomerDefaultValues,
+      ...splitClientSearchName(initialName),
+    },
   });
 
   const insuranceForm = useForm<CreateCustomerInsuranceFormValues>({

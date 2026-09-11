@@ -100,10 +100,3 @@ export function getReceivablesDueSource(debtor: ReceivablesDebtor): string {
   }
   return "Balance";
 }
-
-export function parseReceivablesAmount(
-  value: string | number | null | undefined,
-): number {
-  const amount = Number(value);
-  return Number.isFinite(amount) ? amount : 0;
-}

@@ -68,6 +68,8 @@ export function CreateSalesOrderDialog({
   const [pricelist, setPricelist] = useState<OrganizationPricelist | null>(null);
   const [isResolvingVisitPricelist, setIsResolvingVisitPricelist] = useState(false);
   const [createCustomerOpen, setCreateCustomerOpen] = useState(false);
+  const [createCustomerName, setCreateCustomerName] = useState("");
+  const [createCustomerKey, setCreateCustomerKey] = useState(0);
   const form = useForm<CreateSalesOrderFormValues>({
     resolver: zodResolver(createSalesOrderSchema),
     defaultValues: createSalesOrderDefaultValues,
@@ -88,6 +90,7 @@ export function CreateSalesOrderDialog({
     setPricelist(null);
     setIsResolvingVisitPricelist(false);
     setCreateCustomerOpen(false);
+    setCreateCustomerName("");
     form.reset(createSalesOrderDefaultValues);
   }
 
@@ -136,6 +139,12 @@ export function CreateSalesOrderDialog({
     if (!nextCustomer && activeTab === "visit") {
       setActiveTab("general");
     }
+  }
+
+  function openCreateCustomer(name = "") {
+    setCreateCustomerName(name);
+    setCreateCustomerKey((current) => current + 1);
+    setCreateCustomerOpen(true);
   }
 
   function handleVisitChange(nextVisit: VisitDetail | null) {
@@ -300,23 +309,21 @@ export function CreateSalesOrderDialog({
         >
           {activeTab === "general" ? (
             <>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-3">
-                  <FormLabel>Client</FormLabel>
+              <CustomerAppointmentPicker
+                customer={customer}
+                onCustomerChange={handleCustomerChange}
+                disabled={isBusy}
+                onCreateClient={openCreateCustomer}
+                labelAction={
                   <TabAddActionButton
                     type="button"
                     label="New client"
                     disabled={isBusy}
-                    onClick={() => setCreateCustomerOpen(true)}
+                    onClick={() => openCreateCustomer()}
                     data-testid="create-sales-order-new-client"
                   />
-                </div>
-                <CustomerAppointmentPicker
-                  customer={customer}
-                  onCustomerChange={handleCustomerChange}
-                  disabled={isBusy}
-                />
-              </div>
+                }
+              />
 
               <FormField
                 control={form.control}
@@ -386,8 +393,10 @@ export function CreateSalesOrderDialog({
       </Form>
 
       <CreateCustomerDialog
+        key={createCustomerKey}
         open={createCustomerOpen}
         onOpenChange={setCreateCustomerOpen}
+        initialName={createCustomerName}
         onCreated={(createdCustomer) => {
           handleCustomerChange(createdCustomer);
           setCreateCustomerOpen(false);
