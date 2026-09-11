@@ -5,6 +5,8 @@ import dynamic from "next/dynamic";
 import { Check, ChevronDown } from "lucide-react";
 
 import { SecondaryButton } from "@/components/ui/app-buttons";
+import { Button } from "@/components/ui/button";
+import { ButtonGroup } from "@/components/ui/button-group";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,13 +15,27 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  getAllToothNumbersForSystem,
+  type DentitionMode,
+  filterTeethForDentition,
+  fromChartFdi,
+  getFdiToothNumbersForDentition,
+  getPermanentFdiToothNumbers,
+  inferDentitionMode,
+  isPermanentFdi,
+  isPrimaryFdi,
+  maxTeethForDentition,
+  toChartIds,
+} from "@/features/dental/lib/dental-dentition";
+import {
+  fdiNotationToToothNumber,
   type ToothNumberingSystem,
 } from "@/features/dental/lib/dental-tooth-validation";
 import { ExpandableToothNumbersSummary } from "@/features/dental/components/ExpandableToothNumbersSummary";
 import { cn } from "@/lib/utils";
 import "react-odontogram/style.css";
 import "./claim-line-odontogram-picker.css";
+
+export { getPermanentFdiToothNumbers } from "@/features/dental/lib/dental-dentition";
 
 const Odontogram = dynamic(
   () => import("react-odontogram").then((mod) => mod.Odontogram),
@@ -43,6 +59,14 @@ const NUMBERING_OPTIONS: Array<{
   { value: "palmer", label: "Palmer" },
 ];
 
+const DENTITION_OPTIONS: Array<{
+  value: DentitionMode;
+  label: string;
+}> = [
+  { value: "adult", label: "Adult" },
+  { value: "children", label: "Children" },
+];
+
 const BRAND_ODONTOGRAM_COLORS = {
   darkBlue: "#0b6e6e",
   baseBlue: "#8aaca9",
@@ -61,13 +85,6 @@ type OdontogramToothDetail = {
   type: string;
 };
 
-/** Claim teeth are always stored as FDI numbers. */
-function toDefaultSelected(fdiToothNumbers: number[]): string[] {
-  return fdiToothNumbers
-    .filter((n) => Number.isFinite(n) && n > 0)
-    .map((n) => `teeth-${n}`);
-}
-
 function odontogramNotationProp(
   numberingSystem: ToothNumberingSystem,
 ): "FDI" | "Universal" | "Palmer" {
@@ -81,11 +98,14 @@ function odontogramNotationProp(
   }
 }
 
-export function getPermanentFdiToothNumbers(): number[] {
-  return getAllToothNumbersForSystem("fdi")
-    .map(Number)
-    .filter((n) => n >= 11 && n <= 48)
-    .sort((a, b) => a - b);
+function displayNotationForStoredFdi(
+  storedFdi: number,
+  numberingSystem: ToothNumberingSystem,
+): string {
+  return (
+    fdiNotationToToothNumber(String(storedFdi), numberingSystem) ??
+    String(storedFdi)
+  );
 }
 
 export type ClaimLineOdontogramPickerProps = {
@@ -100,8 +120,10 @@ export type ClaimLineOdontogramPickerProps = {
   /** Increment to force remount (e.g. after cancelling an assign dialog). */
   remountToken?: number | string;
   showSelectAll?: boolean;
-  onSelectAll?: () => void;
-  onDeselectAll?: () => void;
+  /** Receives FDI numbers for the active dentition. */
+  onSelectAll?: (toothNumbers: number[]) => void;
+  /** Receives FDI numbers currently selected in the active dentition to clear. */
+  onDeselectAll?: (toothNumbers: number[]) => void;
 };
 
 export function ClaimLineOdontogramPicker({
@@ -117,16 +139,34 @@ export function ClaimLineOdontogramPicker({
 }: ClaimLineOdontogramPickerProps) {
   const [numberingSystem, setNumberingSystem] =
     useState<ToothNumberingSystem>("fdi");
+  const [dentitionMode, setDentitionMode] = useState<DentitionMode>(() =>
+    inferDentitionMode(value),
+  );
 
   const committedRef = useRef(value);
   committedRef.current = value;
 
+  const teethInMode = useMemo(
+    () => filterTeethForDentition(value, dentitionMode),
+    [value, dentitionMode],
+  );
+
+  const otherDentitionTeeth = useMemo(() => {
+    const otherMode: DentitionMode =
+      dentitionMode === "adult" ? "children" : "adult";
+    return filterTeethForDentition(value, otherMode);
+  }, [value, dentitionMode]);
+
+  const modeToothList = useMemo(
+    () => getFdiToothNumbersForDentition(dentitionMode),
+    [dentitionMode],
+  );
+
   const allTeethSelected = useMemo(() => {
-    const all = getPermanentFdiToothNumbers();
-    if (all.length === 0) return false;
-    const selected = new Set(value);
-    return all.every((tooth) => selected.has(tooth));
-  }, [value]);
+    if (modeToothList.length === 0) return false;
+    const selected = new Set(teethInMode);
+    return modeToothList.every((tooth) => selected.has(tooth));
+  }, [modeToothList, teethInMode]);
 
   const numberingLabel =
     NUMBERING_OPTIONS.find((option) => option.value === numberingSystem)
@@ -140,8 +180,11 @@ export function ClaimLineOdontogramPicker({
   /** Ignore library onChange during mount/remount sync (it can run while rendering). */
   const suppressChangeRef = useRef(true);
 
-  const defaultSelected = useMemo(() => toDefaultSelected(value), [value]);
-  const remountKey = `${numberingSystem}-${remountToken}-${defaultSelected.join(",") || "none"}`;
+  const defaultSelected = useMemo(
+    () => toChartIds(teethInMode, dentitionMode),
+    [teethInMode, dentitionMode],
+  );
+  const remountKey = `${dentitionMode}-${numberingSystem}-${remountToken}-${defaultSelected.join(",") || "none"}`;
 
   useEffect(() => {
     suppressChangeRef.current = true;
@@ -153,6 +196,13 @@ export function ClaimLineOdontogramPicker({
       suppressChangeRef.current = true;
     };
   }, [remountKey]);
+
+  const otherNote =
+    otherDentitionTeeth.length === 0
+      ? null
+      : dentitionMode === "adult"
+        ? `${otherDentitionTeeth.length} children ${otherDentitionTeeth.length === 1 ? "tooth" : "teeth"} also selected`
+        : `${otherDentitionTeeth.length} adult ${otherDentitionTeeth.length === 1 ? "tooth" : "teeth"} also selected`;
 
   return (
     <div
@@ -176,6 +226,32 @@ export function ClaimLineOdontogramPicker({
               : "Click a tooth to assign it to a claim line"}
           </p>
           <div className="flex flex-wrap items-center gap-2">
+            <ButtonGroup
+              aria-label="Dentition"
+              data-testid="claim-odontogram-dentition-toggle"
+            >
+              {DENTITION_OPTIONS.map((option) => {
+                const isCurrent = dentitionMode === option.value;
+                return (
+                  <Button
+                    key={option.value}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className={cn(
+                      "h-8 px-2.5 text-xs",
+                      isCurrent && "bg-brand-primary/5 text-brand-primary",
+                    )}
+                    disabled={disabled}
+                    aria-pressed={isCurrent}
+                    data-testid={`claim-odontogram-dentition-${option.value}`}
+                    onClick={() => setDentitionMode(option.value)}
+                  >
+                    {option.label}
+                  </Button>
+                );
+              })}
+            </ButtonGroup>
             {showSelectAll &&
             !disabled &&
             (allTeethSelected ? onDeselectAll : onSelectAll) ? (
@@ -183,7 +259,13 @@ export function ClaimLineOdontogramPicker({
                 type="button"
                 size="sm"
                 className="h-8 px-2.5 text-xs"
-                onClick={allTeethSelected ? onDeselectAll : onSelectAll}
+                onClick={() => {
+                  if (allTeethSelected) {
+                    onDeselectAll?.(teethInMode);
+                  } else {
+                    onSelectAll?.(modeToothList);
+                  }
+                }}
                 data-testid={
                   allTeethSelected
                     ? "claim-odontogram-deselect-all"
@@ -245,11 +327,44 @@ export function ClaimLineOdontogramPicker({
             key={remountKey}
             singleSelect={false}
             defaultSelected={defaultSelected}
+            maxTeeth={maxTeethForDentition(dentitionMode)}
             notation={odontogramNotationProp(numberingSystem)}
             theme="light"
             layout="circle"
             showTooltip={!disabled}
-            tooltip={{ placement: "top", margin: 8 }}
+            tooltip={{
+              placement: "top",
+              margin: 8,
+              content: (payload) => {
+                const chartFdi = Number(payload?.notations.fdi);
+                const stored =
+                  fromChartFdi(chartFdi, dentitionMode) ?? chartFdi;
+                const primaryLabel = displayNotationForStoredFdi(
+                  stored,
+                  numberingSystem,
+                );
+                const universal = displayNotationForStoredFdi(
+                  stored,
+                  "universal",
+                );
+                const palmer = displayNotationForStoredFdi(stored, "palmer");
+                const typeLabel =
+                  dentitionMode === "children" && isPrimaryFdi(stored)
+                    ? "Primary"
+                    : dentitionMode === "adult" && isPermanentFdi(stored)
+                      ? "Permanent"
+                      : (payload?.type ?? "");
+                return (
+                  <div style={{ minWidth: 140 }}>
+                    <div>Tooth: {primaryLabel}</div>
+                    {typeLabel ? <div>Type: {typeLabel}</div> : null}
+                    <div>
+                      Universal: {universal}, Palmer: {palmer}
+                    </div>
+                  </div>
+                );
+              },
+            }}
             colors={BRAND_ODONTOGRAM_COLORS}
             selectedColor={BRAND_ODONTOGRAM_COLORS.darkBlue}
             hoverColor={BRAND_ODONTOGRAM_COLORS.baseBlue}
@@ -268,14 +383,24 @@ export function ClaimLineOdontogramPicker({
                       return;
                     }
                     const next = selected
-                      .map((tooth) => Number(tooth.notations.fdi))
-                      .filter((n) => Number.isFinite(n) && n > 0);
+                      .map((tooth) =>
+                        fromChartFdi(
+                          Number(tooth.notations.fdi),
+                          dentitionMode,
+                        ),
+                      )
+                      .filter((n): n is number => n != null && n > 0);
                     const uniqueNext = [...new Set(next)].sort((a, b) => a - b);
-                    const current = committedRef.current;
-                    const currentSet = new Set(current);
+                    const currentInMode = filterTeethForDentition(
+                      committedRef.current,
+                      dentitionMode,
+                    );
+                    const currentSet = new Set(currentInMode);
                     const nextSet = new Set(uniqueNext);
                     const added = uniqueNext.filter((n) => !currentSet.has(n));
-                    const removed = current.filter((n) => !nextSet.has(n));
+                    const removed = currentInMode.filter(
+                      (n) => !nextSet.has(n),
+                    );
                     if (added.length === 0 && removed.length === 0) {
                       return;
                     }
@@ -303,6 +428,14 @@ export function ClaimLineOdontogramPicker({
         <div className="mt-1">
           <ExpandableToothNumbersSummary toothNumbers={value} />
         </div>
+        {otherNote ? (
+          <p
+            className="mt-1.5 text-xs text-brand-muted"
+            data-testid="claim-odontogram-other-dentition-note"
+          >
+            {otherNote}
+          </p>
+        ) : null}
       </div>
     </div>
   );

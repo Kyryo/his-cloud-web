@@ -13,10 +13,8 @@ import {
   getLineToothNumbers,
   lineTeethChanged,
 } from "@/features/claims/utils/claim-odontogram-assignments";
-import {
-  ClaimLineOdontogramPicker,
-  getPermanentFdiToothNumbers,
-} from "@/features/dental/components/ClaimLineOdontogramPicker";
+import { ClaimLineOdontogramPicker } from "@/features/dental/components/ClaimLineOdontogramPicker";
+import { mergeSelectAllTeeth } from "@/features/dental/lib/dental-dentition";
 import { formatToothNumbersSummary } from "@/features/dental/lib/dental-teeth-display";
 import { useToast } from "@/providers/toast-provider";
 
@@ -189,9 +187,9 @@ export function ClaimDetailOdontogramTab({
     });
   }
 
-  async function handleSelectAll() {
-    if (!isDraft || lineItems.length === 0) return;
-    const allTeeth = getPermanentFdiToothNumbers();
+  async function handleSelectAll(toothNumbers: number[]) {
+    if (!isDraft || lineItems.length === 0 || toothNumbers.length === 0) return;
+    const allTeeth = mergeSelectAllTeeth(assignedTeeth, toothNumbers);
     if (lineItems.length === 1) {
       setIsSaving(true);
       setError(null);
@@ -225,27 +223,37 @@ export function ClaimDetailOdontogramTab({
       mode: "replace",
       title: "Select all teeth",
       description:
-        "Choose which claim line should receive all teeth. Teeth on other lines will be cleared.",
+        "Choose which claim line should receive all teeth for this dentition. Teeth on other lines will be cleared.",
     });
   }
 
-  async function handleDeselectAll() {
-    if (!isDraft || lineItems.length === 0 || assignedTeeth.length === 0) {
+  async function handleDeselectAll(toothNumbers: number[]) {
+    if (
+      !isDraft ||
+      lineItems.length === 0 ||
+      toothNumbers.length === 0 ||
+      assignedTeeth.length === 0
+    ) {
       return;
     }
+    const remove = new Set(toothNumbers);
     setIsSaving(true);
     setError(null);
     try {
       let latest: ClaimDetail = claim;
       for (const line of lineItems) {
-        if (getLineToothNumbers(line).length === 0) continue;
-        latest = await setClaimLineDentalTeeth(claim.id, line.id, []);
+        const current = getLineToothNumbers(line);
+        if (current.length === 0) continue;
+        const next = current.filter((tooth) => !remove.has(tooth));
+        if (!lineTeethChanged(current, next)) continue;
+        latest = await setClaimLineDentalTeeth(claim.id, line.id, next);
       }
       onClaimUpdated?.(latest);
       toast({
         variant: "success",
-        title: "All teeth cleared",
-        description: "Tooth selections were removed from every claim line.",
+        title: "Teeth cleared",
+        description:
+          "Tooth selections for this dentition were removed from claim lines.",
       });
     } catch (err) {
       const message =
@@ -297,11 +305,11 @@ export function ClaimDetailOdontogramTab({
           onRemoveTeeth={(teeth) => {
             void handleRemoveTeeth(teeth);
           }}
-          onSelectAll={() => {
-            void handleSelectAll();
+          onSelectAll={(toothNumbers) => {
+            void handleSelectAll(toothNumbers);
           }}
-          onDeselectAll={() => {
-            void handleDeselectAll();
+          onDeselectAll={(toothNumbers) => {
+            void handleDeselectAll(toothNumbers);
           }}
         />
       </div>

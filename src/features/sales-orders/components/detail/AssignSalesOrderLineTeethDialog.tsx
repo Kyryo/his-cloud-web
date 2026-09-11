@@ -13,10 +13,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { StatusBanner } from "@/components/ui/status-banner";
-import {
-  ClaimLineOdontogramPicker,
-  getPermanentFdiToothNumbers,
-} from "@/features/dental/components/ClaimLineOdontogramPicker";
+import { ClaimLineOdontogramPicker } from "@/features/dental/components/ClaimLineOdontogramPicker";
+import { mergeSelectAllTeeth } from "@/features/dental/lib/dental-dentition";
 import type { SalesOrderLine } from "@/features/sales-orders/types/sales-order.types";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
@@ -111,8 +109,17 @@ export function AssignSalesOrderLineTeethDialog({
                 current.filter((tooth) => !remove.has(tooth)),
               );
             }}
-            onSelectAll={() => setSelectedTeeth(getPermanentFdiToothNumbers())}
-            onDeselectAll={() => setSelectedTeeth([])}
+            onSelectAll={(toothNumbers) =>
+              setSelectedTeeth((current) =>
+                mergeSelectAllTeeth(current, toothNumbers),
+              )
+            }
+            onDeselectAll={(toothNumbers) => {
+              const remove = new Set(toothNumbers);
+              setSelectedTeeth((current) =>
+                current.filter((tooth) => !remove.has(tooth)),
+              );
+            }}
           />
         </div>
 

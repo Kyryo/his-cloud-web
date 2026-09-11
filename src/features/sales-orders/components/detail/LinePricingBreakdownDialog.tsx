@@ -7,10 +7,8 @@ import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { TabbedDialog } from "@/components/ui/tabbed-dialog";
-import {
-  ClaimLineOdontogramPicker,
-  getPermanentFdiToothNumbers,
-} from "@/features/dental/components/ClaimLineOdontogramPicker";
+import { ClaimLineOdontogramPicker } from "@/features/dental/components/ClaimLineOdontogramPicker";
+import { mergeSelectAllTeeth } from "@/features/dental/lib/dental-dentition";
 import type { PricingBreakdownLine } from "@/features/sales-orders/types/line-payment-split.types";
 import { getLinePricingSnapshot } from "@/features/sales-orders/types/line-payment-split.types";
 import type { SalesOrderLine } from "@/features/sales-orders/types/sales-order.types";
@@ -383,8 +381,13 @@ function OdontogramTabContent({
           const remove = new Set(removed);
           onToothNumbersChange(toothNumbers.filter((n) => !remove.has(n)));
         }}
-        onSelectAll={() => onToothNumbersChange(getPermanentFdiToothNumbers())}
-        onDeselectAll={() => onToothNumbersChange([])}
+        onSelectAll={(modeTeeth) =>
+          onToothNumbersChange(mergeSelectAllTeeth(toothNumbers, modeTeeth))
+        }
+        onDeselectAll={(modeTeeth) => {
+          const remove = new Set(modeTeeth);
+          onToothNumbersChange(toothNumbers.filter((n) => !remove.has(n)));
+        }}
       />
     </div>
   );
