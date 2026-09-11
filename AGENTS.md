@@ -629,7 +629,7 @@ The authenticated app and the marketing site use different typefaces. Do not mix
 
 | Surface | Font | How it is applied |
 | --- | --- | --- |
-| Authenticated app (`(app)`, `(admin)`) | **DM Sans** | `appFont` from `@/lib/fonts`, set on the layout wrapper |
+| Authenticated app (`(app)`, `(admin)`) | **Plus Jakarta Sans** | `appFont` from `@/lib/fonts`, set on the layout wrapper |
 | Marketing / landing (`(brand)`, `data-brand-page`) | **Fraunces** (headings) + **Figtree** (body) | Fraunces remaps `--font-bricolage` / `--font-display`; Figtree is `--font-landing-body` on `[data-brand-page]` |
 
 Portaled UI (dialogs, sheets, popovers, select menus, hover cards, etc.) renders **outside** the app layout wrapper. Always add `appFont.className` to the portaled content class list so copy matches the authenticated app — not the landing-page font.

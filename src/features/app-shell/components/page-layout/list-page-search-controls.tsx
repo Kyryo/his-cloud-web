@@ -15,7 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const TOOLBAR_CONTROL_CLASS =
-  "h-10 rounded-lg border-dash-border bg-white text-brand-slate";
+  "h-10 rounded-lg border-dash-border bg-white text-brand-slate transition-[background-color,border-color,transform] hover:bg-dash-canvas active:scale-[0.98]";
 
 type ListPageSearchFieldProps = {
   id?: string;
@@ -50,7 +50,7 @@ export function ListPageSearchField({
         aria-label={placeholder}
         value={value}
         disabled={disabled}
-        className="h-10 w-full rounded-lg border-dash-border bg-white pl-9"
+        className="h-10 w-full rounded-lg border-dash-border bg-white pl-9 transition-[border-color,box-shadow] focus-visible:border-brand-primary/40 focus-visible:ring-2 focus-visible:ring-brand-primary/15"
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={(event) => {
           if (event.key === "Enter") {
@@ -135,8 +135,8 @@ export function ListPageFilterButton({
       onClick={onClick}
       data-testid={dataTestId}
     >
-      <AppIcon name="add" size={16} />
-      Add filter
+      <AppIcon name="layers" size={16} />
+      Filters
       {activeCount > 0 ? (
         <Badge variant="secondary" className="ml-1 px-1.5 py-0">
           {activeCount}

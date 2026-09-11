@@ -50,7 +50,7 @@ export function ProductsTable({
           return (
             <ListPageDataTableRow
               key={product.uuid}
-              className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+              className="group cursor-pointer"
               onClick={() => onRowClick?.(product)}
             >
               <ListPageDataTableCell className="py-3">

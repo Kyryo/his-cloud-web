@@ -13,6 +13,39 @@ export function formatCustomerName(customer: Pick<
     .join(" ");
 }
 
+const CLIENT_NAME_SEARCH_PATTERN = /^[a-zA-Z][a-zA-Z\s\-']*$/;
+
+export function looksLikeClientName(value: string): boolean {
+  const trimmed = value.trim();
+  return trimmed.length >= 2 && CLIENT_NAME_SEARCH_PATTERN.test(trimmed);
+}
+
+export function splitClientSearchName(value: string): {
+  first_name: string;
+  middle_name: string;
+  last_name: string;
+} {
+  const parts = value.trim().split(/\s+/).filter(Boolean);
+
+  if (parts.length === 0) {
+    return { first_name: "", middle_name: "", last_name: "" };
+  }
+
+  if (parts.length === 1) {
+    return { first_name: parts[0], middle_name: "", last_name: "" };
+  }
+
+  if (parts.length === 2) {
+    return { first_name: parts[0], middle_name: "", last_name: parts[1] };
+  }
+
+  return {
+    first_name: parts[0],
+    middle_name: parts.slice(1, -1).join(" "),
+    last_name: parts[parts.length - 1],
+  };
+}
+
 export function formatCustomerSearchLabel(
   customer: Pick<
     Customer,

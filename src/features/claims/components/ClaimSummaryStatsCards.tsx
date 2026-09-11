@@ -56,7 +56,7 @@ export function ClaimSummaryStatsCards({
             All claims
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.all.count)}
         </dd>
         <p
@@ -74,7 +74,7 @@ export function ClaimSummaryStatsCards({
             Draft
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.draft.count)}
         </dd>
         <p
@@ -92,7 +92,7 @@ export function ClaimSummaryStatsCards({
             Submitted
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.submitted.count)}
         </dd>
         <p
@@ -110,7 +110,7 @@ export function ClaimSummaryStatsCards({
             Approved
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.approved.count)}
         </dd>
         <p

@@ -1,18 +1,10 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect, SelectItem } from "@/components/ui/searchable-select";
 import { searchInventorySuppliers } from "@/features/inventory/services/batches.service";
 import { cn } from "@/lib/utils";
 
@@ -72,17 +64,7 @@ export function InventorySupplierPicker({
   }, [options, supplier, trimmedSearch]);
 
   useEffect(() => {
-    if (!open) {
-      searchRequestIdRef.current += 1;
-      setSearch("");
-      setIsLoadingResults(false);
-      return;
-    }
-
-    if (trimmedSearch.length < 2) {
-      searchRequestIdRef.current += 1;
-      setOptions(supplier ? [supplier] : []);
-      setIsLoadingResults(false);
+    if (!open || trimmedSearch.length < 2) {
       return;
     }
 
@@ -91,8 +73,6 @@ export function InventorySupplierPicker({
 
     const handle = window.setTimeout(() => {
       void (async () => {
-        // Mark loading without clearing current options so the dropdown
-        // content (and search input focus) stay stable while fetching.
         setIsLoadingResults(true);
         try {
           const results = await searchInventorySuppliers(trimmedSearch);
@@ -100,32 +80,37 @@ export function InventorySupplierPicker({
             return;
           }
           setOptions(results);
+          setIsLoadingResults(false);
         } catch {
           if (searchRequestIdRef.current !== requestId) {
             return;
           }
           setOptions(supplier ? [supplier] : []);
-        } finally {
-          if (searchRequestIdRef.current === requestId) {
-            setIsLoadingResults(false);
-          }
+          setIsLoadingResults(false);
         }
       })();
     }, SEARCH_DEBOUNCE_MS);
 
     return () => {
       window.clearTimeout(handle);
-      // Invalidate in-flight work started by this effect run.
       if (searchRequestIdRef.current === requestId) {
         searchRequestIdRef.current += 1;
       }
     };
   }, [open, supplier, trimmedSearch]);
 
-  const handleValueChange = (value: string) => {
+  function handleOpenChange(nextOpen: boolean) {
+    setOpen(nextOpen);
+    if (!nextOpen) {
+      searchRequestIdRef.current += 1;
+      setSearch("");
+    }
+  }
+
+  function handleValueChange(value: string) {
     onSupplierChange(value);
-    setOpen(false);
-  };
+    handleOpenChange(false);
+  }
 
   return (
     <div className="space-y-2">
@@ -139,70 +124,34 @@ export function InventorySupplierPicker({
         ) : null}
       </div>
 
-      <Select
+      <SearchableSelect
+        id={id}
         value={supplier || undefined}
         onValueChange={handleValueChange}
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={handleOpenChange}
         disabled={disabled}
+        placeholder={placeholder}
+        displayValue={supplier || undefined}
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder={searchPlaceholder}
+        emptySearchMessage="Type at least 2 characters to search."
+        noResultsMessage={emptyMessage}
+        isLoading={isLoadingResults}
+        triggerClassName={cn("w-full", invalid && "border-destructive")}
       >
-        <SelectTrigger
-          id={id}
-          className={cn("w-full", invalid && "border-destructive")}
-          aria-invalid={invalid}
-        >
-          <SelectValue placeholder={placeholder}>
-            {supplier || null}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <div className="border-b border-brand-border p-2">
-            <div className="relative">
-              <Input
-                value={search}
-                placeholder={searchPlaceholder}
-                className="h-9 pr-8"
-                aria-busy={isLoadingResults}
-                onChange={(event) => setSearch(event.target.value)}
-                onKeyDown={(event) => event.stopPropagation()}
-              />
-              {isLoadingResults ? (
-                <Loader2
-                  className="pointer-events-none absolute top-1/2 right-2 size-4 -translate-y-1/2 animate-spin text-brand-muted"
-                  aria-hidden="true"
-                />
-              ) : null}
-            </div>
-          </div>
-
-          {trimmedSearch.length < 2 ? (
-            <div className="px-3 py-6 text-center text-sm text-brand-muted">
-              Type at least 2 characters to search.
-            </div>
-          ) : options.length === 0 && !customOption && !isLoadingResults ? (
-            <div className="px-3 py-6 text-center text-sm text-brand-muted">
-              {emptyMessage}
-            </div>
-          ) : options.length === 0 && !customOption && isLoadingResults ? (
-            <div className="px-3 py-6 text-center text-sm text-brand-muted">
-              Searching...
-            </div>
-          ) : (
-            <>
-              {options.map((option) => (
-                <SelectItem key={option} value={option}>
-                  {option}
-                </SelectItem>
-              ))}
-              {customOption ? (
-                <SelectItem value={customOption}>
-                  Use &ldquo;{customOption}&rdquo;
-                </SelectItem>
-              ) : null}
-            </>
-          )}
-        </SelectContent>
-      </Select>
+        {options.map((option) => (
+          <SelectItem key={option} value={option}>
+            {option}
+          </SelectItem>
+        ))}
+        {customOption ? (
+          <SelectItem value={customOption}>
+            Use &ldquo;{customOption}&rdquo;
+          </SelectItem>
+        ) : null}
+      </SearchableSelect>
     </div>
   );
 }

@@ -49,7 +49,7 @@ export function ModuleEmptyState({
       <div className="flex size-14 items-center justify-center rounded-2xl bg-slate-100 text-brand-muted">
         <Icon className="size-7" strokeWidth={1.75} aria-hidden="true" />
       </div>
-      <h2 className="mt-5 text-lg font-semibold text-brand-navy">
+      <h2 className="mt-4 text-base font-semibold text-brand-navy">
         {copy.title(featureName)}
       </h2>
       <p className="mt-2 max-w-sm text-sm text-brand-muted">

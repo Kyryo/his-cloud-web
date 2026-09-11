@@ -45,7 +45,7 @@ describe("ListPageSearchToolbar", () => {
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
     expect(searchButton).toHaveTextContent("Search");
-    expect(filterButton).toHaveTextContent("Add filter");
+    expect(filterButton).toHaveTextContent("Filters");
     expect(filterButton).toHaveTextContent("2");
     expect(filterButton.className).not.toContain("bg-brand-primary");
 

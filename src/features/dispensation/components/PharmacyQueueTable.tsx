@@ -53,7 +53,7 @@ export function PharmacyQueueTable({
           return (
             <ListPageDataTableRow
               key={item.uuid}
-              className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+              className="group cursor-pointer"
               onClick={() => onRowClick?.(item)}
               data-testid={`pharmacy-queue-row-${item.uuid}`}
             >

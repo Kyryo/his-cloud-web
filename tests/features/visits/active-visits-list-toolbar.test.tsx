@@ -44,7 +44,7 @@ describe("ActiveVisitsListToolbar", () => {
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
     expect(searchButton).toHaveTextContent("Search");
-    expect(filterButton).toHaveTextContent("Add filter");
+    expect(filterButton).toHaveTextContent("Filters");
 
     fireEvent.click(searchButton);
     expect(onSearchSubmit).toHaveBeenCalledTimes(1);

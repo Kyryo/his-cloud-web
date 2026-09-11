@@ -90,7 +90,7 @@ export function AppointmentsTable({
           return (
             <ListPageDataTableRow
               key={appointment.uuid}
-              className="group cursor-pointer hover:bg-slate-50/70 transition-colors"
+              className="group cursor-pointer"
               onClick={() => onRowClick(appointment)}
             >
               {/* Client */}
@@ -102,11 +102,11 @@ export function AppointmentsTable({
                     className="size-8.5 shrink-0 rounded-lg shadow-2xs"
                   />
                   <div className="min-w-0">
-                    <span className="block truncate text-sm font-semibold text-brand-navy group-hover:text-brand-primary transition-colors">
+                    <span className="block truncate font-medium text-brand-navy transition-colors group-hover:text-brand-primary">
                       {appointment.patient_name}
                     </span>
                     {appointment.reason ? (
-                      <span className="block truncate text-sm text-brand-muted">
+                      <span className="block truncate text-brand-muted">
                         {appointment.reason}
                       </span>
                     ) : null}
@@ -115,12 +115,12 @@ export function AppointmentsTable({
               </ListPageDataTableCell>
 
               {/* Clinic */}
-              <ListPageDataTableCell className="py-3 text-sm text-brand-slate">
+              <ListPageDataTableCell className="py-3">
                 {appointment.clinic_name || "—"}
               </ListPageDataTableCell>
 
               {/* Department */}
-              <ListPageDataTableCell className="py-3 text-sm text-brand-slate">
+              <ListPageDataTableCell className="py-3">
                 {appointment.department_name || "—"}
               </ListPageDataTableCell>
 

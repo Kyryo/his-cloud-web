@@ -65,7 +65,7 @@ export function ReceivablesDebtorsTable({
           return (
             <ListPageDataTableRow
               key={debtor.customer_uuid}
-              className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+              className="group cursor-pointer"
               onClick={() => onRowClick?.(debtor)}
               data-testid={`receivables-debtor-${debtor.customer_uuid}`}
             >

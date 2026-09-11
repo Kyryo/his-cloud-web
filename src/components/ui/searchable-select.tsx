@@ -34,6 +34,7 @@ type SearchableSelectProps = {
   triggerClassName?: string;
   contentClassName?: string;
   headerExtra?: ReactNode;
+  footerExtra?: ReactNode;
   "data-testid"?: string;
   children: ReactNode;
 };
@@ -49,7 +50,7 @@ export function SearchableSelect({
   displayValue,
   searchValue,
   onSearchChange,
-  searchPlaceholder = "Search...",
+  searchPlaceholder = "Search…",
   isLoading = false,
   minSearchLength = 2,
   emptySearchMessage = "Type at least 2 characters to search.",
@@ -58,6 +59,7 @@ export function SearchableSelect({
   triggerClassName,
   contentClassName,
   headerExtra,
+  footerExtra,
   "data-testid": dataTestId,
   children,
 }: SearchableSelectProps) {
@@ -88,7 +90,10 @@ export function SearchableSelect({
     >
       <SelectTrigger
         id={id}
-        className={cn("w-full", triggerClassName)}
+        className={cn(
+          "w-full rounded-lg border-dash-border bg-white focus:ring-brand-primary/20",
+          triggerClassName,
+        )}
         data-testid={dataTestId}
       >
         <SelectValue placeholder={placeholder}>{displayValue}</SelectValue>
@@ -108,7 +113,7 @@ export function SearchableSelect({
               ref={searchInputRef}
               value={searchValue}
               placeholder={searchPlaceholder}
-              className="h-9"
+              className="h-9 rounded-lg border-dash-border"
               onChange={(event) => onSearchChange(event.target.value)}
               onKeyDown={(event) => event.stopPropagation()}
             />
@@ -124,7 +129,7 @@ export function SearchableSelect({
           {isLoading ? (
             <div className="flex items-center justify-center gap-2 px-3 py-6 text-sm text-brand-muted">
               <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              Searching...
+              Searching…
             </div>
           ) : needsSearch ? (
             <div className="px-3 py-6 text-center text-sm text-brand-muted">
@@ -138,6 +143,11 @@ export function SearchableSelect({
             children
           )}
         </div>
+        {footerExtra ? (
+          <div className="shrink-0 bg-popover px-2 pb-2">
+            {footerExtra}
+          </div>
+        ) : null}
       </SelectContent>
     </Select>
   );

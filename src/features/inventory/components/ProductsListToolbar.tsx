@@ -1,9 +1,12 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { X } from "lucide-react";
 
-import { ListPageSearchToolbar } from "@/features/app-shell/components/page-layout";
+import {
+  ListPageActiveFilters,
+  ListPageFilterChip,
+  ListPageSearchToolbar,
+} from "@/features/app-shell/components/page-layout";
 import { InventoryFiltersSheet } from "@/features/inventory/components/InventoryFiltersSheet";
 import {
   ACTIVE_STATUS_OPTIONS,
@@ -53,7 +56,7 @@ export function ProductsListToolbar({
       <ListPageSearchToolbar
         search={search}
         searchId="inventory-products-search"
-        placeholder="Search by name, code, barcode, or tariff code..."
+        placeholder="Search by name, code, barcode, or tariff code…"
         searchTestId="inventory-products-search"
         searchSubmitTestId="inventory-products-search-submit"
         clearTestId="inventory-products-search-clear"
@@ -75,51 +78,32 @@ export function ProductsListToolbar({
       />
 
       {hasAnyFilter ? (
-        <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs">
-          <span className="mr-1 text-[11px] font-semibold uppercase tracking-wider text-dash-muted">
-            Active filters:
-          </span>
-
+        <ListPageActiveFilters
+          disabled={isLoading}
+          onClearAll={() => onFiltersApply(DEFAULT_PRODUCT_SHEET_FILTERS)}
+        >
           {hasStatusFilter ? (
-            <button
-              type="button"
+            <ListPageFilterChip
+              label={`Status: ${statusLabel}`}
               disabled={isLoading}
-              onClick={() =>
+              onRemove={() =>
                 onFiltersApply({ ...filters, activeStatus: "active" })
               }
-              className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-slate-200 bg-slate-100/90 px-2.5 py-0.5 text-slate-800 transition-colors hover:bg-slate-200"
-            >
-              <span>Status: {statusLabel}</span>
-              <X className="size-3" />
-            </button>
+            />
           ) : null}
-
           {hasOrderingFilter ? (
-            <button
-              type="button"
+            <ListPageFilterChip
+              label={`Sort: ${orderingLabel}`}
               disabled={isLoading}
-              onClick={() =>
+              onRemove={() =>
                 onFiltersApply({
                   ...filters,
                   ordering: DEFAULT_INVENTORY_ORDERING,
                 })
               }
-              className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-purple-200 bg-purple-50/80 px-2.5 py-0.5 text-purple-800 transition-colors hover:bg-purple-100"
-            >
-              <span>Sort: {orderingLabel}</span>
-              <X className="size-3" />
-            </button>
+            />
           ) : null}
-
-          <button
-            type="button"
-            disabled={isLoading}
-            onClick={() => onFiltersApply(DEFAULT_PRODUCT_SHEET_FILTERS)}
-            className="ml-1 text-[11px] font-medium text-brand-primary underline transition-colors hover:text-brand-primary-hover"
-          >
-            Clear all
-          </button>
-        </div>
+        </ListPageActiveFilters>
       ) : null}
     </div>
   );

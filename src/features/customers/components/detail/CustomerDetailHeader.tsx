@@ -47,7 +47,7 @@ export function CustomerDetailHeader({
           <div className="min-w-0 flex-1 space-y-2">
             {/* Top Row: Name, ID, Badges */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-              <h1 className="truncate text-lg font-bold tracking-tight text-brand-navy sm:text-2xl">
+              <h1 className="truncate text-base font-semibold tracking-tight text-brand-navy sm:text-xl">
                 {fullName}
               </h1>
 

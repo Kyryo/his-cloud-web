@@ -16,7 +16,6 @@ import {
   LANDING_COMPARISON,
   LANDING_FAQ,
   LANDING_FINAL_CTA,
-  LANDING_PROBLEM,
   LANDING_REVENUE,
   LANDING_SOLUTION,
 } from "@/features/brand/constants/landing-home-content";
@@ -121,13 +120,7 @@ function LandingFaqAccordion() {
 export function LandingHomeSections() {
   return (
     <>
-      <LandingSection variant="white" className="!pt-12 sm:!pt-14 lg:!pt-16">
-        <LandingSectionHeader
-          title={LANDING_PROBLEM.title}
-          description={LANDING_PROBLEM.description}
-          align="center"
-          className="max-w-4xl"
-        />
+      <LandingSection variant="white" className="!pt-16 sm:!pt-20 lg:!pt-24">
         <LandingProblemFeatureCards />
       </LandingSection>
 

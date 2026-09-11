@@ -7,7 +7,7 @@ import { DEFAULT_PAYMENT_LIST_FILTERS } from "@/features/payments/utils/payment-
 vi.mock("@/features/payments/components/PaymentFiltersSheet", () => ({
   PaymentFiltersSheet: ({ isLoading }: { isLoading?: boolean }) => (
     <button type="button" data-testid="payments-filters-button" disabled={isLoading}>
-      Add filter
+      Filters
     </button>
   ),
 }));
@@ -42,7 +42,7 @@ describe("PaymentListToolbar", () => {
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
     expect(searchButton).toHaveTextContent("Search");
-    expect(filterButton).toHaveTextContent("Add filter");
+    expect(filterButton).toHaveTextContent("Filters");
 
     fireEvent.click(searchButton);
     expect(onSearchSubmit).toHaveBeenCalledTimes(1);

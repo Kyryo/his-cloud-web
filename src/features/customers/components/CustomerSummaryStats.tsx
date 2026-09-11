@@ -1,6 +1,12 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  LIST_PAGE_INSIGHT_CELL_CLASS,
+  LIST_PAGE_INSIGHT_LABEL_CLASS,
+  LIST_PAGE_INSIGHT_STRIP_CLASS,
+  LIST_PAGE_INSIGHT_VALUE_CLASS,
+} from "@/features/app-shell/components/page-layout";
 import type { CustomerSummaryStats as CustomerSummaryStatsData } from "@/features/customers/utils/customer-stats";
 import { formatGenderCounts } from "@/features/customers/utils/customer-stats";
 import { formatCompactNumber } from "@/utils/format-compact-number";
@@ -29,14 +35,14 @@ export function CustomerSummaryStatsCards({
   if (isLoading) {
     return (
       <div
-        className="grid grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
+        className={LIST_PAGE_INSIGHT_STRIP_CLASS}
         data-testid="customer-summary-stats"
         aria-busy="true"
       >
         {Array.from({ length: 4 }, (_, index) => (
-          <div key={index} className="p-3.5 sm:p-4">
+          <div key={index} className={LIST_PAGE_INSIGHT_CELL_CLASS}>
             <Skeleton className="h-3.5 w-20" />
-            <Skeleton className="mt-2.5 h-8 w-16" />
+            <Skeleton className="mt-2 h-6 w-14" />
             <Skeleton className="mt-1.5 h-3 w-28" />
           </div>
         ))}
@@ -46,71 +52,55 @@ export function CustomerSummaryStatsCards({
 
   return (
     <dl
-      className="grid grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
+      className={LIST_PAGE_INSIGHT_STRIP_CLASS}
       data-testid="customer-summary-stats"
     >
-      {/* 1. Total Clients */}
-      <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-        <div className="flex items-center gap-2">
-          <span className="size-2 shrink-0 rounded-full bg-brand-primary" />
-          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-            Total clients
-          </dt>
-        </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+      <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+        <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>
+          Total clients
+        </dt>
+        <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
           {formatCompactNumber(totalClients)}
         </dd>
-        <p className="mt-0.5 text-xs text-brand-muted">Active patient directory</p>
+        <p className="mt-0.5 text-xs text-brand-muted">Registered and active</p>
       </div>
 
-      {/* 2. New this month */}
-      <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-        <div className="flex items-center gap-2">
-          <span className="size-2 shrink-0 rounded-full bg-emerald-500" />
-          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-            New this month
-          </dt>
-        </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+      <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+        <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>
+          New this month
+        </dt>
+        <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
           {formatCompactNumber(newThisMonth)}
         </dd>
         <p className="mt-0.5 text-xs text-brand-muted">
-          {newPercentage !== undefined ? (
-            <span className="font-medium text-emerald-700">+{newPercentage}% of directory</span>
-          ) : (
-            "Recent registrations"
-          )}
+          {newPercentage !== undefined
+            ? `+${newPercentage}% of directory`
+            : "Recent registrations"}
         </p>
       </div>
 
-      {/* 3. Male / Female */}
-      <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-        <div className="flex items-center gap-2">
-          <span className="size-2 shrink-0 rounded-full bg-blue-500" />
-          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-            Male / Female
-          </dt>
-        </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
-          {stats ? formatGenderCounts(stats) : "—"}
+      <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+        <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>
+          Male / Female
+        </dt>
+        <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
+          {stats ? formatGenderCounts(stats) : "-"}
         </dd>
         <p className="mt-0.5 text-xs text-brand-muted">
-          {stats ? `${stats.maleCount} male · ${stats.femaleCount} female` : "Gender distribution"}
+          {stats
+            ? `${stats.maleCount} male, ${stats.femaleCount} female`
+            : "Gender distribution"}
         </p>
       </div>
 
-      {/* 4. Average age */}
-      <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-        <div className="flex items-center gap-2">
-          <span className="size-2 shrink-0 rounded-full bg-amber-500" />
-          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-            Average age
-          </dt>
-        </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
-          {stats ? `${stats.averageAge} yrs` : "—"}
+      <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+        <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>
+          Average age
+        </dt>
+        <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
+          {stats ? `${stats.averageAge} yrs` : "-"}
         </dd>
-        <p className="mt-0.5 text-xs text-brand-muted">Patient population mean</p>
+        <p className="mt-0.5 text-xs text-brand-muted">Client population mean</p>
       </div>
     </dl>
   );

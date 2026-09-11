@@ -67,7 +67,7 @@ export function InventoryListTable<T>({
                 key={getRowKey(item)}
                 className={cn(
                   onRowClick &&
-                    "cursor-pointer transition-colors hover:bg-slate-50/70 active:bg-slate-100/60",
+                    "cursor-pointer",
                 )}
                 onClick={() => onRowClick?.(item)}
               >

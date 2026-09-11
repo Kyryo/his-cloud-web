@@ -1,12 +1,13 @@
 "use client";
 
 import { BarChart3 } from "lucide-react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { FabButton } from "@/components/ui/fab-button";
 import {
+  ListPageBlankState,
   ListPageDataSectionsStack,
   ListPageLayout,
   ListPagePagination,
@@ -53,6 +54,10 @@ import {
   type AppointmentListFilterState,
 } from "@/features/appointments/utils/appointment-list-filters";
 import { useAppointmentBoardStore } from "@/features/appointments/stores/appointment-board.store";
+import {
+  APPOINTMENT_NEW_PARAM,
+  appointmentsHref,
+} from "@/features/appointments/utils/appointment-list-url";
 import { parseAppointmentsViewFromPath } from "@/features/appointments/utils/appointment-views";
 import { usePageActivity } from "@/features/app-shell/hooks/use-page-activity";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
@@ -61,10 +66,14 @@ import { useToast } from "@/providers/toast-provider";
 
 export function AppointmentsListPage() {
   const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const viewMode = parseAppointmentsViewFromPath(pathname);
   const { toast } = useToast();
   const [actionUuid, setActionUuid] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const urlCreate = searchParams.get(APPOINTMENT_NEW_PARAM) === "1";
+  const isCreateOpen = createOpen || urlCreate;
   const [createPrefill, setCreatePrefill] = useState<
     | (Partial<CreateAppointmentFormValues> & { clinicianName?: string | null })
     | undefined
@@ -320,7 +329,7 @@ export function AppointmentsListPage() {
           }}
           onNewAppointment={() => {
             setCreatePrefill(undefined);
-            setCreateOpen(true);
+            router.replace(appointmentsHref({ pathname, newAppointment: true }));
           }}
         />
 
@@ -339,7 +348,7 @@ export function AppointmentsListPage() {
           label="New appointment"
           onClick={() => {
             setCreatePrefill(undefined);
-            setCreateOpen(true);
+            router.replace(appointmentsHref({ pathname, newAppointment: true }));
           }}
           data-testid="new-appointment-fab"
         />
@@ -369,45 +378,49 @@ export function AppointmentsListPage() {
               <AppointmentsCalendarSkeleton visibleMonth={visibleMonth} />
             )
           ) : activeError ? (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-              <h2 className="text-sm font-semibold text-red-800">
-                Could not load appointments
-              </h2>
-              <p className="mt-2 text-sm text-red-700">{activeError}</p>
-              <Button
-                type="button"
-                variant="outline"
-                className="mt-4"
-                onClick={() => void reloadAll()}
-              >
-                Try again
-              </Button>
-            </div>
+            <ListPageBlankState
+              compact
+              tone="error"
+              icon="calendarClock"
+              title="Could not load appointments"
+              description={activeError}
+              action={
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 rounded-lg"
+                  onClick={() => void reloadAll()}
+                >
+                  Try again
+                </Button>
+              }
+            />
           ) : isListView && hasNoRecords ? (
             <AppointmentsEmptyState
               onNewAppointment={() => {
                 setCreatePrefill(undefined);
-                setCreateOpen(true);
+                router.replace(
+                  appointmentsHref({ pathname, newAppointment: true }),
+                );
               }}
             />
           ) : isListView && isFilteredEmpty ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center">
-              <h2 className="text-base font-semibold text-brand-navy">
-                No matching appointments
-              </h2>
-              <p className="mt-1 text-sm text-brand-muted">
-                Adjust your search or filters and try again.
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="mt-4"
-                onClick={handleClearSearch}
-              >
-                Clear search & filters
-              </Button>
-            </div>
+            <ListPageBlankState
+              compact
+              icon="search"
+              title="No matching appointments"
+              description="Adjust your search or filters and try again."
+              action={
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 rounded-lg"
+                  onClick={handleClearSearch}
+                >
+                  Clear search and filters
+                </Button>
+              }
+            />
           ) : isListView ? (
             <>
               <AppointmentsTable
@@ -532,17 +545,25 @@ export function AppointmentsListPage() {
       ) : null}
 
       <CreateAppointmentDialog
-        open={createOpen}
+        open={isCreateOpen}
         initialSchedule={createPrefill}
         onOpenChange={(open) => {
-          setCreateOpen(open);
-          if (!open) {
-            setCreatePrefill(undefined);
+          if (open) {
+            setCreateOpen(true);
+            return;
+          }
+          setCreateOpen(false);
+          setCreatePrefill(undefined);
+          if (urlCreate) {
+            router.replace(pathname);
           }
         }}
         onCreated={() => {
           setCreateOpen(false);
           setCreatePrefill(undefined);
+          if (urlCreate) {
+            router.replace(pathname);
+          }
           void reloadAll();
         }}
       />

@@ -51,7 +51,7 @@ export function VisitQueueSummaryCards({
             Today&apos;s visits
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.todays_visits)}
         </dd>
       </div>
@@ -70,7 +70,7 @@ export function VisitQueueSummaryCards({
             Today&apos;s active
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.todays_active_visits)}
         </dd>
       </div>
@@ -82,7 +82,7 @@ export function VisitQueueSummaryCards({
             Today&apos;s completed
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.todays_completed_visits)}
         </dd>
       </div>
@@ -94,7 +94,7 @@ export function VisitQueueSummaryCards({
             Total visits
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.total_visits)}
         </dd>
       </div>

@@ -1,9 +1,12 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { X } from "lucide-react";
 
-import { ListPageSearchToolbar } from "@/features/app-shell/components/page-layout";
+import {
+  ListPageActiveFilters,
+  ListPageFilterChip,
+  ListPageSearchToolbar,
+} from "@/features/app-shell/components/page-layout";
 import { InvoiceFiltersSheet } from "@/features/invoices/components/InvoiceFiltersSheet";
 import {
   countActiveInvoiceFilters,
@@ -55,7 +58,7 @@ export function InvoiceListToolbar({
       <ListPageSearchToolbar
         search={search}
         searchId="invoice-search"
-        placeholder="Search by invoice number, client, or sales order..."
+        placeholder="Search by invoice number, client, or sales order…"
         searchTestId="invoices-search"
         searchSubmitTestId="invoices-search-submit"
         clearTestId="invoices-search-clear"
@@ -74,58 +77,36 @@ export function InvoiceListToolbar({
       />
 
       {hasAnyFilter ? (
-        <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs">
-          <span className="mr-1 text-[11px] font-semibold uppercase tracking-wider text-dash-muted">
-            Active filters:
-          </span>
-
+        <ListPageActiveFilters
+          disabled={isLoading}
+          onClearAll={() => onFiltersApply(DEFAULT_INVOICE_LIST_FILTERS)}
+        >
           {hasStateFilter ? (
-            <button
-              type="button"
+            <ListPageFilterChip
+              label={`State: ${stateLabel}`}
               disabled={isLoading}
-              onClick={() => onFiltersApply({ ...filters, state: "all" })}
-              className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-blue-200 bg-blue-50/80 px-2.5 py-0.5 text-blue-800 transition-colors hover:bg-blue-100"
-            >
-              <span>State: {stateLabel}</span>
-              <X className="size-3" />
-            </button>
+              onRemove={() => onFiltersApply({ ...filters, state: "all" })}
+            />
           ) : null}
-
           {hasPaymentStatusFilter ? (
-            <button
-              type="button"
+            <ListPageFilterChip
+              label={`Payment: ${paymentStatusLabel}`}
               disabled={isLoading}
-              onClick={() => onFiltersApply({ ...filters, paymentStatus: "all" })}
-              className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-purple-200 bg-purple-50/80 px-2.5 py-0.5 text-purple-800 transition-colors hover:bg-purple-100"
-            >
-              <span>Payment: {paymentStatusLabel}</span>
-              <X className="size-3" />
-            </button>
+              onRemove={() =>
+                onFiltersApply({ ...filters, paymentStatus: "all" })
+              }
+            />
           ) : null}
-
           {hasDateFilter ? (
-            <button
-              type="button"
+            <ListPageFilterChip
+              label="Date range filtered"
               disabled={isLoading}
-              onClick={() =>
+              onRemove={() =>
                 onFiltersApply({ ...filters, dateFrom: "", dateTo: "" })
               }
-              className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-amber-200 bg-amber-50/80 px-2.5 py-0.5 text-amber-800 transition-colors hover:bg-amber-100"
-            >
-              <span>Date range filtered</span>
-              <X className="size-3" />
-            </button>
+            />
           ) : null}
-
-          <button
-            type="button"
-            disabled={isLoading}
-            onClick={() => onFiltersApply(DEFAULT_INVOICE_LIST_FILTERS)}
-            className="ml-1 text-[11px] font-medium text-brand-primary underline transition-colors hover:text-brand-primary-hover"
-          >
-            Clear all
-          </button>
-        </div>
+        </ListPageActiveFilters>
       ) : null}
     </div>
   );

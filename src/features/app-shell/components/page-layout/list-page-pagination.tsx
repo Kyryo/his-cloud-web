@@ -52,19 +52,20 @@ export function ListPagePagination({
 
   return (
     <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm text-dash-muted">
+      <p className="text-[13px] text-dash-muted">
         Showing{" "}
-        <span className="font-medium text-brand-navy">
-          {start}-{end}
+        <span className="font-medium tabular-nums text-brand-navy">
+          {start}–{end}
         </span>{" "}
-        out of {totalCount}
+        of{" "}
+        <span className="tabular-nums">{totalCount}</span>
       </p>
-      <div className="flex flex-wrap items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-1">
         <Button
           type="button"
           variant="outline"
           size="sm"
-          className="h-8 rounded-lg border-dash-border bg-white text-brand-slate"
+          className="h-8 rounded-lg border-dash-border bg-white px-3 text-brand-slate hover:bg-dash-canvas"
           disabled={!hasPrevious || isLoading}
           onClick={() => onPageChange(page - 1)}
         >
@@ -82,14 +83,14 @@ export function ListPagePagination({
             <Button
               key={item}
               type="button"
-              variant="outline"
+              variant="ghost"
               size="sm"
               disabled={isLoading}
               className={cn(
-                "h-8 min-w-8 rounded-lg border-dash-border px-2.5",
+                "h-8 min-w-8 rounded-lg px-2.5 tabular-nums",
                 item === page
-                  ? "border-brand-primary bg-brand-primary text-white hover:bg-brand-primary-hover hover:text-white"
-                  : "bg-white text-brand-slate hover:bg-dash-canvas",
+                  ? "bg-brand-primary text-white hover:bg-brand-primary-hover hover:text-white"
+                  : "text-brand-slate hover:bg-dash-canvas",
               )}
               onClick={() => onPageChange(item)}
             >
@@ -101,7 +102,7 @@ export function ListPagePagination({
           type="button"
           variant="outline"
           size="sm"
-          className="h-8 rounded-lg border-dash-border bg-white text-brand-slate"
+          className="h-8 rounded-lg border-dash-border bg-white px-3 text-brand-slate hover:bg-dash-canvas"
           disabled={!hasNext || isLoading}
           onClick={() => onPageChange(page + 1)}
         >

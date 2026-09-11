@@ -63,7 +63,7 @@ export function OverviewCount({
           />
         ) : null}
       </div>
-      <dd className="mt-2 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+      <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
         {formatCompactNumber(value)}
       </dd>
       <p className="mt-1 line-clamp-1 text-xs text-brand-muted">{hint}</p>

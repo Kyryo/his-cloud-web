@@ -69,7 +69,7 @@ export function PurchaseOrdersTable({
         {orders.map((order) => (
           <ListPageDataTableRow
             key={order.uuid}
-            className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+            className="group cursor-pointer"
             onClick={() => onRowClick?.(order)}
             data-testid={`purchase-order-row-${order.uuid}`}
           >

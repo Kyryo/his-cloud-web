@@ -1,9 +1,12 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { X } from "lucide-react";
 
-import { ListPageSearchToolbar } from "@/features/app-shell/components/page-layout";
+import {
+  ListPageActiveFilters,
+  ListPageFilterChip,
+  ListPageSearchToolbar,
+} from "@/features/app-shell/components/page-layout";
 import { SalesOrderFiltersSheet } from "@/features/sales-orders/components/SalesOrderFiltersSheet";
 import {
   countActiveSalesOrderFilters,
@@ -82,7 +85,7 @@ export function SalesOrderListToolbar({
       <ListPageSearchToolbar
         search={search}
         searchId="sales-order-search"
-        placeholder="Search by order number, client, provider, or reference..."
+        placeholder="Search by order number, client, provider, or reference…"
         searchTestId="sales-orders-search"
         searchSubmitTestId="sales-orders-search-submit"
         clearTestId="sales-orders-search-clear"
@@ -100,82 +103,47 @@ export function SalesOrderListToolbar({
         trailing={trailing}
       />
 
-      {/* Active Filter Chips Bar */}
       {hasAnyFilter ? (
-        <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-dash-muted mr-1">
-            Active filters:
-          </span>
-
+        <ListPageActiveFilters
+          disabled={isLoading}
+          onClearAll={handleClearAllFilters}
+        >
           {hasStateFilter ? (
-            <button
-              type="button"
+            <ListPageFilterChip
+              label={`State: ${stateLabel}`}
               disabled={isLoading}
-              onClick={handleRemoveState}
-              className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50/80 px-2.5 py-0.5 text-blue-800 hover:bg-blue-100 transition-colors cursor-pointer"
-            >
-              <span>State: {stateLabel}</span>
-              <X className="size-3" />
-            </button>
+              onRemove={handleRemoveState}
+            />
           ) : null}
-
           {hasInvoiceStatusFilter ? (
-            <button
-              type="button"
+            <ListPageFilterChip
+              label={`Invoice: ${invoiceStatusLabel}`}
               disabled={isLoading}
-              onClick={handleRemoveInvoiceStatus}
-              className="inline-flex items-center gap-1 rounded-full border border-purple-200 bg-purple-50/80 px-2.5 py-0.5 text-purple-800 hover:bg-purple-100 transition-colors cursor-pointer"
-            >
-              <span>Invoice: {invoiceStatusLabel}</span>
-              <X className="size-3" />
-            </button>
+              onRemove={handleRemoveInvoiceStatus}
+            />
           ) : null}
-
           {hasProviderFilter ? (
-            <button
-              type="button"
+            <ListPageFilterChip
+              label="Provider filtered"
               disabled={isLoading}
-              onClick={handleRemoveProvider}
-              className="inline-flex items-center gap-1 rounded-full border border-teal-200 bg-teal-50/80 px-2.5 py-0.5 text-teal-800 hover:bg-teal-100 transition-colors cursor-pointer"
-            >
-              <span>Provider filtered</span>
-              <X className="size-3" />
-            </button>
+              onRemove={handleRemoveProvider}
+            />
           ) : null}
-
           {hasClinicFilter ? (
-            <button
-              type="button"
+            <ListPageFilterChip
+              label="Clinic filtered"
               disabled={isLoading}
-              onClick={handleRemoveClinic}
-              className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-100/90 px-2.5 py-0.5 text-slate-800 hover:bg-slate-200 transition-colors cursor-pointer"
-            >
-              <span>Clinic filtered</span>
-              <X className="size-3" />
-            </button>
+              onRemove={handleRemoveClinic}
+            />
           ) : null}
-
           {hasDateFilter ? (
-            <button
-              type="button"
+            <ListPageFilterChip
+              label="Date range filtered"
               disabled={isLoading}
-              onClick={handleRemoveDate}
-              className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50/80 px-2.5 py-0.5 text-amber-800 hover:bg-amber-100 transition-colors cursor-pointer"
-            >
-              <span>Date range filtered</span>
-              <X className="size-3" />
-            </button>
+              onRemove={handleRemoveDate}
+            />
           ) : null}
-
-          <button
-            type="button"
-            disabled={isLoading}
-            onClick={handleClearAllFilters}
-            className="ml-1 text-[11px] font-medium text-brand-primary underline hover:text-brand-primary-hover transition-colors"
-          >
-            Clear all
-          </button>
-        </div>
+        </ListPageActiveFilters>
       ) : null}
     </div>
   );

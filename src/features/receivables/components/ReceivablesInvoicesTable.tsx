@@ -71,7 +71,7 @@ export function ReceivablesInvoicesTable({
           return (
             <ListPageDataTableRow
               key={invoice.invoice_uuid}
-              className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+              className="group cursor-pointer"
               onClick={() => onRowClick?.(invoice)}
               data-testid={`receivables-invoice-${invoice.invoice_uuid}`}
             >

@@ -6,6 +6,7 @@ import Link from "next/link";
 
 import { ROUTES } from "@/constants/routes";
 import { HeroProductStage } from "@/features/brand/components/landing/HeroProductStage";
+import { LandingSocialProofSection } from "@/features/brand/components/landing/LandingSocialProofSection";
 
 export function HeroSection() {
   const reduceMotion = useReducedMotion();
@@ -34,18 +35,18 @@ export function HeroSection() {
   };
 
   return (
-    <section className="landing-hero-ground relative overflow-hidden bg-white pt-20">
-      <div className="relative z-20 mx-auto max-w-6xl px-6 pb-8 pt-10 sm:px-10 sm:pb-10 sm:pt-12 lg:px-12 lg:pb-8 lg:pt-12">
-        <div className="grid items-center gap-8 lg:grid-cols-12 lg:gap-8">
+    <section className="landing-hero-ground relative flex min-h-[100dvh] flex-col overflow-hidden bg-white pt-16">
+      <div className="relative z-20 mx-auto flex w-full max-w-6xl flex-1 flex-col justify-center px-6 py-5 sm:px-10 sm:py-7 lg:px-12 lg:pr-4 lg:py-8">
+        <div className="grid items-center gap-7 lg:grid-cols-[minmax(22rem,1fr)_minmax(0,28rem)] lg:gap-8">
           <motion.div
-            className="relative z-20 lg:col-span-7 xl:col-span-6"
+            className="relative z-20"
             variants={containerVariants}
             initial={reduceMotion ? "visible" : "hidden"}
             animate="visible"
           >
             <motion.h1
               variants={itemVariants}
-              className="landing-display pb-2 text-[clamp(2.05rem,4vw,3.2rem)] font-semibold leading-[1.16] tracking-[-0.024em] text-[color:var(--landing-ink)]"
+              className="landing-display pb-1 text-[clamp(1.85rem,3.6vw,2.85rem)] font-semibold leading-[1.14] tracking-[-0.024em] text-[color:var(--landing-ink)]"
             >
               Stop{" "}
               <span className="relative inline-block italic font-medium tracking-[-0.02em]">
@@ -60,7 +61,7 @@ export function HeroSection() {
 
             <motion.p
               variants={itemVariants}
-              className="landing-body mt-5 max-w-[32rem] text-[1.05rem] leading-[1.65] text-[color:var(--landing-ledger-ink)] sm:text-lg"
+              className="landing-body mt-4 max-w-[32rem] text-[1rem] leading-[1.6] text-[color:var(--landing-ledger-ink)] sm:mt-5 sm:text-[1.05rem] sm:leading-[1.65]"
             >
               Sigma bills patients, submits insurance claims automatically, and
               tracks every payment until you&apos;re paid fully.
@@ -68,11 +69,11 @@ export function HeroSection() {
 
             <motion.div
               variants={itemVariants}
-              className="mt-8 flex flex-col items-start gap-3 sm:flex-row sm:items-center"
+              className="mt-6 flex flex-col items-start gap-3 sm:mt-7 sm:flex-row sm:items-center"
             >
               <Link
                 href={ROUTES.signup}
-                className="landing-focus landing-btn-primary group inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-7 py-3 text-[15px] font-semibold"
+                className="landing-focus landing-btn-primary group inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-7 py-2.5 text-[15px] font-semibold sm:min-h-12 sm:py-3"
               >
                 Start for free
                 <ArrowRight
@@ -82,7 +83,7 @@ export function HeroSection() {
               </Link>
               <Link
                 href={ROUTES.contacts}
-                className="landing-focus landing-btn-secondary inline-flex min-h-12 items-center justify-center rounded-full border px-7 py-3 text-[15px] font-semibold"
+                className="landing-focus landing-btn-secondary inline-flex min-h-11 items-center justify-center rounded-full border px-7 py-2.5 text-[15px] font-semibold sm:min-h-12 sm:py-3"
               >
                 Book a demo
               </Link>
@@ -90,7 +91,7 @@ export function HeroSection() {
           </motion.div>
 
           <motion.div
-            className="relative z-0 flex justify-center lg:col-span-5 lg:justify-end xl:col-span-6"
+            className="relative z-0 min-w-0"
             initial={reduceMotion ? false : { opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.75, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
@@ -98,6 +99,10 @@ export function HeroSection() {
             <HeroProductStage />
           </motion.div>
         </div>
+      </div>
+
+      <div className="relative z-20">
+        <LandingSocialProofSection />
       </div>
     </section>
   );

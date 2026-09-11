@@ -73,7 +73,7 @@ describe("command palette record mapping", () => {
     ]);
   });
 
-  it("keeps record groups above matching pages", () => {
+  it("keeps actions first, then record groups, then pages", () => {
     const groups = mergeCommandPaletteGroups(
       [
         {
@@ -94,9 +94,17 @@ describe("command palette record mapping", () => {
           group: "Registration",
         },
       ],
+      [
+        {
+          href: `${ROUTES.customers}?new=1`,
+          title: "New client",
+          group: "Actions",
+        },
+      ],
     );
 
     expect(groups.map((group) => group.group)).toEqual([
+      "Actions",
       "Clients",
       "Invoices",
       "Registration",

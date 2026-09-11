@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { BarChart3 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -20,15 +20,28 @@ import type { Customer } from "@/features/customers/types/customer.types";
 import {
   buildCustomerListFilters,
   countActiveCustomerFilters,
-  DEFAULT_CUSTOMER_ORDERING,
   type CustomerListFilterState,
 } from "@/features/customers/utils/customer-list-filters";
+import {
+  CUSTOMER_GENDER_PARAM,
+  CUSTOMER_NEW_PARAM,
+  CUSTOMER_ORDER_PARAM,
+  CUSTOMER_PAGE_PARAM,
+  CUSTOMER_SEARCH_PARAM,
+  CUSTOMER_STATUS_PARAM,
+  customersHref,
+  parseCustomerGender,
+  parseCustomerOrdering,
+  parseCustomerStatus,
+  parseListPage,
+} from "@/features/customers/utils/customer-list-url";
 import {
   fetchCustomerSummaryStats,
   type CustomerSummaryStats as CustomerSummaryStatsData,
 } from "@/features/customers/utils/customer-stats";
 import { ROUTES } from "@/constants/routes";
 import {
+  ListPageBlankState,
   ListPageDataSectionsStack,
   ListPageLayout,
   ListPagePagination,
@@ -41,52 +54,85 @@ const DEFAULT_PAGE_SIZE = 20;
 
 export function CustomersListPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlSearch = searchParams.get(CUSTOMER_SEARCH_PARAM) ?? "";
+  const page = parseListPage(searchParams.get(CUSTOMER_PAGE_PARAM));
+  const gender = parseCustomerGender(searchParams.get(CUSTOMER_GENDER_PARAM));
+  const activeStatus = parseCustomerStatus(
+    searchParams.get(CUSTOMER_STATUS_PARAM),
+  );
+  const ordering = parseCustomerOrdering(searchParams.get(CUSTOMER_ORDER_PARAM));
+  const createDialogOpen = searchParams.get(CUSTOMER_NEW_PARAM) === "1";
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [totalCount, setTotalCount] = useState(0);
-  const [page, setPage] = useState(1);
   const [hasNext, setHasNext] = useState(false);
   const [hasPrevious, setHasPrevious] = useState(false);
-  const [search, setSearch] = useState("");
-  const [activeSearch, setActiveSearch] = useState("");
-  const [filters, setFilters] = useState<
-    Pick<
-      CustomerListFilterState,
-      "gender" | "activeStatus" | "ordering" | "tags"
-    >
-  >({
-    gender: "all",
-    activeStatus: "all",
-    ordering: DEFAULT_CUSTOMER_ORDERING,
-    tags: [],
-  });
+  const [search, setSearch] = useState(urlSearch);
+  const [syncedUrlSearch, setSyncedUrlSearch] = useState(urlSearch);
   const [stats, setStats] = useState<CustomerSummaryStatsData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isStatsLoading, setIsStatsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isUnauthorized, setIsUnauthorized] = useState(false);
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [visitCustomer, setVisitCustomer] = useState<Customer | null>(null);
   const [appointmentCustomer, setAppointmentCustomer] = useState<Customer | null>(
     null,
   );
   const [editCustomer, setEditCustomer] = useState<Customer | null>(null);
   const [showStats, setShowStats] = useState(false);
+  const filters = useMemo(
+    () => ({
+      gender,
+      activeStatus,
+      ordering,
+      tags: [] as string[],
+    }),
+    [activeStatus, gender, ordering],
+  );
+
+  if (urlSearch !== syncedUrlSearch) {
+    setSyncedUrlSearch(urlSearch);
+    setSearch(urlSearch);
+  }
 
   const listFilters = useMemo(
     () =>
       buildCustomerListFilters({
-        search: activeSearch,
+        search: urlSearch,
         page,
         pageSize: DEFAULT_PAGE_SIZE,
         ...filters,
       }),
-    [activeSearch, filters, page],
+    [filters, page, urlSearch],
+  );
+
+  const replaceList = useCallback(
+    (next: {
+      search?: string;
+      page?: number;
+      newClient?: boolean;
+      gender?: CustomerListFilterState["gender"];
+      activeStatus?: CustomerListFilterState["activeStatus"];
+      ordering?: CustomerListFilterState["ordering"];
+    }) => {
+      router.replace(
+        customersHref({
+          search: next.search ?? urlSearch,
+          page: next.page ?? page,
+          newClient: next.newClient ?? createDialogOpen,
+          gender: next.gender ?? filters.gender,
+          activeStatus: next.activeStatus ?? filters.activeStatus,
+          ordering: next.ordering ?? filters.ordering,
+        }),
+      );
+    },
+    [createDialogOpen, filters, page, router, urlSearch],
   );
 
   const handleAddClient = useCallback(() => {
-    setCreateDialogOpen(true);
-  }, []);
+    replaceList({ newClient: true });
+  }, [replaceList]);
 
   const handleCustomerCreated = useCallback(
     (customer: Customer) => {
@@ -191,16 +237,13 @@ export function CustomersListPage() {
 
   function handleSearchSubmit() {
     setIsRefreshing(true);
-    const nextSearch = search.trim();
-    setPage(1);
-    setActiveSearch(nextSearch);
+    replaceList({ search: search.trim(), page: 1 });
   }
 
   function handleClearSearch() {
     setIsRefreshing(true);
     setSearch("");
-    setActiveSearch("");
-    setPage(1);
+    replaceList({ search: "", page: 1 });
   }
 
   function handleFiltersApply(
@@ -210,13 +253,17 @@ export function CustomersListPage() {
     >,
   ) {
     setIsRefreshing(true);
-    setFilters(nextFilters);
-    setPage(1);
+    replaceList({
+      page: 1,
+      gender: nextFilters.gender,
+      activeStatus: nextFilters.activeStatus,
+      ordering: nextFilters.ordering,
+    });
   }
 
   function handlePageChange(nextPage: number) {
     setIsRefreshing(true);
-    setPage(nextPage);
+    replaceList({ page: nextPage });
   }
 
   function handleRowClick(customer: Customer) {
@@ -241,8 +288,7 @@ export function CustomersListPage() {
   }
 
   const activeFilterCount = countActiveCustomerFilters(filters);
-  const hasActiveQuery =
-    activeSearch.length > 0 || activeFilterCount > 0;
+  const hasActiveQuery = urlSearch.length > 0 || activeFilterCount > 0;
   const hasNoCustomerRecords =
     !isLoading && !error && totalCount === 0 && !hasActiveQuery;
   const isFilteredEmpty =
@@ -262,7 +308,13 @@ export function CustomersListPage() {
       />
       <CreateCustomerDialog
         open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
+        onOpenChange={(open) => {
+          if (open) {
+            replaceList({ newClient: true });
+            return;
+          }
+          replaceList({ newClient: false });
+        }}
         onCreated={handleCustomerCreated}
       />
       {visitCustomer ? (
@@ -333,34 +385,40 @@ export function CustomersListPage() {
             {isLoading ? (
               <CustomersTableSkeleton rows={10} />
             ) : error ? (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-                <h2 className="text-sm font-semibold text-red-800">Could not load clients</h2>
-                <p className="mt-2 text-sm text-red-700">{error}</p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="mt-4"
-                  onClick={() => void reloadCustomers()}
-                >
-                  Try again
-                </Button>
-              </div>
+              <ListPageBlankState
+                compact
+                tone="error"
+                icon="users"
+                title="Could not load clients"
+                description={error}
+                action={
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 rounded-lg"
+                    onClick={() => void reloadCustomers()}
+                  >
+                    Try again
+                  </Button>
+                }
+              />
             ) : isFilteredEmpty ? (
-              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center">
-                <h2 className="text-base font-semibold text-brand-navy">No matching clients</h2>
-                <p className="mt-1 text-sm text-brand-muted">
-                  Adjust your search or filters and try again.
-                </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="mt-4"
-                  onClick={handleClearSearch}
-                >
-                  Clear search & filters
-                </Button>
-              </div>
+              <ListPageBlankState
+                compact
+                icon="search"
+                title="No matching clients"
+                description="Adjust your search or filters and try again."
+                action={
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 rounded-lg"
+                    onClick={handleClearSearch}
+                  >
+                    Clear search and filters
+                  </Button>
+                }
+              />
             ) : (
               <>
                 <CustomersTable

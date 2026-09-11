@@ -155,7 +155,7 @@ export function CustomerDetailVisitsTab({
               Total visits
             </dt>
           </div>
-          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
             {formatCompactNumber(totalVisits)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Recorded client visits</p>
@@ -178,7 +178,7 @@ export function CustomerDetailVisitsTab({
           </div>
           <dd
             className={cn(
-              "mt-1.5 text-2xl font-bold tracking-tight tabular-nums sm:text-3xl",
+              "mt-1 text-lg font-semibold tracking-tight tabular-nums",
               activeVisits > 0 ? "text-emerald-700" : "text-brand-navy",
             )}
           >
@@ -201,7 +201,7 @@ export function CustomerDetailVisitsTab({
               Completed
             </dt>
           </div>
-          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
             {formatCompactNumber(completedVisits)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Discharged encounters</p>
@@ -215,7 +215,7 @@ export function CustomerDetailVisitsTab({
               Cancelled
             </dt>
           </div>
-          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
             {formatCompactNumber(cancelledVisits)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Voided encounters</p>

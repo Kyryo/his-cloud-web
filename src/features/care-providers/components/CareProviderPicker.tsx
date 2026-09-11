@@ -1,19 +1,11 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { TabAddActionButton } from "@/components/ui/app-buttons";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect, SelectItem } from "@/components/ui/searchable-select";
 import {
   CareProviderDialog,
   type CareProviderFormValues,
@@ -85,10 +77,10 @@ export function CareProviderPicker({
 
   useEffect(() => {
     if (!open) {
-      setSearch("");
       return;
     }
 
+    let cancelled = false;
     const handle = window.setTimeout(() => {
       void (async () => {
         setIsLoadingResults(true);
@@ -98,16 +90,23 @@ export function CareProviderPicker({
             clinicId,
             isActive: true,
           });
-          setOptions(response.results);
+          if (!cancelled) {
+            setOptions(response.results);
+            setIsLoadingResults(false);
+          }
         } catch {
-          setOptions(provider ? [provider] : []);
-        } finally {
-          setIsLoadingResults(false);
+          if (!cancelled) {
+            setOptions(provider ? [provider] : []);
+            setIsLoadingResults(false);
+          }
         }
       })();
     }, 250);
 
-    return () => window.clearTimeout(handle);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(handle);
+    };
   }, [clinicId, open, provider, search]);
 
   async function handleCreateProvider(values: CareProviderFormValues) {
@@ -124,7 +123,24 @@ export function CareProviderPicker({
   function handleProviderCreated(created: CareProviderRecord) {
     onProviderChange(created);
     setAddDialogOpen(false);
-    setOpen(false);
+    handleOpenChange(false);
+  }
+
+  function handleOpenChange(nextOpen: boolean) {
+    setOpen(nextOpen);
+    if (!nextOpen) {
+      setSearch("");
+      return;
+    }
+    setIsLoadingResults(true);
+  }
+
+  function handleValueChange(value: string) {
+    const match =
+      options.find((option) => String(option.id) === value) ??
+      (provider && String(provider.id) === value ? provider : null);
+    onProviderChange(match);
+    handleOpenChange(false);
   }
 
   return (
@@ -142,53 +158,29 @@ export function CareProviderPicker({
         />
       </div>
 
-      <Select
+      <SearchableSelect
+        id={id}
         value={provider ? String(provider.id) : undefined}
-        onValueChange={(value) => {
-          const match =
-            options.find((option) => String(option.id) === value) ??
-            (provider && String(provider.id) === value ? provider : null);
-          onProviderChange(match);
-          setOpen(false);
-        }}
+        onValueChange={handleValueChange}
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={handleOpenChange}
         disabled={disabled}
+        placeholder="Select a provider"
+        displayValue={provider ? formatProviderLabel(provider) : undefined}
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search providers..."
+        emptySearchMessage="Type a name to search."
+        noResultsMessage="No providers found."
+        isLoading={isLoadingResults}
+        minSearchLength={0}
       >
-        <SelectTrigger id={id} className="w-full">
-          <SelectValue placeholder="Select a provider">
-            {provider ? formatProviderLabel(provider) : null}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <div className="border-b border-brand-border p-2">
-            <Input
-              value={search}
-              placeholder="Search providers..."
-              className="h-9"
-              onChange={(event) => setSearch(event.target.value)}
-              onKeyDown={(event) => event.stopPropagation()}
-            />
-          </div>
-
-          {isLoadingResults ? (
-            <div className="flex items-center justify-center gap-2 px-3 py-6 text-sm text-brand-muted">
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              Searching...
-            </div>
-          ) : options.length === 0 ? (
-            <div className="px-3 py-6 text-center text-sm text-brand-muted">
-              No providers found.
-            </div>
-          ) : (
-            options.map((option) => (
-              <SelectItem key={option.id} value={String(option.id)}>
-                {formatProviderLabel(option)}
-              </SelectItem>
-            ))
-          )}
-        </SelectContent>
-      </Select>
+        {options.map((option) => (
+          <SelectItem key={option.id} value={String(option.id)}>
+            {formatProviderLabel(option)}
+          </SelectItem>
+        ))}
+      </SearchableSelect>
 
       <CareProviderDialog
         open={addDialogOpen}
