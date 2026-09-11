@@ -71,12 +71,12 @@ export function InvoicesTable({ invoices, onRowClick, className }: InvoicesTable
           return (
             <ListPageDataTableRow
               key={invoice.id}
-              className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+              className="group cursor-pointer"
               onClick={() => onRowClick?.(invoice)}
               data-testid={`invoice-row-${invoice.id}`}
             >
               <ListPageDataTableCell className="py-3">
-                <span className="font-mono text-sm font-semibold tracking-tight text-brand-navy group-hover:text-brand-primary">
+                <span className="font-mono font-medium tracking-tight text-brand-navy group-hover:text-brand-primary">
                   {invoiceLabel}
                 </span>
               </ListPageDataTableCell>
@@ -112,7 +112,7 @@ export function InvoicesTable({ invoices, onRowClick, className }: InvoicesTable
                 )}
               </ListPageDataTableCell>
               <ListPageDataTableCell className="py-3 pr-4 text-right">
-                <div className="text-sm font-semibold tabular-nums text-brand-navy">
+                <div className="font-medium tabular-nums text-brand-navy">
                   <TableAmountCell value={invoice.amount_total} currency="MWK" />
                 </div>
               </ListPageDataTableCell>

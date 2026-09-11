@@ -68,11 +68,11 @@ export function ReceivablesInsights({
   return (
     <div className="border-y border-dash-border/80" data-testid="receivables-insights">
       <dl className="grid grid-cols-3 divide-x divide-dash-border/60">
-        <div className="p-3.5 sm:p-4">
+        <div className="p-3">
           <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
             Outstanding
           </dt>
-          <dd className="mt-1.5 text-2xl font-bold tracking-tight tabular-nums text-brand-navy sm:text-3xl">
+          <dd className="mt-1 text-lg font-semibold tracking-tight tabular-nums text-brand-navy">
             {formatCompactAmount(totalReceivable)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">MWK still due</p>
@@ -80,14 +80,14 @@ export function ReceivablesInsights({
         <Link
           href={receivablesHref({ view: "debtors", search })}
           className={cn(
-            "p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4",
+            "p-3 transition-colors hover:bg-dash-canvas/40",
             view === "debtors" && "bg-dash-canvas/50",
           )}
         >
           <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
             Debtors
           </dt>
-          <dd className="mt-1.5 text-2xl font-bold tracking-tight tabular-nums text-brand-navy sm:text-3xl">
+          <dd className="mt-1 text-lg font-semibold tracking-tight tabular-nums text-brand-navy">
             {formatCompactNumber(debtorsCount)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Clients with a balance</p>
@@ -95,14 +95,14 @@ export function ReceivablesInsights({
         <Link
           href={receivablesHref({ view: "invoices", search, aging })}
           className={cn(
-            "p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4",
+            "p-3 transition-colors hover:bg-dash-canvas/40",
             view === "invoices" && !aging && "bg-dash-canvas/50",
           )}
         >
           <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
             Open invoices
           </dt>
-          <dd className="mt-1.5 text-2xl font-bold tracking-tight tabular-nums text-brand-navy sm:text-3xl">
+          <dd className="mt-1 text-lg font-semibold tracking-tight tabular-nums text-brand-navy">
             {formatCompactNumber(invoiceCount)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Posted and unpaid</p>
@@ -123,7 +123,7 @@ export function ReceivablesInsights({
                 aging: isActive ? null : bucket,
               })}
               className={cn(
-                "p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4",
+                "p-3 transition-colors hover:bg-dash-canvas/40",
                 isActive && "bg-dash-canvas/50",
               )}
               aria-current={isActive ? "true" : undefined}

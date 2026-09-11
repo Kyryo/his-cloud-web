@@ -1,13 +1,14 @@
 "use client";
 
 import { BarChart3 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { FabButton } from "@/components/ui/fab-button";
 import { ROUTES } from "@/constants/routes";
 import {
+  ListPageBlankState,
   ListPageDataSectionsStack,
   ListPageLayout,
   ListPagePagination,
@@ -32,53 +33,105 @@ import {
   DEFAULT_SALES_ORDER_LIST_FILTERS,
   type SalesOrderListFilterState,
 } from "@/features/sales-orders/utils/sales-order-list-filters";
+import {
+  SALES_ORDER_NEW_PARAM,
+  SALES_ORDER_PAGE_PARAM,
+  SALES_ORDER_SEARCH_PARAM,
+  SALES_ORDER_STATE_PARAM,
+  parseSalesOrderPage,
+  parseSalesOrderState,
+  salesOrdersHref,
+} from "@/features/sales-orders/utils/sales-order-list-url";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_PAGE_SIZE = 20;
 
 export function SalesOrdersListPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const urlSearch = searchParams.get(SALES_ORDER_SEARCH_PARAM) ?? "";
+  const page = parseSalesOrderPage(searchParams.get(SALES_ORDER_PAGE_PARAM));
+  const urlState = parseSalesOrderState(
+    searchParams.get(SALES_ORDER_STATE_PARAM),
+  );
+  const createDialogOpen = searchParams.get(SALES_ORDER_NEW_PARAM) === "1";
   const [orders, setOrders] = useState<SalesOrder[]>([]);
   const [totalCount, setTotalCount] = useState(0);
-  const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [activeSearch, setActiveSearch] = useState("");
-  const [filters, setFilters] = useState<SalesOrderListFilterState>(
-    DEFAULT_SALES_ORDER_LIST_FILTERS,
-  );
+  const [search, setSearch] = useState(urlSearch);
+  const [syncedUrlSearch, setSyncedUrlSearch] = useState(urlSearch);
+  const [localFilters, setLocalFilters] = useState<
+    Omit<SalesOrderListFilterState, "state">
+  >({
+    invoiceStatus: DEFAULT_SALES_ORDER_LIST_FILTERS.invoiceStatus,
+    providerId: DEFAULT_SALES_ORDER_LIST_FILTERS.providerId,
+    clinicId: DEFAULT_SALES_ORDER_LIST_FILTERS.clinicId,
+    dateFrom: DEFAULT_SALES_ORDER_LIST_FILTERS.dateFrom,
+    dateTo: DEFAULT_SALES_ORDER_LIST_FILTERS.dateTo,
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isUnauthorized, setIsUnauthorized] = useState(false);
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [completedListStatsKey, setCompletedListStatsKey] = useState<string | null>(
     null,
   );
 
+  const filters = useMemo<SalesOrderListFilterState>(
+    () => ({
+      ...localFilters,
+      state: urlState,
+    }),
+    [localFilters, urlState],
+  );
+
+  if (urlSearch !== syncedUrlSearch) {
+    setSyncedUrlSearch(urlSearch);
+    setSearch(urlSearch);
+  }
+
   const statsKey = useMemo(
-    () => JSON.stringify({ search: activeSearch, filters }),
-    [activeSearch, filters],
+    () => JSON.stringify({ search: urlSearch, filters }),
+    [filters, urlSearch],
   );
 
   const listFilters = useMemo(
     () =>
       buildSalesOrderListFilters({
-        search: activeSearch,
+        search: urlSearch,
         page,
         pageSize: DEFAULT_PAGE_SIZE,
         filters,
       }),
-    [activeSearch, filters, page],
+    [filters, page, urlSearch],
   );
 
   const statsFilters = useMemo(
     () =>
       buildSalesOrderListFilters({
-        search: activeSearch,
+        search: urlSearch,
         filters,
       }),
-    [activeSearch, filters],
+    [filters, urlSearch],
+  );
+
+  const replaceList = useCallback(
+    (next: {
+      search?: string;
+      page?: number;
+      newOrder?: boolean;
+      filters?: SalesOrderListFilterState;
+    }) => {
+      router.replace(
+        salesOrdersHref({
+          search: next.search ?? urlSearch,
+          page: next.page ?? page,
+          newOrder: next.newOrder ?? createDialogOpen,
+          filters: next.filters ?? filters,
+        }),
+      );
+    },
+    [createDialogOpen, filters, page, router, urlSearch],
   );
 
   const hasNext = page * DEFAULT_PAGE_SIZE < totalCount;
@@ -164,26 +217,34 @@ export function SalesOrdersListPage() {
 
   function handleSearchSubmit() {
     setIsRefreshing(true);
-    setActiveSearch(search.trim());
-    setPage(1);
+    replaceList({ search: search.trim(), page: 1 });
   }
 
   function handleClearSearch() {
     setIsRefreshing(true);
     setSearch("");
-    setActiveSearch("");
-    setPage(1);
+    replaceList({ search: "", page: 1 });
   }
 
   function handleFiltersApply(nextFilters: SalesOrderListFilterState) {
     setIsRefreshing(true);
-    setFilters(nextFilters);
-    setPage(1);
+    setLocalFilters({
+      invoiceStatus: nextFilters.invoiceStatus,
+      providerId: nextFilters.providerId,
+      clinicId: nextFilters.clinicId,
+      dateFrom: nextFilters.dateFrom,
+      dateTo: nextFilters.dateTo,
+    });
+    replaceList({ page: 1, filters: nextFilters });
   }
 
   function handlePageChange(nextPage: number) {
     setIsRefreshing(true);
-    setPage(nextPage);
+    replaceList({ page: nextPage });
+  }
+
+  function handleNewOrder() {
+    replaceList({ newOrder: true });
   }
 
   function handleRowClick(order: SalesOrder) {
@@ -208,7 +269,7 @@ export function SalesOrdersListPage() {
   }
 
   const activeFilterCount = countActiveSalesOrderFilters(filters);
-  const hasActiveQuery = activeSearch.length > 0 || activeFilterCount > 0;
+  const hasActiveQuery = urlSearch.length > 0 || activeFilterCount > 0;
   const isFilteredEmpty =
     !isLoading && !error && orders.length === 0 && hasActiveQuery;
   const hasNoRecords =
@@ -224,7 +285,7 @@ export function SalesOrdersListPage() {
         onSearchSubmit={handleSearchSubmit}
         onClearSearch={handleClearSearch}
         onFiltersApply={handleFiltersApply}
-        onNewOrder={() => setCreateDialogOpen(true)}
+        onNewOrder={handleNewOrder}
       />
 
       {!hasNoRecords ? (
@@ -240,7 +301,7 @@ export function SalesOrdersListPage() {
 
       <FabButton
         label="New order"
-        onClick={() => setCreateDialogOpen(true)}
+        onClick={handleNewOrder}
         data-testid="new-sales-order-fab"
       />
 
@@ -257,38 +318,40 @@ export function SalesOrdersListPage() {
             {isLoading ? (
               <SalesOrdersTableSkeleton rows={8} />
             ) : error ? (
-              <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-                <h2 className="text-sm font-semibold text-red-800">
-                  Could not load sales orders
-                </h2>
-                <p className="mt-2 text-sm text-red-700">{error}</p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="mt-4"
-                  onClick={() => void reloadOrders()}
-                >
-                  Try again
-                </Button>
-              </div>
+              <ListPageBlankState
+                compact
+                tone="error"
+                icon="file"
+                title="Could not load sales orders"
+                description={error}
+                action={
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 rounded-lg"
+                    onClick={() => void reloadOrders()}
+                  >
+                    Try again
+                  </Button>
+                }
+              />
             ) : isFilteredEmpty ? (
-              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center">
-                <h2 className="text-base font-semibold text-brand-navy">
-                  No matching sales orders
-                </h2>
-                <p className="mt-1 text-sm text-brand-muted">
-                  Adjust your search or filters and try again.
-                </p>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="mt-4"
-                  onClick={handleClearSearch}
-                >
-                  Clear search & filters
-                </Button>
-              </div>
+              <ListPageBlankState
+                compact
+                icon="search"
+                title="No matching sales orders"
+                description="Adjust your search or filters and try again."
+                action={
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 rounded-lg"
+                    onClick={handleClearSearch}
+                  >
+                    Clear search and filters
+                  </Button>
+                }
+              />
             ) : (
               <>
                 <SalesOrdersTable orders={orders} onRowClick={handleRowClick} />
@@ -307,13 +370,19 @@ export function SalesOrdersListPage() {
         </ListPageDataSectionsStack>
       ) : (
         <ListPageTableSection>
-          <SalesOrdersEmptyState onNewOrder={() => setCreateDialogOpen(true)} />
+          <SalesOrdersEmptyState onNewOrder={handleNewOrder} />
         </ListPageTableSection>
       )}
 
       <CreateSalesOrderDialog
         open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
+        onOpenChange={(open) => {
+          if (open) {
+            replaceList({ newOrder: true });
+            return;
+          }
+          replaceList({ newOrder: false });
+        }}
         onCreated={(order) => router.push(ROUTES.salesOrderDetail(order.uuid))}
       />
     </ListPageLayout>

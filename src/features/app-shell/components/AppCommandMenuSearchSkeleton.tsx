@@ -42,9 +42,9 @@ export function AppCommandMenuSearchSkeleton({
           {SKELETON_ROWS.slice(0, group.rows).map((row, index) => (
             <div
               key={`${group.heading}-${index}`}
-              className="flex items-center gap-2 rounded-sm px-2 py-2"
+              className="flex items-center gap-3 rounded-xl px-2 py-2"
             >
-              <Skeleton className="size-4 shrink-0 rounded" />
+              <Skeleton className="size-8 shrink-0 rounded-lg" />
               <div className="min-w-0 flex-1 space-y-1.5">
                 <Skeleton className={row.title} />
                 <Skeleton className={row.subtitle} />

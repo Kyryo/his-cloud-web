@@ -1,9 +1,12 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { X } from "lucide-react";
 
-import { ListPageSearchToolbar } from "@/features/app-shell/components/page-layout";
+import {
+  ListPageActiveFilters,
+  ListPageFilterChip,
+  ListPageSearchToolbar,
+} from "@/features/app-shell/components/page-layout";
 import { CustomerFiltersDropdown } from "@/features/customers/components/CustomerFiltersDropdown";
 import {
   CUSTOMER_ORDERING_OPTIONS,
@@ -84,7 +87,7 @@ export function CustomerListToolbar({
       <ListPageSearchToolbar
         search={search}
         searchId="customer-search"
-        placeholder="Search by name, ID, phone, email, or internal reference..."
+        placeholder="Search by name, ID, phone, email, or reference…"
         searchTestId="customers-search"
         searchSubmitTestId="customers-search-submit"
         clearTestId="customers-search-clear"
@@ -102,70 +105,41 @@ export function CustomerListToolbar({
         trailing={trailing}
       />
 
-      {/* Active Filter Chips Bar */}
       {hasAnyFilter ? (
-        <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs">
-          <span className="text-[11px] font-semibold uppercase tracking-wider text-dash-muted mr-1">
-            Active filters:
-          </span>
-
+        <ListPageActiveFilters
+          disabled={isLoading}
+          onClearAll={handleClearAllFilters}
+        >
           {hasGenderFilter ? (
-            <button
-              type="button"
+            <ListPageFilterChip
+              label={`Gender: ${filters.gender}`}
               disabled={isLoading}
-              onClick={handleRemoveGender}
-              className="inline-flex items-center gap-1 rounded-full border border-blue-200 bg-blue-50/80 px-2.5 py-0.5 text-blue-800 hover:bg-blue-100 transition-colors cursor-pointer"
-            >
-              <span>Gender: {filters.gender}</span>
-              <X className="size-3" />
-            </button>
+              onRemove={handleRemoveGender}
+            />
           ) : null}
-
           {hasStatusFilter ? (
-            <button
-              type="button"
+            <ListPageFilterChip
+              label={`Status: ${filters.activeStatus}`}
               disabled={isLoading}
-              onClick={handleRemoveStatus}
-              className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-100/90 px-2.5 py-0.5 text-slate-800 hover:bg-slate-200 transition-colors cursor-pointer"
-            >
-              <span className="capitalize">Status: {filters.activeStatus}</span>
-              <X className="size-3" />
-            </button>
+              className="capitalize"
+              onRemove={handleRemoveStatus}
+            />
           ) : null}
-
           {hasOrderingFilter ? (
-            <button
-              type="button"
+            <ListPageFilterChip
+              label={`Sort: ${orderingLabel}`}
               disabled={isLoading}
-              onClick={handleRemoveOrdering}
-              className="inline-flex items-center gap-1 rounded-full border border-purple-200 bg-purple-50/80 px-2.5 py-0.5 text-purple-800 hover:bg-purple-100 transition-colors cursor-pointer"
-            >
-              <span>Sort: {orderingLabel}</span>
-              <X className="size-3" />
-            </button>
+              onRemove={handleRemoveOrdering}
+            />
           ) : null}
-
           {hasTagsFilter ? (
-            <button
-              type="button"
+            <ListPageFilterChip
+              label={`${filters.tags.length} tag${filters.tags.length > 1 ? "s" : ""}`}
               disabled={isLoading}
-              onClick={handleRemoveTags}
-              className="inline-flex items-center gap-1 rounded-full border border-teal-200 bg-teal-50/80 px-2.5 py-0.5 text-teal-800 hover:bg-teal-100 transition-colors cursor-pointer"
-            >
-              <span>{filters.tags.length} Tag{filters.tags.length > 1 ? "s" : ""}</span>
-              <X className="size-3" />
-            </button>
+              onRemove={handleRemoveTags}
+            />
           ) : null}
-
-          <button
-            type="button"
-            disabled={isLoading}
-            onClick={handleClearAllFilters}
-            className="ml-1 text-[11px] font-medium text-brand-primary underline hover:text-brand-primary-hover transition-colors"
-          >
-            Clear all
-          </button>
-        </div>
+        </ListPageActiveFilters>
       ) : null}
     </div>
   );

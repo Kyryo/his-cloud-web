@@ -1,18 +1,10 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { SearchableSelect, SelectItem } from "@/components/ui/searchable-select";
 import { searchInventoryProducts } from "@/features/inventory/services/inventory.service";
 import type { InventoryProduct } from "@/features/inventory/types/inventory.types";
 import { formatProductLabel } from "@/features/inventory/utils/format-inventory";
@@ -54,51 +46,61 @@ export function InventoryProductPicker({
   const [search, setSearch] = useState("");
   const [options, setOptions] = useState<InventoryProduct[]>([]);
   const [isLoadingResults, setIsLoadingResults] = useState(false);
+  const trimmedSearch = search.trim();
 
   useEffect(() => {
-    if (!open) {
-      setSearch("");
+    if (!open || trimmedSearch.length < 2) {
       return;
     }
 
-    if (search.trim().length < 2) {
-      setOptions(product ? [product] : []);
-      return;
-    }
-
+    let cancelled = false;
     const handle = window.setTimeout(() => {
       void (async () => {
         setIsLoadingResults(true);
         try {
           const products = await searchInventoryProducts({
-            q: search.trim(),
+            q: trimmedSearch,
             active: true,
           });
           const filtered = filterBatchEligible
             ? products.filter(isBatchEligibleProduct)
             : products;
-          setOptions(filtered);
+          if (!cancelled) {
+            setOptions(filtered);
+            setIsLoadingResults(false);
+          }
         } catch {
-          setOptions(product ? [product] : []);
-        } finally {
-          setIsLoadingResults(false);
+          if (!cancelled) {
+            setOptions(product ? [product] : []);
+            setIsLoadingResults(false);
+          }
         }
       })();
     }, 250);
 
-    return () => window.clearTimeout(handle);
-  }, [filterBatchEligible, open, product, search]);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(handle);
+    };
+  }, [filterBatchEligible, open, product, trimmedSearch]);
 
-  const handleValueChange = (uuid: string) => {
+  function handleOpenChange(nextOpen: boolean) {
+    setOpen(nextOpen);
+    if (!nextOpen) {
+      setSearch("");
+    }
+  }
+
+  function handleValueChange(uuid: string) {
     const match =
       options.find((option) => option.uuid === uuid) ??
       (product?.uuid === uuid ? product : null);
 
     if (match) {
       onProductChange(match);
-      setOpen(false);
+      handleOpenChange(false);
     }
-  };
+  }
 
   return (
     <div className="space-y-2">
@@ -112,64 +114,40 @@ export function InventoryProductPicker({
         ) : null}
       </div>
 
-      <Select
+      <SearchableSelect
+        id={id}
         value={product?.uuid}
         onValueChange={handleValueChange}
         open={open}
-        onOpenChange={setOpen}
+        onOpenChange={handleOpenChange}
         disabled={disabled}
+        placeholder="Select a product"
+        displayValue={product ? formatProductLabel(product) : undefined}
+        searchValue={search}
+        onSearchChange={setSearch}
+        searchPlaceholder="Search products..."
+        emptySearchMessage="Type at least 2 characters to search."
+        noResultsMessage={
+          filterBatchEligible
+            ? "No stockable or consumable products found."
+            : "No products found."
+        }
+        isLoading={isLoadingResults}
+        triggerClassName={cn("w-full", invalid && "border-destructive")}
       >
-        <SelectTrigger
-          id={id}
-          className={cn("w-full", invalid && "border-destructive")}
-          aria-invalid={invalid}
-        >
-          <SelectValue placeholder="Select a product">
-            {product ? formatProductLabel(product) : null}
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <div className="border-b border-brand-border p-2">
-            <Input
-              value={search}
-              placeholder="Search products..."
-              className="h-9"
-              onChange={(event) => setSearch(event.target.value)}
-              onKeyDown={(event) => event.stopPropagation()}
-            />
-          </div>
-
-          {isLoadingResults ? (
-            <div className="flex items-center justify-center gap-2 px-3 py-6 text-sm text-brand-muted">
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              Searching...
+        {options.map((option) => (
+          <SelectItem key={option.uuid} value={option.uuid}>
+            <div className="flex flex-col items-start">
+              <span>{formatProductLabel(option)}</span>
+              {option.product_type_label ? (
+                <span className="text-xs text-brand-muted capitalize">
+                  {option.product_type_label}
+                </span>
+              ) : null}
             </div>
-          ) : search.trim().length < 2 ? (
-            <div className="px-3 py-6 text-center text-sm text-brand-muted">
-              Type at least 2 characters to search.
-            </div>
-          ) : options.length === 0 ? (
-            <div className="px-3 py-6 text-center text-sm text-brand-muted">
-              {filterBatchEligible
-                ? "No stockable or consumable products found."
-                : "No products found."}
-            </div>
-          ) : (
-            options.map((option) => (
-              <SelectItem key={option.uuid} value={option.uuid}>
-                <div className="flex flex-col items-start">
-                  <span>{formatProductLabel(option)}</span>
-                  {option.product_type_label ? (
-                    <span className="text-xs text-brand-muted capitalize">
-                      {option.product_type_label}
-                    </span>
-                  ) : null}
-                </div>
-              </SelectItem>
-            ))
-          )}
-        </SelectContent>
-      </Select>
+          </SelectItem>
+        ))}
+      </SearchableSelect>
     </div>
   );
 }

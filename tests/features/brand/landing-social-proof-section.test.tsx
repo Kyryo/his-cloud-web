@@ -1,27 +1,7 @@
 import { render, screen } from "@testing-library/react";
-import { beforeAll, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 
 import { LandingSocialProofSection } from "@/features/brand/components/landing/LandingSocialProofSection";
-
-beforeAll(() => {
-  class IntersectionObserverMock {
-    observe() {}
-    unobserve() {}
-    disconnect() {}
-    takeRecords() {
-      return [];
-    }
-    root = null;
-    rootMargin = "";
-    thresholds = [];
-  }
-
-  Object.defineProperty(globalThis, "IntersectionObserver", {
-    writable: true,
-    configurable: true,
-    value: IntersectionObserverMock,
-  });
-});
 
 describe("LandingSocialProofSection", () => {
   it("renders the headline and clinic logos", () => {

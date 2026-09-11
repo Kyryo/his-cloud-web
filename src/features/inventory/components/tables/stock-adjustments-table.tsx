@@ -61,7 +61,7 @@ export function StockAdjustmentsTable({
           return (
             <ListPageDataTableRow
               key={adjustment.uuid}
-              className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+              className="group cursor-pointer"
               onClick={() => onRowClick?.(adjustment)}
               data-testid={`stock-adjustment-row-${adjustment.uuid}`}
             >

@@ -166,7 +166,7 @@ export function SalesOrdersTable({
             return (
               <ListPageDataTableRow
                 key={order.id}
-                className="group cursor-pointer hover:bg-slate-50/70 transition-colors"
+                className="group cursor-pointer"
                 onClick={() => onRowClick?.(order)}
               >
                 {/* 1. Order Number */}
@@ -176,7 +176,7 @@ export function SalesOrdersTable({
                       trigger={
                         <Link
                           href={ROUTES.salesOrderDetail(order.uuid)}
-                          className="font-mono text-sm font-normal text-brand-navy hover:text-brand-primary transition-colors tracking-tight"
+                          className="font-mono font-normal tracking-tight text-brand-navy transition-colors hover:text-brand-primary"
                           title={orderLabel}
                           onClick={(event) => event.stopPropagation()}
                         >

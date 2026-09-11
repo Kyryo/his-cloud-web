@@ -309,7 +309,7 @@ export function CustomerDetailSummaryTab({
               Visits
             </dt>
           </div>
-          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
             {stats?.visits != null ? (
               <span title={String(stats.visits)}>
                 {formatCompactNumber(stats.visits)}
@@ -329,7 +329,7 @@ export function CustomerDetailSummaryTab({
               Sales orders
             </dt>
           </div>
-          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
             {isBillingLoading ? (
               <span className="inline-flex items-center gap-1.5 text-brand-muted">
                 <Loader2 className="size-4 animate-spin" aria-hidden="true" />
@@ -350,7 +350,7 @@ export function CustomerDetailSummaryTab({
               Invoiced
             </dt>
           </div>
-          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
             {isBillingLoading ? (
               <span className="inline-flex items-center gap-1.5 text-brand-muted">
                 <Loader2 className="size-4 animate-spin" aria-hidden="true" />
@@ -378,7 +378,7 @@ export function CustomerDetailSummaryTab({
           </div>
           <dd
             className={cn(
-              "mt-1.5 text-2xl font-bold tracking-tight tabular-nums sm:text-3xl",
+              "mt-1 text-lg font-semibold tracking-tight tabular-nums",
               hasDue ? "text-red-600" : "text-brand-navy",
             )}
           >

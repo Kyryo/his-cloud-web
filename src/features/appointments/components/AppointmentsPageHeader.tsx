@@ -1,7 +1,8 @@
 "use client";
 
 import { AppIcon } from "@/components/icons/app-icon";
-import { Button } from "@/components/ui/button";
+import { PageActionButton } from "@/components/ui/app-buttons";
+import { ACTIONS } from "@/constants/copy";
 import { ListPageHeaderSection } from "@/features/app-shell/components/page-layout";
 import { AppointmentsListToolbar } from "@/features/appointments/components/AppointmentsListToolbar";
 import type { AppointmentsViewMode } from "@/features/appointments/components/AppointmentsViewToggle";
@@ -42,15 +43,14 @@ export function AppointmentsPageHeader({
         onClearSearch={onClearSearch}
         onFiltersApply={onFiltersApply}
         trailing={
-          <Button
-            size="sm"
-            className="gap-1.5 rounded-lg bg-brand-primary text-xs font-medium text-white shadow-xs hover:bg-brand-primary-hover active:scale-[0.98] transition-all"
+          <PageActionButton
+            className="h-8 px-3 text-xs"
             onClick={onNewAppointment}
             data-testid="new-appointment-button"
           >
             <AppIcon name="add" className="size-3.5" />
-            <span>New Appointment</span>
-          </Button>
+            <span>{ACTIONS.newAppointment}</span>
+          </PageActionButton>
         }
       />
     </ListPageHeaderSection>

@@ -110,7 +110,11 @@ export function filterCommandPaletteItems(
 export function mergeCommandPaletteGroups(
   recordItems: CommandPaletteItem[],
   pageItems: CommandPaletteItem[],
+  actionItems: CommandPaletteItem[] = [],
 ): CommandPaletteGroup[] {
+  const actionGroups = groupCommandPaletteItems(actionItems).filter(
+    (group) => group.items.length > 0,
+  );
   const recordByGroup = new Map(
     groupCommandPaletteItems(recordItems).map((group) => [group.group, group]),
   );
@@ -122,5 +126,5 @@ export function mergeCommandPaletteGroups(
     (group) => group.items.length > 0,
   );
 
-  return [...recordGroups, ...pageGroups];
+  return [...actionGroups, ...recordGroups, ...pageGroups];
 }

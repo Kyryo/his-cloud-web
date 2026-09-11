@@ -397,6 +397,7 @@ export function CreateSalesOrderDialog({
         open={createCustomerOpen}
         onOpenChange={setCreateCustomerOpen}
         initialName={createCustomerName}
+        mode="quick"
         onCreated={(createdCustomer) => {
           handleCustomerChange(createdCustomer);
           setCreateCustomerOpen(false);

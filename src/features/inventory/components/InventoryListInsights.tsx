@@ -51,7 +51,7 @@ export function InventoryListInsights({
       {cards.map((card) => (
         <div
           key={card.label}
-          className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4"
+          className="p-3"
         >
           <div className="flex items-center gap-2">
             <span className={cn("size-2 shrink-0 rounded-full", card.dotClass)} />
@@ -61,7 +61,7 @@ export function InventoryListInsights({
           </div>
           <dd
             className={cn(
-              "mt-1.5 text-2xl font-bold tracking-tight tabular-nums sm:text-3xl",
+              "mt-1 text-lg font-semibold tracking-tight tabular-nums",
               card.emphasize && card.emphasizeClass
                 ? card.emphasizeClass
                 : "text-brand-navy",

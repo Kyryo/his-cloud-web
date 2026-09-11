@@ -61,6 +61,8 @@ type CreateCustomerDialogProps = {
   onOpenChange: (open: boolean) => void;
   onCreated: (customer: Customer) => void;
   initialName?: string;
+  /** Save the client and return immediately — skip insurance, address, and notes. */
+  mode?: "full" | "quick";
 };
 
 type CreateCustomerTab =
@@ -84,6 +86,7 @@ export function CreateCustomerDialog({
   onOpenChange,
   onCreated,
   initialName = "",
+  mode = "full",
 }: CreateCustomerDialogProps) {
   const router = useRouter();
   const { toast } = useToast();
@@ -180,11 +183,14 @@ export function CreateCustomerDialog({
     }
   }
 
-  function finalizeCreatedCustomer(customer: Customer) {
-    resetDialogState();
-    onCreated(customer);
-    onOpenChange(false);
-  }
+  const finalizeCreatedCustomer = useCallback(
+    (customer: Customer) => {
+      resetDialogState();
+      onCreated(customer);
+      onOpenChange(false);
+    },
+    [onCreated, onOpenChange, resetDialogState],
+  );
 
   function handleOpenChange(nextOpen: boolean) {
     if (!nextOpen) {
@@ -202,14 +208,20 @@ export function CreateCustomerDialog({
   async function handleCreateCustomer(values: CreateCustomerFormValues) {
     try {
       const customer = await createCustomer(toCustomerWritePayload(values));
-      setCreatedCustomer(customer);
-      setActiveTab("insurance");
-      void loadInsuranceSchemes();
       toast({
         variant: "success",
         title: "Client created",
-        description: `${getCustomerDisplayName(customer)} was added. You can add insurance, address, and notes next.`,
+        description:
+          mode === "quick"
+            ? `${getCustomerDisplayName(customer)} was added.`
+            : `${getCustomerDisplayName(customer)} was added. Choose what to do next, or add insurance later.`,
       });
+      if (mode === "quick") {
+        finalizeCreatedCustomer(customer);
+        return;
+      }
+      setCreatedCustomer(customer);
+      setActiveTab("whats-next");
     } catch (error) {
       if (error instanceof BffError) {
         const fieldErrors = mapBffErrorsToForm(error.errors);
@@ -385,13 +397,16 @@ export function CreateCustomerDialog({
     await notesForm.handleSubmit(handleSaveNote)();
   }
 
-  const tabs = [
-    { id: "personal", label: "Personal" },
-    { id: "insurance", label: "Insurance", disabled: !isCustomerCreated },
-    { id: "address", label: "Address", disabled: !isCustomerCreated },
-    { id: "notes", label: "Notes", disabled: !isCustomerCreated },
-    { id: "whats-next", label: "What's next?", disabled: !isCustomerCreated },
-  ];
+  const tabs =
+    mode === "quick"
+      ? [{ id: "personal", label: "Client" }]
+      : [
+          { id: "personal", label: "Personal" },
+          { id: "insurance", label: "Insurance", disabled: !isCustomerCreated },
+          { id: "address", label: "Address", disabled: !isCustomerCreated },
+          { id: "notes", label: "Notes", disabled: !isCustomerCreated },
+          { id: "whats-next", label: "What's next?", disabled: !isCustomerCreated },
+        ];
 
   const whatsNextOptions = useMemo(() => {
     if (!createdCustomer) {
@@ -430,7 +445,7 @@ export function CreateCustomerDialog({
         testId: "create-customer-schedule-appointment-next-button",
       },
     ];
-  }, [createdCustomer, router]);
+  }, [createdCustomer, finalizeCreatedCustomer, router]);
 
   function handleVisitChanged(_visit: CustomerVisit) {
     if (!createdCustomer) {
@@ -615,7 +630,11 @@ export function CreateCustomerDialog({
       open={open}
       onOpenChange={handleOpenChange}
       title="Register client"
-      description="Create a new client record, then optionally add insurance, address, and notes."
+      description={
+        mode === "quick"
+          ? "Add the client's name and required details. You can add insurance later."
+          : "Save the client, then start a visit, book an appointment, or add extras."
+      }
       tabs={tabs}
       activeTab={activeTab}
       onTabChange={(tabId) => {

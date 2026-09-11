@@ -57,7 +57,7 @@ describe("CustomerListToolbar", () => {
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
     expect(searchButton).toHaveTextContent("Search");
-    expect(filterButton).toHaveTextContent("Add filter");
+    expect(filterButton).toHaveTextContent("Filters");
     expect(searchButton.className).toContain("border");
     expect(filterButton.className).not.toContain("bg-brand-primary");
   });

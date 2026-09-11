@@ -25,7 +25,7 @@ export function ListPageDataTable({
       )}
     >
       <div className="overflow-x-auto">
-        <table className="min-w-full text-left text-sm">{children}</table>
+        <table className="min-w-full text-left text-[13px]">{children}</table>
       </div>
     </div>
   );
@@ -68,7 +68,7 @@ export function ListPageDataTableHeaderCell({
     <th
       scope="col"
       className={cn(
-        "px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-dash-muted",
+        "px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.08em] text-dash-muted",
         className,
       )}
       {...props}
@@ -97,7 +97,7 @@ export function ListPageDataTableRow({
   return (
     <tr
       className={cn(
-        "transition-colors hover:bg-dash-panel/60",
+        "transition-colors hover:bg-dash-canvas/70 active:bg-dash-canvas",
         className,
       )}
       {...props}
@@ -109,5 +109,5 @@ export function ListPageDataTableCell({
   className,
   ...props
 }: ComponentPropsWithoutRef<"td">) {
-  return <td className={cn("px-4 py-3.5 text-sm text-brand-slate", className)} {...props} />;
+  return <td className={cn("px-4 py-3 text-[13px] text-brand-slate", className)} {...props} />;
 }

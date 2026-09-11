@@ -56,7 +56,7 @@ export function PaymentSummaryStatsCards({
             All payments
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.all.count)}
         </dd>
         <p
@@ -74,7 +74,7 @@ export function PaymentSummaryStatsCards({
             Posted
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.posted.count)}
         </dd>
         <p
@@ -95,7 +95,7 @@ export function PaymentSummaryStatsCards({
             Draft
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.draft.count)}
         </dd>
         <p
@@ -113,7 +113,7 @@ export function PaymentSummaryStatsCards({
             Cancelled
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.cancelled.count)}
         </dd>
         <p

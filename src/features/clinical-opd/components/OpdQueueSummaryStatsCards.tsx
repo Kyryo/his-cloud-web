@@ -48,7 +48,7 @@ export function OpdQueueSummaryStatsCards({
             Total encounters
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(totalCount)}
         </dd>
         <p className="mt-0.5 text-xs text-brand-muted">Active OPD queue</p>
@@ -61,7 +61,7 @@ export function OpdQueueSummaryStatsCards({
             Waiting
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(waitingCount)}
         </dd>
         <p className="mt-0.5 text-xs text-brand-muted">Awaiting clinical review</p>
@@ -81,7 +81,7 @@ export function OpdQueueSummaryStatsCards({
             In progress
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(inProgressCount)}
         </dd>
         <p className="mt-0.5 text-xs text-brand-muted">
@@ -100,7 +100,7 @@ export function OpdQueueSummaryStatsCards({
             Completed
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(completedCount)}
         </dd>
         <p className="mt-0.5 text-xs text-brand-muted">Finished today</p>

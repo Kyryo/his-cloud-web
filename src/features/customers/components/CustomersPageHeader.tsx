@@ -1,7 +1,8 @@
 "use client";
 
 import { AppIcon } from "@/components/icons/app-icon";
-import { Button } from "@/components/ui/button";
+import { PageActionButton } from "@/components/ui/app-buttons";
+import { ACTIONS } from "@/constants/copy";
 import { ListPageHeaderSection } from "@/features/app-shell/components/page-layout";
 import { CustomerListToolbar } from "@/features/customers/components/CustomerListToolbar";
 import type { CustomerListFilterState } from "@/features/customers/utils/customer-list-filters";
@@ -46,14 +47,13 @@ export function CustomersPageHeader({
         onClearSearch={onClearSearch}
         onFiltersApply={onFiltersApply}
         trailing={
-          <Button
-            className="h-10 gap-1.5 rounded-lg bg-brand-primary text-sm font-medium text-white shadow-xs hover:bg-brand-primary-hover active:scale-[0.98] transition-all"
+          <PageActionButton
             onClick={onAddClient}
             data-testid="add-client-button"
           >
             <AppIcon name="add" className="size-4" />
-            <span>Register client</span>
-          </Button>
+            <span>{ACTIONS.registerClient}</span>
+          </PageActionButton>
         }
       />
     </ListPageHeaderSection>

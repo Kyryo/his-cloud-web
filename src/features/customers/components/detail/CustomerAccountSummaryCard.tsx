@@ -233,7 +233,7 @@ export function CustomerAccountSummaryCard({
                     Payment required
                   </span>
                 </div>
-                <div className="mt-1.5 text-2xl font-bold tracking-tight text-red-700 tabular-nums">
+                <div className="mt-1 text-lg font-semibold tracking-tight text-red-700 tabular-nums">
                   <SidebarCurrencyAmount
                     value={totals?.total_due}
                     amountClassName="text-red-700"

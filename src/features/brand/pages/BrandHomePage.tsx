@@ -1,12 +1,10 @@
-import { HeroSection } from "@/features/brand/components/HeroSection";
+import { LandingHomeIntro } from "@/features/brand/components/landing/LandingHomeIntro";
 import { LandingHomeSections } from "@/features/brand/components/landing/LandingHomeSections";
-import { LandingSocialProofSection } from "@/features/brand/components/landing/LandingSocialProofSection";
 
 export function BrandHomePage() {
   return (
     <>
-      <HeroSection />
-      <LandingSocialProofSection />
+      <LandingHomeIntro />
       <LandingHomeSections />
     </>
   );

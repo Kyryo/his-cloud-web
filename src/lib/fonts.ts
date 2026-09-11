@@ -1,11 +1,11 @@
-import { DM_Sans, Figtree, Fraunces } from "next/font/google";
+import { Figtree, Fraunces, Plus_Jakarta_Sans } from "next/font/google";
 
 /** Authenticated app UI font (sidebar, pages, filter sheets). */
-export const appFont = DM_Sans({
+export const appFont = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: ["400", "500", "600"],
   display: "swap",
-  variable: "--font-dm-sans",
+  variable: "--font-app",
 });
 
 /** Marketing + auth display (headlines, wordmark). */

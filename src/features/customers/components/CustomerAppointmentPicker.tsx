@@ -1,8 +1,9 @@
 "use client";
 
-import { Plus } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
+import { AppIcon } from "@/components/icons/app-icon";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
 import { SearchableSelect, SelectItem } from "@/components/ui/searchable-select";
@@ -13,8 +14,6 @@ import {
   formatCustomerSearchLabel,
   looksLikeClientName,
 } from "@/features/customers/utils/format-customer";
-
-const CREATE_CLIENT_VALUE = "__create-client__";
 
 type CustomerAppointmentPickerProps = {
   customer: Customer | null;
@@ -96,14 +95,13 @@ export function CustomerAppointmentPicker({
     }
   }
 
-  function handleValueChange(uuid: string) {
-    if (uuid === CREATE_CLIENT_VALUE) {
-      const name = trimmedSearch;
-      handleOpenChange(false);
-      onCreateClient?.(name);
-      return;
-    }
+  function handleCreateClient() {
+    const name = trimmedSearch;
+    handleOpenChange(false);
+    onCreateClient?.(name);
+  }
 
+  function handleValueChange(uuid: string) {
     const match =
       options.find((option) => option.uuid === uuid) ??
       (customer?.uuid === uuid ? customer : null);
@@ -138,8 +136,27 @@ export function CustomerAppointmentPicker({
         onSearchChange={setSearch}
         searchPlaceholder="Name, identifier, or phone"
         emptySearchMessage="Type a name, identifier, or phone."
-        isLoading={isLoadingResults && !showCreateClient}
+        isLoading={isLoadingResults}
         noResultsMessage="No clients found."
+        footerExtra={
+          showCreateClient ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-9 w-full gap-1.5 rounded-md"
+              data-testid="customer-picker-create"
+              onPointerDown={(event) => {
+                event.preventDefault();
+                event.stopPropagation();
+              }}
+              onClick={handleCreateClient}
+            >
+              <AppIcon name="add" size={14} />
+              Create “{trimmedSearch}”
+            </Button>
+          ) : null
+        }
       >
         {options.map((option) => (
           <SelectItem key={option.uuid} value={option.uuid}>
@@ -152,17 +169,6 @@ export function CustomerAppointmentPicker({
             </div>
           </SelectItem>
         ))}
-        {showCreateClient ? (
-          <SelectItem
-            value={CREATE_CLIENT_VALUE}
-            data-testid="customer-picker-create"
-          >
-            <span className="flex items-center gap-2">
-              <Plus className="size-3.5 shrink-0" aria-hidden="true" />
-              Create “{trimmedSearch}”
-            </span>
-          </SelectItem>
-        ) : null}
       </SearchableSelect>
     </div>
   );

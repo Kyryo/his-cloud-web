@@ -54,18 +54,31 @@ describe("AppCommandMenu", () => {
     vi.unstubAllGlobals();
   });
 
-  it("opens from the header trigger and navigates to a page", () => {
+  it("opens from the header trigger and starts a create action", () => {
     render(<AppCommandMenu />);
 
     fireEvent.click(screen.getByTestId("app-command-menu-trigger"));
 
     expect(screen.getByTestId("app-command-menu-list")).toBeInTheDocument();
+    expect(screen.getByText("New client")).toBeInTheDocument();
+    expect(screen.getByText("New appointment")).toBeInTheDocument();
     expect(screen.getByText("Clients")).toBeInTheDocument();
     expect(screen.getByText("Notifications")).toBeInTheDocument();
+    expect(screen.queryByRole("tab")).not.toBeInTheDocument();
+    expect(screen.queryByText("/clients")).not.toBeInTheDocument();
     expect(screen.queryByText("Account")).not.toBeInTheDocument();
     expect(screen.queryByText("Organization")).not.toBeInTheDocument();
     expect(screen.queryByText("Settings")).not.toBeInTheDocument();
 
+    fireEvent.click(screen.getByText("New client"));
+
+    expect(push).toHaveBeenCalledWith(`${ROUTES.customers}?new=1`);
+  });
+
+  it("still navigates to list pages from the pages group", () => {
+    render(<AppCommandMenu />);
+
+    fireEvent.click(screen.getByTestId("app-command-menu-trigger"));
     fireEvent.click(screen.getByText("Clients"));
 
     expect(push).toHaveBeenCalledWith(ROUTES.customers);
@@ -114,7 +127,7 @@ describe("AppCommandMenu", () => {
     fireEvent.click(screen.getByTestId("app-command-menu-trigger"));
 
     fireEvent.change(
-      screen.getByPlaceholderText("Search clients, orders, invoices…"),
+      screen.getByPlaceholderText("Find a client, order, invoice, or page…"),
       { target: { value: "Ada" } },
     );
 
@@ -140,7 +153,7 @@ describe("AppCommandMenu", () => {
     fireEvent.click(screen.getByTestId("app-command-menu-trigger"));
 
     fireEvent.change(
-      screen.getByPlaceholderText("Search clients, orders, invoices…"),
+      screen.getByPlaceholderText("Find a client, order, invoice, or page…"),
       { target: { value: "Ada" } },
     );
 

@@ -40,7 +40,7 @@ export function CustomerInvoicePaymentStatsCards({
             All invoices
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.all.count)}
         </dd>
         <p
@@ -63,7 +63,7 @@ export function CustomerInvoicePaymentStatsCards({
             Paid
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.paid.count)}
         </dd>
         <p
@@ -90,7 +90,7 @@ export function CustomerInvoicePaymentStatsCards({
         </div>
         <dd
           className={cn(
-            "mt-1.5 text-2xl font-bold tracking-tight tabular-nums sm:text-3xl",
+            "mt-1 text-lg font-semibold tracking-tight tabular-nums",
             buckets.not_paid.count > 0 ? "text-red-600" : "text-brand-navy",
           )}
         >
@@ -118,7 +118,7 @@ export function CustomerInvoicePaymentStatsCards({
             Partially paid
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.partially_paid.count)}
         </dd>
         <p

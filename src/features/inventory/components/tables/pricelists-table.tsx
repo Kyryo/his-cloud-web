@@ -43,7 +43,7 @@ export function PricelistsTable({
         {pricelists.map((pricelist) => (
           <ListPageDataTableRow
             key={pricelist.uuid}
-            className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+            className="group cursor-pointer"
             onClick={() => onRowClick?.(pricelist)}
           >
             <ListPageDataTableCell className="py-3">

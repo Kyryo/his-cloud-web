@@ -86,6 +86,20 @@ export function TabAddActionButton({
   );
 }
 
+/** Page-level create action — square primary, not the dialog pill. */
+export function PageActionButton({ className, ...props }: AppButtonProps) {
+  return (
+    <Button
+      variant="primary"
+      className={cn(
+        "h-10 gap-1.5 rounded-lg px-3.5 text-sm font-medium shadow-xs transition-[transform,box-shadow] active:scale-[0.98]",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
 export function AddActionButton({
   label = "Add",
   showIcon = true,

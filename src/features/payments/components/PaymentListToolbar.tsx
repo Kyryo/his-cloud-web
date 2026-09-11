@@ -1,9 +1,12 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { X } from "lucide-react";
 
-import { ListPageSearchToolbar } from "@/features/app-shell/components/page-layout";
+import {
+  ListPageActiveFilters,
+  ListPageFilterChip,
+  ListPageSearchToolbar,
+} from "@/features/app-shell/components/page-layout";
 import { PaymentFiltersSheet } from "@/features/payments/components/PaymentFiltersSheet";
 import {
   countActivePaymentFilters,
@@ -48,7 +51,7 @@ export function PaymentListToolbar({
       <ListPageSearchToolbar
         search={search}
         searchId="payment-search"
-        placeholder="Search by payment reference, client, invoice, or method..."
+        placeholder="Search by payment reference, client, invoice, or method…"
         searchTestId="payments-search"
         searchSubmitTestId="payments-search-submit"
         clearTestId="payments-search-clear"
@@ -67,46 +70,27 @@ export function PaymentListToolbar({
       />
 
       {hasAnyFilter ? (
-        <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs">
-          <span className="mr-1 text-[11px] font-semibold uppercase tracking-wider text-dash-muted">
-            Active filters:
-          </span>
-
+        <ListPageActiveFilters
+          disabled={isLoading}
+          onClearAll={() => onFiltersApply(DEFAULT_PAYMENT_LIST_FILTERS)}
+        >
           {hasStateFilter ? (
-            <button
-              type="button"
+            <ListPageFilterChip
+              label={`State: ${stateLabel}`}
               disabled={isLoading}
-              onClick={() => onFiltersApply({ ...filters, state: "all" })}
-              className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-blue-200 bg-blue-50/80 px-2.5 py-0.5 text-blue-800 transition-colors hover:bg-blue-100"
-            >
-              <span>State: {stateLabel}</span>
-              <X className="size-3" />
-            </button>
+              onRemove={() => onFiltersApply({ ...filters, state: "all" })}
+            />
           ) : null}
-
           {hasDateFilter ? (
-            <button
-              type="button"
+            <ListPageFilterChip
+              label="Date range filtered"
               disabled={isLoading}
-              onClick={() =>
+              onRemove={() =>
                 onFiltersApply({ ...filters, dateFrom: "", dateTo: "" })
               }
-              className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-amber-200 bg-amber-50/80 px-2.5 py-0.5 text-amber-800 transition-colors hover:bg-amber-100"
-            >
-              <span>Date range filtered</span>
-              <X className="size-3" />
-            </button>
+            />
           ) : null}
-
-          <button
-            type="button"
-            disabled={isLoading}
-            onClick={() => onFiltersApply(DEFAULT_PAYMENT_LIST_FILTERS)}
-            className="ml-1 text-[11px] font-medium text-brand-primary underline transition-colors hover:text-brand-primary-hover"
-          >
-            Clear all
-          </button>
-        </div>
+        </ListPageActiveFilters>
       ) : null}
     </div>
   );

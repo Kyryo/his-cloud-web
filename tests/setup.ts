@@ -21,8 +21,8 @@ Object.defineProperty(window, "matchMedia", {
 
 vi.mock("@/lib/fonts", () => ({
   appFont: {
-    className: "font-dm-sans-mock",
-    variable: "--font-dm-sans",
+    className: "font-app-mock",
+    variable: "--font-app",
   },
 }));
 

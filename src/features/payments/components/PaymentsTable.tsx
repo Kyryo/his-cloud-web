@@ -73,7 +73,7 @@ export function PaymentsTable({ payments, onRowClick, className }: PaymentsTable
           return (
             <ListPageDataTableRow
               key={payment.id}
-              className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+              className="group cursor-pointer"
               onClick={() => onRowClick?.(payment)}
               data-testid={`payment-row-${payment.id}`}
             >

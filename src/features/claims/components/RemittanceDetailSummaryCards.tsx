@@ -59,7 +59,7 @@ export function RemittanceDetailSummaryCards({
             Claimed amount
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.claimed.count)}
         </dd>
         <p
@@ -77,7 +77,7 @@ export function RemittanceDetailSummaryCards({
             Pay to you
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.pay_to_provider.count)}
         </dd>
         <p
@@ -98,7 +98,7 @@ export function RemittanceDetailSummaryCards({
             Matched lines
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.matched.count)}
         </dd>
         <p
@@ -123,7 +123,7 @@ export function RemittanceDetailSummaryCards({
             Needs action
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.needs_action.count)}
         </dd>
         <p

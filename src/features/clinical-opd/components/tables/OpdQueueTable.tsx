@@ -73,7 +73,7 @@ export function OpdQueueTable({
           return (
             <ListPageDataTableRow
               key={encounter.encounter_uuid}
-              className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+              className="group cursor-pointer"
               onClick={() => handleOpen(encounter)}
             >
               <ListPageDataTableCell className="py-3">

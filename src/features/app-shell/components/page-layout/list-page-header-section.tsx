@@ -48,11 +48,13 @@ export function ListPageHeaderTitleBlock({
 }: ListPageHeaderTitleBlockProps) {
   return (
     <div className={cn("min-w-0 flex-1", className)}>
-      <h1 className="text-2xl font-semibold tracking-tight text-brand-navy">
+      <h1 className="text-xl font-semibold tracking-tight text-brand-navy">
         {title}
       </h1>
       {description ? (
-        <p className="mt-1 max-w-2xl text-sm text-brand-muted">{description}</p>
+        <p className="mt-0.5 max-w-2xl text-[13px] text-brand-muted">
+          {description}
+        </p>
       ) : null}
     </div>
   );

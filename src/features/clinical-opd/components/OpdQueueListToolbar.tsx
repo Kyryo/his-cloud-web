@@ -1,9 +1,12 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { X } from "lucide-react";
 
-import { ListPageSearchToolbar } from "@/features/app-shell/components/page-layout";
+import {
+  ListPageActiveFilters,
+  ListPageFilterChip,
+  ListPageSearchToolbar,
+} from "@/features/app-shell/components/page-layout";
 import { OpdQueueFiltersDropdown } from "@/features/clinical-opd/components/OpdQueueFiltersDropdown";
 import {
   countActiveOpdQueueFilters,
@@ -56,7 +59,7 @@ export function OpdQueueListToolbar({
       <ListPageSearchToolbar
         search={search}
         searchId="opd-queue-search"
-        placeholder="Search by name, ID, phone, or department..."
+        placeholder="Search by name, ID, phone, or department…"
         searchTestId="opd-queue-search"
         searchSubmitTestId="opd-queue-search-submit"
         clearTestId="opd-queue-search-clear"
@@ -75,32 +78,18 @@ export function OpdQueueListToolbar({
       />
 
       {hasAnyFilter ? (
-        <div className="flex flex-wrap items-center gap-1.5 pt-0.5 text-xs">
-          <span className="mr-1 text-[11px] font-semibold uppercase tracking-wider text-dash-muted">
-            Active filters:
-          </span>
-
+        <ListPageActiveFilters
+          disabled={isLoading}
+          onClearAll={handleClearAllFilters}
+        >
           {hasStatusFilter ? (
-            <button
-              type="button"
+            <ListPageFilterChip
+              label={`Status: ${statusLabel}`}
               disabled={isLoading}
-              onClick={handleRemoveStatus}
-              className="inline-flex cursor-pointer items-center gap-1 rounded-full border border-blue-200 bg-blue-50/80 px-2.5 py-0.5 text-blue-800 transition-colors hover:bg-blue-100"
-            >
-              <span>Status: {statusLabel}</span>
-              <X className="size-3" />
-            </button>
+              onRemove={handleRemoveStatus}
+            />
           ) : null}
-
-          <button
-            type="button"
-            disabled={isLoading}
-            onClick={handleClearAllFilters}
-            className="ml-1 text-[11px] font-medium text-brand-primary underline transition-colors hover:text-brand-primary-hover"
-          >
-            Clear all
-          </button>
-        </div>
+        </ListPageActiveFilters>
       ) : null}
     </div>
   );

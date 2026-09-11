@@ -60,7 +60,7 @@ export function InternalOrdersTable({
           return (
             <ListPageDataTableRow
               key={order.uuid}
-              className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+              className="group cursor-pointer"
               onClick={() => onRowClick?.(order)}
               data-testid={`internal-order-row-${order.uuid}`}
             >

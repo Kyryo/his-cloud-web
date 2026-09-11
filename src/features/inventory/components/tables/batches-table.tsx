@@ -44,7 +44,7 @@ export function BatchesTable({ items, onRowClick, className }: BatchesTableProps
         {items.map((item) => (
           <ListPageDataTableRow
             key={item.uuid}
-            className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+            className="group cursor-pointer"
             onClick={() => onRowClick?.(item)}
           >
             <ListPageDataTableCell className="py-3 text-sm font-semibold text-brand-navy group-hover:text-brand-primary">

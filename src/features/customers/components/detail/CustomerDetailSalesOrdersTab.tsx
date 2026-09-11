@@ -156,7 +156,7 @@ export function CustomerDetailSalesOrdersTab({
               Total orders
             </dt>
           </div>
-          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
             {formatCompactNumber(totalCount)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">All recorded orders</p>
@@ -170,7 +170,7 @@ export function CustomerDetailSalesOrdersTab({
               Open / Quotations
             </dt>
           </div>
-          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
             {formatCompactNumber(openCount)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Draft & pending orders</p>
@@ -184,7 +184,7 @@ export function CustomerDetailSalesOrdersTab({
               Confirmed
             </dt>
           </div>
-          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
             {formatCompactNumber(confirmedCount)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Approved sales</p>
@@ -198,7 +198,7 @@ export function CustomerDetailSalesOrdersTab({
               Cancelled
             </dt>
           </div>
-          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
             {formatCompactNumber(cancelledCount)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Voided orders</p>

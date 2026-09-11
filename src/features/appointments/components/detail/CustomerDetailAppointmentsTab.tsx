@@ -297,7 +297,7 @@ export function CustomerDetailAppointmentsTab({
               Total appointments
             </dt>
           </div>
-          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
             {formatCompactNumber(appointments.length)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">All scheduled bookings</p>
@@ -311,7 +311,7 @@ export function CustomerDetailAppointmentsTab({
               Upcoming
             </dt>
           </div>
-          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
             {formatCompactNumber(upcomingCount)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Future bookings</p>
@@ -325,7 +325,7 @@ export function CustomerDetailAppointmentsTab({
               Completed
             </dt>
           </div>
-          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
             {formatCompactNumber(completedCount)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Concluded sessions</p>
@@ -339,7 +339,7 @@ export function CustomerDetailAppointmentsTab({
               Cancelled
             </dt>
           </div>
-          <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
             {formatCompactNumber(cancelledCount)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Voided appointments</p>

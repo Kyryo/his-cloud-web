@@ -7,7 +7,7 @@ import { DEFAULT_APPOINTMENT_FILTERS } from "@/features/appointments/utils/appoi
 vi.mock("@/features/appointments/components/AppointmentsFiltersSheet", () => ({
   AppointmentsFiltersSheet: ({ isLoading }: { isLoading?: boolean }) => (
     <button type="button" data-testid="appointments-filters-button" disabled={isLoading}>
-      Add filter
+      Filters
     </button>
   ),
 }));
@@ -35,14 +35,14 @@ describe("AppointmentsListToolbar", () => {
 
     expect(search).toHaveAttribute(
       "placeholder",
-      "Name, ID, phone, clinic, or department",
+      "Name, ID, phone, clinic, or department…",
     );
     expect(screen.queryByTestId("appointments-search-submit")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Search" })).not.toBeInTheDocument();
     expect(search.compareDocumentPosition(filterButton)).toBe(
       Node.DOCUMENT_POSITION_FOLLOWING,
     );
-    expect(filterButton).toHaveTextContent("Add filter");
+    expect(filterButton).toHaveTextContent("Filters");
     expect(screen.getByRole("link", { name: /board/i })).toBeInTheDocument();
   });
 });

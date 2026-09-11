@@ -53,7 +53,7 @@ export function ActiveVisitsTable({
           return (
             <ListPageDataTableRow
               key={visit.uuid}
-              className="group cursor-pointer transition-colors hover:bg-slate-50/70"
+              className="group cursor-pointer"
               onClick={() => onRowClick?.(visit)}
               data-testid={`active-visit-row-${visit.uuid}`}
             >

@@ -70,10 +70,12 @@ describe("CustomerAppointmentPicker", () => {
     });
 
     await waitFor(() => {
-      expect(screen.getByText('Create “Tahir”')).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: 'Create “Tahir”' }),
+      ).toBeInTheDocument();
     });
 
-    fireEvent.click(screen.getByText('Create “Tahir”'));
+    fireEvent.click(screen.getByRole("button", { name: 'Create “Tahir”' }));
     expect(onCreateClient).toHaveBeenCalledWith("Tahir");
   });
 });

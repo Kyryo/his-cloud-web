@@ -19,7 +19,7 @@ describe("SearchableSelect", () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByPlaceholderText("Search...")).toHaveFocus();
+      expect(screen.getByPlaceholderText("Search…")).toHaveFocus();
     });
   });
 });

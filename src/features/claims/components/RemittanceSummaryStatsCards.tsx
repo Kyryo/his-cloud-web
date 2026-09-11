@@ -56,7 +56,7 @@ export function RemittanceSummaryStatsCards({
             All remittances
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.all.count)}
         </dd>
         <p
@@ -74,7 +74,7 @@ export function RemittanceSummaryStatsCards({
             In progress
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.in_progress.count)}
         </dd>
         <p
@@ -92,7 +92,7 @@ export function RemittanceSummaryStatsCards({
             Processed
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.processed.count)}
         </dd>
         <p
@@ -120,7 +120,7 @@ export function RemittanceSummaryStatsCards({
             Needs review
           </dt>
         </div>
-        <dd className="mt-1.5 text-2xl font-bold tracking-tight text-brand-navy tabular-nums sm:text-3xl">
+        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
           {formatCompactNumber(buckets.needs_review.count)}
         </dd>
         <p

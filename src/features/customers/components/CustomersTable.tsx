@@ -186,7 +186,7 @@ export function CustomersTable({
             return (
               <ListPageDataTableRow
                 key={customer.uuid}
-                className="group cursor-pointer hover:bg-slate-50/70 transition-colors"
+                className="group cursor-pointer"
                 onClick={() => onRowClick?.(customer)}
               >
                 <ListPageDataTableCell className="py-3">
@@ -201,12 +201,12 @@ export function CustomersTable({
                         <div className="min-w-0 space-y-0.5">
                           <Link
                             href={ROUTES.customerDetail(customer.uuid)}
-                            className="block truncate text-sm font-semibold text-brand-navy transition-colors group-hover:text-brand-primary"
+                            className="block truncate text-[13px] font-medium text-brand-navy transition-colors group-hover:text-brand-primary"
                             onClick={(event) => event.stopPropagation()}
                           >
                             {name}
                           </Link>
-                          <div className="flex items-center gap-2 truncate text-sm text-brand-muted">
+                          <div className="flex items-center gap-2 truncate text-[13px] text-brand-muted">
                             {customer.phone_number ? (
                               <span>{customer.phone_number}</span>
                             ) : customer.email ? (
@@ -225,7 +225,7 @@ export function CustomersTable({
 
                 <ListPageDataTableCell className="py-3">
                   <div className="inline-flex items-center gap-1.5">
-                    <span className="font-mono text-sm font-normal text-brand-navy tracking-tight">
+                    <span className="font-mono text-[13px] font-normal tracking-tight text-brand-navy">
                       {identifier}
                     </span>
                     {customer.customer_identifier ? (
