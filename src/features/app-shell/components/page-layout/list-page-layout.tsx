@@ -21,7 +21,7 @@ export function ListPageLayout({
     <div
       className={cn(
         LIST_PAGE_INSET_CLASS,
-        "flex h-full min-h-0 flex-col overflow-auto space-y-4 pb-20 pt-4 sm:pb-4",
+        "flex h-full min-h-0 flex-col overflow-auto space-y-3 pb-20 pt-3 sm:pb-4",
         className,
       )}
       data-testid={dataTestId}

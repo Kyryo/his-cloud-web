@@ -73,7 +73,7 @@ export function PurchaseOrdersTable({
             onClick={() => onRowClick?.(order)}
             data-testid={`purchase-order-row-${order.uuid}`}
           >
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <InventoryDocumentIdentity
                 kind="purchase-order"
                 mark={order.reference_number}
@@ -81,19 +81,19 @@ export function PurchaseOrdersTable({
                 subtitle={getPurchaseOrderSubtitle(order)}
               />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
-              <span className="block truncate text-sm font-medium text-brand-navy">
+            <ListPageDataTableCell>
+              <span className="block truncate font-medium text-brand-navy">
                 {order.vendor_name || "—"}
               </span>
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <PurchaseStatusBadge status={order.status} />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 text-sm tabular-nums text-dash-muted">
+            <ListPageDataTableCell className="tabular-nums text-dash-muted">
               {formatDisplayDate(order.delivery_date)}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 pr-4 text-right">
-              <p className="text-base font-semibold tabular-nums text-brand-navy">
+            <ListPageDataTableCell className="pr-4 text-right">
+              <p className="font-medium tabular-nums text-brand-navy">
                 {formatInventoryAmount(order.total_value)}
               </p>
             </ListPageDataTableCell>

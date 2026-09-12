@@ -57,35 +57,35 @@ export function ActiveVisitsTable({
               onClick={() => onRowClick?.(visit)}
               data-testid={`active-visit-row-${visit.uuid}`}
             >
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <div className="flex min-w-0 items-center gap-2.5">
                   <UserIdenticon
                     seed={visit.customer || clientName}
                     name={clientName}
-                    className="size-7.5 shrink-0 rounded-lg shadow-2xs"
+                    className="size-8 shrink-0 rounded-md"
                   />
                   <div className="min-w-0">
-                    <span className="block truncate text-sm font-semibold text-brand-navy group-hover:text-brand-primary">
+                    <span className="block truncate font-medium text-brand-navy group-hover:text-brand-primary">
                       {clientName}
                     </span>
                     {visit.customer_identifier ? (
-                      <span className="block truncate font-mono text-sm text-dash-muted">
+                      <span className="block truncate font-mono text-dash-muted">
                         {visit.customer_identifier}
                       </span>
                     ) : null}
                   </div>
                 </div>
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 text-sm text-brand-navy">
+              <ListPageDataTableCell>
                 {visit.consultation_service_name || "—"}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="hidden py-3 text-sm text-brand-slate md:table-cell">
+              <ListPageDataTableCell className="hidden md:table-cell">
                 {visit.clinic_name || "—"}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <CustomerVisitStatusBadge status={visit.status} />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 text-sm tabular-nums text-dash-muted">
+              <ListPageDataTableCell className="tabular-nums text-dash-muted">
                 {formatDisplayDateTime(visit.visit_date)}
               </ListPageDataTableCell>
             </ListPageDataTableRow>

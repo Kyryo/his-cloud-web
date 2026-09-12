@@ -78,7 +78,7 @@ export function MovementsTable({
               onClick={() => onRowClick?.(item)}
               data-testid={`movement-row-${item.uuid}`}
             >
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <InventoryDocumentIdentity
                   kind="movement"
                   mark={productName}
@@ -86,21 +86,21 @@ export function MovementsTable({
                   subtitle={subtitle}
                 />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <MovementTypeBadge type={item.movement_type} />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <InventoryLocationRoute
                   from={item.from_location_name}
                   to={item.to_location_name}
                 />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 pr-4 text-right">
-                <span className="text-base font-semibold tabular-nums text-brand-navy">
+              <ListPageDataTableCell className="pr-4 text-right">
+                <span className="font-medium tabular-nums text-brand-navy">
                   {formatInventoryQuantity(item.quantity)}
                 </span>
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 text-sm tabular-nums text-dash-muted">
+              <ListPageDataTableCell className="tabular-nums text-dash-muted">
                 {formatDisplayDateTime(item.created_at)}
               </ListPageDataTableCell>
             </ListPageDataTableRow>

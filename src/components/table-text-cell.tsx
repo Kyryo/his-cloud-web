@@ -27,7 +27,7 @@ export function TableTextCell({
 
   return (
     <span
-      className={cn("block truncate text-sm", maxWidthClass, className)}
+      className={cn("block truncate", maxWidthClass, className)}
       title={resolvedTitle}
     >
       {children}
@@ -48,17 +48,17 @@ export function TableAmountCell({
 
   if (formatted === "—") {
     return (
-      <span className={cn("block text-right text-sm text-brand-slate", className)}>
+      <span className={cn("block text-right text-brand-slate", className)}>
         {formatted}
       </span>
     );
   }
 
   return (
-    <div className={cn("text-right text-sm tabular-nums", className)}>
+    <div className={cn("text-right tabular-nums", className)}>
       <span className="font-medium text-brand-navy">{formatted}</span>
       {currency ? (
-        <span className="ml-1.5 text-sm font-normal text-brand-muted">{currency}</span>
+        <span className="ml-1.5 font-normal text-brand-muted">{currency}</span>
       ) : null}
     </div>
   );

@@ -13,7 +13,7 @@ const columns = [
   { key: "remittance", label: "Remittance" },
   { key: "treatment_date", label: "Treatment date", className: "hidden md:table-cell" },
   { key: "member", label: "Member #" },
-  { key: "patient", label: "Patient" },
+  { key: "patient", label: "Client" },
   { key: "code", label: "Code", className: "hidden lg:table-cell" },
   { key: "claimed", label: "Claimed", className: "hidden lg:table-cell text-right" },
   { key: "pay_to_you", label: "Pay to you", className: "hidden xl:table-cell text-right" },
@@ -47,40 +47,40 @@ export function RejectionsTableSkeleton({
       <ListPageDataTableBody>
         {Array.from({ length: rows }).map((_, index) => (
           <ListPageDataTableRow key={index} className="hover:bg-transparent">
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <div className="space-y-1.5">
                 <Skeleton className="h-3.5 w-36" />
                 <Skeleton className="h-3 w-16" />
               </div>
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="hidden py-3 md:table-cell">
+            <ListPageDataTableCell className="hidden md:table-cell">
               <Skeleton className="h-3.5 w-24" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <Skeleton className="h-3.5 w-20" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <Skeleton className="h-3.5 w-28" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="hidden py-3 lg:table-cell">
+            <ListPageDataTableCell className="hidden lg:table-cell">
               <Skeleton className="h-3.5 w-14" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="hidden py-3 lg:table-cell">
+            <ListPageDataTableCell className="hidden lg:table-cell">
               <div className="flex justify-end">
                 <Skeleton className="h-3.5 w-16" />
               </div>
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="hidden py-3 xl:table-cell">
+            <ListPageDataTableCell className="hidden xl:table-cell">
               <div className="flex justify-end">
                 <Skeleton className="h-3.5 w-16" />
               </div>
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <Skeleton className="h-3.5 w-16" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 text-right">
+            <ListPageDataTableCell className="text-right">
               <div className="flex justify-end">
-                <Skeleton className="size-8 rounded-full" />
+                <Skeleton className="size-8 rounded-md" />
               </div>
             </ListPageDataTableCell>
           </ListPageDataTableRow>

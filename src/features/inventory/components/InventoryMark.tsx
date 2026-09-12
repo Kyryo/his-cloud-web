@@ -40,8 +40,8 @@ export function InventoryMark({
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-xl ring-1 ring-inset",
-        size === "lg" ? "size-12" : "size-9",
+        "inline-flex shrink-0 items-center justify-center rounded-md ring-1 ring-inset",
+        size === "lg" ? "size-11" : "size-8",
         wash,
         className,
       )}

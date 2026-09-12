@@ -58,31 +58,31 @@ export function RemittancesTable({
             data-testid={`remittance-row-${batch.id}`}
           >
             <ListPageDataTableCell className="max-w-[18rem]">
-              <p className="truncate text-sm font-medium text-brand-navy">
+              <p className="truncate font-medium text-brand-navy">
                 {remittanceDisplayName(batch)}
               </p>
               {batch.provider_name ? (
-                <p className="truncate text-sm text-brand-muted">
+                <p className="truncate text-xs text-brand-muted">
                   {batch.provider_name}
                 </p>
               ) : null}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="text-sm text-brand-slate">
+            <ListPageDataTableCell className="text-brand-slate">
               {batch.payer_code}
             </ListPageDataTableCell>
             <ListPageDataTableCell>
               <RemittanceBatchStatusBadge status={batch.status} />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="hidden font-mono text-sm text-brand-slate md:table-cell">
+            <ListPageDataTableCell className="hidden font-mono text-brand-slate md:table-cell">
               {batch.document_number || "—"}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="hidden text-sm text-brand-slate lg:table-cell">
+            <ListPageDataTableCell className="hidden tabular-nums text-brand-slate lg:table-cell">
               {batch.summary?.row_count ?? "—"}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="hidden text-sm text-brand-slate lg:table-cell">
+            <ListPageDataTableCell className="hidden tabular-nums text-brand-slate lg:table-cell">
               {batch.summary?.matched ?? "—"}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="text-sm text-brand-slate">
+            <ListPageDataTableCell className="tabular-nums text-brand-slate">
               {formatDisplayDateTime(batch.created_at)}
             </ListPageDataTableCell>
           </ListPageDataTableRow>

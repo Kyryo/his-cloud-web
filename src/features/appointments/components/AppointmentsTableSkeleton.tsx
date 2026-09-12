@@ -46,7 +46,7 @@ export function AppointmentsTableSkeleton({
         {Array.from({ length: rows }).map((_, index) => (
           <ListPageDataTableRow key={index} className="hover:bg-transparent">
             {/* Client */}
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <div className="flex min-w-0 items-center gap-3">
                 <Skeleton className="size-8.5 shrink-0 rounded-lg" />
                 <div className="min-w-0 space-y-1.5">
@@ -57,32 +57,32 @@ export function AppointmentsTableSkeleton({
             </ListPageDataTableCell>
 
             {/* Clinic */}
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <Skeleton className="h-3.5 w-24" />
             </ListPageDataTableCell>
 
             {/* Department */}
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <Skeleton className="h-3.5 w-28" />
             </ListPageDataTableCell>
 
             {/* Clinician */}
-            <ListPageDataTableCell className="hidden py-3 md:table-cell">
+            <ListPageDataTableCell className="hidden md:table-cell">
               <Skeleton className="h-3.5 w-24" />
             </ListPageDataTableCell>
 
             {/* Scheduled */}
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <Skeleton className="h-3.5 w-24" />
             </ListPageDataTableCell>
 
             {/* Status */}
-            <ListPageDataTableCell className="py-3">
-              <Skeleton className="h-5 w-20 rounded-full" />
+            <ListPageDataTableCell>
+              <Skeleton className="h-5 w-20 rounded-md" />
             </ListPageDataTableCell>
 
             {/* Actions */}
-            <ListPageDataTableCell className="py-3 pr-4 text-right">
+            <ListPageDataTableCell className="pr-4 text-right">
               <div className="flex items-center justify-end gap-1.5">
                 <Skeleton className="h-7 w-20 rounded-md" />
                 <Skeleton className="size-7 rounded-lg" />

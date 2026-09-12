@@ -90,7 +90,7 @@ export function ClaimsTable({ claims, onRowClick, className }: ClaimsTableProps)
                 </TableTextCell>
               </ListPageDataTableCell>
               <ListPageDataTableCell className="hidden md:table-cell">
-                <TableTextCell className="font-mono text-sm text-brand-slate">
+                <TableTextCell className="font-mono text-brand-slate">
                   {claim.membership_number || "—"}
                 </TableTextCell>
               </ListPageDataTableCell>

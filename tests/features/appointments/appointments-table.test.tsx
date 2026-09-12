@@ -36,7 +36,7 @@ function makeAppointment(overrides: Partial<Appointment> = {}): Appointment {
 }
 
 describe("AppointmentsTable", () => {
-  it("shows a letter avatar for the client and a secondary start visit action", () => {
+  it("shows a letter avatar for the client and a start visit action", () => {
     const onActionRequest = vi.fn();
 
     render(
@@ -53,7 +53,7 @@ describe("AppointmentsTable", () => {
 
     const startVisit = screen.getByTestId("appointments-start-visit");
     expect(startVisit).toHaveTextContent("Start visit");
-    expect(startVisit.className).toContain("rounded-full");
+    expect(startVisit.className).toContain("rounded-md");
     expect(startVisit.className).toContain("border-dash-border");
     expect(startVisit.className).not.toContain("bg-brand-primary");
 

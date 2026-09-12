@@ -45,28 +45,28 @@ export function RemittancesTableSkeleton({
       <ListPageDataTableBody>
         {Array.from({ length: rows }).map((_, index) => (
           <ListPageDataTableRow key={index} className="hover:bg-transparent">
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <div className="space-y-1.5">
                 <Skeleton className="h-3.5 w-40" />
                 <Skeleton className="h-3 w-24" />
               </div>
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <Skeleton className="h-3.5 w-16" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
-              <Skeleton className="h-5 w-20 rounded-full" />
+            <ListPageDataTableCell>
+              <Skeleton className="h-5 w-20 rounded-md" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="hidden py-3 md:table-cell">
+            <ListPageDataTableCell className="hidden md:table-cell">
               <Skeleton className="h-3.5 w-24" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="hidden py-3 lg:table-cell">
+            <ListPageDataTableCell className="hidden lg:table-cell">
               <Skeleton className="h-3.5 w-10" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="hidden py-3 lg:table-cell">
+            <ListPageDataTableCell className="hidden lg:table-cell">
               <Skeleton className="h-3.5 w-10" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <Skeleton className="h-3.5 w-28" />
             </ListPageDataTableCell>
           </ListPageDataTableRow>

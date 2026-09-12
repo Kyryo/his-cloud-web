@@ -64,7 +64,7 @@ export function InternalOrdersTable({
               onClick={() => onRowClick?.(order)}
               data-testid={`internal-order-row-${order.uuid}`}
             >
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <InventoryDocumentIdentity
                   kind="internal-order"
                   mark={order.reference_number}
@@ -72,16 +72,16 @@ export function InternalOrdersTable({
                   subtitle={order.notes?.trim() || null}
                 />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <InventoryLocationRoute from={source} to={destination} />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <InternalOrderStatusBadge status={order.status} />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <InventoryCreatedByCell name={order.created_by_name} />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 text-sm tabular-nums text-dash-muted">
+              <ListPageDataTableCell className="tabular-nums text-dash-muted">
                 {formatDisplayDateTime(order.updated_at)}
               </ListPageDataTableCell>
             </ListPageDataTableRow>

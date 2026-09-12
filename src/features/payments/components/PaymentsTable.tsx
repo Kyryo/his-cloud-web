@@ -77,12 +77,12 @@ export function PaymentsTable({ payments, onRowClick, className }: PaymentsTable
               onClick={() => onRowClick?.(payment)}
               data-testid={`payment-row-${payment.id}`}
             >
-              <ListPageDataTableCell className="py-3">
-                <span className="font-mono text-sm font-semibold tracking-tight text-brand-navy group-hover:text-brand-primary">
+              <ListPageDataTableCell>
+                <span className="font-mono font-medium tracking-tight text-brand-navy group-hover:text-brand-primary">
                   {paymentLabel}
                 </span>
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 {payment.customer_uuid ? (
                   <Link
                     href={ROUTES.customerDetail(payment.customer_uuid)}
@@ -92,9 +92,9 @@ export function PaymentsTable({ payments, onRowClick, className }: PaymentsTable
                     <UserIdenticon
                       seed={customerName}
                       name={customerName}
-                      className="size-7.5 shrink-0 rounded-lg shadow-2xs"
+                      className="size-8 shrink-0 rounded-md"
                     />
-                    <span className="truncate text-sm font-medium text-brand-navy hover:text-brand-primary">
+                    <span className="truncate font-medium text-brand-navy hover:text-brand-primary">
                       {customerName}
                     </span>
                   </Link>
@@ -103,39 +103,39 @@ export function PaymentsTable({ payments, onRowClick, className }: PaymentsTable
                     <UserIdenticon
                       seed={customerName}
                       name={customerName}
-                      className="size-7.5 shrink-0 rounded-lg shadow-2xs"
+                      className="size-8 shrink-0 rounded-md"
                     />
-                    <span className="truncate text-sm font-medium text-brand-navy">
+                    <span className="truncate font-medium text-brand-navy">
                       {customerName}
                     </span>
                   </div>
                 )}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 {invoiceHref ? (
                   <Link
                     href={invoiceHref}
-                    className="block max-w-48 truncate text-sm text-brand-slate hover:text-brand-primary hover:underline"
+                    className="block max-w-48 truncate text-brand-slate hover:text-brand-primary hover:underline"
                     title={allocationLabel}
                     onClick={(event) => event.stopPropagation()}
                   >
                     {allocationLabel}
                   </Link>
                 ) : (
-                  <span className="text-sm text-brand-slate">{allocationLabel}</span>
+                  <span className="text-brand-slate">{allocationLabel}</span>
                 )}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 text-sm tabular-nums text-dash-muted">
+              <ListPageDataTableCell className="tabular-nums text-dash-muted">
                 {formatPaymentDate(payment.payment_date)}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="hidden py-3 text-sm text-brand-slate md:table-cell">
+              <ListPageDataTableCell className="hidden text-brand-slate md:table-cell">
                 {formatPaymentMethod(payment.payment_method)}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <PaymentStatusBadge state={payment.state} />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 pr-4 text-right">
-                <div className="text-sm font-semibold tabular-nums text-brand-navy">
+              <ListPageDataTableCell className="pr-4 text-right">
+                <div className="font-medium tabular-nums text-brand-navy">
                   <TableAmountCell value={payment.amount} currency="MWK" />
                 </div>
               </ListPageDataTableCell>

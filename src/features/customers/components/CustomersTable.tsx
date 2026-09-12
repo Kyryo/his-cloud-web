@@ -189,14 +189,14 @@ export function CustomersTable({
                 className="group cursor-pointer"
                 onClick={() => onRowClick?.(customer)}
               >
-                <ListPageDataTableCell className="py-3">
+                <ListPageDataTableCell>
                   <HoverPreviewCard
                     trigger={
-                      <div className="flex min-w-0 items-center gap-3">
+                      <div className="flex min-w-0 items-center gap-2.5">
                         <UserIdenticon
                           seed={customer.uuid || identifier || name}
                           name={name}
-                          className="size-9 shrink-0 rounded-lg shadow-2xs"
+                          className="size-8 shrink-0 rounded-md"
                         />
                         <div className="min-w-0 space-y-0.5">
                           <Link
@@ -223,7 +223,7 @@ export function CustomersTable({
                   </HoverPreviewCard>
                 </ListPageDataTableCell>
 
-                <ListPageDataTableCell className="py-3">
+                <ListPageDataTableCell>
                   <div className="inline-flex items-center gap-1.5">
                     <span className="font-mono text-[13px] font-normal tracking-tight text-brand-navy">
                       {identifier}
@@ -252,26 +252,24 @@ export function CustomersTable({
                   </div>
                 </ListPageDataTableCell>
 
-                <ListPageDataTableCell className="py-3">
+                <ListPageDataTableCell>
                   <CustomerVisitStatusBadge status={customer.visit_status} />
                 </ListPageDataTableCell>
 
-                <ListPageDataTableCell className="py-3">
-                  <div className="text-sm space-y-0.5">
-                    <div className="font-medium text-brand-navy">
-                      <span>{customer.gender || "—"}</span>
-                      {customer.age > 0 ? (
-                        <span className="text-dash-muted font-normal"> · {customer.age} yrs</span>
-                      ) : null}
-                    </div>
+                <ListPageDataTableCell>
+                  <div className="font-medium text-brand-navy">
+                    <span>{customer.gender || "—"}</span>
+                    {customer.age > 0 ? (
+                      <span className="font-normal text-dash-muted"> · {customer.age} yrs</span>
+                    ) : null}
                   </div>
                 </ListPageDataTableCell>
 
-                <ListPageDataTableCell className="py-3 text-sm text-dash-muted tabular-nums">
+                <ListPageDataTableCell className="tabular-nums text-dash-muted">
                   {formatDisplayDate(customer.created_at)}
                 </ListPageDataTableCell>
 
-                <ListPageDataTableCell className="py-3 pr-4 text-right">
+                <ListPageDataTableCell className="pr-4 text-right">
                   <div
                     className="flex items-center justify-end gap-1.5"
                     onClick={(event) => event.stopPropagation()}
@@ -281,7 +279,7 @@ export function CustomersTable({
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="h-7 rounded-md border-amber-300 bg-amber-50 px-2.5 text-xs font-semibold text-amber-900 hover:bg-amber-100 hover:border-amber-400 hover:text-amber-950"
+                        className="h-7 rounded-md border-dash-border bg-white px-2.5 text-xs font-medium text-brand-navy hover:bg-dash-canvas"
                         onClick={() => handleVisitAction(customer)}
                       >
                         Close visit
@@ -291,7 +289,7 @@ export function CustomersTable({
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="h-7 rounded-md border-emerald-300 bg-emerald-50 px-2.5 text-xs font-semibold text-emerald-800 hover:bg-emerald-100 hover:border-emerald-400 hover:text-emerald-900"
+                        className="h-7 rounded-md border-dash-border bg-white px-2.5 text-xs font-medium text-brand-navy hover:bg-dash-canvas"
                         onClick={() => handleVisitAction(customer)}
                       >
                         Start visit

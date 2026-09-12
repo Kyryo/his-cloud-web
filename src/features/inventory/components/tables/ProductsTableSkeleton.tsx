@@ -40,19 +40,19 @@ export function ProductsTableSkeleton({
       <ListPageDataTableBody>
         {Array.from({ length: rows }).map((_, index) => (
           <ListPageDataTableRow key={index} className="hover:bg-transparent">
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <Skeleton className="h-3.5 w-40" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
-              <Skeleton className="h-5 w-20 rounded-full" />
+            <ListPageDataTableCell>
+              <Skeleton className="h-5 w-20 rounded-md" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <Skeleton className="h-3.5 w-16" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="hidden py-3 md:table-cell">
+            <ListPageDataTableCell className="hidden md:table-cell">
               <Skeleton className="h-3.5 w-24" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 pr-4 text-right">
+            <ListPageDataTableCell className="pr-4 text-right">
               <div className="flex justify-end">
                 <Skeleton className="h-4 w-16" />
               </div>

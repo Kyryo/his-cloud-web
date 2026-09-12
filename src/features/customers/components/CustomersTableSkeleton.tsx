@@ -45,9 +45,9 @@ export function CustomersTableSkeleton({
         {Array.from({ length: rows }).map((_, index) => (
           <ListPageDataTableRow key={index} className="hover:bg-transparent">
             {/* Client */}
-            <ListPageDataTableCell className="py-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <Skeleton className="size-9 shrink-0 rounded-lg" />
+            <ListPageDataTableCell>
+              <div className="flex min-w-0 items-center gap-2.5">
+                <Skeleton className="size-8 shrink-0 rounded-md" />
                 <div className="min-w-0 space-y-1.5">
                   <Skeleton className="h-3.5 w-32" />
                   <Skeleton className="h-3 w-20" />
@@ -56,17 +56,17 @@ export function CustomersTableSkeleton({
             </ListPageDataTableCell>
 
             {/* MRN */}
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <Skeleton className="h-5 w-20 rounded-md" />
             </ListPageDataTableCell>
 
             {/* Status */}
-            <ListPageDataTableCell className="py-3">
-              <Skeleton className="h-5 w-24 rounded-full" />
+            <ListPageDataTableCell>
+              <Skeleton className="h-5 w-20 rounded-md" />
             </ListPageDataTableCell>
 
             {/* Demographics */}
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <div className="space-y-1">
                 <Skeleton className="h-3.5 w-14" />
                 <Skeleton className="h-3 w-10" />
@@ -74,12 +74,12 @@ export function CustomersTableSkeleton({
             </ListPageDataTableCell>
 
             {/* Created */}
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <Skeleton className="h-3.5 w-20" />
             </ListPageDataTableCell>
 
             {/* Actions */}
-            <ListPageDataTableCell className="py-3 pr-4 text-right">
+            <ListPageDataTableCell className="pr-4 text-right">
               <div className="flex items-center justify-end gap-1.5">
                 <Skeleton className="size-7 rounded-lg" />
                 <Skeleton className="size-7 rounded-lg" />

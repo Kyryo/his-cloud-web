@@ -50,7 +50,10 @@ export function AppointmentsViewToggle({ viewMode }: AppointmentsViewToggleProps
             asChild
             variant="outline"
             size="sm"
-            className={cn(isCurrent && "bg-brand-primary/5 text-brand-primary")}
+            className={cn(
+              "h-8 text-[13px]",
+              isCurrent && "bg-brand-primary/5 text-brand-primary",
+            )}
           >
             <Link
               href={option.href}

@@ -3,6 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { Stethoscope } from "lucide-react";
 
+import {
+  LIST_PAGE_INSIGHT_CELL_CLASS,
+  LIST_PAGE_INSIGHT_LABEL_CLASS,
+  LIST_PAGE_INSIGHT_VALUE_CLASS,
+} from "@/features/app-shell/components/page-layout";
 import { CustomerDetailTabEmptyState } from "@/features/customers/components/detail/CustomerDetailTabEmptyState";
 import { CustomerTabSkeleton } from "@/features/customers/components/detail/CustomerTabSkeleton";
 import { CustomerVisitsTable } from "@/features/customers/components/detail/CustomerVisitsTable";
@@ -18,7 +23,6 @@ import type { Customer } from "@/features/customers/types/customer.types";
 import { EditVisitPaymentDialog } from "@/features/visits/components/EditVisitPaymentDialog";
 import { VisitDetailDialog } from "@/features/visits/components/VisitDetailDialog";
 import { formatCompactNumber } from "@/utils/format-compact-number";
-import { cn } from "@/lib/utils";
 
 type CustomerDetailVisitsTabProps = {
   customer: Customer;
@@ -145,77 +149,36 @@ export function CustomerDetailVisitsTab({
 
   return (
     <div className="space-y-5" data-testid="customer-detail-visits-tab">
-      {/* Seamless Cardless Stat Strip */}
-      <dl className="grid grid-cols-2 divide-y divide-dash-border/60 border-b border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x">
-        {/* 1. Total Visits */}
-        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-          <div className="flex items-center gap-2">
-            <span className="size-2 shrink-0 rounded-full bg-blue-500" />
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-              Total visits
-            </dt>
-          </div>
-          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
+      <dl className="grid grid-cols-2 divide-y divide-dash-border/60 border-b border-dash-border/80 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x">
+        <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Total visits</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {formatCompactNumber(totalVisits)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Recorded client visits</p>
         </div>
 
-        {/* 2. Active Visits */}
-        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-          <div className="flex items-center gap-2">
-            {activeVisits > 0 ? (
-              <span className="relative flex size-2 shrink-0">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex size-2 rounded-full bg-emerald-500" />
-              </span>
-            ) : (
-              <span className="size-2 shrink-0 rounded-full bg-slate-300" />
-            )}
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-              Active visits
-            </dt>
-          </div>
-          <dd
-            className={cn(
-              "mt-1 text-lg font-semibold tracking-tight tabular-nums",
-              activeVisits > 0 ? "text-emerald-700" : "text-brand-navy",
-            )}
-          >
+        <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Active visits</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {formatCompactNumber(activeVisits)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">
-            {activeVisits > 0 ? (
-              <span className="font-medium text-emerald-700">Currently in clinic</span>
-            ) : (
-              "None in progress"
-            )}
+            {activeVisits > 0 ? "Currently in clinic" : "None in progress"}
           </p>
         </div>
 
-        {/* 3. Completed Visits */}
-        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-          <div className="flex items-center gap-2">
-            <span className="size-2 shrink-0 rounded-full bg-teal-500" />
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-              Completed
-            </dt>
-          </div>
-          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
+        <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Completed</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {formatCompactNumber(completedVisits)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Discharged encounters</p>
         </div>
 
-        {/* 4. Cancelled Visits */}
-        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-          <div className="flex items-center gap-2">
-            <span className="size-2 shrink-0 rounded-full bg-slate-400" />
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-              Cancelled
-            </dt>
-          </div>
-          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
+        <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Cancelled</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {formatCompactNumber(cancelledVisits)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Voided encounters</p>

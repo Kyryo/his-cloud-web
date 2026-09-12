@@ -68,7 +68,7 @@ export function ListPageDataTableHeaderCell({
     <th
       scope="col"
       className={cn(
-        "px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.08em] text-dash-muted",
+        "px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-dash-muted",
         className,
       )}
       {...props}
@@ -109,5 +109,5 @@ export function ListPageDataTableCell({
   className,
   ...props
 }: ComponentPropsWithoutRef<"td">) {
-  return <td className={cn("px-4 py-3 text-[13px] text-brand-slate", className)} {...props} />;
+  return <td className={cn("px-4 py-2.5 text-[13px] text-brand-slate", className)} {...props} />;
 }

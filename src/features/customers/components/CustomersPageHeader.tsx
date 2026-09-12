@@ -51,7 +51,7 @@ export function CustomersPageHeader({
             onClick={onAddClient}
             data-testid="add-client-button"
           >
-            <AppIcon name="add" className="size-4" />
+            <AppIcon name="add" className="size-3.5" />
             <span>{ACTIONS.registerClient}</span>
           </PageActionButton>
         }

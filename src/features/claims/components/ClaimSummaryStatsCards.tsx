@@ -1,6 +1,12 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  LIST_PAGE_INSIGHT_CELL_CLASS,
+  LIST_PAGE_INSIGHT_LABEL_CLASS,
+  LIST_PAGE_INSIGHT_STRIP_CLASS,
+  LIST_PAGE_INSIGHT_VALUE_CLASS,
+} from "@/features/app-shell/components/page-layout";
 import type { ClaimSummaryStats } from "@/features/claims/types/claims.types";
 import { formatSalesOrderAmount } from "@/features/sales-orders/utils/format-sales-order";
 import {
@@ -22,14 +28,14 @@ export function ClaimSummaryStatsCards({
   if (isLoading) {
     return (
       <div
-        className="grid grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
+        className={LIST_PAGE_INSIGHT_STRIP_CLASS}
         data-testid="claim-summary-stats"
         aria-busy="true"
       >
         {Array.from({ length: 4 }, (_, index) => (
-          <div key={index} className="p-3.5 sm:p-4">
+          <div key={index} className={LIST_PAGE_INSIGHT_CELL_CLASS}>
             <Skeleton className="h-3.5 w-20" />
-            <Skeleton className="mt-2.5 h-8 w-16" />
+            <Skeleton className="mt-2 h-6 w-14" />
             <Skeleton className="mt-1.5 h-3 w-28" />
           </div>
         ))}
@@ -45,18 +51,10 @@ export function ClaimSummaryStatsCards({
   };
 
   return (
-    <dl
-      className="grid grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
-      data-testid="claim-summary-stats"
-    >
-      <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-        <div className="flex items-center gap-2">
-          <span className="size-2 shrink-0 rounded-full bg-blue-500" />
-          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-            All claims
-          </dt>
-        </div>
-        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
+    <dl className={LIST_PAGE_INSIGHT_STRIP_CLASS} data-testid="claim-summary-stats">
+      <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+        <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>All claims</dt>
+        <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
           {formatCompactNumber(buckets.all.count)}
         </dd>
         <p
@@ -67,14 +65,9 @@ export function ClaimSummaryStatsCards({
         </p>
       </div>
 
-      <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-        <div className="flex items-center gap-2">
-          <span className="size-2 shrink-0 rounded-full bg-amber-500" />
-          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-            Draft
-          </dt>
-        </div>
-        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
+      <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+        <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Draft</dt>
+        <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
           {formatCompactNumber(buckets.draft.count)}
         </dd>
         <p
@@ -85,14 +78,9 @@ export function ClaimSummaryStatsCards({
         </p>
       </div>
 
-      <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-        <div className="flex items-center gap-2">
-          <span className="size-2 shrink-0 rounded-full bg-violet-500" />
-          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-            Submitted
-          </dt>
-        </div>
-        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
+      <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+        <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Submitted</dt>
+        <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
           {formatCompactNumber(buckets.submitted.count)}
         </dd>
         <p
@@ -103,24 +91,16 @@ export function ClaimSummaryStatsCards({
         </p>
       </div>
 
-      <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-        <div className="flex items-center gap-2">
-          <span className="size-2 shrink-0 rounded-full bg-emerald-500" />
-          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-            Approved
-          </dt>
-        </div>
-        <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
+      <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+        <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Approved</dt>
+        <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
           {formatCompactNumber(buckets.approved.count)}
         </dd>
         <p
           className="mt-0.5 text-xs text-brand-muted"
           title={formatSalesOrderAmount(buckets.approved.total, "MWK")}
         >
-          <span className="font-medium text-emerald-700">
-            {formatCompactAmount(buckets.approved.total)} MWK
-          </span>{" "}
-          · Accepted
+          {formatCompactAmount(buckets.approved.total)} MWK · Accepted
         </p>
       </div>
     </dl>

@@ -46,15 +46,15 @@ export function PricelistsTable({
             className="group cursor-pointer"
             onClick={() => onRowClick?.(pricelist)}
           >
-            <ListPageDataTableCell className="py-3">
-              <span className="block truncate text-sm font-semibold text-brand-navy group-hover:text-brand-primary">
+            <ListPageDataTableCell>
+              <span className="block truncate font-medium text-brand-navy group-hover:text-brand-primary">
                 {pricelist.name}
               </span>
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 font-mono text-sm font-medium text-brand-navy">
+            <ListPageDataTableCell className="font-mono font-medium text-brand-navy">
               {pricelist.currency_code || "—"}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <span
                 className={
                   pricelist.is_active

@@ -21,7 +21,7 @@ export function SalesOrdersEmptyState({
           onClick={onNewOrder}
           data-testid="create-first-sales-order-button"
         >
-          <AppIcon name="add" className="size-4" />
+          <AppIcon name="add" className="size-3.5" />
           {ACTIONS.newOrder}
         </PageActionButton>
       }

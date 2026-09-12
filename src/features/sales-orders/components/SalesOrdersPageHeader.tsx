@@ -43,7 +43,7 @@ export function SalesOrdersPageHeader({
             onClick={onNewOrder}
             data-testid="new-sales-order-button"
           >
-            <AppIcon name="add" className="size-4" />
+            <AppIcon name="add" className="size-3.5" />
             <span>{ACTIONS.newOrder}</span>
           </PageActionButton>
         }

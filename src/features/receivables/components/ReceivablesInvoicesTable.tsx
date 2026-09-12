@@ -75,23 +75,23 @@ export function ReceivablesInvoicesTable({
               onClick={() => onRowClick?.(invoice)}
               data-testid={`receivables-invoice-${invoice.invoice_uuid}`}
             >
-              <ListPageDataTableCell className="py-3">
-                <p className="font-mono text-sm font-semibold tracking-tight text-brand-navy group-hover:text-brand-primary">
+              <ListPageDataTableCell>
+                <p className="font-mono font-medium tracking-tight text-brand-navy group-hover:text-brand-primary">
                   {invoice.invoice_number}
                 </p>
                 <p className="text-xs text-brand-muted md:hidden">
                   {formatReceivablesInvoiceDate(invoice.invoice_date)}
                 </p>
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <div className="flex min-w-0 items-center gap-2.5">
                   <UserIdenticon
                     seed={invoice.customer_uuid || name}
                     name={name}
-                    className="size-8 shrink-0 rounded-lg shadow-2xs"
+                    className="size-8 shrink-0 rounded-md"
                   />
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-brand-navy">
+                    <p className="truncate font-medium text-brand-navy">
                       {name}
                     </p>
                     <p
@@ -103,16 +103,16 @@ export function ReceivablesInvoicesTable({
                   </div>
                 </div>
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="hidden py-3 text-sm tabular-nums text-dash-muted md:table-cell">
+              <ListPageDataTableCell className="hidden tabular-nums text-dash-muted md:table-cell">
                 {formatReceivablesInvoiceDate(invoice.invoice_date)}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="hidden py-3 text-sm tabular-nums text-brand-navy lg:table-cell">
+              <ListPageDataTableCell className="hidden tabular-nums text-brand-navy lg:table-cell">
                 {formatReceivablesDaysOutstanding(invoice.days_outstanding)}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <ReceivablesAgingBadge bucket={invoice.aging_bucket} />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 pr-4 text-right">
+              <ListPageDataTableCell className="pr-4 text-right">
                 <TableAmountCell
                   value={invoice.balance}
                   currency={currency}
