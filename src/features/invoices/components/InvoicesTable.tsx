@@ -75,43 +75,43 @@ export function InvoicesTable({ invoices, onRowClick, className }: InvoicesTable
               onClick={() => onRowClick?.(invoice)}
               data-testid={`invoice-row-${invoice.id}`}
             >
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <span className="font-mono font-medium tracking-tight text-brand-navy group-hover:text-brand-primary">
                   {invoiceLabel}
                 </span>
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <div className="flex min-w-0 items-center gap-2.5">
                   <UserIdenticon
                     seed={customerName}
                     name={customerName}
-                    className="size-7.5 shrink-0 rounded-lg shadow-2xs"
+                    className="size-8 shrink-0 rounded-md"
                   />
-                  <span className="truncate text-sm font-medium text-brand-navy">
+                  <span className="truncate font-medium text-brand-navy">
                     {customerName}
                   </span>
                 </div>
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="hidden py-3 font-mono text-sm text-brand-slate md:table-cell">
+              <ListPageDataTableCell className="hidden font-mono text-brand-slate md:table-cell">
                 {salesOrderLabel}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="hidden py-3 text-sm text-brand-slate lg:table-cell">
+              <ListPageDataTableCell className="hidden text-brand-slate lg:table-cell">
                 {formatInvoicePricelist(invoice)}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 text-sm tabular-nums text-dash-muted">
+              <ListPageDataTableCell className="tabular-nums text-dash-muted">
                 {formatInvoiceDate(invoice.invoice_date)}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <InvoiceStatusBadge state={invoice.state} />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 {invoice.payment_status ? (
                   <InvoicePaymentStatusBadge status={invoice.payment_status} />
                 ) : (
-                  <span className="text-sm text-dash-muted">—</span>
+                  <span className="text-dash-muted">—</span>
                 )}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 pr-4 text-right">
+              <ListPageDataTableCell className="pr-4 text-right">
                 <div className="font-medium tabular-nums text-brand-navy">
                   <TableAmountCell value={invoice.amount_total} currency="MWK" />
                 </div>

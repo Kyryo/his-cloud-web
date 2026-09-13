@@ -54,7 +54,7 @@ export function InventoryTableSkeleton({
               <ListPageDataTableCell
                 key={column.key}
                 className={
-                  "align" in column && column.align === "right" ? "py-3 pr-4 text-right" : "py-3"
+                  "align" in column && column.align === "right" ? "pr-4 text-right" : undefined
                 }
               >
                 {"align" in column && column.align === "right" ? (

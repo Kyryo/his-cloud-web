@@ -21,7 +21,7 @@ export function AppointmentsEmptyState({
           onClick={onNewAppointment}
           data-testid="schedule-first-appointment-button"
         >
-          <AppIcon name="add" className="size-4" />
+          <AppIcon name="add" className="size-3.5" />
           {ACTIONS.newAppointment}
         </PageActionButton>
       }

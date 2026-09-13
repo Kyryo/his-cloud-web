@@ -4,6 +4,11 @@ import { useCallback, useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
 
 import {
+  LIST_PAGE_INSIGHT_CELL_CLASS,
+  LIST_PAGE_INSIGHT_LABEL_CLASS,
+  LIST_PAGE_INSIGHT_VALUE_CLASS,
+} from "@/features/app-shell/components/page-layout";
+import {
   CustomerActivityTimeline,
 } from "@/features/customers/components/detail/CustomerActivityTimeline";
 import { CustomerTabSkeleton } from "@/features/customers/components/detail/CustomerTabSkeleton";
@@ -24,7 +29,6 @@ import {
 } from "@/utils/format-compact-number";
 import { formatSalesOrderAmount } from "@/features/sales-orders/utils/format-sales-order";
 import type { CustomerBillingTotals } from "@/features/customers/types/customer-billing.types";
-import { cn } from "@/lib/utils";
 
 const ACTIVITY_PAGE_SIZE = 20;
 const STAT_CURRENCY = "MWK";
@@ -296,20 +300,13 @@ export function CustomerDetailSummaryTab({
 
   return (
     <div className="space-y-5" data-testid="customer-detail-summary-tab">
-      {/* Seamless Cardless Stat Strip */}
       <dl
-        className="grid grid-cols-2 divide-y divide-dash-border/60 border-b border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
+        className="grid grid-cols-2 divide-y divide-dash-border/60 border-b border-dash-border/80 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
         data-testid="customer-detail-stats"
       >
-        {/* 1. Visits */}
-        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-          <div className="flex items-center gap-2">
-            <span className="size-2 shrink-0 rounded-full bg-blue-500" />
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-              Visits
-            </dt>
-          </div>
-          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
+        <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Visits</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {stats?.visits != null ? (
               <span title={String(stats.visits)}>
                 {formatCompactNumber(stats.visits)}
@@ -321,15 +318,9 @@ export function CustomerDetailSummaryTab({
           <p className="mt-0.5 text-xs text-brand-muted">Recorded encounters</p>
         </div>
 
-        {/* 2. Sales orders */}
-        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-          <div className="flex items-center gap-2">
-            <span className="size-2 shrink-0 rounded-full bg-indigo-500" />
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-              Sales orders
-            </dt>
-          </div>
-          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
+        <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Sales orders</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {isBillingLoading ? (
               <span className="inline-flex items-center gap-1.5 text-brand-muted">
                 <Loader2 className="size-4 animate-spin" aria-hidden="true" />
@@ -342,15 +333,9 @@ export function CustomerDetailSummaryTab({
           <p className="mt-0.5 text-xs text-brand-muted">Total order volume</p>
         </div>
 
-        {/* 3. Invoices */}
-        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-          <div className="flex items-center gap-2">
-            <span className="size-2 shrink-0 rounded-full bg-emerald-500" />
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-              Invoiced
-            </dt>
-          </div>
-          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
+        <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Invoiced</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {isBillingLoading ? (
               <span className="inline-flex items-center gap-1.5 text-brand-muted">
                 <Loader2 className="size-4 animate-spin" aria-hidden="true" />
@@ -363,43 +348,20 @@ export function CustomerDetailSummaryTab({
           <p className="mt-0.5 text-xs text-brand-muted">Total billed services</p>
         </div>
 
-        {/* 4. Outstanding balance */}
-        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-          <div className="flex items-center gap-2">
-            <span
-              className={cn(
-                "size-2 shrink-0 rounded-full",
-                hasDue ? "bg-red-500" : "bg-emerald-500",
-              )}
-            />
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-              Outstanding balance
-            </dt>
-          </div>
-          <dd
-            className={cn(
-              "mt-1 text-lg font-semibold tracking-tight tabular-nums",
-              hasDue ? "text-red-600" : "text-brand-navy",
-            )}
-          >
+        <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Outstanding balance</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {isBillingLoading ? (
               <span className="inline-flex items-center gap-1.5 text-brand-muted">
                 <Loader2 className="size-4 animate-spin" aria-hidden="true" />
                 <span className="sr-only">Loading</span>
               </span>
             ) : (
-              <StatCurrencyValue
-                value={stats?.totals?.total_due}
-                amountClassName={hasDue ? "text-red-600" : undefined}
-              />
+              <StatCurrencyValue value={stats?.totals?.total_due} />
             )}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">
-            {hasDue ? (
-              <span className="font-medium text-red-700">Payment required</span>
-            ) : (
-              <span className="font-medium text-emerald-700">Account settled</span>
-            )}
+            {hasDue ? "Payment required" : "Account settled"}
           </p>
         </div>
       </dl>

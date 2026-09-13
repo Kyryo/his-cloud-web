@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { UserIdenticon } from "@/components/UserIdenticon";
-import { SecondaryButton } from "@/components/ui/app-buttons";
+import { Button } from "@/components/ui/button";
 import {
   ListPageDataTable,
   ListPageDataTableBody,
@@ -76,12 +76,12 @@ export function OpdQueueTable({
               className="group cursor-pointer"
               onClick={() => handleOpen(encounter)}
             >
-              <ListPageDataTableCell className="py-3">
-                <div className="flex min-w-0 items-center gap-3">
+              <ListPageDataTableCell>
+                <div className="flex min-w-0 items-center gap-2.5">
                   <UserIdenticon
                     seed={encounter.customer_uuid || encounter.customer_name}
                     name={encounter.customer_name}
-                    className="size-8.5 shrink-0 rounded-lg shadow-2xs"
+                    className="size-8 shrink-0 rounded-md"
                   />
                   <div className="min-w-0">
                     <Link
@@ -89,7 +89,7 @@ export function OpdQueueTable({
                         encounter.visit_uuid,
                         encounter.encounter_uuid,
                       )}
-                      className="block truncate text-sm font-semibold text-brand-navy transition-colors group-hover:text-brand-primary"
+                      className="block truncate font-medium text-brand-navy transition-colors group-hover:text-brand-primary"
                       onClick={(event) => event.stopPropagation()}
                     >
                       {encounter.customer_name}
@@ -103,38 +103,39 @@ export function OpdQueueTable({
                 </div>
               </ListPageDataTableCell>
 
-              <ListPageDataTableCell className="py-3 text-sm text-brand-slate">
+              <ListPageDataTableCell className="text-brand-slate">
                 {encounter.department_name || "—"}
               </ListPageDataTableCell>
 
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <OpdEncounterStatusBadge status={encounter.status} />
               </ListPageDataTableCell>
 
-              <ListPageDataTableCell className="py-3 text-sm font-medium text-brand-navy tabular-nums">
+              <ListPageDataTableCell className="font-medium text-brand-navy tabular-nums">
                 {encounter.started_at
                   ? formatDisplayDateTime(encounter.started_at)
                   : "—"}
               </ListPageDataTableCell>
 
-              <ListPageDataTableCell className="py-3 pr-4 text-right">
+              <ListPageDataTableCell className="pr-4 text-right">
                 <div
                   className="inline-flex items-center justify-end gap-2"
                   onClick={(event) => event.stopPropagation()}
                 >
                   {onAddEncounter ? (
-                    <SecondaryButton
+                    <Button
                       type="button"
+                      variant="outline"
                       size="sm"
-                      className="h-7 text-sm"
+                      className="h-7 rounded-md border-dash-border bg-white px-2.5 text-xs font-medium text-brand-navy hover:bg-dash-canvas"
                       disabled={!canAddEncounter}
                       onClick={() => onAddEncounter(encounter)}
                       data-testid="opd-queue-add-encounter"
                     >
                       Add encounter
-                    </SecondaryButton>
+                    </Button>
                   ) : null}
-                  <SecondaryButton asChild size="sm" className="h-7 text-sm">
+                  <Button asChild variant="outline" size="sm" className="h-7 rounded-md border-dash-border bg-white px-2.5 text-xs font-medium text-brand-navy hover:bg-dash-canvas">
                     <Link
                       href={ROUTES.clinicalOpdEncounter(
                         encounter.visit_uuid,
@@ -143,7 +144,7 @@ export function OpdQueueTable({
                     >
                       Open
                     </Link>
-                  </SecondaryButton>
+                  </Button>
                 </div>
               </ListPageDataTableCell>
             </ListPageDataTableRow>

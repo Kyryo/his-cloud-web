@@ -4,6 +4,11 @@ import { CalendarPlus } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { TabAddActionButton } from "@/components/ui/app-buttons";
+import {
+  LIST_PAGE_INSIGHT_CELL_CLASS,
+  LIST_PAGE_INSIGHT_LABEL_CLASS,
+  LIST_PAGE_INSIGHT_VALUE_CLASS,
+} from "@/features/app-shell/components/page-layout";
 import { Button } from "@/components/ui/button";
 import {
   AppointmentActionConfirmDialog,
@@ -284,62 +289,37 @@ export function CustomerDetailAppointmentsTab({
         }}
       />
 
-      {/* Seamless Cardless Stat Strip */}
       <dl
-        className="grid grid-cols-2 divide-y divide-dash-border/60 border-b border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
+        className="grid grid-cols-2 divide-y divide-dash-border/60 border-b border-dash-border/80 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
         data-testid="customer-appointments-stats"
       >
-        {/* 1. Total appointments */}
-        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-          <div className="flex items-center gap-2">
-            <span className="size-2 shrink-0 rounded-full bg-blue-500" />
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-              Total appointments
-            </dt>
-          </div>
-          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
+        <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Total appointments</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {formatCompactNumber(appointments.length)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">All scheduled bookings</p>
         </div>
 
-        {/* 2. Upcoming */}
-        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-          <div className="flex items-center gap-2">
-            <span className="size-2 shrink-0 rounded-full bg-indigo-500" />
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-              Upcoming
-            </dt>
-          </div>
-          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
+        <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Upcoming</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {formatCompactNumber(upcomingCount)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Future bookings</p>
         </div>
 
-        {/* 3. Completed */}
-        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-          <div className="flex items-center gap-2">
-            <span className="size-2 shrink-0 rounded-full bg-emerald-500" />
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-              Completed
-            </dt>
-          </div>
-          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
+        <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Completed</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {formatCompactNumber(completedCount)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Concluded sessions</p>
         </div>
 
-        {/* 4. Cancelled */}
-        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-          <div className="flex items-center gap-2">
-            <span className="size-2 shrink-0 rounded-full bg-slate-400" />
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-              Cancelled
-            </dt>
-          </div>
-          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
+        <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Cancelled</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {formatCompactNumber(cancelledCount)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Voided appointments</p>

@@ -44,7 +44,6 @@ export function AppointmentsPageHeader({
         onFiltersApply={onFiltersApply}
         trailing={
           <PageActionButton
-            className="h-8 px-3 text-xs"
             onClick={onNewAppointment}
             data-testid="new-appointment-button"
           >

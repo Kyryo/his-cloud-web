@@ -16,7 +16,7 @@ export function CustomersEmptyState({ onAddClient }: CustomersEmptyStateProps) {
       data-testid="customers-empty-state"
       action={
         <PageActionButton onClick={onAddClient} data-testid="add-first-client-button">
-          <AppIcon name="add" className="size-4" />
+          <AppIcon name="add" className="size-3.5" />
           {ACTIONS.registerClient}
         </PageActionButton>
       }

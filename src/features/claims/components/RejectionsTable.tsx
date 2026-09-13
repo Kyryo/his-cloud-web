@@ -37,7 +37,7 @@ const columns = [
     className: "hidden md:table-cell",
   },
   { key: "member", label: "Member #" },
-  { key: "patient", label: "Patient" },
+  { key: "patient", label: "Client" },
   { key: "code", label: "Code", className: "hidden lg:table-cell" },
   {
     key: "claimed",
@@ -91,7 +91,7 @@ export function RejectionsTable({
                 <ListPageDataTableCell className="max-w-[16rem]">
                   <Link
                     href={ROUTES.remittanceDetail(row.batch_uuid)}
-                    className="truncate text-sm font-medium text-brand-primary hover:underline"
+                    className="truncate font-medium text-brand-primary hover:underline"
                     onClick={(event) => event.stopPropagation()}
                   >
                     {remittanceDisplayName({
@@ -100,31 +100,31 @@ export function RejectionsTable({
                       original_filename: row.batch_display_filename,
                     })}
                   </Link>
-                  <p className="truncate text-sm text-brand-muted">
+                  <p className="truncate text-xs text-brand-muted">
                     {row.batch_payer_code}
                   </p>
                 </ListPageDataTableCell>
-                <ListPageDataTableCell className="hidden whitespace-nowrap text-sm text-brand-slate md:table-cell">
+                <ListPageDataTableCell className="hidden whitespace-nowrap tabular-nums text-brand-slate md:table-cell">
                   {row.service_date || "—"}
                 </ListPageDataTableCell>
-                <ListPageDataTableCell className="font-mono text-sm text-brand-slate">
+                <ListPageDataTableCell className="font-mono text-brand-slate">
                   {row.member_number || "—"}
                 </ListPageDataTableCell>
-                <ListPageDataTableCell className="text-sm font-medium text-brand-navy">
+                <ListPageDataTableCell className="font-medium text-brand-navy">
                   {row.patient_name || row.member_name || "—"}
                 </ListPageDataTableCell>
-                <ListPageDataTableCell className="hidden text-sm text-brand-slate lg:table-cell">
+                <ListPageDataTableCell className="hidden text-brand-slate lg:table-cell">
                   {row.procedure_code || "—"}
                 </ListPageDataTableCell>
-                <ListPageDataTableCell className="hidden text-right text-sm tabular-nums text-brand-slate lg:table-cell">
+                <ListPageDataTableCell className="hidden text-right tabular-nums text-brand-slate lg:table-cell">
                   {row.amount_claimed ?? "—"}
                 </ListPageDataTableCell>
-                <ListPageDataTableCell className="hidden text-right text-sm tabular-nums text-brand-slate xl:table-cell">
+                <ListPageDataTableCell className="hidden text-right tabular-nums text-brand-slate xl:table-cell">
                   {row.pay_to_provider ?? "—"}
                 </ListPageDataTableCell>
-                <ListPageDataTableCell className="text-sm">
+                <ListPageDataTableCell>
                   {hasRejectionReason(row) ? (
-                    <span className="font-mono text-sm text-red-600">
+                    <span className="font-mono text-red-600">
                       {row.reason_code}
                     </span>
                   ) : (
@@ -138,7 +138,7 @@ export function RejectionsTable({
                         type="button"
                         size="icon"
                         variant="outline"
-                        className="size-8 rounded-full"
+                        className="size-7 rounded-md border-dash-border"
                         aria-label="Rejection row actions"
                         onClick={(event) => event.stopPropagation()}
                         data-testid={`rejection-row-actions-${row.id}`}

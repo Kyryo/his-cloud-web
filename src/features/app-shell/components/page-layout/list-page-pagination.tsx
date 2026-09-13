@@ -51,7 +51,7 @@ export function ListPagePagination({
   const pageItems = buildPageItems(page, totalPages);
 
   return (
-    <div className="flex flex-col gap-3 pt-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-2 pt-3 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-[13px] text-dash-muted">
         Showing{" "}
         <span className="font-medium tabular-nums text-brand-navy">
@@ -65,7 +65,7 @@ export function ListPagePagination({
           type="button"
           variant="outline"
           size="sm"
-          className="h-8 rounded-lg border-dash-border bg-white px-3 text-brand-slate hover:bg-dash-canvas"
+          className="h-7 rounded-md border-dash-border bg-white px-2.5 text-[13px] text-brand-slate hover:bg-dash-canvas"
           disabled={!hasPrevious || isLoading}
           onClick={() => onPageChange(page - 1)}
         >
@@ -87,7 +87,7 @@ export function ListPagePagination({
               size="sm"
               disabled={isLoading}
               className={cn(
-                "h-8 min-w-8 rounded-lg px-2.5 tabular-nums",
+                "h-7 min-w-7 rounded-md px-2 text-[13px] tabular-nums",
                 item === page
                   ? "bg-brand-primary text-white hover:bg-brand-primary-hover hover:text-white"
                   : "text-brand-slate hover:bg-dash-canvas",
@@ -102,7 +102,7 @@ export function ListPagePagination({
           type="button"
           variant="outline"
           size="sm"
-          className="h-8 rounded-lg border-dash-border bg-white px-3 text-brand-slate hover:bg-dash-canvas"
+          className="h-7 rounded-md border-dash-border bg-white px-2.5 text-[13px] text-brand-slate hover:bg-dash-canvas"
           disabled={!hasNext || isLoading}
           onClick={() => onPageChange(page + 1)}
         >

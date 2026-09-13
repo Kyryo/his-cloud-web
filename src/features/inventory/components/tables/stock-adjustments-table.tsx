@@ -65,7 +65,7 @@ export function StockAdjustmentsTable({
               onClick={() => onRowClick?.(adjustment)}
               data-testid={`stock-adjustment-row-${adjustment.uuid}`}
             >
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <InventoryDocumentIdentity
                   kind="adjustment"
                   mark={adjustment.reference_number}
@@ -73,19 +73,19 @@ export function StockAdjustmentsTable({
                   subtitle={adjustment.reason?.trim() || null}
                 />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <AdjustmentTypeBadge type={adjustment.adjustment_type} />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <StockAdjustmentStatusBadge status={adjustment.status} />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <InventoryLocationChip name={location} />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <InventoryCreatedByCell name={adjustment.created_by_name} />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 text-sm tabular-nums text-dash-muted">
+              <ListPageDataTableCell className="tabular-nums text-dash-muted">
                 {formatDisplayDateTime(adjustment.created_at)}
               </ListPageDataTableCell>
             </ListPageDataTableRow>

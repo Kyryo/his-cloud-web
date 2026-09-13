@@ -11,7 +11,7 @@ export function ListPageHeaderSection({
   children,
   className,
 }: ListPageHeaderSectionProps) {
-  return <div className={cn("space-y-4", className)}>{children}</div>;
+  return <div className={cn("space-y-3", className)}>{children}</div>;
 }
 
 type ListPageHeaderTopRowProps = {

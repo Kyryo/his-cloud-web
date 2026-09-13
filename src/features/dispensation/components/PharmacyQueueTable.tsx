@@ -22,7 +22,7 @@ type PharmacyQueueTableProps = {
 
 const columns = [
   { key: "order", label: "Order" },
-  { key: "patient", label: "Patient" },
+  { key: "patient", label: "Client" },
   { key: "clinic", label: "Clinic", className: "hidden md:table-cell" },
   { key: "status", label: "Status" },
   { key: "ordered", label: "Ordered" },
@@ -57,31 +57,31 @@ export function PharmacyQueueTable({
               onClick={() => onRowClick?.(item)}
               data-testid={`pharmacy-queue-row-${item.uuid}`}
             >
-              <ListPageDataTableCell className="py-3 font-mono text-sm font-semibold text-brand-navy group-hover:text-brand-primary">
+              <ListPageDataTableCell className="font-mono font-medium text-brand-navy group-hover:text-brand-primary">
                 {item.name}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <div className="flex min-w-0 items-center gap-2.5">
                   <UserIdenticon
                     seed={patientName}
                     name={patientName}
-                    className="size-7.5 shrink-0 rounded-lg shadow-2xs"
+                    className="size-8 shrink-0 rounded-md"
                   />
-                  <span className="truncate text-sm font-medium text-brand-navy">
+                  <span className="truncate font-medium text-brand-navy">
                     {patientName}
                   </span>
                 </div>
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="hidden py-3 text-sm text-brand-slate md:table-cell">
+              <ListPageDataTableCell className="hidden text-brand-slate md:table-cell">
                 {item.clinic_name || "—"}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <PharmacyQueueDispenseStatusBadge
                   dispensableLineCount={item.dispensable_line_count}
                   remainingLineCount={item.remaining_line_count}
                 />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 text-sm tabular-nums text-dash-muted">
+              <ListPageDataTableCell className="tabular-nums text-dash-muted">
                 {formatDisplayDateTime(item.date_order)}
               </ListPageDataTableCell>
             </ListPageDataTableRow>

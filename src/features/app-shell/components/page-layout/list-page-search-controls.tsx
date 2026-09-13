@@ -15,7 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const TOOLBAR_CONTROL_CLASS =
-  "h-10 rounded-lg border-dash-border bg-white text-brand-slate transition-[background-color,border-color,transform] hover:bg-dash-canvas active:scale-[0.98]";
+  "h-8 rounded-lg border-dash-border bg-white px-3 text-[13px] text-brand-slate transition-[background-color,border-color,transform] hover:bg-dash-canvas active:scale-[0.98]";
 
 type ListPageSearchFieldProps = {
   id?: string;
@@ -40,8 +40,8 @@ export function ListPageSearchField({
     <div className="relative w-full sm:max-w-sm">
       <AppIcon
         name="search"
-        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-dash-muted"
-        size={16}
+        className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-dash-muted"
+        size={14}
       />
       <Input
         id={id}
@@ -50,7 +50,7 @@ export function ListPageSearchField({
         aria-label={placeholder}
         value={value}
         disabled={disabled}
-        className="h-10 w-full rounded-lg border-dash-border bg-white pl-9 transition-[border-color,box-shadow] focus-visible:border-brand-primary/40 focus-visible:ring-2 focus-visible:ring-brand-primary/15"
+        className="h-8 w-full rounded-lg border-dash-border bg-white pl-8 text-[13px] transition-[border-color,box-shadow] focus-visible:border-brand-primary/40 focus-visible:ring-2 focus-visible:ring-brand-primary/15"
         onChange={(event) => onChange(event.target.value)}
         onKeyDown={(event) => {
           if (event.key === "Enter") {
@@ -131,11 +131,11 @@ export function ListPageFilterButton({
       type="button"
       variant="outline"
       disabled={disabled}
-      className={cn(TOOLBAR_CONTROL_CLASS, "px-4")}
+      className={TOOLBAR_CONTROL_CLASS}
       onClick={onClick}
       data-testid={dataTestId}
     >
-      <AppIcon name="layers" size={16} />
+      <AppIcon name="layers" size={14} />
       Filters
       {activeCount > 0 ? (
         <Badge variant="secondary" className="ml-1 px-1.5 py-0">

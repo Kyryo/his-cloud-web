@@ -59,22 +59,22 @@ export function PharmacyHistoryTable({
             key={item.uuid}
             data-testid={`pharmacy-history-row-${item.uuid}`}
           >
-            <ListPageDataTableCell className="py-3 text-sm tabular-nums text-dash-muted">
+            <ListPageDataTableCell className="tabular-nums text-dash-muted">
               {formatDisplayDateTime(item.dispensed_at)}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 font-mono text-sm font-semibold text-brand-navy">
+            <ListPageDataTableCell className="font-mono font-medium text-brand-navy">
               {item.sales_order_name}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 text-sm font-medium text-brand-navy">
+            <ListPageDataTableCell className="font-medium text-brand-navy">
               {item.product_name ?? "—"}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="hidden py-3 text-sm text-brand-slate md:table-cell">
+            <ListPageDataTableCell className="hidden text-brand-slate md:table-cell">
               {item.location_name}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 pr-4 text-right text-sm font-semibold tabular-nums text-brand-navy">
+            <ListPageDataTableCell className="pr-4 text-right font-medium tabular-nums text-brand-navy">
               {formatDispensationQuantity(item.quantity)}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="hidden py-3 text-sm text-brand-slate lg:table-cell">
+            <ListPageDataTableCell className="hidden text-brand-slate lg:table-cell">
               {item.dispensed_by_name ?? "—"}
             </ListPageDataTableCell>
           </ListPageDataTableRow>

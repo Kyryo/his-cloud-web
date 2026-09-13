@@ -3,7 +3,6 @@
 import { MoreHorizontal } from "lucide-react";
 
 import { UserIdenticon } from "@/components/UserIdenticon";
-import { SecondaryButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -94,12 +93,12 @@ export function AppointmentsTable({
               onClick={() => onRowClick(appointment)}
             >
               {/* Client */}
-              <ListPageDataTableCell className="py-3">
-                <div className="flex min-w-0 items-center gap-3">
+              <ListPageDataTableCell>
+                <div className="flex min-w-0 items-center gap-2.5">
                   <UserIdenticon
                     seed={appointment.patient || appointment.patient_name}
                     name={appointment.patient_name}
-                    className="size-8.5 shrink-0 rounded-lg shadow-2xs"
+                    className="size-8 shrink-0 rounded-md"
                   />
                   <div className="min-w-0">
                     <span className="block truncate font-medium text-brand-navy transition-colors group-hover:text-brand-primary">
@@ -115,48 +114,49 @@ export function AppointmentsTable({
               </ListPageDataTableCell>
 
               {/* Clinic */}
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 {appointment.clinic_name || "—"}
               </ListPageDataTableCell>
 
               {/* Department */}
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 {appointment.department_name || "—"}
               </ListPageDataTableCell>
 
               {/* Clinician */}
-              <ListPageDataTableCell className="hidden py-3 text-sm text-brand-slate md:table-cell">
+              <ListPageDataTableCell className="hidden md:table-cell">
                 {appointment.clinician_name || (
                   <span className="text-dash-muted">Unassigned</span>
                 )}
               </ListPageDataTableCell>
 
               {/* Scheduled Start */}
-              <ListPageDataTableCell className="py-3 text-sm font-medium text-brand-navy tabular-nums">
+              <ListPageDataTableCell className="font-medium tabular-nums text-brand-navy">
                 {formatDisplayDateTime(appointment.scheduled_start)}
               </ListPageDataTableCell>
 
               {/* Status */}
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <AppointmentStatusBadge status={appointment.status} />
               </ListPageDataTableCell>
 
               {/* Actions */}
-              <ListPageDataTableCell className="py-3 pr-4 text-right">
+              <ListPageDataTableCell className="pr-4 text-right">
                 <div
                   className="flex items-center justify-end gap-1.5"
                   onClick={(event) => event.stopPropagation()}
                 >
                   {canStartAppointmentVisit(appointment) ? (
-                    <SecondaryButton
+                    <Button
                       type="button"
+                      variant="outline"
                       size="sm"
-                      className="h-7 text-sm"
+                      className="h-7 rounded-md border-dash-border bg-white px-2.5 text-xs font-medium text-brand-navy hover:bg-dash-canvas"
                       onClick={() => onActionRequest(appointment, "start")}
                       data-testid="appointments-start-visit"
                     >
                       Start visit
-                    </SecondaryButton>
+                    </Button>
                   ) : null}
 
                   {showOverflow ? (

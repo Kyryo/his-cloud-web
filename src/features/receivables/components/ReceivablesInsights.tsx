@@ -3,6 +3,10 @@
 import Link from "next/link";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  LIST_PAGE_INSIGHT_LABEL_CLASS,
+  LIST_PAGE_INSIGHT_VALUE_CLASS,
+} from "@/features/app-shell/components/page-layout";
 import { RECEIVABLES_AGING_BUCKETS } from "@/features/receivables/types/receivables.types";
 import type {
   ReceivablesAgingBucket,
@@ -51,9 +55,9 @@ export function ReceivablesInsights({
       >
         <div className="grid grid-cols-3 divide-x divide-dash-border/60 py-2">
           {Array.from({ length: 3 }, (_, index) => (
-            <div key={index} className="p-3.5 sm:p-4">
+            <div key={index} className="p-3">
               <Skeleton className="h-3.5 w-24" />
-              <Skeleton className="mt-2.5 h-8 w-20" />
+              <Skeleton className="mt-2 h-6 w-16" />
             </div>
           ))}
         </div>
@@ -69,10 +73,8 @@ export function ReceivablesInsights({
     <div className="border-y border-dash-border/80" data-testid="receivables-insights">
       <dl className="grid grid-cols-3 divide-x divide-dash-border/60">
         <div className="p-3">
-          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-            Outstanding
-          </dt>
-          <dd className="mt-1 text-lg font-semibold tracking-tight tabular-nums text-brand-navy">
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Outstanding</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {formatCompactAmount(totalReceivable)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">MWK still due</p>
@@ -84,10 +86,8 @@ export function ReceivablesInsights({
             view === "debtors" && "bg-dash-canvas/50",
           )}
         >
-          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-            Debtors
-          </dt>
-          <dd className="mt-1 text-lg font-semibold tracking-tight tabular-nums text-brand-navy">
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Debtors</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {formatCompactNumber(debtorsCount)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Clients with a balance</p>
@@ -99,10 +99,8 @@ export function ReceivablesInsights({
             view === "invoices" && !aging && "bg-dash-canvas/50",
           )}
         >
-          <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-            Open invoices
-          </dt>
-          <dd className="mt-1 text-lg font-semibold tracking-tight tabular-nums text-brand-navy">
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Open invoices</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {formatCompactNumber(invoiceCount)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Posted and unpaid</p>
@@ -132,11 +130,11 @@ export function ReceivablesInsights({
                 <span
                   className={cn("size-2 shrink-0 rounded-full", AGING_DOT[bucket])}
                 />
-                <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
+                <p className={LIST_PAGE_INSIGHT_LABEL_CLASS}>
                   {formatReceivablesAgingLabel(bucket)}
                 </p>
               </div>
-              <p className="mt-1.5 text-lg font-semibold tabular-nums text-brand-navy">
+              <p className={cn(LIST_PAGE_INSIGHT_VALUE_CLASS, "mt-1.5")}>
                 {formatCompactAmount(bucketStats.total)}
               </p>
               <p className="mt-0.5 text-xs text-brand-muted">

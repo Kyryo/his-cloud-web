@@ -15,10 +15,10 @@ export function InventoryDocumentIdentity({
   subtitle,
 }: InventoryDocumentIdentityProps) {
   return (
-    <div className="flex min-w-0 items-center gap-3">
+    <div className="flex min-w-0 items-center gap-2.5">
       <InventoryMark kind={kind} seed={mark} />
       <div className="min-w-0 space-y-0.5">
-        <span className="block truncate text-sm font-semibold text-brand-navy transition-colors group-hover:text-brand-primary">
+        <span className="block truncate font-medium text-brand-navy transition-colors group-hover:text-brand-primary">
           {title}
         </span>
         {subtitle ? (

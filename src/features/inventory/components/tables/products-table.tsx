@@ -53,21 +53,21 @@ export function ProductsTable({
               className="group cursor-pointer"
               onClick={() => onRowClick?.(product)}
             >
-              <ListPageDataTableCell className="py-3">
-                <span className="block truncate text-sm font-semibold text-brand-navy group-hover:text-brand-primary">
+              <ListPageDataTableCell>
+                <span className="block truncate font-medium text-brand-navy group-hover:text-brand-primary">
                   {name}
                 </span>
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <ProductTypeBadge product={product} />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 font-mono text-sm font-medium text-brand-navy">
+              <ListPageDataTableCell className="font-mono font-medium text-brand-navy">
                 {product.default_code || "—"}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="hidden py-3 font-mono text-sm text-brand-slate md:table-cell">
+              <ListPageDataTableCell className="hidden font-mono text-brand-slate md:table-cell">
                 {product.barcode || "—"}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 pr-4 text-right text-sm font-semibold tabular-nums text-brand-navy">
+              <ListPageDataTableCell className="pr-4 text-right font-medium tabular-nums text-brand-navy">
                 {formatInventoryAmount(product.list_price)}
               </ListPageDataTableCell>
             </ListPageDataTableRow>

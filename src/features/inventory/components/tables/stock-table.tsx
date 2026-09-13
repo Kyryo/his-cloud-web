@@ -78,12 +78,12 @@ export function StockTable({ items, onRowClick, className }: StockTableProps) {
               onClick={() => onRowClick?.(item)}
               data-testid={`stock-row-${item.uuid}`}
             >
-              <ListPageDataTableCell className="py-3">
-                <div className="flex min-w-0 items-center gap-3">
+              <ListPageDataTableCell>
+                <div className="flex min-w-0 items-center gap-2.5">
                   <StockProductMark name={productName} />
                   <div className="min-w-0 space-y-0.5">
                     <div className="flex min-w-0 items-center gap-2">
-                      <span className="truncate text-sm font-semibold text-brand-navy transition-colors group-hover:text-brand-primary">
+                      <span className="truncate font-medium text-brand-navy transition-colors group-hover:text-brand-primary">
                         {productName}
                       </span>
                       {!item.is_active ? (
@@ -101,28 +101,28 @@ export function StockTable({ items, onRowClick, className }: StockTableProps) {
                   </div>
                 </div>
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <InventoryLocationChip name={item.location_name} />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 {item.batch_number ? (
-                  <span className="inline-flex rounded-md border border-slate-200 bg-white px-2 py-0.5 font-mono text-xs text-brand-navy">
+                  <span className="inline-flex rounded-md border border-dash-border bg-white px-2 py-0.5 font-mono text-xs text-brand-navy">
                     {item.batch_number}
                   </span>
                 ) : (
                   <span className="text-xs text-dash-muted">No batch</span>
                 )}
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 pr-4 text-right">
+              <ListPageDataTableCell className="pr-4 text-right">
                 <div className="flex flex-col items-end gap-1.5">
-                  <span className="text-base font-semibold tabular-nums text-brand-navy">
+                  <span className="font-medium tabular-nums text-brand-navy">
                     {formatInventoryQuantity(item.quantity_on_hand)}
                   </span>
                   <StockQuantityStatusBadge status={status} />
                 </div>
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 pr-4 text-right">
-                <p className="font-semibold tabular-nums text-brand-navy">
+              <ListPageDataTableCell className="pr-4 text-right">
+                <p className="font-medium tabular-nums text-brand-navy">
                   {lineValue === null
                     ? "—"
                     : formatInventoryAmount(lineValue)}

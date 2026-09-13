@@ -388,7 +388,7 @@ export function AppointmentsListPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-10 rounded-lg"
+                  className="h-8 rounded-lg text-[13px]"
                   onClick={() => void reloadAll()}
                 >
                   Try again
@@ -414,7 +414,7 @@ export function AppointmentsListPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-10 rounded-lg"
+                  className="h-8 rounded-lg text-[13px]"
                   onClick={handleClearSearch}
                 >
                   Clear search and filters

@@ -33,7 +33,7 @@ export function InventoryListTable<T>({
   className,
   compact = false,
 }: InventoryListTableProps<T>) {
-  const cellPadding = compact ? "px-3.5 py-2.5" : "px-4 py-3 sm:px-5";
+  const cellPadding = compact ? "px-3.5 py-2" : "px-4 py-2.5";
 
   return (
     <div
@@ -52,7 +52,7 @@ export function InventoryListTable<T>({
                   scope="col"
                   className={cn(
                     cellPadding,
-                    "text-left text-xs font-semibold uppercase tracking-wider text-dash-muted",
+                    "text-left text-[11px] font-medium uppercase tracking-[0.08em] text-dash-muted",
                     column.headerClassName,
                   )}
                 >
@@ -76,8 +76,7 @@ export function InventoryListTable<T>({
                     key={column.key}
                     className={cn(
                       cellPadding,
-                      "text-sm text-brand-slate",
-                      compact && "text-[13px]",
+                      "text-[13px] text-brand-slate",
                       column.cellClassName,
                     )}
                   >
@@ -132,7 +131,7 @@ export function InventoryListTableSkeleton({
                   key={column.key}
                   scope="col"
                   className={cn(
-                    "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-dash-muted sm:px-5",
+                    "px-4 py-2.5 text-left text-[11px] font-medium uppercase tracking-[0.08em] text-dash-muted",
                     column.headerClassName,
                   )}
                 >
@@ -145,7 +144,7 @@ export function InventoryListTableSkeleton({
             {Array.from({ length: rows }).map((_, rowIndex) => (
               <tr key={rowIndex}>
                 {columns.map((column) => (
-                  <td key={column.key} className="px-4 py-3 sm:px-5">
+                  <td key={column.key} className="px-4 py-2.5">
                     <Skeleton className="h-3.5 w-24" />
                   </td>
                 ))}
@@ -183,7 +182,7 @@ export function InventoryListPagination({
 
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <p className="text-sm text-brand-muted">
+      <p className="text-[13px] tabular-nums text-brand-muted">
         Showing {start}–{end} of {totalCount}
       </p>
       <div className="flex items-center gap-2">

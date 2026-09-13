@@ -170,7 +170,7 @@ export function SalesOrdersTable({
                 onClick={() => onRowClick?.(order)}
               >
                 {/* 1. Order Number */}
-                <ListPageDataTableCell className="py-3">
+                <ListPageDataTableCell>
                   <div className="flex items-center gap-1.5">
                     <HoverPreviewCard
                       trigger={
@@ -210,41 +210,41 @@ export function SalesOrdersTable({
                 </ListPageDataTableCell>
 
                 {/* 2. Client / Customer */}
-                <ListPageDataTableCell className="py-3">
+                <ListPageDataTableCell>
                   <div className="flex min-w-0 items-center gap-2.5">
                     <UserIdenticon
                       seed={customerName}
                       name={customerName}
-                      className="size-7.5 shrink-0 rounded-lg shadow-2xs"
+                      className="size-8 shrink-0 rounded-md"
                     />
-                    <span className="truncate text-sm font-medium text-brand-navy">
+                    <span className="truncate font-medium text-brand-navy">
                       {customerName}
                     </span>
                   </div>
                 </ListPageDataTableCell>
 
                 {/* 3. Provider */}
-                <ListPageDataTableCell className="hidden py-3 text-sm md:table-cell">
+                <ListPageDataTableCell className="hidden md:table-cell">
                   <SalesOrderProviderCell order={order} />
                 </ListPageDataTableCell>
 
                 {/* 4. Pricelist */}
-                <ListPageDataTableCell className="hidden py-3 text-sm text-brand-slate lg:table-cell">
+                <ListPageDataTableCell className="hidden text-brand-slate lg:table-cell">
                   {formatSalesOrderPricelist(order)}
                 </ListPageDataTableCell>
 
                 {/* 5. Date */}
-                <ListPageDataTableCell className="py-3 text-sm text-dash-muted tabular-nums">
+                <ListPageDataTableCell className="tabular-nums text-dash-muted">
                   {formatSalesOrderDateTime(order.date_order)}
                 </ListPageDataTableCell>
 
                 {/* 6. State */}
-                <ListPageDataTableCell className="py-3">
+                <ListPageDataTableCell>
                   <SalesOrderStateBadge state={order.state} />
                 </ListPageDataTableCell>
 
                 {/* 7. Total */}
-                <ListPageDataTableCell className="py-3 pr-4 text-right">
+                <ListPageDataTableCell className="pr-4 text-right">
                   <TableAmountCell
                     value={order.amount_total}
                     currency={currency}

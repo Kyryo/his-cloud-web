@@ -1,6 +1,12 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  LIST_PAGE_INSIGHT_CELL_CLASS,
+  LIST_PAGE_INSIGHT_LABEL_CLASS,
+  LIST_PAGE_INSIGHT_STRIP_CLASS,
+  LIST_PAGE_INSIGHT_VALUE_CLASS,
+} from "@/features/app-shell/components/page-layout";
 import { cn } from "@/lib/utils";
 import { formatCompactNumber } from "@/utils/format-compact-number";
 
@@ -9,7 +15,7 @@ export type InventoryInsightCard = {
   value: number;
   display?: string;
   hint: string;
-  dotClass: string;
+  dotClass?: string;
   emphasize?: boolean;
   emphasizeClass?: string;
 };
@@ -28,14 +34,14 @@ export function InventoryListInsights({
   if (isLoading) {
     return (
       <div
-        className="grid grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
+        className={LIST_PAGE_INSIGHT_STRIP_CLASS}
         data-testid={dataTestId}
         aria-busy="true"
       >
         {Array.from({ length: cards.length || 4 }, (_, index) => (
-          <div key={index} className="p-3.5 sm:p-4">
+          <div key={index} className={LIST_PAGE_INSIGHT_CELL_CLASS}>
             <Skeleton className="h-3.5 w-20" />
-            <Skeleton className="mt-2.5 h-8 w-16" />
+            <Skeleton className="mt-2 h-6 w-14" />
             <Skeleton className="mt-1.5 h-3 w-28" />
           </div>
         ))}
@@ -44,27 +50,16 @@ export function InventoryListInsights({
   }
 
   return (
-    <dl
-      className="grid grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
-      data-testid={dataTestId}
-    >
+    <dl className={LIST_PAGE_INSIGHT_STRIP_CLASS} data-testid={dataTestId}>
       {cards.map((card) => (
-        <div
-          key={card.label}
-          className="p-3"
-        >
-          <div className="flex items-center gap-2">
-            <span className={cn("size-2 shrink-0 rounded-full", card.dotClass)} />
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-              {card.label}
-            </dt>
-          </div>
+        <div key={card.label} className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>{card.label}</dt>
           <dd
             className={cn(
-              "mt-1 text-lg font-semibold tracking-tight tabular-nums",
+              LIST_PAGE_INSIGHT_VALUE_CLASS,
               card.emphasize && card.emphasizeClass
                 ? card.emphasizeClass
-                : "text-brand-navy",
+                : null,
             )}
           >
             {card.display ?? formatCompactNumber(card.value)}

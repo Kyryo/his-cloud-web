@@ -69,15 +69,15 @@ export function ReceivablesDebtorsTable({
               onClick={() => onRowClick?.(debtor)}
               data-testid={`receivables-debtor-${debtor.customer_uuid}`}
             >
-              <ListPageDataTableCell className="py-3">
+              <ListPageDataTableCell>
                 <div className="flex min-w-0 items-center gap-2.5">
                   <UserIdenticon
                     seed={debtor.customer_uuid || name}
                     name={name}
-                    className="size-8 shrink-0 rounded-lg shadow-2xs"
+                    className="size-8 shrink-0 rounded-md"
                   />
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-brand-navy group-hover:text-brand-primary">
+                    <p className="truncate font-medium text-brand-navy group-hover:text-brand-primary">
                       {name}
                     </p>
                     <p
@@ -92,16 +92,16 @@ export function ReceivablesDebtorsTable({
                   </div>
                 </div>
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 pr-4 text-right">
+              <ListPageDataTableCell className="pr-4 text-right">
                 <TableAmountCell value={debtor.opening_balance} />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 pr-4 text-right">
+              <ListPageDataTableCell className="pr-4 text-right">
                 <TableAmountCell value={debtor.total_invoiced} />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 pr-4 text-right">
+              <ListPageDataTableCell className="pr-4 text-right">
                 <TableAmountCell value={debtor.total_paid} />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="py-3 pr-4 text-right">
+              <ListPageDataTableCell className="pr-4 text-right">
                 <TableAmountCell
                   value={debtor.total_due}
                   className="font-semibold"

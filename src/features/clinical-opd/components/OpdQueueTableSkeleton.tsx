@@ -43,22 +43,22 @@ export function OpdQueueTableSkeleton({
       <ListPageDataTableBody>
         {Array.from({ length: rows }).map((_, index) => (
           <ListPageDataTableRow key={index} className="hover:bg-transparent">
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <div className="flex min-w-0 items-center gap-3">
                 <Skeleton className="size-8.5 shrink-0 rounded-lg" />
                 <Skeleton className="h-3.5 w-32" />
               </div>
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <Skeleton className="h-3.5 w-24" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
-              <Skeleton className="h-5 w-20 rounded-full" />
+            <ListPageDataTableCell>
+              <Skeleton className="h-5 w-20 rounded-md" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <Skeleton className="h-3.5 w-28" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 pr-4 text-right">
+            <ListPageDataTableCell className="pr-4 text-right">
               <Skeleton className="ml-auto h-7 w-16 rounded-lg" />
             </ListPageDataTableCell>
           </ListPageDataTableRow>

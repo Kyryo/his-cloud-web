@@ -6,7 +6,12 @@ import { ShoppingBag } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
-import { ListPagePagination } from "@/features/app-shell/components/page-layout";
+import {
+  LIST_PAGE_INSIGHT_CELL_CLASS,
+  LIST_PAGE_INSIGHT_LABEL_CLASS,
+  LIST_PAGE_INSIGHT_VALUE_CLASS,
+  ListPagePagination,
+} from "@/features/app-shell/components/page-layout";
 import { CustomerDetailTabEmptyState } from "@/features/customers/components/detail/CustomerDetailTabEmptyState";
 import { CustomerSalesOrdersTable } from "@/features/customers/components/detail/CustomerSalesOrdersTable";
 import { CustomerTabSkeleton } from "@/features/customers/components/detail/CustomerTabSkeleton";
@@ -146,59 +151,34 @@ export function CustomerDetailSalesOrdersTab({
 
   return (
     <div className="space-y-5" data-testid="customer-detail-sales-orders-tab">
-      {/* Seamless Cardless Stat Strip */}
-      <dl className="grid grid-cols-2 divide-y divide-dash-border/60 border-b border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x">
-        {/* 1. Total Orders */}
-        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-          <div className="flex items-center gap-2">
-            <span className="size-2 shrink-0 rounded-full bg-blue-500" />
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-              Total orders
-            </dt>
-          </div>
-          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
+      <dl className="grid grid-cols-2 divide-y divide-dash-border/60 border-b border-dash-border/80 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x">
+        <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Total orders</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {formatCompactNumber(totalCount)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">All recorded orders</p>
         </div>
 
-        {/* 2. Open Orders */}
-        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-          <div className="flex items-center gap-2">
-            <span className="size-2 shrink-0 rounded-full bg-amber-500" />
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-              Open / Quotations
-            </dt>
-          </div>
-          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
+        <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Open / Quotations</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {formatCompactNumber(openCount)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Draft & pending orders</p>
         </div>
 
-        {/* 3. Confirmed Orders */}
-        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-          <div className="flex items-center gap-2">
-            <span className="size-2 shrink-0 rounded-full bg-emerald-500" />
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-              Confirmed
-            </dt>
-          </div>
-          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
+        <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Confirmed</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {formatCompactNumber(confirmedCount)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Approved sales</p>
         </div>
 
-        {/* 4. Cancelled Orders */}
-        <div className="p-3.5 transition-colors hover:bg-dash-canvas/40 sm:p-4">
-          <div className="flex items-center gap-2">
-            <span className="size-2 shrink-0 rounded-full bg-slate-400" />
-            <dt className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-              Cancelled
-            </dt>
-          </div>
-          <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
+        <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Cancelled</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {formatCompactNumber(cancelledCount)}
           </dd>
           <p className="mt-0.5 text-xs text-brand-muted">Voided orders</p>

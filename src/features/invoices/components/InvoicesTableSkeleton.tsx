@@ -43,31 +43,31 @@ export function InvoicesTableSkeleton({
       <ListPageDataTableBody>
         {Array.from({ length: rows }).map((_, index) => (
           <ListPageDataTableRow key={index} className="hover:bg-transparent">
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <Skeleton className="h-5 w-24 rounded-md" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <div className="flex min-w-0 items-center gap-2.5">
-                <Skeleton className="size-7.5 shrink-0 rounded-lg" />
+                <Skeleton className="size-8 shrink-0 rounded-md" />
                 <Skeleton className="h-3.5 w-32" />
               </div>
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="hidden py-3 md:table-cell">
+            <ListPageDataTableCell className="hidden md:table-cell">
               <Skeleton className="h-3.5 w-20" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="hidden py-3 lg:table-cell">
+            <ListPageDataTableCell className="hidden lg:table-cell">
               <Skeleton className="h-3.5 w-20" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <Skeleton className="h-3.5 w-24" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
-              <Skeleton className="h-5 w-16 rounded-full" />
+            <ListPageDataTableCell>
+              <Skeleton className="h-5 w-16 rounded-md" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
-              <Skeleton className="h-5 w-16 rounded-full" />
+            <ListPageDataTableCell>
+              <Skeleton className="h-5 w-16 rounded-md" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 pr-4 text-right">
+            <ListPageDataTableCell className="pr-4 text-right">
               <div className="flex justify-end">
                 <Skeleton className="h-4 w-20" />
               </div>

@@ -47,19 +47,19 @@ export function BatchesTable({ items, onRowClick, className }: BatchesTableProps
             className="group cursor-pointer"
             onClick={() => onRowClick?.(item)}
           >
-            <ListPageDataTableCell className="py-3 text-sm font-semibold text-brand-navy group-hover:text-brand-primary">
+            <ListPageDataTableCell className="font-medium text-brand-navy group-hover:text-brand-primary">
               {item.batch_number}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 font-mono text-sm text-brand-slate">
+            <ListPageDataTableCell className="font-mono text-brand-slate">
               {item.product_id}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 text-sm tabular-nums text-dash-muted">
+            <ListPageDataTableCell className="tabular-nums text-dash-muted">
               {formatDisplayDate(item.expiry_date)}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 text-sm text-brand-navy">
+            <ListPageDataTableCell className="text-brand-navy">
               {item.supplier ?? "—"}
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <span
                 className={
                   item.is_active

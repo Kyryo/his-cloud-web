@@ -42,24 +42,24 @@ export function PharmacyHistoryTableSkeleton({
       <ListPageDataTableBody>
         {Array.from({ length: rows }).map((_, index) => (
           <ListPageDataTableRow key={index} className="hover:bg-transparent">
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <Skeleton className="h-3.5 w-28" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <Skeleton className="h-3.5 w-20" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3">
+            <ListPageDataTableCell>
               <Skeleton className="h-3.5 w-36" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="hidden py-3 md:table-cell">
+            <ListPageDataTableCell className="hidden md:table-cell">
               <Skeleton className="h-3.5 w-24" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="py-3 pr-4 text-right">
+            <ListPageDataTableCell className="pr-4 text-right">
               <div className="flex justify-end">
                 <Skeleton className="h-4 w-12" />
               </div>
             </ListPageDataTableCell>
-            <ListPageDataTableCell className="hidden py-3 lg:table-cell">
+            <ListPageDataTableCell className="hidden lg:table-cell">
               <Skeleton className="h-3.5 w-24" />
             </ListPageDataTableCell>
           </ListPageDataTableRow>
