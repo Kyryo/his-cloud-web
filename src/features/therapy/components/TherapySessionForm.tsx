@@ -135,7 +135,7 @@ export function TherapySessionForm({
               <ArrowLeft className="size-4" />
               Back to sessions
             </Button>
-            <h2 className="text-xl font-semibold text-brand-navy">
+            <h2 className="text-sm font-semibold text-brand-navy">
               {session ? `Edit session ${session.session_number}` : "Record therapy session"}
             </h2>
             <p className="mt-1 text-sm text-brand-muted">

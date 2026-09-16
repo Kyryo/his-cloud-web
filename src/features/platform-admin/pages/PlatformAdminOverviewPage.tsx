@@ -216,7 +216,7 @@ function MetricCard({
           <p className="text-xs font-medium uppercase text-brand-muted">
             {label}
           </p>
-          <p className="text-2xl font-semibold text-brand-navy">{value}</p>
+          <p className="text-lg font-semibold tracking-tight text-brand-navy tabular-nums">{value}</p>
           {detail ? (
             <p className="text-xs text-brand-muted">{detail}</p>
           ) : null}

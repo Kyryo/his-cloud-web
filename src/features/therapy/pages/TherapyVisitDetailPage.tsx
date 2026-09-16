@@ -24,6 +24,7 @@ import {
 import {
   DetailPageHeaderSection,
   DetailPageLayout,
+  DetailPageTitle,
 } from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
 import { TherapyVisitErrorState } from "@/features/therapy/components/TherapyVisitErrorState";
@@ -191,9 +192,7 @@ export function TherapyVisitDetailPage({
             />
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="truncate text-xl font-semibold text-brand-navy">
-                  {visit.customer_name}
-                </h1>
+                <DetailPageTitle>{visit.customer_name}</DetailPageTitle>
                 <Badge variant="secondary">
                   {visit.customer_gender || "Gender not recorded"}
                 </Badge>

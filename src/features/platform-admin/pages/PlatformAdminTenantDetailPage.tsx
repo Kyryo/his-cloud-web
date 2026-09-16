@@ -11,8 +11,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { ROUTES } from "@/constants/routes";
 import {
+  DetailPageDescription,
   DetailPageHeaderSection,
   DetailPageLayout,
+  DetailPageTitle,
   ListPageDataTable,
   ListPageDataTableBody,
   ListPageDataTableCell,
@@ -239,18 +241,18 @@ export function PlatformAdminTenantDetailPage({
             </Button>
             <div>
               <div className="flex flex-wrap items-center gap-3">
-                <h1 className="text-2xl font-extrabold text-brand-navy">
+                <DetailPageTitle className="whitespace-normal">
                   {tenant.name}
-                </h1>
+                </DetailPageTitle>
                 <PlatformAdminStatusBadge
                   status={tenant.status}
                   isActive={tenant.is_active}
                 />
               </div>
-              <p className="mt-1 text-sm text-brand-muted">
+              <DetailPageDescription>
                 {tenant.code} · {tenant.country || "Country not set"} ·{" "}
                 {tenant.email || "Email not set"}
-              </p>
+              </DetailPageDescription>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -562,7 +564,7 @@ function SummaryCard({ label, value }: { label: string; value: number }) {
     <Card className="rounded-lg">
       <CardContent className="p-4">
         <p className="text-xs font-medium uppercase text-brand-muted">{label}</p>
-        <p className="mt-1 text-2xl font-semibold text-brand-navy">{value}</p>
+        <p className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">{value}</p>
       </CardContent>
     </Card>
   );

@@ -15,7 +15,10 @@ import {
   formatInvoiceDate,
 } from "@/features/invoices/utils/format-invoice";
 import { formatInvoiceInsuranceLabel } from "@/features/invoices/utils/format-invoice-insurance";
-import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
+import {
+  DetailPageHeaderSection,
+  DetailPageTitle,
+} from "@/features/app-shell/components/page-layout";
 
 type InvoiceDetailHeaderProps = {
   invoice: Invoice;
@@ -47,7 +50,7 @@ export function InvoiceDetailHeader({ invoice, actions }: InvoiceDetailHeaderPro
       <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="truncate text-lg font-semibold text-brand-navy sm:text-xl">
+            <DetailPageTitle>
               {invoice.customer_uuid ? (
                 <Link
                   href={ROUTES.customerDetail(invoice.customer_uuid)}
@@ -58,7 +61,7 @@ export function InvoiceDetailHeader({ invoice, actions }: InvoiceDetailHeaderPro
               ) : (
                 customerName
               )}
-            </h1>
+            </DetailPageTitle>
             <span className="font-mono text-xs font-medium text-brand-slate">
               {invoiceLabel}
             </span>

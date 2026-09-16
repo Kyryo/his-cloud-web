@@ -11,7 +11,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
+import {
+  DetailPageDescription,
+  DetailPageHeaderSection,
+  DetailPageTitle,
+} from "@/features/app-shell/components/page-layout";
 import { PurchaseStatusBadge } from "@/features/inventory/components/InventoryStatusBadge";
 import type { PurchaseOrder } from "@/features/inventory/types/inventory.types";
 import { formatDisplayDateTime } from "@/features/inventory/utils/format-inventory";
@@ -43,15 +47,13 @@ export function PurchaseOrderDetailHeader({
       <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="truncate text-lg font-semibold text-brand-navy sm:text-xl">
-              {order.vendor_name}
-            </h1>
+            <DetailPageTitle>{order.vendor_name}</DetailPageTitle>
             <PurchaseStatusBadge status={order.status} />
           </div>
 
-          <p className="mt-1 font-mono text-sm text-brand-muted">
+          <DetailPageDescription className="font-mono">
             {order.reference_number}
-          </p>
+          </DetailPageDescription>
 
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-brand-muted">
             <span className="inline-flex items-center gap-1.5">

@@ -6,7 +6,10 @@ import type { ReactNode } from "react";
 
 import { UserIdenticon } from "@/components/UserIdenticon";
 import { ROUTES } from "@/constants/routes";
-import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
+import {
+  DetailPageHeaderSection,
+  DetailPageTitle,
+} from "@/features/app-shell/components/page-layout";
 import { PharmacyQueueDispenseStatusBadge } from "@/features/dispensation/components/PharmacyQueueDispenseStatusBadge";
 import type { DispensationQueueDetail } from "@/features/dispensation/types/dispensation.types";
 import { summarizeQueueLines } from "@/features/dispensation/utils/dispensation-qty";
@@ -42,18 +45,18 @@ export function PharmacyQueueDetailHeader({
 
           <div className="min-w-0 flex-1 space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              {customerUuid ? (
-                <Link
-                  href={ROUTES.customerDetail(customerUuid)}
-                  className="truncate text-lg font-bold tracking-tight text-brand-navy hover:text-brand-primary sm:text-2xl"
-                >
-                  {clientName}
-                </Link>
-              ) : (
-                <h1 className="truncate text-lg font-bold tracking-tight text-brand-navy sm:text-2xl">
-                  {clientName}
-                </h1>
-              )}
+              <DetailPageTitle>
+                {customerUuid ? (
+                  <Link
+                    href={ROUTES.customerDetail(customerUuid)}
+                    className="hover:text-brand-primary"
+                  >
+                    {clientName}
+                  </Link>
+                ) : (
+                  clientName
+                )}
+              </DetailPageTitle>
               <span className="font-mono text-sm font-medium text-brand-muted">
                 {orderLabel}
               </span>

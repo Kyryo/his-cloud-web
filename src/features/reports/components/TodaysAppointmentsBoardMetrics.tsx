@@ -3,6 +3,7 @@ import {
   type BoardMetrics,
   type BoardStatusFilter,
 } from "@/features/reports/utils/todays-appointments-board";
+import { PAGE_STAT_VALUE_CLASS } from "@/features/app-shell/components/page-layout";
 import { cn } from "@/lib/utils";
 import { formatCompactNumber } from "@/utils/format-compact-number";
 
@@ -94,7 +95,8 @@ export function TodaysAppointmentsBoardMetrics({
             </span>
             <span
               className={cn(
-                "mt-1 block text-xl font-semibold tabular-nums tracking-tight text-brand-navy sm:text-2xl",
+                PAGE_STAT_VALUE_CLASS,
+                "block",
                 active && "text-brand-primary",
               )}
             >

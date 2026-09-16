@@ -12,6 +12,7 @@ import type { InvoiceDetailTabId } from "@/features/invoices/utils/invoice-detai
 import { RecordPaymentDialog } from "@/features/payments/components/RecordPaymentDialog";
 import {
   DetailPageLayout,
+  DetailPageNotFound,
   DetailPageSkeleton,
 } from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
@@ -73,12 +74,10 @@ export function InvoiceDetailPage({ invoiceId }: InvoiceDetailPageProps) {
 
   if (error || !invoice) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-        <h1 className="text-lg font-semibold text-red-800">Invoice not found</h1>
-        <p className="mt-2 text-sm text-red-700">
-          {error ?? "This invoice could not be loaded."}
-        </p>
-      </div>
+      <DetailPageNotFound
+        title="Invoice not found"
+        message={error ?? "This invoice could not be loaded."}
+      />
     );
   }
 

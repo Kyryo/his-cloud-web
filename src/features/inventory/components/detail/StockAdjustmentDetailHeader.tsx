@@ -11,7 +11,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
+import {
+  DetailPageDescription,
+  DetailPageHeaderSection,
+  DetailPageTitle,
+} from "@/features/app-shell/components/page-layout";
 import { StockAdjustmentStatusBadge } from "@/features/inventory/components/InventoryStatusBadge";
 import { fetchInventoryLocations } from "@/features/inventory/services/inventory.service";
 import type { StockAdjustment } from "@/features/inventory/types/inventory.types";
@@ -66,15 +70,15 @@ export function StockAdjustmentDetailHeader({
       <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="truncate text-lg font-semibold text-brand-navy sm:text-xl">
+            <DetailPageTitle>
               {formatAdjustmentTypeLabel(adjustment.adjustment_type)} · {locationLabel}
-            </h1>
+            </DetailPageTitle>
             <StockAdjustmentStatusBadge status={adjustment.status} />
           </div>
 
-          <p className="mt-1 font-mono text-sm text-brand-muted">
+          <DetailPageDescription className="font-mono">
             {adjustment.reference_number}
-          </p>
+          </DetailPageDescription>
 
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-brand-muted">
             <span className="inline-flex items-center gap-1.5">

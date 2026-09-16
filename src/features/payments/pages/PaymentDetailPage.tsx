@@ -9,6 +9,7 @@ import { fetchPayment } from "@/features/payments/services/payments.service";
 import type { Payment } from "@/features/payments/types/payment.types";
 import {
   DetailPageLayout,
+  DetailPageNotFound,
   DetailPageSkeleton,
 } from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
@@ -62,12 +63,10 @@ export function PaymentDetailPage({ paymentId }: PaymentDetailPageProps) {
 
   if (error || !payment) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-        <h1 className="text-lg font-semibold text-red-800">Payment not found</h1>
-        <p className="mt-2 text-sm text-red-700">
-          {error ?? "This payment could not be loaded."}
-        </p>
-      </div>
+      <DetailPageNotFound
+        title="Payment not found"
+        message={error ?? "This payment could not be loaded."}
+      />
     );
   }
 

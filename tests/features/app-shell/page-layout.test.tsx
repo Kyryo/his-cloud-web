@@ -5,14 +5,17 @@ import {
   DetailPageAsidePanelSection,
   DetailPageHeaderSection,
   DetailPageLayout,
+  DetailPageNotFound,
   DetailPageTabsSection,
   DetailPageTabsNavSection,
+  DetailPageTitle,
   ListPageHeaderSection,
   ListPageHeaderTitleBlock,
   ListPageLayout,
   ListPageStatsSection,
   ListPageTableSection,
   ListPageToolbarSection,
+  PAGE_TITLE_CLASS,
 } from "@/features/app-shell/components/page-layout";
 
 describe("page-layout", () => {
@@ -58,10 +61,40 @@ describe("page-layout", () => {
     const listPage = screen.getByTestId("list-page");
     expect(listPage).toBeInTheDocument();
     expect(listPage).toHaveClass("px-4", "md:px-6", "space-y-3");
-    expect(screen.getByRole("heading", { name: "Clients" })).toBeInTheDocument();
+    const listTitle = screen.getByRole("heading", { name: "Clients" });
+    expect(listTitle).toBeInTheDocument();
+    expect(listTitle).toHaveClass(...PAGE_TITLE_CLASS.split(" "));
     expect(screen.getByText("Subtitle")).toBeInTheDocument();
     expect(screen.getByText("Stats")).toBeInTheDocument();
     expect(screen.getByText("Toolbar")).toBeInTheDocument();
     expect(screen.getByText("Table")).toBeInTheDocument();
+  });
+
+  it("uses the same title size on list and detail pages", () => {
+    render(
+      <>
+        <ListPageHeaderTitleBlock title="List title" />
+        <DetailPageTitle>Detail title</DetailPageTitle>
+      </>,
+    );
+
+    const listTitle = screen.getByRole("heading", { name: "List title" });
+    const detailTitle = screen.getByRole("heading", { name: "Detail title" });
+    const sharedClasses = PAGE_TITLE_CLASS.split(" ");
+
+    expect(listTitle).toHaveClass(...sharedClasses);
+    expect(detailTitle).toHaveClass(...sharedClasses);
+  });
+
+  it("renders not-found titles on the shared page title scale", () => {
+    render(
+      <DetailPageNotFound title="Invoice not found" message="Could not load." />,
+    );
+
+    expect(screen.getByRole("heading", { name: "Invoice not found" })).toHaveClass(
+      "text-xl",
+      "font-semibold",
+      "tracking-tight",
+    );
   });
 });

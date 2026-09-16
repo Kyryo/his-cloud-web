@@ -96,7 +96,7 @@ export function TreatmentPlanDetails({
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-brand-border pb-5">
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <h2 className="text-xl font-semibold text-brand-navy">{plan.title}</h2>
+            <h2 className="text-sm font-semibold text-brand-navy">{plan.title}</h2>
             <Badge variant="outline" className="capitalize">
               {plan.status.replaceAll("_", " ")}
             </Badge>

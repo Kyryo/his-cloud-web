@@ -5,7 +5,10 @@ import type { ReactNode } from "react";
 
 import { UserIdenticon } from "@/components/UserIdenticon";
 import { Badge } from "@/components/ui/badge";
-import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
+import {
+  DetailPageHeaderSection,
+  DetailPageTitle,
+} from "@/features/app-shell/components/page-layout";
 import { OpdEncounterStatusBadge } from "@/features/clinical-opd/components/OpdEncounterStatusBadge";
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
 import { formatOpdEncounterPaymentLabel } from "@/features/clinical-opd/utils/format-opd-encounter-payment";
@@ -50,9 +53,7 @@ export function OpdEncounterHeader({
 
           <div className="min-w-0 flex-1 space-y-2">
             <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-              <h1 className="truncate text-lg font-bold tracking-tight text-brand-navy sm:text-2xl">
-                {fullName}
-              </h1>
+              <DetailPageTitle>{fullName}</DetailPageTitle>
 
               {customer?.customer_identifier ? (
                 <span className="inline-flex items-center rounded-md border border-slate-200/90 bg-slate-50 px-2.5 py-0.5 font-mono text-xs font-semibold text-brand-navy shadow-2xs">

@@ -134,7 +134,7 @@ export function ProductDetailTariffCategoryTab({
         className="w-full space-y-6 rounded-xl border border-brand-border bg-white p-6"
       >
         <div className="space-y-1">
-          <h2 className="text-lg font-semibold text-brand-ink">Tariff category</h2>
+          <h2 className="text-sm font-semibold text-brand-navy">Tariff category</h2>
           <p className="text-sm text-muted-foreground">
             Tag this product with a claims tariff category used by the claims
             advisor. Categories are scoped to your tenant&apos;s insurance

@@ -9,6 +9,7 @@ import {
   sumInvoiceExcess,
   sumInvoiceInsurerDue,
 } from "@/features/invoices/utils/sum-invoice-billing";
+import { PAGE_STAT_VALUE_CLASS } from "@/features/app-shell/components/page-layout";
 import { cn } from "@/lib/utils";
 
 type InvoiceDetailMoneyProps = {
@@ -31,7 +32,7 @@ function MoneyFigure({
       </dt>
       <dd
         className={cn(
-          "mt-1 text-xl font-semibold tracking-tight tabular-nums sm:text-2xl",
+          PAGE_STAT_VALUE_CLASS,
           tone === "danger" && "text-red-600",
           tone === "success" && "text-emerald-700",
           tone === "default" && "text-brand-navy",

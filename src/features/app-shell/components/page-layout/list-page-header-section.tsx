@@ -1,5 +1,9 @@
 import type { ReactNode } from "react";
 
+import {
+  PAGE_DESCRIPTION_CLASS,
+  PAGE_TITLE_CLASS,
+} from "@/features/app-shell/components/page-layout/page-layout-typography";
 import { cn } from "@/lib/utils";
 
 type ListPageHeaderSectionProps = {
@@ -48,11 +52,9 @@ export function ListPageHeaderTitleBlock({
 }: ListPageHeaderTitleBlockProps) {
   return (
     <div className={cn("min-w-0 flex-1", className)}>
-      <h1 className="text-xl font-semibold tracking-tight text-brand-navy">
-        {title}
-      </h1>
+      <h1 className={PAGE_TITLE_CLASS}>{title}</h1>
       {description ? (
-        <p className="mt-0.5 max-w-2xl text-[13px] text-brand-muted">
+        <p className={cn("mt-0.5 max-w-2xl", PAGE_DESCRIPTION_CLASS)}>
           {description}
         </p>
       ) : null}

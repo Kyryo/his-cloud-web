@@ -3,7 +3,11 @@
 import { Calendar } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
+import {
+  DetailPageDescription,
+  DetailPageHeaderSection,
+  DetailPageTitle,
+} from "@/features/app-shell/components/page-layout";
 import type { InventoryMovement } from "@/features/inventory/types/inventory.types";
 import {
   formatDisplayDateTime,
@@ -23,14 +27,14 @@ export function MovementDetailHeader({
     <DetailPageHeaderSection>
       <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-lg font-semibold text-brand-navy sm:text-xl">
+          <DetailPageTitle>
             {formatMovementTypeLabel(movement.movement_type)}
-          </h1>
+          </DetailPageTitle>
 
-          <p className="mt-1 font-mono text-sm text-brand-muted">
+          <DetailPageDescription className="font-mono">
             Product {movement.product_id}
             {movement.batch_number ? ` · Batch ${movement.batch_number}` : ""}
-          </p>
+          </DetailPageDescription>
 
           <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-brand-muted">
             <span className="inline-flex items-center gap-1.5">

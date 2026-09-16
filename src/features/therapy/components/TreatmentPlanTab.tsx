@@ -156,7 +156,7 @@ export function TreatmentPlanTab({
   if (isReadOnly) {
     return (
       <div className="py-12 text-center">
-        <h2 className="text-lg font-semibold text-brand-navy">
+        <h2 className="text-sm font-semibold text-brand-navy">
           Treatment plan unavailable
         </h2>
         <p className="mt-2 text-sm text-brand-muted">
@@ -209,7 +209,7 @@ export function TreatmentPlanTab({
             </p>
           )}
         </section>
-        <h2 className="text-xl font-semibold text-brand-navy">
+        <h2 className="text-sm font-semibold text-brand-navy">
           Add treatment plan
         </h2>
         <p className="mt-1 text-sm text-brand-muted">

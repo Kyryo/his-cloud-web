@@ -64,7 +64,7 @@ export function FutureAppointmentsTab({
 
   return (
     <div>
-      <h2 className="text-lg font-semibold text-brand-navy">
+      <h2 className="text-sm font-semibold text-brand-navy">
         Future Appointments
       </h2>
       <div className="mt-5 divide-y divide-brand-border border-y border-brand-border">

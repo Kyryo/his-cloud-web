@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 
 import {
   DetailPageLayout,
+  DetailPageNotFound,
   DetailPageSkeleton,
   DetailPageTabsSection,
 } from "@/features/app-shell/components/page-layout";
@@ -107,12 +108,10 @@ export function OpdEncounterWorkspacePage({
 
   if (!hasAccess) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-        <h1 className="text-lg font-semibold text-red-800">Access denied</h1>
-        <p className="mt-2 text-sm text-red-700">
-          You do not have access to the clinical module.
-        </p>
-      </div>
+      <DetailPageNotFound
+        title="Access denied"
+        message="You do not have access to the clinical module."
+      />
     );
   }
 
@@ -124,23 +123,20 @@ export function OpdEncounterWorkspacePage({
         : "Your clinical role is not assigned. Ask an administrator to set you as Nurse or Physician in Settings → EMR → Providers.";
 
     return (
-      <div className="rounded-xl border border-amber-200 bg-amber-50 p-6">
-        <h1 className="text-lg font-semibold text-amber-900">
-          No workspace tabs available
-        </h1>
-        <p className="mt-2 text-sm text-amber-800">{roleMessage}</p>
-      </div>
+      <DetailPageNotFound
+        tone="warning"
+        title="No workspace tabs available"
+        message={roleMessage}
+      />
     );
   }
 
   if (!encounter) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-        <h1 className="text-lg font-semibold text-red-800">Encounter not found</h1>
-        <p className="mt-2 text-sm text-red-700">
-          This OPD encounter could not be loaded from the queue.
-        </p>
-      </div>
+      <DetailPageNotFound
+        title="Encounter not found"
+        message="This OPD encounter could not be loaded from the queue."
+      />
     );
   }
 

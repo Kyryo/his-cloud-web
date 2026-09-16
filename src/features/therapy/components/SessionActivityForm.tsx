@@ -157,7 +157,7 @@ export function SessionActivityForm({
               <ArrowLeft className="size-4" aria-hidden="true" />
               Back to activities
             </Button>
-            <h2 className="text-xl font-semibold text-brand-navy">
+            <h2 className="text-sm font-semibold text-brand-navy">
               {activity ? "Edit activity" : "New activity"}
             </h2>
           </div>

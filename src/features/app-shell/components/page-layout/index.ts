@@ -1,6 +1,18 @@
 export { DetailPageLayout } from "@/features/app-shell/components/page-layout/detail-page-layout";
 export { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout/detail-page-header-section";
 export {
+  DetailPageDescription,
+  DetailPageNotFound,
+  DetailPageTitle,
+} from "@/features/app-shell/components/page-layout/detail-page-title";
+export {
+  PAGE_DESCRIPTION_CLASS,
+  PAGE_SECTION_TITLE_CLASS,
+  PAGE_STAT_LABEL_CLASS,
+  PAGE_STAT_VALUE_CLASS,
+  PAGE_TITLE_CLASS,
+} from "@/features/app-shell/components/page-layout/page-layout-typography";
+export {
   DetailPageMainAsideGrid,
   DetailPageMainSection,
   DetailPageTabNavItem,

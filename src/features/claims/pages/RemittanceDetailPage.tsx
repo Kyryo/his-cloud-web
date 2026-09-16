@@ -10,6 +10,7 @@ import {
   DetailPageHeaderSection,
   DetailPageLayout,
   DetailPageMainSection,
+  DetailPageNotFound,
   ListPageDataSectionsStack,
   ListPagePagination,
   ListPageStatsSection,
@@ -324,11 +325,10 @@ export function RemittanceDetailPage() {
 
   if (!batch) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-        <h1 className="text-lg font-semibold text-red-800">Remittance not found</h1>
-        <p className="mt-2 text-sm text-red-700">
-          {error ?? "This remittance could not be loaded."}
-        </p>
+      <DetailPageNotFound
+        title="Remittance not found"
+        message={error ?? "This remittance could not be loaded."}
+      >
         <Button
           type="button"
           variant="outline"
@@ -337,7 +337,7 @@ export function RemittanceDetailPage() {
         >
           Back to remittances
         </Button>
-      </div>
+      </DetailPageNotFound>
     );
   }
 

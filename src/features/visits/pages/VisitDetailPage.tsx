@@ -9,8 +9,10 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
+  DetailPageDescription,
   DetailPageHeaderSection,
   DetailPageLayout,
+  DetailPageTitle,
   DetailPageMainSection,
   DetailPageTabsNavSection,
   DetailPageTabNavItem,
@@ -186,11 +188,11 @@ export function VisitDetailPage({ visitUuid }: VisitDetailPageProps) {
       <DetailPageHeaderSection>
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-sm text-brand-muted">Visit</p>
-            <h1 className="text-2xl font-semibold text-brand-navy">{visit.customer_name}</h1>
-            <p className="mt-1 text-sm text-brand-muted">
+            <p className="text-[13px] text-brand-muted">Visit</p>
+            <DetailPageTitle className="whitespace-normal">{visit.customer_name}</DetailPageTitle>
+            <DetailPageDescription>
               {visit.customer_identifier} · {formatDisplayDateTime(visit.visit_date)}
-            </p>
+            </DetailPageDescription>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <CustomerVisitStatusBadge status={visit.status} />

@@ -52,9 +52,9 @@ export function SettingsSection({
       )}
     >
       <div className="space-y-1">
-        <h3 className="text-base font-semibold text-brand-navy">{title}</h3>
+        <h3 className="text-sm font-semibold text-brand-navy">{title}</h3>
         {description ? (
-          <p className="text-sm text-slate-400">{description}</p>
+          <p className="text-[13px] text-slate-400">{description}</p>
         ) : null}
       </div>
       <div className={cn(!flush && "space-y-5")}>{children}</div>
@@ -207,9 +207,9 @@ export function SettingsPanelSection({
     >
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-1">
-          <h3 className="text-base font-semibold text-brand-navy">{title}</h3>
+          <h3 className="text-sm font-semibold text-brand-navy">{title}</h3>
           {description ? (
-            <p className="text-sm text-slate-400">{description}</p>
+            <p className="text-[13px] text-slate-400">{description}</p>
           ) : null}
         </div>
         {action}

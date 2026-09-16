@@ -59,7 +59,7 @@ export function OpdEncounterVitalsStatsStrip({
                 {stat.label}
               </dt>
             </div>
-            <dd className="mt-1 text-lg font-bold tracking-tight text-brand-navy tabular-nums sm:text-xl">
+            <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
               {stat.value ?? "—"}
             </dd>
           </div>

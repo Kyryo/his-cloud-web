@@ -165,7 +165,7 @@ export function SessionActivityTab({
     <div>
       <header className="flex flex-wrap items-start justify-between gap-4 border-b border-brand-border pb-5">
         <div>
-          <h2 className="text-xl font-semibold text-brand-navy">
+          <h2 className="text-sm font-semibold text-brand-navy">
             Session activity
           </h2>
           <p className="mt-1 text-sm text-brand-muted">

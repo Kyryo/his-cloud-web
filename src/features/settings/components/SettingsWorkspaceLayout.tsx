@@ -46,7 +46,7 @@ export function SettingsWorkspaceLayout({ children }: SettingsWorkspaceLayoutPro
     <div className="absolute inset-0 flex w-full flex-col overflow-hidden">
       <header className="shrink-0 border-b border-brand-border px-5 py-4 md:px-8">
         <Breadcrumb>
-          <BreadcrumbList className="text-[15px] text-slate-400 sm:gap-1.5">
+          <BreadcrumbList className="text-[13px] text-slate-400 sm:gap-1.5">
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
                 <Link

@@ -156,7 +156,7 @@ function SummaryMetricCard({
       {isLoading ? (
         <Skeleton className="mt-2 h-8 w-16" />
       ) : (
-        <p className="mt-1 text-2xl font-semibold text-brand-navy">{value}</p>
+        <p className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">{value}</p>
       )}
     </div>
   );
@@ -210,7 +210,7 @@ function FirstValueMetric({
         <p className="mt-1 text-sm text-brand-muted">Target not reached yet</p>
       ) : (
         <>
-          <p className="mt-1 text-2xl font-semibold text-brand-navy">{days} days</p>
+          <p className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">{days} days</p>
           {reachedAt ? (
             <p className="mt-1 text-xs text-brand-muted">Reached {reachedAt}</p>
           ) : null}

@@ -5,6 +5,7 @@ import {
   DetailPageAsidePanelSection,
   DetailPageAsideSummaryField,
   DetailPageAsideSummarySection,
+  PAGE_STAT_VALUE_CLASS,
 } from "@/features/app-shell/components/page-layout";
 import { PharmacyQueueDispenseStatusBadge } from "@/features/dispensation/components/PharmacyQueueDispenseStatusBadge";
 import { PharmacyQueueLineProgress } from "@/features/dispensation/components/PharmacyQueueLineProgress";
@@ -41,7 +42,7 @@ export function PharmacyQueueSummaryPanel({
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs text-dash-muted">Remaining</p>
-          <p className="mt-1 text-3xl font-semibold tracking-tight tabular-nums text-brand-navy">
+          <p className={PAGE_STAT_VALUE_CLASS}>
             {formatDispensationQuantity(summary.remainingQuantity)}
           </p>
           <p className="mt-1 text-xs text-brand-muted">

@@ -6,7 +6,7 @@ import {
   PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS,
   PageLoader,
 } from "@/components/page-loader";
-import { DetailPageLayout } from "@/features/app-shell/components/page-layout";
+import { DetailPageLayout, DetailPageNotFound } from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
 import { SubmitClaimDialog } from "@/features/claims/components/SubmitClaimDialog";
 import { ClaimDetailActions } from "@/features/claims/components/detail/ClaimDetailActions";
@@ -71,12 +71,10 @@ export function ClaimDetailPage({ claimId }: ClaimDetailPageProps) {
 
   if (error || !claim) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-        <h1 className="text-lg font-semibold text-red-800">Claim not found</h1>
-        <p className="mt-2 text-sm text-red-700">
-          {error ?? "This claim could not be loaded."}
-        </p>
-      </div>
+      <DetailPageNotFound
+        title="Claim not found"
+        message={error ?? "This claim could not be loaded."}
+      />
     );
   }
 

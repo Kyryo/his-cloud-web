@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { PAGE_SECTION_TITLE_CLASS } from "@/features/app-shell/components/page-layout/page-layout-typography";
 import { cn } from "@/lib/utils";
 
 type DetailPageAsidePanelHeaderProps = {
@@ -16,7 +17,7 @@ export function DetailPageAsidePanelHeader({
   return (
     <div className="flex items-start justify-between gap-2">
       <div className="min-w-0">
-        <h2 className="text-sm font-semibold text-brand-navy">{title}</h2>
+        <h2 className={PAGE_SECTION_TITLE_CLASS}>{title}</h2>
         {description ? (
           <p className="mt-0.5 text-xs text-brand-muted">{description}</p>
         ) : null}

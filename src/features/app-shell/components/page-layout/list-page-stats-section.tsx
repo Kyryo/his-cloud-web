@@ -1,5 +1,9 @@
 import type { ReactNode } from "react";
 
+import {
+  PAGE_STAT_LABEL_CLASS,
+  PAGE_STAT_VALUE_CLASS,
+} from "@/features/app-shell/components/page-layout/page-layout-typography";
 import { cn } from "@/lib/utils";
 
 /** Hairline insight strip used on list pages. No cards, no extra padding. */
@@ -8,11 +12,9 @@ export const LIST_PAGE_INSIGHT_STRIP_CLASS =
 
 export const LIST_PAGE_INSIGHT_CELL_CLASS = "p-3";
 
-export const LIST_PAGE_INSIGHT_LABEL_CLASS =
-  "text-[11px] font-medium uppercase tracking-[0.08em] text-dash-muted";
+export const LIST_PAGE_INSIGHT_LABEL_CLASS = PAGE_STAT_LABEL_CLASS;
 
-export const LIST_PAGE_INSIGHT_VALUE_CLASS =
-  "mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums";
+export const LIST_PAGE_INSIGHT_VALUE_CLASS = PAGE_STAT_VALUE_CLASS;
 
 type ListPageStatsSectionProps = {
   children: ReactNode;

@@ -13,6 +13,7 @@ import {
   DetailPageLayout,
   DetailPageMainAsideGrid,
   DetailPageMainSection,
+  DetailPageNotFound,
   DetailPageTabsSection,
 } from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
@@ -152,12 +153,10 @@ export function CustomerDetailPage({
 
   if (error || !customer) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-        <h1 className="text-lg font-semibold text-red-800">Client not found</h1>
-        <p className="mt-2 text-sm text-red-700">
-          {error ?? "This client record could not be loaded."}
-        </p>
-      </div>
+      <DetailPageNotFound
+        title="Client not found"
+        message={error ?? "This client record could not be loaded."}
+      />
     );
   }
 

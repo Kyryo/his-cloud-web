@@ -9,6 +9,10 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatusBanner } from "@/components/ui/status-banner";
 import {
+  ListPageHeaderActions,
+  ListPageHeaderSection,
+  ListPageHeaderTitleBlock,
+  ListPageHeaderTopRow,
   ListPageLayout,
   ListPagePagination,
 } from "@/features/app-shell/components/page-layout";
@@ -82,27 +86,27 @@ export function NotificationsInboxPage() {
       className="max-w-3xl"
       data-testid="notifications-inbox-page"
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0">
-          <h1 className="text-lg font-semibold text-brand-navy">
-            Notifications
-          </h1>
-          <p className="mt-1 text-sm text-brand-muted">
-            Updates for claims and other work at your clinic.
-          </p>
-        </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-8 shrink-0 text-brand-slate hover:text-brand-navy"
-          disabled={isLoading || isRefreshing || isMarkingAll || !hasUnread}
-          onClick={() => void handleMarkAllRead()}
-          data-testid="inbox-mark-all-read"
-        >
-          Mark all as read
-        </Button>
-      </div>
+      <ListPageHeaderSection>
+      <ListPageHeaderTopRow>
+        <ListPageHeaderTitleBlock
+          title="Notifications"
+          description="Updates for claims and other work at your clinic."
+        />
+        <ListPageHeaderActions>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 shrink-0 text-brand-slate hover:text-brand-navy"
+            disabled={isLoading || isRefreshing || isMarkingAll || !hasUnread}
+            onClick={() => void handleMarkAllRead()}
+            data-testid="inbox-mark-all-read"
+          >
+            Mark all as read
+          </Button>
+        </ListPageHeaderActions>
+      </ListPageHeaderTopRow>
+      </ListPageHeaderSection>
 
       <div className="pt-2">
         {isLoading ? (

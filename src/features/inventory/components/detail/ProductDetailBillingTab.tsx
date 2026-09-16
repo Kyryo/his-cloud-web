@@ -86,7 +86,7 @@ export function ProductDetailBillingTab({
         className="w-full space-y-6 rounded-xl border border-brand-border bg-white p-6"
       >
         <div className="space-y-1">
-          <h2 className="text-lg font-semibold text-brand-ink">Charge occurrences</h2>
+          <h2 className="text-sm font-semibold text-brand-navy">Charge occurrences</h2>
           <p className="text-sm text-muted-foreground">
             Configure how many separate sales order line items are created when this
             product is ordered.

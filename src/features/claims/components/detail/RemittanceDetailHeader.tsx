@@ -6,7 +6,10 @@ import type { ReactNode } from "react";
 import { RemittanceBatchStatusBadge } from "@/features/claims/components/RemittanceBatchStatusBadge";
 import type { RemittanceBatchDetail } from "@/features/claims/types/remittances.types";
 import { remittanceDisplayName } from "@/features/claims/utils/remittance-display";
-import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
+import {
+  DetailPageHeaderSection,
+  DetailPageTitle,
+} from "@/features/app-shell/components/page-layout";
 import { formatDisplayDate } from "@/features/customers/utils/format-customer";
 
 type RemittanceDetailHeaderProps = {
@@ -35,9 +38,7 @@ export function RemittanceDetailHeader({
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="truncate text-lg font-semibold text-brand-navy sm:text-xl">
-                {title}
-              </h1>
+              <DetailPageTitle>{title}</DetailPageTitle>
               <RemittanceBatchStatusBadge status={batch.status} />
             </div>
 

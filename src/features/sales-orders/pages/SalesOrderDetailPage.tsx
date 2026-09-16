@@ -9,6 +9,7 @@ import { fetchSalesOrder } from "@/features/sales-orders/services/sales-orders.s
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
 import {
   DetailPageLayout,
+  DetailPageNotFound,
   DetailPageSkeleton,
 } from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
@@ -50,12 +51,10 @@ export function SalesOrderDetailPage({ orderId }: SalesOrderDetailPageProps) {
 
   if (error || !order) {
     return (
-      <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-        <h1 className="text-lg font-semibold text-red-800">Sales order not found</h1>
-        <p className="mt-2 text-sm text-red-700">
-          {error ?? "This sales order could not be loaded."}
-        </p>
-      </div>
+      <DetailPageNotFound
+        title="Sales order not found"
+        message={error ?? "This sales order could not be loaded."}
+      />
     );
   }
 

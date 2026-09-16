@@ -147,7 +147,7 @@ export function SessionsTab({
     <div>
       <header className="flex flex-wrap items-start justify-between gap-4 border-b border-brand-border pb-5">
         <div>
-          <h2 className="text-xl font-semibold text-brand-navy">Sessions</h2>
+          <h2 className="text-sm font-semibold text-brand-navy">Sessions</h2>
           <p className="mt-1 text-sm text-brand-muted">
             Review and manage treatment sessions recorded for this visit.
           </p>

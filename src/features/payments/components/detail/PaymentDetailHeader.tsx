@@ -6,7 +6,10 @@ import type { ReactNode } from "react";
 import { AppIcon } from "@/components/icons/app-icon";
 import { Badge } from "@/components/ui/badge";
 import { ROUTES } from "@/constants/routes";
-import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
+import {
+  DetailPageHeaderSection,
+  DetailPageTitle,
+} from "@/features/app-shell/components/page-layout";
 import { PaymentStatusBadge } from "@/features/payments/components/PaymentStatusBadge";
 import type { Payment } from "@/features/payments/types/payment.types";
 import {
@@ -30,7 +33,7 @@ export function PaymentDetailHeader({ payment, actions }: PaymentDetailHeaderPro
       <div className="flex flex-wrap items-start justify-between gap-3 sm:gap-4">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2.5">
-            <h1 className="truncate text-lg font-semibold text-brand-navy sm:text-xl">
+            <DetailPageTitle>
               {payment.customer_uuid ? (
                 <Link
                   href={ROUTES.customerDetail(payment.customer_uuid)}
@@ -41,7 +44,7 @@ export function PaymentDetailHeader({ payment, actions }: PaymentDetailHeaderPro
               ) : (
                 customerName
               )}
-            </h1>
+            </DetailPageTitle>
             <span className="font-mono text-xs font-medium text-brand-slate">
               {paymentLabel}
             </span>

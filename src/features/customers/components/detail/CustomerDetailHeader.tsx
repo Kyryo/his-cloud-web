@@ -5,7 +5,10 @@ import type { ReactNode } from "react";
 
 import { UserIdenticon } from "@/components/UserIdenticon";
 import { Badge } from "@/components/ui/badge";
-import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
+import {
+  DetailPageHeaderSection,
+  DetailPageTitle,
+} from "@/features/app-shell/components/page-layout";
 import type { Customer } from "@/features/customers/types/customer.types";
 import { isCustomerVisitActive } from "@/features/customers/utils/customer-visit-status";
 import {
@@ -47,9 +50,7 @@ export function CustomerDetailHeader({
           <div className="min-w-0 flex-1 space-y-2">
             {/* Top Row: Name, ID, Badges */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-              <h1 className="truncate text-base font-semibold tracking-tight text-brand-navy sm:text-xl">
-                {fullName}
-              </h1>
+              <DetailPageTitle>{fullName}</DetailPageTitle>
 
               <span className="inline-flex items-center rounded-md border border-slate-200/90 bg-slate-50 px-2.5 py-0.5 font-mono text-xs font-semibold text-brand-navy shadow-2xs">
                 {customer.customer_identifier}
