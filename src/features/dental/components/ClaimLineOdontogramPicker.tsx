@@ -19,7 +19,6 @@ import {
   filterTeethForDentition,
   fromChartFdi,
   getFdiToothNumbersForDentition,
-  getPermanentFdiToothNumbers,
   inferDentitionMode,
   isPermanentFdi,
   isPrimaryFdi,

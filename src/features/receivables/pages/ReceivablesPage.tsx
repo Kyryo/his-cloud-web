@@ -23,7 +23,9 @@ import {
 } from "@/features/receivables/services/receivables.service";
 import type {
   ReceivablesDebtor,
+  ReceivablesDebtorListResponse,
   ReceivablesInvoice,
+  ReceivablesInvoiceListResponse,
   ReceivablesSummaryStats,
 } from "@/features/receivables/types/receivables.types";
 import {
@@ -112,10 +114,21 @@ export function ReceivablesPage() {
       throw listResult.reason;
     }
 
+    const stats =
+      summaryResult.status === "fulfilled" ? summaryResult.value : null;
+
+    if (view === "invoices") {
+      return {
+        view: "invoices" as const,
+        list: listResult.value as ReceivablesInvoiceListResponse,
+        stats,
+      };
+    }
+
     return {
-      list: listResult.value,
-      stats:
-        summaryResult.status === "fulfilled" ? summaryResult.value : null,
+      view: "debtors" as const,
+      list: listResult.value as ReceivablesDebtorListResponse,
+      stats,
     };
   }, [listFilters, view]);
 
@@ -129,16 +142,16 @@ export function ReceivablesPage() {
           return;
         }
 
-        if (view === "invoices") {
-          setInvoices(
-            "results" in result.list ? result.list.results : [],
-          );
+        if (result.view === "invoices") {
+          setInvoices(result.list.results);
         } else {
-          setDebtors("results" in result.list ? result.list.results : []);
+          setDebtors(result.list.results);
         }
-        setTotalCount(result.list.pagination?.count ?? result.list.results.length);
+        setTotalCount(
+          result.list.pagination?.count ?? result.list.results.length,
+        );
         setStats(result.stats);
-        setLoadedView(view);
+        setLoadedView(result.view);
         setError(null);
       } catch (loadError) {
         if (cancelled) {
@@ -161,7 +174,7 @@ export function ReceivablesPage() {
     return () => {
       cancelled = true;
     };
-  }, [load, reloadNonce, view]);
+  }, [load, reloadNonce]);
 
   const handleSearchSubmit = useCallback(() => {
     const nextQuery = search.trim();

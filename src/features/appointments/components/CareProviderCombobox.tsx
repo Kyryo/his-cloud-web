@@ -75,10 +75,10 @@ export function CareProviderCombobox({
   }, [displayName, options, value]);
 
   useEffect(() => {
-    const clinic = clinicUuid;
-    if (!clinic) {
+    if (!clinicUuid) {
       return;
     }
+    const clinic: string = clinicUuid;
 
     let cancelled = false;
 
