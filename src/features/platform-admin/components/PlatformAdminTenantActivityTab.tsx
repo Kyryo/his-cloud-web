@@ -52,7 +52,10 @@ export function PlatformAdminTenantActivityTab({
 }: {
   tenantUuid: string;
 }) {
-  const [filters, setFilters] = useState<PlatformAdminUsageFilters>(defaultUsageFilters);
+  const [filters, setFilters] = useState<PlatformAdminUsageFilters>(() => ({
+    ...defaultUsageFilters(),
+    sections: ["activity"],
+  }));
   const [usage, setUsage] = useState<PlatformAdminUsageResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

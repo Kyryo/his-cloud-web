@@ -200,10 +200,17 @@ export type PlatformAdminAuditEvent = {
 
 export type PlatformAdminUsagePeriod = "day" | "week" | "month";
 
+export type PlatformAdminUsageSection =
+  | "overview"
+  | "product"
+  | "activity";
+
 export type PlatformAdminUsageFilters = {
   dateFrom: string;
   dateTo: string;
   period?: PlatformAdminUsagePeriod;
+  /** Limit expensive analytics work. Omit for full payload. */
+  sections?: PlatformAdminUsageSection[];
 };
 
 export type PlatformAdminUsageSeriesPoint = {

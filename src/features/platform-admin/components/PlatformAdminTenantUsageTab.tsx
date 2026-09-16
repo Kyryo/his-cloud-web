@@ -37,7 +37,10 @@ export function PlatformAdminTenantUsageTab({ tenantUuid }: { tenantUuid: string
       try {
         const data = await fetchPlatformAdminTenantUsage(
           tenantUuid,
-          defaultUsageFilters(),
+          {
+            ...defaultUsageFilters(),
+            sections: ["overview"],
+          },
         );
         if (!cancelled) {
           setUsage(data);

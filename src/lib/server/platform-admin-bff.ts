@@ -20,6 +20,7 @@ const DEFAULT_QUERY_KEYS = [
   "date_from",
   "date_to",
   "period",
+  "sections",
   "delivery_status",
   "type",
   "target",
