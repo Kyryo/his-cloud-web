@@ -18,7 +18,7 @@ afterEach(() => {
 });
 
 describe("ClaimLineOdontogramPicker dentition toggle", () => {
-  it("renders Adult / Children toggle and defaults to Adult", () => {
+  it("renders Permanent / Primary toggle and defaults to Permanent", () => {
     render(
       <ClaimLineOdontogramPicker
         value={[11]}
@@ -32,6 +32,12 @@ describe("ClaimLineOdontogramPicker dentition toggle", () => {
     expect(
       screen.getByTestId("claim-odontogram-dentition-toggle"),
     ).toBeInTheDocument();
+    expect(screen.getByTestId("claim-odontogram-dentition-adult")).toHaveTextContent(
+      "Permanent",
+    );
+    expect(
+      screen.getByTestId("claim-odontogram-dentition-children"),
+    ).toHaveTextContent("Primary / Deciduous");
     expect(screen.getByTestId("claim-odontogram-dentition-adult")).toHaveAttribute(
       "aria-pressed",
       "true",
@@ -41,7 +47,7 @@ describe("ClaimLineOdontogramPicker dentition toggle", () => {
     ).toHaveAttribute("aria-pressed", "false");
   });
 
-  it("infers Children mode when only primary teeth are selected", () => {
+  it("infers Primary mode when only primary teeth are selected", () => {
     render(
       <ClaimLineOdontogramPicker
         value={[51, 61]}
@@ -57,7 +63,7 @@ describe("ClaimLineOdontogramPicker dentition toggle", () => {
     ).toHaveAttribute("aria-pressed", "true");
   });
 
-  it("passes primary FDI numbers when selecting all in Children mode", () => {
+  it("passes primary FDI numbers when selecting all in Primary mode", () => {
     const onSelectAll = vi.fn();
     render(
       <ClaimLineOdontogramPicker
@@ -87,6 +93,6 @@ describe("ClaimLineOdontogramPicker dentition toggle", () => {
 
     expect(
       screen.getByTestId("claim-odontogram-other-dentition-note"),
-    ).toHaveTextContent("1 children tooth also selected");
+    ).toHaveTextContent("1 primary tooth also selected");
   });
 });

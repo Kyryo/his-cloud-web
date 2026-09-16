@@ -311,7 +311,7 @@ export function Navigation() {
               href={appHref(ROUTES.auth)}
               className="landing-focus inline-flex min-h-10 items-center justify-center rounded-full px-4 py-2 text-sm font-semibold text-[color:var(--landing-ledger-ink)] transition-colors hover:bg-[color:var(--landing-warm)] hover:text-[color:var(--landing-ink)]"
             >
-              Sign In
+              Sign in
             </Link>
             <Link
               href={appHref(ROUTES.signup)}

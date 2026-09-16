@@ -137,7 +137,7 @@ export function NavUser() {
               }}
             >
               <AppIcon name="logout" size={16} />
-              <span>Log out</span>
+              <span>Sign out</span>
             </button>
           </PopoverContent>
         </Popover>

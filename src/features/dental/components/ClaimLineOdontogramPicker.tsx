@@ -63,8 +63,8 @@ const DENTITION_OPTIONS: Array<{
   value: DentitionMode;
   label: string;
 }> = [
-  { value: "adult", label: "Adult" },
-  { value: "children", label: "Children" },
+  { value: "adult", label: "Permanent" },
+  { value: "children", label: "Primary / Deciduous" },
 ];
 
 const BRAND_ODONTOGRAM_COLORS = {
@@ -201,8 +201,8 @@ export function ClaimLineOdontogramPicker({
     otherDentitionTeeth.length === 0
       ? null
       : dentitionMode === "adult"
-        ? `${otherDentitionTeeth.length} children ${otherDentitionTeeth.length === 1 ? "tooth" : "teeth"} also selected`
-        : `${otherDentitionTeeth.length} adult ${otherDentitionTeeth.length === 1 ? "tooth" : "teeth"} also selected`;
+        ? `${otherDentitionTeeth.length} primary ${otherDentitionTeeth.length === 1 ? "tooth" : "teeth"} also selected`
+        : `${otherDentitionTeeth.length} permanent ${otherDentitionTeeth.length === 1 ? "tooth" : "teeth"} also selected`;
 
   return (
     <div
