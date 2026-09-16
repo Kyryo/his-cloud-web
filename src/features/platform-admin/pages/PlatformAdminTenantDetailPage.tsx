@@ -21,7 +21,9 @@ import {
   ListPageDataTableHeaderRow,
   ListPageDataTableRow,
 } from "@/features/app-shell/components/page-layout";
+import { PlatformAdminTenantActivityTab } from "@/features/platform-admin/components/PlatformAdminTenantActivityTab";
 import { PlatformAdminTenantModulesTab } from "@/features/platform-admin/components/PlatformAdminTenantModulesTab";
+import { PlatformAdminTenantProductMetricsTab } from "@/features/platform-admin/components/PlatformAdminTenantProductMetricsTab";
 import { PlatformAdminTenantUsageTab } from "@/features/platform-admin/components/PlatformAdminTenantUsageTab";
 import { PlatformAdminTenantWebhooksTab } from "@/features/platform-admin/components/PlatformAdminTenantWebhooksTab";
 import { PlatformAdminStatusBadge } from "@/features/platform-admin/components/PlatformAdminStatusBadge";
@@ -54,6 +56,8 @@ import { cn } from "@/lib/utils";
 
 type TenantDetailTab =
   | "usage"
+  | "product-metrics"
+  | "activity"
   | "profile"
   | "structure"
   | "users"
@@ -286,6 +290,12 @@ export function PlatformAdminTenantDetailPage({
         {activeTab === "usage" ? (
           <PlatformAdminTenantUsageTab tenantUuid={tenantUuid} />
         ) : null}
+        {activeTab === "product-metrics" ? (
+          <PlatformAdminTenantProductMetricsTab tenantUuid={tenantUuid} />
+        ) : null}
+        {activeTab === "activity" ? (
+          <PlatformAdminTenantActivityTab tenantUuid={tenantUuid} />
+        ) : null}
         {activeTab === "profile" ? <ProfileTab tenant={tenant} /> : null}
         {activeTab === "structure" ? (
           <StructureTab
@@ -339,6 +349,8 @@ export function PlatformAdminTenantDetailPage({
 
 const TABS: Array<{ id: TenantDetailTab; label: string }> = [
   { id: "usage", label: "Usage" },
+  { id: "product-metrics", label: "Product metrics" },
+  { id: "activity", label: "Activity" },
   { id: "profile", label: "Profile" },
   { id: "structure", label: "Structure" },
   { id: "users", label: "Users" },
