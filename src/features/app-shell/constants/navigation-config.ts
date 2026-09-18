@@ -217,10 +217,10 @@ export const navigation: NavigationItem[] = [
   },
   {
     name: "Laboratory",
-    href: "/lab-orders",
+    href: ROUTES.labOrders,
     icon: "flask",
     requiredGroup: "Lab",
-    enabledInWebNew: false,
+    enabledInWebNew: true,
   },
   {
     name: "OPD Queue",

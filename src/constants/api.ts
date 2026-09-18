@@ -82,6 +82,24 @@ export const BFF_CUSTOMERS_ROUTES = {
   },
 } as const;
 
+/** Browser-facing BFF laboratory routes (same origin). */
+export const BFF_LABORATORY_ROUTES = {
+  orders: "/api/laboratory/orders",
+  order: (uuid: string) => `/api/laboratory/orders/${uuid}`,
+  cancel: (uuid: string) => `/api/laboratory/orders/${uuid}/cancel`,
+  specimens: (uuid: string) => `/api/laboratory/orders/${uuid}/specimens`,
+  accession: (uuid: string) => `/api/laboratory/orders/${uuid}/accession`,
+  report: (uuid: string) => `/api/laboratory/orders/${uuid}/report`,
+  reportPdf: (uuid: string) => `/api/laboratory/orders/${uuid}/report.pdf`,
+  orderItemResults: (uuid: string) => `/api/laboratory/order-items/${uuid}/results`,
+  verify: (uuid: string) => `/api/laboratory/order-items/${uuid}/results/verify`,
+  release: (uuid: string) => `/api/laboratory/order-items/${uuid}/results/release`,
+  reject: (uuid: string) => `/api/laboratory/order-items/${uuid}/results/reject`,
+  specimenReject: (uuid: string) => `/api/laboratory/specimens/${uuid}/reject`,
+  worklist: (queue: string) => `/api/laboratory/worklists/${queue}`,
+  specimenTypes: "/api/laboratory/specimen-types",
+} as const;
+
 /** Browser-facing BFF visit routes (same origin). */
 export const BFF_VISITS_ROUTES = {
   list: "/api/visits",

@@ -33,6 +33,12 @@ export const ROUTES = {
     tab && tab !== "summary"
       ? `/customers/${customerId}/${tab}`
       : `/customers/${customerId}`,
+  labOrders: "/lab-orders",
+  labOrderDetail: (uuid: string) => `/lab-orders/${uuid}`,
+  labOrderDetailTab: (uuid: string, tab?: string) =>
+    tab && tab !== "overview"
+      ? `/lab-orders/${uuid}/${tab}`
+      : `/lab-orders/${uuid}`,
   salesOrders: "/sales-orders",
   salesOrderDetail: (orderId: number | string) => `/sales-orders/${orderId}`,
   invoices: "/invoices",
@@ -156,6 +162,7 @@ export const WEB_NEW_ROUTE_PREFIXES = [
   ROUTES.platformAdmin,
   ROUTES.overview,
   ROUTES.customers,
+  ROUTES.labOrders,
   ROUTES.salesOrders,
   ROUTES.invoices,
   ROUTES.receivables,
@@ -220,6 +227,7 @@ export const APP_ROUTE_PREFIXES = [
   ROUTES.platformAdmin,
   ROUTES.overview,
   ROUTES.customers,
+  ROUTES.labOrders,
   ROUTES.salesOrders,
   ROUTES.invoices,
   ROUTES.receivables,
@@ -261,6 +269,7 @@ export const PROTECTED_ROUTES = [
   ROUTES.platformAdmin,
   ROUTES.overview,
   ROUTES.customers,
+  ROUTES.labOrders,
   ROUTES.salesOrders,
   ROUTES.invoices,
   ROUTES.receivables,
