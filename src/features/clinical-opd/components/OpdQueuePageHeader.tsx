@@ -50,7 +50,6 @@ export function OpdQueuePageHeader({
               className="hidden gap-1.5 rounded-lg border-dash-border text-xs text-brand-slate hover:border-emerald-300 hover:text-emerald-700 sm:inline-flex"
             >
               <Link href={ROUTES.activeVisits}>
-                <span className="size-1.5 animate-pulse rounded-full bg-emerald-500" />
                 <AppIcon name="heartPulse" className="size-3.5 text-emerald-600" />
                 <span>Active Queue</span>
               </Link>

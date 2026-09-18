@@ -31,6 +31,7 @@ type EncounterDiagnosisPanelProps = {
   encounterUuid: string | null;
   sourcePlatform?: EncounterDiagnosisSourcePlatform;
   onDiagnosesChanged?: () => void | Promise<void>;
+  readOnly?: boolean;
   className?: string;
 };
 
@@ -39,6 +40,7 @@ export function EncounterDiagnosisPanel({
   encounterUuid,
   sourcePlatform = "CLINICAL",
   onDiagnosesChanged,
+  readOnly = false,
   className,
 }: EncounterDiagnosisPanelProps) {
   const { toast } = useToast();
@@ -168,10 +170,12 @@ export function EncounterDiagnosisPanel({
           <Stethoscope className="size-4 text-brand-muted" aria-hidden="true" />
           <h3 className="text-sm font-medium text-brand-navy">Encounter diagnoses</h3>
         </div>
-        <PrimaryButton type="button" onClick={() => setAddDialogOpen(true)}>
-          <Plus className="size-4" aria-hidden="true" />
-          Add diagnosis
-        </PrimaryButton>
+        {readOnly ? null : (
+          <PrimaryButton type="button" onClick={() => setAddDialogOpen(true)}>
+            <Plus className="size-4" aria-hidden="true" />
+            Add diagnosis
+          </PrimaryButton>
+        )}
       </div>
 
       {isLoading ? (
@@ -197,28 +201,30 @@ export function EncounterDiagnosisPanel({
                 </p>
                 <p className="text-sm text-brand-muted">{diagnosis.description || "—"}</p>
               </div>
-              <div className="flex shrink-0 items-center gap-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 text-brand-muted"
-                  aria-label={`Edit diagnosis ${diagnosis.code}`}
-                  onClick={() => setEditingDiagnosis(diagnosis)}
-                >
-                  <Pencil className="size-4" aria-hidden="true" />
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 text-brand-muted hover:text-red-700"
-                  aria-label={`Delete diagnosis ${diagnosis.code}`}
-                  onClick={() => setDeletingDiagnosis(diagnosis)}
-                >
-                  <Trash2 className="size-4" aria-hidden="true" />
-                </Button>
-              </div>
+              {readOnly ? null : (
+                <div className="flex shrink-0 items-center gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 text-brand-muted"
+                    aria-label={`Edit diagnosis ${diagnosis.code}`}
+                    onClick={() => setEditingDiagnosis(diagnosis)}
+                  >
+                    <Pencil className="size-4" aria-hidden="true" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="size-8 text-brand-muted hover:text-red-700"
+                    aria-label={`Delete diagnosis ${diagnosis.code}`}
+                    onClick={() => setDeletingDiagnosis(diagnosis)}
+                  >
+                    <Trash2 className="size-4" aria-hidden="true" />
+                  </Button>
+                </div>
+              )}
             </li>
           ))}
         </ul>

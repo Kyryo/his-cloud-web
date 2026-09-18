@@ -46,23 +46,23 @@ export function OpdEncounterSummaryPanel({
     <aside
       className={cn(
         isTab
-          ? "rounded-xl border border-dash-border/80 bg-white px-4 py-5 sm:px-5"
+          ? "bg-white"
           : [
-              "border-t border-dash-border/80 bg-white px-4 py-5 sm:px-6",
-              "xl:border-l xl:border-t-0 xl:px-5 xl:pt-3 xl:pb-5",
+              "border-t border-dash-border/70 bg-dash-canvas px-4 py-6 sm:px-6",
+              "xl:border-l xl:border-t-0 xl:px-6 xl:pt-5 xl:pb-6",
             ],
         className,
       )}
       data-testid={dataTestId}
     >
-      <div className={cn("space-y-4", !isTab && "xl:sticky xl:top-4")}>
+      <div
+        className={cn(
+          "space-y-5 [&_dd]:font-medium [&_dd]:text-brand-navy",
+          !isTab && "xl:sticky xl:top-4",
+        )}
+      >
         <DetailPageAsidePanelHeader
-          title={isTab ? "Client & visit" : "Encounter summary"}
-          description={
-            isTab
-              ? "Client profile and current outpatient visit details"
-              : "Current outpatient visit details"
-          }
+          title={isTab ? "Client & visit" : "Visit"}
         />
 
         <DetailPageAsideSummarySection title="Encounter" className="border-t-0 pt-0">
@@ -101,22 +101,6 @@ export function OpdEncounterSummaryPanel({
               />
             }
           />
-          <DetailPageAsideSummaryField
-            label="Visit UUID"
-            value={
-              <span className="break-all font-mono text-xs text-brand-muted">
-                {visitUuid}
-              </span>
-            }
-          />
-          <DetailPageAsideSummaryField
-            label="Encounter UUID"
-            value={
-              <span className="break-all font-mono text-xs text-brand-muted">
-                {encounterUuid}
-              </span>
-            }
-          />
         </DetailPageAsideSummarySection>
 
         <DetailPageAsideSummarySection
@@ -148,11 +132,7 @@ export function OpdEncounterSummaryPanel({
             <>
               <DetailPageAsideSummaryField
                 label="Client ID"
-                value={
-                  <span className="inline-flex items-center rounded border border-dash-border/80 bg-dash-canvas px-1.5 py-0.5 font-mono text-xs font-semibold text-brand-navy">
-                    {customer.customer_identifier}
-                  </span>
-                }
+                value={customer.customer_identifier}
               />
               <DetailPageAsideSummaryField
                 label="Phone"

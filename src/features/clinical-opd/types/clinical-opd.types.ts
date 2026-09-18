@@ -1,3 +1,33 @@
+export type OpdQueueStage =
+  | "registered"
+  | "triaged"
+  | "with_clinician"
+  | "completed"
+  | "cancelled";
+
+export type AllergySeverity =
+  | "mild"
+  | "moderate"
+  | "severe"
+  | "life_threatening";
+
+export type AllergyType =
+  | "medication"
+  | "latex"
+  | "anesthetic"
+  | "metal"
+  | "food"
+  | "environmental"
+  | "other";
+
+export type OpdQueueVital = {
+  code: string;
+  name: string;
+  numeric_value: string | null;
+  text_value: string;
+  unit: string;
+};
+
 export type OpdQueueEncounter = {
   encounter_uuid: string;
   visit_uuid: string;
@@ -11,6 +41,12 @@ export type OpdQueueEncounter = {
   started_at: string | null;
   mode_of_payment: "cash" | "insurance";
   insurance_scheme_name: string | null;
+  queue_stage?: OpdQueueStage | string | null;
+  triaged_at?: string | null;
+  waiting_minutes?: number | null;
+  latest_vitals?: OpdQueueVital[];
+  allergy_count?: number | null;
+  highest_allergy_severity?: AllergySeverity | null;
 };
 
 export type ObservationDefinition = {
@@ -39,6 +75,10 @@ export type EncounterNursingNote = {
   body: string;
   recorded_at: string;
   recorded_by_name: string | null;
+  signed_at?: string | null;
+  signed_by_name?: string | null;
+  amendment_of_uuid?: string | null;
+  amendment_reason?: string;
 };
 
 export type EncounterPhysicalExam = {
@@ -55,6 +95,16 @@ export type EncounterClinicalNote = {
   body: string;
   recorded_at: string;
   recorded_by_name: string | null;
+  signed_at?: string | null;
+  signed_by_name?: string | null;
+  amendment_of_uuid?: string | null;
+  amendment_reason?: string;
+};
+
+export type AllergyAlert = {
+  allergy_name: string;
+  severity: AllergySeverity | string;
+  match: string;
 };
 
 export type EncounterPrescription = {
@@ -74,6 +124,7 @@ export type EncounterPrescription = {
   status: string;
   visit_order_uuid: string | null;
   prescribed_by_name: string | null;
+  allergy_alerts?: AllergyAlert[];
 };
 
 export type EncounterClinicalOrder = {
@@ -92,6 +143,123 @@ export type EncounterClinicalOrder = {
   product_uuid: string | null;
   created_by_name: string | null;
   is_active: boolean;
+  metadata?: Record<string, unknown> | null;
+  allergy_alerts?: AllergyAlert[];
+};
+
+export type ClinicalAllergy = {
+  uuid: string;
+  allergy_name: string;
+  allergy_type: AllergyType | string;
+  severity: AllergySeverity | string;
+  reaction: string;
+  notes?: string;
+  date_identified?: string | null;
+  verified_by_doctor?: boolean;
+  is_active?: boolean;
+};
+
+export type ChartAllergy = {
+  uuid: string;
+  allergy_name: string;
+  allergy_type: AllergyType | string;
+  severity: AllergySeverity | string;
+  reaction: string;
+};
+
+export type ChiefComplaint = {
+  uuid: string;
+  text: string;
+  recorded_at: string;
+  recorded_by_name: string | null;
+  has_hpi: boolean;
+  hpi?: HistoryOfPresentIllness | null;
+};
+
+export type ChiefComplaintSuggestion = {
+  text: string;
+  last_recorded_at: string;
+  occurrence_count: number;
+};
+
+export type HistoryOfPresentIllness = {
+  uuid: string;
+  chief_complaint_uuid: string;
+  body: string;
+  recorded_at: string;
+  recorded_by_name: string | null;
+};
+
+export type ProblemListItem = {
+  uuid: string;
+  code: string | null;
+  standard: string | null;
+  description: string;
+  status: string;
+  notes: string;
+  recorded_at: string;
+  resolved_at: string | null;
+  recorded_by_name: string | null;
+  source_diagnosis_uuid: string | null;
+};
+
+export type CurrentMedication = {
+  uuid: string;
+  product_uuid: string | null;
+  name: string;
+  dose: string;
+  route: string;
+  frequency: string;
+  instructions: string;
+  status: string;
+  started_at: string;
+  stopped_at: string | null;
+  notes: string;
+  recorded_by_name: string | null;
+};
+
+export type EncounterDisposition = {
+  uuid: string;
+  outcome: string;
+  follow_up_at: string | null;
+  notes: string;
+  referral_destination: string;
+  recorded_at: string;
+  recorded_by_name: string | null;
+  follow_up_appointment_uuid: string | null;
+};
+
+export type ChartLastChiefComplaint = {
+  uuid: string;
+  text: string;
+  recorded_at: string;
+  recorded_by_name: string | null;
+  has_hpi: boolean;
+};
+
+export type OpdChartSummary = {
+  allergies: ChartAllergy[];
+  this_encounter_vitals: EncounterObservation[];
+  last_vitals: EncounterObservation[];
+  last_chief_complaints: ChartLastChiefComplaint[];
+  last_hpis: HistoryOfPresentIllness[];
+  last_encounter_uuid: string | null;
+  open_orders: EncounterClinicalOrder[];
+  investigation_orders: EncounterClinicalOrder[];
+  problem_list: ProblemListItem[];
+  current_medications: CurrentMedication[];
+};
+
+export type HistorySummaryEncounter = {
+  encounter_uuid: string;
+  visit_uuid: string;
+  department: string | null;
+  status: string;
+  started_at: string | null;
+};
+
+export type EncounterHistorySummary = {
+  recent_encounters: HistorySummaryEncounter[];
 };
 
 export type ClinicalTimelineEvent = {
@@ -113,7 +281,12 @@ export type ClinicalHistoryVisit = {
 };
 
 export type ClinicalHistoryNote = {
-  kind: "physical_exam" | "clinical_note" | "nursing_note";
+  kind:
+    | "physical_exam"
+    | "clinical_note"
+    | "nursing_note"
+    | "chief_complaint"
+    | "hpi";
   uuid: string;
   title: string;
   body: string;
@@ -136,6 +309,8 @@ export type ClinicalVisitHistory = {
     created_at: string;
   }>;
   medications: EncounterPrescription[];
+  chief_complaints?: ChiefComplaint[];
+  hpis?: HistoryOfPresentIllness[];
 };
 
 export type ClinicalRoleCapability = {
@@ -146,16 +321,22 @@ export type ClinicalRoleCapability = {
 
 export type ClinicalCapabilityKey =
   | "record_vitals"
+  | "record_nursing_note"
+  | "record_physical_exam"
+  | "record_clinical_note"
+  | "record_chief_complaint"
+  | "record_hpi"
+  | "prescribe"
   | "order_laboratory"
   | "order_radiology"
   | "order_procedure"
   | "order_sundry"
   | "order_medication"
-  | "prescribe"
-  | "record_nursing_note"
-  | "record_physical_exam"
-  | "record_clinical_note"
   | "manage_diagnoses"
+  | "manage_problem_list"
+  | "manage_current_medications"
+  | "record_allergy"
+  | "record_disposition"
   | "view_vital_signs_tab"
   | "view_physical_examination_tab"
   | "view_orders_tab"

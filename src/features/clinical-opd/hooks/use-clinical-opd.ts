@@ -1,16 +1,30 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
+  amendClinicalNote,
+  amendNursingNote,
   cancelOrder,
   cancelPrescription,
+  createChiefComplaint,
+  createChiefComplaintHpi,
   createClinicalNote,
+  createCurrentMedication,
+  createEncounterAllergy,
   createEncounterObservation,
   createNursingNote,
   createOrder,
   createPhysicalExam,
   createPrescription,
+  createProblemListItem,
+  deleteChiefComplaint,
+  fetchChiefComplaints,
   fetchClinicalNotes,
+  fetchCurrentMedications,
+  fetchEncounterAllergies,
+  fetchEncounterChartSummary,
   fetchEncounterClinicalHistory,
+  fetchEncounterDisposition,
+  fetchEncounterHistorySummary,
   fetchEncounterObservations,
   fetchEncounterTimeline,
   fetchNursingNotes,
@@ -19,20 +33,29 @@ import {
   fetchOrders,
   fetchPhysicalExams,
   fetchPrescriptions,
+  fetchProblemList,
   fetchRoleCapabilities,
   fetchMyClinicalCapabilities,
   finalizePrescription,
+  updateChiefComplaintHpi,
+  updateCurrentMedication,
+  updateEncounterAllergy,
   updatePhysicalExam,
+  updateProblemListItem,
   updateRoleCapabilities,
+  upsertEncounterDisposition,
 } from "@/features/clinical-opd/services/clinical-opd.service";
+import { buildOpdEncounterTabCounts } from "@/features/clinical-opd/utils/opd-encounter-tab-counts";
 
 export function opdQueueQueryKey(options?: {
+  queueStage?: string;
   status?: string;
   clinicUuid?: string;
   search?: string;
 }) {
   return [
     "opd-queue",
+    options?.queueStage ?? "all",
     options?.status ?? "all",
     options?.clinicUuid ?? "all",
     options?.search ?? "",
@@ -47,10 +70,14 @@ async function invalidateEncounterWorkspaceQueries(
   await queryClient.invalidateQueries({
     queryKey: ["encounter-timeline", visitUuid, encounterUuid],
   });
+  await queryClient.invalidateQueries({
+    queryKey: ["encounter-chart-summary", visitUuid, encounterUuid],
+  });
   await queryClient.invalidateQueries({ queryKey: ["opd-queue"] });
 }
 
 export function useOpdQueue(options?: {
+  queueStage?: string;
   status?: string;
   clinicUuid?: string;
   search?: string;
@@ -59,10 +86,35 @@ export function useOpdQueue(options?: {
     queryKey: opdQueueQueryKey(options),
     queryFn: () =>
       fetchOpdQueue({
+        queueStage: options?.queueStage,
         status: options?.status,
         clinicUuid: options?.clinicUuid,
         search: options?.search,
       }),
+  });
+}
+
+export function useEncounterChartSummary(
+  visitUuid: string,
+  encounterUuid: string,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ["encounter-chart-summary", visitUuid, encounterUuid],
+    queryFn: () => fetchEncounterChartSummary(visitUuid, encounterUuid),
+    enabled: enabled && Boolean(visitUuid && encounterUuid),
+  });
+}
+
+export function useEncounterHistorySummary(
+  visitUuid: string,
+  encounterUuid: string,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ["encounter-history-summary", visitUuid, encounterUuid],
+    queryFn: () => fetchEncounterHistorySummary(visitUuid, encounterUuid),
+    enabled: enabled && Boolean(visitUuid && encounterUuid),
   });
 }
 
@@ -116,6 +168,23 @@ export function useEncounterWorkspace(
     orders,
     timeline,
   };
+}
+
+/** Record counts rendered next to the encounter tab labels. */
+export function useOpdEncounterTabCounts(
+  visitUuid: string,
+  encounterUuid: string,
+) {
+  const { observations, orders, prescriptions } = useEncounterWorkspace(
+    visitUuid,
+    encounterUuid,
+  );
+
+  return buildOpdEncounterTabCounts({
+    observations: observations.data,
+    orders: orders.data,
+    prescriptions: prescriptions.data,
+  });
 }
 
 export function useCreateObservation(visitUuid: string, encounterUuid: string) {
@@ -378,5 +447,357 @@ export function useEncounterClinicalHistory(
         historyEncounterUuid,
       ),
     enabled: enabled && Boolean(visitUuid && encounterUuid),
+  });
+}
+
+export function useAmendNursingNote(visitUuid: string, encounterUuid: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      noteUuid,
+      payload,
+    }: {
+      noteUuid: string;
+      payload: { body: string; amendment_reason: string };
+    }) => amendNursingNote(visitUuid, encounterUuid, noteUuid, payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-nursing-notes", visitUuid, encounterUuid],
+      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
+    },
+  });
+}
+
+export function useAmendClinicalNote(visitUuid: string, encounterUuid: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      noteUuid,
+      payload,
+    }: {
+      noteUuid: string;
+      payload: { body: string; amendment_reason: string };
+    }) => amendClinicalNote(visitUuid, encounterUuid, noteUuid, payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-clinical-notes", visitUuid, encounterUuid],
+      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
+    },
+  });
+}
+
+export function useEncounterAllergies(
+  visitUuid: string,
+  encounterUuid: string,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ["encounter-allergies", visitUuid, encounterUuid],
+    queryFn: () => fetchEncounterAllergies(visitUuid, encounterUuid),
+    enabled: enabled && Boolean(visitUuid && encounterUuid),
+  });
+}
+
+export function useCreateEncounterAllergy(
+  visitUuid: string,
+  encounterUuid: string,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: Record<string, unknown>) =>
+      createEncounterAllergy(visitUuid, encounterUuid, payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-allergies", visitUuid, encounterUuid],
+      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
+    },
+  });
+}
+
+export function useUpdateEncounterAllergy(
+  visitUuid: string,
+  encounterUuid: string,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      allergyUuid,
+      payload,
+    }: {
+      allergyUuid: string;
+      payload: Record<string, unknown>;
+    }) =>
+      updateEncounterAllergy(visitUuid, encounterUuid, allergyUuid, payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-allergies", visitUuid, encounterUuid],
+      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
+    },
+  });
+}
+
+export function useChiefComplaints(
+  visitUuid: string,
+  encounterUuid: string,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ["encounter-chief-complaints", visitUuid, encounterUuid],
+    queryFn: () => fetchChiefComplaints(visitUuid, encounterUuid),
+    enabled: enabled && Boolean(visitUuid && encounterUuid),
+  });
+}
+
+export function useCreateChiefComplaint(
+  visitUuid: string,
+  encounterUuid: string,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: { text: string }) =>
+      createChiefComplaint(visitUuid, encounterUuid, payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-chief-complaints", visitUuid, encounterUuid],
+      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
+    },
+  });
+}
+
+export function useDeleteChiefComplaint(
+  visitUuid: string,
+  encounterUuid: string,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (complaintUuid: string) =>
+      deleteChiefComplaint(visitUuid, encounterUuid, complaintUuid),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-chief-complaints", visitUuid, encounterUuid],
+      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
+    },
+  });
+}
+
+export function useSaveChiefComplaintHpi(
+  visitUuid: string,
+  encounterUuid: string,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      complaintUuid,
+      body,
+      hasHpi,
+    }: {
+      complaintUuid: string;
+      body: string;
+      hasHpi: boolean;
+    }) =>
+      hasHpi
+        ? updateChiefComplaintHpi(visitUuid, encounterUuid, complaintUuid, {
+            body,
+          })
+        : createChiefComplaintHpi(visitUuid, encounterUuid, complaintUuid, {
+            body,
+          }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-chief-complaints", visitUuid, encounterUuid],
+      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
+    },
+  });
+}
+
+export function useProblemList(
+  visitUuid: string,
+  encounterUuid: string,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ["encounter-problem-list", visitUuid, encounterUuid],
+    queryFn: () => fetchProblemList(visitUuid, encounterUuid),
+    enabled: enabled && Boolean(visitUuid && encounterUuid),
+  });
+}
+
+export function useCreateProblemListItem(
+  visitUuid: string,
+  encounterUuid: string,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: Record<string, unknown>) =>
+      createProblemListItem(visitUuid, encounterUuid, payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-problem-list", visitUuid, encounterUuid],
+      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
+    },
+  });
+}
+
+export function useUpdateProblemListItem(
+  visitUuid: string,
+  encounterUuid: string,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      problemUuid,
+      payload,
+    }: {
+      problemUuid: string;
+      payload: Record<string, unknown>;
+    }) => updateProblemListItem(visitUuid, encounterUuid, problemUuid, payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-problem-list", visitUuid, encounterUuid],
+      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
+    },
+  });
+}
+
+export function useCurrentMedications(
+  visitUuid: string,
+  encounterUuid: string,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ["encounter-current-medications", visitUuid, encounterUuid],
+    queryFn: () => fetchCurrentMedications(visitUuid, encounterUuid),
+    enabled: enabled && Boolean(visitUuid && encounterUuid),
+  });
+}
+
+export function useCreateCurrentMedication(
+  visitUuid: string,
+  encounterUuid: string,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: Record<string, unknown>) =>
+      createCurrentMedication(visitUuid, encounterUuid, payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-current-medications", visitUuid, encounterUuid],
+      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
+    },
+  });
+}
+
+export function useUpdateCurrentMedication(
+  visitUuid: string,
+  encounterUuid: string,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      medicationUuid,
+      payload,
+    }: {
+      medicationUuid: string;
+      payload: Record<string, unknown>;
+    }) =>
+      updateCurrentMedication(
+        visitUuid,
+        encounterUuid,
+        medicationUuid,
+        payload,
+      ),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-current-medications", visitUuid, encounterUuid],
+      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
+    },
+  });
+}
+
+export function useEncounterDisposition(
+  visitUuid: string,
+  encounterUuid: string,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ["encounter-disposition", visitUuid, encounterUuid],
+    queryFn: () => fetchEncounterDisposition(visitUuid, encounterUuid),
+    enabled: enabled && Boolean(visitUuid && encounterUuid),
+  });
+}
+
+export function useUpsertEncounterDisposition(
+  visitUuid: string,
+  encounterUuid: string,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: Record<string, unknown>) =>
+      upsertEncounterDisposition(visitUuid, encounterUuid, payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-disposition", visitUuid, encounterUuid],
+      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
+    },
   });
 }

@@ -37,9 +37,9 @@ export function OpdQueueSummaryStatsCards({
     );
   }
 
-  const totalCount = stats?.total ?? 0;
-  const waitingCount = stats?.waiting ?? 0;
-  const inProgressCount = stats?.in_progress ?? 0;
+  const registeredCount = stats?.registered ?? 0;
+  const readyCount = stats?.triaged ?? 0;
+  const withClinicianCount = stats?.with_clinician ?? 0;
   const completedCount = stats?.completed ?? 0;
 
   return (
@@ -48,29 +48,27 @@ export function OpdQueueSummaryStatsCards({
       data-testid="opd-queue-summary-stats"
     >
       <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
-        <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Total encounters</dt>
+        <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Registered</dt>
         <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
-          {formatCompactNumber(totalCount)}
+          {formatCompactNumber(registeredCount)}
         </dd>
-        <p className="mt-0.5 text-xs text-brand-muted">Active OPD queue</p>
+        <p className="mt-0.5 text-xs text-brand-muted">Waiting for triage</p>
       </div>
 
       <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
-        <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Waiting</dt>
+        <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Ready</dt>
         <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
-          {formatCompactNumber(waitingCount)}
+          {formatCompactNumber(readyCount)}
         </dd>
-        <p className="mt-0.5 text-xs text-brand-muted">Awaiting clinical review</p>
+        <p className="mt-0.5 text-xs text-brand-muted">Triaged, still waiting</p>
       </div>
 
       <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
-        <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>In progress</dt>
+        <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>With clinician</dt>
         <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
-          {formatCompactNumber(inProgressCount)}
+          {formatCompactNumber(withClinicianCount)}
         </dd>
-        <p className="mt-0.5 text-xs text-brand-muted">
-          {inProgressCount > 0 ? "Currently being seen" : "Active consultations"}
-        </p>
+        <p className="mt-0.5 text-xs text-brand-muted">Consult in progress</p>
       </div>
 
       <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>

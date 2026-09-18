@@ -2,18 +2,9 @@
 
 import type { ReactNode } from "react";
 
-import {
-  ListPageActiveFilters,
-  ListPageFilterChip,
-  ListPageSearchToolbar,
-} from "@/features/app-shell/components/page-layout";
-import { OpdQueueFiltersDropdown } from "@/features/clinical-opd/components/OpdQueueFiltersDropdown";
-import {
-  countActiveOpdQueueFilters,
-  DEFAULT_OPD_QUEUE_FILTERS,
-  OPD_QUEUE_STATUS_OPTIONS,
-  type OpdQueueListFilterState,
-} from "@/features/clinical-opd/utils/opd-queue-list-filters";
+import { ListPageSearchToolbar } from "@/features/app-shell/components/page-layout";
+import { OpdQueueStageBoards } from "@/features/clinical-opd/components/OpdQueueStageBoards";
+import type { OpdQueueListFilterState } from "@/features/clinical-opd/utils/opd-queue-list-filters";
 import { cn } from "@/lib/utils";
 
 export type OpdQueueListToolbarProps = {
@@ -39,23 +30,8 @@ export function OpdQueueListToolbar({
   trailing,
   className,
 }: OpdQueueListToolbarProps) {
-  const hasStatusFilter = filters.status !== "all";
-  const hasAnyFilter = countActiveOpdQueueFilters(filters) > 0;
-
-  const statusLabel =
-    OPD_QUEUE_STATUS_OPTIONS.find((option) => option.value === filters.status)
-      ?.label ?? filters.status;
-
-  const handleRemoveStatus = () => {
-    onFiltersApply({ ...filters, status: "all" });
-  };
-
-  const handleClearAllFilters = () => {
-    onFiltersApply(DEFAULT_OPD_QUEUE_FILTERS);
-  };
-
   return (
-    <div className={cn("space-y-2", className)}>
+    <div className={cn("space-y-3", className)}>
       <ListPageSearchToolbar
         search={search}
         searchId="opd-queue-search"
@@ -67,30 +43,13 @@ export function OpdQueueListToolbar({
         onSearchChange={onSearchChange}
         onSearchSubmit={onSearchSubmit}
         onClearSearch={onClearSearch}
-        filter={
-          <OpdQueueFiltersDropdown
-            filters={filters}
-            isLoading={isLoading}
-            onApply={onFiltersApply}
-          />
-        }
         trailing={trailing}
       />
-
-      {hasAnyFilter ? (
-        <ListPageActiveFilters
-          disabled={isLoading}
-          onClearAll={handleClearAllFilters}
-        >
-          {hasStatusFilter ? (
-            <ListPageFilterChip
-              label={`Status: ${statusLabel}`}
-              disabled={isLoading}
-              onRemove={handleRemoveStatus}
-            />
-          ) : null}
-        </ListPageActiveFilters>
-      ) : null}
+      <OpdQueueStageBoards
+        filters={filters}
+        isLoading={isLoading}
+        onChange={onFiltersApply}
+      />
     </div>
   );
 }

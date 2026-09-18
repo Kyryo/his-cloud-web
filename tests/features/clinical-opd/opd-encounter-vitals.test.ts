@@ -4,6 +4,7 @@ import {
   buildOpdEncounterVitalStats,
   formatLatestBloodPressure,
   getLatestVitalDisplayValue,
+  splitVitalDisplay,
 } from "@/features/clinical-opd/utils/opd-encounter-vitals";
 import type { EncounterObservation } from "@/features/clinical-opd/types/clinical-opd.types";
 
@@ -77,5 +78,34 @@ describe("opd-encounter-vitals", () => {
       "Blood pressure",
     ]);
     expect(stats[3].value).toBe("120/80 mmHg");
+  });
+
+  it("reports when each stat was recorded", () => {
+    const stats = buildOpdEncounterVitalStats(observations);
+
+    expect(stats[0].recordedAt).toBe("2026-09-02T09:00:00Z");
+    expect(stats[3].recordedAt).toBe("2026-09-02T09:05:00Z");
+  });
+
+  it("leaves missing vitals empty", () => {
+    const stats = buildOpdEncounterVitalStats([]);
+
+    expect(stats.every((stat) => stat.value === null)).toBe(true);
+    expect(stats.every((stat) => stat.recordedAt === null)).toBe(true);
+  });
+
+  it("splits a vital amount from its unit", () => {
+    expect(splitVitalDisplay("72.5 kg")).toEqual({
+      amount: "72.5",
+      unit: "kg",
+    });
+    expect(splitVitalDisplay("120/80 mmHg")).toEqual({
+      amount: "120/80",
+      unit: "mmHg",
+    });
+    expect(splitVitalDisplay(null)).toEqual({
+      amount: "Not recorded",
+      unit: null,
+    });
   });
 });

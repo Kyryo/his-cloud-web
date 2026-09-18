@@ -58,7 +58,9 @@ export function OpdQueuePage() {
   const [isAddEncounterOpen, setIsAddEncounterOpen] = useState(false);
   const [isLoadingAddEncounter, setIsLoadingAddEncounter] = useState(false);
 
-  const statusParam = filters.status === "all" ? undefined : filters.status;
+  const statsQuery = useOpdQueue({
+    search: activeSearch || undefined,
+  });
   const {
     data = [],
     isLoading,
@@ -66,13 +68,16 @@ export function OpdQueuePage() {
     error,
     refetch,
   } = useOpdQueue({
-    status: statusParam,
+    queueStage: filters.queueStage,
     search: activeSearch || undefined,
   });
 
   const hasAccess = (userData?.groups ?? []).includes("Clinical");
 
-  const stats = useMemo(() => computeOpdQueueStats(data), [data]);
+  const stats = useMemo(
+    () => computeOpdQueueStats(statsQuery.data ?? []),
+    [statsQuery.data],
+  );
 
   const totalCount = data.length;
   const totalPages = Math.max(1, Math.ceil(totalCount / DEFAULT_PAGE_SIZE));
@@ -199,7 +204,10 @@ export function OpdQueuePage() {
       <ListPageDataSectionsStack className="space-y-0">
         {!hasNoRecords ? (
           <ListPageStatsSection className={cn(!showStats && "hidden sm:block")}>
-            <OpdQueueSummaryStatsCards stats={stats} isLoading={isLoading} />
+            <OpdQueueSummaryStatsCards
+              stats={stats}
+              isLoading={isLoading || statsQuery.isLoading}
+            />
           </ListPageStatsSection>
         ) : null}
 

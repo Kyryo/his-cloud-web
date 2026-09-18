@@ -5,11 +5,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { ClientAvatar } from "@/components/client-avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
 import { OpdEncounterTabSkeleton } from "@/features/clinical-opd/components/detail/OpdEncounterTabSkeleton";
-import { OpdPhysicianTabShell } from "@/features/clinical-opd/components/detail/OpdPhysicianTabShell";
 import {
   useCreatePhysicalExam,
   useEncounterWorkspace,
@@ -55,14 +53,14 @@ export function OpdPhysicalExaminationTabPanel({
   encounterUuid,
   isActive = true,
 }: OpdPhysicalExaminationTabPanelProps) {
-  const { customer } = useOpdEncounterWorkspace();
+  const { customer, isChartLocked } = useOpdEncounterWorkspace();
   const { physicalExams } = useEncounterWorkspace(visitUuid, encounterUuid);
   const createPhysicalExam = useCreatePhysicalExam(visitUuid, encounterUuid);
   const updatePhysicalExam = useUpdatePhysicalExam(visitUuid, encounterUuid);
   const { success } = useToast();
 
   const visitIsActive = isCustomerVisitActive(customer?.visit_status);
-  const canModify = visitIsActive;
+  const canModify = visitIsActive && !isChartLocked;
 
   const [isEditing, setIsEditing] = useState(false);
   const [examUuid, setExamUuid] = useState<string | null>(null);
@@ -152,25 +150,23 @@ export function OpdPhysicalExaminationTabPanel({
   }
 
   return (
-    <OpdPhysicianTabShell visitUuid={visitUuid} encounterUuid={encounterUuid}>
-      <PhysicalExaminationFormSection
-        title="Physical examination"
-        description="Document examination findings as the clinical review progresses."
-        findings={findingsValue}
-          isSaving={createPhysicalExam.isPending || updatePhysicalExam.isPending}
-        isEditing={isEditing}
-        canModify={canModify}
-        lastSaved={lastSaved}
-        editorFocusKey={editorFocusKey}
-        autoFocus={isEditing && !lastSaved}
-        onEdit={handleEdit}
-        onCancel={handleCancel}
-        onFindingsChange={(value) =>
-          examForm.setValue("findings", value, { shouldValidate: true })
-        }
-        onSubmit={examForm.handleSubmit((values) => void handleSave(values))}
-      />
-    </OpdPhysicianTabShell>
+    <PhysicalExaminationFormSection
+      title="Physical examination"
+      description="Document examination findings as the clinical review progresses."
+      findings={findingsValue}
+      isSaving={createPhysicalExam.isPending || updatePhysicalExam.isPending}
+      isEditing={isEditing}
+      canModify={canModify}
+      lastSaved={lastSaved}
+      editorFocusKey={editorFocusKey}
+      autoFocus={isEditing && !lastSaved}
+      onEdit={handleEdit}
+      onCancel={handleCancel}
+      onFindingsChange={(value) =>
+        examForm.setValue("findings", value, { shouldValidate: true })
+      }
+      onSubmit={examForm.handleSubmit((values) => void handleSave(values))}
+    />
   );
 }
 
@@ -283,45 +279,39 @@ function PhysicalExaminationFormSection({
   ) : null;
 
   return (
-    <section
-      className="rounded-xl border border-dash-border/80 bg-white"
-      data-testid="opd-physical-exam-form"
-    >
-      <div className="flex items-start justify-between gap-4 border-b border-dash-border/80 px-4 py-2 sm:px-5">
+    <section data-testid="opd-physical-exam-form">
+      <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h3 className="text-sm font-semibold text-brand-navy">{title}</h3>
+          <h3 className="text-sm font-medium text-brand-navy">{title}</h3>
           {description ? (
-            <p className="mt-0.5 text-xs text-brand-muted">{description}</p>
+            <p className="mt-0.5 text-sm text-dash-muted">{description}</p>
           ) : null}
         </div>
         {lastSaved && !isEditing ? (
-          <Badge
-            variant="success"
-            className="shrink-0"
+          <p
+            className="shrink-0 text-sm text-dash-muted"
             data-testid="opd-physical-exam-saved-badge"
           >
             Saved
-          </Badge>
+          </p>
         ) : null}
       </div>
 
       {isEditing && canModify ? (
         <form
           id={PHYSICAL_EXAM_FORM_ID}
-          className="px-4 py-3 sm:px-5 sm:py-3"
+          className="mt-4"
           onSubmit={onSubmit}
         >
           {editor}
         </form>
       ) : (
-        <div className="px-4 py-3 sm:px-5 sm:py-3">{editor}</div>
+        <div className="mt-4">{editor}</div>
       )}
 
-      <div className="border-t border-dash-border/80">
-        <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-5">
-          {footerActions}
-          {footerMeta}
-        </div>
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-dash-border/70 pt-4">
+        {footerActions}
+        {footerMeta}
       </div>
     </section>
   );

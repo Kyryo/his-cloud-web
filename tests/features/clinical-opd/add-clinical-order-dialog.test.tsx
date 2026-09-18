@@ -175,4 +175,42 @@ describe("AddClinicalOrderDialog product list", () => {
       expect.objectContaining({ is_radiology: true }),
     );
   });
+
+  it("shows allergy alerts as a warning and still places the order", async () => {
+    createOrderMutateAsync.mockResolvedValue({
+      uuid: "order-2",
+      product_uuid: "lab-2",
+      allergy_alerts: [
+        {
+          allergy_name: "Latex",
+          severity: "moderate",
+          match: "gloves",
+        },
+      ],
+    });
+
+    render(
+      <AddClinicalOrderDialog
+        visitUuid="visit-1"
+        encounterUuid="enc-1"
+        capabilities={["order_laboratory"]}
+        open
+        onOpenChange={vi.fn()}
+      />,
+    );
+
+    await screen.findByText("Pregnancy test (LAB002)");
+    fireEvent.click(screen.getByTestId("clinical-order-product-plus-lab-2"));
+
+    await waitFor(() => {
+      expect(createOrderMutateAsync).toHaveBeenCalled();
+      expect(toast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "Order placed with allergy warning",
+          variant: "warning",
+          description: "Latex (moderate)",
+        }),
+      );
+    });
+  });
 });

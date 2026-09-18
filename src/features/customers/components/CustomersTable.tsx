@@ -279,7 +279,7 @@ export function CustomersTable({
                         type="button"
                         variant="outline"
                         size="sm"
-                        className="h-7 rounded-md border-dash-border bg-white px-2.5 text-xs font-medium text-brand-navy hover:bg-dash-canvas"
+                        className="h-7 rounded-md border-red-200 bg-white px-2.5 text-xs font-medium text-red-700 hover:bg-red-50"
                         onClick={() => handleVisitAction(customer)}
                       >
                         Close visit
@@ -287,9 +287,9 @@ export function CustomersTable({
                     ) : (
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="primary"
                         size="sm"
-                        className="h-7 rounded-md border-dash-border bg-white px-2.5 text-xs font-medium text-brand-navy hover:bg-dash-canvas"
+                        className="h-7 rounded-md px-2.5 text-xs font-medium"
                         onClick={() => handleVisitAction(customer)}
                       >
                         Start visit

@@ -16,6 +16,29 @@ vi.mock(
     useOpdEncounterWorkspace: () => ({
       capabilities: ["order_laboratory"],
       encounter: { started_at: "2026-09-05T10:00:00Z" },
+      chartSummary: {
+        investigation_orders: [
+          {
+            uuid: "inv-1",
+            item_type: "LABORATORY",
+            item_type_display: "Laboratory",
+            description: "Malaria smear",
+            clinical_quantity: "1",
+            clinical_uom: "Test",
+            charge_quantity: "1",
+            quantity: "1",
+            status: "COMPLETED",
+            status_display: "Completed",
+            ordered_at: "2026-09-05T09:00:00Z",
+            product: 9,
+            product_uuid: "lab-2",
+            created_by_name: "Lab",
+            is_active: true,
+            metadata: { result_summary: "Negative" },
+          },
+        ],
+      },
+      isChartLocked: false,
     }),
   }),
 );
@@ -56,12 +79,6 @@ vi.mock("@/features/clinical-opd/components/tabs/AddClinicalOrderDialog", () => 
   AddClinicalOrderDialog: () => null,
 }));
 
-vi.mock("@/features/clinical-opd/components/detail/OpdPhysicianTabShell", () => ({
-  OpdPhysicianTabShell: ({ children }: { children: React.ReactNode }) => (
-    <div>{children}</div>
-  ),
-}));
-
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
@@ -86,6 +103,9 @@ describe("OpdOrdersTabPanel", () => {
     expect(screen.getByTestId("opd-orders-type-filters")).toBeInTheDocument();
     expect(screen.getByLabelText("Created by Dr. Ada")).toBeInTheDocument();
     expect(screen.getByTestId("opd-orders-reorder-order-1")).toBeInTheDocument();
+    expect(screen.getByTestId("opd-investigation-orders")).toBeInTheDocument();
+    expect(screen.getByText("Malaria smear")).toBeInTheDocument();
+    expect(screen.getByText("Negative")).toBeInTheDocument();
   });
 
   it("filters orders by type using button tabs", () => {

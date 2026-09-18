@@ -4,6 +4,55 @@ import { hasRichTextContent } from "@/features/clinical-opd/utils/rich-text";
 
 export const nursingNoteSchema = z.object({
   body: z.string().trim().min(1, "Nursing note is required."),
+  amendment_reason: z.string().optional(),
+});
+
+export const clinicalNoteAmendSchema = z.object({
+  body: z.string().trim().min(1, "Note is required."),
+  amendment_reason: z.string().trim().min(1, "Amendment reason is required."),
+});
+
+export const chiefComplaintSchema = z.object({
+  text: z.string().trim().min(1, "Chief complaint is required."),
+});
+
+export const hpiSchema = z.object({
+  body: z.string().trim().min(1, "HPI is required."),
+});
+
+export const allergySchema = z.object({
+  allergy_name: z.string().trim().min(1, "Allergy name is required."),
+  allergy_type: z.string().trim().min(1, "Type is required."),
+  severity: z.string().trim().min(1, "Severity is required."),
+  reaction: z.string().optional(),
+  notes: z.string().optional(),
+  date_identified: z.string().optional(),
+});
+
+export const problemListSchema = z.object({
+  description: z.string().trim().min(1, "Description is required."),
+  code: z.string().optional(),
+  standard: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export const currentMedicationSchema = z.object({
+  name: z.string().trim().min(1, "Name is required."),
+  product_uuid: z.string().optional(),
+  dose: z.string().optional(),
+  route: z.string().optional(),
+  frequency: z.string().optional(),
+  instructions: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+export type CurrentMedicationFormValues = z.infer<typeof currentMedicationSchema>;
+
+export const dispositionSchema = z.object({
+  outcome: z.enum(["discharged", "follow_up", "referred", "admitted", "other"]),
+  follow_up_at: z.string().optional(),
+  notes: z.string().optional(),
+  referral_destination: z.string().optional(),
 });
 
 export const physicalExamSchema = z.object({

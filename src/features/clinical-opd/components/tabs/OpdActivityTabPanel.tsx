@@ -2,7 +2,6 @@
 
 import { OpdEncounterActivityLog } from "@/features/clinical-opd/components/detail/OpdEncounterActivityLog";
 import { OpdEncounterTabSkeleton } from "@/features/clinical-opd/components/detail/OpdEncounterTabSkeleton";
-import { OpdPhysicianTabShell } from "@/features/clinical-opd/components/detail/OpdPhysicianTabShell";
 import { useEncounterWorkspace } from "@/features/clinical-opd/hooks/use-clinical-opd";
 
 type OpdActivityTabPanelProps = {
@@ -27,11 +26,9 @@ export function OpdActivityTabPanel({
   }
 
   return (
-    <OpdPhysicianTabShell visitUuid={visitUuid} encounterUuid={encounterUuid}>
-      <OpdEncounterActivityLog
-        events={timeline.data ?? []}
-        isLoading={timeline.isLoading}
-      />
-    </OpdPhysicianTabShell>
+    <OpdEncounterActivityLog
+      events={timeline.data ?? []}
+      isLoading={timeline.isLoading}
+    />
   );
 }

@@ -14,13 +14,31 @@ import type {
 } from "@/features/auth/types/auth.types";
 import { bffRequest } from "@/lib/bff-client";
 
+const UNAUTHENTICATED_SESSION: SessionResponse = { authenticated: false };
+
+function normalizeSession(session: unknown): SessionResponse {
+  if (
+    typeof session === "object" &&
+    session !== null &&
+    "authenticated" in session &&
+    typeof (session as SessionResponse).authenticated === "boolean"
+  ) {
+    return session as SessionResponse;
+  }
+
+  return UNAUTHENTICATED_SESSION;
+}
+
 export async function checkSession(): Promise<SessionResponse> {
-  return bffRequest<SessionResponse>(BFF_AUTH_ROUTES.session);
+  try {
+    return normalizeSession(await bffRequest<SessionResponse>(BFF_AUTH_ROUTES.session));
+  } catch {
+    return UNAUTHENTICATED_SESSION;
+  }
 }
 
 export async function isAccessTokenValid(): Promise<boolean> {
-  const session = await checkSession();
-  return session.authenticated;
+  return (await checkSession()).authenticated;
 }
 
 export async function requestSigninOtp(

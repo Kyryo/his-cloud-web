@@ -1,11 +1,15 @@
 import type { OpdEncounterTabId } from "@/features/clinical-opd/utils/opd-encounter-tabs";
 
-/** Tabs that show vitals strip + previous-visit history side panel. */
+/** Tabs that show the previous-visit history side panel. */
 export const OPD_PHYSICIAN_HISTORY_TAB_IDS = new Set<OpdEncounterTabId>([
+  "complaint",
   "physical-examination",
-  "orders",
+  "notes",
   "diagnoses",
+  "problems",
   "medications",
+  "orders",
+  "disposition",
 ]);
 
 export function isOpdPhysicianHistoryTab(tabId: OpdEncounterTabId): boolean {

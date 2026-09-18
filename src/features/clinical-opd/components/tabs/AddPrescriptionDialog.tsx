@@ -23,6 +23,7 @@ import {
   prescriptionSchema,
   type PrescriptionFormValues,
 } from "@/features/clinical-opd/schemas/clinical-opd.schema";
+import { formatAllergyAlertMessage } from "@/features/clinical-opd/utils/opd-allergy-alerts";
 import { InventoryProductPicker } from "@/features/inventory/components/InventoryProductPicker";
 import type { InventoryProduct } from "@/features/inventory/types/inventory.types";
 import { BffError } from "@/lib/bff-client";
@@ -110,7 +111,7 @@ export function AddPrescriptionDialog({
 
   const onSubmit = form.handleSubmit(async (values) => {
     try {
-      await createPrescription.mutateAsync({
+      const created = await createPrescription.mutateAsync({
         product_uuid: values.product_uuid,
         dose: values.dose || undefined,
         route: values.route || undefined,
@@ -124,10 +125,15 @@ export function AddPrescriptionDialog({
         is_prn: values.is_prn,
         clinical_notes: values.clinical_notes || undefined,
       });
+      const allergyAlerts = created.allergy_alerts ?? [];
       toast({
-        title: "Prescription added",
-        description: "Draft prescription created. Finalize to place the order.",
-        variant: "success",
+        title: allergyAlerts.length
+          ? "Prescription added with allergy warning"
+          : "Prescription added",
+        description: allergyAlerts.length
+          ? formatAllergyAlertMessage(allergyAlerts)
+          : "Draft prescription created. Finalize to place the order.",
+        variant: allergyAlerts.length ? "warning" : "success",
       });
       onOpenChange(false);
     } catch (error) {

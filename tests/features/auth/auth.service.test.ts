@@ -2,6 +2,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { BFF_AUTH_ROUTES } from "@/constants/api";
 import {
+  bootstrapSession,
+  checkSession,
+  isAccessTokenValid,
   requestSigninOtp,
   sendSigninEmailOtp,
   verifySignin,
@@ -19,6 +22,21 @@ import { bffRequest } from "@/lib/bff-client";
 describe("auth.service", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it("treats a missing session payload as unauthenticated", async () => {
+    vi.mocked(bffRequest).mockResolvedValue(undefined);
+
+    await expect(checkSession()).resolves.toEqual({ authenticated: false });
+    await expect(isAccessTokenValid()).resolves.toBe(false);
+    await expect(bootstrapSession()).resolves.toBeNull();
+  });
+
+  it("treats a failed session lookup as unauthenticated", async () => {
+    vi.mocked(bffRequest).mockRejectedValue(new Error("Request timed out."));
+
+    await expect(checkSession()).resolves.toEqual({ authenticated: false });
+    await expect(isAccessTokenValid()).resolves.toBe(false);
   });
 
   it("requests signin otp via the BFF", async () => {

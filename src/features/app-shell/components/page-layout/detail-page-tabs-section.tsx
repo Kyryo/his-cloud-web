@@ -101,11 +101,13 @@ export function DetailPageTabNavItem({
 type DetailPageMainAsideGridProps = {
   children: ReactNode;
   className?: string;
+  "data-testid"?: string;
 };
 
 export function DetailPageMainAsideGrid({
   children,
   className,
+  "data-testid": dataTestId,
 }: DetailPageMainAsideGridProps) {
   return (
     <div
@@ -113,6 +115,7 @@ export function DetailPageMainAsideGrid({
         "grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_23rem]",
         className,
       )}
+      data-testid={dataTestId}
     >
       {children}
     </div>

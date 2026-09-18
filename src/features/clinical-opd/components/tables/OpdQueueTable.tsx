@@ -16,8 +16,14 @@ import {
 } from "@/features/app-shell/components/page-layout";
 import { OpdEncounterStatusBadge } from "@/features/clinical-opd/components/OpdEncounterStatusBadge";
 import type { OpdQueueEncounter } from "@/features/clinical-opd/types/clinical-opd.types";
+import {
+  formatAllergySeverity,
+  formatOpdQueueStage,
+  formatQueueVitalsSnapshot,
+  formatWaitingMinutes,
+  resolveOpdQueueStage,
+} from "@/features/clinical-opd/utils/opd-queue-stage";
 import { ROUTES } from "@/constants/routes";
-import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 
 type OpdQueueTableProps = {
   encounters: OpdQueueEncounter[];
@@ -28,9 +34,11 @@ type OpdQueueTableProps = {
 
 const columns = [
   { key: "client", label: "Client" },
+  { key: "wait", label: "Wait" },
+  { key: "vitals", label: "Vitals" },
+  { key: "allergies", label: "Allergies" },
   { key: "department", label: "Department" },
-  { key: "status", label: "Status" },
-  { key: "started", label: "Started" },
+  { key: "stage", label: "Stage" },
   { key: "actions", label: "Actions", className: "text-right pr-4" },
 ] as const;
 
@@ -70,6 +78,7 @@ export function OpdQueueTable({
       <ListPageDataTableBody>
         {encounters.map((encounter) => {
           const canAddEncounter = encounter.visit_status === "active";
+          const stage = resolveOpdQueueStage(encounter);
           return (
             <ListPageDataTableRow
               key={encounter.encounter_uuid}
@@ -103,18 +112,38 @@ export function OpdQueueTable({
                 </div>
               </ListPageDataTableCell>
 
+              <ListPageDataTableCell
+                className="font-medium tabular-nums text-brand-navy"
+                data-testid="opd-queue-wait"
+              >
+                {formatWaitingMinutes(encounter.waiting_minutes)}
+              </ListPageDataTableCell>
+
+              <ListPageDataTableCell
+                className="text-brand-slate"
+                data-testid="opd-queue-vitals"
+              >
+                {formatQueueVitalsSnapshot(encounter.latest_vitals)}
+              </ListPageDataTableCell>
+
+              <ListPageDataTableCell data-testid="opd-queue-allergies">
+                {formatAllergySeverity(
+                  encounter.highest_allergy_severity,
+                  encounter.allergy_count,
+                )}
+              </ListPageDataTableCell>
+
               <ListPageDataTableCell className="text-brand-slate">
                 {encounter.department_name || "—"}
               </ListPageDataTableCell>
 
               <ListPageDataTableCell>
-                <OpdEncounterStatusBadge status={encounter.status} />
-              </ListPageDataTableCell>
-
-              <ListPageDataTableCell className="font-medium text-brand-navy tabular-nums">
-                {encounter.started_at
-                  ? formatDisplayDateTime(encounter.started_at)
-                  : "—"}
+                <div className="flex flex-col items-start gap-1">
+                  <span className="text-sm font-medium text-brand-navy">
+                    {formatOpdQueueStage(stage)}
+                  </span>
+                  <OpdEncounterStatusBadge status={encounter.status} />
+                </div>
               </ListPageDataTableCell>
 
               <ListPageDataTableCell className="pr-4 text-right">
@@ -135,7 +164,12 @@ export function OpdQueueTable({
                       Add encounter
                     </Button>
                   ) : null}
-                  <Button asChild variant="outline" size="sm" className="h-7 rounded-md border-dash-border bg-white px-2.5 text-xs font-medium text-brand-navy hover:bg-dash-canvas">
+                  <Button
+                    asChild
+                    variant="outline"
+                    size="sm"
+                    className="h-7 rounded-md border-dash-border bg-white px-2.5 text-xs font-medium text-brand-navy hover:bg-dash-canvas"
+                  >
                     <Link
                       href={ROUTES.clinicalOpdEncounter(
                         encounter.visit_uuid,

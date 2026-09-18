@@ -2,4 +2,6 @@
 export const DEPARTMENTS_API_PATHS = {
   list: "/departments/",
   detail: (uuid: string) => `/departments/${uuid}/`,
+  consultationServices: (uuid: string) =>
+    `/departments/${uuid}/consultation-services/`,
 } as const;

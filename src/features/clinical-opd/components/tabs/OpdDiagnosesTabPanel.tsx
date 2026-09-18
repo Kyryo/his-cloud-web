@@ -3,7 +3,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 
 import { EncounterDiagnosisPanel } from "@/features/clinical/components/EncounterDiagnosisPanel";
-import { OpdPhysicianTabShell } from "@/features/clinical-opd/components/detail/OpdPhysicianTabShell";
+import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
 import { OpdEncounterTabSkeleton } from "@/features/clinical-opd/components/detail/OpdEncounterTabSkeleton";
 
 type OpdDiagnosesTabPanelProps = {
@@ -18,6 +18,7 @@ export function OpdDiagnosesTabPanel({
   isActive = true,
 }: OpdDiagnosesTabPanelProps) {
   const queryClient = useQueryClient();
+  const { isChartLocked } = useOpdEncounterWorkspace();
 
   if (!isActive) {
     return null;
@@ -28,18 +29,17 @@ export function OpdDiagnosesTabPanel({
   }
 
   return (
-    <OpdPhysicianTabShell visitUuid={visitUuid} encounterUuid={encounterUuid}>
-      <EncounterDiagnosisPanel
-        visitUuid={visitUuid}
-        encounterUuid={encounterUuid}
-        sourcePlatform="CLINICAL"
-        onDiagnosesChanged={async () => {
-          await queryClient.invalidateQueries({ queryKey: ["opd-queue"] });
-          await queryClient.invalidateQueries({
-            queryKey: ["encounter-timeline", visitUuid, encounterUuid],
-          });
-        }}
-      />
-    </OpdPhysicianTabShell>
+    <EncounterDiagnosisPanel
+      visitUuid={visitUuid}
+      encounterUuid={encounterUuid}
+      sourcePlatform="CLINICAL"
+      readOnly={isChartLocked}
+      onDiagnosesChanged={async () => {
+        await queryClient.invalidateQueries({ queryKey: ["opd-queue"] });
+        await queryClient.invalidateQueries({
+          queryKey: ["encounter-timeline", visitUuid, encounterUuid],
+        });
+      }}
+    />
   );
 }

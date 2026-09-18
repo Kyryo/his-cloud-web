@@ -19,7 +19,6 @@ import {
 } from "@/features/clinical-opd/components/detail/OpdEncounterRecordList";
 import { OpdEncounterTabEmptyState } from "@/features/clinical-opd/components/detail/OpdEncounterTabEmptyState";
 import { OpdEncounterTabSkeleton } from "@/features/clinical-opd/components/detail/OpdEncounterTabSkeleton";
-import { OpdPhysicianTabShell } from "@/features/clinical-opd/components/detail/OpdPhysicianTabShell";
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
 import { AddClinicalOrderDialog } from "@/features/clinical-opd/components/tabs/AddClinicalOrderDialog";
 import { ConfirmReorderClinicalOrderDialog } from "@/features/clinical-opd/components/tabs/ConfirmReorderClinicalOrderDialog";
@@ -98,7 +97,8 @@ export function OpdOrdersTabPanel({
   isActive = true,
 }: OpdOrdersTabPanelProps) {
   const { toast } = useToast();
-  const { capabilities } = useOpdEncounterWorkspace();
+  const { capabilities, chartSummary, isChartLocked } =
+    useOpdEncounterWorkspace();
   const { data: orders = [], isLoading } = useEncounterOrders(
     visitUuid,
     encounterUuid,
@@ -112,7 +112,8 @@ export function OpdOrdersTabPanel({
   );
   const [isReordering, setIsReordering] = useState(false);
 
-  const canAddOrder = getOrderItemTypesForCapabilities(capabilities).length > 0;
+  const canAddOrder =
+    getOrderItemTypesForCapabilities(capabilities).length > 0 && !isChartLocked;
   const activeOrders = useMemo(
     () =>
       orders.filter(
@@ -311,9 +312,43 @@ export function OpdOrdersTabPanel({
       </OpdEncounterRecordList>
     );
 
+  const investigations = (chartSummary?.investigation_orders ?? []).filter(
+    (order) => order.status !== "CANCELLED",
+  );
+
   return (
-    <OpdPhysicianTabShell visitUuid={visitUuid} encounterUuid={encounterUuid}>
+    <>
       {content}
+      {investigations.length > 0 ? (
+        <div className="mt-8">
+          <OpdEncounterRecordList
+            title="Investigations"
+            description="Lab and radiology from this client. Results live in status and notes."
+            data-testid="opd-investigation-orders"
+          >
+            {investigations.map((order) => (
+              <OpdEncounterRecordListItem
+                key={order.uuid}
+                compact
+                icon={orderTypeIcon(order.item_type)}
+                title={order.description || order.item_type_display}
+                badges={
+                  <Badge variant="secondary">
+                    {order.status_display || order.status}
+                  </Badge>
+                }
+                description={
+                  typeof order.metadata?.result_summary === "string"
+                    ? order.metadata.result_summary
+                    : undefined
+                }
+                dateTime={order.ordered_at ?? new Date(0).toISOString()}
+                createdByName={order.created_by_name}
+              />
+            ))}
+          </OpdEncounterRecordList>
+        </div>
+      ) : null}
       {canAddOrder ? (
         <AddClinicalOrderDialog
           visitUuid={visitUuid}
@@ -336,6 +371,6 @@ export function OpdOrdersTabPanel({
           void handleConfirmReorder();
         }}
       />
-    </OpdPhysicianTabShell>
+    </>
   );
 }
