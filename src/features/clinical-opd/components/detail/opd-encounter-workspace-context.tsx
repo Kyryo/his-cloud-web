@@ -2,7 +2,10 @@
 
 import { createContext, useContext } from "react";
 
-import type { OpdQueueEncounter } from "@/features/clinical-opd/types/clinical-opd.types";
+import type {
+  OpdChartSummary,
+  OpdQueueEncounter,
+} from "@/features/clinical-opd/types/clinical-opd.types";
 import type { OpdEncounterTabId } from "@/features/clinical-opd/utils/opd-encounter-tabs";
 import type { Customer } from "@/features/customers/types/customer.types";
 
@@ -11,9 +14,11 @@ type OpdEncounterWorkspaceContextValue = {
   encounterUuid: string;
   encounter: OpdQueueEncounter | null;
   customer: Customer | null;
+  chartSummary: OpdChartSummary | null;
   capabilities: string[];
   visibleTabIds: OpdEncounterTabId[];
   userRole: string | null;
+  isChartLocked: boolean;
 };
 
 const OpdEncounterWorkspaceContext =

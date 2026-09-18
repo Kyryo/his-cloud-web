@@ -3,6 +3,12 @@ import { describe, expect, it } from "vitest";
 import type { OpdQueueEncounter } from "@/features/clinical-opd/types/clinical-opd.types";
 import { filterOpdQueueEncounters } from "@/features/clinical-opd/utils/opd-queue-list-filters";
 import { computeOpdQueueStats } from "@/features/clinical-opd/utils/opd-queue-stats";
+import {
+  formatAllergySeverity,
+  formatQueueVitalsSnapshot,
+  formatWaitingMinutes,
+  resolveOpdQueueStage,
+} from "@/features/clinical-opd/utils/opd-queue-stage";
 
 const sampleEncounters: OpdQueueEncounter[] = [
   {
@@ -16,6 +22,10 @@ const sampleEncounters: OpdQueueEncounter[] = [
     started_at: null,
     mode_of_payment: "cash",
     insurance_scheme_name: null,
+    queue_stage: "registered",
+    waiting_minutes: 12,
+    latest_vitals: [],
+    allergy_count: 0,
   },
   {
     encounter_uuid: "enc-2",
@@ -24,32 +34,103 @@ const sampleEncounters: OpdQueueEncounter[] = [
     customer_uuid: "cust-2",
     customer_name: "John Smith",
     department_name: "Specialist OPD",
-    status: "in_progress",
+    status: "waiting",
     started_at: "2026-09-02T10:00:00Z",
     mode_of_payment: "insurance",
     insurance_scheme_name: "MASM Essential",
+    queue_stage: "triaged",
+    triaged_at: "2026-09-02T10:05:00Z",
+    waiting_minutes: 8,
+    latest_vitals: [
+      {
+        code: "temp",
+        name: "Temperature",
+        numeric_value: "36.8",
+        text_value: "36.8",
+        unit: "C",
+      },
+    ],
+    allergy_count: 1,
+    highest_allergy_severity: "severe",
+  },
+  {
+    encounter_uuid: "enc-3",
+    visit_uuid: "visit-3",
+    visit_status: "active",
+    customer_uuid: "cust-3",
+    customer_name: "Amina Banda",
+    department_name: "General OPD",
+    status: "in_progress",
+    started_at: "2026-09-02T10:20:00Z",
+    mode_of_payment: "cash",
+    insurance_scheme_name: null,
+    queue_stage: "with_clinician",
   },
 ];
 
 describe("opd-queue-list-filters", () => {
-  it("filters by status only (search is server-side)", () => {
+  it("filters boards by queue_stage, not encounter status", () => {
     expect(
-      filterOpdQueueEncounters(sampleEncounters, { status: "all" }),
-    ).toHaveLength(2);
-
+      filterOpdQueueEncounters(sampleEncounters, { queueStage: "registered" }),
+    ).toHaveLength(1);
     expect(
-      filterOpdQueueEncounters(sampleEncounters, { status: "in_progress" }),
+      filterOpdQueueEncounters(sampleEncounters, { queueStage: "triaged" }).map(
+        (item) => item.customer_name,
+      ),
+    ).toEqual(["John Smith"]);
+    expect(
+      filterOpdQueueEncounters(sampleEncounters, {
+        queueStage: "with_clinician",
+      }),
     ).toHaveLength(1);
   });
 });
 
 describe("opd-queue-stats", () => {
-  it("computes queue summary counts", () => {
+  it("counts by queue stage", () => {
     expect(computeOpdQueueStats(sampleEncounters)).toEqual({
-      total: 2,
-      waiting: 1,
-      in_progress: 1,
+      total: 3,
+      registered: 1,
+      triaged: 1,
+      with_clinician: 1,
       completed: 0,
     });
+  });
+});
+
+describe("opd-queue-stage", () => {
+  it("never invents a triaged encounter status", () => {
+    expect(
+      resolveOpdQueueStage({
+        status: "waiting",
+        queue_stage: null,
+        triaged_at: "2026-09-18T10:00:00Z",
+      }),
+    ).toBe("triaged");
+    expect(
+      resolveOpdQueueStage({
+        status: "waiting",
+        queue_stage: "registered",
+        triaged_at: null,
+      }),
+    ).toBe("registered");
+  });
+
+  it("formats wait, vitals, and allergy row fields", () => {
+    expect(formatWaitingMinutes(12)).toBe("12 min");
+    expect(
+      formatQueueVitalsSnapshot([
+        {
+          code: "temp",
+          name: "Temperature",
+          numeric_value: "36.8",
+          text_value: "36.8",
+          unit: "C",
+        },
+      ]),
+    ).toBe("36.8 C");
+    expect(formatAllergySeverity("life_threatening", 2)).toBe(
+      "life threatening · 2",
+    );
   });
 });

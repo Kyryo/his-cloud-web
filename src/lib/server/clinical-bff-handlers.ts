@@ -143,6 +143,55 @@ export async function handleClinicalPatch<T>(
   }
 }
 
+export async function handleClinicalPut<T>(
+  request: Request,
+  upstreamPath: string,
+  mode: AuthMode = "user",
+) {
+  try {
+    const auth = await resolveAuth(mode);
+    if ("error" in auth) {
+      return auth.error;
+    }
+
+    const body = await request.json();
+    const data = await hmisApiRequest<T>(upstreamPath, {
+      method: "PUT",
+      token: auth.accessToken,
+      body,
+    });
+
+    return bffSuccess(data);
+  } catch (error) {
+    return bffError(error);
+  }
+}
+
+export async function handleClinicalDelete(
+  upstreamPath: string,
+  mode: AuthMode = "user",
+) {
+  try {
+    const auth = await resolveAuth(mode);
+    if ("error" in auth) {
+      return auth.error;
+    }
+
+    const data = await hmisApiRequest<unknown>(upstreamPath, {
+      method: "DELETE",
+      token: auth.accessToken,
+    });
+
+    if (data == null) {
+      return new Response(null, { status: 204 });
+    }
+
+    return bffSuccess(data);
+  } catch (error) {
+    return bffError(error);
+  }
+}
+
 export async function handleClinicalAction<T>(
   upstreamPath: string,
   mode: AuthMode = "user",

@@ -4,7 +4,13 @@ import { hmisApiRequest } from "@/lib/server/hmis-api";
 import { requireAccessToken } from "@/lib/server/require-access-token";
 import { buildForwardedQuery } from "@/lib/server/inventory-bff-handlers";
 
-const QUEUE_QUERY_KEYS = ["status", "clinic_uuid", "search", "limit"] as const;
+const QUEUE_QUERY_KEYS = [
+  "queue_stage",
+  "status",
+  "clinic_uuid",
+  "search",
+  "limit",
+] as const;
 
 export async function GET(request: Request) {
   try {

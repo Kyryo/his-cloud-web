@@ -12,13 +12,15 @@ import {
 } from "@/features/clinical-opd/components/detail/OpdEncounterRecordList";
 import { OpdEncounterTabEmptyState } from "@/features/clinical-opd/components/detail/OpdEncounterTabEmptyState";
 import { OpdEncounterTabSkeleton } from "@/features/clinical-opd/components/detail/OpdEncounterTabSkeleton";
-import { OpdPhysicianTabShell } from "@/features/clinical-opd/components/detail/OpdPhysicianTabShell";
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
+import { AddCurrentMedicationDialog } from "@/features/clinical-opd/components/tabs/AddCurrentMedicationDialog";
 import { AddPrescriptionDialog } from "@/features/clinical-opd/components/tabs/AddPrescriptionDialog";
 import {
   useCancelPrescription,
+  useCurrentMedications,
   useEncounterWorkspace,
   useFinalizePrescription,
+  useUpdateCurrentMedication,
 } from "@/features/clinical-opd/hooks/use-clinical-opd";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
@@ -36,13 +38,28 @@ export function OpdMedicationsTabPanel({
   isActive = true,
 }: OpdMedicationsTabPanelProps) {
   const { toast } = useToast();
-  const { encounter, capabilities } = useOpdEncounterWorkspace();
+  const { encounter, capabilities, isChartLocked } = useOpdEncounterWorkspace();
   const { prescriptions } = useEncounterWorkspace(visitUuid, encounterUuid);
+  const currentMedicationsQuery = useCurrentMedications(
+    visitUuid,
+    encounterUuid,
+    isActive,
+  );
+  const updateCurrentMedication = useUpdateCurrentMedication(
+    visitUuid,
+    encounterUuid,
+  );
   const finalizePrescription = useFinalizePrescription(visitUuid, encounterUuid);
   const cancelPrescription = useCancelPrescription(visitUuid, encounterUuid);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [currentMedDialogOpen, setCurrentMedDialogOpen] = useState(false);
 
-  const canPrescribe = capabilities.includes("prescribe");
+  const canPrescribe = capabilities.includes("prescribe") && !isChartLocked;
+  const canManageCurrentMeds =
+    capabilities.includes("manage_current_medications") && !isChartLocked;
+  const currentMedications = (
+    currentMedicationsQuery.data ?? []
+  ).filter((medication) => medication.status === "active");
 
   if (!isActive) {
     return null;
@@ -176,8 +193,65 @@ export function OpdMedicationsTabPanel({
     );
 
   return (
-    <OpdPhysicianTabShell visitUuid={visitUuid} encounterUuid={encounterUuid}>
+    <>
       {content}
+      <div className="mt-8">
+        <OpdEncounterRecordList
+          title="Current medications"
+          description="Client medications that persist across visits. Cancelled prescriptions do not stop these."
+          action={
+            canManageCurrentMeds ? (
+              <PrimaryButton
+                type="button"
+                size="sm"
+                onClick={() => setCurrentMedDialogOpen(true)}
+                data-testid="opd-current-medications-add-button"
+              >
+                <Plus className="size-4" aria-hidden="true" />
+                Add current medication
+              </PrimaryButton>
+            ) : null
+          }
+          data-testid="opd-current-medications"
+        >
+          {currentMedications.map((medication) => (
+            <OpdEncounterRecordListItem
+              key={medication.uuid}
+              compact
+              icon={Pill}
+              title={medication.name}
+              description={[
+                medication.dose,
+                medication.route,
+                medication.frequency,
+                medication.instructions,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+              dateTime={medication.started_at}
+              createdByName={medication.recorded_by_name}
+              menuActions={
+                canManageCurrentMeds
+                  ? [
+                      {
+                        label: "Stop",
+                        onClick: () => {
+                          void updateCurrentMedication.mutateAsync({
+                            medicationUuid: medication.uuid,
+                            payload: {
+                              status: "stopped",
+                              stopped_at: new Date().toISOString(),
+                            },
+                          });
+                        },
+                      },
+                    ]
+                  : undefined
+              }
+            />
+          ))}
+        </OpdEncounterRecordList>
+      </div>
       {canPrescribe ? (
         <AddPrescriptionDialog
           visitUuid={visitUuid}
@@ -186,6 +260,14 @@ export function OpdMedicationsTabPanel({
           onOpenChange={setDialogOpen}
         />
       ) : null}
-    </OpdPhysicianTabShell>
+      {canManageCurrentMeds ? (
+        <AddCurrentMedicationDialog
+          visitUuid={visitUuid}
+          encounterUuid={encounterUuid}
+          open={currentMedDialogOpen}
+          onOpenChange={setCurrentMedDialogOpen}
+        />
+      ) : null}
+    </>
   );
 }

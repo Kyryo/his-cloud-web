@@ -79,6 +79,25 @@ describe("bffRequest", () => {
     expect(replace).not.toHaveBeenCalled();
   });
 
+  it("throws when a 200 response has no JSON body", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => {
+          throw new Error("no body");
+        },
+      }),
+    );
+
+    await expect(bffRequest("/api/auth/session")).rejects.toMatchObject({
+      name: "BffError",
+      message: "Request failed.",
+      status: 200,
+    });
+  });
+
   it("returns undefined for 204 responses", async () => {
     vi.stubGlobal(
       "fetch",

@@ -1,15 +1,18 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
-import { buildOpdEncounterVitalStats } from "@/features/clinical-opd/utils/opd-encounter-vitals";
+import { OpdVitalReading } from "@/features/clinical-opd/components/detail/OpdVitalReading";
+import {
+  buildOpdEncounterVitalStats,
+  formatVitalRecordedLabel,
+} from "@/features/clinical-opd/utils/opd-encounter-vitals";
 import type { EncounterObservation } from "@/features/clinical-opd/types/clinical-opd.types";
+import { cn } from "@/lib/utils";
 
 const STRIP_GRID_CLASS =
-  "grid w-full grid-cols-2 divide-y divide-dash-border/60 border-y border-dash-border/80 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x lg:divide-dash-border/80";
+  "grid grid-cols-2 gap-px bg-dash-border/70 lg:grid-cols-4";
 
-const STAT_CELL_CLASS =
-  "px-4 py-2.5 transition-colors hover:bg-dash-canvas/40 sm:px-6 sm:py-3";
+const STAT_CELL_CLASS = "bg-white px-4 py-4 sm:px-6";
 
 type OpdEncounterVitalsStatsStripProps = {
   observations: EncounterObservation[];
@@ -25,7 +28,7 @@ export function OpdEncounterVitalsStatsStrip({
   if (isLoading) {
     return (
       <div
-        className={cn("bg-white", className)}
+        className={cn("border-b border-dash-border/80", className)}
         data-testid="opd-encounter-vitals-stats-skeleton"
         aria-busy="true"
       >
@@ -33,7 +36,7 @@ export function OpdEncounterVitalsStatsStrip({
           {Array.from({ length: 4 }).map((_, index) => (
             <div key={index} className={STAT_CELL_CLASS}>
               <Skeleton className="h-3 w-16" />
-              <Skeleton className="mt-2 h-6 w-20" />
+              <Skeleton className="mt-2 h-7 w-24" />
             </div>
           ))}
         </div>
@@ -44,27 +47,34 @@ export function OpdEncounterVitalsStatsStrip({
   const stats = buildOpdEncounterVitalStats(observations);
 
   return (
-    <div
-      className={cn("bg-white", className)}
+    <section
+      className={cn("border-b border-dash-border/80", className)}
+      aria-label="Latest vital signs"
       data-testid="opd-encounter-vitals-stats"
     >
       <dl className={STRIP_GRID_CLASS}>
-        {stats.map((stat) => (
-          <div key={stat.key} className={STAT_CELL_CLASS}>
-            <div className="flex items-center gap-1.5">
-              <span
-                className={cn("size-1.5 shrink-0 rounded-full", stat.accentClassName)}
-              />
-              <dt className="text-[10px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-                {stat.label}
-              </dt>
+        {stats.map((stat) => {
+          const recordedLabel = formatVitalRecordedLabel(stat.recordedAt);
+
+          return (
+            <div key={stat.key} className={STAT_CELL_CLASS}>
+              <dt className="text-xs text-dash-muted">{stat.label}</dt>
+              <dd className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                <OpdVitalReading
+                  value={stat.value}
+                  emptyLabel="—"
+                  size="sm"
+                />
+                {recordedLabel ? (
+                  <span className="text-xs text-brand-muted">
+                    {recordedLabel}
+                  </span>
+                ) : null}
+              </dd>
             </div>
-            <dd className="mt-1 text-lg font-semibold tracking-tight text-brand-navy tabular-nums">
-              {stat.value ?? "—"}
-            </dd>
-          </div>
-        ))}
+          );
+        })}
       </dl>
-    </div>
+    </section>
   );
 }

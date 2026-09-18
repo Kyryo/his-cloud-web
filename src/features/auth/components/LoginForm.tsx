@@ -101,18 +101,33 @@ export function LoginForm() {
   });
 
   useEffect(() => {
+    let cancelled = false;
+
     async function redirectIfAuthenticated() {
-      if (await isAccessTokenValid()) {
+      try {
+        if (!(await isAccessTokenValid())) {
+          return;
+        }
+
         const user = await getCurrentUser();
+        if (cancelled) {
+          return;
+        }
+
         router.replace(
           user?.is_superuser && user.tenant === null
             ? ROUTES.platformAdmin
             : ROUTES.postAuth,
         );
+      } catch {
+        // Stay on the login form if session lookup fails.
       }
     }
 
     void redirectIfAuthenticated();
+    return () => {
+      cancelled = true;
+    };
   }, [router]);
 
   async function handleCredentialsSubmit(values: SigninCredentialsValues) {

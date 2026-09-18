@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   getDefaultOpdEncounterTab,
+  getVisibleOpdEncounterTabGroups,
   getVisibleOpdEncounterTabs,
+  isOpdEncounterLocked,
   opdEncounterTabFromPathname,
   opdEncounterTabHref,
 } from "@/features/clinical-opd/utils/opd-encounter-tabs";
@@ -12,8 +14,11 @@ describe("opd-encounter-tabs", () => {
     expect(opdEncounterTabHref("visit-1", "enc-1")).toBe(
       "/clinical/opd/visit-1/enc-1",
     );
-    expect(opdEncounterTabHref("visit-1", "enc-1", "activity")).toBe(
+    expect(opdEncounterTabHref("visit-1", "enc-1", "overview")).toBe(
       "/clinical/opd/visit-1/enc-1",
+    );
+    expect(opdEncounterTabHref("visit-1", "enc-1", "activity")).toBe(
+      "/clinical/opd/visit-1/enc-1/activity",
     );
     expect(opdEncounterTabHref("visit-1", "enc-1", "vital-signs")).toBe(
       "/clinical/opd/visit-1/enc-1/vital-signs",
@@ -23,6 +28,12 @@ describe("opd-encounter-tabs", () => {
     );
     expect(opdEncounterTabHref("visit-1", "enc-1", "diagnoses")).toBe(
       "/clinical/opd/visit-1/enc-1/diagnoses",
+    );
+    expect(opdEncounterTabHref("visit-1", "enc-1", "complaint")).toBe(
+      "/clinical/opd/visit-1/enc-1/complaint",
+    );
+    expect(opdEncounterTabHref("visit-1", "enc-1", "nursing")).toBe(
+      "/clinical/opd/visit-1/enc-1/nursing",
     );
   });
 
@@ -43,6 +54,13 @@ describe("opd-encounter-tabs", () => {
     ).toBe("vital-signs");
     expect(
       opdEncounterTabFromPathname(
+        "/clinical/opd/visit-1/enc-1/activity",
+        "visit-1",
+        "enc-1",
+      ),
+    ).toBe("activity");
+    expect(
+      opdEncounterTabFromPathname(
         "/clinical/opd/visit-1/enc-1/client",
         "visit-1",
         "enc-1",
@@ -54,13 +72,13 @@ describe("opd-encounter-tabs", () => {
         "visit-1",
         "enc-1",
       ),
-    ).toBe("activity");
+    ).toBe("overview");
   });
 
-  it("filters visible tabs by workspace tab capabilities", () => {
+  it("always includes overview and filters the rest by capability", () => {
     expect(
       getVisibleOpdEncounterTabs(["view_vital_signs_tab"]).map((tab) => tab.id),
-    ).toEqual(["vital-signs"]);
+    ).toEqual(["overview", "vital-signs"]);
     expect(
       getVisibleOpdEncounterTabs([
         "view_activity_tab",
@@ -70,32 +88,70 @@ describe("opd-encounter-tabs", () => {
         "view_client_tab",
       ]).map((tab) => tab.id),
     ).toEqual([
-      "activity",
+      "overview",
       "physical-examination",
       "diagnoses",
       "medications",
+      "activity",
       "client",
     ]);
   });
 
-  it("picks role-aware default tab", () => {
+  it("groups visible tabs for the left nav", () => {
+    const groups = getVisibleOpdEncounterTabGroups([
+      "view_vital_signs_tab",
+      "record_nursing_note",
+      "record_allergy",
+      "record_chief_complaint",
+      "view_physical_examination_tab",
+      "record_clinical_note",
+      "view_diagnoses_tab",
+      "manage_problem_list",
+      "view_medications_tab",
+      "view_orders_tab",
+      "record_disposition",
+      "view_activity_tab",
+      "view_client_tab",
+    ]);
+
+    expect(groups.map((group) => group.id)).toEqual([
+      "overview",
+      "nurse",
+      "consult",
+      "plan",
+      "record",
+    ]);
+    expect(groups[1].tabs.map((tab) => tab.id)).toEqual([
+      "vital-signs",
+      "nursing",
+      "allergies",
+    ]);
+  });
+
+  it("locks writes after complete or cancel", () => {
+    expect(isOpdEncounterLocked("completed")).toBe(true);
+    expect(isOpdEncounterLocked("cancelled")).toBe(true);
+    expect(isOpdEncounterLocked("waiting")).toBe(false);
+  });
+
+  it("lands on overview by default", () => {
     expect(
       getDefaultOpdEncounterTab(
         ["view_vital_signs_tab", "view_diagnoses_tab"],
         "physician",
       ),
-    ).toBe("diagnoses");
+    ).toBe("overview");
     expect(
       getDefaultOpdEncounterTab(
         ["view_vital_signs_tab", "view_diagnoses_tab"],
         "nurse",
       ),
-    ).toBe("vital-signs");
+    ).toBe("overview");
     expect(
       getDefaultOpdEncounterTab(
         ["view_activity_tab", "view_vital_signs_tab", "view_client_tab"],
         "physician",
       ),
-    ).toBe("activity");
+    ).toBe("overview");
   });
 });

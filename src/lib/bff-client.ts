@@ -65,7 +65,8 @@ export async function bffRequest<T>(
           response.status,
         );
       }
-      return undefined as T;
+
+      throw new BffError("Request failed.", response.status);
     }
 
     if (!response.ok) {

@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -7,6 +8,10 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({
     push: vi.fn(),
   }),
+}));
+
+vi.mock("@/providers/toast-provider", () => ({
+  useToast: () => ({ toast: vi.fn() }),
 }));
 
 vi.mock("@/providers/user-provider", () => ({
@@ -22,6 +27,7 @@ vi.mock("@/features/clinical-opd/hooks/use-clinical-opd", () => ({
       {
         encounter_uuid: "enc-1",
         visit_uuid: "visit-1",
+        visit_status: "active",
         customer_uuid: "cust-1",
         customer_name: "Jane Doe",
         department_name: "OPD",
@@ -29,9 +35,23 @@ vi.mock("@/features/clinical-opd/hooks/use-clinical-opd", () => ({
         started_at: null,
         mode_of_payment: "cash",
         insurance_scheme_name: null,
+        queue_stage: "registered",
+        waiting_minutes: 14,
+        latest_vitals: [
+          {
+            code: "pulse",
+            name: "Pulse",
+            numeric_value: "78",
+            text_value: "78",
+            unit: "bpm",
+          },
+        ],
+        allergy_count: 1,
+        highest_allergy_severity: "moderate",
       },
     ],
     isLoading: false,
+    isFetching: false,
     error: null,
     refetch: vi.fn(),
   }),
@@ -41,10 +61,39 @@ afterEach(() => {
   cleanup();
 });
 
+function renderQueuePage() {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <OpdQueuePage />
+    </QueryClientProvider>,
+  );
+}
+
 describe("OpdQueuePage", () => {
-  it("renders queue rows for clinical users", () => {
-    render(<OpdQueuePage />);
+  it("renders stage boards and richer queue rows", () => {
+    renderQueuePage();
+
+    expect(screen.getByTestId("opd-queue-stage-boards")).toBeInTheDocument();
+    expect(screen.getByTestId("opd-queue-board-registered")).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
+    expect(screen.getByTestId("opd-queue-board-triaged")).toHaveTextContent(
+      "Ready",
+    );
+    expect(screen.getByTestId("opd-queue-board-with_clinician")).toHaveTextContent(
+      "With clinician",
+    );
     expect(screen.getByText("Jane Doe")).toBeInTheDocument();
+    expect(screen.getByTestId("opd-queue-wait")).toHaveTextContent("14 min");
+    expect(screen.getByTestId("opd-queue-vitals")).toHaveTextContent("78 bpm");
+    expect(screen.getByTestId("opd-queue-allergies")).toHaveTextContent(
+      "moderate",
+    );
     expect(screen.getByRole("link", { name: "Open" })).toHaveAttribute(
       "href",
       "/clinical/opd/visit-1/enc-1",

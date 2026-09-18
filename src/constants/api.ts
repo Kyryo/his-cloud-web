@@ -143,6 +143,8 @@ export const BFF_APPOINTMENTS_ROUTES = {
 export const BFF_CLINICAL_ROUTES = {
   clinics: "/api/clinical/clinics",
   departments: "/api/clinical/departments",
+  departmentConsultationServices: (uuid: string) =>
+    `/api/clinical/departments/${uuid}/consultation-services`,
   locations: "/api/clinical/locations",
 } as const;
 
@@ -192,6 +194,71 @@ export const BFF_CLINICAL_OPD_ROUTES = {
     `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/timeline`,
   encounterClinicalHistory: (visitUuid: string, encounterUuid: string) =>
     `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/clinical-history`,
+  encounterHistorySummary: (visitUuid: string, encounterUuid: string) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/history-summary`,
+  encounterChartSummary: (visitUuid: string, encounterUuid: string) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/chart-summary`,
+  amendNursingNote: (
+    visitUuid: string,
+    encounterUuid: string,
+    noteUuid: string,
+  ) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/nursing-notes/${noteUuid}/amend`,
+  amendClinicalNote: (
+    visitUuid: string,
+    encounterUuid: string,
+    noteUuid: string,
+  ) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/clinical-notes/${noteUuid}/amend`,
+  encounterAllergies: (visitUuid: string, encounterUuid: string) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/allergies`,
+  encounterAllergy: (
+    visitUuid: string,
+    encounterUuid: string,
+    allergyUuid: string,
+  ) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/allergies/${allergyUuid}`,
+  encounterChiefComplaints: (visitUuid: string, encounterUuid: string) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/chief-complaints`,
+  encounterChiefComplaintSuggestions: (
+    visitUuid: string,
+    encounterUuid: string,
+  ) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/chief-complaints/suggestions`,
+  encounterChiefComplaintHistory: (visitUuid: string, encounterUuid: string) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/chief-complaints/history`,
+  encounterChiefComplaint: (
+    visitUuid: string,
+    encounterUuid: string,
+    complaintUuid: string,
+  ) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/chief-complaints/${complaintUuid}`,
+  encounterChiefComplaintHpi: (
+    visitUuid: string,
+    encounterUuid: string,
+    complaintUuid: string,
+  ) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/chief-complaints/${complaintUuid}/hpi`,
+  encounterHpiHistory: (visitUuid: string, encounterUuid: string) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/hpi/history`,
+  encounterProblemList: (visitUuid: string, encounterUuid: string) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/problem-list`,
+  encounterProblem: (
+    visitUuid: string,
+    encounterUuid: string,
+    problemUuid: string,
+  ) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/problem-list/${problemUuid}`,
+  encounterCurrentMedications: (visitUuid: string, encounterUuid: string) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/current-medications`,
+  encounterCurrentMedication: (
+    visitUuid: string,
+    encounterUuid: string,
+    medicationUuid: string,
+  ) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/current-medications/${medicationUuid}`,
+  encounterDisposition: (visitUuid: string, encounterUuid: string) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/disposition`,
 } as const;
 
 /** Browser-facing BFF insurance catalog routes (same origin). */

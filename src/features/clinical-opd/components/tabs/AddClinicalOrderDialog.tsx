@@ -14,6 +14,7 @@ import {
 } from "@/features/clinical-opd/hooks/use-clinical-opd";
 import type { ClinicalOrderItemType } from "@/features/clinical-opd/schemas/clinical-opd.schema";
 import type { ClinicalCapabilityKey } from "@/features/clinical-opd/types/clinical-opd.types";
+import { formatAllergyAlertMessage } from "@/features/clinical-opd/utils/opd-allergy-alerts";
 import type { InventoryProduct } from "@/features/inventory/types/inventory.types";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
@@ -115,8 +116,21 @@ export function AddClinicalOrderDialog({
     if (!open) {
       return;
     }
-    setActiveTab(firstPermittedTab?.id ?? "lab");
-    setBusyProductUuid(null);
+
+    let cancelled = false;
+    async function resetDialog() {
+      await Promise.resolve();
+      if (cancelled) {
+        return;
+      }
+      setActiveTab(firstPermittedTab?.id ?? "lab");
+      setBusyProductUuid(null);
+    }
+
+    void resetDialog();
+    return () => {
+      cancelled = true;
+    };
   }, [firstPermittedTab?.id, open]);
 
   const handleTabChange = (tabId: string) => {
@@ -141,7 +155,7 @@ export function AddClinicalOrderDialog({
 
     try {
       setBusyProductUuid(product.uuid);
-      await createOrder.mutateAsync({
+      const created = await createOrder.mutateAsync({
         item_type: activeTabConfig.itemType,
         description: product.display_name || product.name,
         product_uuid: product.uuid,
@@ -149,10 +163,15 @@ export function AddClinicalOrderDialog({
         clinical_uom: product.uom_name?.trim() || "Unit",
         charge_quantity: 1,
       });
+      const allergyAlerts = created.allergy_alerts ?? [];
       toast({
-        title: "Order placed",
-        description: `${product.display_name || product.name} was added.`,
-        variant: "success",
+        title: allergyAlerts.length
+          ? "Order placed with allergy warning"
+          : "Order placed",
+        description: allergyAlerts.length
+          ? formatAllergyAlertMessage(allergyAlerts)
+          : `${product.display_name || product.name} was added.`,
+        variant: allergyAlerts.length ? "warning" : "success",
       });
     } catch (error) {
       toast({

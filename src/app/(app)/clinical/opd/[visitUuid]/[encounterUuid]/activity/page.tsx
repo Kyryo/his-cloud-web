@@ -1,15 +1,5 @@
-import { redirect } from "next/navigation";
+import { OpdEncounterTabPage } from "@/features/clinical-opd/pages/OpdEncounterTabPage";
 
-type OpdEncounterActivityRedirectPageProps = {
-  params: Promise<{
-    visitUuid: string;
-    encounterUuid: string;
-  }>;
-};
-
-export default async function OpdEncounterActivityRedirectPage({
-  params,
-}: OpdEncounterActivityRedirectPageProps) {
-  const { visitUuid, encounterUuid } = await params;
-  redirect(`/clinical/opd/${visitUuid}/${encounterUuid}`);
+export default function OpdEncounterActivityPage() {
+  return <OpdEncounterTabPage tab="activity" />;
 }

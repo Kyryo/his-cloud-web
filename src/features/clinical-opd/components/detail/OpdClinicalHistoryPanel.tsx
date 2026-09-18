@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, History } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,14 +19,28 @@ import {
 } from "@/features/customers/utils/format-customer";
 import { cn } from "@/lib/utils";
 
-type HistorySectionId = "notes" | "orders" | "diagnoses" | "medications";
+type HistorySectionId =
+  | "complaint"
+  | "notes"
+  | "orders"
+  | "diagnoses"
+  | "medications";
 
 const HISTORY_SECTIONS: Array<{ id: HistorySectionId; label: string }> = [
+  { id: "complaint", label: "Complaint" },
   { id: "notes", label: "Notes" },
   { id: "orders", label: "Orders" },
   { id: "diagnoses", label: "Diagnoses" },
   { id: "medications", label: "Treatment" },
 ];
+
+const NOTE_KIND_LABELS: Record<string, string> = {
+  chief_complaint: "Chief complaint",
+  hpi: "HPI",
+  physical_exam: "Examination",
+  clinical_note: "Clinical note",
+  nursing_note: "Nursing note",
+};
 
 function plainTextFromHtml(value: string): string {
   return value
@@ -48,13 +62,50 @@ function visitLabel(visit: ClinicalHistoryVisit): string {
 
 function HistoryEmptyState({ message }: { message: string }) {
   return (
-    <p className="px-1 py-6 text-center text-xs text-brand-muted">{message}</p>
+    <p className="px-1 py-6 text-sm text-dash-muted">{message}</p>
   );
 }
 
-function NotesList({ notes }: { notes: ClinicalHistoryNote[] }) {
+function complaintHistoryNotes(
+  history: ClinicalVisitHistory | undefined,
+): ClinicalHistoryNote[] {
+  const fromNotes = (history?.notes ?? []).filter(
+    (note) => note.kind === "chief_complaint" || note.kind === "hpi",
+  );
+  const fromComplaints = (history?.chief_complaints ?? []).map((complaint) => ({
+    kind: "chief_complaint" as const,
+    uuid: complaint.uuid,
+    title: "Chief complaint",
+    body: complaint.text,
+    occurred_at: complaint.recorded_at,
+    recorded_by_name: complaint.recorded_by_name,
+  }));
+  const fromHpis = (history?.hpis ?? []).map((hpi) => ({
+    kind: "hpi" as const,
+    uuid: hpi.uuid,
+    title: "HPI",
+    body: hpi.body,
+    occurred_at: hpi.recorded_at,
+    recorded_by_name: hpi.recorded_by_name,
+  }));
+
+  const seen = new Set(fromNotes.map((note) => note.uuid));
+  return [
+    ...fromNotes,
+    ...fromComplaints.filter((item) => !seen.has(item.uuid)),
+    ...fromHpis.filter((item) => !seen.has(item.uuid)),
+  ];
+}
+
+function NotesList({
+  notes,
+  emptyMessage = "No notes on this visit.",
+}: {
+  notes: ClinicalHistoryNote[];
+  emptyMessage?: string;
+}) {
   if (notes.length === 0) {
-    return <HistoryEmptyState message="No notes on this visit." />;
+    return <HistoryEmptyState message={emptyMessage} />;
   }
 
   return (
@@ -62,11 +113,11 @@ function NotesList({ notes }: { notes: ClinicalHistoryNote[] }) {
       {notes.map((note) => (
         <li
           key={`${note.kind}-${note.uuid}`}
-          className="rounded-lg border border-dash-border/70 bg-dash-canvas/40 px-3 py-2.5"
+          className="border-b border-dash-border/70 py-3 last:border-b-0"
         >
           <div className="flex items-start justify-between gap-2">
             <p className="text-xs font-semibold capitalize text-brand-navy">
-              {note.title.replaceAll("_", " ")}
+              {NOTE_KIND_LABELS[note.kind] ?? note.title.replaceAll("_", " ")}
             </p>
             {note.occurred_at ? (
               <time className="shrink-0 text-[10px] text-brand-muted">
@@ -74,7 +125,7 @@ function NotesList({ notes }: { notes: ClinicalHistoryNote[] }) {
               </time>
             ) : null}
           </div>
-          <p className="mt-1 line-clamp-4 text-xs leading-relaxed text-brand-slate">
+          <p className="mt-1 line-clamp-4 text-sm leading-relaxed text-brand-slate">
             {plainTextFromHtml(note.body) || "—"}
           </p>
           {note.recorded_by_name ? (
@@ -98,7 +149,7 @@ function OrdersList({ orders }: { orders: EncounterClinicalOrder[] }) {
       {orders.map((order) => (
         <li
           key={order.uuid}
-          className="rounded-lg border border-dash-border/70 bg-dash-canvas/40 px-3 py-2.5"
+          className="border-b border-dash-border/70 py-3 last:border-b-0"
         >
           <p className="text-xs font-semibold text-brand-navy">
             {order.description || order.item_type_display}
@@ -127,7 +178,7 @@ function DiagnosesList({
       {diagnoses.map((diagnosis) => (
         <li
           key={diagnosis.uuid}
-          className="rounded-lg border border-dash-border/70 bg-dash-canvas/40 px-3 py-2.5"
+          className="border-b border-dash-border/70 py-3 last:border-b-0"
         >
           <p className="font-mono text-xs font-semibold text-brand-navy">
             {diagnosis.code}
@@ -162,7 +213,7 @@ function MedicationsList({
       {medications.map((medication) => (
         <li
           key={medication.uuid}
-          className="rounded-lg border border-dash-border/70 bg-dash-canvas/40 px-3 py-2.5"
+          className="border-b border-dash-border/70 py-3 last:border-b-0"
         >
           <p className="text-xs font-semibold text-brand-navy">
             {medication.product_name}
@@ -196,8 +247,7 @@ export function OpdClinicalHistoryPanel() {
     historyEncounterUuid,
   );
   const history = historyQuery.data;
-
-  const visits = history?.visits ?? [];
+  const visits = useMemo(() => history?.visits ?? [], [history?.visits]);
   const selectedEncounterUuid =
     history?.selected_encounter_uuid ?? historyEncounterUuid;
   const selectedIndex = useMemo(() => {
@@ -227,34 +277,42 @@ export function OpdClinicalHistoryPanel() {
 
   return (
     <aside
-      className="flex min-h-0 flex-col border-t border-dash-border/80 bg-white xl:sticky xl:top-0 xl:max-h-[calc(100vh-4rem)] xl:border-l xl:border-t-0"
+      className="flex min-h-0 flex-col border-t border-dash-border/70 bg-dash-canvas xl:sticky xl:top-0 xl:max-h-[calc(100vh-4rem)] xl:border-l xl:border-t-0"
       data-testid="opd-clinical-history-panel"
     >
-      <div className="flex items-center justify-between gap-2 border-b border-dash-border/80 px-3 py-2.5 sm:px-4">
+      <div className="flex items-start justify-between gap-3 border-b border-dash-border/70 px-4 py-4 sm:px-5">
         <div className="min-w-0">
-          <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-            History
+          <div className="flex items-center gap-2">
+            <History className="size-3.5 shrink-0 text-brand-muted" aria-hidden="true" />
+            <p className="text-sm font-medium text-brand-navy">Previous visits</p>
+            {visits.length > 0 ? (
+              <span
+                className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium leading-none tabular-nums text-brand-muted"
+                data-testid="opd-clinical-history-position"
+              >
+                {Math.max(selectedIndex, 0) + 1} of {visits.length}
+              </span>
+            ) : null}
+          </div>
+          <p className="mt-1 truncate text-sm text-dash-muted">
+            {selectedVisit
+              ? [visitLabel(selectedVisit), selectedVisit.department]
+                  .filter(Boolean)
+                  .join(" · ")
+              : "No earlier visits"}
           </p>
-          <p className="truncate text-sm font-semibold text-brand-navy">
-            {selectedVisit ? visitLabel(selectedVisit) : "Previous visits"}
-          </p>
-          {selectedVisit?.department ? (
-            <p className="truncate text-[11px] text-brand-muted">
-              {selectedVisit.department}
-            </p>
-          ) : null}
         </div>
-        <div className="flex shrink-0 items-center gap-1">
+        <div className="flex shrink-0 divide-x divide-dash-border/70 overflow-hidden rounded-md border border-dash-border/70">
           <button
             type="button"
             aria-label="Newer visit"
             disabled={!canGoNewer || historyQuery.isLoading}
             onClick={() => goToRelativeVisit(-1)}
             className={cn(
-              "inline-flex size-8 items-center justify-center rounded-md border border-dash-border text-brand-navy transition-colors",
-              canGoNewer
-                ? "hover:border-brand-border hover:bg-dash-canvas"
-                : "cursor-not-allowed opacity-40",
+              "inline-flex size-7 items-center justify-center text-brand-navy transition-colors",
+              canGoNewer && !historyQuery.isLoading
+                ? "hover:bg-slate-50 hover:text-brand-primary"
+                : "cursor-not-allowed text-brand-muted opacity-50",
             )}
           >
             <ChevronLeft className="size-4" aria-hidden="true" />
@@ -265,10 +323,10 @@ export function OpdClinicalHistoryPanel() {
             disabled={!canGoOlder || historyQuery.isLoading}
             onClick={() => goToRelativeVisit(1)}
             className={cn(
-              "inline-flex size-8 items-center justify-center rounded-md border border-dash-border text-brand-navy transition-colors",
-              canGoOlder
-                ? "hover:border-brand-border hover:bg-dash-canvas"
-                : "cursor-not-allowed opacity-40",
+              "inline-flex size-7 items-center justify-center text-brand-navy transition-colors",
+              canGoOlder && !historyQuery.isLoading
+                ? "hover:bg-slate-50 hover:text-brand-primary"
+                : "cursor-not-allowed text-brand-muted opacity-50",
             )}
           >
             <ChevronRight className="size-4" aria-hidden="true" />
@@ -277,7 +335,7 @@ export function OpdClinicalHistoryPanel() {
       </div>
 
       <div
-        className="flex flex-wrap gap-1.5 border-b border-dash-border/80 px-3 py-2.5 sm:px-4"
+        className="flex items-center gap-5 border-b border-dash-border/70 px-4 pt-3 sm:px-5"
         role="tablist"
         aria-label="Clinical history sections"
         data-testid="opd-clinical-history-section-tabs"
@@ -292,19 +350,22 @@ export function OpdClinicalHistoryPanel() {
               aria-selected={isSelected}
               onClick={() => setSection(option.id)}
               className={cn(
-                "rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+                "relative -mb-px pb-2.5 text-sm",
                 isSelected
-                  ? "border-brand-primary bg-brand-primary/10 text-brand-primary"
-                  : "border-dash-border bg-white text-brand-muted hover:border-brand-border hover:text-brand-navy",
+                  ? "font-medium text-brand-navy"
+                  : "text-dash-muted hover:text-brand-navy",
               )}
             >
               {option.label}
+              {isSelected ? (
+                <span className="absolute inset-x-0 bottom-0 h-px bg-brand-navy" />
+              ) : null}
             </button>
           );
         })}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto px-3 py-3 sm:px-4">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2 sm:px-5">
         {historyQuery.isLoading ? (
           <div className="space-y-3" aria-busy="true">
             {Array.from({ length: 4 }).map((_, index) => (
@@ -313,6 +374,11 @@ export function OpdClinicalHistoryPanel() {
           </div>
         ) : visits.length === 0 ? (
           <HistoryEmptyState message="No previous visits for this client." />
+        ) : section === "complaint" ? (
+          <NotesList
+            notes={complaintHistoryNotes(history)}
+            emptyMessage="No chief complaint or HPI on this visit."
+          />
         ) : section === "notes" ? (
           <NotesList notes={history?.notes ?? []} />
         ) : section === "orders" ? (
