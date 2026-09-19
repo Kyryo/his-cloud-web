@@ -1,35 +1,20 @@
 "use client";
 
-import { useState } from "react";
 import { NotebookPen } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 
-import { TabAddActionButton } from "@/components/ui/app-buttons";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   OpdEncounterRecordList,
   OpdEncounterRecordListItem,
 } from "@/features/clinical-opd/components/detail/OpdEncounterRecordList";
 import { OpdEncounterTabEmptyState } from "@/features/clinical-opd/components/detail/OpdEncounterTabEmptyState";
 import { OpdEncounterTabSkeleton } from "@/features/clinical-opd/components/detail/OpdEncounterTabSkeleton";
-import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
 import {
-  useAmendNursingNote,
-  useCreateNursingNote,
-  useEncounterWorkspace,
-} from "@/features/clinical-opd/hooks/use-clinical-opd";
-import { nursingNoteSchema } from "@/features/clinical-opd/schemas/clinical-opd.schema";
+  OpdNoteComposer,
+  type OpdNoteAmendTarget,
+} from "@/features/clinical-opd/components/detail/OpdNoteComposer";
+import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
+import { useEncounterWorkspace } from "@/features/clinical-opd/hooks/use-clinical-opd";
 
 type OpdNursingTabPanelProps = {
   visitUuid: string;
@@ -44,16 +29,12 @@ export function OpdNursingTabPanel({
 }: OpdNursingTabPanelProps) {
   const { isChartLocked, capabilities } = useOpdEncounterWorkspace();
   const { nursingNotes } = useEncounterWorkspace(visitUuid, encounterUuid);
-  const createNursingNote = useCreateNursingNote(visitUuid, encounterUuid);
-  const amendNursingNote = useAmendNursingNote(visitUuid, encounterUuid);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [amendNoteUuid, setAmendNoteUuid] = useState<string | null>(null);
+  const [amendTarget, setAmendTarget] = useState<OpdNoteAmendTarget | null>(
+    null,
+  );
   const canWrite = capabilities.includes("record_nursing_note");
-
-  const form = useForm({
-    resolver: zodResolver(nursingNoteSchema),
-    defaultValues: { body: "", amendment_reason: "" },
-  });
+  const canCreate = canWrite && !isChartLocked;
+  const canAmend = canWrite && isChartLocked;
 
   if (!isActive) {
     return null;
@@ -64,31 +45,30 @@ export function OpdNursingTabPanel({
   }
 
   const items = nursingNotes.data ?? [];
-  const addAction =
-    canWrite && !isChartLocked ? (
-      <TabAddActionButton
-        type="button"
-        onClick={() => {
-          setAmendNoteUuid(null);
-          form.reset({ body: "", amendment_reason: "" });
-          setDialogOpen(true);
-        }}
-      >
-        Add note
-      </TabAddActionButton>
-    ) : null;
 
   return (
-    <div className="space-y-4" data-testid="opd-nursing-tab-panel">
-      {items.length === 0 ? (
-        <OpdEncounterTabEmptyState
-          icon={NotebookPen}
-          title="No nursing notes"
-          description="Triage notes stay on the queue as waiting until the doctor starts the consult."
-          action={addAction}
+    <div className="space-y-6" data-testid="opd-nursing-tab-panel">
+      {canCreate || amendTarget ? (
+        <OpdNoteComposer
+          key={amendTarget?.uuid ?? "create"}
+          kind="nursing"
+          visitUuid={visitUuid}
+          encounterUuid={encounterUuid}
+          amendTarget={amendTarget}
+          onAmendCleared={() => setAmendTarget(null)}
         />
+      ) : null}
+
+      {items.length === 0 ? (
+        canCreate ? null : (
+          <OpdEncounterTabEmptyState
+            icon={NotebookPen}
+            title="No nursing notes"
+            description="Triage notes stay on the queue as waiting until the doctor starts the consult."
+          />
+        )
       ) : (
-        <OpdEncounterRecordList title="Nursing notes" action={addAction}>
+        <OpdEncounterRecordList title="Nursing notes">
           {items.map((note) => (
             <OpdEncounterRecordListItem
               key={note.uuid}
@@ -101,17 +81,12 @@ export function OpdNursingTabPanel({
               dateTime={note.recorded_at}
               createdByName={note.recorded_by_name}
               menuActions={
-                canWrite && isChartLocked && !note.amendment_of_uuid
+                canAmend && !note.amendment_of_uuid
                   ? [
                       {
                         label: "Amend",
                         onClick: () => {
-                          setAmendNoteUuid(note.uuid);
-                          form.reset({
-                            body: note.body,
-                            amendment_reason: "",
-                          });
-                          setDialogOpen(true);
+                          setAmendTarget({ uuid: note.uuid, body: note.body });
                         },
                       },
                     ]
@@ -121,66 +96,6 @@ export function OpdNursingTabPanel({
           ))}
         </OpdEncounterRecordList>
       )}
-
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>
-              {amendNoteUuid ? "Amend nursing note" : "Add nursing note"}
-            </DialogTitle>
-          </DialogHeader>
-          <form
-            className="space-y-4"
-            onSubmit={form.handleSubmit(async (values) => {
-              if (amendNoteUuid) {
-                await amendNursingNote.mutateAsync({
-                  noteUuid: amendNoteUuid,
-                  payload: {
-                    body: values.body,
-                    amendment_reason: values.amendment_reason,
-                  },
-                });
-              } else {
-                await createNursingNote.mutateAsync({ body: values.body });
-              }
-              form.reset();
-              setDialogOpen(false);
-            })}
-          >
-            <div className="space-y-2">
-              <Label htmlFor="nursing-note">
-                Note <RequiredFieldMarker />
-              </Label>
-              <Textarea id="nursing-note" rows={4} {...form.register("body")} />
-            </div>
-            {amendNoteUuid ? (
-              <div className="space-y-2">
-                <Label htmlFor="nursing-amend-reason">
-                  Amendment reason <RequiredFieldMarker />
-                </Label>
-                <Textarea
-                  id="nursing-amend-reason"
-                  rows={2}
-                  {...form.register("amendment_reason")}
-                />
-              </div>
-            ) : null}
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={
-                  createNursingNote.isPending || amendNursingNote.isPending
-                }
-              >
-                {amendNoteUuid ? "Save amendment" : "Save note"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

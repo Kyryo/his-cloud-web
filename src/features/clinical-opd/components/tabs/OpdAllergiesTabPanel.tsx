@@ -1,22 +1,14 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { ShieldAlert } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import { TabAddActionButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   OpdEncounterRecordList,
   OpdEncounterRecordListItem,
@@ -57,7 +49,6 @@ export function OpdAllergiesTabPanel({
   const allergies = useEncounterAllergies(visitUuid, encounterUuid, isActive);
   const createAllergy = useCreateEncounterAllergy(visitUuid, encounterUuid);
   const updateAllergy = useUpdateEncounterAllergy(visitUuid, encounterUuid);
-  const [open, setOpen] = useState(false);
   const canWrite = capabilities.includes("record_allergy") && !isChartLocked;
   const form = useForm({
     resolver: zodResolver(allergySchema),
@@ -79,74 +70,16 @@ export function OpdAllergiesTabPanel({
   );
 
   return (
-    <div data-testid="opd-allergies-tab-panel">
-      {items.length === 0 ? (
-        <OpdEncounterTabEmptyState
-          icon={ShieldAlert}
-          title="No allergies on file"
-          description="Clinical allergy writes do not start the consult."
-          action={
-            canWrite ? (
-              <TabAddActionButton
-                label="Add allergy"
-                emptyState
-                onClick={() => setOpen(true)}
-              />
-            ) : null
-          }
-        />
-      ) : (
-        <OpdEncounterRecordList
-          title="Allergies"
-          action={
-            canWrite ? (
-              <TabAddActionButton
-                label="Add allergy"
-                onClick={() => setOpen(true)}
-              />
-            ) : null
-          }
+    <div className="space-y-6" data-testid="opd-allergies-tab-panel">
+      {canWrite ? (
+        <form
+          className="space-y-3"
+          onSubmit={form.handleSubmit(async (values) => {
+            await createAllergy.mutateAsync(values);
+            form.reset();
+          })}
         >
-          {items.map((allergy) => (
-            <OpdEncounterRecordListItem
-              key={allergy.uuid}
-              compact
-              icon={ShieldAlert}
-              title={allergy.allergy_name}
-              description={`${allergy.allergy_type} · ${allergy.severity}${allergy.reaction ? ` · ${allergy.reaction}` : ""}`}
-              menuActions={
-                canWrite
-                  ? [
-                      {
-                        label: "Deactivate",
-                        onClick: () => {
-                          void updateAllergy.mutateAsync({
-                            allergyUuid: allergy.uuid,
-                            payload: { is_active: false },
-                          });
-                        },
-                      },
-                    ]
-                  : undefined
-              }
-            />
-          ))}
-        </OpdEncounterRecordList>
-      )}
-
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add allergy</DialogTitle>
-          </DialogHeader>
-          <form
-            className="space-y-3"
-            onSubmit={form.handleSubmit(async (values) => {
-              await createAllergy.mutateAsync(values);
-              form.reset();
-              setOpen(false);
-            })}
-          >
+          <div className="grid gap-3 sm:grid-cols-2">
             <Field label="Name" required>
               <Input {...form.register("allergy_name")} />
             </Field>
@@ -177,17 +110,49 @@ export function OpdAllergiesTabPanel({
             <Field label="Reaction">
               <Input {...form.register("reaction")} />
             </Field>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={createAllergy.isPending}>
-                Save
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+          </div>
+          <Button type="submit" disabled={createAllergy.isPending}>
+            {createAllergy.isPending ? "Saving..." : "Save allergy"}
+          </Button>
+        </form>
+      ) : null}
+
+      {items.length === 0 ? (
+        canWrite ? null : (
+          <OpdEncounterTabEmptyState
+            icon={ShieldAlert}
+            title="No allergies on file"
+            description="Clinical allergy writes do not start the consult."
+          />
+        )
+      ) : (
+        <OpdEncounterRecordList title="Allergies">
+          {items.map((allergy) => (
+            <OpdEncounterRecordListItem
+              key={allergy.uuid}
+              compact
+              icon={ShieldAlert}
+              title={allergy.allergy_name}
+              description={`${allergy.allergy_type} · ${allergy.severity}${allergy.reaction ? ` · ${allergy.reaction}` : ""}`}
+              menuActions={
+                canWrite
+                  ? [
+                      {
+                        label: "Deactivate",
+                        onClick: () => {
+                          void updateAllergy.mutateAsync({
+                            allergyUuid: allergy.uuid,
+                            payload: { is_active: false },
+                          });
+                        },
+                      },
+                    ]
+                  : undefined
+              }
+            />
+          ))}
+        </OpdEncounterRecordList>
+      )}
     </div>
   );
 }

@@ -6,14 +6,6 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
@@ -148,17 +140,22 @@ export function AddPrescriptionDialog({
     }
   });
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className={cn("sm:max-w-lg", appFont.className)}>
-        <DialogHeader>
-          <DialogTitle>Add prescription</DialogTitle>
-          <DialogDescription>
-            Enter the amount prescribed and the units to charge separately.
-          </DialogDescription>
-        </DialogHeader>
+  if (!open) {
+    return null;
+  }
 
-        <form className="space-y-4" onSubmit={onSubmit}>
+  return (
+    <section className={cn("space-y-4", appFont.className)}>
+      <div>
+        <h3 className="text-base font-semibold tracking-tight text-brand-navy">
+          Add prescription
+        </h3>
+        <p className="mt-0.5 text-sm text-dash-muted">
+          Enter the amount prescribed and the units to charge separately.
+        </p>
+      </div>
+
+      <form className="space-y-4" onSubmit={onSubmit}>
           <InventoryProductPicker
             id="prescription-product"
             label="Medication"
@@ -256,7 +253,7 @@ export function AddPrescriptionDialog({
             />
           </div>
 
-          <DialogFooter>
+          <div className="flex flex-wrap gap-2">
             <SecondaryButton
               type="button"
               onClick={() => onOpenChange(false)}
@@ -278,9 +275,8 @@ export function AddPrescriptionDialog({
                 "Add prescription"
               )}
             </PrimaryButton>
-          </DialogFooter>
+          </div>
         </form>
-      </DialogContent>
-    </Dialog>
+    </section>
   );
 }

@@ -3,12 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { ExternalLink, Plus } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 
-import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
+import { PrimaryButton } from "@/components/ui/app-buttons";
 import { ROUTES } from "@/constants/routes";
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
+import { opdEncounterLandingHref } from "@/features/clinical-opd/utils/opd-encounter-tabs";
 import type { Customer } from "@/features/customers/types/customer.types";
 import { AddVisitEncounterDialog } from "@/features/visits/components/AddVisitEncounterDialog";
 import { closeVisit, fetchVisit } from "@/features/visits/services/visits.service";
@@ -29,7 +29,8 @@ export function OpdEncounterActions({
   const router = useRouter();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { visitUuid, isChartLocked } = useOpdEncounterWorkspace();
+  const { visitUuid, isChartLocked, capabilities, userRole } =
+    useOpdEncounterWorkspace();
   const [visitDetail, setVisitDetail] = useState<VisitDetail | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoadingVisit, setIsLoadingVisit] = useState(false);
@@ -97,7 +98,14 @@ export function OpdEncounterActions({
     setIsDialogOpen(false);
     setVisitDetail(null);
     if (created.department_type === "opd") {
-      router.push(ROUTES.clinicalOpdEncounter(created.visit, created.uuid));
+      router.push(
+        opdEncounterLandingHref(
+          created.visit,
+          created.uuid,
+          capabilities,
+          userRole,
+        ),
+      );
     }
   }
 
@@ -105,28 +113,26 @@ export function OpdEncounterActions({
     <div className={className}>
       <div className="flex flex-wrap items-center justify-end gap-2">
         {customer ? (
-          <SecondaryButton asChild>
-            <Link
-              href={ROUTES.customerDetail(customer.uuid)}
-              data-testid="opd-encounter-view-client-button"
-            >
-              <ExternalLink className="size-4" aria-hidden="true" />
-              View client
-            </Link>
-          </SecondaryButton>
+          <Link
+            href={ROUTES.customerDetail(customer.uuid)}
+            className="text-sm text-brand-slate hover:text-brand-navy hover:underline"
+            data-testid="opd-encounter-view-client-button"
+          >
+            Client
+          </Link>
         ) : null}
         {canAddEncounter ? (
-          <SecondaryButton
+          <button
             type="button"
             disabled={isLoadingVisit}
+            className="text-sm text-brand-slate hover:text-brand-navy disabled:opacity-50"
             onClick={() => {
               void handleOpenAddEncounter();
             }}
             data-testid="opd-encounter-add-encounter-button"
           >
-            <Plus className="size-4" aria-hidden="true" />
             Add encounter
-          </SecondaryButton>
+          </button>
         ) : null}
         {canCloseVisit ? (
           <PrimaryButton

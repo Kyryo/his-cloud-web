@@ -34,8 +34,10 @@ vi.mock("@/features/clinical-opd/hooks/use-clinical-opd", () => ({
     isLoading: false,
   }),
   useCreateChiefComplaint: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useUpdateChiefComplaint: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useSaveChiefComplaintHpi: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useDeleteChiefComplaint: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useChiefComplaintSuggestions: () => ({ data: [], isLoading: false }),
 }));
 
 afterEach(() => {
@@ -45,7 +47,9 @@ afterEach(() => {
 describe("OpdComplaintTabPanel", () => {
   it("shows chief complaint and nested HPI", () => {
     render(<OpdComplaintTabPanel visitUuid="visit-1" encounterUuid="enc-1" />);
-    expect(screen.getByText("Cough for 3 days")).toBeInTheDocument();
-    expect(screen.getByText("Dry cough, no fever.")).toBeInTheDocument();
+    expect(screen.getByTestId("opd-complaint-composer")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Chief complaint/i)).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Cough for 3 days")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Dry cough, no fever.")).toBeInTheDocument();
   });
 });

@@ -80,16 +80,14 @@ describe("OpdEncounterWorkspaceBody", () => {
 
     expect(screen.getByTestId("opd-overview-layout")).toBeInTheDocument();
     expect(screen.getByTestId("opd-encounter-summary-panel")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Overview" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Chart" })).toHaveAttribute(
       "href",
       "/clinical/opd/visit-1/enc-1",
     );
     expect(screen.getByTestId("opd-encounter-tab-count-orders")).toHaveTextContent(
       "2",
     );
-    expect(
-      screen.queryByTestId("opd-encounter-vitals-stats"),
-    ).not.toBeInTheDocument();
+    expect(screen.getByTestId("opd-encounter-vitals-stats")).toBeInTheDocument();
     expect(
       screen.queryByTestId("opd-physician-history-layout"),
     ).not.toBeInTheDocument();

@@ -134,22 +134,22 @@ describe("opd-encounter-tabs", () => {
     expect(isOpdEncounterLocked("waiting")).toBe(false);
   });
 
-  it("lands on overview by default", () => {
+  it("lands physicians on chief complaint and nurses on vitals", () => {
     expect(
       getDefaultOpdEncounterTab(
-        ["view_vital_signs_tab", "view_diagnoses_tab"],
+        ["record_chief_complaint", "record_hpi", "view_vital_signs_tab"],
         "physician",
       ),
-    ).toBe("overview");
+    ).toBe("complaint");
     expect(
       getDefaultOpdEncounterTab(
         ["view_vital_signs_tab", "view_diagnoses_tab"],
         "nurse",
       ),
-    ).toBe("overview");
+    ).toBe("vital-signs");
     expect(
       getDefaultOpdEncounterTab(
-        ["view_activity_tab", "view_vital_signs_tab", "view_client_tab"],
+        ["view_vital_signs_tab", "view_diagnoses_tab"],
         "physician",
       ),
     ).toBe("overview");

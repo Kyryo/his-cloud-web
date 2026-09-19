@@ -22,6 +22,45 @@ export const OPD_QUEUE_CLOSED_STAGES: OpdQueueStage[] = [
   "cancelled",
 ];
 
+export const OPD_QUEUE_STAGE_ORDER: OpdQueueStage[] = [
+  ...OPD_QUEUE_LIVE_STAGES,
+  ...OPD_QUEUE_CLOSED_STAGES,
+];
+
+export type OpdQueueStageGroup = {
+  stage: OpdQueueStage;
+  label: string;
+  encounters: OpdQueueEncounter[];
+};
+
+export function groupOpdQueueByStage(
+  encounters: OpdQueueEncounter[],
+): OpdQueueStageGroup[] {
+  const grouped = new Map<OpdQueueStage, OpdQueueEncounter[]>(
+    OPD_QUEUE_STAGE_ORDER.map((stage) => [stage, []]),
+  );
+
+  for (const encounter of encounters) {
+    grouped.get(resolveOpdQueueStage(encounter))?.push(encounter);
+  }
+
+  return OPD_QUEUE_STAGE_ORDER.flatMap((stage) => {
+    const items = grouped.get(stage) ?? [];
+    const isLive = OPD_QUEUE_LIVE_STAGES.includes(stage);
+    if (!isLive && items.length === 0) {
+      return [];
+    }
+
+    return [
+      {
+        stage,
+        label: OPD_QUEUE_STAGE_LABELS[stage],
+        encounters: items,
+      },
+    ];
+  });
+}
+
 export function formatOpdQueueStage(stage: string | null | undefined) {
   if (!stage) {
     return "Registered";

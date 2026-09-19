@@ -18,6 +18,7 @@ import {
   createProblemListItem,
   deleteChiefComplaint,
   fetchChiefComplaints,
+  fetchChiefComplaintSuggestions,
   fetchClinicalNotes,
   fetchCurrentMedications,
   fetchEncounterAllergies,
@@ -37,6 +38,7 @@ import {
   fetchRoleCapabilities,
   fetchMyClinicalCapabilities,
   finalizePrescription,
+  updateChiefComplaint,
   updateChiefComplaintHpi,
   updateCurrentMedication,
   updateEncounterAllergy,
@@ -586,6 +588,46 @@ export function useCreateChiefComplaint(
         encounterUuid,
       );
     },
+  });
+}
+
+export function useUpdateChiefComplaint(
+  visitUuid: string,
+  encounterUuid: string,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      complaintUuid,
+      text,
+    }: {
+      complaintUuid: string;
+      text: string;
+    }) =>
+      updateChiefComplaint(visitUuid, encounterUuid, complaintUuid, { text }),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-chief-complaints", visitUuid, encounterUuid],
+      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
+    },
+  });
+}
+
+export function useChiefComplaintSuggestions(
+  visitUuid: string,
+  encounterUuid: string,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: ["encounter-chief-complaint-suggestions", visitUuid, encounterUuid],
+    queryFn: () => fetchChiefComplaintSuggestions(visitUuid, encounterUuid),
+    enabled: enabled && Boolean(visitUuid && encounterUuid),
+    staleTime: 5 * 60 * 1000,
   });
 }
 

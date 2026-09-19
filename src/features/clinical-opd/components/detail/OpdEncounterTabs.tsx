@@ -1,16 +1,16 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
 import { useOpdEncounterTabCounts } from "@/features/clinical-opd/hooks/use-clinical-opd";
 import {
-  getVisibleOpdEncounterTabGroups,
+  getVisibleOpdEncounterTabs,
   opdEncounterTabFromPathname,
   opdEncounterTabHref,
 } from "@/features/clinical-opd/utils/opd-encounter-tabs";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
 
 type OpdEncounterTabsProps = {
   className?: string;
@@ -25,9 +25,9 @@ export function OpdEncounterTabs({ className }: OpdEncounterTabsProps) {
     encounterUuid,
   );
   const counts = useOpdEncounterTabCounts(visitUuid, encounterUuid);
-  const groups = getVisibleOpdEncounterTabGroups(capabilities);
+  const tabs = getVisibleOpdEncounterTabs(capabilities);
 
-  if (groups.length === 0) {
+  if (tabs.length === 0) {
     return null;
   }
 
@@ -35,53 +35,38 @@ export function OpdEncounterTabs({ className }: OpdEncounterTabsProps) {
     <nav
       aria-label="OPD encounter sections"
       className={cn(
-        "flex gap-6 overflow-x-auto border-b border-dash-border/80 px-4 py-3 sm:px-6",
-        "xl:w-52 xl:shrink-0 xl:flex-col xl:gap-5 xl:overflow-visible xl:border-b-0 xl:border-r xl:px-4 xl:py-5",
+        "scrollbar-hide flex gap-1 overflow-x-auto border-b border-dash-border/80 px-4 sm:px-6",
         className,
       )}
     >
-      {groups.map((group) => (
-        <div key={group.id} className="min-w-max xl:min-w-0">
-          {group.label ? (
-            <p className="mb-1.5 text-xs text-dash-muted">{group.label}</p>
-          ) : null}
-          <div className="flex gap-1 xl:flex-col">
-            {group.tabs.map((tab) => {
-              const isActive = activeTab === tab.id;
-              const count = counts[tab.id];
+      {tabs.map((tab) => {
+        const isActive = activeTab === tab.id;
+        const count = counts[tab.id];
 
-              return (
-                <Link
-                  key={tab.id}
-                  href={opdEncounterTabHref(visitUuid, encounterUuid, tab.id)}
-                  aria-current={isActive ? "page" : undefined}
-                  className={cn(
-                    "inline-flex items-center justify-between gap-2 rounded-md px-2.5 py-1.5 text-sm font-medium",
-                    isActive
-                      ? "bg-brand-tint text-brand-primary"
-                      : "text-brand-muted hover:bg-dash-canvas hover:text-brand-navy",
-                  )}
-                >
-                  <span>{tab.label}</span>
-                  {count ? (
-                    <span
-                      className={cn(
-                        "rounded-full px-1.5 py-0.5 text-[11px] font-medium leading-none tabular-nums",
-                        isActive
-                          ? "bg-brand-primary/10 text-brand-primary"
-                          : "bg-slate-100 text-brand-muted",
-                      )}
-                      data-testid={`opd-encounter-tab-count-${tab.id}`}
-                    >
-                      {count}
-                    </span>
-                  ) : null}
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      ))}
+        return (
+          <Link
+            key={tab.id}
+            href={opdEncounterTabHref(visitUuid, encounterUuid, tab.id)}
+            aria-current={isActive ? "page" : undefined}
+            className={cn(
+              "inline-flex shrink-0 items-center gap-1.5 border-b-2 px-2.5 py-2.5 text-sm font-medium",
+              isActive
+                ? "border-brand-primary text-brand-navy"
+                : "border-transparent text-brand-muted hover:text-brand-navy",
+            )}
+          >
+            <span>{tab.label}</span>
+            {count ? (
+              <span
+                className="tabular-nums text-xs text-dash-muted"
+                data-testid={`opd-encounter-tab-count-${tab.id}`}
+              >
+                {count}
+              </span>
+            ) : null}
+          </Link>
+        );
+      })}
     </nav>
   );
 }

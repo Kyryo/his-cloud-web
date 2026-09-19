@@ -51,8 +51,8 @@ export function OpdMedicationsTabPanel({
   );
   const finalizePrescription = useFinalizePrescription(visitUuid, encounterUuid);
   const cancelPrescription = useCancelPrescription(visitUuid, encounterUuid);
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [currentMedDialogOpen, setCurrentMedDialogOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(true);
+  const [currentMedDialogOpen, setCurrentMedDialogOpen] = useState(true);
 
   const canPrescribe = capabilities.includes("prescribe") && !isChartLocked;
   const canManageCurrentMeds =

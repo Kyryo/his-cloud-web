@@ -17,7 +17,7 @@ vi.mock("@/providers/toast-provider", () => ({
 vi.mock("@/providers/user-provider", () => ({
   useUser: () => ({
     isLoading: false,
-    userData: { groups: ["Clinical"], user_role: "nurse" },
+    userData: { groups: ["Clinical"], user_role: "physician" },
   }),
 }));
 
@@ -55,6 +55,10 @@ vi.mock("@/features/clinical-opd/hooks/use-clinical-opd", () => ({
     error: null,
     refetch: vi.fn(),
   }),
+  useMyClinicalCapabilities: () => ({
+    data: { capabilities: ["record_chief_complaint", "record_hpi"] },
+    isLoading: false,
+  }),
 }));
 
 afterEach(() => {
@@ -74,20 +78,10 @@ function renderQueuePage() {
 }
 
 describe("OpdQueuePage", () => {
-  it("renders stage boards and richer queue rows", () => {
+  it("renders the view toggle and richer queue rows", () => {
     renderQueuePage();
 
-    expect(screen.getByTestId("opd-queue-stage-boards")).toBeInTheDocument();
-    expect(screen.getByTestId("opd-queue-board-registered")).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-    expect(screen.getByTestId("opd-queue-board-triaged")).toHaveTextContent(
-      "Ready",
-    );
-    expect(screen.getByTestId("opd-queue-board-with_clinician")).toHaveTextContent(
-      "With clinician",
-    );
+    expect(screen.getByTestId("opd-queue-view-toggle")).toBeInTheDocument();
     expect(screen.getByText("Jane Doe")).toBeInTheDocument();
     expect(screen.getByTestId("opd-queue-wait")).toHaveTextContent("14 min");
     expect(screen.getByTestId("opd-queue-vitals")).toHaveTextContent("78 bpm");
@@ -96,7 +90,7 @@ describe("OpdQueuePage", () => {
     );
     expect(screen.getByRole("link", { name: "Open" })).toHaveAttribute(
       "href",
-      "/clinical/opd/visit-1/enc-1",
+      "/clinical/opd/visit-1/enc-1/complaint",
     );
   });
 });

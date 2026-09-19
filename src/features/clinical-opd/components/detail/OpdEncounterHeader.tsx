@@ -19,12 +19,6 @@ type OpdEncounterHeaderProps = {
   actions?: ReactNode;
 };
 
-type EncounterFact = {
-  key: string;
-  label: string;
-  value: string;
-};
-
 const QUEUE_STAGE_LABELS: Record<string, string> = {
   registered: "Registered",
   triaged: "Ready",
@@ -73,48 +67,43 @@ export function OpdEncounterHeader({
     .filter(Boolean)
     .join(" · ");
 
-  const facts: EncounterFact[] = [];
+  const meta: Array<{ key: string; label: string; value: string }> = [];
 
   if (encounter?.department_name) {
-    facts.push({
+    meta.push({
       key: "department",
       label: "Department",
       value: encounter.department_name,
     });
   }
-
   if (encounter?.clinic_name) {
-    facts.push({
+    meta.push({
       key: "clinic",
       label: "Clinic",
       value: encounter.clinic_name,
     });
   }
-
   if (encounter?.queue_stage) {
-    facts.push({
+    meta.push({
       key: "queue-stage",
       label: "Queue",
       value: formatQueueStageLabel(encounter.queue_stage),
     });
   }
-
   if (typeof encounter?.waiting_minutes === "number") {
-    facts.push({
+    meta.push({
       key: "waiting",
       label: "Waiting",
       value: `${encounter.waiting_minutes} min`,
     });
   }
-
-  facts.push({
+  meta.push({
     key: "started",
     label: "Started",
     value: formatStartedLabel(encounter?.started_at),
   });
-
   if (encounter) {
-    facts.push({
+    meta.push({
       key: "payment",
       label: "Payment",
       value: formatOpdEncounterPaymentLabel(encounter),
@@ -122,21 +111,21 @@ export function OpdEncounterHeader({
   }
 
   return (
-    <DetailPageHeaderSection className="bg-white px-4 py-6 sm:px-6">
+    <DetailPageHeaderSection className="bg-white px-4 py-4 sm:px-6">
       <div
-        className="flex flex-wrap items-start justify-between gap-5"
+        className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3"
         data-testid="opd-encounter-header"
       >
-        <div className="flex min-w-0 items-start gap-4">
+        <div className="flex min-w-0 items-center gap-3">
           <UserIdenticon
             seed={identiconSeed}
             name={fullName}
-            className="size-14 shrink-0 rounded-2xl"
-            fallbackClassName="rounded-2xl text-base font-semibold"
+            className="size-10 shrink-0 rounded-lg"
+            fallbackClassName="rounded-lg text-sm font-semibold"
           />
           <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2.5">
-              <h1 className="truncate text-2xl font-semibold tracking-tight text-brand-navy">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="truncate text-xl font-semibold tracking-tight text-brand-navy">
                 {fullName}
               </h1>
               {encounter?.status ? (
@@ -144,7 +133,7 @@ export function OpdEncounterHeader({
               ) : null}
             </div>
             {identity ? (
-              <p className="mt-1.5 truncate text-sm text-dash-muted">
+              <p className="mt-0.5 truncate text-sm text-dash-muted">
                 {identity}
               </p>
             ) : null}
@@ -154,20 +143,18 @@ export function OpdEncounterHeader({
         {actions ? <div className="shrink-0">{actions}</div> : null}
       </div>
 
-      {facts.length > 0 ? (
-        <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-dash-border/70 pt-4 sm:grid-cols-4">
-          {facts.map((fact) => (
-            <div
-              key={fact.key}
-              data-testid={`opd-encounter-fact-${fact.key}`}
+      {meta.length > 0 ? (
+        <p className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm text-brand-slate">
+          {meta.map((item) => (
+            <span
+              key={item.key}
+              data-testid={`opd-encounter-fact-${item.key}`}
             >
-              <dt className="text-xs text-dash-muted">{fact.label}</dt>
-              <dd className="mt-1 text-sm font-medium text-brand-navy">
-                {fact.value}
-              </dd>
-            </div>
+              <span className="sr-only">{item.label}: </span>
+              {item.value}
+            </span>
           ))}
-        </dl>
+        </p>
       ) : null}
     </DetailPageHeaderSection>
   );

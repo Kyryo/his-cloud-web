@@ -29,8 +29,19 @@ type OpdQueueTableProps = {
   encounters: OpdQueueEncounter[];
   onRowClick?: (encounter: OpdQueueEncounter) => void;
   onAddEncounter?: (encounter: OpdQueueEncounter) => void;
+  encounterHref?: (encounter: OpdQueueEncounter) => string;
   className?: string;
 };
+
+function hrefForEncounter(
+  encounter: OpdQueueEncounter,
+  encounterHref?: (encounter: OpdQueueEncounter) => string,
+) {
+  return (
+    encounterHref?.(encounter) ??
+    ROUTES.clinicalOpdEncounter(encounter.visit_uuid, encounter.encounter_uuid)
+  );
+}
 
 const columns = [
   { key: "client", label: "Client" },
@@ -46,6 +57,7 @@ export function OpdQueueTable({
   encounters,
   onRowClick,
   onAddEncounter,
+  encounterHref,
   className,
 }: OpdQueueTableProps) {
   const router = useRouter();
@@ -56,9 +68,7 @@ export function OpdQueueTable({
       return;
     }
 
-    router.push(
-      ROUTES.clinicalOpdEncounter(encounter.visit_uuid, encounter.encounter_uuid),
-    );
+    router.push(hrefForEncounter(encounter, encounterHref));
   };
 
   return (
@@ -94,10 +104,7 @@ export function OpdQueueTable({
                   />
                   <div className="min-w-0">
                     <Link
-                      href={ROUTES.clinicalOpdEncounter(
-                        encounter.visit_uuid,
-                        encounter.encounter_uuid,
-                      )}
+                      href={hrefForEncounter(encounter, encounterHref)}
                       className="block truncate font-medium text-brand-navy transition-colors group-hover:text-brand-primary"
                       onClick={(event) => event.stopPropagation()}
                     >
@@ -171,10 +178,7 @@ export function OpdQueueTable({
                     className="h-7 rounded-md border-dash-border bg-white px-2.5 text-xs font-medium text-brand-navy hover:bg-dash-canvas"
                   >
                     <Link
-                      href={ROUTES.clinicalOpdEncounter(
-                        encounter.visit_uuid,
-                        encounter.encounter_uuid,
-                      )}
+                      href={hrefForEncounter(encounter, encounterHref)}
                     >
                       Open
                     </Link>

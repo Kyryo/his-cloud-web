@@ -4,13 +4,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
@@ -52,54 +45,50 @@ export function AddCurrentMedicationDialog({
     },
   });
 
+  if (!open) {
+    return null;
+  }
+
   return (
-    <Dialog
-      open={open}
-      onOpenChange={(nextOpen) => {
-        if (!nextOpen) {
-          form.reset();
-        }
-        onOpenChange(nextOpen);
-      }}
-    >
-      <DialogContent className={cn("sm:max-w-md", appFont.className)}>
-        <DialogHeader>
-          <DialogTitle>Add current medication</DialogTitle>
-        </DialogHeader>
-        <form
-          className="space-y-3"
-          onSubmit={form.handleSubmit(async (values) => {
-            try {
-              await createMedication.mutateAsync({
-                ...values,
-                status: "active",
-                started_at: new Date().toISOString(),
-              });
-              toast({
-                title: "Current medication added",
-                variant: "success",
-              });
-              form.reset();
-              onOpenChange(false);
-            } catch (error) {
-              toast({
-                title: "Could not add medication",
-                description:
-                  error instanceof BffError
-                    ? formatBffErrorMessage(error.message, error.errors)
-                    : "Unable to save this current medication.",
-                variant: "error",
-              });
-            }
-          })}
-        >
-          <div className="space-y-1.5">
-            <Label>
-              Name
-              <RequiredFieldMarker />
-            </Label>
-            <Input {...form.register("name")} />
-          </div>
+    <section className={cn("space-y-3", appFont.className)}>
+      <h3 className="text-base font-semibold tracking-tight text-brand-navy">
+        Add current medication
+      </h3>
+      <form
+        className="space-y-3"
+        onSubmit={form.handleSubmit(async (values) => {
+          try {
+            await createMedication.mutateAsync({
+              ...values,
+              status: "active",
+              started_at: new Date().toISOString(),
+            });
+            toast({
+              title: "Current medication added",
+              variant: "success",
+            });
+            form.reset();
+            onOpenChange(false);
+          } catch (error) {
+            toast({
+              title: "Could not add medication",
+              description:
+                error instanceof BffError
+                  ? formatBffErrorMessage(error.message, error.errors)
+                  : "Unable to save this current medication.",
+              variant: "error",
+            });
+          }
+        })}
+      >
+        <div className="space-y-1.5">
+          <Label>
+            Name
+            <RequiredFieldMarker />
+          </Label>
+          <Input {...form.register("name")} />
+        </div>
+        <div className="grid gap-3 sm:grid-cols-3">
           <div className="space-y-1.5">
             <Label>Dose</Label>
             <Input {...form.register("dose")} />
@@ -112,19 +101,22 @@ export function AddCurrentMedicationDialog({
             <Label>Frequency</Label>
             <Input {...form.register("frequency")} />
           </div>
-          <DialogFooter>
-            <SecondaryButton
-              type="button"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </SecondaryButton>
-            <PrimaryButton type="submit" disabled={createMedication.isPending}>
-              Save
-            </PrimaryButton>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <SecondaryButton
+            type="button"
+            onClick={() => {
+              form.reset();
+              onOpenChange(false);
+            }}
+          >
+            Cancel
+          </SecondaryButton>
+          <PrimaryButton type="submit" disabled={createMedication.isPending}>
+            Save
+          </PrimaryButton>
+        </div>
+      </form>
+    </section>
   );
 }
