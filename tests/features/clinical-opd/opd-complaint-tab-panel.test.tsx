@@ -45,7 +45,9 @@ afterEach(() => {
 describe("OpdComplaintTabPanel", () => {
   it("shows chief complaint and nested HPI", () => {
     render(<OpdComplaintTabPanel visitUuid="visit-1" encounterUuid="enc-1" />);
+    expect(screen.getByTestId("opd-complaint-composer")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Chief complaint/i)).toBeInTheDocument();
     expect(screen.getByText("Cough for 3 days")).toBeInTheDocument();
-    expect(screen.getByText("Dry cough, no fever.")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Dry cough, no fever.")).toBeInTheDocument();
   });
 });

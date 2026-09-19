@@ -44,6 +44,16 @@ vi.mock("@/features/clinical-opd/hooks/use-clinical-opd", () => ({
     physicalExams: { data: [], isLoading: false },
     timeline: { data: [], isLoading: false },
   }),
+  useChiefComplaints: () => ({ data: [], isLoading: false }),
+  useCreateChiefComplaint: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useSaveChiefComplaintHpi: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useDeleteChiefComplaint: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useCreatePhysicalExam: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useUpdatePhysicalExam: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useCreateClinicalNote: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useAmendClinicalNote: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useCreateNursingNote: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useAmendNursingNote: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
 vi.mock("@/features/clinical/services/clinical-diagnosis.service", () => ({

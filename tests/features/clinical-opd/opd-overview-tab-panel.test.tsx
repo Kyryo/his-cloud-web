@@ -13,11 +13,19 @@ vi.mock(
       visibleTabIds: [
         "overview",
         "vital-signs",
+        "complaint",
         "physical-examination",
+        "notes",
         "orders",
         "activity",
       ],
-      capabilities: ["record_vitals", "record_physical_exam"],
+      capabilities: [
+        "record_vitals",
+        "record_chief_complaint",
+        "record_hpi",
+        "record_physical_exam",
+        "record_clinical_note",
+      ],
       userRole: "physician",
       chartSummary: {
         allergies: [],
@@ -86,10 +94,16 @@ vi.mock("@/features/clinical-opd/hooks/use-clinical-opd", () => ({
       isLoading: false,
     },
   }),
-}));
-
-vi.mock("@/features/clinical/services/clinical-diagnosis.service", () => ({
-  fetchEncounterDiagnoses: vi.fn(),
+  useChiefComplaints: () => ({ data: [], isLoading: false }),
+  useCreateChiefComplaint: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useSaveChiefComplaintHpi: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useDeleteChiefComplaint: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useCreatePhysicalExam: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useUpdatePhysicalExam: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useCreateClinicalNote: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useAmendClinicalNote: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useCreateNursingNote: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useAmendNursingNote: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
 afterEach(() => {
@@ -109,24 +123,21 @@ function renderOverview() {
 }
 
 describe("OpdOverviewTabPanel", () => {
-  it("shows vitals, continue actions, and recent activity", () => {
+  it("puts complaint, exam, and note fields on the chart instead of continue links", () => {
     renderOverview();
 
     expect(screen.getByTestId("opd-overview-tab-panel")).toBeInTheDocument();
-    expect(screen.getByText("Latest vitals")).toBeInTheDocument();
-    expect(screen.getByText("72.5")).toBeInTheDocument();
-    expect(screen.getByText("kg")).toBeInTheDocument();
+    expect(screen.getByTestId("opd-consult-chart")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Chief complaint/i)).toBeInTheDocument();
     expect(
-      screen.getAllByRole("link", { name: /Record vitals/i })[0],
-    ).toHaveAttribute("href", "/clinical/opd/visit-1/enc-1/vital-signs");
-    expect(screen.getByText("This visit")).toBeInTheDocument();
-    expect(screen.getByText("Continue")).toBeInTheDocument();
+      screen.getByLabelText(/History of present illness/i),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/Findings/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Note/i)).toBeInTheDocument();
+    expect(screen.queryByText("Continue")).not.toBeInTheDocument();
     expect(
-      screen.getByRole("link", { name: /Write examination/i }),
-    ).toHaveAttribute(
-      "href",
-      "/clinical/opd/visit-1/enc-1/physical-examination",
-    );
+      screen.queryByRole("link", { name: /Write examination/i }),
+    ).not.toBeInTheDocument();
     expect(screen.getByText("Weight recorded")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "View all" })).toHaveAttribute(
       "href",

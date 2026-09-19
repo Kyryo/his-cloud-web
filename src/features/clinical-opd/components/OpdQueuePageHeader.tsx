@@ -8,39 +8,39 @@ import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import { ListPageHeaderSection } from "@/features/app-shell/components/page-layout";
 import { OpdQueueListToolbar } from "@/features/clinical-opd/components/OpdQueueListToolbar";
-import type { OpdQueueListFilterState } from "@/features/clinical-opd/utils/opd-queue-list-filters";
+import type { OpdQueueViewMode } from "@/features/clinical-opd/utils/opd-queue-views";
 
 type OpdQueuePageHeaderProps = {
   search: string;
-  filters: OpdQueueListFilterState;
+  viewMode: OpdQueueViewMode;
   isLoading?: boolean;
   onSearchChange: (value: string) => void;
   onSearchSubmit: () => void;
   onClearSearch: () => void;
-  onFiltersApply: (filters: OpdQueueListFilterState) => void;
+  onViewModeChange: (mode: OpdQueueViewMode) => void;
   onRefresh: () => void;
 };
 
 export function OpdQueuePageHeader({
   search,
-  filters,
+  viewMode,
   isLoading = false,
   onSearchChange,
   onSearchSubmit,
   onClearSearch,
-  onFiltersApply,
+  onViewModeChange,
   onRefresh,
 }: OpdQueuePageHeaderProps) {
   return (
     <ListPageHeaderSection>
       <OpdQueueListToolbar
         search={search}
-        filters={filters}
+        viewMode={viewMode}
         isLoading={isLoading}
         onSearchChange={onSearchChange}
         onSearchSubmit={onSearchSubmit}
         onClearSearch={onClearSearch}
-        onFiltersApply={onFiltersApply}
+        onViewModeChange={onViewModeChange}
         trailing={
           <div className="flex shrink-0 flex-wrap items-center gap-2">
             <Button

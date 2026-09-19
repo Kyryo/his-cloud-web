@@ -3,30 +3,30 @@
 import type { ReactNode } from "react";
 
 import { ListPageSearchToolbar } from "@/features/app-shell/components/page-layout";
-import { OpdQueueStageBoards } from "@/features/clinical-opd/components/OpdQueueStageBoards";
-import type { OpdQueueListFilterState } from "@/features/clinical-opd/utils/opd-queue-list-filters";
+import { OpdQueueViewToggle } from "@/features/clinical-opd/components/OpdQueueViewToggle";
+import type { OpdQueueViewMode } from "@/features/clinical-opd/utils/opd-queue-views";
 import { cn } from "@/lib/utils";
 
 export type OpdQueueListToolbarProps = {
   search: string;
-  filters: OpdQueueListFilterState;
+  viewMode: OpdQueueViewMode;
   isLoading?: boolean;
   onSearchChange: (value: string) => void;
   onSearchSubmit: () => void;
   onClearSearch: () => void;
-  onFiltersApply: (filters: OpdQueueListFilterState) => void;
+  onViewModeChange: (mode: OpdQueueViewMode) => void;
   trailing?: ReactNode;
   className?: string;
 };
 
 export function OpdQueueListToolbar({
   search,
-  filters,
+  viewMode,
   isLoading = false,
   onSearchChange,
   onSearchSubmit,
   onClearSearch,
-  onFiltersApply,
+  onViewModeChange,
   trailing,
   className,
 }: OpdQueueListToolbarProps) {
@@ -43,12 +43,15 @@ export function OpdQueueListToolbar({
         onSearchChange={onSearchChange}
         onSearchSubmit={onSearchSubmit}
         onClearSearch={onClearSearch}
-        trailing={trailing}
-      />
-      <OpdQueueStageBoards
-        filters={filters}
-        isLoading={isLoading}
-        onChange={onFiltersApply}
+        trailing={
+          <div className="flex items-center gap-3">
+            <OpdQueueViewToggle
+              viewMode={viewMode}
+              onChange={onViewModeChange}
+            />
+            {trailing}
+          </div>
+        }
       />
     </div>
   );

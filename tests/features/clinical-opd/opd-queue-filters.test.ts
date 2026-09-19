@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
 import type { OpdQueueEncounter } from "@/features/clinical-opd/types/clinical-opd.types";
-import { filterOpdQueueEncounters } from "@/features/clinical-opd/utils/opd-queue-list-filters";
 import { computeOpdQueueStats } from "@/features/clinical-opd/utils/opd-queue-stats";
 import {
   formatAllergySeverity,
   formatQueueVitalsSnapshot,
   formatWaitingMinutes,
+  groupOpdQueueByStage,
   resolveOpdQueueStage,
 } from "@/features/clinical-opd/utils/opd-queue-stage";
 
@@ -68,24 +68,6 @@ const sampleEncounters: OpdQueueEncounter[] = [
   },
 ];
 
-describe("opd-queue-list-filters", () => {
-  it("filters boards by queue_stage, not encounter status", () => {
-    expect(
-      filterOpdQueueEncounters(sampleEncounters, { queueStage: "registered" }),
-    ).toHaveLength(1);
-    expect(
-      filterOpdQueueEncounters(sampleEncounters, { queueStage: "triaged" }).map(
-        (item) => item.customer_name,
-      ),
-    ).toEqual(["John Smith"]);
-    expect(
-      filterOpdQueueEncounters(sampleEncounters, {
-        queueStage: "with_clinician",
-      }),
-    ).toHaveLength(1);
-  });
-});
-
 describe("opd-queue-stats", () => {
   it("counts by queue stage", () => {
     expect(computeOpdQueueStats(sampleEncounters)).toEqual({
@@ -132,5 +114,23 @@ describe("opd-queue-stage", () => {
     expect(formatAllergySeverity("life_threatening", 2)).toBe(
       "life threatening · 2",
     );
+  });
+
+  it("groups encounters by queue stage and hides empty closed stages", () => {
+    const groups = groupOpdQueueByStage(sampleEncounters);
+    expect(groups.map((group) => group.stage)).toEqual([
+      "registered",
+      "triaged",
+      "with_clinician",
+    ]);
+    expect(groups[0]?.encounters.map((item) => item.customer_name)).toEqual([
+      "Jane Doe",
+    ]);
+    expect(groups[1]?.encounters.map((item) => item.customer_name)).toEqual([
+      "John Smith",
+    ]);
+    expect(groups[2]?.encounters.map((item) => item.customer_name)).toEqual([
+      "Amina Banda",
+    ]);
   });
 });

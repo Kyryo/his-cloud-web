@@ -31,6 +31,8 @@ vi.mock("@/features/clinical-opd/hooks/use-clinical-opd", () => ({
   }),
   useCreateClinicalNote: () => ({ mutateAsync: vi.fn(), isPending: false }),
   useAmendClinicalNote: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useCreateNursingNote: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useAmendNursingNote: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
 afterEach(() => {
@@ -41,7 +43,10 @@ afterEach(() => {
 describe("OpdNotesTabPanel", () => {
   it("lets the clinician create a note while the chart is open", () => {
     render(<OpdNotesTabPanel visitUuid="visit-1" encounterUuid="enc-1" />);
-    expect(screen.getByRole("button", { name: /Add note/i })).toBeInTheDocument();
+    expect(screen.getByTestId("opd-clinical-note-composer")).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Note/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Save note/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Add note/i })).not.toBeInTheDocument();
     expect(screen.queryByText("Amend")).not.toBeInTheDocument();
   });
 

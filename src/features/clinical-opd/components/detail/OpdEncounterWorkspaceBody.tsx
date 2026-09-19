@@ -34,7 +34,7 @@ export function OpdEncounterWorkspaceBody({
   );
   const showHistoryLayout = isOpdPhysicianHistoryTab(activeTab);
   const showOverviewLayout = activeTab === "overview";
-  const showVitalsStrip = !showOverviewLayout && activeTab !== "client";
+  const showVitalsStrip = activeTab !== "client";
   const { observations } = useEncounterWorkspace(visitUuid, encounterUuid);
   const stripObservations =
     observations.data ?? chartSummary?.this_encounter_vitals ?? [];

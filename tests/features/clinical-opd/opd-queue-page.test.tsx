@@ -74,20 +74,10 @@ function renderQueuePage() {
 }
 
 describe("OpdQueuePage", () => {
-  it("renders stage boards and richer queue rows", () => {
+  it("renders the view toggle and richer queue rows", () => {
     renderQueuePage();
 
-    expect(screen.getByTestId("opd-queue-stage-boards")).toBeInTheDocument();
-    expect(screen.getByTestId("opd-queue-board-registered")).toHaveAttribute(
-      "aria-selected",
-      "true",
-    );
-    expect(screen.getByTestId("opd-queue-board-triaged")).toHaveTextContent(
-      "Ready",
-    );
-    expect(screen.getByTestId("opd-queue-board-with_clinician")).toHaveTextContent(
-      "With clinician",
-    );
+    expect(screen.getByTestId("opd-queue-view-toggle")).toBeInTheDocument();
     expect(screen.getByText("Jane Doe")).toBeInTheDocument();
     expect(screen.getByTestId("opd-queue-wait")).toHaveTextContent("14 min");
     expect(screen.getByTestId("opd-queue-vitals")).toHaveTextContent("78 bpm");
