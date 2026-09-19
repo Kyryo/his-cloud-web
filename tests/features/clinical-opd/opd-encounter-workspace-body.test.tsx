@@ -80,7 +80,7 @@ describe("OpdEncounterWorkspaceBody", () => {
 
     expect(screen.getByTestId("opd-overview-layout")).toBeInTheDocument();
     expect(screen.getByTestId("opd-encounter-summary-panel")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Overview" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Chart" })).toHaveAttribute(
       "href",
       "/clinical/opd/visit-1/enc-1",
     );

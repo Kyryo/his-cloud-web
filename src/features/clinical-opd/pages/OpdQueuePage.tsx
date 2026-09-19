@@ -16,13 +16,16 @@ import { OpdQueuePageHeader } from "@/features/clinical-opd/components/OpdQueueP
 import { OpdQueueTableSkeleton } from "@/features/clinical-opd/components/OpdQueueTableSkeleton";
 import { OpdQueueTable } from "@/features/clinical-opd/components/tables/OpdQueueTable";
 import { OpdQueueList } from "@/features/clinical-opd/components/OpdQueueList";
-import { useOpdQueue } from "@/features/clinical-opd/hooks/use-clinical-opd";
+import {
+  useMyClinicalCapabilities,
+  useOpdQueue,
+} from "@/features/clinical-opd/hooks/use-clinical-opd";
 import type { OpdQueueEncounter } from "@/features/clinical-opd/types/clinical-opd.types";
 import type { OpdQueueViewMode } from "@/features/clinical-opd/utils/opd-queue-views";
+import { opdEncounterLandingHref } from "@/features/clinical-opd/utils/opd-encounter-tabs";
 import { AddVisitEncounterDialog } from "@/features/visits/components/AddVisitEncounterDialog";
 import { fetchVisit } from "@/features/visits/services/visits.service";
 import type { VisitDetail, VisitEncounter } from "@/features/visits/types/visit.types";
-import { ROUTES } from "@/constants/routes";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { useToast } from "@/providers/toast-provider";
@@ -35,6 +38,14 @@ export function OpdQueuePage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { userData, isLoading: isUserLoading } = useUser();
+  const { data: capabilitiesData } = useMyClinicalCapabilities();
+  const landingHref = (encounter: OpdQueueEncounter) =>
+    opdEncounterLandingHref(
+      encounter.visit_uuid,
+      encounter.encounter_uuid,
+      capabilitiesData?.capabilities ?? [],
+      userData?.user_role,
+    );
   const [search, setSearch] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
   const [page, setPage] = useState(1);
@@ -125,7 +136,14 @@ export function OpdQueuePage() {
     setAddEncounterVisit(null);
 
     if (created.department_type === "opd") {
-      router.push(ROUTES.clinicalOpdEncounter(created.visit, created.uuid));
+      router.push(
+        opdEncounterLandingHref(
+          created.visit,
+          created.uuid,
+          capabilitiesData?.capabilities ?? [],
+          userData?.user_role,
+        ),
+      );
       return;
     }
 
@@ -209,6 +227,7 @@ export function OpdQueuePage() {
             {viewMode === "list" ? (
               <OpdQueueList
                 encounters={data}
+                encounterHref={landingHref}
                 onAddEncounter={(encounter) => {
                   void handleAddEncounter(encounter);
                 }}
@@ -216,6 +235,7 @@ export function OpdQueuePage() {
             ) : (
               <OpdQueueTable
                 encounters={paginatedEncounters}
+                encounterHref={landingHref}
                 onAddEncounter={(encounter) => {
                   void handleAddEncounter(encounter);
                 }}

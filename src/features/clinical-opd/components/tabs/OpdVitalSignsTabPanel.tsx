@@ -3,18 +3,10 @@
 import { useState } from "react";
 import { Activity } from "lucide-react";
 
-import { TabAddActionButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   OpdEncounterRecordList,
   OpdEncounterRecordListItem,
@@ -43,7 +35,6 @@ export function OpdVitalSignsTabPanel({
   const { observations } = useEncounterWorkspace(visitUuid, encounterUuid);
   const definitions = useObservationDefinitions();
   const createObservation = useCreateObservation(visitUuid, encounterUuid);
-  const [vitalDialogOpen, setVitalDialogOpen] = useState(false);
   const [selectedDefinition, setSelectedDefinition] = useState("");
   const [vitalValue, setVitalValue] = useState("");
   const canWrite = capabilities.includes("record_vitals") && !isChartLocked;
@@ -73,41 +64,69 @@ export function OpdVitalSignsTabPanel({
     });
     setVitalValue("");
     setSelectedDefinition("");
-    setVitalDialogOpen(false);
   }
 
   const vitalItems = observations.data ?? [];
-  const recordVitalButton = canWrite ? (
-    <TabAddActionButton
-      label="Record vital"
-      onClick={() => setVitalDialogOpen(true)}
-      data-testid="opd-record-vital-button"
-    />
-  ) : null;
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
+      {canWrite ? (
+        <form
+          className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_8rem_auto] sm:items-end"
+          data-testid="opd-record-vital-form"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleSaveVital();
+          }}
+        >
+          <div className="space-y-1.5">
+            <Label htmlFor="opd-vital-definition">Vital</Label>
+            <select
+              id="opd-vital-definition"
+              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
+              value={selectedDefinition}
+              onChange={(event) => setSelectedDefinition(event.target.value)}
+            >
+              <option value="">Select vital</option>
+              {writableDefinitions.map((definition) => (
+                <option key={definition.uuid} value={definition.uuid}>
+                  {definition.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="opd-vital-value">
+              Value <RequiredFieldMarker />
+            </Label>
+            <Input
+              id="opd-vital-value"
+              value={vitalValue}
+              onChange={(event) => setVitalValue(event.target.value)}
+              inputMode="decimal"
+            />
+          </div>
+          <Button
+            type="submit"
+            disabled={createObservation.isPending}
+            data-testid="opd-record-vital-button"
+          >
+            {createObservation.isPending ? "Saving..." : "Save vital"}
+          </Button>
+        </form>
+      ) : null}
+
       {vitalItems.length === 0 ? (
         <OpdEncounterTabEmptyState
           icon={Activity}
           title="No vital signs recorded"
           description="Recording vitals keeps the encounter waiting and marks the queue as ready."
-          action={
-            canWrite ? (
-              <TabAddActionButton
-                label="Record vital"
-                emptyState
-                onClick={() => setVitalDialogOpen(true)}
-              />
-            ) : null
-          }
           data-testid="opd-vital-signs-empty-state"
         />
       ) : (
         <OpdEncounterRecordList
           title="Vital signs"
           description="Recorded observations for this encounter."
-          action={recordVitalButton}
           data-testid="opd-vital-signs-list"
         >
           {vitalItems.map((observation) => (
@@ -123,96 +142,6 @@ export function OpdVitalSignsTabPanel({
           ))}
         </OpdEncounterRecordList>
       )}
-
-      <VitalDialog
-        open={vitalDialogOpen}
-        onOpenChange={setVitalDialogOpen}
-        definitions={writableDefinitions}
-        selectedDefinition={selectedDefinition}
-        vitalValue={vitalValue}
-        isSaving={createObservation.isPending}
-        onDefinitionChange={setSelectedDefinition}
-        onValueChange={setVitalValue}
-        onSave={() => void handleSaveVital()}
-      />
     </div>
-  );
-}
-
-type VitalDialogProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  definitions: Array<{
-    uuid: string;
-    name: string;
-    value_type: string;
-    default_unit: string;
-  }>;
-  selectedDefinition: string;
-  vitalValue: string;
-  isSaving: boolean;
-  onDefinitionChange: (value: string) => void;
-  onValueChange: (value: string) => void;
-  onSave: () => void;
-};
-
-function VitalDialog({
-  open,
-  onOpenChange,
-  definitions,
-  selectedDefinition,
-  vitalValue,
-  isSaving,
-  onDefinitionChange,
-  onValueChange,
-  onSave,
-}: VitalDialogProps) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Record vital sign</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Label>Vital</Label>
-            <select
-              className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-              value={selectedDefinition}
-              onChange={(event) => onDefinitionChange(event.target.value)}
-            >
-              <option value="">Select vital</option>
-              {definitions.map((definition) => (
-                <option key={definition.uuid} value={definition.uuid}>
-                  {definition.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="space-y-2">
-            <Label>
-              Value <RequiredFieldMarker />
-            </Label>
-            <Input
-              value={vitalValue}
-              onChange={(event) => onValueChange(event.target.value)}
-              inputMode="decimal"
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </Button>
-          <Button type="button" disabled={isSaving} onClick={onSave}>
-            {isSaving ? "Saving..." : "Save vital"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { OpdEncounterActivityLog } from "@/features/clinical-opd/components/detail/OpdEncounterActivityLog";
@@ -13,7 +12,6 @@ import {
 } from "@/features/clinical-opd/hooks/use-clinical-opd";
 import { selectRecentOpdTimelineEvents } from "@/features/clinical-opd/utils/opd-encounter-overview";
 import { opdEncounterTabHref } from "@/features/clinical-opd/utils/opd-encounter-tabs";
-import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 
 type OpdOverviewTabPanelProps = {
   visitUuid: string;
@@ -55,7 +53,6 @@ export function OpdOverviewTabPanel({
     workspace.timeline.isLoading || historySummary.isLoading;
 
   const lastComplaints = chartSummary?.last_chief_complaints ?? [];
-  const lastHpis = chartSummary?.last_hpis ?? [];
   const problems = (chartSummary?.problem_list ?? []).filter(
     (item) => item.status !== "inactive" && item.status !== "resolved",
   );
@@ -96,119 +93,11 @@ export function OpdOverviewTabPanel({
         </p>
       ) : null}
 
-      {!isContextLoading && lastComplaints.length > 0 ? (
-        <OverviewList
-          id="complaint"
-          title="Last visit complaint"
-          href={
-            visibleTabIds.includes("complaint")
-              ? opdEncounterTabHref(visitUuid, encounterUuid, "complaint")
-              : undefined
-          }
-        >
-          {lastComplaints.map((complaint) => (
-            <li key={complaint.uuid}>
-              <p className="text-sm font-medium text-brand-navy">
-                {complaint.text}
-              </p>
-              <p className="mt-0.5 text-xs text-dash-muted">
-                {formatDisplayDateTime(complaint.recorded_at)}
-                {complaint.has_hpi ? " · HPI on file" : ""}
-              </p>
-            </li>
-          ))}
-          {lastHpis.map((hpi) => (
-            <li key={hpi.uuid}>
-              <p className="line-clamp-3 text-sm text-brand-slate">{hpi.body}</p>
-            </li>
-          ))}
-        </OverviewList>
-      ) : null}
-
-      {!isContextLoading && problems.length > 0 ? (
-        <OverviewList
-          id="problems"
-          title="Problem list"
-          href={
-            visibleTabIds.includes("problems")
-              ? opdEncounterTabHref(visitUuid, encounterUuid, "problems")
-              : undefined
-          }
-        >
-          {problems.map((problem) => (
-            <li key={problem.uuid} className="text-sm text-brand-navy">
-              {problem.description}
-            </li>
-          ))}
-        </OverviewList>
-      ) : null}
-
-      {!isContextLoading && currentMedications.length > 0 ? (
-        <OverviewList
-          id="current-meds"
-          title="Current medications"
-          href={
-            visibleTabIds.includes("medications")
-              ? opdEncounterTabHref(visitUuid, encounterUuid, "medications")
-              : undefined
-          }
-        >
-          {currentMedications.map((medication) => (
-            <li key={medication.uuid} className="text-sm text-brand-navy">
-              {[medication.name, medication.dose, medication.frequency]
-                .filter(Boolean)
-                .join(" · ")}
-            </li>
-          ))}
-        </OverviewList>
-      ) : null}
-
-      {!isContextLoading &&
-      (openOrders.length > 0 || investigations.length > 0) ? (
-        <OverviewList
-          id="orders"
-          title="Open orders"
-          href={
-            visibleTabIds.includes("orders")
-              ? opdEncounterTabHref(visitUuid, encounterUuid, "orders")
-              : undefined
-          }
-        >
-          {[...openOrders, ...investigations].map((order) => (
-            <li key={order.uuid} className="text-sm text-brand-navy">
-              {order.description || order.item_type_display}
-              {order.status_display ? ` · ${order.status_display}` : ""}
-            </li>
-          ))}
-        </OverviewList>
-      ) : null}
-
-      {!isContextLoading && recentEncounters.length > 0 ? (
-        <OverviewList id="history" title="Recent encounters">
-          {recentEncounters.map((encounter) => (
-            <li
-              key={encounter.encounter_uuid}
-              className="text-sm text-brand-navy"
-            >
-              {[
-                encounter.department,
-                encounter.status,
-                encounter.started_at
-                  ? formatDisplayDateTime(encounter.started_at)
-                  : null,
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-            </li>
-          ))}
-        </OverviewList>
-      ) : null}
-
       <section aria-labelledby="opd-overview-activity-heading">
         <div className="flex items-baseline justify-between gap-3">
           <h2
             id="opd-overview-activity-heading"
-            className="text-base font-semibold tracking-tight text-brand-navy"
+            className="text-sm font-semibold text-brand-navy"
           >
             Recent activity
           </h2>
@@ -221,7 +110,7 @@ export function OpdOverviewTabPanel({
             </Link>
           ) : null}
         </div>
-        <div className="mt-4">
+        <div className="mt-3">
           <OpdEncounterActivityLog
             events={recentEvents}
             emptyTitle="Nothing recorded yet"
@@ -231,39 +120,5 @@ export function OpdOverviewTabPanel({
         </div>
       </section>
     </div>
-  );
-}
-
-function OverviewList({
-  id,
-  title,
-  href,
-  children,
-}: {
-  id: string;
-  title: string;
-  href?: string;
-  children: ReactNode;
-}) {
-  return (
-    <section aria-labelledby={`opd-overview-${id}-heading`}>
-      <div className="flex items-baseline justify-between gap-3">
-        <h2
-          id={`opd-overview-${id}-heading`}
-          className="text-base font-semibold tracking-tight text-brand-navy"
-        >
-          {title}
-        </h2>
-        {href ? (
-          <Link
-            href={href}
-            className="text-sm text-brand-primary hover:underline"
-          >
-            Open
-          </Link>
-        ) : null}
-      </div>
-      <ul className="mt-4 space-y-3">{children}</ul>
-    </section>
   );
 }

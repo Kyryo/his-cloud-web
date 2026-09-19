@@ -19,8 +19,19 @@ type OpdQueueListProps = {
   encounters: OpdQueueEncounter[];
   onRowClick?: (encounter: OpdQueueEncounter) => void;
   onAddEncounter?: (encounter: OpdQueueEncounter) => void;
+  encounterHref?: (encounter: OpdQueueEncounter) => string;
   className?: string;
 };
+
+function hrefForEncounter(
+  encounter: OpdQueueEncounter,
+  encounterHref?: (encounter: OpdQueueEncounter) => string,
+) {
+  return (
+    encounterHref?.(encounter) ??
+    ROUTES.clinicalOpdEncounter(encounter.visit_uuid, encounter.encounter_uuid)
+  );
+}
 
 const STAGE_ACCENT: Record<string, string> = {
   registered: "bg-amber-500",
@@ -34,6 +45,7 @@ export function OpdQueueList({
   encounters,
   onRowClick,
   onAddEncounter,
+  encounterHref,
   className,
 }: OpdQueueListProps) {
   const router = useRouter();
@@ -45,9 +57,7 @@ export function OpdQueueList({
       return;
     }
 
-    router.push(
-      ROUTES.clinicalOpdEncounter(encounter.visit_uuid, encounter.encounter_uuid),
-    );
+    router.push(hrefForEncounter(encounter, encounterHref));
   }
 
   return (
@@ -89,6 +99,7 @@ export function OpdQueueList({
                 <OpdQueueListRow
                   key={encounter.encounter_uuid}
                   encounter={encounter}
+                  encounterHref={hrefForEncounter(encounter, encounterHref)}
                   onOpen={handleOpen}
                   onAddEncounter={onAddEncounter}
                 />
@@ -103,18 +114,16 @@ export function OpdQueueList({
 
 function OpdQueueListRow({
   encounter,
+  encounterHref,
   onOpen,
   onAddEncounter,
 }: {
   encounter: OpdQueueEncounter;
+  encounterHref: string;
   onOpen: (encounter: OpdQueueEncounter) => void;
   onAddEncounter?: (encounter: OpdQueueEncounter) => void;
 }) {
   const canAddEncounter = encounter.visit_status === "active";
-  const encounterHref = ROUTES.clinicalOpdEncounter(
-    encounter.visit_uuid,
-    encounter.encounter_uuid,
-  );
 
   return (
     <li>

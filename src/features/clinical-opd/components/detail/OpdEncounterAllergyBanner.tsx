@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { StatusBanner } from "@/components/ui/status-banner";
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
 import type { ChartAllergy } from "@/features/clinical-opd/types/clinical-opd.types";
 import { opdEncounterTabHref } from "@/features/clinical-opd/utils/opd-encounter-tabs";
@@ -26,25 +25,33 @@ export function OpdEncounterAllergyBanner({
   );
   const names = active
     .map((allergy) => `${allergy.allergy_name} (${allergy.severity})`)
-    .join(" · ");
+    .join(", ");
 
   return (
-    <div className="border-b border-dash-border/80 px-4 py-3 sm:px-6">
-      <StatusBanner
-        variant={highRisk ? "error" : "warning"}
-        message={highRisk ? "High-risk allergies on file" : "Allergies on file"}
-        description={names}
-        data-testid="opd-encounter-allergy-banner"
-      >
-        {visibleTabIds.includes("allergies") ? (
+    <p
+      className={
+        highRisk
+          ? "px-4 py-2.5 text-sm text-red-800 sm:px-6"
+          : "px-4 py-2.5 text-sm text-amber-800 sm:px-6"
+      }
+      data-testid="opd-encounter-allergy-banner"
+    >
+      <span className="font-medium">
+        {highRisk ? "High-risk allergies on file" : "Allergies on file"}
+      </span>
+      {": "}
+      {names}
+      {visibleTabIds.includes("allergies") ? (
+        <>
+          {" "}
           <Link
             href={opdEncounterTabHref(visitUuid, encounterUuid, "allergies")}
-            className="text-sm font-medium text-brand-primary hover:underline"
+            className="font-medium text-brand-primary hover:underline"
           >
             Review allergies
           </Link>
-        ) : null}
-      </StatusBanner>
-    </div>
+        </>
+      ) : null}
+    </p>
   );
 }

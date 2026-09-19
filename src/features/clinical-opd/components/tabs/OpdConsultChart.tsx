@@ -2,10 +2,7 @@
 
 import type { ReactNode } from "react";
 
-import {
-  OpdComplaintComposer,
-  OpdComplaintHpiField,
-} from "@/features/clinical-opd/components/detail/OpdComplaintComposer";
+import { OpdComplaintComposer } from "@/features/clinical-opd/components/detail/OpdComplaintComposer";
 import { OpdExamComposer } from "@/features/clinical-opd/components/detail/OpdExamComposer";
 import { OpdNoteComposer } from "@/features/clinical-opd/components/detail/OpdNoteComposer";
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
@@ -14,24 +11,27 @@ import {
   useEncounterWorkspace,
 } from "@/features/clinical-opd/hooks/use-clinical-opd";
 
-type ConsultSectionProps = {
+function SoapBlock({
+  mark,
+  title,
+  children,
+}: {
+  mark: string;
   title: string;
-  description?: string;
   children: ReactNode;
-};
-
-function ConsultSection({ title, description, children }: ConsultSectionProps) {
+}) {
   return (
-    <section className="space-y-4">
-      <div>
-        <h2 className="text-base font-semibold tracking-tight text-brand-navy">
-          {title}
-        </h2>
-        {description ? (
-          <p className="mt-0.5 text-sm text-dash-muted">{description}</p>
-        ) : null}
+    <section className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-3 py-5 first:pt-0">
+      <p
+        className="pt-0.5 text-sm font-semibold leading-6 text-brand-primary"
+        aria-hidden="true"
+      >
+        {mark}
+      </p>
+      <div className="min-w-0 space-y-3">
+        <h2 className="text-sm font-semibold text-brand-navy">{title}</h2>
+        {children}
       </div>
-      {children}
     </section>
   );
 }
@@ -74,74 +74,62 @@ export function OpdConsultChart({
   }
 
   return (
-    <div className="space-y-8" data-testid="opd-consult-chart">
+    <div className="divide-y divide-dash-border/70" data-testid="opd-consult-chart">
       {showSubjective ? (
-        <ConsultSection
-          title="Subjective"
-          description="Chief complaint and history for this visit."
-        >
-          {canWriteComplaint ? (
-            <OpdComplaintComposer
-              visitUuid={visitUuid}
-              encounterUuid={encounterUuid}
-              canWriteComplaint={canWriteComplaint}
-              canWriteHpi={canWriteHpi}
-            />
-          ) : null}
-          {recordedComplaints.length > 0 ? (
-            <div className="space-y-4">
-              {recordedComplaints.map((complaint) => (
-                <OpdComplaintHpiField
+        <SoapBlock mark="S" title="Chief complaint and HPI">
+          <div className="space-y-8">
+            {recordedComplaints.length === 0 ? (
+              <OpdComplaintComposer
+                visitUuid={visitUuid}
+                encounterUuid={encounterUuid}
+                canWriteComplaint={canWriteComplaint}
+                canWriteHpi={canWriteHpi}
+              />
+            ) : (
+              recordedComplaints.map((complaint) => (
+                <OpdComplaintComposer
                   key={complaint.uuid}
                   visitUuid={visitUuid}
                   encounterUuid={encounterUuid}
                   complaint={complaint}
-                  canWrite={canWriteHpi}
+                  canWriteComplaint={canWriteComplaint}
+                  canWriteHpi={canWriteHpi}
                 />
-              ))}
-            </div>
-          ) : null}
-        </ConsultSection>
+              ))
+            )}
+          </div>
+        </SoapBlock>
       ) : null}
 
       {canWriteExam ? (
-        <ConsultSection
-          title="Examination"
-          description="Document findings as you examine the client."
-        >
+        <SoapBlock mark="O" title="Examination">
           <OpdExamComposer
             visitUuid={visitUuid}
             encounterUuid={encounterUuid}
             exams={exams}
             isLoading={physicalExams.isLoading}
           />
-        </ConsultSection>
+        </SoapBlock>
       ) : null}
 
       {canWriteNote ? (
-        <ConsultSection
-          title="Clinical note"
-          description="Assessment, plan, counselling, and follow-up."
-        >
+        <SoapBlock mark="A" title="Assessment and plan">
           <OpdNoteComposer
             kind="clinical"
             visitUuid={visitUuid}
             encounterUuid={encounterUuid}
           />
-        </ConsultSection>
+        </SoapBlock>
       ) : null}
 
       {canWriteNursing ? (
-        <ConsultSection
-          title="Nursing note"
-          description="Triage and nursing observations stay on this chart."
-        >
+        <SoapBlock mark="N" title="Nursing note">
           <OpdNoteComposer
             kind="nursing"
             visitUuid={visitUuid}
             encounterUuid={encounterUuid}
           />
-        </ConsultSection>
+        </SoapBlock>
       ) : null}
     </div>
   );

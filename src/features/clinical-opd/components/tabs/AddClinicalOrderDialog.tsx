@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 
 import { SecondaryButton } from "@/components/ui/app-buttons";
 import { EmptyState } from "@/components/ui/empty-state";
-import { TabbedDialog } from "@/components/ui/tabbed-dialog";
 import { ClinicalOrderProductList } from "@/features/clinical-opd/components/tabs/ClinicalOrderProductList";
 import {
   useCancelOrder,
@@ -19,6 +18,7 @@ import type { InventoryProduct } from "@/features/inventory/types/inventory.type
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
 type OrderDialogTab = "lab" | "radiology" | "procedures" | "sundries";
@@ -217,29 +217,49 @@ export function AddClinicalOrderDialog({
     }
   };
 
+  if (!open) {
+    return null;
+  }
+
   return (
-    <TabbedDialog
-      open={open}
-      onOpenChange={onOpenChange}
-      title="Add order"
-      description="Select a catalog product to place the order. Lab, radiology, and procedure services always charge quantity 1."
-      tabs={tabs}
-      activeTab={activeTab}
-      onTabChange={handleTabChange}
-      dismissible={false}
-      className={appFont.className}
+    <section
+      className={cn("space-y-4", appFont.className)}
       data-testid="add-clinical-order-dialog"
-      footer={
-        <SecondaryButton
-          type="button"
-          onClick={() => onOpenChange(false)}
-          disabled={Boolean(busyProductUuid)}
-          data-testid="clinical-order-close"
-        >
-          Close
-        </SecondaryButton>
-      }
     >
+      <div>
+        <h3 className="text-base font-semibold tracking-tight text-brand-navy">
+          Place order
+        </h3>
+        <p className="mt-0.5 text-sm text-dash-muted">
+          Select a catalog product. Lab, radiology, and procedure services
+          always charge quantity 1.
+        </p>
+      </div>
+      <nav
+        className="flex gap-1 overflow-x-auto"
+        aria-label="Order catalog"
+      >
+        {tabs.map((tab) => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              aria-current={isActive ? "page" : undefined}
+              onClick={() => handleTabChange(tab.id)}
+              className={cn(
+                "whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium",
+                isActive
+                  ? "border-brand-primary text-brand-primary"
+                  : "border-transparent text-brand-muted hover:border-brand-border hover:text-brand-navy",
+              )}
+              data-testid={`tabbed-dialog-tab-${tab.id}`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </nav>
       {canOrderActiveTab ? (
         <ClinicalOrderProductList
           itemType={activeTabConfig.itemType}
@@ -261,6 +281,14 @@ export function AddClinicalOrderDialog({
           data-testid="clinical-order-capability-empty"
         />
       )}
-    </TabbedDialog>
+      <SecondaryButton
+        type="button"
+        onClick={() => onOpenChange(false)}
+        disabled={Boolean(busyProductUuid)}
+        data-testid="clinical-order-close"
+      >
+        Done
+      </SecondaryButton>
+    </section>
   );
 }

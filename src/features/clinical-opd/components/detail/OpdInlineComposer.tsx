@@ -71,6 +71,7 @@ export function OpdInlineComposer({
           rows={rows}
           placeholder={placeholder}
           disabled={isDisabled}
+          className="resize-y rounded-none border-0 border-b border-dash-border px-0 shadow-none focus-visible:ring-0"
           {...textareaProps}
         />
         {error ? <p className="text-sm text-destructive">{error}</p> : null}

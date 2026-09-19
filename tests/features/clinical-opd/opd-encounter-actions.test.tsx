@@ -21,6 +21,8 @@ vi.mock(
     useOpdEncounterWorkspace: () => ({
       visitUuid: "visit-1",
       isChartLocked: false,
+      capabilities: ["record_chief_complaint"],
+      userRole: "physician",
     }),
   }),
 );

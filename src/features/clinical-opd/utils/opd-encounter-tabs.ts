@@ -45,7 +45,7 @@ export const OPD_ENCOUNTER_TAB_GROUPS: Array<{
 export const OPD_ENCOUNTER_TABS: OpdEncounterTab[] = [
   {
     id: "overview",
-    label: "Overview",
+    label: "Chart",
     segment: null,
     group: "overview",
     requiredCapability: null,
@@ -73,7 +73,7 @@ export const OPD_ENCOUNTER_TABS: OpdEncounterTab[] = [
   },
   {
     id: "complaint",
-    label: "Complaint",
+    label: "Chief complaint",
     segment: "complaint",
     group: "consult",
     requiredCapability: ["record_chief_complaint", "record_hpi"],
@@ -147,6 +147,19 @@ const TAB_SEGMENTS = new Set(
   OPD_ENCOUNTER_TABS.flatMap((tab) => (tab.segment ? [tab.segment] : [])),
 );
 
+export function opdEncounterLandingHref(
+  visitUuid: string,
+  encounterUuid: string,
+  capabilities: string[],
+  userRole?: string | null,
+) {
+  return opdEncounterTabHref(
+    visitUuid,
+    encounterUuid,
+    getDefaultOpdEncounterTab(capabilities, userRole),
+  );
+}
+
 export function opdEncounterTabHref(
   visitUuid: string,
   encounterUuid: string,
@@ -214,9 +227,6 @@ export function getDefaultOpdEncounterTab(
   userRole?: string | null,
 ): OpdEncounterTabId {
   const visibleTabs = getVisibleOpdEncounterTabs(capabilities);
-  if (visibleTabs.some((tab) => tab.id === "overview")) {
-    return "overview";
-  }
   if (visibleTabs.length === 0) {
     return "overview";
   }
@@ -230,11 +240,8 @@ export function getDefaultOpdEncounterTab(
     return preferredTab;
   }
 
-  if (userRole === "physician") {
-    const nonVitalsTab = visibleTabs.find((tab) => tab.id !== "vital-signs");
-    if (nonVitalsTab) {
-      return nonVitalsTab.id;
-    }
+  if (visibleTabs.some((tab) => tab.id === "overview")) {
+    return "overview";
   }
 
   return visibleTabs[0].id;

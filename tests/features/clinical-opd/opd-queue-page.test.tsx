@@ -17,7 +17,7 @@ vi.mock("@/providers/toast-provider", () => ({
 vi.mock("@/providers/user-provider", () => ({
   useUser: () => ({
     isLoading: false,
-    userData: { groups: ["Clinical"], user_role: "nurse" },
+    userData: { groups: ["Clinical"], user_role: "physician" },
   }),
 }));
 
@@ -55,6 +55,10 @@ vi.mock("@/features/clinical-opd/hooks/use-clinical-opd", () => ({
     error: null,
     refetch: vi.fn(),
   }),
+  useMyClinicalCapabilities: () => ({
+    data: { capabilities: ["record_chief_complaint", "record_hpi"] },
+    isLoading: false,
+  }),
 }));
 
 afterEach(() => {
@@ -86,7 +90,7 @@ describe("OpdQueuePage", () => {
     );
     expect(screen.getByRole("link", { name: "Open" })).toHaveAttribute(
       "href",
-      "/clinical/opd/visit-1/enc-1",
+      "/clinical/opd/visit-1/enc-1/complaint",
     );
   });
 });

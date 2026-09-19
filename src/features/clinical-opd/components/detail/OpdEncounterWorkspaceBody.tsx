@@ -41,43 +41,43 @@ export function OpdEncounterWorkspaceBody({
 
   return (
     <div
-      className="flex min-w-0 flex-1 flex-col xl:flex-row"
+      className="flex min-w-0 flex-1 flex-col"
       data-testid="opd-encounter-workspace-grid"
     >
       <OpdEncounterTabs />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <OpdEncounterAllergyBanner allergies={chartSummary?.allergies ?? []} />
-        {showVitalsStrip ? (
-          <OpdEncounterVitalsStatsStrip
-            observations={stripObservations}
-            isLoading={observations.isLoading && !chartSummary}
-          />
-        ) : null}
+      <OpdEncounterAllergyBanner allergies={chartSummary?.allergies ?? []} />
+      {showVitalsStrip ? (
+        <OpdEncounterVitalsStatsStrip
+          observations={stripObservations}
+          isLoading={observations.isLoading && !chartSummary}
+        />
+      ) : null}
 
-        {showOverviewLayout ? (
-          <DetailPageMainAsideGrid
-            className="min-h-0 flex-1"
-            data-testid="opd-overview-layout"
-          >
-            <DetailPageMainSection className="min-w-0 py-6">
-              {children}
-            </DetailPageMainSection>
-            <OpdEncounterSummaryPanel customer={customer} />
-          </DetailPageMainAsideGrid>
-        ) : showHistoryLayout ? (
-          <DetailPageMainAsideGrid
-            className="min-h-0 flex-1"
-            data-testid="opd-physician-history-layout"
-          >
-            <DetailPageMainSection className="min-w-0">
-              {children}
-            </DetailPageMainSection>
-            <OpdClinicalHistoryPanel />
-          </DetailPageMainAsideGrid>
-        ) : (
-          <DetailPageMainSection>{children}</DetailPageMainSection>
-        )}
-      </div>
+      {showOverviewLayout ? (
+        <DetailPageMainAsideGrid
+          className="min-h-0 flex-1"
+          data-testid="opd-overview-layout"
+        >
+          <DetailPageMainSection className="min-w-0 max-w-3xl py-6">
+            {children}
+          </DetailPageMainSection>
+          <OpdEncounterSummaryPanel customer={customer} />
+        </DetailPageMainAsideGrid>
+      ) : showHistoryLayout ? (
+        <DetailPageMainAsideGrid
+          className="min-h-0 flex-1"
+          data-testid="opd-physician-history-layout"
+        >
+          <DetailPageMainSection className="min-w-0 max-w-3xl">
+            {children}
+          </DetailPageMainSection>
+          <OpdClinicalHistoryPanel />
+        </DetailPageMainAsideGrid>
+      ) : (
+        <DetailPageMainSection className="max-w-3xl">
+          {children}
+        </DetailPageMainSection>
+      )}
     </div>
   );
 }

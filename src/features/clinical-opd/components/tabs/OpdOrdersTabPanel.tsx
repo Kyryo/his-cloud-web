@@ -105,7 +105,7 @@ export function OpdOrdersTabPanel({
   );
   const cancelOrder = useCancelOrder(visitUuid, encounterUuid);
   const createOrder = useCreateOrder(visitUuid, encounterUuid);
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(true);
   const [filter, setFilter] = useState<OrderFilterId>("all");
   const [reorderOrder, setReorderOrder] = useState<EncounterClinicalOrder | null>(
     null,

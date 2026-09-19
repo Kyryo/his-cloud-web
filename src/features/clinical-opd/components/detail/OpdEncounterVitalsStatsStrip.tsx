@@ -4,20 +4,21 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { OpdVitalReading } from "@/features/clinical-opd/components/detail/OpdVitalReading";
 import {
   buildOpdEncounterVitalStats,
-  formatVitalRecordedLabel,
 } from "@/features/clinical-opd/utils/opd-encounter-vitals";
 import type { EncounterObservation } from "@/features/clinical-opd/types/clinical-opd.types";
 import { cn } from "@/lib/utils";
-
-const STRIP_GRID_CLASS =
-  "grid grid-cols-2 gap-px bg-dash-border/70 lg:grid-cols-4";
-
-const STAT_CELL_CLASS = "bg-white px-4 py-4 sm:px-6";
 
 type OpdEncounterVitalsStatsStripProps = {
   observations: EncounterObservation[];
   isLoading?: boolean;
   className?: string;
+};
+
+const SHORT_LABELS: Record<string, string> = {
+  weight: "Wt",
+  temperature: "Temp",
+  "heart-rate": "HR",
+  "blood-pressure": "BP",
 };
 
 export function OpdEncounterVitalsStatsStrip({
@@ -28,16 +29,13 @@ export function OpdEncounterVitalsStatsStrip({
   if (isLoading) {
     return (
       <div
-        className={cn("border-b border-dash-border/80", className)}
+        className={cn("px-4 py-3 sm:px-6", className)}
         data-testid="opd-encounter-vitals-stats-skeleton"
         aria-busy="true"
       >
-        <div className={STRIP_GRID_CLASS}>
+        <div className="flex gap-6">
           {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className={STAT_CELL_CLASS}>
-              <Skeleton className="h-3 w-16" />
-              <Skeleton className="mt-2 h-7 w-24" />
-            </div>
+            <Skeleton key={index} className="h-6 w-20" />
           ))}
         </div>
       </div>
@@ -48,32 +46,21 @@ export function OpdEncounterVitalsStatsStrip({
 
   return (
     <section
-      className={cn("border-b border-dash-border/80", className)}
+      className={cn("px-4 py-3 sm:px-6", className)}
       aria-label="Latest vital signs"
       data-testid="opd-encounter-vitals-stats"
     >
-      <dl className={STRIP_GRID_CLASS}>
-        {stats.map((stat) => {
-          const recordedLabel = formatVitalRecordedLabel(stat.recordedAt);
-
-          return (
-            <div key={stat.key} className={STAT_CELL_CLASS}>
-              <dt className="text-xs text-dash-muted">{stat.label}</dt>
-              <dd className="mt-1.5 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                <OpdVitalReading
-                  value={stat.value}
-                  emptyLabel="—"
-                  size="sm"
-                />
-                {recordedLabel ? (
-                  <span className="text-xs text-brand-muted">
-                    {recordedLabel}
-                  </span>
-                ) : null}
-              </dd>
-            </div>
-          );
-        })}
+      <dl className="flex flex-wrap items-baseline gap-x-7 gap-y-2">
+        {stats.map((stat) => (
+          <div key={stat.key} className="flex items-baseline gap-2">
+            <dt className="text-xs text-dash-muted">
+              {SHORT_LABELS[stat.key] ?? stat.label}
+            </dt>
+            <dd>
+              <OpdVitalReading value={stat.value} emptyLabel="—" size="sm" />
+            </dd>
+          </div>
+        ))}
       </dl>
     </section>
   );
