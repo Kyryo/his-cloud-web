@@ -98,6 +98,16 @@ export const BFF_LABORATORY_ROUTES = {
   specimenReject: (uuid: string) => `/api/laboratory/specimens/${uuid}/reject`,
   worklist: (queue: string) => `/api/laboratory/worklists/${queue}`,
   specimenTypes: "/api/laboratory/specimen-types",
+  specimenType: (uuid: string) => `/api/laboratory/specimen-types/${uuid}`,
+  analytes: "/api/laboratory/analytes",
+  analyte: (uuid: string) => `/api/laboratory/analytes/${uuid}`,
+  tests: "/api/laboratory/tests",
+  test: (uuid: string) => `/api/laboratory/tests/${uuid}`,
+  panels: "/api/laboratory/panels",
+  panel: (uuid: string) => `/api/laboratory/panels/${uuid}`,
+  referenceRanges: "/api/laboratory/reference-ranges",
+  referenceRange: (uuid: string) => `/api/laboratory/reference-ranges/${uuid}`,
+  settings: "/api/laboratory/settings",
 } as const;
 
 /** Browser-facing BFF visit routes (same origin). */

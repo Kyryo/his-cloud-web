@@ -2,85 +2,103 @@
 
 import Link from "next/link";
 
-import { ROUTES } from "@/constants/routes";
+import {
+  DetailPageAsidePanelHeader,
+  DetailPageAsidePanelSection,
+  DetailPageAsideSummaryField,
+  DetailPageAsideSummarySection,
+} from "@/features/app-shell/components/page-layout";
+import { LabOrderPriorityBadge } from "@/features/laboratory/components/LabOrderPriorityBadge";
+import { LabOrderStatusBadge } from "@/features/laboratory/components/LabOrderStatusBadge";
 import type { LabOrder } from "@/features/laboratory/types/laboratory.types";
 import {
   formatLabAccession,
   formatLabDisplayDateTime,
-  formatLabOrderPriorityLabel,
-  formatLabOrderStatusLabel,
-  shortenUuid,
+  formatLabPatientName,
 } from "@/features/laboratory/utils/format-lab-order";
-import { cn } from "@/lib/utils";
+import { ROUTES } from "@/constants/routes";
 
 type LabOrderSummaryPanelProps = {
   order: LabOrder;
   className?: string;
 };
 
-function SummaryRow({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="space-y-1 border-b border-dash-border/70 py-3 last:border-b-0">
-      <p className="text-xs font-medium uppercase tracking-wide text-brand-muted">
-        {label}
-      </p>
-      <div className="text-sm text-brand-navy">{children}</div>
-    </div>
-  );
-}
-
 export function LabOrderSummaryPanel({
   order,
   className,
 }: LabOrderSummaryPanelProps) {
+  const patientName = formatLabPatientName(order);
+  const identifier = order.customer_identifier?.trim() || "—";
+  const notes = order.clinical_notes?.trim();
+
   return (
-    <aside
-      className={cn(
-        "rounded-xl border border-dash-border bg-white p-4 shadow-2xs",
-        className,
-      )}
+    <DetailPageAsidePanelSection
+      className={className}
       data-testid="lab-order-summary-panel"
     >
-      <h2 className="text-sm font-semibold text-brand-navy">Order summary</h2>
-      <div className="mt-1">
-        <SummaryRow label="Status">
-          {formatLabOrderStatusLabel(order.status)}
-        </SummaryRow>
-        <SummaryRow label="Priority">
-          {formatLabOrderPriorityLabel(order.priority)}
-        </SummaryRow>
-        <SummaryRow label="Accession">{formatLabAccession(order)}</SummaryRow>
-        <SummaryRow label="Clinic">{order.clinic_name || "—"}</SummaryRow>
-        <SummaryRow label="Ordered">
-          {formatLabDisplayDateTime(order.ordered_at)}
-        </SummaryRow>
-        <SummaryRow label="Ordered by">
-          {order.ordered_by_name || "—"}
-        </SummaryRow>
-        <SummaryRow label="Client">
-          <Link
-            href={ROUTES.customerDetail(order.customer_uuid)}
-            className="font-mono text-brand-primary hover:underline"
-          >
-            {shortenUuid(order.customer_uuid)}
-          </Link>
-        </SummaryRow>
-        <SummaryRow label="Visit">
-          <span className="font-mono">{shortenUuid(order.visit_uuid)}</span>
-        </SummaryRow>
-        <SummaryRow label="Encounter">
-          <span className="font-mono">{shortenUuid(order.encounter_uuid)}</span>
-        </SummaryRow>
-        <SummaryRow label="Notes">
-          {order.clinical_notes?.trim() || "No clinical notes"}
-        </SummaryRow>
-      </div>
-    </aside>
+      <DetailPageAsidePanelHeader
+        title="Order summary"
+        description="Requisition and patient details"
+      />
+
+      <DetailPageAsideSummarySection title="Order">
+        <DetailPageAsideSummaryField
+          label="Status"
+          value={<LabOrderStatusBadge status={order.status} />}
+        />
+        <DetailPageAsideSummaryField
+          label="Priority"
+          value={<LabOrderPriorityBadge priority={order.priority} />}
+        />
+        <DetailPageAsideSummaryField
+          label="Accession"
+          value={formatLabAccession(order)}
+        />
+        <DetailPageAsideSummaryField
+          label="Clinic"
+          value={order.clinic_name || "—"}
+        />
+        <DetailPageAsideSummaryField
+          label="Ordered"
+          value={formatLabDisplayDateTime(order.ordered_at)}
+        />
+        <DetailPageAsideSummaryField
+          label="Ordered by"
+          value={order.ordered_by_name || "—"}
+        />
+        <DetailPageAsideSummaryField
+          label="Items"
+          value={String(order.items.length)}
+        />
+      </DetailPageAsideSummarySection>
+
+      <DetailPageAsideSummarySection title="Patient">
+        <DetailPageAsideSummaryField
+          label="Name"
+          value={
+            <Link
+              href={ROUTES.customerDetail(order.customer_uuid)}
+              className="font-medium text-brand-primary hover:underline"
+            >
+              {patientName}
+            </Link>
+          }
+        />
+        <DetailPageAsideSummaryField
+          label="Client ID"
+          value={
+            <span className="inline-flex items-center rounded border border-dash-border/80 bg-dash-canvas px-1.5 py-0.5 font-mono text-xs font-semibold text-brand-navy">
+              {identifier}
+            </span>
+          }
+        />
+      </DetailPageAsideSummarySection>
+
+      <DetailPageAsideSummarySection title="Notes">
+        <p className="whitespace-pre-wrap text-sm text-brand-slate">
+          {notes || "No clinical notes"}
+        </p>
+      </DetailPageAsideSummarySection>
+    </DetailPageAsidePanelSection>
   );
 }

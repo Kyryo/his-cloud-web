@@ -61,6 +61,37 @@ export function formatLabAccession(order: LabOrder): string {
   return order.accession_number?.trim() || "Not accessioned";
 }
 
+export function formatLabPatientName(order: LabOrder): string {
+  const name = order.customer_name?.trim();
+  if (name) {
+    return name;
+  }
+  const identifier = order.customer_identifier?.trim();
+  if (identifier) {
+    return identifier;
+  }
+  return "Unknown patient";
+}
+
+export function formatLabOrderItemStatusLabel(status: string | undefined): string {
+  switch (status) {
+    case "ORDERED":
+      return "Ordered";
+    case "SPECIMEN_PENDING":
+      return "Specimen pending";
+    case "IN_PROGRESS":
+      return "In progress";
+    case "RESULTED":
+      return "Resulted";
+    case "RELEASED":
+      return "Released";
+    case "CANCELLED":
+      return "Cancelled";
+    default:
+      return status || "—";
+  }
+}
+
 export function canCollectSpecimen(status: LabOrderStatus | string): boolean {
   return status === "ORDERED" || status === "COLLECTING";
 }

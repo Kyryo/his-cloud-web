@@ -18,7 +18,7 @@ export type LabOrderDetailTab = {
 };
 
 export const LAB_ORDER_DETAIL_TABS: LabOrderDetailTab[] = [
-  { id: "overview", label: "Overview", segment: null, icon: "grid" },
+  { id: "overview", label: "Orders", segment: null, icon: "grid" },
   { id: "items", label: "Items", segment: "items", icon: "clipboard" },
   { id: "specimens", label: "Specimens", segment: "specimens", icon: "flask" },
   { id: "results", label: "Results", segment: "results", icon: "file" },

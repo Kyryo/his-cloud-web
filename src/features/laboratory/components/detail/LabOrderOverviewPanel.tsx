@@ -1,128 +1,160 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 
+import { AppIcon } from "@/components/icons/app-icon";
+import { PageActionButton } from "@/components/ui/app-buttons";
+import { Badge } from "@/components/ui/badge";
 import {
   LIST_PAGE_INSIGHT_CELL_CLASS,
   LIST_PAGE_INSIGHT_LABEL_CLASS,
-  LIST_PAGE_INSIGHT_STRIP_CLASS,
   LIST_PAGE_INSIGHT_VALUE_CLASS,
+  ListPageBlankState,
 } from "@/features/app-shell/components/page-layout";
+import { AddClinicalOrderDialog } from "@/features/clinical-opd/components/tabs/AddClinicalOrderDialog";
+import { useMyClinicalCapabilities } from "@/features/clinical-opd/hooks/use-clinical-opd";
 import { LabOrderStatusBadge } from "@/features/laboratory/components/LabOrderStatusBadge";
 import { useLabOrderDetailWorkspace } from "@/features/laboratory/components/detail/lab-order-detail-workspace-context";
 import {
-  formatLabAccession,
-  formatLabDisplayDateTime,
   formatLabOrderPriorityLabel,
-  shortenUuid,
+  formatLabOrderItemStatusLabel,
 } from "@/features/laboratory/utils/format-lab-order";
-import { ROUTES } from "@/constants/routes";
+import { labOrderDetailTabHref } from "@/features/laboratory/utils/lab-order-detail-tabs";
 
 export function LabOrderOverviewPanel() {
-  const { order, specimens } = useLabOrderDetailWorkspace();
-  const itemCount = order.items.length;
-  const releasedCount = order.items.filter(
+  const { order, onRefresh } = useLabOrderDetailWorkspace();
+  const { data: capabilitiesData } = useMyClinicalCapabilities();
+  const [addTestOpen, setAddTestOpen] = useState(false);
+  const items = order.items;
+  const itemCount = items.length;
+  const releasedCount = items.filter(
     (item) => item.status === "RELEASED" || item.result_status === "RELEASED",
   ).length;
+  const capabilities = capabilitiesData?.capabilities ?? ["order_laboratory"];
+
+  function handleAddDialogOpenChange(open: boolean) {
+    setAddTestOpen(open);
+    if (!open) {
+      onRefresh();
+    }
+  }
 
   return (
-    <div className="space-y-5 p-4 sm:p-6" data-testid="lab-order-overview-panel">
-      <div
-        className={LIST_PAGE_INSIGHT_STRIP_CLASS}
+    <div data-testid="lab-order-overview-panel">
+      <dl
+        className="-mx-4 -mt-4 grid grid-cols-2 divide-y divide-dash-border/60 border-b border-dash-border/80 sm:-mx-6 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x"
         aria-label="Laboratory order overview"
+        data-testid="lab-order-overview-stats"
       >
         <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
-          <p className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Status</p>
-          <div className="mt-1.5">
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Status</dt>
+          <dd className="mt-1.5">
             <LabOrderStatusBadge status={order.status} />
-          </div>
+          </dd>
+          <p className="mt-0.5 text-xs text-brand-muted">Current workflow</p>
         </div>
         <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
-          <p className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Priority</p>
-          <p className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Priority</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {formatLabOrderPriorityLabel(order.priority)}
-          </p>
+          </dd>
+          <p className="mt-0.5 text-xs text-brand-muted">Order urgency</p>
         </div>
         <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
-          <p className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Items</p>
-          <p className={LIST_PAGE_INSIGHT_VALUE_CLASS}>{itemCount}</p>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Items</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>{itemCount}</dd>
+          <p className="mt-0.5 text-xs text-brand-muted">Tests on this order</p>
         </div>
         <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
-          <p className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Released</p>
-          <p className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Released</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>
             {releasedCount}/{itemCount || 0}
-          </p>
+          </dd>
+          <p className="mt-0.5 text-xs text-brand-muted">Results released</p>
         </div>
-      </div>
+      </dl>
 
-      <div className="overflow-hidden rounded-xl border border-dash-border bg-white">
-        <div className="border-b border-dash-border/80 bg-slate-50/70 px-4 py-3 sm:px-5">
-          <h2 className="text-sm font-semibold text-brand-navy">Order details</h2>
-        </div>
-        <dl className="grid gap-4 px-4 py-4 sm:grid-cols-2 sm:px-5">
-          <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-brand-muted">
-              Accession
-            </dt>
-            <dd className="mt-1 font-mono text-sm font-semibold text-brand-navy">
-              {formatLabAccession(order)}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-brand-muted">
-              Patient
-            </dt>
-            <dd className="mt-1">
-              <Link
-                href={ROUTES.customerDetail(order.customer_uuid)}
-                className="font-mono text-sm font-medium text-brand-primary hover:underline"
+      {itemCount === 0 ? (
+        <div className="pt-5">
+          <ListPageBlankState
+            compact
+            icon="flask"
+            title="No tests ordered"
+            description="Laboratory tests for this encounter will appear here."
+            data-testid="lab-order-overview-empty"
+            action={
+              <PageActionButton
+                type="button"
+                onClick={() => setAddTestOpen(true)}
+                data-testid="lab-order-add-test-button"
               >
-                {shortenUuid(order.customer_uuid)}
-              </Link>
-            </dd>
+                <AppIcon name="add" className="size-3.5" />
+                Add test
+              </PageActionButton>
+            }
+          />
+        </div>
+      ) : (
+        <section className="pt-5" aria-labelledby="lab-ordered-tests-heading">
+          <div className="mb-3 flex items-end justify-between gap-3">
+            <div>
+              <h2
+                id="lab-ordered-tests-heading"
+                className="text-base font-semibold text-brand-navy"
+              >
+                Ordered tests
+              </h2>
+              <p className="mt-0.5 text-sm text-brand-muted">
+                Tests and panels placed for this encounter.
+              </p>
+            </div>
+            <Link
+              href={labOrderDetailTabHref(order.uuid, "items")}
+              className="shrink-0 text-sm font-medium text-brand-primary hover:underline"
+            >
+              View all
+            </Link>
           </div>
-          <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-brand-muted">
-              Clinic
-            </dt>
-            <dd className="mt-1 text-sm text-brand-navy">
-              {order.clinic_name || "—"}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-brand-muted">
-              Ordered
-            </dt>
-            <dd className="mt-1 text-sm text-brand-navy">
-              {formatLabDisplayDateTime(order.ordered_at)}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-brand-muted">
-              Ordered by
-            </dt>
-            <dd className="mt-1 text-sm text-brand-navy">
-              {order.ordered_by_name || "—"}
-            </dd>
-          </div>
-          <div>
-            <dt className="text-xs font-medium uppercase tracking-wide text-brand-muted">
-              Specimens (session)
-            </dt>
-            <dd className="mt-1 text-sm text-brand-navy">{specimens.length}</dd>
-          </div>
-        </dl>
-        {order.clinical_notes ? (
-          <div className="border-t border-dash-border/80 px-4 py-4 sm:px-5">
-            <p className="text-xs font-medium uppercase tracking-wide text-brand-muted">
-              Clinical notes
-            </p>
-            <p className="mt-2 whitespace-pre-wrap text-sm text-brand-slate">
-              {order.clinical_notes}
-            </p>
-          </div>
-        ) : null}
-      </div>
+
+          <ul className="divide-y divide-dash-border/70 border-y border-dash-border/80">
+            {items.map((item) => (
+              <li
+                key={item.uuid}
+                className="flex items-start justify-between gap-3 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-brand-navy">
+                    {item.test_name}
+                  </p>
+                  <p className="mt-0.5 truncate text-xs text-brand-muted">
+                    {item.test_code}
+                    {item.panel_code ? ` · Panel ${item.panel_code}` : ""}
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-col items-end gap-1.5">
+                  <Badge variant="outline" className="font-normal">
+                    {formatLabOrderItemStatusLabel(item.status)}
+                  </Badge>
+                  {item.result_status ? (
+                    <span className="text-[11px] text-brand-muted">
+                      {item.result_status}
+                    </span>
+                  ) : null}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <AddClinicalOrderDialog
+        visitUuid={order.visit_uuid}
+        encounterUuid={order.encounter_uuid}
+        capabilities={capabilities}
+        open={addTestOpen}
+        onOpenChange={handleAddDialogOpenChange}
+      />
     </div>
   );
 }

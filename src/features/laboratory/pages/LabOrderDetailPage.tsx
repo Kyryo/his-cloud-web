@@ -26,10 +26,7 @@ import type {
   LabOrder,
   LabSpecimen,
 } from "@/features/laboratory/types/laboratory.types";
-import {
-  formatLabAccession,
-  shortenUuid,
-} from "@/features/laboratory/utils/format-lab-order";
+import { formatLabPatientName } from "@/features/laboratory/utils/format-lab-order";
 import { cn } from "@/lib/utils";
 
 type LabOrderDetailPageProps = {
@@ -48,11 +45,7 @@ export function LabOrderDetailPage({
   const [error, setError] = useState<string | null>(null);
   const [showSummaryPanel, setShowSummaryPanel] = useState(false);
 
-  const breadcrumbLabel = order
-    ? formatLabAccession(order) === "Not accessioned"
-      ? `Lab ${shortenUuid(order.uuid)}`
-      : formatLabAccession(order)
-    : null;
+  const breadcrumbLabel = order ? formatLabPatientName(order) : null;
 
   useAppBreadcrumb(breadcrumbLabel);
 

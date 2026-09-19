@@ -87,7 +87,7 @@ export function CollectSpecimenDialog({
       setIsLoadingTypes(true);
 
       try {
-        const response = await fetchLabSpecimenTypes();
+        const response = await fetchLabSpecimenTypes({ pageSize: 100 });
         if (!cancelled) {
           setSpecimenTypes(response.results);
         }

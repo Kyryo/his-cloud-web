@@ -9,7 +9,6 @@ import type {
   LabReport,
   LabResult,
   LabSpecimen,
-  LabSpecimenType,
   RejectLabResultPayload,
   RejectSpecimenPayload,
   UpsertLabResultPayload,
@@ -164,12 +163,9 @@ export async function fetchLabWorklist<T = unknown>(
   return bffRequest(`${BFF_LABORATORY_ROUTES.worklist(queue)}${suffix}`);
 }
 
-export async function fetchLabSpecimenTypes(): Promise<{
-  results: LabSpecimenType[];
-  pagination: LabOrdersListResponse["pagination"];
-}> {
-  return bffRequest(BFF_LABORATORY_ROUTES.specimenTypes);
-}
+export {
+  fetchLabSpecimenTypes,
+} from "@/features/laboratory/services/laboratory-catalog.service";
 
 export async function downloadLabOrderReportPdf(uuid: string): Promise<void> {
   const response = await fetch(BFF_LABORATORY_ROUTES.reportPdf(uuid), {

@@ -50,6 +50,8 @@ export type LabOrder = {
   visit_uuid: string;
   encounter_uuid: string;
   customer_uuid: string;
+  customer_name?: string | null;
+  customer_identifier?: string | null;
   visit_order_uuid: string;
   ordered_by_name: string | null;
   accession_number: string | null;

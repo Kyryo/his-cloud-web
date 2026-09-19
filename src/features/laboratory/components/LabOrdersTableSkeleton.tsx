@@ -10,11 +10,12 @@ import {
 } from "@/features/app-shell/components/page-layout";
 
 const columns = [
-  { key: "accession", label: "Accession" },
   { key: "patient", label: "Patient" },
   { key: "clinic", label: "Clinic" },
   { key: "priority", label: "Priority" },
   { key: "status", label: "Status" },
+  { key: "items", label: "Items" },
+  { key: "ordered_by", label: "Ordered by" },
   { key: "ordered", label: "Ordered" },
 ] as const;
 
@@ -42,19 +43,28 @@ export function LabOrdersTableSkeleton({
         {Array.from({ length: rows }).map((_, index) => (
           <ListPageDataTableRow key={index} className="hover:bg-transparent">
             <ListPageDataTableCell>
-              <Skeleton className="h-4 w-28" />
+              <div className="flex items-center gap-2.5">
+                <Skeleton className="size-8 rounded-md" />
+                <div className="space-y-1">
+                  <Skeleton className="h-3.5 w-28" />
+                  <Skeleton className="h-3 w-16" />
+                </div>
+              </div>
             </ListPageDataTableCell>
             <ListPageDataTableCell>
               <Skeleton className="h-4 w-24" />
-            </ListPageDataTableCell>
-            <ListPageDataTableCell>
-              <Skeleton className="h-4 w-32" />
             </ListPageDataTableCell>
             <ListPageDataTableCell>
               <Skeleton className="h-5 w-16 rounded-full" />
             </ListPageDataTableCell>
             <ListPageDataTableCell>
               <Skeleton className="h-5 w-20 rounded-full" />
+            </ListPageDataTableCell>
+            <ListPageDataTableCell>
+              <Skeleton className="h-4 w-32" />
+            </ListPageDataTableCell>
+            <ListPageDataTableCell>
+              <Skeleton className="h-4 w-24" />
             </ListPageDataTableCell>
             <ListPageDataTableCell>
               <Skeleton className="h-4 w-28" />

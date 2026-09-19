@@ -80,7 +80,12 @@ export function resolvePortalModuleForPath(
     return "Inventory";
   }
 
-  if (pathname.startsWith("/lab-orders")) {
+  if (
+    pathname.startsWith("/lab-orders") ||
+    pathname.startsWith("/lab") ||
+    pathname === ROUTES.labOrders ||
+    pathname.startsWith(`${ROUTES.labOrders}/`)
+  ) {
     return "Lab";
   }
 

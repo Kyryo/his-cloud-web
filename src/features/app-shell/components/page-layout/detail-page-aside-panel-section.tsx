@@ -5,11 +5,13 @@ import { cn } from "@/lib/utils";
 type DetailPageAsidePanelSectionProps = {
   children: ReactNode;
   className?: string;
+  "data-testid"?: string;
 };
 
 export function DetailPageAsidePanelSection({
   children,
   className,
+  "data-testid": dataTestId,
 }: DetailPageAsidePanelSectionProps) {
   return (
     <aside
@@ -17,6 +19,7 @@ export function DetailPageAsidePanelSection({
         "order-first border-t border-dash-border/80 bg-white px-4 py-5 sm:px-6 xl:order-0 xl:border-l xl:border-t-0 xl:px-5",
         className,
       )}
+      data-testid={dataTestId}
     >
       <div className="space-y-4 xl:sticky xl:top-4">{children}</div>
     </aside>
