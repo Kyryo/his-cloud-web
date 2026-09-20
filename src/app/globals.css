@@ -834,15 +834,15 @@
   /* Signup country select — same shell as text fields, flag + name (no floating label) */
   .auth-country-field .country-select-field .country-select-field-button {
     display: flex !important;
-    height: 3.5rem !important;
+    height: 2.75rem !important;
     width: 100% !important;
     align-items: center !important;
-    gap: 0.625rem !important;
+    gap: 0.5rem !important;
     border: 1px solid rgb(226 232 240) !important;
     border-radius: 9999px !important;
     background: #fff !important;
-    padding: 0 2.5rem 0 1.25rem !important;
-    font-size: 0.9375rem !important;
+    padding: 0 2.25rem 0 1rem !important;
+    font-size: 0.875rem !important;
     line-height: 1.25rem !important;
     font-weight: 400 !important;
     color: var(--color-brand-navy, #0f172a) !important;
@@ -873,7 +873,7 @@
 
   .auth-country-field .country-select-field .country-select-field-button img,
   .auth-country-field .country-select-field .country-select-field-button span[class*="flag"] {
-    width: 1.35rem !important;
+    width: 1.15rem !important;
     height: auto !important;
     border-radius: 2px;
     flex-shrink: 0;

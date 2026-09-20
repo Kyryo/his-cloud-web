@@ -140,19 +140,19 @@ export function AuthOtpStep({
     <div className="w-full">
       {!embedded ? (
         <div>
-          <h2 className="font-[family-name:var(--font-bricolage)] text-[2rem] font-semibold tracking-[-0.02em] text-brand-navy sm:text-[2.25rem]">
+          <h2 className="font-[family-name:var(--font-bricolage)] text-xl font-semibold tracking-[-0.02em] text-brand-navy sm:text-[1.5rem]">
             {title}
           </h2>
-          <p className="mt-2 text-[15px] leading-relaxed text-brand-muted">
+          <p className="mt-1.5 text-sm leading-relaxed text-brand-muted">
             {description}
           </p>
-          <p className="mt-1.5 text-sm font-medium text-brand-navy">
+          <p className="mt-1 text-sm font-medium text-brand-navy">
             {maskEmail(email)}
           </p>
 
           <p
             className={cn(
-              "mt-4 text-sm tabular-nums",
+              "mt-3 text-xs tabular-nums",
               isExpiryExpired || isExpiryUrgent
                 ? "font-medium text-destructive"
                 : "text-brand-muted",
@@ -163,11 +163,11 @@ export function AuthOtpStep({
           </p>
         </div>
       ) : (
-        <div className="mb-6">
+        <div className="mb-5">
           <p className="text-sm font-medium text-brand-navy">{maskEmail(email)}</p>
           <p
             className={cn(
-              "mt-2 text-sm tabular-nums",
+              "mt-1.5 text-xs tabular-nums",
               isExpiryExpired || isExpiryUrgent
                 ? "font-medium text-destructive"
                 : "text-brand-muted",
@@ -179,7 +179,7 @@ export function AuthOtpStep({
         </div>
       )}
 
-      <div className={cn(!embedded && "mt-8")}>
+      <div className={cn(!embedded && "mt-6")}>
         {displayError ? (
           <StatusBanner variant="error" message={displayError} className="mb-4" />
         ) : null}
@@ -206,7 +206,7 @@ export function AuthOtpStep({
           type="button"
           data-testid={submitTestId}
           aria-busy={isSubmitting}
-          className="mt-8 h-12 w-full rounded-full bg-brand-primary text-white hover:bg-brand-primary-hover"
+          className="mt-6 h-10 w-full rounded-full bg-brand-primary text-sm font-semibold text-white hover:bg-brand-primary-hover"
           onClick={handleSubmitClick}
         >
           {isSubmitting ? (
@@ -224,7 +224,7 @@ export function AuthOtpStep({
         <div
           className={cn(
             "flex items-center gap-6 text-sm",
-            hideActions ? "mt-5 justify-start" : "mt-6 justify-start",
+            hideActions ? "mt-4 justify-start" : "mt-5 justify-start",
           )}
         >
           {onBack && !hideActions ? (

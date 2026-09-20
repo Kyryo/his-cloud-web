@@ -94,7 +94,7 @@ function WizardFooter({
         <Button
           type="button"
           variant="ghost"
-          className="h-11 gap-1.5 px-3 text-brand-muted hover:bg-transparent hover:text-brand-navy"
+          className="h-10 gap-1.5 px-3 text-sm text-brand-muted hover:bg-transparent hover:text-brand-navy"
           onClick={onBack}
           disabled={isBusy}
         >
@@ -108,7 +108,7 @@ function WizardFooter({
         type={continueType}
         form={formId}
         data-testid={continueTestId}
-        className="h-11 min-w-[9.5rem] gap-1.5 rounded-full bg-brand-primary px-5 text-[15px] font-semibold hover:bg-brand-primary-hover"
+        className="h-10 min-w-[8.5rem] gap-1.5 rounded-full bg-brand-primary px-4 text-sm font-semibold hover:bg-brand-primary-hover"
         onClick={continueType === "button" ? onContinue : undefined}
         disabled={isBusy || continueDisabled}
         aria-busy={isBusy}
@@ -332,7 +332,7 @@ export function SignUpForm() {
         <form
           id="signup-clinic-form"
           method="post"
-          className="flex flex-1 flex-col gap-4"
+          className="flex flex-1 flex-col gap-3"
           data-testid="signup-clinic-form"
           onSubmit={(event) => {
             event.preventDefault();
@@ -390,7 +390,7 @@ export function SignUpForm() {
         <form
           id="signup-account-form"
           method="post"
-          className="flex flex-1 flex-col gap-4"
+          className="flex flex-1 flex-col gap-3"
           data-testid="signup-credentials-form"
           onSubmit={(event) => {
             event.preventDefault();

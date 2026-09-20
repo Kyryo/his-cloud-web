@@ -312,7 +312,7 @@ export function LoginForm() {
           setPickerFrom(from);
           setStep("methods");
         }}
-        className="mt-3 flex h-12 w-full items-center justify-center rounded-full border border-slate-300 bg-white text-sm font-semibold text-brand-navy transition-colors hover:bg-slate-50 disabled:opacity-50"
+        className="mt-2.5 flex h-10 w-full items-center justify-center rounded-full border border-slate-300 bg-white text-sm font-semibold text-brand-navy transition-colors hover:bg-slate-50 disabled:opacity-50"
       >
         Try another method
       </button>
@@ -434,16 +434,16 @@ export function LoginForm() {
 
   return (
     <LoginSplitFrame>
-      <h2 className="font-[family-name:var(--font-bricolage)] text-[2rem] font-semibold tracking-[-0.02em] text-brand-navy sm:text-[2.25rem]">
+      <h2 className="font-[family-name:var(--font-bricolage)] text-xl font-semibold tracking-[-0.02em] text-brand-navy sm:text-[1.5rem]">
         Sign in
       </h2>
-      <p className="mt-2 text-[15px] leading-relaxed text-brand-muted">
+      <p className="mt-1.5 text-sm leading-relaxed text-brand-muted">
         Use your clinic email to continue.
       </p>
 
       <form
         method="post"
-        className="mt-8 space-y-5"
+        className="mt-6 space-y-4"
         data-testid="login-credentials-form"
         onSubmit={(event) => {
           event.preventDefault();
@@ -458,7 +458,7 @@ export function LoginForm() {
               data-testid="login-email"
               type="email"
               autoComplete="email"
-              className="mt-1.5 h-12 rounded-full px-5"
+              className="mt-1.5 h-10 rounded-full px-4"
               disabled={credentialsForm.formState.isSubmitting}
               {...credentialsForm.register("email")}
             />
@@ -474,7 +474,7 @@ export function LoginForm() {
               id="password"
               data-testid="login-password"
               autoComplete="current-password"
-              className="mt-1.5 h-12 rounded-full px-5 pr-12"
+              className="mt-1.5 h-10 rounded-full px-4 pr-11"
               disabled={credentialsForm.formState.isSubmitting}
               {...credentialsForm.register("password")}
             />
@@ -493,7 +493,7 @@ export function LoginForm() {
         <Button
           type="submit"
           data-testid="login-continue"
-          className="h-12 w-full rounded-full text-[15px] font-semibold"
+          className="h-10 w-full rounded-full text-sm font-semibold"
           disabled={credentialsForm.formState.isSubmitting}
         >
           {credentialsForm.formState.isSubmitting
@@ -502,7 +502,7 @@ export function LoginForm() {
         </Button>
       </form>
 
-      <p className="mt-6 text-sm text-brand-muted">
+      <p className="mt-5 text-sm text-brand-muted">
         Don&apos;t have an account?{" "}
         <Link
           href={ROUTES.signup}
