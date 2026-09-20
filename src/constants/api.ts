@@ -103,11 +103,14 @@ export const BFF_LABORATORY_ROUTES = {
   analyte: (uuid: string) => `/api/laboratory/analytes/${uuid}`,
   tests: "/api/laboratory/tests",
   test: (uuid: string) => `/api/laboratory/tests/${uuid}`,
+  testActivity: (uuid: string) => `/api/laboratory/tests/${uuid}/activity`,
   panels: "/api/laboratory/panels",
   panel: (uuid: string) => `/api/laboratory/panels/${uuid}`,
+  panelActivity: (uuid: string) => `/api/laboratory/panels/${uuid}/activity`,
   referenceRanges: "/api/laboratory/reference-ranges",
   referenceRange: (uuid: string) => `/api/laboratory/reference-ranges/${uuid}`,
   settings: "/api/laboratory/settings",
+  unconfiguredProducts: "/api/laboratory/unconfigured-products",
 } as const;
 
 /** Browser-facing BFF visit routes (same origin). */

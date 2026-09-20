@@ -1,4 +1,7 @@
-import type { InventoryProductMeta } from "@/features/inventory/types/inventory.types";
+import type {
+  InventoryProductMeta,
+  LabConfigurationStatus,
+} from "@/features/inventory/types/inventory.types";
 
 export type CatalogProductType = "product" | "consu" | "service";
 
@@ -21,6 +24,8 @@ export type CatalogProduct = {
   active?: boolean;
   is_active?: boolean;
   metadata?: InventoryProductMeta | null;
+  lab_configuration?: LabConfigurationStatus | null;
+  lab_charge_type?: "individual" | "panel" | null;
   created_at?: string;
   updated_at?: string;
 };

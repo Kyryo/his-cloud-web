@@ -85,8 +85,32 @@ export function ProductDetailSummaryTab({
             hidden: !meta.is_drug && !meta.is_sundry,
           },
           {
-            label: "Lab test",
+            label: "Laboratory product",
             value: formatBooleanLabel(meta.is_lab_test),
+          },
+          {
+            label: "Lab charge type",
+            value:
+              product.lab_charge_type === "panel" ||
+              meta.lab_charge_type === "panel"
+                ? "Panel"
+                : product.lab_charge_type === "individual" ||
+                    meta.lab_charge_type === "individual"
+                  ? "Individual test"
+                  : "—",
+            hidden: !meta.is_lab_test,
+          },
+          {
+            label: "Lab catalog",
+            value:
+              product.lab_configuration === "test"
+                ? "Individual test"
+                : product.lab_configuration === "panel"
+                  ? "Panel"
+                  : meta.is_lab_test
+                    ? "Unconfigured"
+                    : "—",
+            hidden: !meta.is_lab_test,
           },
           {
             label: "Radiology",

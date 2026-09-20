@@ -32,6 +32,11 @@ export type LabSpecimenTypeWritePayload = {
 
 export type LabAnalyteValueType = "NUMERIC" | "TEXT" | "CODED";
 
+export type LabAnalyteCodedOption = {
+  code: string;
+  label: string;
+};
+
 export type LabAnalyte = {
   uuid: string;
   code: string;
@@ -40,6 +45,7 @@ export type LabAnalyte = {
   value_type: LabAnalyteValueType | string;
   unit: string;
   decimal_precision: number | null;
+  coded_options?: LabAnalyteCodedOption[];
   created_at: string;
   updated_at: string;
 };
@@ -51,12 +57,23 @@ export type LabAnalyteWritePayload = {
   value_type?: LabAnalyteValueType | string;
   unit?: string;
   decimal_precision?: number | null;
+  coded_options?: LabAnalyteCodedOption[];
 };
 
 export type LabProductBrief = {
   uuid: string;
   name: string;
   default_code: string;
+  lab_configuration?: "none" | "test" | "panel" | null;
+};
+
+export type LabUnconfiguredProduct = {
+  uuid: string;
+  name: string;
+  default_code: string;
+  display_name: string;
+  lab_configuration: "none";
+  lab_charge_type?: "individual" | "panel" | null;
 };
 
 export type LabTestAnalyteMembership = {
@@ -81,8 +98,23 @@ export type LabTestDefinition = {
   primary_specimen_type_uuid: string | null;
   primary_specimen_type_code: string | null;
   analytes: LabTestAnalyteMembership[];
+  is_active?: boolean;
   created_at: string;
   updated_at: string;
+};
+
+export type LabTestActivityItem = {
+  uuid: string;
+  action: string;
+  message: string;
+  status: string;
+  actor_name: string;
+  actor_email: string;
+  metadata: Record<string, unknown>;
+  changes: Record<string, unknown>;
+  source: string;
+  occurred_at: string;
+  created_at: string;
 };
 
 export type LabTestAnalyteWrite = {
@@ -116,8 +148,23 @@ export type LabPanel = {
   product: LabProductBrief | null;
   product_uuid: string | null;
   tests: LabPanelTestMembership[];
+  is_active?: boolean;
   created_at: string;
   updated_at: string;
+};
+
+export type LabPanelActivityItem = {
+  uuid: string;
+  action: string;
+  message: string;
+  status: string;
+  actor_name: string;
+  actor_email: string;
+  metadata: Record<string, unknown>;
+  changes: Record<string, unknown>;
+  source: string;
+  occurred_at: string;
+  created_at: string;
 };
 
 export type LabPanelTestWrite = {

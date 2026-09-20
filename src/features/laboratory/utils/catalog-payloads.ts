@@ -34,14 +34,32 @@ export function toSpecimenTypePayload(
 export function toAnalytePayload(
   values: AnalyteFormValues,
 ): LabAnalyteWritePayload {
-  return {
+  const valueType = values.value_type;
+  const payload: LabAnalyteWritePayload = {
     code: values.code.trim(),
     name: values.name.trim(),
     loinc_code: values.loinc_code?.trim() ?? "",
-    value_type: values.value_type,
-    unit: values.unit?.trim() ?? "",
-    decimal_precision: parseOptionalInt(values.decimal_precision),
+    value_type: valueType,
   };
+
+  if (valueType === "NUMERIC") {
+    payload.unit = values.unit?.trim() ?? "";
+    payload.decimal_precision = parseOptionalInt(values.decimal_precision);
+    payload.coded_options = [];
+  } else if (valueType === "CODED") {
+    payload.unit = "";
+    payload.decimal_precision = null;
+    payload.coded_options = values.coded_options.map((option) => ({
+      code: option.code.trim(),
+      label: option.label.trim(),
+    }));
+  } else {
+    payload.unit = "";
+    payload.decimal_precision = null;
+    payload.coded_options = [];
+  }
+
+  return payload;
 }
 
 export function toLabTestPayload(
@@ -64,16 +82,20 @@ export function toLabTestPayload(
 
 export function toLabPanelPayload(
   values: LabPanelFormValues,
+  options?: { includeTests?: boolean },
 ): LabPanelWritePayload {
-  return {
+  const payload: LabPanelWritePayload = {
     code: values.code.trim(),
     name: values.name.trim(),
     product_uuid: emptyToNull(values.product_uuid),
-    tests: values.tests.map((row, index) => ({
+  };
+  if (options?.includeTests !== false) {
+    payload.tests = values.tests.map((row, index) => ({
       test_uuid: row.test_uuid,
       sort_order: row.sort_order ?? index,
-    })),
-  };
+    }));
+  }
+  return payload;
 }
 
 export function toReferenceRangePayload(

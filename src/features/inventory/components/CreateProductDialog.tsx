@@ -184,6 +184,7 @@ export function CreateProductDialog({
             isDrug={isDrug}
             isProcedure={isProcedure}
             testIdPrefix="create-product"
+            onChangeTab={setActiveTab}
           />
         </form>
       </Form>

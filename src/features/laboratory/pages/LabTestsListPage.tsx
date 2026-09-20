@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { useRouter } from "next/navigation";
 
 import { LabCatalogPageHeader } from "@/features/laboratory/components/catalog/LabCatalogPageHeader";
 import { LabTestsTable } from "@/features/laboratory/components/catalog/LabTestsTable";
@@ -16,8 +17,11 @@ import {
   deactivateLabTest,
   fetchLabTests,
 } from "@/features/laboratory/services/laboratory-catalog.service";
+import { ROUTES } from "@/constants/routes";
 
 export function LabTestsListPage() {
+  const router = useRouter();
+
   const fetchList = useCallback(
     ({ page, pageSize }: { page: number; pageSize: number }) =>
       fetchLabTests({ page, pageSize }),
@@ -69,6 +73,7 @@ export function LabTestsListPage() {
         <LabTestsTable
           items={list.items}
           deactivatingUuid={list.deactivatingUuid}
+          onRowClick={(item) => router.push(ROUTES.labTestDetail(item.uuid))}
           onEdit={(item) => list.setEditing(item)}
           onDeactivate={list.requestDeactivate}
         />

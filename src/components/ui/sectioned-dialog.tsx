@@ -81,7 +81,7 @@ export function SectionedDialog({
       >
         <div
           className={cn(
-            "border-b border-brand-border px-6 pt-6",
+            "shrink-0 border-b border-brand-border px-6 pt-6",
             headerExtra ? "pb-0" : "pb-4",
           )}
         >
@@ -100,7 +100,7 @@ export function SectionedDialog({
 
         <div
           className={cn(
-            "min-h-0 flex-1 overflow-y-auto px-6 py-6",
+            "min-h-0 flex-1 overflow-y-auto overscroll-contain px-6 py-5",
             contentClassName,
           )}
         >
@@ -108,7 +108,7 @@ export function SectionedDialog({
         </div>
 
         {footer ? (
-          <DialogFooter className="mt-0 border-t border-brand-border px-6 py-4">
+          <DialogFooter className="mt-0 shrink-0 border-t border-brand-border bg-white px-6 py-4">
             {footer}
           </DialogFooter>
         ) : null}

@@ -82,4 +82,28 @@ describe("EditProductClassificationDialog", () => {
     expect(onUpdated).toHaveBeenCalled();
     expect(onOpenChange).toHaveBeenCalledWith(false);
   });
+
+  it("hides storable classifications for service products and explains why", () => {
+    render(
+      <EditProductClassificationDialog
+        product={serviceProduct}
+        open
+        onOpenChange={vi.fn()}
+        onUpdated={vi.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByTestId("classification-option-is_procedure"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId("classification-option-is_lab_test"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByTestId("classification-option-is_drug"),
+    ).not.toBeInTheDocument();
+    expect(screen.getByTestId("classification-type-note")).toHaveTextContent(
+      "Drug, Sundry are not shown because the product type is Service.",
+    );
+  });
 });

@@ -24,6 +24,8 @@ export function normalizeCatalogProduct(product: CatalogProduct): InventoryProdu
     sale_ok: product.sale_ok,
     purchase_ok: product.purchase_ok,
     metadata: metadata,
+    lab_configuration: product.lab_configuration ?? null,
+    lab_charge_type: product.lab_charge_type ?? null,
     created_at: product.created_at,
     updated_at: product.updated_at,
   };

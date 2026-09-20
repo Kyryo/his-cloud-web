@@ -4,6 +4,7 @@ import type {
   LabAnalyteWritePayload,
   LabCatalogListResponse,
   LabPanel,
+  LabPanelActivityItem,
   LabPanelWritePayload,
   LabReferenceRange,
   LabReferenceRangeWritePayload,
@@ -13,6 +14,8 @@ import type {
   LabTenantSettingsWritePayload,
   LabTestDefinition,
   LabTestWritePayload,
+  LabTestActivityItem,
+  LabUnconfiguredProduct,
 } from "@/features/laboratory/types/laboratory-catalog.types";
 import { bffRequest } from "@/lib/bff-client";
 
@@ -22,6 +25,18 @@ function pageQuery(page?: number, pageSize?: number): string {
   if (pageSize) params.set("page_size", String(pageSize));
   const query = params.toString();
   return query ? `?${query}` : "";
+}
+
+export async function fetchUnconfiguredLabProducts(options?: {
+  page?: number;
+  pageSize?: number;
+}): Promise<LabCatalogListResponse<LabUnconfiguredProduct>> {
+  return bffRequest(
+    `${BFF_LABORATORY_ROUTES.unconfiguredProducts}${pageQuery(
+      options?.page,
+      options?.pageSize,
+    )}`,
+  );
 }
 
 export async function fetchLabSpecimenTypes(options?: {
@@ -93,10 +108,26 @@ export async function deactivateLabAnalyte(uuid: string): Promise<void> {
 export async function fetchLabTests(options?: {
   page?: number;
   pageSize?: number;
+  search?: string;
 }): Promise<LabCatalogListResponse<LabTestDefinition>> {
+  const params = new URLSearchParams();
+  if (options?.page) params.set("page", String(options.page));
+  if (options?.pageSize) params.set("page_size", String(options.pageSize));
+  if (options?.search?.trim()) params.set("search", options.search.trim());
+  const query = params.toString();
   return bffRequest(
-    `${BFF_LABORATORY_ROUTES.tests}${pageQuery(options?.page, options?.pageSize)}`,
+    `${BFF_LABORATORY_ROUTES.tests}${query ? `?${query}` : ""}`,
   );
+}
+
+export async function fetchLabTest(uuid: string): Promise<LabTestDefinition> {
+  return bffRequest(BFF_LABORATORY_ROUTES.test(uuid));
+}
+
+export async function fetchLabTestActivity(
+  uuid: string,
+): Promise<{ results: LabTestActivityItem[] }> {
+  return bffRequest(BFF_LABORATORY_ROUTES.testActivity(uuid));
 }
 
 export async function createLabTest(
@@ -129,6 +160,16 @@ export async function fetchLabPanels(options?: {
   return bffRequest(
     `${BFF_LABORATORY_ROUTES.panels}${pageQuery(options?.page, options?.pageSize)}`,
   );
+}
+
+export async function fetchLabPanel(uuid: string): Promise<LabPanel> {
+  return bffRequest(BFF_LABORATORY_ROUTES.panel(uuid));
+}
+
+export async function fetchLabPanelActivity(
+  uuid: string,
+): Promise<{ results: LabPanelActivityItem[] }> {
+  return bffRequest(BFF_LABORATORY_ROUTES.panelActivity(uuid));
 }
 
 export async function createLabPanel(

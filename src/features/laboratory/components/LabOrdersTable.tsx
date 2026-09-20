@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-
 import { UserIdenticon } from "@/components/UserIdenticon";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,15 +11,16 @@ import {
   ListPageDataTableHeaderRow,
   ListPageDataTableRow,
 } from "@/features/app-shell/components/page-layout";
+import { formatDisplayDate } from "@/features/customers/utils/format-customer";
 import { LabOrderStatusBadge } from "@/features/laboratory/components/LabOrderStatusBadge";
 import type { LabOrder } from "@/features/laboratory/types/laboratory.types";
 import {
-  formatLabDisplayDateTime,
+  formatLabOrderedRelative,
   formatLabOrderPriorityLabel,
   formatLabPatientName,
   isUrgentPriority,
 } from "@/features/laboratory/utils/format-lab-order";
-import { ROUTES } from "@/constants/routes";
+import { formatAge } from "@/lib/age";
 import { cn } from "@/lib/utils";
 
 type LabOrdersTableProps = {
@@ -32,26 +31,14 @@ type LabOrdersTableProps = {
 
 const columns = [
   { key: "patient", label: "Patient" },
-  { key: "clinic", label: "Clinic", className: "hidden md:table-cell" },
+  { key: "gender", label: "Gender", className: "hidden sm:table-cell" },
+  { key: "dob", label: "DOB", className: "hidden md:table-cell" },
+  { key: "clinic", label: "Clinic", className: "hidden lg:table-cell" },
   { key: "priority", label: "Priority" },
   { key: "status", label: "Status" },
-  { key: "items", label: "Items", className: "hidden sm:table-cell" },
-  { key: "ordered_by", label: "Ordered by", className: "hidden lg:table-cell" },
-  { key: "ordered", label: "Ordered", className: "hidden lg:table-cell" },
+  { key: "ordered_by", label: "Ordered by", className: "hidden xl:table-cell" },
+  { key: "ordered", label: "Ordered", className: "hidden xl:table-cell" },
 ] as const;
-
-function itemsSummary(order: LabOrder): string {
-  const names = (order.items ?? [])
-    .map((item) => item.test_name || item.test_code)
-    .filter(Boolean);
-  if (names.length === 0) {
-    return "—";
-  }
-  if (names.length <= 2) {
-    return names.join(", ");
-  }
-  return `${names.slice(0, 2).join(", ")} +${names.length - 2}`;
-}
 
 export function LabOrdersTable({
   orders,
@@ -78,6 +65,7 @@ export function LabOrdersTable({
           const identifier = order.customer_identifier?.trim() || "—";
           const identiconSeed =
             order.customer_uuid || identifier || name;
+          const ageLabel = formatAge(order.customer_dob);
 
           return (
             <ListPageDataTableRow
@@ -94,20 +82,35 @@ export function LabOrdersTable({
                     className="size-8 shrink-0 rounded-md"
                   />
                   <div className="min-w-0 space-y-0.5">
-                    <Link
-                      href={ROUTES.customerDetail(order.customer_uuid)}
-                      onClick={(event) => event.stopPropagation()}
-                      className="block truncate text-[13px] font-medium text-brand-navy transition-colors group-hover:text-brand-primary"
-                    >
+                    <p className="truncate text-[13px] font-medium text-brand-navy transition-colors group-hover:text-brand-primary">
                       {name}
-                    </Link>
+                    </p>
                     <p className="truncate font-mono text-[12px] text-brand-muted">
                       {identifier}
                     </p>
                   </div>
                 </div>
               </ListPageDataTableCell>
+              <ListPageDataTableCell className="hidden sm:table-cell">
+                <span className="whitespace-nowrap text-sm text-brand-slate">
+                  {order.customer_gender?.trim() || "—"}
+                </span>
+              </ListPageDataTableCell>
               <ListPageDataTableCell className="hidden md:table-cell">
+                {order.customer_dob ? (
+                  <div className="min-w-0 whitespace-nowrap">
+                    <p className="text-sm text-brand-navy">
+                      {formatDisplayDate(order.customer_dob)}
+                    </p>
+                    {ageLabel !== "—" ? (
+                      <p className="text-[12px] text-brand-muted">{ageLabel}</p>
+                    ) : null}
+                  </div>
+                ) : (
+                  <span className="text-sm text-brand-slate">—</span>
+                )}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="hidden lg:table-cell">
                 <span className="text-sm text-brand-navy">
                   {order.clinic_name || "—"}
                 </span>
@@ -125,25 +128,14 @@ export function LabOrdersTable({
               <ListPageDataTableCell>
                 <LabOrderStatusBadge status={order.status} />
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="hidden sm:table-cell">
-                <span
-                  className="line-clamp-2 text-sm text-brand-slate"
-                  title={(order.items ?? [])
-                    .map((item) => item.test_name)
-                    .filter(Boolean)
-                    .join(", ")}
-                >
-                  {itemsSummary(order)}
-                </span>
-              </ListPageDataTableCell>
-              <ListPageDataTableCell className="hidden lg:table-cell">
+              <ListPageDataTableCell className="hidden xl:table-cell">
                 <span className="text-sm text-brand-slate">
                   {order.ordered_by_name?.trim() || "—"}
                 </span>
               </ListPageDataTableCell>
-              <ListPageDataTableCell className="hidden lg:table-cell">
-                <span className="text-sm text-brand-slate">
-                  {formatLabDisplayDateTime(order.ordered_at)}
+              <ListPageDataTableCell className="hidden xl:table-cell">
+                <span className="whitespace-nowrap text-sm text-brand-slate">
+                  {formatLabOrderedRelative(order.ordered_at)}
                 </span>
               </ListPageDataTableCell>
             </ListPageDataTableRow>

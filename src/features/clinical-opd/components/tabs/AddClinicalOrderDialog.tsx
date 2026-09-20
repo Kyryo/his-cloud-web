@@ -71,7 +71,9 @@ export function AddClinicalOrderDialog({
   onOpenChange,
 }: AddClinicalOrderDialogProps) {
   const { toast } = useToast();
-  const { data: orders = [] } = useEncounterOrders(visitUuid, encounterUuid);
+  const { data: orders = [] } = useEncounterOrders(visitUuid, encounterUuid, {
+    enabled: open,
+  });
   const createOrder = useCreateOrder(visitUuid, encounterUuid);
   const cancelOrder = useCancelOrder(visitUuid, encounterUuid);
   const [busyProductUuid, setBusyProductUuid] = useState<string | null>(null);

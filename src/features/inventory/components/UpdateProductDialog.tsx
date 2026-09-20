@@ -183,6 +183,8 @@ export function UpdateProductDialog({
             isDrug={isDrug}
             isProcedure={isProcedure}
             testIdPrefix="update-product"
+            product={product}
+            onChangeTab={setActiveTab}
           />
         </form>
       </Form>

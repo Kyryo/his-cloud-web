@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowDown, ArrowUp } from "lucide-react";
+import { Check, Plus, Search, X } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import type { LabTestDefinition } from "@/features/laboratory/types/laboratory-catalog.types";
+import { cn } from "@/lib/utils";
 
 export type PanelTestMembershipValue = {
   test_uuid: string;
@@ -11,9 +12,12 @@ export type PanelTestMembershipValue = {
 };
 
 type PanelTestMembershipEditorProps = {
-  tests: LabTestDefinition[];
+  tests: Array<Pick<LabTestDefinition, "uuid" | "code" | "name" | "category">>;
   value: PanelTestMembershipValue[];
   onChange: (next: PanelTestMembershipValue[]) => void;
+  searchValue: string;
+  onSearchChange: (value: string) => void;
+  isSearching?: boolean;
   disabled?: boolean;
 };
 
@@ -25,109 +29,144 @@ export function PanelTestMembershipEditor({
   tests,
   value,
   onChange,
+  searchValue,
+  onSearchChange,
+  isSearching = false,
   disabled = false,
 }: PanelTestMembershipEditorProps) {
   const selectedIds = new Set(value.map((row) => row.test_uuid));
 
-  function toggleTest(testUuid: string, checked: boolean) {
-    if (checked) {
-      onChange(
-        reindex([
-          ...value,
-          { test_uuid: testUuid, sort_order: value.length },
-        ]),
-      );
+  function addTest(testUuid: string) {
+    if (selectedIds.has(testUuid)) {
       return;
     }
+    onChange(
+      reindex([
+        ...value,
+        { test_uuid: testUuid, sort_order: value.length },
+      ]),
+    );
+  }
+
+  function removeTest(testUuid: string) {
     onChange(reindex(value.filter((row) => row.test_uuid !== testUuid)));
   }
 
-  function move(index: number, direction: -1 | 1) {
-    const nextIndex = index + direction;
-    if (nextIndex < 0 || nextIndex >= value.length) return;
-    const next = [...value];
-    const [row] = next.splice(index, 1);
-    next.splice(nextIndex, 0, row);
-    onChange(reindex(next));
-  }
-
-  const orderedSelected = [...value].sort((a, b) => a.sort_order - b.sort_order);
-
   return (
-    <div className="space-y-3" data-testid="panel-test-membership-editor">
-      <div className="max-h-40 space-y-2 overflow-y-auto rounded-lg border border-brand-border p-3">
-        {tests.length === 0 ? (
-          <p className="text-sm text-brand-muted">No tests available.</p>
-        ) : (
-          tests.map((test) => {
-            const checked = selectedIds.has(test.uuid);
-            return (
-              <label
-                key={test.uuid}
-                className="flex cursor-pointer items-center gap-2 text-sm text-brand-navy"
-              >
-                <input
-                  type="checkbox"
-                  className="size-4 rounded border-brand-border"
-                  checked={checked}
-                  disabled={disabled}
-                  onChange={(event) =>
-                    toggleTest(test.uuid, event.target.checked)
-                  }
-                />
-                <span>
-                  {test.code} — {test.name}
-                </span>
-              </label>
-            );
-          })
-        )}
+    <div className="space-y-4" data-testid="panel-test-membership-editor">
+      <p className="text-xs text-brand-muted">
+        Showing up to 20 tests. Search by name or code to find others. Patients
+        are charged the panel product price, not the member test prices.
+      </p>
+
+      <div className="relative">
+        <Search
+          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-brand-muted"
+          aria-hidden="true"
+        />
+        <Input
+          value={searchValue}
+          onChange={(event) => onSearchChange(event.target.value)}
+          placeholder="Search tests…"
+          className="pl-9"
+          disabled={disabled}
+          data-testid="panel-test-membership-search"
+          aria-label="Search tests"
+        />
       </div>
 
-      {orderedSelected.length > 0 ? (
-        <div className="space-y-2 rounded-lg border border-brand-border p-3">
-          <p className="text-[12px] font-medium uppercase tracking-wide text-brand-muted">
-            Order
-          </p>
-          {orderedSelected.map((row, index) => {
-            const test = tests.find((item) => item.uuid === row.test_uuid);
+      {isSearching ? (
+        <div className="rounded-lg border border-dashed border-dash-border px-3 py-8 text-center text-sm text-brand-muted">
+          Searching…
+        </div>
+      ) : tests.length === 0 ? (
+        <div className="rounded-lg border border-dashed border-dash-border px-3 py-8 text-center text-sm text-brand-muted">
+          {searchValue.trim()
+            ? "No matching tests found."
+            : "No tests available."}
+        </div>
+      ) : (
+        <ul
+          className="max-h-72 divide-y divide-dash-border/70 overflow-y-auto overflow-x-hidden rounded-xl border border-dash-border/80"
+          data-testid="panel-test-membership-list"
+        >
+          {tests.map((test) => {
+            const isSelected = selectedIds.has(test.uuid);
+
             return (
-              <div
-                key={row.test_uuid}
-                className="flex flex-wrap items-center gap-2 text-sm"
-              >
-                <span className="min-w-0 flex-1 truncate text-brand-navy">
-                  {test ? `${test.code} — ${test.name}` : row.test_uuid}
-                </span>
-                <div className="flex gap-1">
-                  <Button
+              <li key={test.uuid}>
+                <div
+                  className={cn(
+                    "flex w-full items-center gap-3 px-3 py-3",
+                    disabled && "opacity-70",
+                  )}
+                  data-testid={`panel-test-membership-row-${test.uuid}`}
+                >
+                  <button
                     type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-7 w-7 p-0"
-                    disabled={disabled || index === 0}
-                    onClick={() => move(index, -1)}
-                    aria-label="Move up"
+                    disabled={disabled || isSelected}
+                    onClick={() => addTest(test.uuid)}
+                    className={cn(
+                      "min-w-0 flex-1 text-left transition-colors",
+                      !isSelected && "hover:text-brand-primary",
+                      (disabled || isSelected) && "cursor-default",
+                    )}
+                    data-testid={`panel-test-membership-add-${test.uuid}`}
                   >
-                    <ArrowUp className="size-3.5" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    className="h-7 w-7 p-0"
-                    disabled={disabled || index === orderedSelected.length - 1}
-                    onClick={() => move(index, 1)}
-                    aria-label="Move down"
-                  >
-                    <ArrowDown className="size-3.5" />
-                  </Button>
+                    <p className="truncate text-sm font-medium text-brand-navy">
+                      {test.name}
+                    </p>
+                    <p className="truncate text-xs text-brand-muted">
+                      {[test.code, test.category?.trim() || null]
+                        .filter(Boolean)
+                        .join(" · ") || "Laboratory test"}
+                    </p>
+                  </button>
+
+                  {isSelected ? (
+                    <div className="flex shrink-0 items-center gap-1.5">
+                      <span
+                        className="inline-flex size-8 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700"
+                        aria-label="Included"
+                        data-testid={`panel-test-membership-included-${test.uuid}`}
+                      >
+                        <Check className="size-4" />
+                      </span>
+                      <button
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => removeTest(test.uuid)}
+                        className={cn(
+                          "inline-flex size-8 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-700 transition-colors",
+                          "hover:bg-red-100 disabled:cursor-default disabled:opacity-70",
+                        )}
+                        aria-label={`Remove ${test.name}`}
+                        data-testid={`panel-test-membership-remove-${test.uuid}`}
+                      >
+                        <X className="size-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => addTest(test.uuid)}
+                      className={cn(
+                        "inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-brand-border bg-white text-brand-primary transition-colors",
+                        "hover:bg-brand-tint disabled:cursor-default disabled:opacity-70",
+                      )}
+                      aria-label={`Add ${test.name}`}
+                      data-testid={`panel-test-membership-plus-${test.uuid}`}
+                    >
+                      <Plus className="size-4" />
+                    </button>
+                  )}
                 </div>
-              </div>
+              </li>
             );
           })}
-        </div>
-      ) : null}
+        </ul>
+      )}
     </div>
   );
 }

@@ -77,12 +77,15 @@ type AddLabTestDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated: (item: LabTestDefinition) => void;
+  /** Preselect a billable lab product when opening from the unconfigured banner. */
+  initialProduct?: LabProductBrief | null;
 };
 
 export function AddLabTestDialog({
   open,
   onOpenChange,
   onCreated,
+  initialProduct = null,
 }: AddLabTestDialogProps) {
   const { toast } = useToast();
   const form = useForm<LabTestFormValues>({
@@ -91,8 +94,16 @@ export function AddLabTestDialog({
   });
 
   useEffect(() => {
-    if (open) form.reset(labTestDefaultValues);
-  }, [form, open]);
+    if (!open) return;
+    form.reset({
+      ...labTestDefaultValues,
+      product_uuid: initialProduct?.uuid ?? "",
+      name: initialProduct?.name ?? "",
+      code: initialProduct?.default_code?.trim()
+        ? initialProduct.default_code.trim().slice(0, 64)
+        : "",
+    });
+  }, [form, initialProduct, open]);
 
   async function handleSubmit(values: LabTestFormValues) {
     try {
@@ -166,7 +177,12 @@ export function AddLabTestDialog({
           className="space-y-4"
           onSubmit={form.handleSubmit(handleSubmit)}
         >
-          <TestFields form={form} isSubmitting={isSubmitting} loadOptions={open} />
+          <TestFields
+            form={form}
+            isSubmitting={isSubmitting}
+            loadOptions={open}
+            productBrief={initialProduct}
+          />
         </form>
       </Form>
     </SectionedDialog>
@@ -268,6 +284,7 @@ export function EditLabTestDialog({
             isSubmitting={isSubmitting}
             loadOptions={open}
             productBrief={item?.product ?? null}
+            allowConfiguredUuid={item?.product_uuid ?? null}
           />
         </form>
       </Form>
@@ -285,11 +302,13 @@ function TestFields({
   isSubmitting,
   loadOptions,
   productBrief = null,
+  allowConfiguredUuid = null,
 }: {
   form: ReturnType<typeof useForm<LabTestFormValues>>;
   isSubmitting: boolean;
   loadOptions: boolean;
   productBrief?: LabProductBrief | null;
+  allowConfiguredUuid?: string | null;
 }) {
   const [specimenTypes, setSpecimenTypes] = useState<LabSpecimenType[]>([]);
   const [analytes, setAnalytes] = useState<LabAnalyte[]>([]);
@@ -371,6 +390,7 @@ function TestFields({
               productBrief={productBrief}
               disabled={isSubmitting}
               invalid={Boolean(fieldState.error)}
+              allowConfiguredUuid={allowConfiguredUuid}
               onChange={(uuid) => setValue("product_uuid", uuid, { shouldDirty: true })}
             />
             <FormMessage />

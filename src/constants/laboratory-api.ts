@@ -22,9 +22,12 @@ export const LABORATORY_API_PATHS = {
   analyte: (uuid: string) => `/laboratory/analytes/${uuid}/`,
   tests: "/laboratory/tests/",
   test: (uuid: string) => `/laboratory/tests/${uuid}/`,
+  testActivity: (uuid: string) => `/laboratory/tests/${uuid}/activity/`,
   panels: "/laboratory/panels/",
   panel: (uuid: string) => `/laboratory/panels/${uuid}/`,
+  panelActivity: (uuid: string) => `/laboratory/panels/${uuid}/activity/`,
   referenceRanges: "/laboratory/reference-ranges/",
   referenceRange: (uuid: string) => `/laboratory/reference-ranges/${uuid}/`,
   settings: "/laboratory/settings/",
+  unconfiguredProducts: "/laboratory/unconfigured-products/",
 } as const;

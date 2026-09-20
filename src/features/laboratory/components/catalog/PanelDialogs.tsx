@@ -62,12 +62,15 @@ type AddLabPanelDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated: (item: LabPanel) => void;
+  /** Preselect a billable lab product when opening from the unconfigured banner. */
+  initialProduct?: LabProductBrief | null;
 };
 
 export function AddLabPanelDialog({
   open,
   onOpenChange,
   onCreated,
+  initialProduct = null,
 }: AddLabPanelDialogProps) {
   const { toast } = useToast();
   const form = useForm<LabPanelFormValues>({
@@ -76,8 +79,16 @@ export function AddLabPanelDialog({
   });
 
   useEffect(() => {
-    if (open) form.reset(labPanelDefaultValues);
-  }, [form, open]);
+    if (!open) return;
+    form.reset({
+      ...labPanelDefaultValues,
+      product_uuid: initialProduct?.uuid ?? "",
+      name: initialProduct?.name ?? "",
+      code: initialProduct?.default_code?.trim()
+        ? initialProduct.default_code.trim().slice(0, 64)
+        : "",
+    });
+  }, [form, initialProduct, open]);
 
   async function handleSubmit(values: LabPanelFormValues) {
     try {
@@ -151,7 +162,12 @@ export function AddLabPanelDialog({
           className="space-y-4"
           onSubmit={form.handleSubmit(handleSubmit)}
         >
-          <PanelFields form={form} isSubmitting={isSubmitting} loadOptions={open} />
+          <PanelFields
+            form={form}
+            isSubmitting={isSubmitting}
+            loadOptions={open}
+            productBrief={initialProduct}
+          />
         </form>
       </Form>
     </SectionedDialog>
@@ -163,6 +179,8 @@ type EditLabPanelDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdated: (item: LabPanel) => void;
+  /** When false, identity/product only — tests are managed on the detail Tests tab. */
+  includeTests?: boolean;
 };
 
 export function EditLabPanelDialog({
@@ -170,6 +188,7 @@ export function EditLabPanelDialog({
   open,
   onOpenChange,
   onUpdated,
+  includeTests = true,
 }: EditLabPanelDialogProps) {
   const { toast } = useToast();
   const form = useForm<LabPanelFormValues>({
@@ -184,7 +203,10 @@ export function EditLabPanelDialog({
   async function handleSubmit(values: LabPanelFormValues) {
     if (!item) return;
     try {
-      const updated = await updateLabPanel(item.uuid, toLabPanelPayload(values));
+      const updated = await updateLabPanel(
+        item.uuid,
+        toLabPanelPayload(values, { includeTests }),
+      );
       toast({
         variant: "success",
         title: "Panel updated",
@@ -217,8 +239,12 @@ export function EditLabPanelDialog({
       open={open}
       onOpenChange={onOpenChange}
       title="Edit panel"
-      description="Update panel membership and billing product."
-      className={cn("sm:max-w-3xl", appFont.className)}
+      description={
+        includeTests
+          ? "Update panel membership and billing product."
+          : "Update panel name, code, and billing product."
+      }
+      className={cn(includeTests ? "sm:max-w-3xl" : "sm:max-w-xl", appFont.className)}
       data-testid="edit-lab-panel-dialog"
       footer={
         <>
@@ -251,8 +277,10 @@ export function EditLabPanelDialog({
           <PanelFields
             form={form}
             isSubmitting={isSubmitting}
-            loadOptions={open}
+            loadOptions={open && includeTests}
             productBrief={item?.product ?? null}
+            allowConfiguredUuid={item?.product_uuid ?? null}
+            includeTests={includeTests}
           />
         </form>
       </Form>
@@ -265,30 +293,59 @@ function PanelFields({
   isSubmitting,
   loadOptions,
   productBrief = null,
+  allowConfiguredUuid = null,
+  includeTests = true,
 }: {
   form: ReturnType<typeof useForm<LabPanelFormValues>>;
   isSubmitting: boolean;
   loadOptions: boolean;
   productBrief?: LabProductBrief | null;
+  allowConfiguredUuid?: string | null;
+  includeTests?: boolean;
 }) {
   const [tests, setTests] = useState<LabTestDefinition[]>([]);
+  const [searchInput, setSearchInput] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
   const { control, setValue, watch } = form;
   const productUuid = watch("product_uuid");
 
   useEffect(() => {
-    if (!loadOptions) return;
+    const handle = window.setTimeout(() => {
+      setDebouncedSearch(searchInput.trim());
+    }, 250);
+    return () => window.clearTimeout(handle);
+  }, [searchInput]);
+
+  useEffect(() => {
+    if (!loadOptions || !includeTests) return;
     let cancelled = false;
     void (async () => {
       try {
-        const response = await fetchLabTests({ pageSize: 200 });
+        if (debouncedSearch) {
+          setIsSearching(true);
+        }
+        const response = await fetchLabTests({
+          pageSize: 20,
+          search: debouncedSearch || undefined,
+        });
         if (!cancelled) setTests(response.results);
       } catch {
         if (!cancelled) setTests([]);
+      } finally {
+        if (!cancelled) setIsSearching(false);
       }
     })();
     return () => {
       cancelled = true;
     };
+  }, [debouncedSearch, includeTests, loadOptions]);
+
+  useEffect(() => {
+    if (!loadOptions) {
+      setSearchInput("");
+      setDebouncedSearch("");
+    }
   }, [loadOptions]);
 
   return (
@@ -329,28 +386,34 @@ function PanelFields({
               productBrief={productBrief}
               disabled={isSubmitting}
               invalid={Boolean(fieldState.error)}
+              allowConfiguredUuid={allowConfiguredUuid}
               onChange={(uuid) => setValue("product_uuid", uuid, { shouldDirty: true })}
             />
             <FormMessage />
           </FormItem>
         )}
       />
-      <FormField
-        control={control}
-        name="tests"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Tests</FormLabel>
-            <PanelTestMembershipEditor
-              tests={tests}
-              value={field.value}
-              onChange={field.onChange}
-              disabled={isSubmitting}
-            />
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      {includeTests ? (
+        <FormField
+          control={control}
+          name="tests"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tests</FormLabel>
+              <PanelTestMembershipEditor
+                tests={tests}
+                value={field.value}
+                onChange={field.onChange}
+                searchValue={searchInput}
+                onSearchChange={setSearchInput}
+                isSearching={isSearching}
+                disabled={isSubmitting}
+              />
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      ) : null}
     </>
   );
 }

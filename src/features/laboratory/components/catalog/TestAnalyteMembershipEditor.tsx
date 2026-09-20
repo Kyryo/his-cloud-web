@@ -16,6 +16,7 @@ type TestAnalyteMembershipEditorProps = {
   value: TestAnalyteMembershipValue[];
   onChange: (next: TestAnalyteMembershipValue[]) => void;
   disabled?: boolean;
+  emptyMessage?: string;
 };
 
 function reindex(rows: TestAnalyteMembershipValue[]): TestAnalyteMembershipValue[] {
@@ -27,6 +28,7 @@ export function TestAnalyteMembershipEditor({
   value,
   onChange,
   disabled = false,
+  emptyMessage = "No analytes available.",
 }: TestAnalyteMembershipEditorProps) {
   const selectedIds = new Set(value.map((row) => row.analyte_uuid));
 
@@ -68,7 +70,7 @@ export function TestAnalyteMembershipEditor({
     <div className="space-y-3" data-testid="test-analyte-membership-editor">
       <div className="max-h-40 space-y-2 overflow-y-auto rounded-lg border border-brand-border p-3">
         {analytes.length === 0 ? (
-          <p className="text-sm text-brand-muted">No analytes available.</p>
+          <p className="text-sm text-brand-muted">{emptyMessage}</p>
         ) : (
           analytes.map((analyte) => {
             const checked = selectedIds.has(analyte.uuid);

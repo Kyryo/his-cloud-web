@@ -46,6 +46,7 @@ export function useProductFormEffects(
     if (form.getValues("is_radiology")) {
       form.setValue("is_radiology", false);
     }
+    form.setValue("lab_charge_type", "");
   }, [form, productType]);
 
   useEffect(() => {
@@ -55,24 +56,22 @@ export function useProductFormEffects(
   }, [form, isDrug]);
 
   useEffect(() => {
-    if (!isSundry) {
-      return;
+    if (isSundry) {
+      form.setValue("is_drug", false);
     }
-
-    form.setValue("is_drug", false);
-    form.setValue("liquid_or_cream", false);
   }, [form, isSundry]);
 
   useEffect(() => {
-    if (!isDrug) {
+    if (!isDrug && !isSundry) {
       form.setValue("liquid_or_cream", false);
     }
-  }, [form, isDrug]);
+  }, [form, isDrug, isSundry]);
 
   useEffect(() => {
     if (isProcedure) {
       form.setValue("is_lab_test", false);
       form.setValue("is_radiology", false);
+      form.setValue("lab_charge_type", "");
     }
   }, [form, isProcedure]);
 
@@ -81,6 +80,8 @@ export function useProductFormEffects(
       form.setValue("is_procedure", false);
       form.setValue("is_radiology", false);
       form.setValue("procedure_scope", "");
+    } else {
+      form.setValue("lab_charge_type", "");
     }
   }, [form, isLabTest]);
 
@@ -88,6 +89,7 @@ export function useProductFormEffects(
     if (isRadiology) {
       form.setValue("is_procedure", false);
       form.setValue("is_lab_test", false);
+      form.setValue("lab_charge_type", "");
       form.setValue("procedure_scope", "");
     }
   }, [form, isRadiology]);

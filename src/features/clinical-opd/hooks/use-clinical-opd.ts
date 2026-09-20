@@ -374,10 +374,15 @@ export function useCancelPrescription(visitUuid: string, encounterUuid: string) 
   });
 }
 
-export function useEncounterOrders(visitUuid: string, encounterUuid: string) {
+export function useEncounterOrders(
+  visitUuid: string,
+  encounterUuid: string,
+  options?: { enabled?: boolean },
+) {
   return useQuery({
     queryKey: ["encounter-orders", visitUuid, encounterUuid],
     queryFn: () => fetchOrders(visitUuid, encounterUuid),
+    enabled: options?.enabled ?? Boolean(visitUuid && encounterUuid),
   });
 }
 

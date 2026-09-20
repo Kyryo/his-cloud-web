@@ -1,7 +1,6 @@
 "use client";
 
 import { Calendar, FlaskConical } from "lucide-react";
-import Link from "next/link";
 import type { ReactNode } from "react";
 
 import { UserIdenticon } from "@/components/UserIdenticon";
@@ -14,10 +13,10 @@ import { LabOrderStatusBadge } from "@/features/laboratory/components/LabOrderSt
 import type { LabOrder } from "@/features/laboratory/types/laboratory.types";
 import {
   formatLabAccession,
-  formatLabDisplayDateTime,
+  formatLabOrderedRelative,
   formatLabPatientName,
 } from "@/features/laboratory/utils/format-lab-order";
-import { ROUTES } from "@/constants/routes";
+import { formatAge } from "@/lib/age";
 
 type LabOrderDetailHeaderProps = {
   order: LabOrder;
@@ -31,6 +30,8 @@ export function LabOrderDetailHeader({
   const name = formatLabPatientName(order);
   const identifier = order.customer_identifier?.trim() || "—";
   const identiconSeed = order.customer_uuid || identifier || name;
+  const ageLabel = formatAge(order.customer_dob);
+  const accession = formatLabAccession(order);
 
   return (
     <DetailPageHeaderSection className="border-b-0 bg-white px-4 py-4 sm:px-6 sm:py-5">
@@ -44,34 +45,29 @@ export function LabOrderDetailHeader({
           />
 
           <div className="min-w-0 flex-1 space-y-2">
+            <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
+              <DetailPageTitle>{name}</DetailPageTitle>
+              {ageLabel !== "—" ? (
+                <span className="text-sm font-normal text-brand-muted">
+                  {ageLabel}
+                </span>
+              ) : null}
+            </div>
+
             <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-              <DetailPageTitle>
-                <Link
-                  href={ROUTES.customerDetail(order.customer_uuid)}
-                  className="hover:text-brand-primary"
-                >
-                  {name}
-                </Link>
-              </DetailPageTitle>
-
-              <span className="inline-flex items-center rounded-md border border-slate-200/90 bg-slate-50 px-2.5 py-0.5 font-mono text-xs font-semibold text-brand-navy shadow-2xs">
-                {identifier}
-              </span>
-
+              <p className="text-sm text-brand-muted">
+                {accession === "Not accessioned"
+                  ? "Awaiting accession"
+                  : `Accession ${accession}`}
+              </p>
               <LabOrderStatusBadge status={order.status} />
               <LabOrderPriorityBadge priority={order.priority} />
             </div>
 
-            <p className="text-sm text-brand-muted">
-              {formatLabAccession(order) === "Not accessioned"
-                ? "Awaiting accession"
-                : `Accession ${formatLabAccession(order)}`}
-            </p>
-
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-brand-muted">
               <span className="inline-flex items-center gap-1.5">
                 <Calendar className="size-3.5 shrink-0" aria-hidden="true" />
-                Ordered {formatLabDisplayDateTime(order.ordered_at)}
+                Ordered {formatLabOrderedRelative(order.ordered_at)}
                 {order.ordered_by_name ? ` · ${order.ordered_by_name}` : ""}
               </span>
               <span className="inline-flex items-center gap-1.5">

@@ -1,11 +1,16 @@
 "use client";
 
-import Link from "next/link";
-import { useState } from "react";
+import { ChevronDown } from "lucide-react";
+import { useMemo, useState } from "react";
 
 import { AppIcon } from "@/components/icons/app-icon";
 import { PageActionButton } from "@/components/ui/app-buttons";
 import { Badge } from "@/components/ui/badge";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   LIST_PAGE_INSIGHT_CELL_CLASS,
   LIST_PAGE_INSIGHT_LABEL_CLASS,
@@ -15,23 +20,153 @@ import {
 import { AddClinicalOrderDialog } from "@/features/clinical-opd/components/tabs/AddClinicalOrderDialog";
 import { useMyClinicalCapabilities } from "@/features/clinical-opd/hooks/use-clinical-opd";
 import { LabOrderStatusBadge } from "@/features/laboratory/components/LabOrderStatusBadge";
+import { LabOrderTestResultCard } from "@/features/laboratory/components/detail/LabOrderTestResultCard";
 import { useLabOrderDetailWorkspace } from "@/features/laboratory/components/detail/lab-order-detail-workspace-context";
+import type {
+  LabOrderItem,
+  LabOrderedProduct,
+} from "@/features/laboratory/types/laboratory.types";
 import {
   formatLabOrderPriorityLabel,
   formatLabOrderItemStatusLabel,
 } from "@/features/laboratory/utils/format-lab-order";
-import { labOrderDetailTabHref } from "@/features/laboratory/utils/lab-order-detail-tabs";
+import { cn } from "@/lib/utils";
+
+const DEFAULT_ORDER_CAPABILITIES = ["order_laboratory"] as const;
+
+function itemsForProduct(
+  items: LabOrderItem[],
+  product: LabOrderedProduct,
+): LabOrderItem[] {
+  if (product.visit_order_uuid) {
+    const matched = items.filter(
+      (item) => item.visit_order_uuid === product.visit_order_uuid,
+    );
+    if (matched.length > 0) {
+      return [...matched].sort((a, b) => a.sort_order - b.sort_order);
+    }
+  }
+
+  if (product.panel_uuid) {
+    const matched = items.filter(
+      (item) => item.panel_uuid === product.panel_uuid,
+    );
+    if (matched.length > 0) {
+      return [...matched].sort((a, b) => a.sort_order - b.sort_order);
+    }
+  }
+
+  if (product.item_count === 1) {
+    const unmatched = items.filter((item) => !item.visit_order_uuid);
+    if (unmatched.length === 1) {
+      return unmatched;
+    }
+  }
+
+  return [];
+}
+
+function ProductOrderCard({
+  product,
+  items,
+  defaultOpen,
+  onSaved,
+}: {
+  product: LabOrderedProduct;
+  items: LabOrderItem[];
+  defaultOpen: boolean;
+  onSaved: () => void | Promise<void>;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  const productKey =
+    product.visit_order_uuid ??
+    `${product.product_uuid ?? "product"}-${product.product_name}`;
+
+  return (
+    <Collapsible
+      open={open}
+      onOpenChange={setOpen}
+      className="overflow-hidden rounded-xl border border-dash-border/80 bg-white"
+      data-testid={`lab-order-product-card-${productKey}`}
+    >
+      <CollapsibleTrigger
+        className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-slate-50/80"
+        data-testid={`lab-order-product-toggle-${productKey}`}
+      >
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-brand-navy">
+            {product.product_name}
+          </p>
+          <p className="mt-0.5 truncate text-xs text-brand-muted">
+            {[
+              product.product_code || null,
+              product.panel_code ? `Panel ${product.panel_code}` : null,
+              `${items.length || product.item_count} test${
+                (items.length || product.item_count) === 1 ? "" : "s"
+              }`,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
+          </p>
+        </div>
+        <Badge variant="outline" className="shrink-0 font-normal">
+          {formatLabOrderItemStatusLabel(product.status)}
+        </Badge>
+        <ChevronDown
+          className={cn(
+            "size-4 shrink-0 text-brand-muted transition-transform duration-200",
+            open && "rotate-180",
+          )}
+          aria-hidden="true"
+        />
+      </CollapsibleTrigger>
+
+      <CollapsibleContent className="border-t border-dash-border/70">
+        <div className="bg-slate-50/40 px-4 py-4">
+          {items.length === 0 ? (
+            <p className="text-sm text-brand-muted">
+              No expanded tests for this product yet.
+            </p>
+          ) : (
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {items.map((item) => (
+                <LabOrderTestResultCard
+                  key={item.uuid}
+                  item={item}
+                  enabled={open}
+                  onSaved={onSaved}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
 
 export function LabOrderOverviewPanel() {
   const { order, onRefresh } = useLabOrderDetailWorkspace();
   const { data: capabilitiesData } = useMyClinicalCapabilities();
   const [addTestOpen, setAddTestOpen] = useState(false);
   const items = order.items;
+  const orderedProducts = order.ordered_products ?? [];
   const itemCount = items.length;
+  const productCount = orderedProducts.length;
   const releasedCount = items.filter(
     (item) => item.status === "RELEASED" || item.result_status === "RELEASED",
   ).length;
-  const capabilities = capabilitiesData?.capabilities ?? ["order_laboratory"];
+  const capabilities =
+    capabilitiesData?.capabilities ?? DEFAULT_ORDER_CAPABILITIES;
+
+  const productItems = useMemo(
+    () =>
+      orderedProducts.map((product) => ({
+        product,
+        items: itemsForProduct(items, product),
+      })),
+    [items, orderedProducts],
+  );
 
   function handleAddDialogOpenChange(open: boolean) {
     setAddTestOpen(open);
@@ -62,9 +197,9 @@ export function LabOrderOverviewPanel() {
           <p className="mt-0.5 text-xs text-brand-muted">Order urgency</p>
         </div>
         <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
-          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Items</dt>
-          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>{itemCount}</dd>
-          <p className="mt-0.5 text-xs text-brand-muted">Tests on this order</p>
+          <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Ordered</dt>
+          <dd className={LIST_PAGE_INSIGHT_VALUE_CLASS}>{productCount}</dd>
+          <p className="mt-0.5 text-xs text-brand-muted">Products on this order</p>
         </div>
         <div className={LIST_PAGE_INSIGHT_CELL_CLASS}>
           <dt className={LIST_PAGE_INSIGHT_LABEL_CLASS}>Released</dt>
@@ -75,7 +210,7 @@ export function LabOrderOverviewPanel() {
         </div>
       </dl>
 
-      {itemCount === 0 ? (
+      {productCount === 0 ? (
         <div className="pt-5">
           <ListPageBlankState
             compact
@@ -96,65 +231,43 @@ export function LabOrderOverviewPanel() {
           />
         </div>
       ) : (
-        <section className="pt-5" aria-labelledby="lab-ordered-tests-heading">
-          <div className="mb-3 flex items-end justify-between gap-3">
-            <div>
-              <h2
-                id="lab-ordered-tests-heading"
-                className="text-base font-semibold text-brand-navy"
-              >
-                Ordered tests
-              </h2>
-              <p className="mt-0.5 text-sm text-brand-muted">
-                Tests and panels placed for this encounter.
-              </p>
-            </div>
-            <Link
-              href={labOrderDetailTabHref(order.uuid, "items")}
-              className="shrink-0 text-sm font-medium text-brand-primary hover:underline"
-            >
-              View all
-            </Link>
-          </div>
+        <section className="space-y-3 pt-5" aria-labelledby="lab-ordered-products-heading">
+          <h2
+            id="lab-ordered-products-heading"
+            className="text-base font-semibold text-brand-navy"
+          >
+            All orders
+          </h2>
 
-          <ul className="divide-y divide-dash-border/70 border-y border-dash-border/80">
-            {items.map((item) => (
-              <li
-                key={item.uuid}
-                className="flex items-start justify-between gap-3 py-3"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-brand-navy">
-                    {item.test_name}
-                  </p>
-                  <p className="mt-0.5 truncate text-xs text-brand-muted">
-                    {item.test_code}
-                    {item.panel_code ? ` · Panel ${item.panel_code}` : ""}
-                  </p>
-                </div>
-                <div className="flex shrink-0 flex-col items-end gap-1.5">
-                  <Badge variant="outline" className="font-normal">
-                    {formatLabOrderItemStatusLabel(item.status)}
-                  </Badge>
-                  {item.result_status ? (
-                    <span className="text-[11px] text-brand-muted">
-                      {item.result_status}
-                    </span>
-                  ) : null}
-                </div>
-              </li>
+          <div
+            className="space-y-3"
+            data-testid="lab-ordered-products-list"
+          >
+            {productItems.map(({ product, items: productTests }, index) => (
+              <ProductOrderCard
+                key={
+                  product.visit_order_uuid ??
+                  `${product.product_uuid ?? "product"}-${product.product_name}-${index}`
+                }
+                product={product}
+                items={productTests}
+                defaultOpen={index === 0}
+                onSaved={onRefresh}
+              />
             ))}
-          </ul>
+          </div>
         </section>
       )}
 
-      <AddClinicalOrderDialog
-        visitUuid={order.visit_uuid}
-        encounterUuid={order.encounter_uuid}
-        capabilities={capabilities}
-        open={addTestOpen}
-        onOpenChange={handleAddDialogOpenChange}
-      />
+      {addTestOpen ? (
+        <AddClinicalOrderDialog
+          visitUuid={order.visit_uuid}
+          encounterUuid={order.encounter_uuid}
+          capabilities={capabilities}
+          open={addTestOpen}
+          onOpenChange={handleAddDialogOpenChange}
+        />
+      ) : null}
     </div>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 import {
   ListPageDataTable,
   ListPageDataTableBody,
@@ -11,10 +13,13 @@ import {
 } from "@/features/app-shell/components/page-layout";
 import { LabCatalogRowActions } from "@/features/laboratory/components/catalog/LabCatalogPageChrome";
 import type { LabTestDefinition } from "@/features/laboratory/types/laboratory-catalog.types";
+import { ROUTES } from "@/constants/routes";
+import { cn } from "@/lib/utils";
 
 type LabTestsTableProps = {
   items: LabTestDefinition[];
   deactivatingUuid: string | null;
+  onRowClick?: (item: LabTestDefinition) => void;
   onEdit: (item: LabTestDefinition) => void;
   onDeactivate: (item: LabTestDefinition) => void;
 };
@@ -22,6 +27,7 @@ type LabTestsTableProps = {
 export function LabTestsTable({
   items,
   deactivatingUuid,
+  onRowClick,
   onEdit,
   onDeactivate,
 }: LabTestsTableProps) {
@@ -29,8 +35,8 @@ export function LabTestsTable({
     <ListPageDataTable>
       <ListPageDataTableHeader>
         <ListPageDataTableHeaderRow>
-          <ListPageDataTableHeaderCell>Code</ListPageDataTableHeaderCell>
           <ListPageDataTableHeaderCell>Name</ListPageDataTableHeaderCell>
+          <ListPageDataTableHeaderCell>Code</ListPageDataTableHeaderCell>
           <ListPageDataTableHeaderCell className="hidden sm:table-cell">
             Category
           </ListPageDataTableHeaderCell>
@@ -46,19 +52,33 @@ export function LabTestsTable({
         {items.map((item) => (
           <ListPageDataTableRow
             key={item.uuid}
+            className={cn("group", onRowClick && "cursor-pointer")}
+            onClick={() => onRowClick?.(item)}
             data-testid={`lab-test-row-${item.uuid}`}
           >
             <ListPageDataTableCell>
-              <span className="font-medium text-brand-navy">{item.code}</span>
+              <Link
+                href={ROUTES.labTestDetail(item.uuid)}
+                onClick={(event) => event.stopPropagation()}
+                className="font-medium text-brand-navy transition-colors group-hover:text-brand-primary"
+              >
+                {item.name}
+              </Link>
             </ListPageDataTableCell>
-            <ListPageDataTableCell>{item.name}</ListPageDataTableCell>
+            <ListPageDataTableCell>
+              <span className="font-mono text-sm text-brand-muted">
+                {item.code}
+              </span>
+            </ListPageDataTableCell>
             <ListPageDataTableCell className="hidden sm:table-cell text-brand-muted">
               {item.category || "—"}
             </ListPageDataTableCell>
             <ListPageDataTableCell className="hidden md:table-cell text-brand-muted">
               {item.analytes?.length ?? 0}
             </ListPageDataTableCell>
-            <ListPageDataTableCell>
+            <ListPageDataTableCell
+              onClick={(event) => event.stopPropagation()}
+            >
               <LabCatalogRowActions
                 onEdit={() => onEdit(item)}
                 onDeactivate={() => onDeactivate(item)}

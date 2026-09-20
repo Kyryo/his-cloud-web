@@ -42,7 +42,17 @@ export const ROUTES = {
   labSpecimenTypes: "/lab/specimen-types",
   labAnalytes: "/lab/analytes",
   labTests: "/lab/tests",
+  labTestDetail: (uuid: string) => `/lab/tests/${uuid}`,
+  labTestDetailTab: (uuid: string, tab?: string) =>
+    tab && tab !== "summary"
+      ? `/lab/tests/${uuid}/${tab}`
+      : `/lab/tests/${uuid}`,
   labPanels: "/lab/panels",
+  labPanelDetail: (uuid: string) => `/lab/panels/${uuid}`,
+  labPanelDetailTab: (uuid: string, tab?: string) =>
+    tab && tab !== "overview"
+      ? `/lab/panels/${uuid}/${tab}`
+      : `/lab/panels/${uuid}`,
   labReferenceRanges: "/lab/reference-ranges",
   labSettings: "/lab/settings",
   salesOrders: "/sales-orders",

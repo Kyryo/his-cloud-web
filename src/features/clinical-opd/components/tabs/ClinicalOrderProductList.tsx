@@ -1,7 +1,8 @@
 "use client";
 
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { Check, Loader2, Plus, Search, X } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { SecondaryButton } from "@/components/ui/app-buttons";
 import { Input } from "@/components/ui/input";
@@ -13,6 +14,7 @@ import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 250;
+const PRODUCTS_STALE_MS = 30_000;
 
 type ClinicalOrderProductListProps = {
   itemType: ClinicalOrderItemType;
@@ -28,37 +30,37 @@ function catalogFiltersForItemType(itemType: ClinicalOrderItemType) {
   switch (itemType) {
     case "LABORATORY":
       return {
-        product_type: "service",
+        product_type: "service" as const,
         is_lab_test: true,
         sale_ok: true,
         active: true,
-      } as const;
+      };
     case "RADIOLOGY":
       return {
-        product_type: "service",
+        product_type: "service" as const,
         is_radiology: true,
         sale_ok: true,
         active: true,
-      } as const;
+      };
     case "PROCEDURE":
       return {
-        product_type: "service",
+        product_type: "service" as const,
         is_procedure: true,
-        procedure_context: "opd",
+        procedure_context: "opd" as const,
         sale_ok: true,
         active: true,
-      } as const;
+      };
     case "SUNDRY":
       return {
         is_sundry: true,
         sale_ok: true,
         active: true,
-      } as const;
+      };
     default:
       return {
         sale_ok: true,
         active: true,
-      } as const;
+      };
   }
 }
 
@@ -72,13 +74,6 @@ export function ClinicalOrderProductList({
 }: ClinicalOrderProductListProps) {
   const [searchInput, setSearchInput] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [products, setProducts] = useState<InventoryProduct[]>([]);
-  const [page, setPage] = useState(1);
-  const [hasNext, setHasNext] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const requestIdRef = useRef(0);
 
   useEffect(() => {
     const handle = window.setTimeout(() => {
@@ -90,65 +85,45 @@ export function ClinicalOrderProductList({
   useEffect(() => {
     setSearchInput("");
     setDebouncedSearch("");
-    setProducts([]);
-    setPage(1);
-    setHasNext(false);
-    setError(null);
   }, [itemType]);
 
-  const loadProducts = useCallback(
-    async (nextPage: number, options: { append: boolean }) => {
-      if (!enabled) {
-        return;
-      }
-
-      const requestId = ++requestIdRef.current;
-      if (options.append) {
-        setIsLoadingMore(true);
-      } else {
-        setIsLoading(true);
-      }
-      setError(null);
-
-      try {
-        const response = await fetchCatalogProducts({
-          ...catalogFiltersForItemType(itemType),
-          search: debouncedSearch || undefined,
-          page: nextPage,
-          pageSize: PAGE_SIZE,
-        });
-        if (requestId !== requestIdRef.current) {
-          return;
-        }
-        setProducts((current) =>
-          options.append ? [...current, ...response.results] : response.results,
-        );
-        setPage(nextPage);
-        setHasNext(Boolean(response.pagination?.next));
-      } catch {
-        if (requestId !== requestIdRef.current) {
-          return;
-        }
-        setError("Could not load products.");
-        if (!options.append) {
-          setProducts([]);
-          setHasNext(false);
-        }
-      } finally {
-        if (requestId === requestIdRef.current) {
-          setIsLoading(false);
-          setIsLoadingMore(false);
-        }
-      }
-    },
-    [debouncedSearch, enabled, itemType],
+  const filters = useMemo(
+    () => catalogFiltersForItemType(itemType),
+    [itemType],
   );
 
-  useEffect(() => {
-    void loadProducts(1, { append: false });
-  }, [loadProducts]);
+  const productsQuery = useInfiniteQuery({
+    queryKey: [
+      "clinical-order-products",
+      itemType,
+      debouncedSearch,
+      filters,
+    ],
+    queryFn: ({ pageParam }) =>
+      fetchCatalogProducts({
+        ...filters,
+        search: debouncedSearch || undefined,
+        page: pageParam,
+        pageSize: PAGE_SIZE,
+      }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, pages) =>
+      lastPage.pagination?.next ? pages.length + 1 : undefined,
+    enabled,
+    staleTime: PRODUCTS_STALE_MS,
+  });
 
+  const products = useMemo(
+    () => productsQuery.data?.pages.flatMap((page) => page.results) ?? [],
+    [productsQuery.data],
+  );
+  const isLoadingMore = productsQuery.isFetchingNextPage;
+  const hasNext = Boolean(productsQuery.hasNextPage);
+  const error = productsQuery.isError ? "Could not load products." : null;
   const isBusy = Boolean(busyProductUuid);
+  const showInitialLoading =
+    (productsQuery.isLoading || productsQuery.isFetching) &&
+    products.length === 0;
 
   return (
     <div className="space-y-4" data-testid="clinical-order-product-list">
@@ -167,7 +142,7 @@ export function ClinicalOrderProductList({
         />
       </div>
 
-      {isLoading ? (
+      {showInitialLoading ? (
         <div className="flex items-center justify-center gap-2 py-10 text-sm text-brand-muted">
           <Loader2 className="size-4 animate-spin" aria-hidden="true" />
           Loading products…
@@ -282,7 +257,9 @@ export function ClinicalOrderProductList({
             type="button"
             size="sm"
             disabled={isLoadingMore || isBusy}
-            onClick={() => void loadProducts(page + 1, { append: true })}
+            onClick={() => {
+              void productsQuery.fetchNextPage();
+            }}
             data-testid="clinical-order-product-load-more"
           >
             {isLoadingMore ? (

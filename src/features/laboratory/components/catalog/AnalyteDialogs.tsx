@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import {
@@ -23,6 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { SectionedDialog } from "@/components/ui/sectioned-dialog";
+import { AnalyteCodedOptionsEditor } from "@/features/laboratory/components/catalog/AnalyteCodedOptionsEditor";
 import {
   ANALYTE_VALUE_TYPES,
   analyteDefaultValues,
@@ -59,6 +60,10 @@ function toFormValues(item?: LabAnalyte | null): AnalyteFormValues {
     unit: item.unit ?? "",
     decimal_precision:
       item.decimal_precision == null ? "" : String(item.decimal_precision),
+    coded_options: (item.coded_options ?? []).map((option) => ({
+      code: option.code,
+      label: option.label,
+    })),
   };
 }
 
@@ -257,110 +262,154 @@ export function EditAnalyteDialog({
   );
 }
 
-function AnalyteFields({
+export function AnalyteFields({
   control,
   isSubmitting,
+  section = "all",
 }: {
   control: ReturnType<typeof useForm<AnalyteFormValues>>["control"];
   isSubmitting: boolean;
+  /**
+   * `identity` — code/name/loinc only.
+   * `details` — identity + value type + numeric fields.
+   * `options` — coded options only.
+   * `all` — everything (standalone add/edit dialogs).
+   */
+  section?: "all" | "identity" | "details" | "options";
 }) {
+  const valueType = useWatch({ control, name: "value_type" });
+  const showIdentity =
+    section === "all" || section === "details" || section === "identity";
+  const showValueType = section === "all" || section === "details";
+  const showOptions =
+    (section === "all" || section === "options") && valueType === "CODED";
+  const showNumeric = showValueType && valueType === "NUMERIC";
+
   return (
     <>
-      <FormField
-        control={control}
-        name="code"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Code</FormLabel>
-            <FormControl>
-              <Input {...field} disabled={isSubmitting} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={control}
-        name="name"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Name</FormLabel>
-            <FormControl>
-              <Input {...field} disabled={isSubmitting} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={control}
-        name="loinc_code"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>LOINC code</FormLabel>
-            <FormControl>
-              <Input {...field} disabled={isSubmitting} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={control}
-        name="value_type"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Value type</FormLabel>
-            <Select
-              value={field.value}
-              onValueChange={field.onChange}
-              disabled={isSubmitting}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {ANALYTE_VALUE_TYPES.map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <div className="grid grid-cols-2 gap-3">
+      {showIdentity ? (
+        <>
+          <FormField
+            control={control}
+            name="code"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Code</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={isSubmitting} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={isSubmitting} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="loinc_code"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>LOINC code</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={isSubmitting} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </>
+      ) : null}
+      {showValueType ? (
         <FormField
           control={control}
-          name="unit"
+          name="value_type"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Unit</FormLabel>
-              <FormControl>
-                <Input {...field} disabled={isSubmitting} />
-              </FormControl>
+              <FormLabel>Value type</FormLabel>
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+                disabled={isSubmitting}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {ANALYTE_VALUE_TYPES.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               <FormMessage />
             </FormItem>
           )}
         />
+      ) : null}
+      {showNumeric ? (
+        <div className="grid grid-cols-2 gap-3">
+          <FormField
+            control={control}
+            name="unit"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Unit</FormLabel>
+                <FormControl>
+                  <Input {...field} disabled={isSubmitting} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="decimal_precision"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Decimal precision</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    inputMode="numeric"
+                    disabled={isSubmitting}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+      ) : null}
+      {showOptions ? (
         <FormField
           control={control}
-          name="decimal_precision"
-          render={({ field }) => (
+          name="coded_options"
+          render={({ field, fieldState }) => (
             <FormItem>
-              <FormLabel>Decimal precision</FormLabel>
-              <FormControl>
-                <Input {...field} inputMode="numeric" disabled={isSubmitting} />
-              </FormControl>
-              <FormMessage />
+              <AnalyteCodedOptionsEditor
+                value={field.value}
+                onChange={field.onChange}
+                disabled={isSubmitting}
+                error={fieldState.error?.message}
+              />
             </FormItem>
           )}
         />
-      </div>
+      ) : null}
     </>
   );
 }

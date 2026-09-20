@@ -86,6 +86,7 @@ export type CreateInventoryProductPayload = {
   is_sundry?: boolean;
   liquid_or_cream?: boolean;
   is_lab_test?: boolean;
+  lab_charge_type?: "individual" | "panel";
   is_radiology?: boolean;
   is_procedure?: boolean;
   dental_only_procedure?: boolean;

@@ -11,10 +11,11 @@ import {
 
 const columns = [
   { key: "patient", label: "Patient" },
+  { key: "gender", label: "Gender" },
+  { key: "dob", label: "DOB" },
   { key: "clinic", label: "Clinic" },
   { key: "priority", label: "Priority" },
   { key: "status", label: "Status" },
-  { key: "items", label: "Items" },
   { key: "ordered_by", label: "Ordered by" },
   { key: "ordered", label: "Ordered" },
 ] as const;
@@ -52,6 +53,15 @@ export function LabOrdersTableSkeleton({
               </div>
             </ListPageDataTableCell>
             <ListPageDataTableCell>
+              <Skeleton className="h-4 w-14" />
+            </ListPageDataTableCell>
+            <ListPageDataTableCell>
+              <div className="space-y-1">
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-3 w-14" />
+              </div>
+            </ListPageDataTableCell>
+            <ListPageDataTableCell>
               <Skeleton className="h-4 w-24" />
             </ListPageDataTableCell>
             <ListPageDataTableCell>
@@ -61,13 +71,10 @@ export function LabOrdersTableSkeleton({
               <Skeleton className="h-5 w-20 rounded-full" />
             </ListPageDataTableCell>
             <ListPageDataTableCell>
-              <Skeleton className="h-4 w-32" />
-            </ListPageDataTableCell>
-            <ListPageDataTableCell>
               <Skeleton className="h-4 w-24" />
             </ListPageDataTableCell>
             <ListPageDataTableCell>
-              <Skeleton className="h-4 w-28" />
+              <Skeleton className="h-4 w-20" />
             </ListPageDataTableCell>
           </ListPageDataTableRow>
         ))}

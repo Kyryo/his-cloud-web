@@ -40,8 +40,38 @@ describe("catalog schemas", () => {
       value_type: "NUMERIC",
       unit: "mg/dL",
       decimal_precision: "1",
+      coded_options: [],
     });
     expect(parsed.value_type).toBe("NUMERIC");
+  });
+
+  it("requires coded options for coded analytes", () => {
+    const result = analyteSchema.safeParse({
+      code: "ABO",
+      name: "Blood group",
+      loinc_code: "",
+      value_type: "CODED",
+      unit: "",
+      decimal_precision: "",
+      coded_options: [],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("parses a coded analyte with options", () => {
+    const parsed = analyteSchema.parse({
+      code: "ABO",
+      name: "Blood group",
+      loinc_code: "",
+      value_type: "CODED",
+      unit: "",
+      decimal_precision: "",
+      coded_options: [
+        { code: "A", label: "Group A" },
+        { code: "B", label: "Group B" },
+      ],
+    });
+    expect(parsed.coded_options).toHaveLength(2);
   });
 
   it("rejects invalid analyte value type", () => {
@@ -52,6 +82,7 @@ describe("catalog schemas", () => {
       value_type: "BOOLEAN",
       unit: "",
       decimal_precision: "",
+      coded_options: [],
     });
     expect(result.success).toBe(false);
   });

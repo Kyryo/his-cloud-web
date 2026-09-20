@@ -6,7 +6,9 @@ import { useEffect, useMemo, useState } from "react";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import { SectionedDialog } from "@/components/ui/sectioned-dialog";
 import {
+  INVENTORY_LAB_CHARGE_TYPE_OPTIONS,
   INVENTORY_PROCEDURE_SCOPE_OPTIONS,
+  type InventoryLabChargeType,
   type InventoryProcedureScope,
   toInventoryProductFormValues,
 } from "@/features/inventory/schemas/product.schema";
@@ -30,6 +32,7 @@ type ClassificationDraft = {
   is_sundry: boolean;
   liquid_or_cream: boolean;
   is_lab_test: boolean;
+  lab_charge_type: "" | InventoryLabChargeType;
   is_radiology: boolean;
   is_procedure: boolean;
   procedure_scope: "" | InventoryProcedureScope;
@@ -62,8 +65,9 @@ const CLASSIFICATION_OPTIONS: Array<{
   },
   {
     key: "is_lab_test",
-    label: "Lab",
-    description: "Laboratory test service.",
+    label: "Laboratory product",
+    description:
+      "Billable lab SKU. Choose individual test or panel; catalog row is created automatically.",
     requires: "service",
   },
   {
@@ -87,6 +91,11 @@ function draftFromProduct(product: InventoryProduct): ClassificationDraft {
     is_sundry: values.is_sundry,
     liquid_or_cream: values.liquid_or_cream,
     is_lab_test: values.is_lab_test,
+    lab_charge_type:
+      values.lab_charge_type === "individual" ||
+      values.lab_charge_type === "panel"
+        ? values.lab_charge_type
+        : "",
     is_radiology: values.is_radiology,
     is_procedure: values.is_procedure,
     procedure_scope: values.procedure_scope,
@@ -141,13 +150,31 @@ export function EditProductClassificationDialog({
 
   const productTypeLabel = useMemo(() => {
     if (product.product_type === "service") {
-      return "service";
+      return "Service";
     }
     if (product.product_type === "consu") {
-      return "consumable";
+      return "Consumable";
     }
-    return "storable";
+    return "Storable";
   }, [product.product_type]);
+
+  const availableOptions = useMemo(
+    () =>
+      CLASSIFICATION_OPTIONS.filter((option) =>
+        isOptionAvailable(option.requires, product.product_type),
+      ),
+    [product.product_type],
+  );
+
+  const hiddenOptionsNote = useMemo(() => {
+    const hidden = CLASSIFICATION_OPTIONS.filter(
+      (option) => !isOptionAvailable(option.requires, product.product_type),
+    ).map((option) => option.label);
+    if (hidden.length === 0) {
+      return null;
+    }
+    return `${hidden.join(", ")} ${hidden.length === 1 ? "is" : "are"} not shown because the product type is ${productTypeLabel}.`;
+  }, [product.product_type, productTypeLabel]);
 
   const toggleClassification = (key: ClassificationKey) => {
     setFieldError(null);
@@ -180,9 +207,13 @@ export function EditProductClassificationDialog({
         next.is_procedure = false;
         next.procedure_scope = "";
       }
+      if (key === "is_lab_test" && !turningOn) {
+        next.lab_charge_type = "";
+      }
 
       if (key === "is_radiology" && turningOn) {
         next.is_lab_test = false;
+        next.lab_charge_type = "";
         next.is_procedure = false;
         next.procedure_scope = "";
       }
@@ -190,6 +221,7 @@ export function EditProductClassificationDialog({
       if (key === "is_procedure") {
         if (turningOn) {
           next.is_lab_test = false;
+          next.lab_charge_type = "";
           next.is_radiology = false;
         } else {
           next.procedure_scope = "";
@@ -213,6 +245,12 @@ export function EditProductClassificationDialog({
       return;
     }
 
+    if (draft.is_lab_test && !draft.lab_charge_type) {
+      setFieldError("Select individual test or panel for this laboratory product.");
+      setExpandedKey("is_lab_test");
+      return;
+    }
+
     if (draft.liquid_or_cream && !draft.is_drug && !draft.is_sundry) {
       setFieldError("Liquid or cream requires drug or sundry.");
       return;
@@ -225,6 +263,9 @@ export function EditProductClassificationDialog({
         is_sundry: draft.is_sundry,
         liquid_or_cream: draft.liquid_or_cream,
         is_lab_test: draft.is_lab_test,
+        lab_charge_type: draft.is_lab_test
+          ? draft.lab_charge_type || undefined
+          : undefined,
         is_radiology: draft.is_radiology,
         is_procedure: draft.is_procedure,
         dental_only_procedure: draft.procedure_scope === "dental_only",
@@ -292,8 +333,7 @@ export function EditProductClassificationDialog({
       }
     >
       <div className="space-y-3">
-        {CLASSIFICATION_OPTIONS.map((option) => {
-          const available = isOptionAvailable(option.requires, product.product_type);
+        {availableOptions.map((option) => {
           const selected = draft[option.key];
           const expanded = expandedKey === option.key;
 
@@ -305,12 +345,11 @@ export function EditProductClassificationDialog({
                 selected
                   ? "border-brand-primary bg-brand-primary/5"
                   : "border-brand-border bg-white",
-                !available && "opacity-50",
               )}
             >
               <button
                 type="button"
-                disabled={!available || isSaving}
+                disabled={isSaving}
                 onClick={() => toggleClassification(option.key)}
                 className="flex w-full items-start gap-3 px-4 py-3 text-left"
                 data-testid={`classification-option-${option.key}`}
@@ -333,9 +372,7 @@ export function EditProductClassificationDialog({
                     {option.label}
                   </span>
                   <span className="mt-0.5 block text-xs text-brand-muted">
-                    {available
-                      ? option.description
-                      : `Available for ${option.requires} products only.`}
+                    {option.description}
                   </span>
                 </span>
               </button>
@@ -396,6 +433,54 @@ export function EditProductClassificationDialog({
                 </div>
               ) : null}
 
+              {expanded && selected && option.key === "is_lab_test" ? (
+                <div className="space-y-2 border-t border-brand-border/70 px-4 py-3">
+                  <p className="text-xs font-medium text-brand-muted">
+                    Lab charge type
+                  </p>
+                  <div
+                    className="space-y-1.5"
+                    role="radiogroup"
+                    aria-label="Lab charge type"
+                  >
+                    {INVENTORY_LAB_CHARGE_TYPE_OPTIONS.map((optionRow) => (
+                      <label
+                        key={optionRow.value}
+                        className={cn(
+                          "flex cursor-pointer items-start gap-2.5 rounded-lg border px-3 py-2 text-sm",
+                          draft.lab_charge_type === optionRow.value
+                            ? "border-brand-primary bg-white"
+                            : "border-brand-border/80 bg-white",
+                        )}
+                      >
+                        <input
+                          type="radio"
+                          name="lab-charge-type"
+                          value={optionRow.value}
+                          checked={draft.lab_charge_type === optionRow.value}
+                          disabled={isSaving}
+                          onChange={() =>
+                            setDraft((current) => ({
+                              ...current,
+                              lab_charge_type: optionRow.value,
+                            }))
+                          }
+                          data-testid={`classification-lab-charge-type-${optionRow.value}`}
+                        />
+                        <span>
+                          <span className="block text-brand-navy">
+                            {optionRow.label}
+                          </span>
+                          <span className="block text-xs text-brand-muted">
+                            {optionRow.example}
+                          </span>
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
               {expanded && selected && option.key === "is_procedure" ? (
                 <div className="space-y-2 border-t border-brand-border/70 px-4 py-3">
                   <p className="text-xs font-medium text-brand-muted">
@@ -439,6 +524,15 @@ export function EditProductClassificationDialog({
             </div>
           );
         })}
+
+        {hiddenOptionsNote ? (
+          <p
+            className="text-xs text-brand-muted"
+            data-testid="classification-type-note"
+          >
+            {hiddenOptionsNote}
+          </p>
+        ) : null}
 
         {fieldError ? (
           <p className="text-xs text-destructive" data-testid="classification-error">

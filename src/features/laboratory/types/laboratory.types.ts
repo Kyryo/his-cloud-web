@@ -30,11 +30,23 @@ export type LabOrderItem = {
   test_uuid: string;
   test_code: string;
   test_name: string;
+  visit_order_uuid?: string | null;
   panel_uuid: string | null;
   panel_code: string | null;
   status: LabOrderItemStatus | string;
   sort_order: number;
   result_status: LabResultStatus | string | null;
+};
+
+export type LabOrderedProduct = {
+  visit_order_uuid: string | null;
+  product_uuid: string | null;
+  product_name: string;
+  product_code: string;
+  panel_uuid: string | null;
+  panel_code: string | null;
+  status: LabOrderItemStatus | string;
+  item_count: number;
 };
 
 export type LabOrder = {
@@ -52,10 +64,13 @@ export type LabOrder = {
   customer_uuid: string;
   customer_name?: string | null;
   customer_identifier?: string | null;
+  customer_gender?: string | null;
+  customer_dob?: string | null;
   visit_order_uuid: string;
   ordered_by_name: string | null;
   accession_number: string | null;
   items: LabOrderItem[];
+  ordered_products?: LabOrderedProduct[];
   specimens?: LabSpecimen[];
   created_at: string;
   updated_at: string;
@@ -91,6 +106,8 @@ export type LabResultAnalyte = {
   analyte_uuid: string;
   analyte_code: string;
   analyte_name: string;
+  value_type?: string | null;
+  decimal_precision?: number | null;
   value_text: string;
   value_numeric: string | number | null;
   unit: string;

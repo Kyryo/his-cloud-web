@@ -57,6 +57,55 @@ export function formatLabDisplayDateTime(value: string | null | undefined): stri
   }).format(date);
 }
 
+/**
+ * Relative ordered-at label for list rows, e.g. "9 min ago" or "1h 20min ago".
+ */
+export function formatLabOrderedRelative(
+  value: string | null | undefined,
+  now: Date = new Date(),
+): string {
+  if (!value) {
+    return "—";
+  }
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  const diffMs = Math.max(0, now.getTime() - date.getTime());
+  const minuteMs = 60_000;
+  const hourMs = 60 * minuteMs;
+  const dayMs = 24 * hourMs;
+
+  if (diffMs < minuteMs) {
+    return "Just now";
+  }
+
+  if (diffMs < hourMs) {
+    const minutes = Math.floor(diffMs / minuteMs);
+    return `${minutes} min ago`;
+  }
+
+  if (diffMs < dayMs) {
+    const hours = Math.floor(diffMs / hourMs);
+    const minutes = Math.floor((diffMs % hourMs) / minuteMs);
+    if (minutes === 0) {
+      return `${hours}h ago`;
+    }
+    return `${hours}h ${minutes}min ago`;
+  }
+
+  const days = Math.floor(diffMs / dayMs);
+  if (days === 1) {
+    return "Yesterday";
+  }
+  if (days < 7) {
+    return `${days} days ago`;
+  }
+
+  return formatLabDisplayDateTime(value);
+}
+
 export function formatLabAccession(order: LabOrder): string {
   return order.accession_number?.trim() || "Not accessioned";
 }

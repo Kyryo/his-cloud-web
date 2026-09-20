@@ -56,11 +56,28 @@ export const createInventoryProductPricingSchema = z.object({
   standard_price: optionalPriceField,
 });
 
+export const INVENTORY_LAB_CHARGE_TYPE_OPTIONS = [
+  {
+    value: "individual",
+    label: "Individual test",
+    example: "e.g. pregnancy test",
+  },
+  {
+    value: "panel",
+    label: "Panel",
+    example: "e.g. full blood count (CBC)",
+  },
+] as const;
+
+export type InventoryLabChargeType =
+  (typeof INVENTORY_LAB_CHARGE_TYPE_OPTIONS)[number]["value"];
+
 export const createInventoryProductClassificationSchema = z.object({
   is_drug: z.boolean(),
   is_sundry: z.boolean(),
   liquid_or_cream: z.boolean(),
   is_lab_test: z.boolean(),
+  lab_charge_type: z.enum(["", "individual", "panel"]).default(""),
   is_radiology: z.boolean(),
   is_procedure: z.boolean(),
   procedure_scope: z.enum([
@@ -164,6 +181,22 @@ export const createInventoryProductSchema = createInventoryProductGeneralSchema
       });
     }
 
+    if (values.is_lab_test && !values.lab_charge_type) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Select whether this is charged as an individual test or a panel.",
+        path: ["lab_charge_type"],
+      });
+    }
+
+    if (!values.is_lab_test && values.lab_charge_type) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Lab charge type can only be set for laboratory products.",
+        path: ["lab_charge_type"],
+      });
+    }
+
     if (values.product_type === "service" && values.purchase_ok) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
@@ -225,6 +258,7 @@ export const createInventoryProductDefaultValues: CreateInventoryProductFormValu
   is_sundry: false,
   liquid_or_cream: false,
   is_lab_test: false,
+  lab_charge_type: "",
   is_radiology: false,
   is_procedure: false,
   procedure_scope: "",
@@ -265,6 +299,9 @@ export function toCreateInventoryProductPayload(
     is_sundry: parsed.is_sundry,
     liquid_or_cream: parsed.liquid_or_cream,
     is_lab_test: parsed.is_lab_test,
+    ...(parsed.is_lab_test && parsed.lab_charge_type
+      ? { lab_charge_type: parsed.lab_charge_type as "individual" | "panel" }
+      : {}),
     is_radiology: parsed.is_radiology,
     is_procedure: parsed.is_procedure,
     ...procedureScopeToFlags(parsed.procedure_scope),
@@ -367,6 +404,14 @@ export function toInventoryProductFormValues(
     is_sundry: Boolean(meta.is_sundry),
     liquid_or_cream: Boolean(meta.liquid_or_cream),
     is_lab_test: Boolean(meta.is_lab_test),
+    lab_charge_type:
+      product.lab_charge_type === "individual" ||
+      product.lab_charge_type === "panel"
+        ? product.lab_charge_type
+        : meta.lab_charge_type === "individual" ||
+            meta.lab_charge_type === "panel"
+          ? meta.lab_charge_type
+          : "",
     is_radiology: Boolean(meta.is_radiology),
     is_procedure: Boolean(meta.is_procedure),
     procedure_scope: procedureScopeFromMeta(meta),

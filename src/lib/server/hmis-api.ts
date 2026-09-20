@@ -135,7 +135,7 @@ export async function hmisApiRequestWithMeta<T>(
     }
 
     if (error instanceof DOMException && error.name === "AbortError") {
-      throw new HmisApiError("Request timed out. Please try again.");
+      throw new HmisApiError("Request timed out. Please try again.", 504);
     }
 
     throw new HmisApiError("Something went wrong. Try again later.");

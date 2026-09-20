@@ -83,6 +83,7 @@ export type InventoryProductMeta = {
   is_sundry?: boolean;
   liquid_or_cream?: boolean;
   is_lab_test?: boolean;
+  lab_charge_type?: "individual" | "panel" | string;
   is_radiology?: boolean;
   is_procedure?: boolean;
   dental_only_procedure?: boolean;
@@ -95,6 +96,9 @@ export type InventoryProductMeta = {
   claim_category?: string;
   [key: string]: unknown;
 };
+
+/** How a billable lab SKU is bound in the laboratory catalog. */
+export type LabConfigurationStatus = "none" | "test" | "panel";
 
 export type InventoryProduct = {
   id?: number;
@@ -114,6 +118,9 @@ export type InventoryProduct = {
   sale_ok?: boolean;
   purchase_ok?: boolean;
   metadata?: InventoryProductMeta | null;
+  /** Present when the product is a lab-billable SKU (`metadata.is_lab_test`). */
+  lab_configuration?: LabConfigurationStatus | null;
+  lab_charge_type?: "individual" | "panel" | null;
   created_at?: string;
   updated_at?: string;
   quantity_available?: string | number;

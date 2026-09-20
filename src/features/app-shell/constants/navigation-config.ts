@@ -251,13 +251,6 @@ export const navigation: NavigationItem[] = [
     enabledInWebNew: true,
   },
   {
-    name: "Reference ranges",
-    href: ROUTES.labReferenceRanges,
-    icon: "grid",
-    requiredGroup: "Lab",
-    enabledInWebNew: true,
-  },
-  {
     name: "Lab settings",
     href: ROUTES.labSettings,
     icon: "settings",

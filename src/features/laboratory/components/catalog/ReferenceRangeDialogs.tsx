@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
@@ -51,6 +51,12 @@ const ADD_FORM_ID = "add-lab-reference-range-form";
 const EDIT_FORM_ID = "edit-lab-reference-range-form";
 const NONE_VALUE = "__none__";
 
+export type ReferenceRangeAnalyteOption = {
+  uuid: string;
+  code: string;
+  name: string;
+};
+
 function toFormValues(item?: LabReferenceRange | null): ReferenceRangeFormValues {
   if (!item) return referenceRangeDefaultValues;
   const sex = REFERENCE_RANGE_SEX_OPTIONS.includes(
@@ -74,7 +80,12 @@ function toFormValues(item?: LabReferenceRange | null): ReferenceRangeFormValues
   };
 }
 
-type AddReferenceRangeDialogProps = {
+type ReferenceRangeDialogSharedProps = {
+  analyteOptions?: ReferenceRangeAnalyteOption[];
+  lockAnalyte?: boolean;
+};
+
+type AddReferenceRangeDialogProps = ReferenceRangeDialogSharedProps & {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onCreated: (item: LabReferenceRange) => void;
@@ -86,6 +97,8 @@ export function AddReferenceRangeDialog({
   onOpenChange,
   onCreated,
   defaultAnalyteUuid = "",
+  analyteOptions,
+  lockAnalyte = false,
 }: AddReferenceRangeDialogProps) {
   const { toast } = useToast();
   const form = useForm<ReferenceRangeFormValues>({
@@ -111,7 +124,7 @@ export function AddReferenceRangeDialog({
       toast({
         variant: "success",
         title: "Reference range created",
-        description: "The range was added to the catalog.",
+        description: "The range was added for this analyte.",
       });
       onCreated(item);
       onOpenChange(false);
@@ -146,7 +159,7 @@ export function AddReferenceRangeDialog({
       open={open}
       onOpenChange={onOpenChange}
       title="Add reference range"
-      description="Define normal and critical limits for an analyte."
+      description="Set who this range applies to and the normal and critical limits."
       className={cn("sm:max-w-2xl", appFont.className)}
       data-testid="add-reference-range-dialog"
       footer={
@@ -162,10 +175,10 @@ export function AddReferenceRangeDialog({
             {isSubmitting ? (
               <>
                 <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                Creating...
+                Creating…
               </>
             ) : (
-              "Create"
+              "Create range"
             )}
           </PrimaryButton>
         </>
@@ -174,13 +187,15 @@ export function AddReferenceRangeDialog({
       <Form {...form}>
         <form
           id={ADD_FORM_ID}
-          className="space-y-4"
+          className="space-y-6"
           onSubmit={form.handleSubmit(handleSubmit)}
         >
           <ReferenceRangeFields
             control={form.control}
             isSubmitting={isSubmitting}
             loadOptions={open}
+            analyteOptions={analyteOptions}
+            lockAnalyte={lockAnalyte}
           />
         </form>
       </Form>
@@ -188,7 +203,7 @@ export function AddReferenceRangeDialog({
   );
 }
 
-type EditReferenceRangeDialogProps = {
+type EditReferenceRangeDialogProps = ReferenceRangeDialogSharedProps & {
   item: LabReferenceRange | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -200,6 +215,8 @@ export function EditReferenceRangeDialog({
   open,
   onOpenChange,
   onUpdated,
+  analyteOptions,
+  lockAnalyte = false,
 }: EditReferenceRangeDialogProps) {
   const { toast } = useToast();
   const form = useForm<ReferenceRangeFormValues>({
@@ -250,7 +267,7 @@ export function EditReferenceRangeDialog({
       open={open}
       onOpenChange={onOpenChange}
       title="Edit reference range"
-      description="Update limits, sex, age band, and effective dates."
+      description="Update applicability, limits, and effective dates."
       className={cn("sm:max-w-2xl", appFont.className)}
       data-testid="edit-reference-range-dialog"
       footer={
@@ -266,10 +283,10 @@ export function EditReferenceRangeDialog({
             {isSubmitting ? (
               <>
                 <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                Saving...
+                Saving…
               </>
             ) : (
-              "Save"
+              "Save changes"
             )}
           </PrimaryButton>
         </>
@@ -278,13 +295,15 @@ export function EditReferenceRangeDialog({
       <Form {...form}>
         <form
           id={EDIT_FORM_ID}
-          className="space-y-4"
+          className="space-y-6"
           onSubmit={form.handleSubmit(handleSubmit)}
         >
           <ReferenceRangeFields
             control={form.control}
             isSubmitting={isSubmitting}
             loadOptions={open}
+            analyteOptions={analyteOptions}
+            lockAnalyte={lockAnalyte}
           />
         </form>
       </Form>
@@ -292,33 +311,71 @@ export function EditReferenceRangeDialog({
   );
 }
 
+function FieldSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="space-y-3">
+      <div className="space-y-0.5">
+        <h3 className="text-sm font-semibold text-brand-navy">{title}</h3>
+        <p className="text-xs text-brand-muted">{description}</p>
+      </div>
+      <div className="space-y-3">{children}</div>
+    </section>
+  );
+}
+
 function ReferenceRangeFields({
   control,
   isSubmitting,
   loadOptions,
+  analyteOptions,
+  lockAnalyte = false,
 }: {
   control: ReturnType<typeof useForm<ReferenceRangeFormValues>>["control"];
   isSubmitting: boolean;
   loadOptions: boolean;
+  analyteOptions?: ReferenceRangeAnalyteOption[];
+  lockAnalyte?: boolean;
 }) {
-  const [analytes, setAnalytes] = useState<LabAnalyte[]>([]);
+  const [catalogAnalytes, setCatalogAnalytes] = useState<LabAnalyte[]>([]);
   const [specimenTypes, setSpecimenTypes] = useState<LabSpecimenType[]>([]);
+  const scoped = analyteOptions != null;
+  const analytes: ReferenceRangeAnalyteOption[] = scoped
+    ? analyteOptions
+    : catalogAnalytes.map((analyte) => ({
+        uuid: analyte.uuid,
+        code: analyte.code,
+        name: analyte.name,
+      }));
 
   useEffect(() => {
     if (!loadOptions) return;
     let cancelled = false;
     void (async () => {
       try {
+        const specimenPromise = fetchLabSpecimenTypes({ pageSize: 200 });
+        const analytePromise = scoped
+          ? Promise.resolve(null)
+          : fetchLabAnalytes({ pageSize: 200 });
         const [analyteResponse, specimenResponse] = await Promise.all([
-          fetchLabAnalytes({ pageSize: 200 }),
-          fetchLabSpecimenTypes({ pageSize: 200 }),
+          analytePromise,
+          specimenPromise,
         ]);
         if (cancelled) return;
-        setAnalytes(analyteResponse.results);
+        if (analyteResponse) {
+          setCatalogAnalytes(analyteResponse.results);
+        }
         setSpecimenTypes(specimenResponse.results);
       } catch {
         if (!cancelled) {
-          setAnalytes([]);
+          if (!scoped) setCatalogAnalytes([]);
           setSpecimenTypes([]);
         }
       }
@@ -326,222 +383,255 @@ function ReferenceRangeFields({
     return () => {
       cancelled = true;
     };
-  }, [loadOptions]);
+  }, [loadOptions, scoped]);
 
   return (
     <>
-      <FormField
-        control={control}
-        name="analyte_uuid"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Analyte</FormLabel>
-            <Select
-              value={field.value}
-              onValueChange={field.onChange}
-              disabled={isSubmitting}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select analyte" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {analytes.map((analyte) => (
-                  <SelectItem key={analyte.uuid} value={analyte.uuid}>
-                    {analyte.code} — {analyte.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={control}
-        name="specimen_type_uuid"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Specimen type</FormLabel>
-            <Select
-              value={field.value || NONE_VALUE}
-              onValueChange={(value) =>
-                field.onChange(value === NONE_VALUE ? "" : value)
-              }
-              disabled={isSubmitting}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue placeholder="Optional specimen type" />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                <SelectItem value={NONE_VALUE}>Any</SelectItem>
-                {specimenTypes.map((type) => (
-                  <SelectItem key={type.uuid} value={type.uuid}>
-                    {type.code} — {type.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={control}
-        name="sex"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Sex</FormLabel>
-            <Select
-              value={field.value}
-              onValueChange={field.onChange}
-              disabled={isSubmitting}
-            >
-              <FormControl>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-              </FormControl>
-              <SelectContent>
-                {REFERENCE_RANGE_SEX_OPTIONS.map((sex) => (
-                  <SelectItem key={sex} value={sex}>
-                    {sex}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <div className="grid grid-cols-2 gap-3">
+      <FieldSection
+        title="Applicability"
+        description="Which analyte and patient population this range covers."
+      >
         <FormField
           control={control}
-          name="age_min_days"
+          name="analyte_uuid"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Age min (days)</FormLabel>
+              <FormLabel>Analyte</FormLabel>
+              <Select
+                value={field.value}
+                onValueChange={field.onChange}
+                disabled={isSubmitting || lockAnalyte}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select analyte" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {analytes.map((analyte) => (
+                    <SelectItem key={analyte.uuid} value={analyte.uuid}>
+                      {analyte.code} — {analyte.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <FormField
+            control={control}
+            name="specimen_type_uuid"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Specimen type</FormLabel>
+                <Select
+                  value={field.value || NONE_VALUE}
+                  onValueChange={(value) =>
+                    field.onChange(value === NONE_VALUE ? "" : value)
+                  }
+                  disabled={isSubmitting}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Any specimen" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value={NONE_VALUE}>Any</SelectItem>
+                    {specimenTypes.map((type) => (
+                      <SelectItem key={type.uuid} value={type.uuid}>
+                        {type.code} — {type.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="sex"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Sex</FormLabel>
+                <Select
+                  value={field.value}
+                  onValueChange={field.onChange}
+                  disabled={isSubmitting}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {REFERENCE_RANGE_SEX_OPTIONS.map((sex) => (
+                      <SelectItem key={sex} value={sex}>
+                        {sex === "ANY" ? "Any" : sex === "M" ? "Male" : "Female"}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField
+            control={control}
+            name="age_min_days"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Age min (days)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    inputMode="numeric"
+                    placeholder="Optional"
+                    disabled={isSubmitting}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="age_max_days"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Age max (days)</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    inputMode="numeric"
+                    placeholder="Optional"
+                    disabled={isSubmitting}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+      </FieldSection>
+
+      <FieldSection
+        title="Limits"
+        description="Normal and critical thresholds used when flagging results."
+      >
+        <div className="grid grid-cols-2 gap-3">
+          <FormField
+            control={control}
+            name="low_normal"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Low normal</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="e.g. 3.5" disabled={isSubmitting} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="high_normal"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>High normal</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="e.g. 5.5" disabled={isSubmitting} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <FormField
+            control={control}
+            name="low_critical"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Low critical</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Optional" disabled={isSubmitting} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="high_critical"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>High critical</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Optional" disabled={isSubmitting} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <FormField
+          control={control}
+          name="text_normal"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Text normal</FormLabel>
               <FormControl>
-                <Input {...field} inputMode="numeric" disabled={isSubmitting} />
+                <Input
+                  {...field}
+                  placeholder="Optional display text for normal"
+                  disabled={isSubmitting}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <FormField
-          control={control}
-          name="age_max_days"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Age max (days)</FormLabel>
-              <FormControl>
-                <Input {...field} inputMode="numeric" disabled={isSubmitting} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <FormField
-          control={control}
-          name="low_normal"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Low normal</FormLabel>
-              <FormControl>
-                <Input {...field} disabled={isSubmitting} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name="high_normal"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>High normal</FormLabel>
-              <FormControl>
-                <Input {...field} disabled={isSubmitting} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <FormField
-          control={control}
-          name="low_critical"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Low critical</FormLabel>
-              <FormControl>
-                <Input {...field} disabled={isSubmitting} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name="high_critical"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>High critical</FormLabel>
-              <FormControl>
-                <Input {...field} disabled={isSubmitting} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-      <div className="grid grid-cols-2 gap-3">
-        <FormField
-          control={control}
-          name="effective_from"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Effective from</FormLabel>
-              <FormControl>
-                <Input {...field} type="date" disabled={isSubmitting} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={control}
-          name="effective_to"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Effective to</FormLabel>
-              <FormControl>
-                <Input {...field} type="date" disabled={isSubmitting} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-      <FormField
-        control={control}
-        name="text_normal"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Text normal</FormLabel>
-            <FormControl>
-              <Input {...field} disabled={isSubmitting} />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
+      </FieldSection>
+
+      <FieldSection
+        title="Effective period"
+        description="When this range is active for result interpretation."
+      >
+        <div className="grid grid-cols-2 gap-3">
+          <FormField
+            control={control}
+            name="effective_from"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Effective from</FormLabel>
+                <FormControl>
+                  <Input {...field} type="date" disabled={isSubmitting} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="effective_to"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Effective to</FormLabel>
+                <FormControl>
+                  <Input {...field} type="date" disabled={isSubmitting} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+      </FieldSection>
     </>
   );
 }

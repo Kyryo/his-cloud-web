@@ -52,10 +52,12 @@ describe("catalog payloads", () => {
         value_type: "NUMERIC",
         unit: "mg/dL",
         decimal_precision: "",
+        coded_options: [],
       }),
     ).toMatchObject({
       decimal_precision: null,
       unit: "mg/dL",
+      coded_options: [],
     });
 
     expect(
@@ -66,8 +68,31 @@ describe("catalog payloads", () => {
         value_type: "NUMERIC",
         unit: "",
         decimal_precision: "2",
+        coded_options: [],
       }).decimal_precision,
     ).toBe(2);
+  });
+
+  it("maps coded analyte options and clears numeric fields", () => {
+    expect(
+      toAnalytePayload({
+        code: "ABO",
+        name: "Blood group",
+        loinc_code: "",
+        value_type: "CODED",
+        unit: "mg/dL",
+        decimal_precision: "2",
+        coded_options: [{ code: " A ", label: " Group A " }],
+      }),
+    ).toEqual({
+      code: "ABO",
+      name: "Blood group",
+      loinc_code: "",
+      value_type: "CODED",
+      unit: "",
+      decimal_precision: null,
+      coded_options: [{ code: "A", label: "Group A" }],
+    });
   });
 
   it("maps lab test nested analytes and optional uuids", () => {
