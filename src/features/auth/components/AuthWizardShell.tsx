@@ -86,7 +86,7 @@ export function AuthWizardShell({
       belowCard={
         <>
           {belowCard}
-          <p className="mt-4 text-xs leading-relaxed text-brand-muted">
+          <p className="mt-3 text-[11px] leading-relaxed text-brand-muted">
             By continuing you agree to our{" "}
             <Link href={ROUTES.terms} className="underline-offset-2 hover:underline">
               Terms
@@ -107,27 +107,27 @@ export function AuthWizardShell({
         transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
       >
         <div data-testid="signup-form-card">
-          <header className="flex items-start justify-between gap-4">
+          <header className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="font-[family-name:var(--font-bricolage)] text-lg font-semibold tracking-[-0.018em] text-brand-navy">
+              <p className="font-[family-name:var(--font-bricolage)] text-[15px] font-semibold tracking-[-0.018em] text-brand-navy">
                 Get started
               </p>
-              <p className="mt-0.5 text-[13px] text-brand-muted">
+              <p className="mt-0.5 text-xs text-brand-muted">
                 Setup your clinic workspace
               </p>
             </div>
             <ProgressDots steps={steps} currentStep={currentStep} />
           </header>
 
-          <div className="mt-10 flex flex-col">
-            <div className="mb-7">
-              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-primary">
+          <div className="mt-6 flex flex-col">
+            <div className="mb-5">
+              <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-brand-primary">
                 {steps[currentStep - 1]?.label ?? `Step ${currentStep}`}
               </p>
-              <h2 className="font-[family-name:var(--font-bricolage)] text-[1.85rem] font-semibold leading-[1.12] tracking-[-0.02em] text-brand-navy sm:text-[2.1rem]">
+              <h2 className="font-[family-name:var(--font-bricolage)] text-xl font-semibold leading-[1.2] tracking-[-0.02em] text-brand-navy sm:text-[1.5rem]">
                 {title}
               </h2>
-              <p className="mt-2.5 text-[15px] leading-relaxed text-brand-muted">
+              <p className="mt-1.5 text-sm leading-relaxed text-brand-muted">
                 {subtitle}
               </p>
             </div>
@@ -143,7 +143,7 @@ export function AuthWizardShell({
             </motion.div>
           </div>
 
-          {footer ? <div className="mt-8">{footer}</div> : null}
+          {footer ? <div className="mt-6">{footer}</div> : null}
         </div>
       </motion.div>
     </AuthSplitLayout>

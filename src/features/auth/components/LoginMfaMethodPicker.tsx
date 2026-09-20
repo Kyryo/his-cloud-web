@@ -39,13 +39,13 @@ export function LoginMfaMethodPicker({
 
   return (
     <div className="w-full" data-testid="login-mfa-methods">
-      <h2 className="font-[family-name:var(--font-bricolage)] text-[2rem] font-semibold tracking-[-0.02em] text-brand-navy sm:text-[2.25rem]">
+      <h2 className="font-[family-name:var(--font-bricolage)] text-xl font-semibold tracking-[-0.02em] text-brand-navy sm:text-[1.5rem]">
         Try another method
       </h2>
-      <p className="mt-2 text-[15px] leading-relaxed text-brand-muted">
+      <p className="mt-1.5 text-sm leading-relaxed text-brand-muted">
         Choose how you want to verify this sign-in.
       </p>
-      <ul className="mt-8 divide-y divide-slate-200 border-y border-slate-200">
+      <ul className="mt-6 divide-y divide-slate-200 border-y border-slate-200">
         {options.map((method) => {
           if (method === "email") {
             return (
@@ -55,13 +55,13 @@ export function LoginMfaMethodPicker({
                   data-testid="login-mfa-method-email"
                   disabled={disabled}
                   onClick={() => onSelect("email")}
-                  className="flex w-full items-start py-4 text-left transition-colors hover:text-brand-primary disabled:opacity-50"
+                  className="flex w-full items-start py-3 text-left transition-colors hover:text-brand-primary disabled:opacity-50"
                 >
                   <span>
-                    <span className="block text-[15px] font-medium text-brand-navy">
+                    <span className="block text-sm font-medium text-brand-navy">
                       Email code
                     </span>
-                    <span className="mt-0.5 block text-sm text-brand-muted">
+                    <span className="mt-0.5 block text-xs text-brand-muted">
                       Use the verification code sent to your email.
                     </span>
                   </span>
@@ -78,13 +78,13 @@ export function LoginMfaMethodPicker({
                 data-testid={`login-mfa-method-${method}`}
                 disabled={disabled}
                 onClick={() => onSelect(method)}
-                className="flex w-full items-start py-4 text-left transition-colors hover:text-brand-primary disabled:opacity-50"
+                className="flex w-full items-start py-3 text-left transition-colors hover:text-brand-primary disabled:opacity-50"
               >
                 <span>
-                  <span className="block text-[15px] font-medium text-brand-navy">
+                  <span className="block text-sm font-medium text-brand-navy">
                     {copy.label}
                   </span>
-                  <span className="mt-0.5 block text-sm text-brand-muted">
+                  <span className="mt-0.5 block text-xs text-brand-muted">
                     {copy.description}
                   </span>
                 </span>
@@ -93,7 +93,7 @@ export function LoginMfaMethodPicker({
           );
         })}
       </ul>
-      <div className="mt-6">
+      <div className="mt-5">
         <button
           type="button"
           onClick={onBack}

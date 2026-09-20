@@ -20,10 +20,10 @@ export function LoginWebAuthnStep({
 }: LoginWebAuthnStepProps) {
   return (
     <div className="w-full" data-testid="login-webauthn-form">
-      <h2 className="font-[family-name:var(--font-bricolage)] text-[2rem] font-semibold tracking-[-0.02em] text-brand-navy sm:text-[2.25rem]">
+      <h2 className="font-[family-name:var(--font-bricolage)] text-xl font-semibold tracking-[-0.02em] text-brand-navy sm:text-[1.5rem]">
         Security key
       </h2>
-      <p className="mt-2 text-[15px] leading-relaxed text-brand-muted">
+      <p className="mt-1.5 text-sm leading-relaxed text-brand-muted">
         {isSubmitting
           ? "Complete the prompt in your browser or on the key."
           : "Use your passkey or hardware key to finish signing in."}
@@ -42,7 +42,7 @@ export function LoginWebAuthnStep({
       <Button
         type="button"
         data-testid="login-webauthn-submit"
-        className="mt-8 h-12 w-full rounded-full bg-brand-primary text-white hover:bg-brand-primary-hover"
+        className="mt-6 h-10 w-full rounded-full bg-brand-primary text-sm font-semibold text-white hover:bg-brand-primary-hover"
         disabled={isSubmitting}
         onClick={onVerify}
       >
@@ -56,13 +56,13 @@ export function LoginWebAuthnStep({
           data-testid="login-try-another-method"
           disabled={isSubmitting}
           onClick={onTryAnother}
-          className="mt-3 h-12 w-full rounded-full border-slate-300 bg-white text-brand-navy hover:bg-slate-50 hover:text-brand-navy"
+          className="mt-2.5 h-10 w-full rounded-full border-slate-300 bg-white text-sm font-semibold text-brand-navy hover:bg-slate-50 hover:text-brand-navy"
         >
           Try another method
         </Button>
       ) : null}
 
-      <div className="mt-6">
+      <div className="mt-5">
         <button
           type="button"
           onClick={onBack}

@@ -130,7 +130,7 @@ export function SignupEmailConfirmStep({
           }
           data-testid={codeTestId}
           className={cn(
-            "flex justify-center gap-2 sm:gap-2.5",
+            "flex justify-center gap-1.5 sm:gap-2",
             displayError && "animate-otp-shake",
           )}
           key={displayError ?? "valid"}
@@ -156,7 +156,7 @@ export function SignupEmailConfirmStep({
                 value={digit}
                 disabled={disabled || isResending || isExpiryExpired || isSubmitting}
                 className={cn(
-                  "size-11 shrink-0 rounded-xl border bg-white text-center font-[family-name:var(--font-bricolage)] text-lg font-semibold tabular-nums text-brand-navy sm:size-12 sm:text-xl",
+                  "size-9 shrink-0 rounded-lg border bg-white text-center font-[family-name:var(--font-bricolage)] text-base font-semibold tabular-nums text-brand-navy sm:size-10 sm:text-lg",
                   "transition-[border-color,box-shadow,background-color] duration-150",
                   "focus-visible:outline-none",
                   "disabled:cursor-not-allowed disabled:opacity-50",

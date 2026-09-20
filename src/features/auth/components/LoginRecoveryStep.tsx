@@ -28,14 +28,14 @@ export function LoginRecoveryStep({
 }: LoginRecoveryStepProps) {
   return (
     <div className="w-full" data-testid="login-recovery-form">
-      <h2 className="font-[family-name:var(--font-bricolage)] text-[2rem] font-semibold tracking-[-0.02em] text-brand-navy sm:text-[2.25rem]">
+      <h2 className="font-[family-name:var(--font-bricolage)] text-xl font-semibold tracking-[-0.02em] text-brand-navy sm:text-[1.5rem]">
         Recovery code
       </h2>
-      <p className="mt-2 text-[15px] leading-relaxed text-brand-muted">
+      <p className="mt-1.5 text-sm leading-relaxed text-brand-muted">
         Enter one of the 8-digit backup codes you saved when setting up 2FA.
       </p>
 
-      <div className="mt-8 space-y-2">
+      <div className="mt-6 space-y-2">
         {error ? <StatusBanner variant="error" message={error} /> : null}
         <Label htmlFor="login-recovery-code">Recovery code</Label>
         <Input
@@ -43,7 +43,7 @@ export function LoginRecoveryStep({
           data-testid="login-recovery"
           inputMode="numeric"
           autoComplete="one-time-code"
-          className="mt-1.5 h-12 rounded-full px-5"
+          className="mt-1.5 h-10 rounded-full px-4"
           maxLength={8}
           value={code}
           disabled={disabled || isSubmitting}
@@ -56,7 +56,7 @@ export function LoginRecoveryStep({
       <Button
         type="button"
         data-testid="login-recovery-submit"
-        className="mt-8 h-12 w-full rounded-full bg-brand-primary text-white hover:bg-brand-primary-hover"
+        className="mt-6 h-10 w-full rounded-full bg-brand-primary text-sm font-semibold text-white hover:bg-brand-primary-hover"
         disabled={isSubmitting || code.length !== 8}
         onClick={onSubmit}
       >
@@ -69,7 +69,7 @@ export function LoginRecoveryStep({
           "Sign in"
         )}
       </Button>
-      <div className="mt-6">
+      <div className="mt-5">
         <button
           type="button"
           onClick={onBack}

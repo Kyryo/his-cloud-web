@@ -43,14 +43,14 @@ export function LoginTotpStep({
 
   return (
     <div className="w-full" data-testid="login-totp-form">
-      <h2 className="font-[family-name:var(--font-bricolage)] text-[2rem] font-semibold tracking-[-0.02em] text-brand-navy sm:text-[2.25rem]">
+      <h2 className="font-[family-name:var(--font-bricolage)] text-xl font-semibold tracking-[-0.02em] text-brand-navy sm:text-[1.5rem]">
         Authenticator app
       </h2>
-      <p className="mt-2 text-[15px] leading-relaxed text-brand-muted">
+      <p className="mt-1.5 text-sm leading-relaxed text-brand-muted">
         Enter the 6-digit code from your authenticator app.
       </p>
 
-      <div className="mt-8">
+      <div className="mt-6">
         {displayError ? (
           <StatusBanner variant="error" message={displayError} className="mb-4" />
         ) : null}
@@ -69,7 +69,7 @@ export function LoginTotpStep({
       <Button
         type="button"
         data-testid="login-totp-submit"
-        className="mt-8 h-12 w-full rounded-full bg-brand-primary text-white hover:bg-brand-primary-hover"
+        className="mt-6 h-10 w-full rounded-full bg-brand-primary text-sm font-semibold text-white hover:bg-brand-primary-hover"
         onClick={handleSubmit}
       >
         {isSubmitting ? (
@@ -81,7 +81,7 @@ export function LoginTotpStep({
           "Sign in"
         )}
       </Button>
-      <div className="mt-6">
+      <div className="mt-5">
         <button
           type="button"
           onClick={onBack}

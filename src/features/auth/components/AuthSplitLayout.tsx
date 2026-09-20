@@ -32,7 +32,7 @@ export function AuthSplitLayout({
       className={cn("grid min-h-screen lg:grid-cols-2", className)}
     >
       <aside
-        className="relative isolate flex min-h-[38vh] flex-col justify-between overflow-hidden px-6 py-8 sm:px-10 sm:py-10 lg:min-h-screen lg:px-12 lg:py-12"
+        className="relative isolate flex min-h-[32vh] flex-col justify-between overflow-hidden px-5 py-6 sm:px-8 sm:py-8 lg:min-h-screen lg:px-10 lg:py-10"
         data-testid={panelTestId}
       >
         <Image
@@ -50,7 +50,7 @@ export function AuthSplitLayout({
 
         <Link
           href={ROUTES.home}
-          className="relative z-10 inline-flex items-center gap-2.5"
+          className="relative z-10 inline-flex items-center gap-2"
           aria-label="SigmaHealth home"
         >
           <Image
@@ -58,28 +58,28 @@ export function AuthSplitLayout({
             alt=""
             width={128}
             height={128}
-            className="h-9 w-auto object-contain sm:h-10"
+            className="h-7 w-auto object-contain sm:h-8"
             aria-hidden="true"
           />
-          <span className="font-[family-name:var(--font-bricolage)] text-[1.15rem] font-semibold tracking-[-0.018em] text-white">
+          <span className="font-[family-name:var(--font-bricolage)] text-[0.95rem] font-semibold tracking-[-0.018em] text-white">
             SigmaHealth
           </span>
         </Link>
 
-        <div className="relative z-10 mt-10 max-w-lg lg:mt-0">
-          <h1 className="whitespace-pre-line font-[family-name:var(--font-bricolage)] text-[clamp(2.15rem,4.6vw,4.35rem)] font-semibold leading-[1.05] tracking-[-0.02em] text-white text-balance">
+        <div className="relative z-10 mt-8 max-w-md lg:mt-0">
+          <h1 className="whitespace-pre-line font-[family-name:var(--font-bricolage)] text-[clamp(1.5rem,3vw,2.35rem)] font-semibold leading-[1.12] tracking-[-0.02em] text-white text-balance">
             {headline}
           </h1>
-          <p className="mt-4 max-w-[28ch] text-base leading-relaxed text-white/80 sm:text-lg">
+          <p className="mt-3 max-w-[32ch] text-sm leading-relaxed text-white/80 sm:text-[15px]">
             {subhead}
           </p>
         </div>
       </aside>
 
-      <div className="flex flex-col justify-center bg-white px-5 py-10 sm:px-10 lg:px-16 lg:py-12">
-        <div className="mx-auto w-full max-w-[28rem]">{children}</div>
+      <div className="flex flex-col justify-center bg-white px-5 py-8 sm:px-8 lg:px-12 lg:py-10">
+        <div className="mx-auto w-full max-w-[22rem]">{children}</div>
         {belowCard ? (
-          <div className="mx-auto mt-6 w-full max-w-[28rem]">
+          <div className="mx-auto mt-5 w-full max-w-[22rem]">
             {belowCard}
           </div>
         ) : null}

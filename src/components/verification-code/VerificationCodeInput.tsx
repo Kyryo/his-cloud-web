@@ -56,7 +56,7 @@ export function VerificationCodeInput({
               : undefined
         }
         className={cn(
-          "flex justify-center gap-2 sm:gap-3",
+          "flex justify-center gap-1.5 sm:gap-2",
           hasError && "animate-otp-shake",
         )}
         key={error ?? "valid"}
@@ -88,7 +88,7 @@ export function VerificationCodeInput({
               value={digit}
               disabled={disabled}
               className={cn(
-                "h-12 w-11 max-w-[3rem] flex-1 rounded-md border-[1.5px] bg-white text-center text-lg font-medium tabular-nums text-brand-navy",
+                "h-10 w-9 max-w-[2.5rem] flex-1 rounded-md border-[1.5px] bg-white text-center text-base font-medium tabular-nums text-brand-navy",
                 "transition-[border-color,box-shadow,background-color] duration-150",
                 "focus-visible:outline-none",
                 "disabled:cursor-not-allowed disabled:opacity-50",
