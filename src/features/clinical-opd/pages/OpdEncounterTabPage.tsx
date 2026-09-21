@@ -27,7 +27,8 @@ type OpdEncounterTabPageProps = {
 
 export function OpdEncounterTabPage({ tab }: OpdEncounterTabPageProps) {
   const router = useRouter();
-  const { visitUuid, encounterUuid, visibleTabIds } = useOpdEncounterWorkspace();
+  const { visitUuid, encounterUuid, visibleTabIds } =
+    useOpdEncounterWorkspace();
 
   const canViewTab = visibleTabIds.includes(tab);
 

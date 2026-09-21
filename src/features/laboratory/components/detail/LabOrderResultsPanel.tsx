@@ -3,7 +3,17 @@
 import { useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
-import { ListPageBlankState } from "@/features/app-shell/components/page-layout";
+import { Badge } from "@/components/ui/badge";
+import {
+  ListPageBlankState,
+  ListPageDataTable,
+  ListPageDataTableBody,
+  ListPageDataTableCell,
+  ListPageDataTableHeader,
+  ListPageDataTableHeaderCell,
+  ListPageDataTableHeaderRow,
+  ListPageDataTableRow,
+} from "@/features/app-shell/components/page-layout";
 import { ConfirmLabActionDialog } from "@/features/laboratory/components/detail/ConfirmLabActionDialog";
 import { EnterResultsDialog } from "@/features/laboratory/components/detail/EnterResultsDialog";
 import { useLabOrderDetailWorkspace } from "@/features/laboratory/components/detail/lab-order-detail-workspace-context";
@@ -14,6 +24,10 @@ import {
   verifyLabOrderItemResults,
 } from "@/features/laboratory/services/laboratory.service";
 import type { LabOrderItem } from "@/features/laboratory/types/laboratory.types";
+import {
+  formatLabOrderItemStatusLabel,
+  formatLabResultStatusLabel,
+} from "@/features/laboratory/utils/format-lab-order";
 import { getErrorMessage } from "@/lib/fetch-error";
 import { useToast } from "@/providers/toast-provider";
 
@@ -90,112 +104,109 @@ export function LabOrderResultsPanel() {
 
   if (items.length === 0) {
     return (
-      <div className="p-4 sm:p-6">
-        <ListPageBlankState
-          compact
-          icon="file"
-          title="No resultable items"
-          description="Order items eligible for results will appear here."
-        />
-      </div>
+      <ListPageBlankState
+        compact
+        icon="file"
+        title="No resultable items"
+        description="Order items eligible for results will appear here."
+      />
     );
   }
 
   return (
-    <div className="space-y-4 p-4 sm:p-6" data-testid="lab-order-results-panel">
-      <div>
-        <h2 className="text-base font-semibold text-brand-navy">Results</h2>
-        <p className="mt-1 text-sm text-brand-muted">
-          Enter, verify, release, or reject results for each test.
-        </p>
-      </div>
+    <div data-testid="lab-order-results-panel">
+      <ListPageDataTable>
+        <ListPageDataTableHeader>
+          <ListPageDataTableHeaderRow>
+            <ListPageDataTableHeaderCell>Test</ListPageDataTableHeaderCell>
+            <ListPageDataTableHeaderCell className="hidden sm:table-cell">
+              Item
+            </ListPageDataTableHeaderCell>
+            <ListPageDataTableHeaderCell>Result</ListPageDataTableHeaderCell>
+            <ListPageDataTableHeaderCell className="text-right">
+              Actions
+            </ListPageDataTableHeaderCell>
+          </ListPageDataTableHeaderRow>
+        </ListPageDataTableHeader>
+        <ListPageDataTableBody>
+          {items.map((item) => {
+            const canEnter =
+              item.result_status !== "RELEASED" && item.status !== "RELEASED";
+            const canVerify =
+              item.result_status === "ENTERED" ||
+              item.result_status === "DRAFT";
+            const canRelease = item.result_status === "VERIFIED";
+            const canReject =
+              item.result_status === "ENTERED" ||
+              item.result_status === "VERIFIED" ||
+              item.result_status === "DRAFT";
 
-      <div className="overflow-hidden rounded-xl border border-dash-border">
-        <table className="min-w-full text-left text-sm">
-          <thead className="bg-dash-canvas/60 text-xs uppercase tracking-wide text-brand-muted">
-            <tr>
-              <th className="px-4 py-2.5 font-medium">Test</th>
-              <th className="px-4 py-2.5 font-medium">Item</th>
-              <th className="px-4 py-2.5 font-medium">Result</th>
-              <th className="px-4 py-2.5 font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-dash-border">
-            {items.map((item) => {
-              const canEnter =
-                item.result_status !== "RELEASED" && item.status !== "RELEASED";
-              const canVerify =
-                item.result_status === "ENTERED" ||
-                item.result_status === "DRAFT";
-              const canRelease = item.result_status === "VERIFIED";
-              const canReject =
-                item.result_status === "ENTERED" ||
-                item.result_status === "VERIFIED" ||
-                item.result_status === "DRAFT";
-
-              return (
-                <tr key={item.uuid}>
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-brand-navy">
-                      {item.test_name}
-                    </div>
-                    <div className="font-mono text-xs text-brand-muted">
-                      {item.test_code}
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-brand-slate">{item.status}</td>
-                  <td className="px-4 py-3 text-brand-slate">
-                    {item.result_status || "—"}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-wrap gap-2">
-                      {canEnter ? (
-                        <PrimaryButton
-                          type="button"
-                          className="h-8 text-xs"
-                          onClick={() => {
-                            setEnterItemUuid(item.uuid);
-                            setEnterOpen(true);
-                          }}
-                        >
-                          Enter
-                        </PrimaryButton>
-                      ) : null}
-                      {canVerify ? (
-                        <SecondaryButton
-                          type="button"
-                          className="h-8 text-xs"
-                          onClick={() => openConfirm(item, "verify")}
-                        >
-                          Verify
-                        </SecondaryButton>
-                      ) : null}
-                      {canRelease ? (
-                        <SecondaryButton
-                          type="button"
-                          className="h-8 text-xs"
-                          onClick={() => openConfirm(item, "release")}
-                        >
-                          Release
-                        </SecondaryButton>
-                      ) : null}
-                      {canReject ? (
-                        <SecondaryButton
-                          type="button"
-                          className="h-8 text-xs text-rose-700"
-                          onClick={() => openConfirm(item, "reject")}
-                        >
-                          Reject
-                        </SecondaryButton>
-                      ) : null}
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+            return (
+              <ListPageDataTableRow key={item.uuid}>
+                <ListPageDataTableCell>
+                  <p className="font-medium text-brand-navy">{item.test_name}</p>
+                  <p className="font-mono text-xs text-dash-muted">
+                    {item.test_code}
+                  </p>
+                </ListPageDataTableCell>
+                <ListPageDataTableCell className="hidden sm:table-cell">
+                  <Badge variant="outline" className="font-normal">
+                    {formatLabOrderItemStatusLabel(item.status)}
+                  </Badge>
+                </ListPageDataTableCell>
+                <ListPageDataTableCell>
+                  <span className="text-sm text-brand-slate">
+                    {formatLabResultStatusLabel(item.result_status)}
+                  </span>
+                </ListPageDataTableCell>
+                <ListPageDataTableCell>
+                  <div className="flex flex-wrap justify-end gap-2">
+                    {canEnter ? (
+                      <PrimaryButton
+                        type="button"
+                        className="h-8 text-xs"
+                        onClick={() => {
+                          setEnterItemUuid(item.uuid);
+                          setEnterOpen(true);
+                        }}
+                      >
+                        Enter
+                      </PrimaryButton>
+                    ) : null}
+                    {canVerify ? (
+                      <SecondaryButton
+                        type="button"
+                        className="h-8 text-xs"
+                        onClick={() => openConfirm(item, "verify")}
+                      >
+                        Verify
+                      </SecondaryButton>
+                    ) : null}
+                    {canRelease ? (
+                      <SecondaryButton
+                        type="button"
+                        className="h-8 text-xs"
+                        onClick={() => openConfirm(item, "release")}
+                      >
+                        Release
+                      </SecondaryButton>
+                    ) : null}
+                    {canReject ? (
+                      <SecondaryButton
+                        type="button"
+                        className="h-8 text-xs text-rose-700"
+                        onClick={() => openConfirm(item, "reject")}
+                      >
+                        Reject
+                      </SecondaryButton>
+                    ) : null}
+                  </div>
+                </ListPageDataTableCell>
+              </ListPageDataTableRow>
+            );
+          })}
+        </ListPageDataTableBody>
+      </ListPageDataTable>
 
       <EnterResultsDialog
         order={order}

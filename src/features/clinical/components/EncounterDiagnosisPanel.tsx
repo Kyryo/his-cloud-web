@@ -190,7 +190,7 @@ export function EncounterDiagnosisPanel({
           {diagnoses.map((diagnosis) => (
             <li
               key={diagnosis.uuid}
-              className="flex items-start justify-between gap-3 rounded-xl border border-dash-border/80 bg-white px-4 py-3.5 shadow-sm"
+              className="flex items-start justify-between gap-3 rounded-lg border border-brand-border bg-white px-3 py-2"
             >
               <div className="min-w-0">
                 <p className="font-mono text-sm font-medium text-brand-navy">

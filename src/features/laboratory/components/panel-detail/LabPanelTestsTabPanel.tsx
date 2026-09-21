@@ -118,8 +118,8 @@ export function LabPanelTestsTabPanel() {
           data-testid="lab-panel-tests-empty"
         />
       ) : (
-        <div data-testid="lab-panel-tests-tab" className="space-y-3">
-          <div className="flex justify-end">{configureButton}</div>
+        <div data-testid="lab-panel-tests-tab">
+          <div className="mb-3 flex justify-end">{configureButton}</div>
           <ListPageDataTable>
             <ListPageDataTableHeader>
               <ListPageDataTableHeaderRow>

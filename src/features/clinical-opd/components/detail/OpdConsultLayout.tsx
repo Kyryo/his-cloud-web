@@ -4,6 +4,10 @@ import type { ReactNode } from "react";
 import { Lock } from "lucide-react";
 
 import { OpdClinicalHistoryPanel } from "@/features/clinical-opd/components/detail/OpdClinicalHistoryPanel";
+import {
+  OpdConsultColumnHeader,
+  OpdConsultCountBadge,
+} from "@/features/clinical-opd/components/detail/OpdConsultColumnHeader";
 import type { OpdHistorySectionId } from "@/features/clinical-opd/utils/opd-physician-history-tabs";
 import { cn } from "@/lib/utils";
 
@@ -32,12 +36,12 @@ export function OpdConsultLayout({
 }: OpdConsultLayoutProps) {
   return (
     <div
-      className="grid min-h-0 flex-1 grid-cols-1 xl:grid-cols-[23rem_minmax(0,1fr)_22rem] 2xl:grid-cols-[26rem_minmax(0,1fr)_24rem]"
+      className="grid min-h-0 flex-1 grid-cols-1 xl:grid-cols-[21rem_minmax(0,1fr)_20rem] 2xl:grid-cols-[23rem_minmax(0,1fr)_22rem]"
       data-testid={dataTestId}
     >
       <section
         className={cn(
-          "border-b border-dash-border/70 bg-white px-4 py-5 sm:px-6 xl:border-b-0 xl:border-r xl:px-6",
+          "border-b border-dash-border/70 bg-white xl:border-b-0 xl:border-r",
           STICKY_COLUMN_CLASS,
         )}
         aria-label="Record"
@@ -48,16 +52,16 @@ export function OpdConsultLayout({
 
       <section
         className={cn(
-          "min-w-0 bg-slate-50/50 px-4 py-5 sm:px-6 xl:px-8",
+          "min-w-0 bg-dash-canvas",
           STICKY_COLUMN_CLASS,
         )}
-        aria-label="This encounter"
+        aria-label="This visit"
         data-testid="opd-consult-content-column"
       >
         {content}
       </section>
 
-      <div className={cn("min-w-0 bg-white", STICKY_COLUMN_CLASS)}>
+      <div className={cn("min-w-0", STICKY_COLUMN_CLASS)}>
         <OpdClinicalHistoryPanel section={historySection} embedded />
       </div>
     </div>
@@ -70,25 +74,27 @@ type OpdConsultFormPanelProps = {
   children: ReactNode;
 };
 
-/** Heading treatment for the left column so every consult tab reads the same. */
+/** Left column shell: a pinned heading over the entry form. */
 export function OpdConsultFormPanel({
   title,
   description,
   children,
 }: OpdConsultFormPanelProps) {
   return (
-    <div className="space-y-5">
-      <div>
-        <h2 className="text-base font-semibold tracking-tight text-brand-navy">
-          {title}
-        </h2>
+    <div>
+      <OpdConsultColumnHeader
+        eyebrow="Record"
+        title={title}
+        className="bg-white"
+      />
+      <div className="space-y-4 px-4 py-4 sm:px-5">
         {description ? (
-          <p className="mt-1 text-sm leading-relaxed text-dash-muted">
+          <p className="text-xs leading-relaxed text-dash-muted">
             {description}
           </p>
         ) : null}
+        {children}
       </div>
-      {children}
     </div>
   );
 }
@@ -100,11 +106,11 @@ type OpdConsultFormLockedProps = {
 export function OpdConsultFormLocked({ message }: OpdConsultFormLockedProps) {
   return (
     <div
-      className="flex items-start gap-2.5 rounded-xl border border-dashed border-dash-border/80 bg-slate-50/50 px-4 py-3.5"
+      className="flex items-start gap-2.5 rounded-lg border border-dashed border-dash-border bg-dash-canvas px-3 py-3"
       data-testid="opd-consult-form-locked"
     >
       <Lock className="mt-0.5 size-4 shrink-0 text-brand-muted" aria-hidden="true" />
-      <p className="text-sm leading-relaxed text-dash-muted">{message}</p>
+      <p className="text-xs leading-relaxed text-dash-muted">{message}</p>
     </div>
   );
 }
@@ -117,7 +123,7 @@ type OpdConsultContentPanelProps = {
   "data-testid"?: string;
 };
 
-/** Heading treatment for the middle column. */
+/** Middle column shell: a pinned heading over everything logged this visit. */
 export function OpdConsultContentPanel({
   title,
   count,
@@ -126,19 +132,15 @@ export function OpdConsultContentPanel({
   "data-testid": dataTestId,
 }: OpdConsultContentPanelProps) {
   return (
-    <section className="space-y-4" data-testid={dataTestId}>
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="flex items-baseline gap-2 text-base font-semibold tracking-tight text-brand-navy">
-          {title}
-          {count && count > 0 ? (
-            <span className="rounded-full bg-brand-primary/10 px-2 py-0.5 text-xs font-medium leading-none tabular-nums text-brand-primary">
-              {count}
-            </span>
-          ) : null}
-        </h2>
-        {action}
-      </div>
-      {children}
+    <section data-testid={dataTestId}>
+      <OpdConsultColumnHeader
+        eyebrow="This visit"
+        title={title}
+        meta={count === undefined ? null : <OpdConsultCountBadge count={count} />}
+        action={action}
+        className="bg-dash-canvas"
+      />
+      <div className="px-4 py-4 sm:px-5">{children}</div>
     </section>
   );
 }

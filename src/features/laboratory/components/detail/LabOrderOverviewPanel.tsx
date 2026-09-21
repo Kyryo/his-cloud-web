@@ -86,18 +86,18 @@ function ProductOrderCard({
     <Collapsible
       open={open}
       onOpenChange={setOpen}
-      className="overflow-hidden rounded-xl border border-dash-border/80 bg-white"
+      className="border-t border-dash-border/80 first:border-t-0"
       data-testid={`lab-order-product-card-${productKey}`}
     >
       <CollapsibleTrigger
-        className="flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-slate-50/80"
+        className="flex w-full items-center gap-3 py-3.5 text-left"
         data-testid={`lab-order-product-toggle-${productKey}`}
       >
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-brand-navy">
             {product.product_name}
           </p>
-          <p className="mt-0.5 truncate text-xs text-brand-muted">
+          <p className="mt-0.5 truncate text-xs text-dash-muted">
             {[
               product.product_code || null,
               product.panel_code ? `Panel ${product.panel_code}` : null,
@@ -114,32 +114,30 @@ function ProductOrderCard({
         </Badge>
         <ChevronDown
           className={cn(
-            "size-4 shrink-0 text-brand-muted transition-transform duration-200",
+            "size-4 shrink-0 text-dash-muted transition-transform duration-200",
             open && "rotate-180",
           )}
           aria-hidden="true"
         />
       </CollapsibleTrigger>
 
-      <CollapsibleContent className="border-t border-dash-border/70">
-        <div className="bg-slate-50/40 px-4 py-4">
-          {items.length === 0 ? (
-            <p className="text-sm text-brand-muted">
-              No expanded tests for this product yet.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {items.map((item) => (
-                <LabOrderTestResultCard
-                  key={item.uuid}
-                  item={item}
-                  enabled={open}
-                  onSaved={onSaved}
-                />
-              ))}
-            </div>
-          )}
-        </div>
+      <CollapsibleContent>
+        {items.length === 0 ? (
+          <p className="pb-4 text-sm text-dash-muted">
+            No expanded tests for this product yet.
+          </p>
+        ) : (
+          <div className="pb-2">
+            {items.map((item) => (
+              <LabOrderTestResultCard
+                key={item.uuid}
+                item={item}
+                enabled={open}
+                onSaved={onSaved}
+              />
+            ))}
+          </div>
+        )}
       </CollapsibleContent>
     </Collapsible>
   );
@@ -150,7 +148,10 @@ export function LabOrderOverviewPanel() {
   const { data: capabilitiesData } = useMyClinicalCapabilities();
   const [addTestOpen, setAddTestOpen] = useState(false);
   const items = order.items;
-  const orderedProducts = order.ordered_products ?? [];
+  const orderedProducts = useMemo(
+    () => order.ordered_products ?? [],
+    [order.ordered_products],
+  );
   const itemCount = items.length;
   const productCount = orderedProducts.length;
   const releasedCount = items.filter(
@@ -231,18 +232,15 @@ export function LabOrderOverviewPanel() {
           />
         </div>
       ) : (
-        <section className="space-y-3 pt-5" aria-labelledby="lab-ordered-products-heading">
+        <section className="pt-5" aria-labelledby="lab-ordered-products-heading">
           <h2
             id="lab-ordered-products-heading"
-            className="text-base font-semibold text-brand-navy"
+            className="text-sm font-semibold text-brand-navy"
           >
-            All orders
+            Ordered tests
           </h2>
 
-          <div
-            className="space-y-3"
-            data-testid="lab-ordered-products-list"
-          >
+          <div data-testid="lab-ordered-products-list">
             {productItems.map(({ product, items: productTests }, index) => (
               <ProductOrderCard
                 key={

@@ -59,6 +59,7 @@ type AddEncounterDiagnosisFormProps = {
   alsoSaveAsEncounter?: AddEncounterDiagnosisDialogProps["alsoSaveAsEncounter"];
   onCancel: () => void;
   onSuccess?: () => void | Promise<void>;
+  layout?: "dialog" | "inline";
 };
 
 function AddEncounterDiagnosisForm({
@@ -69,6 +70,7 @@ function AddEncounterDiagnosisForm({
   alsoSaveAsEncounter,
   onCancel,
   onSuccess,
+  layout = "dialog",
 }: AddEncounterDiagnosisFormProps) {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
@@ -214,7 +216,13 @@ function AddEncounterDiagnosisForm({
 
   return (
     <>
-      <div className="flex-1 space-y-4 overflow-y-auto px-6 py-6">
+      <div
+        className={
+          layout === "inline"
+            ? "space-y-4"
+            : "flex-1 space-y-4 overflow-y-auto px-6 py-6"
+        }
+      >
         <div>
           <label className="text-sm font-medium text-brand-navy">
             Search ICD-10 <RequiredFieldMarker />
@@ -282,29 +290,83 @@ function AddEncounterDiagnosisForm({
         ) : null}
       </div>
 
-      <DialogFooter className="mt-0 border-t border-brand-border px-6 py-5">
-        <SecondaryButton type="button" onClick={onCancel} disabled={isSaving}>
-          Cancel
-        </SecondaryButton>
-        <PrimaryButton
-          type="button"
-          disabled={isSaving || !selectedCode.trim()}
-          onClick={() => void handleSave()}
-        >
-          {isSaving ? (
-            <>
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              Saving...
-            </>
-          ) : (
-            <>
-              <Plus className="size-4" aria-hidden="true" />
-              Add diagnosis
-            </>
-          )}
-        </PrimaryButton>
-      </DialogFooter>
+      <div
+        className={
+          layout === "inline"
+            ? "flex flex-wrap gap-2 pt-1"
+            : "mt-0 border-t border-brand-border px-6 py-5"
+        }
+      >
+        {layout === "dialog" ? (
+          <DialogFooter className="w-full sm:justify-end">
+            <SecondaryButton type="button" onClick={onCancel} disabled={isSaving}>
+              Cancel
+            </SecondaryButton>
+            <PrimaryButton
+              type="button"
+              disabled={isSaving || !selectedCode.trim()}
+              onClick={() => void handleSave()}
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Plus className="size-4" aria-hidden="true" />
+                  Add diagnosis
+                </>
+              )}
+            </PrimaryButton>
+          </DialogFooter>
+        ) : (
+          <PrimaryButton
+            type="button"
+            disabled={isSaving || !selectedCode.trim()}
+            onClick={() => void handleSave()}
+          >
+            {isSaving ? (
+              <>
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Plus className="size-4" aria-hidden="true" />
+                Add diagnosis
+              </>
+            )}
+          </PrimaryButton>
+        )}
+      </div>
     </>
+  );
+}
+
+export function AddEncounterDiagnosisInlineForm({
+  visitUuid,
+  encounterUuid,
+  isPrimaryDefault = false,
+  sourcePlatform = "CLINICAL",
+  onSuccess,
+}: Pick<
+  AddEncounterDiagnosisDialogProps,
+  "visitUuid" | "encounterUuid" | "isPrimaryDefault" | "sourcePlatform" | "onSuccess"
+>) {
+  const [formKey, setFormKey] = useState(0);
+
+  return (
+    <AddEncounterDiagnosisForm
+      key={`${formKey}-${visitUuid}-${encounterUuid ?? "none"}`}
+      visitUuid={visitUuid}
+      encounterUuid={encounterUuid}
+      isPrimaryDefault={isPrimaryDefault}
+      sourcePlatform={sourcePlatform}
+      layout="inline"
+      onCancel={() => setFormKey((current) => current + 1)}
+      onSuccess={onSuccess}
+    />
   );
 }
 

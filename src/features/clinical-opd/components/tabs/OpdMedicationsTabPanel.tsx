@@ -4,6 +4,12 @@ import { Pill, Plus } from "lucide-react";
 import { useState } from "react";
 
 import { PrimaryButton } from "@/components/ui/app-buttons";
+import {
+  OpdConsultContentPanel,
+  OpdConsultFormLocked,
+  OpdConsultFormPanel,
+  OpdConsultLayout,
+} from "@/features/clinical-opd/components/detail/OpdConsultLayout";
 import { Badge } from "@/components/ui/badge";
 import type { DetailRecordRowMenuAction } from "@/components/detail/detail-record-row-menu";
 import {
@@ -49,7 +55,10 @@ export function OpdMedicationsTabPanel({
     visitUuid,
     encounterUuid,
   );
-  const finalizePrescription = useFinalizePrescription(visitUuid, encounterUuid);
+  const finalizePrescription = useFinalizePrescription(
+    visitUuid,
+    encounterUuid,
+  );
   const cancelPrescription = useCancelPrescription(visitUuid, encounterUuid);
   const [dialogOpen, setDialogOpen] = useState(true);
   const [currentMedDialogOpen, setCurrentMedDialogOpen] = useState(true);
@@ -57,9 +66,9 @@ export function OpdMedicationsTabPanel({
   const canPrescribe = capabilities.includes("prescribe") && !isChartLocked;
   const canManageCurrentMeds =
     capabilities.includes("manage_current_medications") && !isChartLocked;
-  const currentMedications = (
-    currentMedicationsQuery.data ?? []
-  ).filter((medication) => medication.status === "active");
+  const currentMedications = (currentMedicationsQuery.data ?? []).filter(
+    (medication) => medication.status === "active",
+  );
 
   if (!isActive) {
     return null;
@@ -169,7 +178,11 @@ export function OpdMedicationsTabPanel({
               description={
                 <div className="space-y-0.5">
                   <p>
-                    {[prescription.dose, prescription.route, prescription.frequency]
+                    {[
+                      prescription.dose,
+                      prescription.route,
+                      prescription.frequency,
+                    ]
                       .filter(Boolean)
                       .join(" · ")}
                     {prescription.duration ? ` · ${prescription.duration}` : ""}
@@ -193,81 +206,96 @@ export function OpdMedicationsTabPanel({
     );
 
   return (
-    <>
-      {content}
-      <div className="mt-8">
-        <OpdEncounterRecordList
-          title="Current medications"
-          description="Client medications that persist across visits. Cancelled prescriptions do not stop these."
-          action={
-            canManageCurrentMeds ? (
-              <PrimaryButton
-                type="button"
-                size="sm"
-                onClick={() => setCurrentMedDialogOpen(true)}
-                data-testid="opd-current-medications-add-button"
-              >
-                <Plus className="size-4" aria-hidden="true" />
-                Add current medication
-              </PrimaryButton>
-            ) : null
-          }
-          data-testid="opd-current-medications"
+    <OpdConsultLayout
+      historySection="medications"
+      form={
+        <OpdConsultFormPanel
+          title="Add treatment"
+          description="Prescribe medication for this encounter. Finalize a draft to place the order."
         >
-          {currentMedications.map((medication) => (
-            <OpdEncounterRecordListItem
-              key={medication.uuid}
-              compact
-              icon={Pill}
-              title={medication.name}
-              description={[
-                medication.dose,
-                medication.route,
-                medication.frequency,
-                medication.instructions,
-              ]
-                .filter(Boolean)
-                .join(" · ")}
-              dateTime={medication.started_at}
-              createdByName={medication.recorded_by_name}
-              menuActions={
-                canManageCurrentMeds
-                  ? [
-                      {
-                        label: "Stop",
-                        onClick: () => {
-                          void updateCurrentMedication.mutateAsync({
-                            medicationUuid: medication.uuid,
-                            payload: {
-                              status: "stopped",
-                              stopped_at: new Date().toISOString(),
-                            },
-                          });
-                        },
-                      },
-                    ]
-                  : undefined
-              }
+          {canPrescribe ? (
+            <AddPrescriptionDialog
+              visitUuid={visitUuid}
+              encounterUuid={encounterUuid}
+              open={dialogOpen}
+              onOpenChange={setDialogOpen}
+              embedded
             />
-          ))}
-        </OpdEncounterRecordList>
-      </div>
-      {canPrescribe ? (
-        <AddPrescriptionDialog
-          visitUuid={visitUuid}
-          encounterUuid={encounterUuid}
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-        />
-      ) : null}
-      {canManageCurrentMeds ? (
-        <AddCurrentMedicationDialog
-          visitUuid={visitUuid}
-          encounterUuid={encounterUuid}
-          open={currentMedDialogOpen}
-          onOpenChange={setCurrentMedDialogOpen}
-        />
-      ) : null}
-    </>
+          ) : (
+            <OpdConsultFormLocked message="Your role cannot prescribe on this encounter." />
+          )}
+        </OpdConsultFormPanel>
+      }
+      content={
+        <OpdConsultContentPanel title="Treatment" count={items.length}>
+          {content}
+          <div className="mt-8">
+            <OpdEncounterRecordList
+              title="Current medications"
+              description="Client medications that persist across visits. Cancelled prescriptions do not stop these."
+              action={
+                canManageCurrentMeds ? (
+                  <PrimaryButton
+                    type="button"
+                    size="sm"
+                    onClick={() => setCurrentMedDialogOpen(true)}
+                    data-testid="opd-current-medications-add-button"
+                  >
+                    <Plus className="size-4" aria-hidden="true" />
+                    Add current medication
+                  </PrimaryButton>
+                ) : null
+              }
+              data-testid="opd-current-medications"
+            >
+              {currentMedications.map((medication) => (
+                <OpdEncounterRecordListItem
+                  key={medication.uuid}
+                  compact
+                  icon={Pill}
+                  title={medication.name}
+                  description={[
+                    medication.dose,
+                    medication.route,
+                    medication.frequency,
+                    medication.instructions,
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
+                  dateTime={medication.started_at}
+                  createdByName={medication.recorded_by_name}
+                  menuActions={
+                    canManageCurrentMeds
+                      ? [
+                          {
+                            label: "Stop",
+                            onClick: () => {
+                              void updateCurrentMedication.mutateAsync({
+                                medicationUuid: medication.uuid,
+                                payload: {
+                                  status: "stopped",
+                                  stopped_at: new Date().toISOString(),
+                                },
+                              });
+                            },
+                          },
+                        ]
+                      : undefined
+                  }
+                />
+              ))}
+            </OpdEncounterRecordList>
+          </div>
+          {canManageCurrentMeds ? (
+            <AddCurrentMedicationDialog
+              visitUuid={visitUuid}
+              encounterUuid={encounterUuid}
+              open={currentMedDialogOpen}
+              onOpenChange={setCurrentMedDialogOpen}
+            />
+          ) : null}
+        </OpdConsultContentPanel>
+      }
+    />
   );
 }

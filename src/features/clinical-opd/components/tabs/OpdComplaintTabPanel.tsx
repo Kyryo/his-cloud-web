@@ -85,7 +85,7 @@ export function OpdComplaintTabPanel({
       }
       content={
         <OpdConsultContentPanel
-          title="This encounter"
+          title="Complaints"
           count={items.length}
           action={
             editing && canWriteComplaint ? (
@@ -150,10 +150,10 @@ function ComplaintRecordCard({
     <li>
       <article
         className={cn(
-          "rounded-xl border bg-white px-4 py-3.5 shadow-sm transition-all",
+          "rounded-lg border bg-white px-4 py-3",
           selected
-            ? "border-brand-primary ring-1 ring-brand-primary/20"
-            : "border-dash-border/80 hover:border-brand-primary/30",
+            ? "border-brand-primary"
+            : "border-dash-border/80",
         )}
         data-testid={`opd-complaint-item-${complaint.uuid}`}
       >

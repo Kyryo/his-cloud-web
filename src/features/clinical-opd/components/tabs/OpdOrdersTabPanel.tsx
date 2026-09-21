@@ -12,6 +12,12 @@ import type { LucideIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
+import {
+  OpdConsultContentPanel,
+  OpdConsultFormLocked,
+  OpdConsultFormPanel,
+  OpdConsultLayout,
+} from "@/features/clinical-opd/components/detail/OpdConsultLayout";
 import { Badge } from "@/components/ui/badge";
 import {
   OpdEncounterRecordList,
@@ -317,60 +323,75 @@ export function OpdOrdersTabPanel({
   );
 
   return (
-    <>
-      {content}
-      {investigations.length > 0 ? (
-        <div className="mt-8">
-          <OpdEncounterRecordList
-            title="Investigations"
-            description="Lab and radiology from this client. Results live in status and notes."
-            data-testid="opd-investigation-orders"
-          >
-            {investigations.map((order) => (
-              <OpdEncounterRecordListItem
-                key={order.uuid}
-                compact
-                icon={orderTypeIcon(order.item_type)}
-                title={order.description || order.item_type_display}
-                badges={
-                  <Badge variant="secondary">
-                    {order.status_display || order.status}
-                  </Badge>
-                }
-                description={
-                  typeof order.metadata?.result_summary === "string"
-                    ? order.metadata.result_summary
-                    : undefined
-                }
-                dateTime={order.ordered_at ?? new Date(0).toISOString()}
-                createdByName={order.created_by_name}
-              />
-            ))}
-          </OpdEncounterRecordList>
-        </div>
-      ) : null}
-      {canAddOrder ? (
-        <AddClinicalOrderDialog
-          visitUuid={visitUuid}
-          encounterUuid={encounterUuid}
-          capabilities={capabilities}
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-        />
-      ) : null}
-      <ConfirmReorderClinicalOrderDialog
-        order={reorderOrder}
-        open={Boolean(reorderOrder)}
-        isSubmitting={isReordering}
-        onOpenChange={(open) => {
-          if (!open && !isReordering) {
-            setReorderOrder(null);
-          }
-        }}
-        onConfirm={() => {
-          void handleConfirmReorder();
-        }}
-      />
-    </>
+    <OpdConsultLayout
+      historySection="orders"
+      form={
+        <OpdConsultFormPanel
+          title="Place order"
+          description="Search lab, radiology, procedures, or sundries and add them to this encounter."
+        >
+          {canAddOrder ? (
+            <AddClinicalOrderDialog
+              visitUuid={visitUuid}
+              encounterUuid={encounterUuid}
+              capabilities={capabilities}
+              open={dialogOpen}
+              onOpenChange={setDialogOpen}
+              embedded
+            />
+          ) : (
+            <OpdConsultFormLocked message="Your role cannot place orders on this encounter." />
+          )}
+        </OpdConsultFormPanel>
+      }
+      content={
+        <OpdConsultContentPanel title="Orders" count={activeOrders.length}>
+          {content}
+          {investigations.length > 0 ? (
+            <div className="mt-8">
+              <OpdEncounterRecordList
+                title="Investigations"
+                description="Lab and radiology from this client. Results live in status and notes."
+                data-testid="opd-investigation-orders"
+              >
+                {investigations.map((order) => (
+                  <OpdEncounterRecordListItem
+                    key={order.uuid}
+                    compact
+                    icon={orderTypeIcon(order.item_type)}
+                    title={order.description || order.item_type_display}
+                    badges={
+                      <Badge variant="secondary">
+                        {order.status_display || order.status}
+                      </Badge>
+                    }
+                    description={
+                      typeof order.metadata?.result_summary === "string"
+                        ? order.metadata.result_summary
+                        : undefined
+                    }
+                    dateTime={order.ordered_at ?? new Date(0).toISOString()}
+                    createdByName={order.created_by_name}
+                  />
+                ))}
+              </OpdEncounterRecordList>
+            </div>
+          ) : null}
+          <ConfirmReorderClinicalOrderDialog
+            order={reorderOrder}
+            open={Boolean(reorderOrder)}
+            isSubmitting={isReordering}
+            onOpenChange={(open) => {
+              if (!open && !isReordering) {
+                setReorderOrder(null);
+              }
+            }}
+            onConfirm={() => {
+              void handleConfirmReorder();
+            }}
+          />
+        </OpdConsultContentPanel>
+      }
+    />
   );
 }

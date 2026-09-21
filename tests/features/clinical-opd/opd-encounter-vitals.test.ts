@@ -4,6 +4,7 @@ import {
   buildOpdEncounterVitalStats,
   formatLatestBloodPressure,
   getLatestVitalDisplayValue,
+  latestVitalRecordedAt,
   splitVitalDisplay,
 } from "@/features/clinical-opd/utils/opd-encounter-vitals";
 import type { EncounterObservation } from "@/features/clinical-opd/types/clinical-opd.types";
@@ -69,29 +70,72 @@ describe("opd-encounter-vitals", () => {
     expect(formatLatestBloodPressure(observations)).toBe("120/80 mmHg");
   });
 
-  it("builds compact physician vital stats", () => {
+  it("builds compact physician vital stats in scan order", () => {
     const stats = buildOpdEncounterVitalStats(observations);
     expect(stats.map((stat) => stat.label)).toEqual([
-      "Weight",
-      "Temperature",
-      "Heart rate",
       "Blood pressure",
+      "Heart rate",
+      "Temperature",
+      "Weight",
     ]);
-    expect(stats[3].value).toBe("120/80 mmHg");
+    expect(stats[0].value).toBe("120/80 mmHg");
   });
 
   it("reports when each stat was recorded", () => {
     const stats = buildOpdEncounterVitalStats(observations);
 
-    expect(stats[0].recordedAt).toBe("2026-09-02T09:00:00Z");
-    expect(stats[3].recordedAt).toBe("2026-09-02T09:05:00Z");
+    expect(stats[0].recordedAt).toBe("2026-09-02T09:05:00Z");
+    expect(stats[3].recordedAt).toBe("2026-09-02T09:00:00Z");
   });
 
-  it("leaves missing vitals empty", () => {
+  it("reports the most recent time any strip vital was taken", () => {
+    expect(
+      latestVitalRecordedAt(buildOpdEncounterVitalStats(observations)),
+    ).toBe("2026-09-02T09:05:00Z");
+    expect(latestVitalRecordedAt(buildOpdEncounterVitalStats([]))).toBeNull();
+  });
+
+  it("marks in-range readings as normal", () => {
+    const stats = buildOpdEncounterVitalStats(observations);
+
+    expect(stats.map((stat) => stat.status)).toEqual([
+      "normal",
+      "normal",
+      "normal",
+      // Weight has no reference range to compare against.
+      "unknown",
+    ]);
+  });
+
+  it("flags readings outside the adult reference range", () => {
+    const abnormal = observations.map((observation) => {
+      if (observation.definition_code === "pulse") {
+        return { ...observation, numeric_value: "124" };
+      }
+      if (observation.definition_code === "temperature") {
+        return { ...observation, numeric_value: "35.2" };
+      }
+      if (observation.definition_code === "bp_systolic") {
+        return { ...observation, numeric_value: "165" };
+      }
+      return observation;
+    });
+
+    const byKey = new Map(
+      buildOpdEncounterVitalStats(abnormal).map((stat) => [stat.key, stat.status]),
+    );
+
+    expect(byKey.get("blood-pressure")).toBe("high");
+    expect(byKey.get("heart-rate")).toBe("high");
+    expect(byKey.get("temperature")).toBe("low");
+  });
+
+  it("leaves missing vitals empty and unflagged", () => {
     const stats = buildOpdEncounterVitalStats([]);
 
     expect(stats.every((stat) => stat.value === null)).toBe(true);
     expect(stats.every((stat) => stat.recordedAt === null)).toBe(true);
+    expect(stats.every((stat) => stat.status === "unknown")).toBe(true);
   });
 
   it("splits a vital amount from its unit", () => {

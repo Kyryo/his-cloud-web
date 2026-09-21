@@ -2,8 +2,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useState, type ReactNode } from "react";
+import { useForm, type UseFormReturn } from "react-hook-form";
 
 import { PrimaryButton } from "@/components/ui/app-buttons";
 import {
@@ -32,7 +32,11 @@ import type { LabTenantSettings } from "@/features/laboratory/types/laboratory-c
 import { isLabCatalogAccessDeniedMessage } from "@/features/laboratory/utils/catalog-form-utils";
 import { toLabSettingsPayload } from "@/features/laboratory/utils/catalog-payloads";
 import { BffError } from "@/lib/bff-client";
-import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-errors";
+import {
+  formatBffErrorMessage,
+  mapBffErrorsToForm,
+} from "@/lib/bff-field-errors";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
 function toFormValues(settings: LabTenantSettings): LabSettingsFormValues {
@@ -52,6 +56,74 @@ type LabSettingsFormProps = {
   onLoaded?: (settings: LabTenantSettings) => void;
 };
 
+type ToggleField = {
+  name:
+    | "auto_accession_on_collect"
+    | "require_verify_before_release"
+    | "critical_notify_enabled"
+    | "analyzer_ingest_enabled";
+  label: string;
+  description: string;
+};
+
+function SettingsSection({
+  title,
+  description,
+  children,
+}: {
+  title: string;
+  description?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="space-y-5 border-t border-dash-border/80 py-8 first:border-t-0 first:pt-2">
+      <div className="space-y-1">
+        <h3 className="text-sm font-semibold text-brand-navy">{title}</h3>
+        {description ? (
+          <p className="text-[13px] text-dash-muted">{description}</p>
+        ) : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function SettingsToggleRow({
+  form,
+  field,
+  disabled,
+}: {
+  form: UseFormReturn<LabSettingsFormValues>;
+  field: ToggleField;
+  disabled: boolean;
+}) {
+  return (
+    <FormField
+      control={form.control}
+      name={field.name}
+      render={({ field: control }) => (
+        <FormItem className="flex items-center justify-between gap-6 py-3.5 first:pt-0 last:pb-0">
+          <div className="min-w-0 space-y-0.5">
+            <FormLabel className="text-sm font-medium text-brand-navy">
+              {field.label}
+            </FormLabel>
+            <FormDescription className="text-sm text-dash-muted">
+              {field.description}
+            </FormDescription>
+          </div>
+          <FormControl>
+            <Switch
+              checked={control.value}
+              onCheckedChange={control.onChange}
+              disabled={disabled}
+            />
+          </FormControl>
+        </FormItem>
+      )}
+    />
+  );
+}
+
 export function LabSettingsForm({ onLoaded }: LabSettingsFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
@@ -67,19 +139,28 @@ export function LabSettingsForm({ onLoaded }: LabSettingsFormProps) {
 
   useEffect(() => {
     let cancelled = false;
-    void (async () => {
+
+    async function loadSettings() {
+      await Promise.resolve();
+      if (cancelled) {
+        return;
+      }
       setIsLoading(true);
       setLoadError(null);
       setIsUnauthorized(false);
       try {
         const settings = await fetchLabSettings();
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
         form.reset(toFormValues(settings));
         setSecretConfigured(settings.analyzer_shared_secret_configured);
         setDepartmentHint(settings.default_department_name);
         onLoaded?.(settings);
       } catch (error) {
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
         const message =
           error instanceof Error ? error.message : "Failed to load settings.";
         if (isLabCatalogAccessDeniedMessage(message)) {
@@ -88,9 +169,13 @@ export function LabSettingsForm({ onLoaded }: LabSettingsFormProps) {
           setLoadError(message);
         }
       } finally {
-        if (!cancelled) setIsLoading(false);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
       }
-    })();
+    }
+
+    void loadSettings();
     return () => {
       cancelled = true;
     };
@@ -137,20 +222,18 @@ export function LabSettingsForm({ onLoaded }: LabSettingsFormProps) {
 
   if (isLoading) {
     return (
-      <div
-        className="rounded-xl border border-brand-border bg-white p-8 text-sm text-brand-muted"
+      <p
+        className="px-4 py-8 text-sm text-dash-muted sm:px-6"
         data-testid="lab-settings-loading"
       >
         Loading laboratory settings…
-      </div>
+      </p>
     );
   }
 
   if (loadError) {
     return (
-      <div className="rounded-xl border border-brand-border bg-white p-8 text-sm text-red-600">
-        {loadError}
-      </div>
+      <p className="px-4 py-8 text-sm text-red-600 sm:px-6">{loadError}</p>
     );
   }
 
@@ -159,168 +242,150 @@ export function LabSettingsForm({ onLoaded }: LabSettingsFormProps) {
   return (
     <Form {...form}>
       <form
-        className="space-y-6 rounded-xl border border-brand-border bg-white p-6"
+        className="px-4 pb-8 sm:px-6"
         data-testid="lab-settings-form"
         onSubmit={form.handleSubmit(handleSubmit)}
       >
-        <div className="space-y-4">
+        <SettingsSection
+          title="Workflow"
+          description="Defaults that apply when specimens are collected and results are released."
+        >
+          <div className="divide-y divide-dash-border/70">
+            <SettingsToggleRow
+              form={form}
+              disabled={isSubmitting}
+              field={{
+                name: "auto_accession_on_collect",
+                label: "Auto-accession on collect",
+                description:
+                  "Accession the order as soon as specimens are collected.",
+              }}
+            />
+            <SettingsToggleRow
+              form={form}
+              disabled={isSubmitting}
+              field={{
+                name: "require_verify_before_release",
+                label: "Require verify before release",
+                description: "Results must be verified before they are released.",
+              }}
+            />
+            <SettingsToggleRow
+              form={form}
+              disabled={isSubmitting}
+              field={{
+                name: "critical_notify_enabled",
+                label: "Critical result notifications",
+                description:
+                  "Notify clinicians when a critical value is recorded.",
+              }}
+            />
+          </div>
+        </SettingsSection>
+
+        <SettingsSection
+          title="Reports"
+          description="Text printed on every laboratory report."
+        >
+          <div className="grid gap-5">
+            <FormField
+              control={form.control}
+              name="report_letterhead"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Letterhead</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} rows={4} disabled={isSubmitting} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="report_footer"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Footer</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} rows={3} disabled={isSubmitting} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        </SettingsSection>
+
+        <SettingsSection
+          title="Analyzer ingest"
+          description="Allow instruments to post results for this tenant."
+        >
+          <div className="divide-y divide-dash-border/70">
+            <SettingsToggleRow
+              form={form}
+              disabled={isSubmitting}
+              field={{
+                name: "analyzer_ingest_enabled",
+                label: "Enable ingest",
+                description:
+                  "Accept result payloads from connected analyzers.",
+              }}
+            />
+          </div>
           <FormField
             control={form.control}
-            name="auto_accession_on_collect"
+            name="analyzer_shared_secret_hash"
             render={({ field }) => (
-              <FormItem className="flex items-center justify-between gap-4 rounded-lg border border-brand-border px-3 py-2">
-                <div>
-                  <FormLabel>Auto-accession on collect</FormLabel>
-                  <FormDescription>
-                    Accession the order when specimens are collected.
-                  </FormDescription>
-                </div>
+              <FormItem className="pt-2">
+                <FormLabel>Shared secret</FormLabel>
                 <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
+                  <Input
+                    {...field}
+                    type="password"
+                    autoComplete="new-password"
+                    placeholder="Leave blank to keep the current secret"
                     disabled={isSubmitting}
                   />
                 </FormControl>
+                <FormDescription>
+                  {secretConfigured
+                    ? "A shared secret is already configured."
+                    : "No shared secret configured yet."}
+                </FormDescription>
+                <FormMessage />
               </FormItem>
             )}
           />
+        </SettingsSection>
+
+        <SettingsSection
+          title="Default department"
+          description="Used when an order is created without a department."
+        >
           <FormField
             control={form.control}
-            name="require_verify_before_release"
+            name="default_department_uuid"
             render={({ field }) => (
-              <FormItem className="flex items-center justify-between gap-4 rounded-lg border border-brand-border px-3 py-2">
-                <div>
-                  <FormLabel>Require verify before release</FormLabel>
-                  <FormDescription>
-                    Results must be verified before release.
-                  </FormDescription>
-                </div>
+              <FormItem>
+                <FormLabel>Department UUID</FormLabel>
                 <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
+                  <Input
+                    {...field}
                     disabled={isSubmitting}
+                    className={cn("font-mono")}
                   />
                 </FormControl>
+                {departmentHint ? (
+                  <FormDescription>Current: {departmentHint}</FormDescription>
+                ) : null}
+                <FormMessage />
               </FormItem>
             )}
           />
-          <FormField
-            control={form.control}
-            name="critical_notify_enabled"
-            render={({ field }) => (
-              <FormItem className="flex items-center justify-between gap-4 rounded-lg border border-brand-border px-3 py-2">
-                <div>
-                  <FormLabel>Critical result notifications</FormLabel>
-                  <FormDescription>
-                    Notify clinicians when critical values are recorded.
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    disabled={isSubmitting}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="analyzer_ingest_enabled"
-            render={({ field }) => (
-              <FormItem className="flex items-center justify-between gap-4 rounded-lg border border-brand-border px-3 py-2">
-                <div>
-                  <FormLabel>Analyzer ingest</FormLabel>
-                  <FormDescription>
-                    Allow instrument result ingest for this tenant.
-                  </FormDescription>
-                </div>
-                <FormControl>
-                  <Switch
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                    disabled={isSubmitting}
-                  />
-                </FormControl>
-              </FormItem>
-            )}
-          />
-        </div>
+        </SettingsSection>
 
-        <FormField
-          control={form.control}
-          name="default_department_uuid"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Default department UUID</FormLabel>
-              <FormControl>
-                <Input {...field} disabled={isSubmitting} />
-              </FormControl>
-              {departmentHint ? (
-                <FormDescription>Current: {departmentHint}</FormDescription>
-              ) : null}
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="report_letterhead"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Report letterhead</FormLabel>
-              <FormControl>
-                <Textarea {...field} rows={4} disabled={isSubmitting} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="report_footer"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Report footer</FormLabel>
-              <FormControl>
-                <Textarea {...field} rows={3} disabled={isSubmitting} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="analyzer_shared_secret_hash"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Analyzer shared secret</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  type="password"
-                  autoComplete="new-password"
-                  placeholder="Leave blank to keep current secret"
-                  disabled={isSubmitting}
-                />
-              </FormControl>
-              <FormDescription>
-                {secretConfigured
-                  ? "A shared secret is already configured."
-                  : "No shared secret configured yet."}
-              </FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <div className="flex justify-end">
+        <div className="flex justify-end border-t border-dash-border/80 pt-6">
           <PrimaryButton type="submit" disabled={isSubmitting}>
             {isSubmitting ? (
               <>

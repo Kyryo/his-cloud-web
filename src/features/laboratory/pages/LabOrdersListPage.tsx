@@ -196,16 +196,16 @@ export function LabOrdersListPage() {
   if (isUnauthorized) {
     return (
       <ListPageLayout data-testid="lab-orders-page">
-        <div className="rounded-xl border border-brand-border bg-white p-8 text-center">
-          <h1 className="text-xl font-semibold text-brand-navy">Access denied</h1>
-          <p className="mt-2 text-sm text-brand-muted">
-            You are not authorized to view laboratory orders. Sign in again or
-            contact your administrator.
-          </p>
-          <Button className="mt-6" onClick={() => router.push(ROUTES.auth)}>
-            Go to sign in
-          </Button>
-        </div>
+        <ListPageBlankState
+          icon="file"
+          title="Access denied"
+          description="You are not authorized to view laboratory orders. Sign in again or contact your administrator."
+          action={
+            <Button onClick={() => router.push(ROUTES.auth)}>
+              Go to sign in
+            </Button>
+          }
+        />
       </ListPageLayout>
     );
   }

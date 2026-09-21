@@ -43,6 +43,9 @@ export function LabTestsTable({
           <ListPageDataTableHeaderCell className="hidden md:table-cell">
             Analytes
           </ListPageDataTableHeaderCell>
+          <ListPageDataTableHeaderCell className="hidden lg:table-cell">
+            TAT
+          </ListPageDataTableHeaderCell>
           <ListPageDataTableHeaderCell className="text-right">
             Actions
           </ListPageDataTableHeaderCell>
@@ -75,6 +78,11 @@ export function LabTestsTable({
             </ListPageDataTableCell>
             <ListPageDataTableCell className="hidden md:table-cell text-brand-muted">
               {item.analytes?.length ?? 0}
+            </ListPageDataTableCell>
+            <ListPageDataTableCell className="hidden lg:table-cell text-brand-muted">
+              {item.turnaround_hours != null
+                ? `${item.turnaround_hours}h`
+                : "—"}
             </ListPageDataTableCell>
             <ListPageDataTableCell
               onClick={(event) => event.stopPropagation()}

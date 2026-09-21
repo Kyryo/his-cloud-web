@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
 import { Textarea } from "@/components/ui/textarea";
+import { OpdHpiDurationFields } from "@/features/clinical-opd/components/detail/OpdHpiDurationFields";
 import {
   useChiefComplaintSuggestions,
   useCreateChiefComplaint,
@@ -18,11 +19,47 @@ import {
 } from "@/features/clinical-opd/hooks/use-clinical-opd";
 import { chiefComplaintSchema } from "@/features/clinical-opd/schemas/clinical-opd.schema";
 import type { ChiefComplaint } from "@/features/clinical-opd/types/clinical-opd.types";
+import {
+  DEFAULT_HPI_DURATION_UNIT,
+  encodeHpiBody,
+  isHpiDurationUnit,
+  parseHpiBody,
+  type HpiDuration,
+  type HpiDurationUnit,
+} from "@/features/clinical-opd/utils/hpi-duration";
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 
 const complaintWithHpiSchema = chiefComplaintSchema.extend({
+  durationValue: z.string().optional(),
+  durationUnit: z.enum(["hours", "days", "weeks", "months", "years"]),
   hpi: z.string().optional(),
 });
+
+type ComplaintFormValues = z.infer<typeof complaintWithHpiSchema>;
+
+function durationFromForm(
+  value: string | undefined,
+  unit: HpiDurationUnit,
+): HpiDuration | null {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null;
+  }
+
+  return { value: parsed, unit };
+}
+
+function defaultValuesFromComplaint(
+  complaint: ChiefComplaint | null,
+): ComplaintFormValues {
+  const parsed = parseHpiBody(complaint?.hpi?.body);
+  return {
+    text: complaint?.text ?? "",
+    durationValue: parsed.duration ? String(parsed.duration.value) : "",
+    durationUnit: parsed.duration?.unit ?? DEFAULT_HPI_DURATION_UNIT,
+    hpi: parsed.narrative,
+  };
+}
 
 type OpdComplaintComposerProps = {
   visitUuid: string;
@@ -30,6 +67,7 @@ type OpdComplaintComposerProps = {
   canWriteComplaint: boolean;
   canWriteHpi: boolean;
   complaint?: ChiefComplaint | null;
+  onSaved?: () => void;
   onDelete?: () => void;
 };
 
@@ -39,6 +77,7 @@ export function OpdComplaintComposer({
   canWriteComplaint,
   canWriteHpi,
   complaint = null,
+  onSaved,
   onDelete,
 }: OpdComplaintComposerProps) {
   return (
@@ -49,6 +88,7 @@ export function OpdComplaintComposer({
       canWriteComplaint={canWriteComplaint}
       canWriteHpi={canWriteHpi}
       complaint={complaint}
+      onSaved={onSaved}
       onDelete={onDelete}
     />
   );
@@ -60,6 +100,7 @@ function OpdComplaintComposerForm({
   canWriteComplaint,
   canWriteHpi,
   complaint,
+  onSaved,
   onDelete,
 }: OpdComplaintComposerProps) {
   const createComplaint = useCreateChiefComplaint(visitUuid, encounterUuid);
@@ -70,14 +111,16 @@ function OpdComplaintComposerForm({
     encounterUuid,
     canWriteComplaint,
   );
-  const form = useForm({
+  const form = useForm<ComplaintFormValues>({
     resolver: zodResolver(complaintWithHpiSchema),
-    defaultValues: {
-      text: complaint?.text ?? "",
-      hpi: complaint?.hpi?.body ?? "",
-    },
+    defaultValues: defaultValuesFromComplaint(complaint ?? null),
   });
   const textValue = useWatch({ control: form.control, name: "text" }) ?? "";
+  const durationValue =
+    useWatch({ control: form.control, name: "durationValue" }) ?? "";
+  const durationUnit =
+    useWatch({ control: form.control, name: "durationUnit" }) ??
+    DEFAULT_HPI_DURATION_UNIT;
   const isSaving =
     createComplaint.isPending ||
     updateComplaint.isPending ||
@@ -106,36 +149,21 @@ function OpdComplaintComposerForm({
     return null;
   }
 
-  if (!canEdit && complaint) {
-    return (
-      <article
-        className="space-y-2"
-        data-testid={`opd-complaint-item-${complaint.uuid}`}
-      >
-        <div>
-          <p className="text-sm font-medium text-brand-navy">{complaint.text}</p>
-          {recordedMeta ? (
-            <p className="mt-0.5 text-xs text-dash-muted">{recordedMeta}</p>
-          ) : null}
-        </div>
-        {complaint.hpi?.body ? (
-          <p className="whitespace-pre-wrap text-sm text-brand-slate">
-            {complaint.hpi.body}
-          </p>
-        ) : (
-          <p className="text-sm text-dash-muted">No HPI yet</p>
-        )}
-      </article>
-    );
-  }
-
   return (
     <form
       className="space-y-4"
       data-testid="opd-complaint-composer"
       onSubmit={form.handleSubmit(async (values) => {
         const nextText = values.text.trim();
-        const nextHpi = values.hpi?.trim() ?? "";
+        const nextHpi = encodeHpiBody(
+          durationFromForm(
+            values.durationValue,
+            isHpiDurationUnit(values.durationUnit)
+              ? values.durationUnit
+              : DEFAULT_HPI_DURATION_UNIT,
+          ),
+          values.hpi ?? "",
+        );
         let complaintUuid = complaint?.uuid;
         let hasHpi = Boolean(complaint?.has_hpi || complaint?.hpi);
 
@@ -143,7 +171,7 @@ function OpdComplaintComposerForm({
           const created = await createComplaint.mutateAsync({ text: nextText });
           complaintUuid = created.uuid;
           hasHpi = false;
-        } else if (nextText !== complaint.text) {
+        } else if (nextText !== complaint?.text) {
           await updateComplaint.mutateAsync({
             complaintUuid,
             text: nextText,
@@ -157,6 +185,9 @@ function OpdComplaintComposerForm({
             hasHpi,
           });
         }
+
+        form.reset(defaultValuesFromComplaint(null));
+        onSaved?.();
       })}
     >
       <div className="space-y-1.5">
@@ -165,10 +196,9 @@ function OpdComplaintComposerForm({
         </Label>
         <Input
           id={`opd-chief-complaint-${complaint?.uuid ?? "new"}`}
-          placeholder="e.g. Cough for 3 days"
+          placeholder="e.g. Cough"
           autoComplete="off"
           disabled={!canWriteComplaint}
-          className="h-auto rounded-none border-0 border-b border-dash-border px-0 py-2 text-lg font-medium shadow-none focus-visible:ring-0"
           {...form.register("text")}
         />
         {form.formState.errors.text ? (
@@ -204,19 +234,35 @@ function OpdComplaintComposerForm({
       </div>
 
       {canWriteHpi || complaint?.hpi?.body ? (
-        <div className="space-y-1.5">
-          <Label htmlFor={`opd-hpi-${complaint?.uuid ?? "new"}`}>
-            History of present illness
-          </Label>
-          <Textarea
-            id={`opd-hpi-${complaint?.uuid ?? "new"}`}
-            rows={6}
-            placeholder="Onset, duration, associated symptoms, what makes it better or worse"
+        <>
+          <OpdHpiDurationFields
+            value={durationValue}
+            unit={
+              isHpiDurationUnit(durationUnit)
+                ? durationUnit
+                : DEFAULT_HPI_DURATION_UNIT
+            }
             disabled={!canWriteHpi}
-            className="resize-y rounded-none border-0 border-b border-dash-border px-0 shadow-none focus-visible:ring-0"
-            {...form.register("hpi")}
+            onValueChange={(next) =>
+              form.setValue("durationValue", next, { shouldDirty: true })
+            }
+            onUnitChange={(next) =>
+              form.setValue("durationUnit", next, { shouldDirty: true })
+            }
           />
-        </div>
+          <div className="space-y-1.5">
+            <Label htmlFor={`opd-hpi-${complaint?.uuid ?? "new"}`}>
+              History of present illness
+            </Label>
+            <Textarea
+              id={`opd-hpi-${complaint?.uuid ?? "new"}`}
+              rows={6}
+              placeholder="Onset, associated symptoms, what makes it better or worse"
+              disabled={!canWriteHpi}
+              {...form.register("hpi")}
+            />
+          </div>
+        </>
       ) : null}
 
       <div className="flex flex-wrap items-center gap-3">

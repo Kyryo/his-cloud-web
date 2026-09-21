@@ -1,6 +1,5 @@
 "use client";
 
-import { Calendar, FlaskConical } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { UserIdenticon } from "@/components/UserIdenticon";
@@ -28,57 +27,77 @@ export function LabOrderDetailHeader({
   actions,
 }: LabOrderDetailHeaderProps) {
   const name = formatLabPatientName(order);
-  const identifier = order.customer_identifier?.trim() || "—";
+  const identifier = order.customer_identifier?.trim() || "";
   const identiconSeed = order.customer_uuid || identifier || name;
   const ageLabel = formatAge(order.customer_dob);
   const accession = formatLabAccession(order);
+  const identity = [identifier || null, ageLabel !== "—" ? ageLabel : null]
+    .filter(Boolean)
+    .join(" · ");
+  const facts = [
+    {
+      key: "accession",
+      label: "Accession",
+      value:
+        accession === "Not accessioned"
+          ? "Awaiting accession"
+          : `Accession ${accession}`,
+    },
+    {
+      key: "ordered",
+      label: "Ordered",
+      value: `Ordered ${formatLabOrderedRelative(order.ordered_at)}${
+        order.ordered_by_name ? ` by ${order.ordered_by_name}` : ""
+      }`,
+    },
+    order.clinic_name
+      ? { key: "clinic", label: "Clinic", value: order.clinic_name }
+      : null,
+  ].filter((item): item is { key: string; label: string; value: string } =>
+    Boolean(item),
+  );
 
   return (
-    <DetailPageHeaderSection className="border-b-0 bg-white px-4 py-4 sm:px-6 sm:py-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex min-w-0 flex-1 items-start gap-3.5 sm:gap-4">
+    <DetailPageHeaderSection className="bg-white px-4 py-4 sm:px-6">
+      <div
+        className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3"
+        data-testid="lab-order-detail-header"
+      >
+        <div className="flex min-w-0 items-center gap-3">
           <UserIdenticon
             seed={identiconSeed}
             name={name}
-            className="size-12 shrink-0 rounded-lg shadow-2xs sm:size-14"
-            fallbackClassName="text-base font-semibold sm:text-lg"
+            className="size-10 shrink-0 rounded-lg"
+            fallbackClassName="rounded-lg text-sm font-semibold"
           />
-
-          <div className="min-w-0 flex-1 space-y-2">
-            <div className="flex min-w-0 flex-wrap items-baseline gap-x-2 gap-y-0.5">
-              <DetailPageTitle>{name}</DetailPageTitle>
-              {ageLabel !== "—" ? (
-                <span className="text-sm font-normal text-brand-muted">
-                  {ageLabel}
-                </span>
-              ) : null}
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-              <p className="text-sm text-brand-muted">
-                {accession === "Not accessioned"
-                  ? "Awaiting accession"
-                  : `Accession ${accession}`}
-              </p>
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <DetailPageTitle className="truncate">{name}</DetailPageTitle>
               <LabOrderStatusBadge status={order.status} />
               <LabOrderPriorityBadge priority={order.priority} />
             </div>
-
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-brand-muted">
-              <span className="inline-flex items-center gap-1.5">
-                <Calendar className="size-3.5 shrink-0" aria-hidden="true" />
-                Ordered {formatLabOrderedRelative(order.ordered_at)}
-                {order.ordered_by_name ? ` · ${order.ordered_by_name}` : ""}
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <FlaskConical className="size-3.5 shrink-0" aria-hidden="true" />
-                {order.clinic_name || "Clinic"}
-              </span>
-            </div>
+            {identity ? (
+              <p className="mt-0.5 truncate text-sm text-dash-muted">
+                {identity}
+              </p>
+            ) : null}
+            <p className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm text-dash-muted">
+              {facts.map((item, index) => (
+                <span
+                  key={item.key}
+                  className="inline-flex items-baseline gap-x-2"
+                >
+                  {index > 0 ? <span aria-hidden="true">·</span> : null}
+                  <span>
+                    <span className="sr-only">{item.label}: </span>
+                    {item.value}
+                  </span>
+                </span>
+              ))}
+            </p>
           </div>
         </div>
-
-        {actions ? <div className="ml-auto shrink-0">{actions}</div> : null}
+        {actions ? <div className="shrink-0">{actions}</div> : null}
       </div>
     </DetailPageHeaderSection>
   );

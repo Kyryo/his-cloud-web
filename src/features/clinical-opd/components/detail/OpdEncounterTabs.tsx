@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { MoreHorizontal } from "lucide-react";
+import { Check, MoreHorizontal } from "lucide-react";
 
 import { appFont } from "@/lib/fonts";
 import {
@@ -46,14 +46,16 @@ export function OpdEncounterTabs({ className }: OpdEncounterTabsProps) {
     <nav
       aria-label="OPD encounter sections"
       className={cn(
-        "flex items-center gap-2 border-b border-dash-border/80 bg-white px-4 py-2 sm:px-6",
+        "flex items-end gap-1 border-b border-dash-border/80 px-4 sm:px-6",
         className,
       )}
     >
-      <div className="scrollbar-hide flex min-w-0 flex-1 gap-2 overflow-x-auto">
+      <div className="scrollbar-hide flex min-w-0 flex-1 gap-1 overflow-x-auto">
         {tabs.map((tab, index) => {
           const isActive = activeTab === tab.id;
-          const count = counts[tab.id];
+          const count = counts[tab.id] ?? 0;
+          // The circle answers "is this step done?"; the pill answers "how many?".
+          const isRecorded = count > 0;
 
           return (
             <Link
@@ -61,32 +63,41 @@ export function OpdEncounterTabs({ className }: OpdEncounterTabsProps) {
               href={opdEncounterTabHref(visitUuid, encounterUuid, tab.id)}
               aria-current={isActive ? "page" : undefined}
               className={cn(
-                "inline-flex shrink-0 items-center gap-2 rounded-full px-3.5 py-1.5 text-[13px] transition-colors",
+                "inline-flex shrink-0 items-center gap-2 border-b-2 px-2.5 py-2.5 text-sm",
                 isActive
-                  ? "bg-brand-navy font-medium text-white shadow-sm"
-                  : "bg-transparent font-medium text-brand-slate hover:bg-slate-100 hover:text-brand-navy",
+                  ? "border-brand-primary font-semibold text-brand-navy"
+                  : "border-transparent font-medium text-brand-muted hover:text-brand-navy",
               )}
             >
               <span
                 className={cn(
-                  "inline-flex size-[18px] items-center justify-center rounded-full text-[10px] font-semibold tabular-nums",
+                  "inline-flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] tabular-nums",
                   isActive
-                    ? "bg-white/20 text-white"
-                    : "bg-slate-200 text-brand-muted",
+                    ? "bg-brand-primary text-white"
+                    : isRecorded
+                      ? "bg-brand-primary/10 text-brand-primary"
+                      : "bg-slate-100 text-brand-muted",
                 )}
+                aria-hidden="true"
               >
-                {index + 1}
+                {isRecorded ? (
+                  <Check className="size-3" strokeWidth={3} />
+                ) : (
+                  index + 1
+                )}
               </span>
               <span>{tab.label}</span>
-              {count ? (
+              {isRecorded ? (
                 <span
                   className={cn(
-                    "tabular-nums text-xs",
-                    isActive ? "text-white/70" : "text-brand-muted"
+                    "rounded-full px-1.5 py-0.5 text-[11px] font-medium leading-none tabular-nums",
+                    isActive
+                      ? "bg-brand-primary/10 text-brand-primary"
+                      : "bg-slate-100 text-brand-muted",
                   )}
                   data-testid={`opd-encounter-tab-count-${tab.id}`}
                 >
-                  ({count})
+                  {count}
                 </span>
               ) : null}
             </Link>
@@ -98,10 +109,10 @@ export function OpdEncounterTabs({ className }: OpdEncounterTabsProps) {
         <DropdownMenu>
           <DropdownMenuTrigger
             className={cn(
-              "inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-medium transition-colors",
+              "mb-px inline-flex shrink-0 items-center gap-1.5 border-b-2 px-2.5 py-2.5 text-sm font-medium",
               isMenuActive
-                ? "bg-brand-navy text-white shadow-sm"
-                : "bg-transparent text-brand-slate hover:bg-slate-100 hover:text-brand-navy",
+                ? "border-brand-primary text-brand-navy"
+                : "border-transparent text-brand-muted hover:text-brand-navy",
             )}
             aria-label="More encounter sections"
             data-testid="opd-encounter-more-sections"

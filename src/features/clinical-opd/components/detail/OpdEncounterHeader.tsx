@@ -94,7 +94,7 @@ export function OpdEncounterHeader({
     meta.push({
       key: "waiting",
       label: "Waiting",
-      value: `${encounter.waiting_minutes} min`,
+      value: `Waiting ${encounter.waiting_minutes} min`,
     });
   }
   meta.push({
@@ -144,14 +144,18 @@ export function OpdEncounterHeader({
       </div>
 
       {meta.length > 0 ? (
-        <p className="mt-3 flex flex-wrap items-baseline gap-x-4 gap-y-1 text-sm text-brand-slate">
-          {meta.map((item) => (
-            <span
-              key={item.key}
-              data-testid={`opd-encounter-fact-${item.key}`}
-            >
-              <span className="sr-only">{item.label}: </span>
-              {item.value}
+        <p className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm text-brand-slate">
+          {meta.map((item, index) => (
+            <span key={item.key} className="inline-flex items-baseline gap-x-2">
+              {index > 0 ? (
+                <span className="text-dash-muted" aria-hidden="true">
+                  ·
+                </span>
+              ) : null}
+              <span data-testid={`opd-encounter-fact-${item.key}`}>
+                <span className="sr-only">{item.label}: </span>
+                {item.value}
+              </span>
             </span>
           ))}
         </p>

@@ -1,5 +1,5 @@
-import { OpdEncounterTabPage } from "@/features/clinical-opd/pages/OpdEncounterTabPage";
+import { OpdEncounterLandingRedirect } from "@/features/clinical-opd/pages/OpdEncounterLandingRedirect";
 
-export default function OpdEncounterOverviewPage() {
-  return <OpdEncounterTabPage tab="overview" />;
+export default function OpdEncounterLandingPage() {
+  return <OpdEncounterLandingRedirect />;
 }

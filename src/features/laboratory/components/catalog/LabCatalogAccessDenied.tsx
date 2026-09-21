@@ -1,7 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { ShieldAlert } from "lucide-react";
 
+import { EmptyState } from "@/components/ui/empty-state";
 import { Button } from "@/components/ui/button";
 import { ListPageLayout } from "@/features/app-shell/components/page-layout";
 import { ROUTES } from "@/constants/routes";
@@ -19,13 +21,14 @@ export function LabCatalogAccessDenied({
 
   return (
     <ListPageLayout data-testid={dataTestId}>
-      <div className="rounded-xl border border-brand-border bg-white p-8 text-center">
-        <h1 className="text-xl font-semibold text-brand-navy">Access denied</h1>
-        <p className="mt-2 text-sm text-brand-muted">{message}</p>
-        <Button className="mt-6" onClick={() => router.push(ROUTES.auth)}>
-          Go to sign in
-        </Button>
-      </div>
+      <EmptyState
+        icon={ShieldAlert}
+        title="Access denied"
+        description={message}
+        action={
+          <Button onClick={() => router.push(ROUTES.auth)}>Go to sign in</Button>
+        }
+      />
     </ListPageLayout>
   );
 }

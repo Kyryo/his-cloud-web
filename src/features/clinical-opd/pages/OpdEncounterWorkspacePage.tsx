@@ -27,7 +27,7 @@ import {
 } from "@/features/clinical-opd/hooks/use-clinical-opd";
 import { opdEncounterFromVisit } from "@/features/clinical-opd/utils/opd-encounter-from-visit";
 import {
-  getVisibleOpdEncounterTabs,
+  getVisibleOpdEncounterSections,
   isOpdEncounterLocked,
 } from "@/features/clinical-opd/utils/opd-encounter-tabs";
 import { fetchCustomer } from "@/features/customers/services/customers.service";
@@ -108,8 +108,8 @@ export function OpdEncounterWorkspacePage({
 
   const userRole = userData?.user_role ?? null;
   const capabilities = capabilitiesData?.capabilities ?? [];
-  const visibleTabs = getVisibleOpdEncounterTabs(capabilities);
-  const visibleTabIds = visibleTabs.map((tab) => tab.id);
+  const visibleSections = getVisibleOpdEncounterSections(capabilities);
+  const visibleTabIds = visibleSections.map((tab) => tab.id);
   const isChartLocked = isOpdEncounterLocked(encounter?.status);
 
   const breadcrumbLabel = customer

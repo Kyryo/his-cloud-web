@@ -3,13 +3,26 @@
 import { useState } from "react";
 
 import { SecondaryButton } from "@/components/ui/app-buttons";
+import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { ListPageBlankState } from "@/features/app-shell/components/page-layout";
+import {
+  ListPageBlankState,
+  ListPageDataTable,
+  ListPageDataTableBody,
+  ListPageDataTableCell,
+  ListPageDataTableHeader,
+  ListPageDataTableHeaderCell,
+  ListPageDataTableHeaderRow,
+  ListPageDataTableRow,
+} from "@/features/app-shell/components/page-layout";
 import { ConfirmLabActionDialog } from "@/features/laboratory/components/detail/ConfirmLabActionDialog";
 import { useLabOrderDetailWorkspace } from "@/features/laboratory/components/detail/lab-order-detail-workspace-context";
 import { rejectLabSpecimen } from "@/features/laboratory/services/laboratory.service";
 import type { LabSpecimen } from "@/features/laboratory/types/laboratory.types";
-import { formatLabDisplayDateTime } from "@/features/laboratory/utils/format-lab-order";
+import {
+  formatLabDisplayDateTime,
+  formatLabSpecimenStatusLabel,
+} from "@/features/laboratory/utils/format-lab-order";
 import { getErrorMessage } from "@/lib/fetch-error";
 import { useToast } from "@/providers/toast-provider";
 
@@ -65,76 +78,75 @@ export function LabOrderSpecimensPanel() {
 
   if (specimens.length === 0) {
     return (
-      <div className="p-4 sm:p-6">
-        <ListPageBlankState
-          compact
-          icon="flask"
-          title="No specimens recorded"
-          description="Collect a specimen from the order actions to begin the laboratory workflow. Specimens collected in this session appear here."
-        />
-      </div>
+      <ListPageBlankState
+        compact
+        icon="flask"
+        title="No specimens recorded"
+        description="Collect a specimen from the order actions to begin the laboratory workflow."
+      />
     );
   }
 
   return (
-    <div className="space-y-4 p-4 sm:p-6" data-testid="lab-order-specimens-panel">
-      <div>
-        <h2 className="text-base font-semibold text-brand-navy">Specimens</h2>
-        <p className="mt-1 text-sm text-brand-muted">
-          Collected and accessioned specimens for this order.
-        </p>
-      </div>
-
-      <div className="overflow-hidden rounded-xl border border-dash-border">
-        <table className="min-w-full text-left text-sm">
-          <thead className="bg-dash-canvas/60 text-xs uppercase tracking-wide text-brand-muted">
-            <tr>
-              <th className="px-4 py-2.5 font-medium">Type</th>
-              <th className="px-4 py-2.5 font-medium">Status</th>
-              <th className="px-4 py-2.5 font-medium">Collected</th>
-              <th className="px-4 py-2.5 font-medium">Barcode</th>
-              <th className="px-4 py-2.5 font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-dash-border">
-            {specimens.map((specimen) => (
-              <tr key={specimen.uuid}>
-                <td className="px-4 py-3">
-                  <div className="font-medium text-brand-navy">
-                    {specimen.specimen_type_name}
-                  </div>
-                  <div className="font-mono text-xs text-brand-muted">
-                    {specimen.specimen_type_code}
-                  </div>
-                </td>
-                <td className="px-4 py-3 text-brand-slate">{specimen.status}</td>
-                <td className="px-4 py-3 text-brand-slate">
-                  {formatLabDisplayDateTime(specimen.collected_at)}
-                </td>
-                <td className="px-4 py-3 font-mono text-xs text-brand-muted">
-                  {specimen.barcode || "—"}
-                </td>
-                <td className="px-4 py-3">
-                  {specimen.status === "COLLECTED" ? (
-                    <SecondaryButton
-                      type="button"
-                      className="h-8 text-xs"
-                      onClick={() => {
-                        setReason("");
-                        setRejectTarget(specimen);
-                      }}
-                    >
-                      Reject
-                    </SecondaryButton>
-                  ) : (
-                    <span className="text-xs text-brand-muted">—</span>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+    <div data-testid="lab-order-specimens-panel">
+      <ListPageDataTable>
+        <ListPageDataTableHeader>
+          <ListPageDataTableHeaderRow>
+            <ListPageDataTableHeaderCell>Type</ListPageDataTableHeaderCell>
+            <ListPageDataTableHeaderCell>Status</ListPageDataTableHeaderCell>
+            <ListPageDataTableHeaderCell className="hidden sm:table-cell">
+              Collected
+            </ListPageDataTableHeaderCell>
+            <ListPageDataTableHeaderCell className="hidden md:table-cell">
+              Barcode
+            </ListPageDataTableHeaderCell>
+            <ListPageDataTableHeaderCell className="text-right">
+              Actions
+            </ListPageDataTableHeaderCell>
+          </ListPageDataTableHeaderRow>
+        </ListPageDataTableHeader>
+        <ListPageDataTableBody>
+          {specimens.map((specimen) => (
+            <ListPageDataTableRow key={specimen.uuid}>
+              <ListPageDataTableCell>
+                <p className="font-medium text-brand-navy">
+                  {specimen.specimen_type_name}
+                </p>
+                <p className="font-mono text-xs text-dash-muted">
+                  {specimen.specimen_type_code}
+                </p>
+              </ListPageDataTableCell>
+              <ListPageDataTableCell>
+                <Badge variant="outline" className="font-normal">
+                  {formatLabSpecimenStatusLabel(specimen.status)}
+                </Badge>
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="hidden sm:table-cell text-brand-slate">
+                {formatLabDisplayDateTime(specimen.collected_at)}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="hidden md:table-cell font-mono text-xs text-dash-muted">
+                {specimen.barcode || "—"}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="text-right">
+                {specimen.status === "COLLECTED" ? (
+                  <SecondaryButton
+                    type="button"
+                    className="h-8 text-xs"
+                    onClick={() => {
+                      setReason("");
+                      setRejectTarget(specimen);
+                    }}
+                  >
+                    Reject
+                  </SecondaryButton>
+                ) : (
+                  <span className="text-xs text-dash-muted">—</span>
+                )}
+              </ListPageDataTableCell>
+            </ListPageDataTableRow>
+          ))}
+        </ListPageDataTableBody>
+      </ListPageDataTable>
 
       <ConfirmLabActionDialog
         open={Boolean(rejectTarget)}

@@ -289,8 +289,8 @@ export function LabTestReferenceRangesTabPanel() {
 
   return (
     <>
-      <div data-testid="lab-test-reference-ranges-tab" className="space-y-3">
-        <div className="flex justify-end">{addButton}</div>
+      <div data-testid="lab-test-reference-ranges-tab">
+        <div className="mb-3 flex justify-end">{addButton}</div>
         <ListPageDataTable>
           <ListPageDataTableHeader>
             <ListPageDataTableHeaderRow>

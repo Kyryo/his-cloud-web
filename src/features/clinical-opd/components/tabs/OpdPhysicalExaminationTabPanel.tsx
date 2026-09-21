@@ -214,11 +214,11 @@ export function OpdPhysicalExaminationTabPanel({
       }
       content={
         <OpdConsultContentPanel
-          title="This encounter"
+          title="Findings"
           data-testid="opd-physical-exam-form"
         >
           {savedFindings ? (
-            <article className="rounded-xl border border-dash-border/80 bg-white px-4 py-3.5 shadow-sm">
+            <article className="rounded-lg border border-dash-border/80 bg-white px-4 py-3">
               <p className="whitespace-pre-wrap text-sm leading-relaxed text-brand-slate">
                 {savedFindings}
               </p>

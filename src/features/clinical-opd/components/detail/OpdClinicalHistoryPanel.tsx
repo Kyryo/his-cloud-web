@@ -1,9 +1,10 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, History } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import { OpdConsultColumnHeader } from "@/features/clinical-opd/components/detail/OpdConsultColumnHeader";
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
 import { useEncounterClinicalHistory } from "@/features/clinical-opd/hooks/use-clinical-opd";
 import type { OpdHistorySectionId } from "@/features/clinical-opd/utils/opd-physician-history-tabs";
@@ -110,20 +111,20 @@ function NotesList({
           className="border-b border-dash-border/70 py-3 last:border-b-0"
         >
           <div className="flex items-start justify-between gap-2">
-            <p className="text-[13px] font-semibold capitalize text-brand-navy">
+            <p className="text-xs font-semibold capitalize text-brand-navy">
               {NOTE_KIND_LABELS[note.kind] ?? note.title.replaceAll("_", " ")}
             </p>
             {note.occurred_at ? (
-              <time className="shrink-0 text-[11px] text-brand-muted">
+              <time className="shrink-0 text-[10px] text-brand-muted">
                 {formatDisplayDateTime(note.occurred_at)}
               </time>
             ) : null}
           </div>
-          <p className="mt-1.5 line-clamp-4 text-[13px] leading-relaxed text-brand-slate">
+          <p className="mt-1 line-clamp-4 text-sm leading-relaxed text-brand-slate">
             {plainTextFromHtml(note.body) || "—"}
           </p>
           {note.recorded_by_name ? (
-            <p className="mt-2 text-[11px] text-brand-muted">
+            <p className="mt-1.5 text-[10px] text-brand-muted">
               {note.recorded_by_name}
             </p>
           ) : null}
@@ -145,10 +146,10 @@ function OrdersList({ orders }: { orders: EncounterClinicalOrder[] }) {
           key={order.uuid}
           className="border-b border-dash-border/70 py-3 last:border-b-0"
         >
-          <p className="text-[13px] font-semibold text-brand-navy">
+          <p className="text-xs font-semibold text-brand-navy">
             {order.description || order.item_type_display}
           </p>
-          <p className="mt-1 text-[11px] text-brand-muted">
+          <p className="mt-0.5 text-[10px] text-brand-muted">
             {order.item_type_display}
             {order.status_display ? ` · ${order.status_display}` : null}
           </p>
@@ -174,7 +175,7 @@ function DiagnosesList({
           key={diagnosis.uuid}
           className="border-b border-dash-border/70 py-3 last:border-b-0"
         >
-          <p className="font-mono text-[13px] font-semibold text-brand-navy">
+          <p className="font-mono text-xs font-semibold text-brand-navy">
             {diagnosis.code}
             {diagnosis.is_primary ? (
               <span className="ml-1.5 rounded bg-brand-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-brand-primary">
@@ -182,7 +183,7 @@ function DiagnosesList({
               </span>
             ) : null}
           </p>
-          <p className="mt-1 text-[13px] text-brand-slate">
+          <p className="mt-0.5 text-xs text-brand-slate">
             {diagnosis.description || "—"}
           </p>
         </li>
@@ -209,16 +210,16 @@ function MedicationsList({
           key={medication.uuid}
           className="border-b border-dash-border/70 py-3 last:border-b-0"
         >
-          <p className="text-[13px] font-semibold text-brand-navy">
+          <p className="text-xs font-semibold text-brand-navy">
             {medication.product_name}
           </p>
-          <p className="mt-1 text-[11px] text-brand-muted">
+          <p className="mt-0.5 text-[10px] text-brand-muted">
             {[medication.dose, medication.frequency, medication.duration]
               .filter(Boolean)
               .join(" · ") || medication.status}
           </p>
           {medication.instructions ? (
-            <p className="mt-1.5 line-clamp-2 text-[13px] text-brand-slate">
+            <p className="mt-1 line-clamp-2 text-xs text-brand-slate">
               {medication.instructions}
             </p>
           ) : null}
@@ -239,6 +240,13 @@ export function OpdClinicalHistoryPanel({
 }: OpdClinicalHistoryPanelProps) {
   const { visitUuid, encounterUuid } = useOpdEncounterWorkspace();
   const section = sectionProp ?? "complaint";
+  const sectionLabel = HISTORY_SECTIONS.find((item) => item.id === section)?.label;
+  // Naming the column "Previous diagnosis" beats a generic header plus a
+  // separate section row, and it costs one line instead of two.
+  const eyebrowLabel =
+    sectionProp && sectionLabel
+      ? `Previous ${sectionLabel.toLowerCase()}`
+      : "Previous visits";
   const [historyEncounterUuid, setHistoryEncounterUuid] = useState<
     string | null
   >(null);
@@ -280,76 +288,67 @@ export function OpdClinicalHistoryPanel({
   return (
     <aside
       className={cn(
-        "flex min-h-0 flex-col",
+        "flex min-h-0 flex-col bg-dash-canvas",
         embedded
-          ? "h-full bg-white border-t border-dash-border/70 xl:border-l xl:border-t-0"
-          : "bg-dash-canvas border-t border-dash-border/70 xl:sticky xl:top-0 xl:max-h-[calc(100vh-4rem)] xl:border-l xl:border-t-0",
+          ? "h-full border-t border-dash-border/70 xl:border-l xl:border-t-0"
+          : "border-t border-dash-border/70 xl:sticky xl:top-0 xl:max-h-[calc(100vh-4rem)] xl:border-l xl:border-t-0",
       )}
       data-testid="opd-clinical-history-panel"
     >
-      <div className="flex items-start justify-between gap-3 border-b border-dash-border/70 px-4 py-4 sm:px-5">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <History className="size-3.5 shrink-0 text-brand-muted" aria-hidden="true" />
-            <p className="text-sm font-medium text-brand-navy">Previous visits</p>
-            {visits.length > 0 ? (
-              <span
-                className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[11px] font-medium leading-none tabular-nums text-brand-muted"
-                data-testid="opd-clinical-history-position"
-              >
-                {Math.max(selectedIndex, 0) + 1} of {visits.length}
-              </span>
-            ) : null}
+      <OpdConsultColumnHeader
+        eyebrow={eyebrowLabel}
+        title={
+          selectedVisit
+            ? [visitLabel(selectedVisit), selectedVisit.department]
+                .filter(Boolean)
+                .join(" · ")
+            : "No earlier visits"
+        }
+        meta={
+          visits.length > 0 ? (
+            <span
+              className="shrink-0 text-[11px] tabular-nums text-brand-muted"
+              data-testid="opd-clinical-history-position"
+            >
+              {Math.max(selectedIndex, 0) + 1} of {visits.length}
+            </span>
+          ) : null
+        }
+        action={
+          <div className="flex divide-x divide-dash-border/70 overflow-hidden rounded-md border border-dash-border/70 bg-white">
+            <button
+              type="button"
+              aria-label="Newer visit"
+              disabled={!canGoNewer || historyQuery.isLoading}
+              onClick={() => goToRelativeVisit(-1)}
+              className={cn(
+                "inline-flex size-7 items-center justify-center text-brand-navy transition-colors",
+                canGoNewer && !historyQuery.isLoading
+                  ? "hover:bg-slate-50 hover:text-brand-primary"
+                  : "cursor-not-allowed text-brand-muted opacity-50",
+              )}
+            >
+              <ChevronLeft className="size-4" aria-hidden="true" />
+            </button>
+            <button
+              type="button"
+              aria-label="Older visit"
+              disabled={!canGoOlder || historyQuery.isLoading}
+              onClick={() => goToRelativeVisit(1)}
+              className={cn(
+                "inline-flex size-7 items-center justify-center text-brand-navy transition-colors",
+                canGoOlder && !historyQuery.isLoading
+                  ? "hover:bg-slate-50 hover:text-brand-primary"
+                  : "cursor-not-allowed text-brand-muted opacity-50",
+              )}
+            >
+              <ChevronRight className="size-4" aria-hidden="true" />
+            </button>
           </div>
-          <p className="mt-1 truncate text-sm text-dash-muted">
-            {selectedVisit
-              ? [visitLabel(selectedVisit), selectedVisit.department]
-                  .filter(Boolean)
-                  .join(" · ")
-              : "No earlier visits"}
-          </p>
-        </div>
-        <div className="flex shrink-0 divide-x divide-dash-border/70 overflow-hidden rounded-md border border-dash-border/70">
-          <button
-            type="button"
-            aria-label="Newer visit"
-            disabled={!canGoNewer || historyQuery.isLoading}
-            onClick={() => goToRelativeVisit(-1)}
-            className={cn(
-              "inline-flex size-7 items-center justify-center text-brand-navy transition-colors",
-              canGoNewer && !historyQuery.isLoading
-                ? "hover:bg-slate-50 hover:text-brand-primary"
-                : "cursor-not-allowed text-brand-muted opacity-50",
-            )}
-          >
-            <ChevronLeft className="size-4" aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            aria-label="Older visit"
-            disabled={!canGoOlder || historyQuery.isLoading}
-            onClick={() => goToRelativeVisit(1)}
-            className={cn(
-              "inline-flex size-7 items-center justify-center text-brand-navy transition-colors",
-              canGoOlder && !historyQuery.isLoading
-                ? "hover:bg-slate-50 hover:text-brand-primary"
-                : "cursor-not-allowed text-brand-muted opacity-50",
-            )}
-          >
-            <ChevronRight className="size-4" aria-hidden="true" />
-          </button>
-        </div>
-      </div>
-
-      {sectionProp ? (
-        <p
-          className="border-b border-dash-border/70 px-4 py-2 text-xs font-medium text-brand-muted sm:px-5"
-          data-testid="opd-clinical-history-section-label"
-        >
-          {HISTORY_SECTIONS.find((item) => item.id === section)?.label ??
-            "History"}
-        </p>
-      ) : null}
+        }
+        className="bg-dash-canvas"
+        data-testid="opd-clinical-history-header"
+      />
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2 sm:px-5">
         {historyQuery.isLoading ? (

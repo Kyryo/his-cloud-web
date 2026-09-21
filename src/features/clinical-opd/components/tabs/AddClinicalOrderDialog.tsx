@@ -61,6 +61,7 @@ type AddClinicalOrderDialogProps = {
   capabilities: readonly string[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  embedded?: boolean;
 };
 
 export function AddClinicalOrderDialog({
@@ -69,6 +70,7 @@ export function AddClinicalOrderDialog({
   capabilities,
   open,
   onOpenChange,
+  embedded = false,
 }: AddClinicalOrderDialogProps) {
   const { toast } = useToast();
   const { data: orders = [] } = useEncounterOrders(visitUuid, encounterUuid, {
@@ -228,15 +230,17 @@ export function AddClinicalOrderDialog({
       className={cn("space-y-4", appFont.className)}
       data-testid="add-clinical-order-dialog"
     >
-      <div>
-        <h3 className="text-base font-semibold tracking-tight text-brand-navy">
-          Place order
-        </h3>
-        <p className="mt-0.5 text-sm text-dash-muted">
-          Select a catalog product. Lab, radiology, and procedure services
-          always charge quantity 1.
-        </p>
-      </div>
+      {embedded ? null : (
+        <div>
+          <h3 className="text-base font-semibold tracking-tight text-brand-navy">
+            Place order
+          </h3>
+          <p className="mt-0.5 text-sm text-dash-muted">
+            Select a catalog product. Lab, radiology, and procedure services
+            always charge quantity 1.
+          </p>
+        </div>
+      )}
       <nav
         className="flex gap-1 overflow-x-auto"
         aria-label="Order catalog"
@@ -283,14 +287,16 @@ export function AddClinicalOrderDialog({
           data-testid="clinical-order-capability-empty"
         />
       )}
-      <SecondaryButton
-        type="button"
-        onClick={() => onOpenChange(false)}
-        disabled={Boolean(busyProductUuid)}
-        data-testid="clinical-order-close"
-      >
-        Done
-      </SecondaryButton>
+      {embedded ? null : (
+        <SecondaryButton
+          type="button"
+          onClick={() => onOpenChange(false)}
+          disabled={Boolean(busyProductUuid)}
+          data-testid="clinical-order-close"
+        >
+          Done
+        </SecondaryButton>
+      )}
     </section>
   );
 }

@@ -165,17 +165,17 @@ export function LabOrderTestResultCard({
   return (
     <article
       className={cn(
-        "flex h-full flex-col rounded-xl border border-dash-border/80 bg-white p-3 shadow-2xs",
-        readOnly && "bg-slate-50/60",
+        "border-t border-dash-border/70 py-4 first:border-t-0 first:pt-0",
+        readOnly && "opacity-80",
       )}
       data-testid={`lab-order-test-result-card-${item.uuid}`}
     >
-      <div className="mb-3 flex items-start justify-between gap-2">
+      <div className="mb-3 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="truncate text-sm font-semibold text-brand-navy">
             {item.test_name}
           </h3>
-          <p className="truncate font-mono text-[11px] text-brand-muted">
+          <p className="truncate font-mono text-[11px] text-dash-muted">
             {item.test_code}
           </p>
         </div>
@@ -289,7 +289,7 @@ export function LabOrderTestResultCard({
         <PrimaryButton
           type="button"
           size="sm"
-          className="mt-3 h-8 w-full"
+          className="mt-3 h-8"
           disabled={isSaving || isLoading}
           onClick={() => {
             void handleSave();

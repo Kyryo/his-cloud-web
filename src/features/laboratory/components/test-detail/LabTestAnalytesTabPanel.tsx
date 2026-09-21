@@ -50,8 +50,8 @@ export function LabTestAnalytesTabPanel() {
           data-testid="lab-test-analytes-empty"
         />
       ) : (
-        <div data-testid="lab-test-analytes-tab" className="space-y-3">
-          <div className="flex justify-end">{configureButton}</div>
+        <div data-testid="lab-test-analytes-tab">
+          <div className="mb-3 flex justify-end">{configureButton}</div>
           <ListPageDataTable>
             <ListPageDataTableHeader>
               <ListPageDataTableHeaderRow>

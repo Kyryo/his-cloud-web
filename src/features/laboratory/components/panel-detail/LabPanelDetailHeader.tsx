@@ -1,6 +1,5 @@
 "use client";
 
-import { Calendar, FlaskConical, Hash } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { UserIdenticon } from "@/components/UserIdenticon";
@@ -22,66 +21,79 @@ export function LabPanelDetailHeader({
   actions,
 }: LabPanelDetailHeaderProps) {
   const isActive = panel.is_active !== false;
+  const testCount = panel.tests?.length ?? 0;
+  const facts = [
+    { key: "code", label: "Code", value: panel.code },
+    {
+      key: "tests",
+      label: "Tests",
+      value: `${testCount} test${testCount === 1 ? "" : "s"}`,
+    },
+    panel.product?.name
+      ? { key: "product", label: "Product", value: panel.product.name }
+      : null,
+    {
+      key: "updated",
+      label: "Updated",
+      value: `Updated ${formatLabDisplayDateTime(panel.updated_at)}`,
+    },
+  ].filter((item): item is { key: string; label: string; value: string } =>
+    Boolean(item),
+  );
 
   return (
-    <DetailPageHeaderSection className="border-b-0 bg-white px-4 py-4 sm:px-6 sm:py-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="flex min-w-0 flex-1 items-start gap-3.5 sm:gap-4">
+    <DetailPageHeaderSection className="bg-white px-4 py-4 sm:px-6">
+      <div
+        className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3"
+        data-testid="lab-panel-detail-header"
+      >
+        <div className="flex min-w-0 items-center gap-3">
           <UserIdenticon
             seed={panel.uuid || panel.code || panel.name}
             name={panel.name}
-            className="size-12 shrink-0 rounded-lg shadow-2xs sm:size-14"
-            fallbackClassName="text-base font-semibold sm:text-lg"
+            className="size-10 shrink-0 rounded-lg"
+            fallbackClassName="rounded-lg text-sm font-semibold"
           />
-
-          <div className="min-w-0 flex-1 space-y-2">
-            <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-              <DetailPageTitle>{panel.name}</DetailPageTitle>
-
-              <span className="inline-flex items-center rounded-md border border-slate-200/90 bg-slate-50 px-2.5 py-0.5 font-mono text-xs font-semibold text-brand-navy shadow-2xs">
-                {panel.code}
-              </span>
-
-              {!isActive ? (
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <DetailPageTitle className="truncate">{panel.name}</DetailPageTitle>
+              {isActive ? (
                 <Badge
                   variant="outline"
-                  className="rounded-full border-red-200 bg-red-50 px-2.5 py-0.5 text-xs font-medium text-red-700"
+                  className="rounded-full border-emerald-200 bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-800"
                 >
-                  Inactive
+                  Active
                 </Badge>
               ) : (
                 <Badge
                   variant="outline"
-                  className="rounded-full border-emerald-200 bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-800"
+                  className="rounded-full border-red-200 bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700"
                 >
-                  Active
+                  Inactive
                 </Badge>
               )}
             </div>
-
-            <p className="text-sm text-brand-muted">Laboratory panel</p>
-
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-brand-muted">
-              <span className="inline-flex items-center gap-1.5">
-                <FlaskConical className="size-3.5 shrink-0" aria-hidden="true" />
-                {panel.tests?.length ?? 0} test
-                {(panel.tests?.length ?? 0) === 1 ? "" : "s"}
-              </span>
-              {panel.product?.name ? (
-                <span className="inline-flex items-center gap-1.5">
-                  <Hash className="size-3.5 shrink-0" aria-hidden="true" />
-                  {panel.product.name}
-                </span>
-              ) : null}
-              <span className="inline-flex items-center gap-1.5">
-                <Calendar className="size-3.5 shrink-0" aria-hidden="true" />
-                Updated {formatLabDisplayDateTime(panel.updated_at)}
-              </span>
-            </div>
+            {facts.length > 0 ? (
+              <p className="mt-0.5 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm text-dash-muted">
+                {facts.map((item, index) => (
+                  <span
+                    key={item.key}
+                    className="inline-flex items-baseline gap-x-2"
+                  >
+                    {index > 0 ? (
+                      <span aria-hidden="true">·</span>
+                    ) : null}
+                    <span>
+                      <span className="sr-only">{item.label}: </span>
+                      {item.value}
+                    </span>
+                  </span>
+                ))}
+              </p>
+            ) : null}
           </div>
         </div>
-
-        {actions ? <div className="ml-auto shrink-0">{actions}</div> : null}
+        {actions ? <div className="shrink-0">{actions}</div> : null}
       </div>
     </DetailPageHeaderSection>
   );

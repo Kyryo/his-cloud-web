@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   getDefaultOpdEncounterTab,
-  getVisibleOpdEncounterTabGroups,
+  getVisibleOpdEncounterMenuSections,
   getVisibleOpdEncounterTabs,
   isOpdEncounterLocked,
   opdEncounterTabFromPathname,
@@ -11,11 +11,8 @@ import {
 
 describe("opd-encounter-tabs", () => {
   it("builds tab hrefs", () => {
-    expect(opdEncounterTabHref("visit-1", "enc-1")).toBe(
-      "/clinical/opd/visit-1/enc-1",
-    );
     expect(opdEncounterTabHref("visit-1", "enc-1", "overview")).toBe(
-      "/clinical/opd/visit-1/enc-1",
+      "/clinical/opd/visit-1/enc-1/chart",
     );
     expect(opdEncounterTabHref("visit-1", "enc-1", "activity")).toBe(
       "/clinical/opd/visit-1/enc-1/activity",
@@ -68,17 +65,30 @@ describe("opd-encounter-tabs", () => {
     ).toBe("client");
     expect(
       opdEncounterTabFromPathname(
-        "/clinical/opd/visit-1/enc-1",
+        "/clinical/opd/visit-1/enc-1/chart",
         "visit-1",
         "enc-1",
       ),
     ).toBe("overview");
+    // The bare encounter URL is a redirect, not a section of its own.
+    expect(
+      opdEncounterTabFromPathname(
+        "/clinical/opd/visit-1/enc-1",
+        "visit-1",
+        "enc-1",
+      ),
+    ).toBeNull();
   });
 
-  it("always includes overview and filters the rest by capability", () => {
+  it("keeps the consult flow in the tab bar and moves the rest to More", () => {
     expect(
       getVisibleOpdEncounterTabs(["view_vital_signs_tab"]).map((tab) => tab.id),
-    ).toEqual(["overview", "vital-signs"]);
+    ).toEqual([]);
+    expect(
+      getVisibleOpdEncounterMenuSections(["view_vital_signs_tab"]).map(
+        (tab) => tab.id,
+      ),
+    ).toEqual(["vital-signs", "overview"]);
     expect(
       getVisibleOpdEncounterTabs([
         "view_activity_tab",
@@ -87,44 +97,21 @@ describe("opd-encounter-tabs", () => {
         "view_medications_tab",
         "view_client_tab",
       ]).map((tab) => tab.id),
+    ).toEqual(["physical-examination", "diagnoses", "medications"]);
+    expect(
+      getVisibleOpdEncounterTabs([
+        "record_chief_complaint",
+        "view_physical_examination_tab",
+        "view_orders_tab",
+        "view_diagnoses_tab",
+        "view_medications_tab",
+      ]).map((tab) => tab.id),
     ).toEqual([
-      "overview",
+      "complaint",
       "physical-examination",
+      "orders",
       "diagnoses",
       "medications",
-      "activity",
-      "client",
-    ]);
-  });
-
-  it("groups visible tabs for the left nav", () => {
-    const groups = getVisibleOpdEncounterTabGroups([
-      "view_vital_signs_tab",
-      "record_nursing_note",
-      "record_allergy",
-      "record_chief_complaint",
-      "view_physical_examination_tab",
-      "record_clinical_note",
-      "view_diagnoses_tab",
-      "manage_problem_list",
-      "view_medications_tab",
-      "view_orders_tab",
-      "record_disposition",
-      "view_activity_tab",
-      "view_client_tab",
-    ]);
-
-    expect(groups.map((group) => group.id)).toEqual([
-      "overview",
-      "nurse",
-      "consult",
-      "plan",
-      "record",
-    ]);
-    expect(groups[1].tabs.map((tab) => tab.id)).toEqual([
-      "vital-signs",
-      "nursing",
-      "allergies",
     ]);
   });
 
@@ -152,6 +139,6 @@ describe("opd-encounter-tabs", () => {
         ["view_vital_signs_tab", "view_diagnoses_tab"],
         "physician",
       ),
-    ).toBe("overview");
+    ).toBe("diagnoses");
   });
 });

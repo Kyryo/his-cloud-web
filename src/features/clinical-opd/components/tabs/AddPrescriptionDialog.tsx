@@ -29,6 +29,7 @@ type AddPrescriptionDialogProps = {
   encounterUuid: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  embedded?: boolean;
 };
 
 export function AddPrescriptionDialog({
@@ -36,6 +37,7 @@ export function AddPrescriptionDialog({
   encounterUuid,
   open,
   onOpenChange,
+  embedded = false,
 }: AddPrescriptionDialogProps) {
   const { toast } = useToast();
   const createPrescription = useCreatePrescription(visitUuid, encounterUuid);
@@ -127,7 +129,24 @@ export function AddPrescriptionDialog({
           : "Draft prescription created. Finalize to place the order.",
         variant: allergyAlerts.length ? "warning" : "success",
       });
-      onOpenChange(false);
+      if (!embedded) {
+        onOpenChange(false);
+      } else {
+        form.reset({
+          product_uuid: "",
+          dose: "",
+          route: "",
+          frequency: "",
+          duration: "",
+          clinical_quantity: 1,
+          clinical_uom: "",
+          charge_quantity: 1,
+          instructions: "",
+          is_prn: false,
+          clinical_notes: "",
+        });
+        setProduct(null);
+      }
     } catch (error) {
       toast({
         title: "Could not add prescription",
@@ -146,14 +165,16 @@ export function AddPrescriptionDialog({
 
   return (
     <section className={cn("space-y-4", appFont.className)}>
-      <div>
-        <h3 className="text-base font-semibold tracking-tight text-brand-navy">
-          Add prescription
-        </h3>
-        <p className="mt-0.5 text-sm text-dash-muted">
-          Enter the amount prescribed and the units to charge separately.
-        </p>
-      </div>
+      {embedded ? null : (
+        <div>
+          <h3 className="text-base font-semibold tracking-tight text-brand-navy">
+            Add prescription
+          </h3>
+          <p className="mt-0.5 text-sm text-dash-muted">
+            Enter the amount prescribed and the units to charge separately.
+          </p>
+        </div>
+      )}
 
       <form className="space-y-4" onSubmit={onSubmit}>
           <InventoryProductPicker
@@ -254,13 +275,15 @@ export function AddPrescriptionDialog({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <SecondaryButton
-              type="button"
-              onClick={() => onOpenChange(false)}
-              disabled={createPrescription.isPending}
-            >
-              Cancel
-            </SecondaryButton>
+            {embedded ? null : (
+              <SecondaryButton
+                type="button"
+                onClick={() => onOpenChange(false)}
+                disabled={createPrescription.isPending}
+              >
+                Cancel
+              </SecondaryButton>
+            )}
             <PrimaryButton
               type="submit"
               disabled={createPrescription.isPending}

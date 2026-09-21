@@ -73,13 +73,78 @@ export function formatLatestBloodPressure(
   return `${systolicValue}/${diastolicValue} mmHg`;
 }
 
+export type OpdVitalStatus = "normal" | "high" | "low" | "unknown";
+
 export type OpdEncounterVitalStat = {
   key: string;
   label: string;
   value: string | null;
   recordedAt: string | null;
-  accentClassName: string;
+  status: OpdVitalStatus;
 };
+
+/**
+ * Adult reference ranges. A reading outside its range is surfaced to the
+ * clinician; anything without a range here reads as `unknown`.
+ */
+const ADULT_VITAL_RANGES: Record<string, { low: number; high: number }> = {
+  temperature: { low: 36.1, high: 37.5 },
+  pulse: { low: 60, high: 100 },
+  bp_systolic: { low: 90, high: 140 },
+  bp_diastolic: { low: 60, high: 90 },
+  respiratory_rate: { low: 12, high: 20 },
+  spo2: { low: 95, high: 100 },
+};
+
+function numericValue(observation: EncounterObservation | null): number | null {
+  if (!observation) {
+    return null;
+  }
+
+  const parsed = Number(observation.numeric_value ?? observation.text_value);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function statusFor(
+  observation: EncounterObservation | null,
+  code: string,
+): OpdVitalStatus {
+  const range = ADULT_VITAL_RANGES[code];
+  const value = numericValue(observation);
+
+  if (!range || value === null) {
+    return "unknown";
+  }
+  if (value < range.low) {
+    return "low";
+  }
+  if (value > range.high) {
+    return "high";
+  }
+  return "normal";
+}
+
+/** Blood pressure reads as abnormal when either component is out of range. */
+function bloodPressureStatus(
+  systolic: EncounterObservation | null,
+  diastolic: EncounterObservation | null,
+): OpdVitalStatus {
+  const parts = [
+    statusFor(systolic, "bp_systolic"),
+    statusFor(diastolic, "bp_diastolic"),
+  ];
+
+  if (parts.includes("high")) {
+    return "high";
+  }
+  if (parts.includes("low")) {
+    return "low";
+  }
+  if (parts.includes("normal")) {
+    return "normal";
+  }
+  return "unknown";
+}
 
 export function splitVitalDisplay(value: string | null): {
   amount: string;
@@ -121,34 +186,53 @@ export function buildOpdEncounterVitalStats(
   const systolic = getLatestObservation(observations, "bp_systolic");
   const diastolic = getLatestObservation(observations, "bp_diastolic");
 
+  // Ordered the way a clinician scans them: cardiovascular first, weight last.
   return [
     {
-      key: "weight",
-      label: "Weight",
-      value: formatObservationValue(weight),
-      recordedAt: latestRecordedAt(weight),
-      accentClassName: "bg-indigo-500",
-    },
-    {
-      key: "temperature",
-      label: "Temperature",
-      value: formatObservationValue(temperature),
-      recordedAt: latestRecordedAt(temperature),
-      accentClassName: "bg-amber-500",
+      key: "blood-pressure",
+      label: "Blood pressure",
+      value: formatLatestBloodPressure(observations),
+      recordedAt: latestRecordedAt(systolic, diastolic),
+      status: bloodPressureStatus(systolic, diastolic),
     },
     {
       key: "heart-rate",
       label: "Heart rate",
       value: formatObservationValue(pulse),
       recordedAt: latestRecordedAt(pulse),
-      accentClassName: "bg-rose-500",
+      status: statusFor(pulse, "pulse"),
     },
     {
-      key: "blood-pressure",
-      label: "Blood pressure",
-      value: formatLatestBloodPressure(observations),
-      recordedAt: latestRecordedAt(systolic, diastolic),
-      accentClassName: "bg-blue-500",
+      key: "temperature",
+      label: "Temperature",
+      value: formatObservationValue(temperature),
+      recordedAt: latestRecordedAt(temperature),
+      status: statusFor(temperature, "temperature"),
+    },
+    {
+      key: "weight",
+      label: "Weight",
+      value: formatObservationValue(weight),
+      recordedAt: latestRecordedAt(weight),
+      status: "unknown",
     },
   ];
+}
+
+/** Most recent moment any of the strip vitals were taken. */
+export function latestVitalRecordedAt(
+  stats: OpdEncounterVitalStat[],
+): string | null {
+  let latest: string | null = null;
+
+  for (const stat of stats) {
+    if (!stat.recordedAt) {
+      continue;
+    }
+    if (!latest || new Date(stat.recordedAt).getTime() > new Date(latest).getTime()) {
+      latest = stat.recordedAt;
+    }
+  }
+
+  return latest;
 }

@@ -141,6 +141,38 @@ export function formatLabOrderItemStatusLabel(status: string | undefined): strin
   }
 }
 
+export function formatLabResultStatusLabel(
+  status: string | null | undefined,
+): string {
+  switch (status) {
+    case "DRAFT":
+      return "Draft";
+    case "ENTERED":
+      return "Entered";
+    case "VERIFIED":
+      return "Verified";
+    case "RELEASED":
+      return "Released";
+    case "REJECTED":
+      return "Rejected";
+    default:
+      return status || "—";
+  }
+}
+
+export function formatLabSpecimenStatusLabel(status: string | undefined): string {
+  switch (status) {
+    case "COLLECTED":
+      return "Collected";
+    case "ACCESSIONED":
+      return "Accessioned";
+    case "REJECTED":
+      return "Rejected";
+    default:
+      return status || "—";
+  }
+}
+
 export function canCollectSpecimen(status: LabOrderStatus | string): boolean {
   return status === "ORDERED" || status === "COLLECTING";
 }

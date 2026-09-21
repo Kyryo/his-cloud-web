@@ -75,6 +75,15 @@ vi.mock("@/features/clinical-opd/hooks/use-clinical-opd", () => ({
   }),
 }));
 
+vi.mock(
+  "@/features/clinical-opd/components/detail/OpdClinicalHistoryPanel",
+  () => ({
+    OpdClinicalHistoryPanel: () => (
+      <aside data-testid="opd-clinical-history-panel" />
+    ),
+  }),
+);
+
 vi.mock("@/features/clinical-opd/components/tabs/AddClinicalOrderDialog", () => ({
   AddClinicalOrderDialog: () => null,
 }));

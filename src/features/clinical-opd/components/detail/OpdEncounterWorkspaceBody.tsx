@@ -3,13 +3,8 @@
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
-import {
-  DetailPageMainAsideGrid,
-  DetailPageMainSection,
-} from "@/features/app-shell/components/page-layout";
-import { OpdClinicalHistoryPanel } from "@/features/clinical-opd/components/detail/OpdClinicalHistoryPanel";
+import { DetailPageMainSection } from "@/features/app-shell/components/page-layout";
 import { OpdEncounterAllergyBanner } from "@/features/clinical-opd/components/detail/OpdEncounterAllergyBanner";
-import { OpdEncounterSummaryPanel } from "@/features/clinical-opd/components/detail/OpdEncounterSummaryPanel";
 import { OpdEncounterTabs } from "@/features/clinical-opd/components/detail/OpdEncounterTabs";
 import { OpdEncounterVitalsStatsStrip } from "@/features/clinical-opd/components/detail/OpdEncounterVitalsStatsStrip";
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
@@ -25,16 +20,13 @@ export function OpdEncounterWorkspaceBody({
   children,
 }: OpdEncounterWorkspaceBodyProps) {
   const pathname = usePathname();
-  const { visitUuid, encounterUuid, customer, chartSummary } =
-    useOpdEncounterWorkspace();
+  const { visitUuid, encounterUuid, chartSummary } = useOpdEncounterWorkspace();
   const activeTab = opdEncounterTabFromPathname(
     pathname,
     visitUuid,
     encounterUuid,
   );
-  const showHistoryLayout = isOpdPhysicianHistoryTab(activeTab);
-  const showOverviewLayout = activeTab === "overview";
-  const showVitalsStrip = activeTab !== "client";
+  const isConsultLayout = isOpdPhysicianHistoryTab(activeTab);
   const { observations } = useEncounterWorkspace(visitUuid, encounterUuid);
   const stripObservations =
     observations.data ?? chartSummary?.this_encounter_vitals ?? [];
@@ -44,39 +36,17 @@ export function OpdEncounterWorkspaceBody({
       className="flex min-w-0 flex-1 flex-col"
       data-testid="opd-encounter-workspace-grid"
     >
-      <OpdEncounterTabs />
       <OpdEncounterAllergyBanner allergies={chartSummary?.allergies ?? []} />
-      {showVitalsStrip ? (
-        <OpdEncounterVitalsStatsStrip
-          observations={stripObservations}
-          isLoading={observations.isLoading && !chartSummary}
-        />
-      ) : null}
+      <OpdEncounterVitalsStatsStrip
+        observations={stripObservations}
+        isLoading={observations.isLoading && !chartSummary}
+      />
+      <OpdEncounterTabs />
 
-      {showOverviewLayout ? (
-        <DetailPageMainAsideGrid
-          className="min-h-0 flex-1"
-          data-testid="opd-overview-layout"
-        >
-          <DetailPageMainSection className="min-w-0 max-w-3xl py-6">
-            {children}
-          </DetailPageMainSection>
-          <OpdEncounterSummaryPanel customer={customer} />
-        </DetailPageMainAsideGrid>
-      ) : showHistoryLayout ? (
-        <DetailPageMainAsideGrid
-          className="min-h-0 flex-1"
-          data-testid="opd-physician-history-layout"
-        >
-          <DetailPageMainSection className="min-w-0 max-w-3xl">
-            {children}
-          </DetailPageMainSection>
-          <OpdClinicalHistoryPanel />
-        </DetailPageMainAsideGrid>
+      {isConsultLayout ? (
+        children
       ) : (
-        <DetailPageMainSection className="max-w-3xl">
-          {children}
-        </DetailPageMainSection>
+        <DetailPageMainSection className="max-w-3xl">{children}</DetailPageMainSection>
       )}
     </div>
   );

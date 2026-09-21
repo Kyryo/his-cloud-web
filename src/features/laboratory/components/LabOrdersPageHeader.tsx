@@ -1,6 +1,10 @@
 "use client";
 
-import { ListPageHeaderSection } from "@/features/app-shell/components/page-layout";
+import {
+  ListPageHeaderSection,
+  ListPageHeaderTitleBlock,
+  ListPageHeaderTopRow,
+} from "@/features/app-shell/components/page-layout";
 import { LabOrderListToolbar } from "@/features/laboratory/components/LabOrderListToolbar";
 import type { LabOrderListUrlState } from "@/features/laboratory/utils/lab-order-list-url";
 
@@ -25,15 +29,23 @@ export function LabOrdersPageHeader({
 }: LabOrdersPageHeaderProps) {
   return (
     <ListPageHeaderSection>
-      <LabOrderListToolbar
-        accession={accession}
-        filters={filters}
-        isLoading={isLoading}
-        onAccessionChange={onAccessionChange}
-        onAccessionSubmit={onAccessionSubmit}
-        onClearAccession={onClearAccession}
-        onFiltersApply={onFiltersApply}
-      />
+      <ListPageHeaderTopRow>
+        <ListPageHeaderTitleBlock
+          title="Laboratory orders"
+          description="Accession, collect specimens, and release results."
+        />
+      </ListPageHeaderTopRow>
+      <div className="mt-3">
+        <LabOrderListToolbar
+          accession={accession}
+          filters={filters}
+          isLoading={isLoading}
+          onAccessionChange={onAccessionChange}
+          onAccessionSubmit={onAccessionSubmit}
+          onClearAccession={onClearAccession}
+          onFiltersApply={onFiltersApply}
+        />
+      </div>
     </ListPageHeaderSection>
   );
 }

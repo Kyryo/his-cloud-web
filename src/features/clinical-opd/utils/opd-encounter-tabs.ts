@@ -16,66 +16,36 @@ export type OpdEncounterTabId =
   | "disposition"
   | "client";
 
-export type OpdEncounterTabGroupId =
-  | "overview"
-  | "nurse"
-  | "consult"
-  | "plan"
-  | "record";
+export type OpdEncounterTabGroupId = "nurse" | "consult" | "record";
+
+/**
+ * `tab` sections sit in the encounter tab bar. `menu` sections keep their route
+ * but are reached from the header overflow menu so the consult flow stays to
+ * five steps.
+ */
+export type OpdEncounterTabSurface = "tab" | "menu";
 
 export type OpdEncounterTab = {
   id: OpdEncounterTabId;
   label: string;
-  segment: string | null;
+  segment: string;
   group: OpdEncounterTabGroupId;
+  surface: OpdEncounterTabSurface;
   requiredCapability: ClinicalCapabilityKey | ClinicalCapabilityKey[] | null;
 };
 
-export const OPD_ENCOUNTER_TAB_GROUPS: Array<{
-  id: OpdEncounterTabGroupId;
-  label: string | null;
-}> = [
-  { id: "overview", label: null },
-  { id: "nurse", label: "Nurse" },
-  { id: "consult", label: "Consult" },
-  { id: "plan", label: "Plan" },
-  { id: "record", label: "Record" },
-];
-
+/**
+ * Consult flow first, in the order clinicians work: complaint → exam →
+ * orders → diagnosis → medication. Remaining sections stay reachable from
+ * the header menu.
+ */
 export const OPD_ENCOUNTER_TABS: OpdEncounterTab[] = [
   {
-    id: "overview",
-    label: "Chart",
-    segment: null,
-    group: "overview",
-    requiredCapability: null,
-  },
-  {
-    id: "vital-signs",
-    label: "Vitals",
-    segment: "vital-signs",
-    group: "nurse",
-    requiredCapability: "view_vital_signs_tab",
-  },
-  {
-    id: "nursing",
-    label: "Nursing",
-    segment: "nursing",
-    group: "nurse",
-    requiredCapability: "record_nursing_note",
-  },
-  {
-    id: "allergies",
-    label: "Allergies",
-    segment: "allergies",
-    group: "nurse",
-    requiredCapability: "record_allergy",
-  },
-  {
     id: "complaint",
-    label: "Chief complaint",
+    label: "Complaint & HPI",
     segment: "complaint",
     group: "consult",
+    surface: "tab",
     requiredCapability: ["record_chief_complaint", "record_hpi"],
   },
   {
@@ -83,48 +53,87 @@ export const OPD_ENCOUNTER_TABS: OpdEncounterTab[] = [
     label: "Exam",
     segment: "physical-examination",
     group: "consult",
+    surface: "tab",
     requiredCapability: "view_physical_examination_tab",
-  },
-  {
-    id: "notes",
-    label: "Notes",
-    segment: "notes",
-    group: "consult",
-    requiredCapability: "record_clinical_note",
-  },
-  {
-    id: "diagnoses",
-    label: "Diagnoses",
-    segment: "diagnoses",
-    group: "plan",
-    requiredCapability: "view_diagnoses_tab",
-  },
-  {
-    id: "problems",
-    label: "Problems",
-    segment: "problems",
-    group: "plan",
-    requiredCapability: "manage_problem_list",
-  },
-  {
-    id: "medications",
-    label: "Medications",
-    segment: "medications",
-    group: "plan",
-    requiredCapability: "view_medications_tab",
   },
   {
     id: "orders",
     label: "Orders",
     segment: "orders",
-    group: "plan",
+    group: "consult",
+    surface: "tab",
     requiredCapability: "view_orders_tab",
+  },
+  {
+    id: "diagnoses",
+    label: "Diagnosis",
+    segment: "diagnoses",
+    group: "consult",
+    surface: "tab",
+    requiredCapability: "view_diagnoses_tab",
+  },
+  {
+    id: "medications",
+    label: "Medication",
+    segment: "medications",
+    group: "consult",
+    surface: "tab",
+    requiredCapability: "view_medications_tab",
+  },
+  {
+    id: "vital-signs",
+    label: "Vitals",
+    segment: "vital-signs",
+    group: "nurse",
+    surface: "menu",
+    requiredCapability: "view_vital_signs_tab",
+  },
+  {
+    id: "nursing",
+    label: "Nursing",
+    segment: "nursing",
+    group: "nurse",
+    surface: "menu",
+    requiredCapability: "record_nursing_note",
+  },
+  {
+    id: "allergies",
+    label: "Allergies",
+    segment: "allergies",
+    group: "nurse",
+    surface: "menu",
+    requiredCapability: "record_allergy",
+  },
+  {
+    id: "overview",
+    label: "Chart summary",
+    segment: "chart",
+    group: "record",
+    surface: "menu",
+    requiredCapability: null,
+  },
+  {
+    id: "notes",
+    label: "Clinical notes",
+    segment: "notes",
+    group: "record",
+    surface: "menu",
+    requiredCapability: "record_clinical_note",
+  },
+  {
+    id: "problems",
+    label: "Problem list",
+    segment: "problems",
+    group: "record",
+    surface: "menu",
+    requiredCapability: "manage_problem_list",
   },
   {
     id: "disposition",
     label: "Disposition",
     segment: "disposition",
-    group: "plan",
+    group: "record",
+    surface: "menu",
     requiredCapability: "record_disposition",
   },
   {
@@ -132,6 +141,7 @@ export const OPD_ENCOUNTER_TABS: OpdEncounterTab[] = [
     label: "Activity",
     segment: "activity",
     group: "record",
+    surface: "menu",
     requiredCapability: "view_activity_tab",
   },
   {
@@ -139,13 +149,25 @@ export const OPD_ENCOUNTER_TABS: OpdEncounterTab[] = [
     label: "Client",
     segment: "client",
     group: "record",
+    surface: "menu",
     requiredCapability: "view_client_tab",
   },
 ];
 
-const TAB_SEGMENTS = new Set(
-  OPD_ENCOUNTER_TABS.flatMap((tab) => (tab.segment ? [tab.segment] : [])),
+const TABS_BY_SEGMENT = new Map(
+  OPD_ENCOUNTER_TABS.map((tab) => [tab.segment, tab]),
 );
+
+/** Sections laid out as form / content / previous-visit history columns. */
+const CONSULT_TAB_IDS = new Set<OpdEncounterTabId>(
+  OPD_ENCOUNTER_TABS.filter((tab) => tab.group === "consult").map(
+    (tab) => tab.id,
+  ),
+);
+
+export function isOpdConsultTab(tabId: OpdEncounterTabId): boolean {
+  return CONSULT_TAB_IDS.has(tabId);
+}
 
 export function opdEncounterLandingHref(
   visitUuid: string,
@@ -163,36 +185,34 @@ export function opdEncounterLandingHref(
 export function opdEncounterTabHref(
   visitUuid: string,
   encounterUuid: string,
-  tabId: OpdEncounterTabId = "overview",
+  tabId: OpdEncounterTabId,
 ): string {
   const tab = OPD_ENCOUNTER_TABS.find((item) => item.id === tabId);
-  if (!tab?.segment) {
+  if (!tab) {
     return `/clinical/opd/${visitUuid}/${encounterUuid}`;
   }
   return `/clinical/opd/${visitUuid}/${encounterUuid}/${tab.segment}`;
 }
 
+/**
+ * Returns `null` for the bare encounter URL, which redirects to the role's
+ * default tab rather than rendering a section of its own.
+ */
 export function opdEncounterTabFromPathname(
   pathname: string,
   visitUuid: string,
   encounterUuid: string,
-): OpdEncounterTabId {
+): OpdEncounterTabId | null {
   const prefix = `/clinical/opd/${visitUuid}/${encounterUuid}`;
   if (pathname !== prefix && !pathname.startsWith(`${prefix}/`)) {
-    return "overview";
+    return null;
   }
 
   const segment = pathname.slice(prefix.length).replace(/^\//, "").split("/")[0];
   if (!segment) {
-    return "overview";
+    return null;
   }
-
-  if (!TAB_SEGMENTS.has(segment)) {
-    return "overview";
-  }
-
-  const tab = OPD_ENCOUNTER_TABS.find((item) => item.segment === segment);
-  return tab?.id ?? "overview";
+  return TABS_BY_SEGMENT.get(segment)?.id ?? null;
 }
 
 function tabIsVisible(tab: OpdEncounterTab, capabilities: string[]) {
@@ -207,27 +227,33 @@ function tabIsVisible(tab: OpdEncounterTab, capabilities: string[]) {
   return capabilities.includes(tab.requiredCapability);
 }
 
-export function getVisibleOpdEncounterTabs(capabilities: string[]) {
+/** Every section the user may open, including header-menu ones. */
+export function getVisibleOpdEncounterSections(capabilities: string[]) {
   return OPD_ENCOUNTER_TABS.filter((tab) => tabIsVisible(tab, capabilities));
 }
 
-export function getVisibleOpdEncounterTabGroups(capabilities: string[]) {
-  const visibleTabs = getVisibleOpdEncounterTabs(capabilities);
-  return OPD_ENCOUNTER_TAB_GROUPS.flatMap((group) => {
-    const tabs = visibleTabs.filter((tab) => tab.group === group.id);
-    if (tabs.length === 0) {
-      return [];
-    }
-    return [{ ...group, tabs }];
-  });
+/** Sections rendered in the tab bar. */
+export function getVisibleOpdEncounterTabs(capabilities: string[]) {
+  return getVisibleOpdEncounterSections(capabilities).filter(
+    (tab) => tab.surface === "tab",
+  );
+}
+
+/** Sections rendered in the header overflow menu. */
+export function getVisibleOpdEncounterMenuSections(capabilities: string[]) {
+  return getVisibleOpdEncounterSections(capabilities).filter(
+    (tab) => tab.surface === "menu",
+  );
 }
 
 export function getDefaultOpdEncounterTab(
   capabilities: string[],
   userRole?: string | null,
 ): OpdEncounterTabId {
+  const visibleSections = getVisibleOpdEncounterSections(capabilities);
   const visibleTabs = getVisibleOpdEncounterTabs(capabilities);
-  if (visibleTabs.length === 0) {
+
+  if (visibleSections.length === 0) {
     return "overview";
   }
 
@@ -236,15 +262,14 @@ export function getDefaultOpdEncounterTab(
     physician: "complaint",
   };
   const preferredTab = userRole ? preferredTabByRole[userRole] : undefined;
-  if (preferredTab && visibleTabs.some((tab) => tab.id === preferredTab)) {
+  if (
+    preferredTab &&
+    visibleSections.some((section) => section.id === preferredTab)
+  ) {
     return preferredTab;
   }
 
-  if (visibleTabs.some((tab) => tab.id === "overview")) {
-    return "overview";
-  }
-
-  return visibleTabs[0].id;
+  return visibleTabs[0]?.id ?? visibleSections[0].id;
 }
 
 export function hasClinicalCapability(

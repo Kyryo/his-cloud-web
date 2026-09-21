@@ -19,6 +19,9 @@ vi.mock(
         "view_activity_tab",
         "view_physical_examination_tab",
         "view_orders_tab",
+        "record_chief_complaint",
+        "view_diagnoses_tab",
+        "view_medications_tab",
       ],
       chartSummary: null,
       isChartLocked: false,
@@ -47,47 +50,31 @@ vi.mock("@/features/clinical-opd/hooks/use-clinical-opd", () => ({
   useOpdEncounterTabCounts: () => ({ orders: 2 }),
 }));
 
-vi.mock(
-  "@/features/clinical-opd/components/detail/OpdClinicalHistoryPanel",
-  () => ({
-    OpdClinicalHistoryPanel: () => (
-      <aside data-testid="opd-clinical-history-panel" />
-    ),
-  }),
-);
-
-vi.mock(
-  "@/features/clinical-opd/components/detail/OpdEncounterSummaryPanel",
-  () => ({
-    OpdEncounterSummaryPanel: () => (
-      <aside data-testid="opd-encounter-summary-panel" />
-    ),
-  }),
-);
-
 afterEach(() => {
   cleanup();
   route.pathname = "/clinical/opd/visit-1/enc-1";
 });
 
 describe("OpdEncounterWorkspaceBody", () => {
-  it("uses the overview layout on the landing tab", () => {
+  it("shows vitals and the five consult tabs after the header strip", () => {
     render(
       <OpdEncounterWorkspaceBody>
         <p>Overview</p>
       </OpdEncounterWorkspaceBody>,
     );
 
-    expect(screen.getByTestId("opd-overview-layout")).toBeInTheDocument();
-    expect(screen.getByTestId("opd-encounter-summary-panel")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Chart" })).toHaveAttribute(
+    expect(screen.getByTestId("opd-encounter-vitals-stats")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Complaint & HPI/ })).toHaveAttribute(
       "href",
-      "/clinical/opd/visit-1/enc-1",
+      "/clinical/opd/visit-1/enc-1/complaint",
     );
+    expect(screen.getByRole("link", { name: /Exam/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Orders/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Diagnosis/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Medication/ })).toBeInTheDocument();
     expect(screen.getByTestId("opd-encounter-tab-count-orders")).toHaveTextContent(
       "2",
     );
-    expect(screen.getByTestId("opd-encounter-vitals-stats")).toBeInTheDocument();
     expect(
       screen.queryByTestId("opd-physician-history-layout"),
     ).not.toBeInTheDocument();
@@ -110,7 +97,7 @@ describe("OpdEncounterWorkspaceBody", () => {
     );
   });
 
-  it("adds the previous-visit panel on clinical documentation tabs", () => {
+  it("lets consult tabs own the three-column layout", () => {
     route.pathname = "/clinical/opd/visit-1/enc-1/physical-examination";
 
     render(
@@ -120,7 +107,9 @@ describe("OpdEncounterWorkspaceBody", () => {
     );
 
     expect(screen.getByTestId("opd-encounter-vitals-stats")).toBeInTheDocument();
-    expect(screen.getByTestId("opd-physician-history-layout")).toBeInTheDocument();
-    expect(screen.getByTestId("opd-clinical-history-panel")).toBeInTheDocument();
+    expect(screen.getByText("Physical examination")).toBeInTheDocument();
+    expect(
+      screen.queryByTestId("opd-physician-history-layout"),
+    ).not.toBeInTheDocument();
   });
 });

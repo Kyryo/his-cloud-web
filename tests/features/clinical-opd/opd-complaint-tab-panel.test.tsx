@@ -13,6 +13,15 @@ vi.mock(
   }),
 );
 
+vi.mock(
+  "@/features/clinical-opd/components/detail/OpdClinicalHistoryPanel",
+  () => ({
+    OpdClinicalHistoryPanel: () => (
+      <aside data-testid="opd-clinical-history-panel" />
+    ),
+  }),
+);
+
 vi.mock("@/features/clinical-opd/hooks/use-clinical-opd", () => ({
   useChiefComplaints: () => ({
     data: [
@@ -45,11 +54,22 @@ afterEach(() => {
 });
 
 describe("OpdComplaintTabPanel", () => {
-  it("shows chief complaint and nested HPI", () => {
+  it("shows the form, this-encounter content, and history columns", () => {
     render(<OpdComplaintTabPanel visitUuid="visit-1" encounterUuid="enc-1" />);
+    expect(screen.getByTestId("opd-consult-layout")).toBeInTheDocument();
     expect(screen.getByTestId("opd-complaint-composer")).toBeInTheDocument();
     expect(screen.getByLabelText(/Chief complaint/i)).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Cough for 3 days")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("Dry cough, no fever.")).toBeInTheDocument();
+    expect(screen.getByTestId("opd-hpi-duration-value")).toBeInTheDocument();
+    expect(screen.getByTestId("opd-hpi-duration-unit")).toBeInTheDocument();
+    expect(screen.getByText("Cough for 3 days")).toBeInTheDocument();
+    expect(screen.getByText("Dry cough, no fever.")).toBeInTheDocument();
+    expect(screen.getByTestId("opd-clinical-history-panel")).toBeInTheDocument();
+  });
+
+  it("labels each column so the three zones stay identifiable while scrolling", () => {
+    render(<OpdComplaintTabPanel visitUuid="visit-1" encounterUuid="enc-1" />);
+
+    expect(screen.getByText("Record")).toBeInTheDocument();
+    expect(screen.getByText("This visit")).toBeInTheDocument();
   });
 });
