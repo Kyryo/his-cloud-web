@@ -1,12 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState, type MouseEvent } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { ClientAvatar } from "@/components/client-avatar";
 import { Button } from "@/components/ui/button";
+import {
+  OpdConsultContentPanel,
+  OpdConsultFormLocked,
+  OpdConsultFormPanel,
+  OpdConsultLayout,
+} from "@/features/clinical-opd/components/detail/OpdConsultLayout";
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
+import { OpdEncounterTabEmptyState } from "@/features/clinical-opd/components/detail/OpdEncounterTabEmptyState";
 import { OpdEncounterTabSkeleton } from "@/features/clinical-opd/components/detail/OpdEncounterTabSkeleton";
 import {
   useCreatePhysicalExam,
@@ -18,6 +25,8 @@ import type { EncounterPhysicalExam } from "@/features/clinical-opd/types/clinic
 import { TherapyRichTextEditor } from "@/features/therapy/components/TherapyRichTextEditor";
 import { isCustomerVisitActive } from "@/features/customers/utils/customer-visit-status";
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
+import { richTextToPlainText } from "@/features/clinical-opd/utils/rich-text";
+import { Stethoscope } from "lucide-react";
 import { useToast } from "@/providers/toast-provider";
 
 const PHYSICAL_EXAM_FORM_ID = "opd-physical-exam-form";
@@ -73,28 +82,45 @@ export function OpdPhysicalExaminationTabPanel({
     defaultValues: { section: "general", findings: "", system_code: "" },
   });
 
-  const findingsValue = examForm.watch("findings");
+  const findingsValue =
+    useWatch({ control: examForm.control, name: "findings" }) ?? "";
 
   useEffect(() => {
-    if (physicalExams.isLoading || hasHydratedRef.current || !customer) {
-      return;
+    let cancelled = false;
+
+    async function hydrate() {
+      await Promise.resolve();
+      if (
+        cancelled ||
+        physicalExams.isLoading ||
+        hasHydratedRef.current ||
+        !customer
+      ) {
+        return;
+      }
+
+      const latestExam = physicalExams.data?.[0];
+      if (latestExam) {
+        examForm.reset(toFormValues(latestExam));
+        setExamUuid(latestExam.uuid);
+        setLastSaved(toLastSaved(latestExam));
+        setIsEditing(false);
+      } else if (canModify) {
+        setExamUuid(null);
+        setIsEditing(true);
+      } else {
+        setExamUuid(null);
+        setIsEditing(false);
+      }
+
+      hasHydratedRef.current = true;
     }
 
-    const latestExam = physicalExams.data?.[0];
-    if (latestExam) {
-      examForm.reset(toFormValues(latestExam));
-      setExamUuid(latestExam.uuid);
-      setLastSaved(toLastSaved(latestExam));
-      setIsEditing(false);
-    } else if (canModify) {
-      setExamUuid(null);
-      setIsEditing(true);
-    } else {
-      setExamUuid(null);
-      setIsEditing(false);
-    }
+    void hydrate();
 
-    hasHydratedRef.current = true;
+    return () => {
+      cancelled = true;
+    };
   }, [canModify, customer, examForm, physicalExams.data, physicalExams.isLoading]);
 
   if (!isActive) {
@@ -149,23 +175,71 @@ export function OpdPhysicalExaminationTabPanel({
     setIsEditing(false);
   }
 
+  const latestExam = physicalExams.data?.[0] ?? null;
+  const savedFindings = latestExam
+    ? richTextToPlainText(latestExam.findings)
+    : "";
+
   return (
-    <PhysicalExaminationFormSection
-      title="Physical examination"
-      description="Document examination findings as the clinical review progresses."
-      findings={findingsValue}
-      isSaving={createPhysicalExam.isPending || updatePhysicalExam.isPending}
-      isEditing={isEditing}
-      canModify={canModify}
-      lastSaved={lastSaved}
-      editorFocusKey={editorFocusKey}
-      autoFocus={isEditing && !lastSaved}
-      onEdit={handleEdit}
-      onCancel={handleCancel}
-      onFindingsChange={(value) =>
-        examForm.setValue("findings", value, { shouldValidate: true })
+    <OpdConsultLayout
+      historySection="exam"
+      form={
+        <OpdConsultFormPanel
+          title="Examination"
+          description="Document findings as you examine the client."
+        >
+          {canModify || isEditing ? (
+            <PhysicalExaminationFormSection
+              title="Findings"
+              findings={findingsValue}
+              isSaving={
+                createPhysicalExam.isPending || updatePhysicalExam.isPending
+              }
+              isEditing={isEditing || !lastSaved}
+              canModify={canModify}
+              lastSaved={lastSaved}
+              editorFocusKey={editorFocusKey}
+              autoFocus={isEditing && !lastSaved}
+              onEdit={handleEdit}
+              onCancel={handleCancel}
+              onFindingsChange={(value) =>
+                examForm.setValue("findings", value, { shouldValidate: true })
+              }
+              onSubmit={examForm.handleSubmit((values) => void handleSave(values))}
+            />
+          ) : (
+            <OpdConsultFormLocked message="This chart is locked. Examination findings can still be reviewed on the right." />
+          )}
+        </OpdConsultFormPanel>
       }
-      onSubmit={examForm.handleSubmit((values) => void handleSave(values))}
+      content={
+        <OpdConsultContentPanel
+          title="This encounter"
+          data-testid="opd-physical-exam-form"
+        >
+          {savedFindings ? (
+            <article className="rounded-xl border border-dash-border/80 bg-white px-4 py-3.5 shadow-sm">
+              <p className="whitespace-pre-wrap text-sm leading-relaxed text-brand-slate">
+                {savedFindings}
+              </p>
+              {lastSaved ? (
+                <p className="mt-3 text-xs text-dash-muted">
+                  {formatDisplayDateTime(lastSaved.recorded_at)}
+                  {lastSaved.recorded_by_name
+                    ? ` · ${lastSaved.recorded_by_name}`
+                    : ""}
+                </p>
+              ) : null}
+            </article>
+          ) : (
+            <OpdEncounterTabEmptyState
+              icon={Stethoscope}
+              title="No examination yet"
+              description="Save findings on the left. They will appear here for this visit."
+            />
+          )}
+        </OpdConsultContentPanel>
+      }
     />
   );
 }

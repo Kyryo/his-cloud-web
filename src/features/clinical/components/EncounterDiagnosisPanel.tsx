@@ -32,6 +32,7 @@ type EncounterDiagnosisPanelProps = {
   sourcePlatform?: EncounterDiagnosisSourcePlatform;
   onDiagnosesChanged?: () => void | Promise<void>;
   readOnly?: boolean;
+  hideAddButton?: boolean;
   className?: string;
 };
 
@@ -41,6 +42,7 @@ export function EncounterDiagnosisPanel({
   sourcePlatform = "CLINICAL",
   onDiagnosesChanged,
   readOnly = false,
+  hideAddButton = false,
   className,
 }: EncounterDiagnosisPanelProps) {
   const { toast } = useToast();
@@ -170,7 +172,7 @@ export function EncounterDiagnosisPanel({
           <Stethoscope className="size-4 text-brand-muted" aria-hidden="true" />
           <h3 className="text-sm font-medium text-brand-navy">Encounter diagnoses</h3>
         </div>
-        {readOnly ? null : (
+        {readOnly || hideAddButton ? null : (
           <PrimaryButton type="button" onClick={() => setAddDialogOpen(true)}>
             <Plus className="size-4" aria-hidden="true" />
             Add diagnosis
@@ -188,7 +190,7 @@ export function EncounterDiagnosisPanel({
           {diagnoses.map((diagnosis) => (
             <li
               key={diagnosis.uuid}
-              className="flex items-start justify-between gap-3 rounded-lg border border-brand-border bg-white px-3 py-2"
+              className="flex items-start justify-between gap-3 rounded-xl border border-dash-border/80 bg-white px-4 py-3.5 shadow-sm"
             >
               <div className="min-w-0">
                 <p className="font-mono text-sm font-medium text-brand-navy">

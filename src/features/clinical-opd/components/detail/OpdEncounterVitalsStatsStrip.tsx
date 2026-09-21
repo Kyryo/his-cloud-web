@@ -46,7 +46,10 @@ export function OpdEncounterVitalsStatsStrip({
 
   return (
     <section
-      className={cn("px-4 py-3 sm:px-6", className)}
+      className={cn(
+        "border-b border-dash-border/70 bg-white px-4 py-2.5 sm:px-6",
+        className,
+      )}
       aria-label="Latest vital signs"
       data-testid="opd-encounter-vitals-stats"
     >
