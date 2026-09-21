@@ -315,7 +315,144 @@ export function formatCustomerActivityCopy(encounter: CustomerEncounter): {
           encounter.summary?.trim() ||
           "An update was received from the payer portal.",
       };
+    case "VITALS_RECORDED":
+      return {
+        title: "Vitals recorded",
+        summary: "Vital signs were recorded for this client.",
+      };
+    case "NURSING_NOTE_ADDED":
+      return {
+        title: "Nursing note added",
+        summary: "A nursing note was added to the clinical chart.",
+      };
+    case "NURSING_NOTE_AMENDED":
+      return {
+        title: "Nursing note amended",
+        summary: "A nursing note was amended on the clinical chart.",
+      };
+    case "CLINICAL_NOTE_ADDED":
+      return {
+        title: "Clinical note added",
+        summary: "A clinical note was added to the chart.",
+      };
+    case "CLINICAL_NOTE_AMENDED":
+      return {
+        title: "Clinical note amended",
+        summary: "A clinical note was amended on the chart.",
+      };
+    case "DISPOSITION_RECORDED":
+      return {
+        title: "Disposition recorded",
+        summary: "An encounter disposition was recorded.",
+      };
+    case "PROBLEM_ADDED":
+      return {
+        title: "Problem added",
+        summary: "A problem was added to the problem list.",
+      };
+    case "PROBLEM_UPDATED":
+      return {
+        title: "Problem updated",
+        summary: "A problem on the problem list was updated.",
+      };
+    case "CURRENT_MEDICATION_ADDED":
+      return {
+        title: "Current medication added",
+        summary: "A current medication was recorded for this client.",
+      };
+    case "CURRENT_MEDICATION_STOPPED":
+      return {
+        title: "Current medication stopped",
+        summary: "A current medication was marked as stopped.",
+      };
+    case "ALLERGY_RECORDED":
+      return {
+        title: "Allergy recorded",
+        summary: "An allergy was recorded for this client.",
+      };
+    case "PHYSICAL_EXAM_RECORDED":
+      return {
+        title: "Physical exam recorded",
+        summary: "A physical exam was recorded on the chart.",
+      };
+    case "CHIEF_COMPLAINT_ADDED":
+      return {
+        title: "Chief complaint added",
+        summary: "A chief complaint was added to the encounter.",
+      };
+    case "CHIEF_COMPLAINT_UPDATED":
+      return {
+        title: "Chief complaint updated",
+        summary: "A chief complaint was updated on the encounter.",
+      };
+    case "CHIEF_COMPLAINT_REMOVED":
+      return {
+        title: "Chief complaint removed",
+        summary: "A chief complaint was removed from the encounter.",
+      };
+    case "HPI_RECORDED":
+      return {
+        title: "History of present illness recorded",
+        summary: "History of present illness was recorded on the chart.",
+      };
+    case "HPI_UPDATED":
+      return {
+        title: "History of present illness updated",
+        summary: "History of present illness was updated on the chart.",
+      };
+    case "HPI_REMOVED":
+      return {
+        title: "History of present illness removed",
+        summary: "History of present illness was removed from the chart.",
+      };
+    case "CLINICAL_ORDER_PLACED":
+      return clinicalOrderCopy(details, "placed");
+    case "CLINICAL_ORDER_CANCELLED":
+      return clinicalOrderCopy(details, "cancelled");
+    case "PRESCRIPTION_ISSUED":
+      return {
+        title: "Prescription issued",
+        summary: "A prescription was issued for this client.",
+      };
+    case "PRESCRIPTION_CANCELLED":
+      return {
+        title: "Prescription cancelled",
+        summary: "A prescription was cancelled for this client.",
+      };
+    case "BILLING_MODE_CHANGED":
+      return {
+        title: "Encounter billing mode changed",
+        summary: "The billing mode for an encounter was changed.",
+      };
+    case "ENCOUNTER_COMPLETED":
+      return {
+        title: "Encounter completed",
+        summary: "A clinical encounter was marked complete.",
+      };
+    case "RELATIONSHIP_ADDED":
+      return {
+        title: "Family relationship added",
+        summary: "A family relationship was linked to this client.",
+      };
+    case "RELATIONSHIP_UPDATED":
+      return {
+        title: "Family relationship updated",
+        summary: "A family relationship for this client was changed.",
+      };
+    case "RELATIONSHIP_ARCHIVED":
+      return {
+        title: "Family relationship removed",
+        summary: "A family relationship was archived for this client.",
+      };
     default: {
+      // Clinical / OPD activity may include PHI in summary — keep generic.
+      if (isClinicalPrivacyAction(encounter.action)) {
+        return {
+          title:
+            encounter.action_display?.trim() || "Clinical activity recorded",
+          summary: "A clinical event was recorded for this client.",
+        };
+      }
       const title =
         encounter.action_display?.trim() ||
         encounter.summary?.trim() ||
@@ -328,4 +465,77 @@ export function formatCustomerActivityCopy(encounter: CustomerEncounter): {
       return { title, summary };
     }
   }
+}
+
+function clinicalOrderCopy(
+  details: Record<string, unknown>,
+  verb: "placed" | "cancelled",
+): { title: string; summary: string } {
+  const itemType =
+    typeof details.item_type === "string" ? details.item_type : "";
+
+  if (itemType === "LABORATORY") {
+    return {
+      title: verb === "placed" ? "Lab order placed" : "Lab order cancelled",
+      summary:
+        verb === "placed"
+          ? "A lab order was placed for this client."
+          : "A lab order was cancelled for this client.",
+    };
+  }
+  if (itemType === "RADIOLOGY") {
+    return {
+      title:
+        verb === "placed"
+          ? "Radiology order placed"
+          : "Radiology order cancelled",
+      summary:
+        verb === "placed"
+          ? "A radiology order was placed for this client."
+          : "A radiology order was cancelled for this client.",
+    };
+  }
+  if (itemType === "PROCEDURE") {
+    return {
+      title:
+        verb === "placed"
+          ? "Procedure order placed"
+          : "Procedure order cancelled",
+      summary:
+        verb === "placed"
+          ? "A procedure order was placed for this client."
+          : "A procedure order was cancelled for this client.",
+    };
+  }
+
+  return {
+    title:
+      verb === "placed" ? "Clinical order placed" : "Clinical order cancelled",
+    summary:
+      verb === "placed"
+        ? "A clinical order was placed for this client."
+        : "A clinical order was cancelled for this client.",
+  };
+}
+
+const CLINICAL_PRIVACY_ACTION_PREFIXES = [
+  "CLINICAL_",
+  "NURSING_",
+  "HPI_",
+  "CHIEF_COMPLAINT_",
+  "PHYSICAL_EXAM_",
+  "PRESCRIPTION_",
+  "PROBLEM_",
+  "ALLERGY_",
+  "CURRENT_MEDICATION_",
+  "VITALS_",
+  "DISPOSITION_",
+  "ENCOUNTER_",
+  "BILLING_MODE_",
+] as const;
+
+function isClinicalPrivacyAction(action: string): boolean {
+  return CLINICAL_PRIVACY_ACTION_PREFIXES.some((prefix) =>
+    action.startsWith(prefix),
+  );
 }

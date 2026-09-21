@@ -14,6 +14,7 @@ import {
 } from "@/features/app-shell/components/page-layout";
 import { isInsuranceInvoice } from "@/features/claims/services/claims.service";
 import { InvoiceClaimsTab } from "@/features/invoices/components/detail/InvoiceClaimsTab";
+import { InvoiceDetailAttachmentsTab } from "@/features/invoices/components/detail/InvoiceDetailAttachmentsTab";
 import { InvoiceDetailClientTab } from "@/features/invoices/components/detail/InvoiceDetailClientTab";
 import { InvoiceDetailLinesTab } from "@/features/invoices/components/detail/InvoiceDetailLinesTab";
 import { InvoiceDetailPaymentsTab } from "@/features/invoices/components/detail/InvoiceDetailPaymentsTab";
@@ -123,6 +124,10 @@ export function InvoiceDetailTabs({
             invoice={invoice}
             isActive={activeTab === "diagnoses"}
             onInvoiceRefresh={onInvoiceRefresh}
+          />
+          <InvoiceDetailAttachmentsTab
+            invoiceId={invoice.id}
+            isActive={activeTab === "attachments"}
           />
           <InvoiceDetailActivityTab
             invoice={invoice}

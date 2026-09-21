@@ -31,7 +31,7 @@ describe("ModulesSettingsPage", () => {
     expect(screen.queryByRole("link", { name: /Inventory/ })).not.toBeInTheDocument();
   });
 
-  it("lists configurable modules as links and upcoming modules as text", () => {
+  it("lists every module as a navigable settings link", () => {
     useUser.mockReturnValue({
       userData: { is_admin: true },
       isLoading: false,
@@ -39,8 +39,8 @@ describe("ModulesSettingsPage", () => {
 
     render(<ModulesSettingsPage />);
 
-    expect(screen.getByRole("heading", { name: "Configurable" })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: "Coming soon" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Operational modules" })).toBeInTheDocument();
+    expect(screen.queryByText("Coming soon")).not.toBeInTheDocument();
 
     expect(screen.getByRole("link", { name: /Inventory/ })).toHaveAttribute(
       "href",
@@ -50,10 +50,17 @@ describe("ModulesSettingsPage", () => {
       "href",
       ROUTES.settingsModulePharmacy,
     );
-
-    expect(screen.getByText("Front Desk")).toBeInTheDocument();
-    expect(screen.getByText("Billing")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /Front Desk/ })).not.toBeInTheDocument();
-    expect(screen.getAllByText("Coming soon").length).toBeGreaterThan(1);
+    expect(screen.getByRole("link", { name: /Laboratory/ })).toHaveAttribute(
+      "href",
+      ROUTES.settingsModuleLaboratory,
+    );
+    expect(screen.getByRole("link", { name: /Front Desk/ })).toHaveAttribute(
+      "href",
+      ROUTES.settingsModule("registration"),
+    );
+    expect(screen.getByRole("link", { name: /Billing/ })).toHaveAttribute(
+      "href",
+      ROUTES.settingsModule("billing"),
+    );
   });
 });

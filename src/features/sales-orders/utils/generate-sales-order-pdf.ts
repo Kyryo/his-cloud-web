@@ -104,7 +104,9 @@ function drawStatusBadge(
   doc.text(label, x - badgeWidth + 4, y);
 }
 
-export async function downloadSalesOrderPdf(order: SalesOrder): Promise<void> {
+export async function generateSalesOrderPdf(
+  order: SalesOrder,
+): Promise<{ bytes: ArrayBuffer; filename: string }> {
   const [{ jsPDF }, autoTableModule, branding] = await Promise.all([
     import("jspdf"),
     import("jspdf-autotable"),
@@ -398,7 +400,17 @@ export async function downloadSalesOrderPdf(order: SalesOrder): Promise<void> {
   doc.setTextColor(...colors.secondary);
   doc.text("Sales order", pageWidth - margin, footerY, { align: "right" });
 
-  doc.save(buildDocumentName(order));
+  const filename = buildDocumentName(order);
+  return {
+    bytes: doc.output("arraybuffer") as ArrayBuffer,
+    filename,
+  };
+}
+
+export async function downloadSalesOrderPdf(order: SalesOrder): Promise<void> {
+  const { bytes, filename } = await generateSalesOrderPdf(order);
+  const { downloadPdfBytes } = await import("@/lib/pdf-merge");
+  downloadPdfBytes(new Uint8Array(bytes), filename);
 }
 
 export { buildDocumentName as buildSalesOrderPdfFilename };

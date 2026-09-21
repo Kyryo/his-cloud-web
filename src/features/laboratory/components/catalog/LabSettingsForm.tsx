@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { useForm, type UseFormReturn } from "react-hook-form";
 
 import { PrimaryButton } from "@/components/ui/app-buttons";
@@ -31,6 +31,8 @@ import {
 import type { LabTenantSettings } from "@/features/laboratory/types/laboratory-catalog.types";
 import { isLabCatalogAccessDeniedMessage } from "@/features/laboratory/utils/catalog-form-utils";
 import { toLabSettingsPayload } from "@/features/laboratory/utils/catalog-payloads";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
+import { SettingsSection } from "@/features/settings/components/SettingsPageLayout";
 import { BffError } from "@/lib/bff-client";
 import {
   formatBffErrorMessage,
@@ -53,6 +55,8 @@ function toFormValues(settings: LabTenantSettings): LabSettingsFormValues {
 }
 
 type LabSettingsFormProps = {
+  /** Use settings chrome (default) or legacy catalog padding. */
+  variant?: "settings" | "catalog";
   onLoaded?: (settings: LabTenantSettings) => void;
 };
 
@@ -65,28 +69,6 @@ type ToggleField = {
   label: string;
   description: string;
 };
-
-function SettingsSection({
-  title,
-  description,
-  children,
-}: {
-  title: string;
-  description?: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="space-y-5 border-t border-dash-border/80 py-8 first:border-t-0 first:pt-2">
-      <div className="space-y-1">
-        <h3 className="text-sm font-semibold text-brand-navy">{title}</h3>
-        {description ? (
-          <p className="text-[13px] text-dash-muted">{description}</p>
-        ) : null}
-      </div>
-      {children}
-    </section>
-  );
-}
 
 function SettingsToggleRow({
   form,
@@ -107,7 +89,7 @@ function SettingsToggleRow({
             <FormLabel className="text-sm font-medium text-brand-navy">
               {field.label}
             </FormLabel>
-            <FormDescription className="text-sm text-dash-muted">
+            <FormDescription className="text-sm text-slate-400">
               {field.description}
             </FormDescription>
           </div>
@@ -124,7 +106,10 @@ function SettingsToggleRow({
   );
 }
 
-export function LabSettingsForm({ onLoaded }: LabSettingsFormProps) {
+export function LabSettingsForm({
+  variant = "settings",
+  onLoaded,
+}: LabSettingsFormProps) {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isUnauthorized, setIsUnauthorized] = useState(false);
@@ -221,9 +206,11 @@ export function LabSettingsForm({ onLoaded }: LabSettingsFormProps) {
   }
 
   if (isLoading) {
-    return (
+    return variant === "settings" ? (
+      <SettingsContentSkeleton />
+    ) : (
       <p
-        className="px-4 py-8 text-sm text-dash-muted sm:px-6"
+        className="px-4 py-8 text-sm text-slate-400 sm:px-6"
         data-testid="lab-settings-loading"
       >
         Loading laboratory settings…
@@ -233,7 +220,14 @@ export function LabSettingsForm({ onLoaded }: LabSettingsFormProps) {
 
   if (loadError) {
     return (
-      <p className="px-4 py-8 text-sm text-red-600 sm:px-6">{loadError}</p>
+      <p
+        className={cn(
+          "py-8 text-sm text-red-600",
+          variant === "catalog" && "px-4 sm:px-6",
+        )}
+      >
+        {loadError}
+      </p>
     );
   }
 
@@ -242,15 +236,16 @@ export function LabSettingsForm({ onLoaded }: LabSettingsFormProps) {
   return (
     <Form {...form}>
       <form
-        className="px-4 pb-8 sm:px-6"
+        className={cn(variant === "catalog" && "px-4 pb-8 sm:px-6")}
         data-testid="lab-settings-form"
         onSubmit={form.handleSubmit(handleSubmit)}
       >
         <SettingsSection
           title="Workflow"
           description="Defaults that apply when specimens are collected and results are released."
+          flush
         >
-          <div className="divide-y divide-dash-border/70">
+          <div className="divide-y divide-brand-border">
             <SettingsToggleRow
               form={form}
               disabled={isSubmitting}
@@ -267,7 +262,8 @@ export function LabSettingsForm({ onLoaded }: LabSettingsFormProps) {
               field={{
                 name: "require_verify_before_release",
                 label: "Require verify before release",
-                description: "Results must be verified before they are released.",
+                description:
+                  "Results must be verified before they are released.",
               }}
             />
             <SettingsToggleRow
@@ -320,8 +316,9 @@ export function LabSettingsForm({ onLoaded }: LabSettingsFormProps) {
         <SettingsSection
           title="Analyzer ingest"
           description="Allow instruments to post results for this tenant."
+          flush
         >
-          <div className="divide-y divide-dash-border/70">
+          <div className="divide-y divide-brand-border">
             <SettingsToggleRow
               form={form}
               disabled={isSubmitting}
@@ -337,7 +334,7 @@ export function LabSettingsForm({ onLoaded }: LabSettingsFormProps) {
             control={form.control}
             name="analyzer_shared_secret_hash"
             render={({ field }) => (
-              <FormItem className="pt-2">
+              <FormItem className="pt-5">
                 <FormLabel>Shared secret</FormLabel>
                 <FormControl>
                   <Input
@@ -385,7 +382,7 @@ export function LabSettingsForm({ onLoaded }: LabSettingsFormProps) {
           />
         </SettingsSection>
 
-        <div className="flex justify-end border-t border-dash-border/80 pt-6">
+        <div className="flex justify-end border-t border-brand-border pt-6">
           <PrimaryButton type="submit" disabled={isSubmitting}>
             {isSubmitting ? (
               <>

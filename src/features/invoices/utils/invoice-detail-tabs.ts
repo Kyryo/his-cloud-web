@@ -6,6 +6,7 @@ export const INVOICE_DETAIL_TAB_IDS = [
   "claim",
   "payments",
   "diagnoses",
+  "attachments",
   "activity",
 ] as const;
 
@@ -23,5 +24,6 @@ export const INVOICE_DETAIL_TABS: InvoiceDetailTab[] = [
   { id: "claim", label: "Claim", icon: "shield" },
   { id: "payments", label: "Payments", icon: "wallet" },
   { id: "diagnoses", label: "Diagnoses", icon: "stethoscope" },
+  { id: "attachments", label: "Attachments", icon: "file" },
   { id: "activity", label: "Activity", icon: "activity" },
 ];

@@ -17,4 +17,6 @@ export const SALES_ORDERS_API_PATHS = {
   reprice: (orderId: number | string) => `/sales-orders/${orderId}/reprice/`,
   paymentSplit: (orderId: number | string) =>
     `/sales-orders/${orderId}/payment-split/`,
+  attachments: (orderId: number | string) =>
+    `/sales-orders/${orderId}/attachments/`,
 } as const;

@@ -1,6 +1,6 @@
 export type InsightsPeriod = "day" | "week" | "month";
 
-export type InsightsPaymentMode = "cash" | "insurance";
+export type InsightsPaymentMode = "cash" | "insurance" | "free";
 
 export type InsightsFilters = {
   dateFrom: string;

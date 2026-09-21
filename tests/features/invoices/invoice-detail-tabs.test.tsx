@@ -29,6 +29,10 @@ vi.mock("@/features/invoices/components/detail/InvoiceDetailActivityTab", () => 
   InvoiceDetailActivityTab: () => null,
 }));
 
+vi.mock("@/features/invoices/components/detail/InvoiceDetailAttachmentsTab", () => ({
+  InvoiceDetailAttachmentsTab: () => null,
+}));
+
 vi.mock("@/features/invoices/components/detail/InvoiceSummaryPanel", () => ({
   InvoiceSummaryPanel: () => null,
 }));
@@ -49,6 +53,7 @@ describe("invoice detail tabs", () => {
       "shield",
       "wallet",
       "stethoscope",
+      "file",
       "activity",
     ]);
   });
@@ -61,6 +66,7 @@ describe("invoice detail tabs", () => {
     expect(screen.getByRole("button", { name: "Client" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Payments" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Diagnoses" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Attachments" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Activity" })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Claim/ })).not.toBeInTheDocument();
   });

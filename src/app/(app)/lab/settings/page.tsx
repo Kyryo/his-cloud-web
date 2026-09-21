@@ -1,12 +1,7 @@
-import { Suspense } from "react";
+import { redirect } from "next/navigation";
 
-import { PageLoader } from "@/components/page-loader";
-import { LabSettingsPage } from "@/features/laboratory/pages/LabSettingsPage";
+import { ROUTES } from "@/constants/routes";
 
 export default function Page() {
-  return (
-    <Suspense fallback={<PageLoader message="Loading laboratory settings..." />}>
-      <LabSettingsPage />
-    </Suspense>
-  );
+  redirect(ROUTES.settingsModuleLaboratory);
 }

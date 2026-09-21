@@ -44,4 +44,25 @@ describe("edit-visit-payment.schema", () => {
       insurance_scheme: null,
     });
   });
+
+  it("allows free without insurance scheme", () => {
+    const result = editVisitPaymentSchema.safeParse({
+      mode_of_payment: "free",
+      insurance_scheme: "",
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("clears insurance scheme in update payload for free", () => {
+    const payload = toUpdateVisitPaymentModePayload({
+      mode_of_payment: "free",
+      insurance_scheme: "00000000-0000-0000-0000-000000000001",
+    });
+
+    expect(payload).toEqual({
+      mode_of_payment: "free",
+      insurance_scheme: null,
+    });
+  });
 });

@@ -22,6 +22,8 @@ function StartVisitFormHarness({
   department = "dept-1",
   step = "visit",
   onStepChange = vi.fn(),
+  attachmentFile = null,
+  onAttachmentFileChange = vi.fn(),
 }: {
   insuranceSchemes?: Array<{
     uuid: string;
@@ -31,6 +33,8 @@ function StartVisitFormHarness({
   department?: string;
   step?: StartVisitStep;
   onStepChange?: (step: StartVisitStep) => void;
+  attachmentFile?: File | null;
+  onAttachmentFileChange?: (file: File | null) => void;
 }) {
   const form = useForm<StartVisitFormValues>({
     defaultValues: createStartVisitDefaultValues({
@@ -97,6 +101,8 @@ function StartVisitFormHarness({
         consultationServiceSearch=""
         onConsultationServiceSearchChange={vi.fn()}
         selectedClinicId={1}
+        attachmentFile={attachmentFile}
+        onAttachmentFileChange={onAttachmentFileChange}
       />
     </Form>
   );
@@ -108,6 +114,7 @@ describe("StartVisitFormFields", () => {
 
     expect(screen.getByRole("button", { name: "Visit" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Payment" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Attachments" })).toBeInTheDocument();
     expect(screen.getByText("Department")).toBeInTheDocument();
     expect(screen.getByText("City Clinic")).toBeInTheDocument();
     expect(screen.getByText("Arrived")).toBeInTheDocument();
@@ -147,7 +154,7 @@ describe("StartVisitFormFields", () => {
 
     fireEvent.click(screen.getByRole("radio", { name: /Insurance/i }));
 
-    expect(screen.getByText("Scheme")).toBeInTheDocument();
+    expect(screen.getByText("Scheme or company details")).toBeInTheDocument();
     expect(screen.getByText("Pre-authorization required")).toBeInTheDocument();
     expect(
       screen.getByRole("switch", { name: "Requires pre-authorization" }),
@@ -159,7 +166,7 @@ describe("StartVisitFormFields", () => {
 
     fireEvent.click(screen.getByRole("radio", { name: /Insurance/i }));
 
-    expect(screen.queryByText("Scheme")).not.toBeInTheDocument();
+    expect(screen.queryByText("Scheme or company details")).not.toBeInTheDocument();
     expect(
       screen.queryByText("Pre-authorization required"),
     ).not.toBeInTheDocument();
@@ -170,5 +177,12 @@ describe("StartVisitFormFields", () => {
       "href",
       "/customers/b6b3954f-9f77-4c19-a087-fe91fd302a8a/insurance",
     );
+  });
+
+  it("shows the optional attachment dropzone on the attachments step", () => {
+    render(<StartVisitFormHarness step="attachments" />);
+
+    expect(screen.getByTestId("visit-attachment-dropzone")).toBeInTheDocument();
+    expect(screen.getByText(/PDF only/i)).toBeInTheDocument();
   });
 });

@@ -2,11 +2,12 @@ import type {
   OpdQueueEncounter,
   OpdQueueStage,
 } from "@/features/clinical-opd/types/clinical-opd.types";
+import { formatAge } from "@/lib/age";
 
 export const OPD_QUEUE_STAGE_LABELS: Record<OpdQueueStage, string> = {
   registered: "Registered",
   triaged: "Ready",
-  with_clinician: "With clinician",
+  with_clinician: "With doctor",
   completed: "Completed",
   cancelled: "Cancelled",
 };
@@ -104,13 +105,54 @@ export function resolveOpdQueueStage(
 }
 
 export function formatWaitingMinutes(minutes: number | null | undefined) {
-  if (typeof minutes !== "number" || Number.isNaN(minutes)) {
+  if (typeof minutes !== "number" || Number.isNaN(minutes) || minutes < 0) {
     return "—";
   }
-  if (minutes < 1) {
+
+  const total = Math.floor(minutes);
+  if (total < 1) {
     return "<1 min";
   }
-  return `${minutes} min`;
+  if (total < 60) {
+    return `${total} min`;
+  }
+
+  const hours = Math.floor(total / 60);
+  if (hours < 24) {
+    const mins = total % 60;
+    if (mins === 0) {
+      return hours === 1 ? "1 hr" : `${hours} hr`;
+    }
+    return hours === 1 ? `1 hr ${mins} min` : `${hours} hr ${mins} min`;
+  }
+
+  const days = Math.floor(hours / 24);
+  if (days < 30) {
+    return days === 1 ? "1 day" : `${days} days`;
+  }
+
+  const months = Math.floor(days / 30);
+  if (months < 12) {
+    return months === 1 ? "1 mo" : `${months} mo`;
+  }
+
+  const years = Math.floor(months / 12);
+  return years === 1 ? "1 yr" : `${years} yr`;
+}
+
+/** Secondary client line: ID · age · gender (lab-style middle-dot dividers). */
+export function formatOpdQueueClientMeta(
+  encounter: Pick<
+    OpdQueueEncounter,
+    "customer_identifier" | "customer_dob" | "customer_gender"
+  >,
+): string {
+  const identifier = encounter.customer_identifier?.trim() || null;
+  const ageLabel = formatAge(encounter.customer_dob);
+  const age = ageLabel !== "—" ? ageLabel : null;
+  const gender = encounter.customer_gender?.trim() || null;
+
+  return [identifier, age, gender].filter(Boolean).join(" · ");
 }
 
 export function formatQueueVitalsSnapshot(

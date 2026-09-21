@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronDown } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { AppIcon } from "@/components/icons/app-icon";
 import { PageActionButton } from "@/components/ui/app-buttons";
@@ -21,6 +21,10 @@ import { AddClinicalOrderDialog } from "@/features/clinical-opd/components/tabs/
 import { useMyClinicalCapabilities } from "@/features/clinical-opd/hooks/use-clinical-opd";
 import { LabOrderStatusBadge } from "@/features/laboratory/components/LabOrderStatusBadge";
 import { LabOrderTestResultCard } from "@/features/laboratory/components/detail/LabOrderTestResultCard";
+import {
+  LabOrderedTestsViewToggle,
+  type LabOrderedTestsViewMode,
+} from "@/features/laboratory/components/detail/LabOrderedTestsViewToggle";
 import { useLabOrderDetailWorkspace } from "@/features/laboratory/components/detail/lab-order-detail-workspace-context";
 import type {
   LabOrderItem,
@@ -30,6 +34,11 @@ import {
   formatLabOrderPriorityLabel,
   formatLabOrderItemStatusLabel,
 } from "@/features/laboratory/utils/format-lab-order";
+import {
+  DEFAULT_LAB_ORDERED_TESTS_VIEW,
+  readLabOrderedTestsViewMode,
+  writeLabOrderedTestsViewMode,
+} from "@/features/laboratory/utils/lab-ordered-tests-view";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_ORDER_CAPABILITIES = ["order_laboratory"] as const;
@@ -70,14 +79,17 @@ function ProductOrderCard({
   product,
   items,
   defaultOpen,
+  viewMode,
   onSaved,
 }: {
   product: LabOrderedProduct;
   items: LabOrderItem[];
   defaultOpen: boolean;
+  viewMode: LabOrderedTestsViewMode;
   onSaved: () => void | Promise<void>;
 }) {
   const [open, setOpen] = useState(defaultOpen);
+  const isCards = viewMode === "cards";
   const productKey =
     product.visit_order_uuid ??
     `${product.product_uuid ?? "product"}-${product.product_name}`;
@@ -86,18 +98,33 @@ function ProductOrderCard({
     <Collapsible
       open={open}
       onOpenChange={setOpen}
-      className="border-t border-dash-border/80 first:border-t-0"
+      className={cn(
+        isCards
+          ? "overflow-hidden rounded-xl border border-dash-border/80 bg-white"
+          : "border-t border-dash-border/80 first:border-t-0",
+      )}
       data-testid={`lab-order-product-card-${productKey}`}
+      data-view={viewMode}
     >
       <CollapsibleTrigger
-        className="flex w-full items-center gap-3 py-3.5 text-left"
+        className={cn(
+          "flex w-full items-center gap-3 text-left",
+          isCards
+            ? "px-4 py-3.5 transition-colors hover:bg-slate-50/80"
+            : "py-3.5",
+        )}
         data-testid={`lab-order-product-toggle-${productKey}`}
       >
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-brand-navy">
             {product.product_name}
           </p>
-          <p className="mt-0.5 truncate text-xs text-dash-muted">
+          <p
+            className={cn(
+              "mt-0.5 truncate text-xs",
+              isCards ? "text-brand-muted" : "text-dash-muted",
+            )}
+          >
             {[
               product.product_code || null,
               product.panel_code ? `Panel ${product.panel_code}` : null,
@@ -114,24 +141,49 @@ function ProductOrderCard({
         </Badge>
         <ChevronDown
           className={cn(
-            "size-4 shrink-0 text-dash-muted transition-transform duration-200",
+            "size-4 shrink-0 transition-transform duration-200",
+            isCards ? "text-brand-muted" : "text-dash-muted",
             open && "rotate-180",
           )}
           aria-hidden="true"
         />
       </CollapsibleTrigger>
 
-      <CollapsibleContent>
+      <CollapsibleContent
+        className={cn(isCards && "border-t border-dash-border/70")}
+      >
         {items.length === 0 ? (
-          <p className="pb-4 text-sm text-dash-muted">
+          <p
+            className={cn(
+              "text-sm",
+              isCards
+                ? "bg-slate-50/40 px-4 py-4 text-brand-muted"
+                : "pb-4 text-dash-muted",
+            )}
+          >
             No expanded tests for this product yet.
           </p>
+        ) : isCards ? (
+          <div className="bg-slate-50/40 px-4 py-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              {items.map((item) => (
+                <LabOrderTestResultCard
+                  key={item.uuid}
+                  item={item}
+                  layout="card"
+                  enabled={open}
+                  onSaved={onSaved}
+                />
+              ))}
+            </div>
+          </div>
         ) : (
           <div className="pb-2">
             {items.map((item) => (
               <LabOrderTestResultCard
                 key={item.uuid}
                 item={item}
+                layout="list"
                 enabled={open}
                 onSaved={onSaved}
               />
@@ -147,6 +199,9 @@ export function LabOrderOverviewPanel() {
   const { order, onRefresh } = useLabOrderDetailWorkspace();
   const { data: capabilitiesData } = useMyClinicalCapabilities();
   const [addTestOpen, setAddTestOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<LabOrderedTestsViewMode>(
+    DEFAULT_LAB_ORDERED_TESTS_VIEW,
+  );
   const items = order.items;
   const orderedProducts = useMemo(
     () => order.ordered_products ?? [],
@@ -160,6 +215,10 @@ export function LabOrderOverviewPanel() {
   const capabilities =
     capabilitiesData?.capabilities ?? DEFAULT_ORDER_CAPABILITIES;
 
+  useEffect(() => {
+    setViewMode(readLabOrderedTestsViewMode());
+  }, []);
+
   const productItems = useMemo(
     () =>
       orderedProducts.map((product) => ({
@@ -168,6 +227,11 @@ export function LabOrderOverviewPanel() {
       })),
     [items, orderedProducts],
   );
+
+  function handleViewModeChange(mode: LabOrderedTestsViewMode) {
+    setViewMode(mode);
+    writeLabOrderedTestsViewMode(mode);
+  }
 
   function handleAddDialogOpenChange(open: boolean) {
     setAddTestOpen(open);
@@ -232,15 +296,28 @@ export function LabOrderOverviewPanel() {
           />
         </div>
       ) : (
-        <section className="pt-5" aria-labelledby="lab-ordered-products-heading">
-          <h2
-            id="lab-ordered-products-heading"
-            className="text-sm font-semibold text-brand-navy"
-          >
-            Ordered tests
-          </h2>
+        <section
+          className={cn("pt-5", viewMode === "cards" && "space-y-3")}
+          aria-labelledby="lab-ordered-products-heading"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <h2
+              id="lab-ordered-products-heading"
+              className="text-sm font-semibold text-brand-navy"
+            >
+              Ordered tests
+            </h2>
+            <LabOrderedTestsViewToggle
+              viewMode={viewMode}
+              onChange={handleViewModeChange}
+            />
+          </div>
 
-          <div data-testid="lab-ordered-products-list">
+          <div
+            className={cn(viewMode === "cards" && "space-y-3")}
+            data-testid="lab-ordered-products-list"
+            data-view={viewMode}
+          >
             {productItems.map(({ product, items: productTests }, index) => (
               <ProductOrderCard
                 key={
@@ -250,6 +327,7 @@ export function LabOrderOverviewPanel() {
                 product={product}
                 items={productTests}
                 defaultOpen={index === 0}
+                viewMode={viewMode}
                 onSaved={onRefresh}
               />
             ))}

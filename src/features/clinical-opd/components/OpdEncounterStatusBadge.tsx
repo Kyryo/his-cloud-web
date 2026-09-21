@@ -8,10 +8,10 @@ const labels: Record<string, string> = {
 };
 
 const styles: Record<string, string> = {
-  waiting: "bg-amber-50 text-amber-800",
-  in_progress: "bg-brand-tint text-brand-primary",
-  completed: "bg-slate-100 text-brand-slate",
-  cancelled: "bg-red-50 text-red-800",
+  waiting: "border-amber-200 bg-amber-50 text-amber-900",
+  in_progress: "border-brand-primary/25 bg-brand-tint text-brand-primary",
+  completed: "border-dash-border bg-white text-brand-slate",
+  cancelled: "border-red-200 bg-red-50 text-red-800",
 };
 
 type OpdEncounterStatusBadgeProps = {
@@ -19,6 +19,9 @@ type OpdEncounterStatusBadgeProps = {
   className?: string;
 };
 
+/**
+ * Queue status chip styled like a compact outline button.
+ */
 export function OpdEncounterStatusBadge({
   status,
   className,
@@ -26,10 +29,12 @@ export function OpdEncounterStatusBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-        styles[status] ?? "bg-slate-100 text-brand-slate",
+        "inline-flex h-7 items-center justify-center rounded-md border px-2.5 text-xs font-medium",
+        styles[status] ??
+          "border-dash-border bg-white text-brand-slate",
         className,
       )}
+      data-testid="opd-encounter-status-badge"
     >
       {labels[status] ?? status.replaceAll("_", " ")}
     </span>

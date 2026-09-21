@@ -64,6 +64,9 @@ export const BFF_CUSTOMERS_ROUTES = {
   insurance: (uuid: string) => `/api/customers/${uuid}/insurance`,
   insuranceDetail: (customerUuid: string, insuranceUuid: string) =>
     `/api/customers/${customerUuid}/insurance/${insuranceUuid}`,
+  relationships: (uuid: string) => `/api/customers/${uuid}/relationships`,
+  relationshipDetail: (customerUuid: string, relationshipUuid: string) =>
+    `/api/customers/${customerUuid}/relationships/${relationshipUuid}`,
   billing: (uuid: string) => `/api/customers/${uuid}/billing`,
   openingBalance: (uuid: string) => `/api/customers/${uuid}/opening-balance`,
   memberBenefits: (uuid: string) => `/api/customers/${uuid}/member-benefits`,
@@ -137,6 +140,16 @@ export const BFF_VISITS_ROUTES = {
   encounterBillingMode: (visitUuid: string, encounterUuid: string) =>
     `/api/visits/${visitUuid}/encounters/${encounterUuid}/billing-mode`,
   consultationServicesCatalog: "/api/consultation-services/catalog",
+} as const;
+
+/** Browser-facing BFF encounter attachment routes (same origin). */
+export const BFF_ENCOUNTER_ATTACHMENTS_ROUTES = {
+  list: (encounterUuid: string) =>
+    `/api/encounters/${encounterUuid}/attachments`,
+  detail: (encounterUuid: string, attachmentUuid: string) =>
+    `/api/encounters/${encounterUuid}/attachments/${attachmentUuid}`,
+  download: (encounterUuid: string, attachmentUuid: string) =>
+    `/api/encounters/${encounterUuid}/attachments/${attachmentUuid}/download`,
 } as const;
 
 /** Browser-facing BFF appointment routes (same origin). */
@@ -334,6 +347,8 @@ export const BFF_SALES_ORDERS_ROUTES = {
   activity: (orderId: number | string) => `/api/sales-orders/${orderId}/activity`,
   paymentSplit: (orderId: number | string) =>
     `/api/sales-orders/${orderId}/payment-split`,
+  attachments: (orderId: number | string) =>
+    `/api/sales-orders/${orderId}/attachments`,
 } as const;
 
 /** Browser-facing BFF sales order activity routes (same origin). */
@@ -352,6 +367,8 @@ export const BFF_INVOICES_ROUTES = {
   activity: (invoiceId: number | string) => `/api/invoices/${invoiceId}/activity`,
   syncLineTariffCode: (invoiceId: number | string, lineId: number | string) =>
     `/api/invoices/${invoiceId}/lines/${lineId}/sync-tariff-code`,
+  attachments: (invoiceId: number | string) =>
+    `/api/invoices/${invoiceId}/attachments`,
 } as const;
 
 /** Browser-facing BFF receivables routes (same origin). */

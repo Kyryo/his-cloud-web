@@ -120,7 +120,7 @@ export function CustomerDetailInsuranceTab({
 
   const addButton = (
     <TabAddActionButton
-      label="Add insurance"
+      label="Add insurance or payer"
       onClick={() => setAddDialogOpen(true)}
       data-testid="add-customer-insurance-button"
     />

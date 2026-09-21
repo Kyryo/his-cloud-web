@@ -5,12 +5,14 @@ import { useRouter } from "next/navigation";
 
 import { UserIdenticon } from "@/components/UserIdenticon";
 import { Button } from "@/components/ui/button";
+import { OpdEncounterStatusBadge } from "@/features/clinical-opd/components/OpdEncounterStatusBadge";
+import { OpdQueueStageBadge } from "@/features/clinical-opd/components/OpdQueueStageBadge";
 import type { OpdQueueEncounter } from "@/features/clinical-opd/types/clinical-opd.types";
 import {
-  formatAllergySeverity,
-  formatQueueVitalsSnapshot,
+  formatOpdQueueClientMeta,
   formatWaitingMinutes,
   groupOpdQueueByStage,
+  resolveOpdQueueStage,
 } from "@/features/clinical-opd/utils/opd-queue-stage";
 import { ROUTES } from "@/constants/routes";
 import { cn } from "@/lib/utils";
@@ -124,6 +126,7 @@ function OpdQueueListRow({
   onAddEncounter?: (encounter: OpdQueueEncounter) => void;
 }) {
   const canAddEncounter = encounter.visit_status === "active";
+  const stage = resolveOpdQueueStage(encounter);
 
   return (
     <li>
@@ -138,32 +141,35 @@ function OpdQueueListRow({
           className="size-8 shrink-0 rounded-md"
         />
 
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 space-y-0.5">
           <Link
             href={encounterHref}
-            className="block truncate text-sm font-medium text-brand-navy transition-colors group-hover:text-brand-primary"
+            className="block truncate text-[13px] font-medium text-brand-navy transition-colors group-hover:text-brand-primary"
             onClick={(event) => event.stopPropagation()}
           >
             {encounter.customer_name}
           </Link>
-          <p className="truncate text-[12px] text-brand-muted">
-            {encounter.customer_identifier
-              ? `${encounter.customer_identifier} · `
-              : ""}
-            {encounter.department_name || "—"}
-            {" · "}
-            {formatQueueVitalsSnapshot(encounter.latest_vitals)}
-            {" · "}
-            {formatAllergySeverity(
-              encounter.highest_allergy_severity,
-              encounter.allergy_count,
-            )}
+          <p className="truncate font-mono text-[12px] text-brand-muted">
+            {[
+              formatOpdQueueClientMeta(encounter) || null,
+              encounter.department_name || null,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
           </p>
         </div>
 
-        <span className="shrink-0 text-sm font-medium tabular-nums text-brand-navy">
+        <span
+          className="shrink-0 text-sm font-medium tabular-nums text-brand-navy"
+          data-testid="opd-queue-wait"
+        >
           {formatWaitingMinutes(encounter.waiting_minutes)}
         </span>
+
+        <div className="hidden shrink-0 items-center gap-1.5 sm:flex">
+          <OpdQueueStageBadge stage={stage} />
+          <OpdEncounterStatusBadge status={encounter.status} />
+        </div>
 
         <div
           className="flex shrink-0 items-center gap-2"

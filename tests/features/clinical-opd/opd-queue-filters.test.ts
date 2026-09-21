@@ -4,6 +4,7 @@ import type { OpdQueueEncounter } from "@/features/clinical-opd/types/clinical-o
 import { computeOpdQueueStats } from "@/features/clinical-opd/utils/opd-queue-stats";
 import {
   formatAllergySeverity,
+  formatOpdQueueClientMeta,
   formatQueueVitalsSnapshot,
   formatWaitingMinutes,
   groupOpdQueueByStage,
@@ -100,6 +101,11 @@ describe("opd-queue-stage", () => {
 
   it("formats wait, vitals, and allergy row fields", () => {
     expect(formatWaitingMinutes(12)).toBe("12 min");
+    expect(formatWaitingMinutes(60)).toBe("1 hr");
+    expect(formatWaitingMinutes(75)).toBe("1 hr 15 min");
+    expect(formatWaitingMinutes(60 * 24)).toBe("1 day");
+    expect(formatWaitingMinutes(60 * 24 * 45)).toBe("1 mo");
+    expect(formatWaitingMinutes(60 * 24 * 30 * 14)).toBe("1 yr");
     expect(
       formatQueueVitalsSnapshot([
         {
@@ -114,6 +120,16 @@ describe("opd-queue-stage", () => {
     expect(formatAllergySeverity("life_threatening", 2)).toBe(
       "life threatening · 2",
     );
+  });
+
+  it("formats client meta as ID · age · gender", () => {
+    expect(
+      formatOpdQueueClientMeta({
+        customer_identifier: "CLI-1",
+        customer_dob: "1990-01-15",
+        customer_gender: "Female",
+      }),
+    ).toMatch(/^CLI-1 · .+ · Female$/);
   });
 
   it("groups encounters by queue stage and hides empty closed stages", () => {

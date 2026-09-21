@@ -44,7 +44,11 @@ export function formatVisitPickerLabel(visit: VisitDetail): string {
     visit.visit_date,
     visit.status,
     visit.clinic_name,
-    visit.mode_of_payment === "insurance" ? "Insurance" : "Cash",
+    visit.mode_of_payment === "insurance"
+      ? "Insurance"
+      : visit.mode_of_payment === "free"
+        ? "Free"
+        : "Cash",
   ].filter(Boolean);
 
   return parts.join(" · ");

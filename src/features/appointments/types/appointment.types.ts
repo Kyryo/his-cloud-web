@@ -92,7 +92,7 @@ export type UpdateAppointmentPayload = {
 
 export type StartAppointmentVisitPayload = {
   consultation_service?: string | null;
-  mode_of_payment?: "cash" | "insurance";
+  mode_of_payment?: "cash" | "insurance" | "free";
   insurance_scheme?: string | null;
 };
 

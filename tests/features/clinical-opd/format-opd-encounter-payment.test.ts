@@ -13,6 +13,15 @@ describe("format-opd-encounter-payment", () => {
     ).toBe("Cash");
   });
 
+  it("formats free visits", () => {
+    expect(
+      formatOpdEncounterPaymentLabel({
+        mode_of_payment: "free",
+        insurance_scheme_name: null,
+      }),
+    ).toBe("Free");
+  });
+
   it("formats insurance visits with scheme", () => {
     expect(
       formatOpdEncounterPaymentLabel({

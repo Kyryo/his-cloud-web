@@ -21,17 +21,27 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { isInsuranceInvoice } from "@/features/claims/services/claims.service";
+import { IncludeAttachmentPrintDialog } from "@/features/billing/components/IncludeAttachmentPrintDialog";
 import type { Invoice } from "@/features/invoices/types/invoice.types";
 import {
   canCancelInvoice,
   getCancelInvoiceDisabledReason,
 } from "@/features/invoices/utils/invoice-status";
 import { hasInvoiceBalance } from "@/features/invoices/utils/sum-invoice-billing";
-import { downloadInvoicePdf } from "@/features/invoices/utils/generate-invoice-pdf";
+import {
+  downloadInvoicePdf,
+  generateInvoicePdf,
+} from "@/features/invoices/utils/generate-invoice-pdf";
 import { cancelInvoice } from "@/features/invoices/services/invoices.service";
+import {
+  downloadEncounterAttachmentBytes,
+  fetchInvoiceAttachments,
+} from "@/features/visits/services/visit-attachments.service";
+import type { VisitEncounterAttachment } from "@/features/visits/types/visit-attachment.types";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { getErrorMessage } from "@/lib/fetch-error";
+import { downloadPdfBytes, mergePdfDocuments } from "@/lib/pdf-merge";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
@@ -54,6 +64,10 @@ export function InvoiceDetailActions({
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [printDialogOpen, setPrintDialogOpen] = useState(false);
+  const [pendingAttachments, setPendingAttachments] = useState<
+    VisitEncounterAttachment[]
+  >([]);
 
   const isInsurance = isInsuranceInvoice(invoice);
   const isPosted = String(invoice.state).toLowerCase() === "posted";
@@ -63,7 +77,7 @@ export function InvoiceDetailActions({
   const cancelDisabledReason = getCancelInvoiceDisabledReason(invoice);
   const canCancel = canCancelInvoice(invoice);
 
-  async function handleDownloadPdf() {
+  async function runPlainDownload() {
     setIsDownloadingPdf(true);
     try {
       await downloadInvoicePdf(invoice);
@@ -72,6 +86,65 @@ export function InvoiceDetailActions({
         title: "PDF downloaded",
         description: "The invoice PDF was saved to your device.",
       });
+    } catch (error) {
+      toast({
+        variant: "error",
+        title: "Could not download PDF",
+        description: getErrorMessage(error),
+      });
+    } finally {
+      setIsDownloadingPdf(false);
+      setPrintDialogOpen(false);
+    }
+  }
+
+  async function runMergedDownload(attachments: VisitEncounterAttachment[]) {
+    setIsDownloadingPdf(true);
+    try {
+      const generated = await generateInvoicePdf(invoice);
+      const attachmentBytes = await Promise.all(
+        attachments.map((attachment) =>
+          downloadEncounterAttachmentBytes(
+            attachment.encounter_uuid,
+            attachment.uuid,
+          ),
+        ),
+      );
+      const merged = await mergePdfDocuments(generated.bytes, attachmentBytes);
+      downloadPdfBytes(merged, generated.filename);
+      toast({
+        variant: "success",
+        title: "PDF downloaded",
+        description: "The invoice PDF with attachment was saved.",
+      });
+    } catch (error) {
+      toast({
+        variant: "error",
+        title: "Could not download PDF",
+        description: getErrorMessage(error),
+      });
+    } finally {
+      setIsDownloadingPdf(false);
+      setPrintDialogOpen(false);
+    }
+  }
+
+  async function handleDownloadPdf() {
+    setIsDownloadingPdf(true);
+    try {
+      const response = await fetchInvoiceAttachments(invoice.id);
+      const attachments = response.results ?? [];
+      if (attachments.length === 0) {
+        await downloadInvoicePdf(invoice);
+        toast({
+          variant: "success",
+          title: "PDF downloaded",
+          description: "The invoice PDF was saved to your device.",
+        });
+        return;
+      }
+      setPendingAttachments(attachments);
+      setPrintDialogOpen(true);
     } catch (error) {
       toast({
         variant: "error",
@@ -233,6 +306,15 @@ export function InvoiceDetailActions({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <IncludeAttachmentPrintDialog
+        open={printDialogOpen}
+        onOpenChange={setPrintDialogOpen}
+        documentLabel="Invoice"
+        isWorking={isDownloadingPdf}
+        onInclude={() => void runMergedDownload(pendingAttachments)}
+        onWithout={() => void runPlainDownload()}
+      />
     </>
   );
 }

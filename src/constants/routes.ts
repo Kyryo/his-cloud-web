@@ -54,7 +54,8 @@ export const ROUTES = {
       ? `/lab/panels/${uuid}/${tab}`
       : `/lab/panels/${uuid}`,
   labReferenceRanges: "/lab/reference-ranges",
-  labSettings: "/lab/settings",
+  /** Laboratory settings live under Settings → Modules. */
+  labSettings: "/settings/modules/laboratory",
   salesOrders: "/sales-orders",
   salesOrderDetail: (orderId: number | string) => `/sales-orders/${orderId}`,
   invoices: "/invoices",
@@ -162,6 +163,8 @@ export const ROUTES = {
   settingsModules: "/settings/modules",
   settingsModuleInventory: "/settings/modules/inventory",
   settingsModulePharmacy: "/settings/modules/pharmacy",
+  settingsModuleLaboratory: "/settings/modules/laboratory",
+  settingsModule: (slug: string) => `/settings/modules/${slug}`,
   settingsIntegrations: "/settings/integrations",
   settingsIntegrationsEmail: "/settings/integrations/email",
   settingsIntegrationsMasemEclaims: "/settings/integrations/masm-eclaims",

@@ -6,7 +6,7 @@ export const startVisitSchema = z
     clinic: z.string().min(1, "Default clinic is required"),
     department: z.string().min(1, "Select a department"),
     visit_date: z.string().min(1, "Visit date is required"),
-    mode_of_payment: z.enum(["cash", "insurance"]),
+    mode_of_payment: z.enum(["cash", "insurance", "free"]),
     insurance_scheme: z.string().optional(),
     requires_pre_authorization: z.boolean(),
     pre_authorization_number: z.string().trim(),
@@ -66,7 +66,7 @@ export function toCreateVisitPayload(
   clinic: string;
   department: string;
   visit_date: string;
-  mode_of_payment: "cash" | "insurance";
+  mode_of_payment: "cash" | "insurance" | "free";
   insurance_scheme?: string | null;
   requires_pre_authorization: boolean;
   pre_authorization_number: string;

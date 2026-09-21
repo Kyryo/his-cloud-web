@@ -43,4 +43,37 @@ describe("startVisitSchema", () => {
     expect(payload.visit_date).toContain("2026");
     expect("location" in payload).toBe(false);
   });
+
+  it("accepts free payment mode without insurance scheme", () => {
+    const result = startVisitSchema.safeParse({
+      consultation_service: "service-uuid",
+      clinic: "clinic-uuid",
+      department: "department-uuid",
+      visit_date: "2026-06-05T10:00",
+      mode_of_payment: "free",
+      requires_pre_authorization: false,
+      pre_authorization_number: "",
+      pre_authorization_comments: "",
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("clears insurance scheme for free visits in create payload", () => {
+    const payload = toCreateVisitPayload("customer-uuid", {
+      consultation_service: "service-uuid",
+      clinic: "clinic-uuid",
+      department: "department-uuid",
+      visit_date: "2026-06-05T10:00",
+      mode_of_payment: "free",
+      insurance_scheme: "insurance-uuid",
+      requires_pre_authorization: true,
+      pre_authorization_number: "AUTH123",
+      pre_authorization_comments: "Approved",
+    });
+
+    expect(payload.mode_of_payment).toBe("free");
+    expect(payload.insurance_scheme).toBeNull();
+    expect(payload.requires_pre_authorization).toBe(false);
+  });
 });

@@ -13,6 +13,7 @@ import {
   DetailPageTabsSection,
 } from "@/features/app-shell/components/page-layout";
 import { SalesOrderDetailActivityTab } from "@/features/sales-orders/components/detail/SalesOrderDetailActivityTab";
+import { SalesOrderDetailAttachmentsTab } from "@/features/sales-orders/components/detail/SalesOrderDetailAttachmentsTab";
 import { SalesOrderDetailClientTab } from "@/features/sales-orders/components/detail/SalesOrderDetailClientTab";
 import { SalesOrderDetailLinesTab } from "@/features/sales-orders/components/detail/SalesOrderDetailLinesTab";
 import { SalesOrderDetailVisitTab } from "@/features/sales-orders/components/detail/SalesOrderDetailVisitTab";
@@ -73,6 +74,10 @@ export function SalesOrderDetailTabs({
           <SalesOrderDetailClientTab
             order={order}
             isActive={activeTab === "client"}
+          />
+          <SalesOrderDetailAttachmentsTab
+            orderId={order.id}
+            isActive={activeTab === "attachments"}
           />
           <SalesOrderDetailActivityTab
             order={order}

@@ -38,6 +38,7 @@ export function OverviewPeriodFilters({
   >([
     { value: "all", label: "All sources" },
     { value: "cash", label: "Cash" },
+    { value: "free", label: "Free" },
     { value: "insurance", label: "All insurance" },
   ]);
   const [isLoadingSchemes, setIsLoadingSchemes] = useState(true);
@@ -86,6 +87,7 @@ export function OverviewPeriodFilters({
         setPaymentSourceOptions([
           { value: "all", label: "All sources" },
           { value: "cash", label: "Cash" },
+          { value: "free", label: "Free" },
           { value: "insurance", label: "All insurance" },
           ...schemes.map((scheme) => ({
             value: scheme.uuid,
@@ -99,6 +101,7 @@ export function OverviewPeriodFilters({
           setPaymentSourceOptions([
             { value: "all", label: "All sources" },
             { value: "cash", label: "Cash" },
+            { value: "free", label: "Free" },
             { value: "insurance", label: "All insurance" },
           ]);
         }

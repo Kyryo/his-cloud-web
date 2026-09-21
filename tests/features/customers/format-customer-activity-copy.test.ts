@@ -60,4 +60,49 @@ describe("formatCustomerActivityCopy", () => {
     expect(copy.title).toContain("#7");
     expect(copy.summary).toContain("3 finding");
   });
+
+  it("redacts lab order product names from client activity", () => {
+    const copy = formatCustomerActivityCopy(
+      encounter({
+        action: "CLINICAL_ORDER_PLACED",
+        action_display: "Clinical order placed",
+        summary: "Clinical order placed: FCB",
+        details: { item_type: "LABORATORY", description: "FCB" },
+      }),
+    );
+
+    expect(copy.title).toBe("Lab order placed");
+    expect(copy.summary).toBe("A lab order was placed for this client.");
+    expect(copy.summary).not.toContain("FCB");
+    expect(copy.title).not.toContain("FCB");
+  });
+
+  it("uses generic copy for clinical notes", () => {
+    const copy = formatCustomerActivityCopy(
+      encounter({
+        action: "CLINICAL_NOTE_ADDED",
+        action_display: "Clinical note added",
+        summary: "Clinical note added",
+        details: { body: "Patient reports chest pain" },
+      }),
+    );
+
+    expect(copy.title).toBe("Clinical note added");
+    expect(copy.summary).toBe("A clinical note was added to the chart.");
+    expect(copy.summary).not.toContain("chest pain");
+  });
+
+  it("redacts HPI excerpts from activity summaries", () => {
+    const copy = formatCustomerActivityCopy(
+      encounter({
+        action: "HPI_RECORDED",
+        action_display: "HPI recorded",
+        summary: "HPI recorded for OPD: Patient reports fever…",
+        details: {},
+      }),
+    );
+
+    expect(copy.title).toBe("History of present illness recorded");
+    expect(copy.summary).not.toContain("fever");
+  });
 });

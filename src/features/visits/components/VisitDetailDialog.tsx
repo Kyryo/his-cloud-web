@@ -43,6 +43,7 @@ import {
   runVisitEncounterAction,
 } from "@/features/visits/services/visits.service";
 import type { VisitDetail, VisitEncounter } from "@/features/visits/types/visit.types";
+import { formatVisitPaymentModeLabel } from "@/features/visits/utils/format-visit-payment-mode";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
@@ -92,12 +93,7 @@ function canRunEncounterAction(
 }
 
 function formatPaymentModeLabel(visit: VisitDetail): string {
-  const modeLabel =
-    visit.mode_of_payment === "insurance" ? "Insurance" : "Cash";
-  if (visit.mode_of_payment === "insurance" && visit.insurance_scheme_name) {
-    return `${modeLabel} · ${visit.insurance_scheme_name}`;
-  }
-  return modeLabel;
+  return formatVisitPaymentModeLabel(visit);
 }
 
 export function VisitDetailDialog({

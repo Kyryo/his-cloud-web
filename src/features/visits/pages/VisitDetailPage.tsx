@@ -30,6 +30,7 @@ import {
   runVisitEncounterAction,
 } from "@/features/visits/services/visits.service";
 import type { VisitDetail, VisitEncounter } from "@/features/visits/types/visit.types";
+import { formatVisitPaymentModeLabel } from "@/features/visits/utils/format-visit-payment-mode";
 import {
   Tooltip,
   TooltipContent,
@@ -239,8 +240,8 @@ export function VisitDetailPage({ visitUuid }: VisitDetailPageProps) {
           </div>
           <div>
             <dt className="text-xs text-brand-muted">Payment</dt>
-            <dd className="mt-1 text-sm font-medium capitalize text-brand-navy">
-              {visit.mode_of_payment}
+            <dd className="mt-1 text-sm font-medium text-brand-navy">
+              {formatVisitPaymentModeLabel(visit)}
             </dd>
           </div>
           <div>

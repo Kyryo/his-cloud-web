@@ -11,9 +11,10 @@ import {
 
 const columns = [
   { key: "client", label: "Client" },
+  { key: "wait", label: "Wait" },
   { key: "department", label: "Department" },
+  { key: "stage", label: "Stage" },
   { key: "status", label: "Status" },
-  { key: "started", label: "Started" },
   { key: "actions", label: "Actions" },
 ] as const;
 
@@ -50,13 +51,16 @@ export function OpdQueueTableSkeleton({
               </div>
             </ListPageDataTableCell>
             <ListPageDataTableCell>
+              <Skeleton className="h-3.5 w-14" />
+            </ListPageDataTableCell>
+            <ListPageDataTableCell>
               <Skeleton className="h-3.5 w-24" />
             </ListPageDataTableCell>
             <ListPageDataTableCell>
-              <Skeleton className="h-5 w-20 rounded-md" />
+              <Skeleton className="h-7 w-20 rounded-md" />
             </ListPageDataTableCell>
             <ListPageDataTableCell>
-              <Skeleton className="h-3.5 w-28" />
+              <Skeleton className="h-7 w-20 rounded-md" />
             </ListPageDataTableCell>
             <ListPageDataTableCell className="pr-4 text-right">
               <Skeleton className="ml-auto h-7 w-16 rounded-lg" />

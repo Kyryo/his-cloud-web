@@ -24,6 +24,9 @@ describe("customer detail tab routes", () => {
     expect(customerDetailTabHref(CUSTOMER_ID, "legal-guardians")).toBe(
       `/customers/${CUSTOMER_ID}/legal-guardians`,
     );
+    expect(customerDetailTabHref(CUSTOMER_ID, "relationships")).toBe(
+      `/customers/${CUSTOMER_ID}/relationships`,
+    );
   });
 
   it("reads the active tab from the pathname", () => {
@@ -44,8 +47,18 @@ describe("customer detail tab routes", () => {
     ).toBe("summary");
   });
 
-  it("assigns an icon to every client tab", () => {
-    expect(CUSTOMER_DETAIL_TABS.every((tab) => Boolean(tab.icon))).toBe(true);
+  it("assigns an icon and surface to every client tab", () => {
+    expect(
+      CUSTOMER_DETAIL_TABS.every((tab) => Boolean(tab.icon) && Boolean(tab.surface)),
+    ).toBe(true);
+  });
+
+  it("places invoices, payments, visits, and address under More", () => {
+    expect(
+      CUSTOMER_DETAIL_TABS.filter((tab) => tab.surface === "menu").map(
+        (tab) => tab.id,
+      ),
+    ).toEqual(["invoices", "payments", "visits", "addresses"]);
   });
 
   it("accepts known tab segments and the empty summary segment", () => {

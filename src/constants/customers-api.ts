@@ -8,6 +8,9 @@ export const CUSTOMERS_API_PATHS = {
   insurance: (uuid: string) => `/customers/${uuid}/insurance/`,
   insuranceDetail: (customerUuid: string, insuranceUuid: string) =>
     `/customers/${customerUuid}/insurance/${insuranceUuid}/`,
+  relationships: (uuid: string) => `/customers/${uuid}/relationships/`,
+  relationshipDetail: (customerUuid: string, relationshipUuid: string) =>
+    `/customers/${customerUuid}/relationships/${relationshipUuid}/`,
   billing: (uuid: string) => `/customers/${uuid}/billing/`,
   openingBalance: (uuid: string) => `/customers/${uuid}/opening-balance/`,
   memberBenefits: (uuid: string) => `/customers/${uuid}/member-benefits/`,

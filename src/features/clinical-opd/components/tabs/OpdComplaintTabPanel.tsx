@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { MessageSquare } from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import {
   OpdConsultContentPanel,
   OpdConsultFormLocked,
@@ -11,6 +10,7 @@ import {
   OpdConsultLayout,
 } from "@/features/clinical-opd/components/detail/OpdConsultLayout";
 import { OpdComplaintComposer } from "@/features/clinical-opd/components/detail/OpdComplaintComposer";
+import { OpdEditComplaintDialog } from "@/features/clinical-opd/components/detail/OpdEditComplaintDialog";
 import { OpdEncounterTabEmptyState } from "@/features/clinical-opd/components/detail/OpdEncounterTabEmptyState";
 import { OpdEncounterTabSkeleton } from "@/features/clinical-opd/components/detail/OpdEncounterTabSkeleton";
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
@@ -40,92 +40,99 @@ export function OpdComplaintTabPanel({
   const { isChartLocked, capabilities } = useOpdEncounterWorkspace();
   const complaints = useChiefComplaints(visitUuid, encounterUuid, isActive);
   const deleteComplaint = useDeleteChiefComplaint(visitUuid, encounterUuid);
-  const [editingUuid, setEditingUuid] = useState<string | null>(null);
+  const [editingComplaint, setEditingComplaint] =
+    useState<ChiefComplaint | null>(null);
   const canWriteComplaint =
     capabilities.includes("record_chief_complaint") && !isChartLocked;
   const canWriteHpi = capabilities.includes("record_hpi") && !isChartLocked;
+  const canEdit = canWriteComplaint || canWriteHpi;
 
   if (!isActive) return null;
   if (complaints.isLoading) return <OpdEncounterTabSkeleton rows={4} />;
 
   const items = complaints.data ?? [];
-  const editing = items.find((item) => item.uuid === editingUuid) ?? null;
+  // Prefer the freshest row from the query cache when the dialog is open.
+  const dialogComplaint =
+    editingComplaint == null
+      ? null
+      : (items.find((item) => item.uuid === editingComplaint.uuid) ??
+        editingComplaint);
 
   return (
-    <OpdConsultLayout
-      historySection="complaint"
-      form={
-        canWriteComplaint || (editing && canWriteHpi) ? (
-          <OpdConsultFormPanel
-            title="Chief complaint & HPI"
-            description="Record what brought the client in, how long it has lasted, and the story so far."
-          >
-            <OpdComplaintComposer
-              visitUuid={visitUuid}
-              encounterUuid={encounterUuid}
-              complaint={editing}
-              canWriteComplaint={canWriteComplaint}
-              canWriteHpi={canWriteHpi}
-              onSaved={() => setEditingUuid(null)}
-              onDelete={
-                editing
-                  ? () => {
-                      void deleteComplaint.mutateAsync(editing.uuid);
-                      setEditingUuid(null);
-                    }
-                  : undefined
-              }
-            />
-          </OpdConsultFormPanel>
-        ) : (
-          <OpdConsultFormPanel title="Chief complaint & HPI">
-            <OpdConsultFormLocked message="You can review complaints for this encounter, but you cannot add or edit them." />
-          </OpdConsultFormPanel>
-        )
-      }
-      content={
-        <OpdConsultContentPanel
-          title="Complaints"
-          count={items.length}
-          action={
-            editing && canWriteComplaint ? (
-              <Button
-                type="button"
-                variant="ghost"
-                className="h-8 px-2 text-sm text-brand-primary hover:bg-transparent"
-                onClick={() => setEditingUuid(null)}
-              >
-                New
-              </Button>
-            ) : null
-          }
-          data-testid="opd-complaint-tab-panel"
-        >
-          {items.length === 0 ? (
-            <OpdEncounterTabEmptyState
-              icon={MessageSquare}
-              title="No chief complaint yet"
-              description="Save a complaint on the left. It will appear here for this visit."
-            />
+    <>
+      <OpdConsultLayout
+        historySection="complaint"
+        form={
+          canWriteComplaint || canWriteHpi ? (
+            <OpdConsultFormPanel title="Chief complaint & HPI">
+              <OpdComplaintComposer
+                visitUuid={visitUuid}
+                encounterUuid={encounterUuid}
+                complaint={null}
+                canWriteComplaint={canWriteComplaint}
+                canWriteHpi={canWriteHpi}
+              />
+            </OpdConsultFormPanel>
           ) : (
-            <ul className="space-y-3">
-              {items.map((complaint) => (
-                <ComplaintRecordCard
-                  key={complaint.uuid}
-                  complaint={complaint}
-                  selected={complaint.uuid === editingUuid}
-                  onSelect={
-                    canWriteComplaint || canWriteHpi
-                      ? () => setEditingUuid(complaint.uuid)
-                      : undefined
-                  }
-                />
-              ))}
-            </ul>
-          )}
-        </OpdConsultContentPanel>
-      }
-    />
+            <OpdConsultFormPanel title="Chief complaint & HPI">
+              <OpdConsultFormLocked message="You can review complaints for this encounter, but you cannot add or edit them." />
+            </OpdConsultFormPanel>
+          )
+        }
+        content={
+          <OpdConsultContentPanel
+            title="Complaints"
+            count={items.length}
+            data-testid="opd-complaint-tab-panel"
+          >
+            {items.length === 0 ? (
+              <OpdEncounterTabEmptyState
+                icon={MessageSquare}
+                title="No chief complaint yet"
+                description="Save a complaint on the left. It will appear here for this visit."
+              />
+            ) : (
+              <ul className="space-y-3">
+                {items.map((complaint) => (
+                  <ComplaintRecordCard
+                    key={complaint.uuid}
+                    complaint={complaint}
+                    selected={dialogComplaint?.uuid === complaint.uuid}
+                    onSelect={
+                      canEdit ? () => setEditingComplaint(complaint) : undefined
+                    }
+                  />
+                ))}
+              </ul>
+            )}
+          </OpdConsultContentPanel>
+        }
+      />
+
+      {dialogComplaint ? (
+        <OpdEditComplaintDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditingComplaint(null);
+            }
+          }}
+          visitUuid={visitUuid}
+          encounterUuid={encounterUuid}
+          complaint={dialogComplaint}
+          canWriteComplaint={canWriteComplaint}
+          canWriteHpi={canWriteHpi}
+          onDelete={
+            canWriteComplaint
+              ? () => {
+                  void deleteComplaint.mutateAsync(dialogComplaint.uuid);
+                  setEditingComplaint(null);
+                }
+              : undefined
+          }
+        />
+      ) : null}
+    </>
   );
 }
 
@@ -151,18 +158,13 @@ function ComplaintRecordCard({
       <article
         className={cn(
           "rounded-lg border bg-white px-4 py-3",
-          selected
-            ? "border-brand-primary"
-            : "border-dash-border/80",
+          selected ? "border-brand-primary" : "border-dash-border/80",
+          onSelect && "cursor-pointer transition-colors hover:border-brand-primary/50",
         )}
         data-testid={`opd-complaint-item-${complaint.uuid}`}
       >
         {onSelect ? (
-          <button
-            type="button"
-            className="w-full text-left"
-            onClick={onSelect}
-          >
+          <button type="button" className="w-full text-left" onClick={onSelect}>
             <ComplaintRecordBody
               text={complaint.text}
               duration={parsed.duration}
@@ -209,7 +211,7 @@ function ComplaintRecordBody({
           {narrative}
         </p>
       ) : (
-        <p className="text-sm text-dash-muted">No HPI narrative yet</p>
+        <p className="text-sm text-dash-muted">No comment yet</p>
       )}
       {recordedMeta ? (
         <p className="text-xs text-dash-muted">{recordedMeta}</p>

@@ -19,7 +19,7 @@ import {
 import type { CustomerInsurance } from "@/features/customers/types/customer-insurance.types";
 
 type VisitPaymentModeFieldValues = FieldValues & {
-  mode_of_payment: "cash" | "insurance";
+  mode_of_payment: "cash" | "insurance" | "free";
   insurance_scheme?: string | null;
 };
 
@@ -49,15 +49,28 @@ export function VisitPaymentModeFields<T extends VisitPaymentModeFieldValues>({
                 <span className="text-red-500">*</span>
               ) : null}
             </FormLabel>
-            <Select value={field.value} onValueChange={field.onChange}>
+            <Select
+              value={field.value}
+              onValueChange={(value) => {
+                field.onChange(value);
+                if (value !== "insurance") {
+                  form.setValue(
+                    "insurance_scheme" as Path<T>,
+                    "" as T[Path<T>],
+                    { shouldValidate: true },
+                  );
+                }
+              }}
+            >
               <FormControl>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
+                <SelectItem value="free">Free</SelectItem>
                 <SelectItem value="cash">Cash</SelectItem>
-                <SelectItem value="insurance">Insurance</SelectItem>
+                <SelectItem value="insurance">Insurance / payer</SelectItem>
               </SelectContent>
             </Select>
             <FormMessage />
@@ -72,7 +85,7 @@ export function VisitPaymentModeFields<T extends VisitPaymentModeFieldValues>({
           render={({ field }) => (
             <FormItem>
               <FormLabel>
-                Insurance scheme{" "}
+                Scheme or company details{" "}
                 {showRequiredMarker ? (
                   <span className="text-red-500">*</span>
                 ) : null}
@@ -84,7 +97,7 @@ export function VisitPaymentModeFields<T extends VisitPaymentModeFieldValues>({
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select insurance scheme" />
+                    <SelectValue placeholder="Select scheme or company" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>

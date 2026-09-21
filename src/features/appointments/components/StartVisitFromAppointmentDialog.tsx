@@ -27,7 +27,9 @@ import { TabbedDialog } from "@/components/ui/tabbed-dialog";
 import type { Appointment } from "@/features/appointments/types/appointment.types";
 import { fetchCustomerInsurance } from "@/features/customers/services/customer-insurance.service";
 import type { CustomerInsurance } from "@/features/customers/types/customer-insurance.types";
+import { VisitAttachmentDropzone } from "@/features/visits/components/VisitAttachmentDropzone";
 import { fetchConsultationServiceCatalog } from "@/features/visits/services/consultation-services.service";
+import { uploadEncounterAttachment } from "@/features/visits/services/visit-attachments.service";
 import { startVisitFromAppointment } from "@/features/visits/services/visits.service";
 import type {
   ConsultationServiceCatalogItem,
@@ -41,7 +43,7 @@ import { useToast } from "@/providers/toast-provider";
 const startFromAppointmentSchema = z
   .object({
     consultation_service: z.string().optional(),
-    mode_of_payment: z.enum(["cash", "insurance"]),
+    mode_of_payment: z.enum(["cash", "insurance", "free"]),
     insurance_scheme: z.string().optional(),
     requires_pre_authorization: z.boolean(),
     pre_authorization_number: z.string().trim(),
@@ -91,7 +93,10 @@ export function StartVisitFromAppointmentDialog({
   >([]);
   const [insuranceSchemes, setInsuranceSchemes] = useState<CustomerInsurance[]>([]);
   const [consultationServiceSearch, setConsultationServiceSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<"visit" | "payment">("visit");
+  const [activeTab, setActiveTab] = useState<"visit" | "payment" | "attachments">(
+    "visit",
+  );
+  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
 
   const form = useForm<StartFromAppointmentFormValues>({
     resolver: zodResolver(startFromAppointmentSchema),
@@ -131,6 +136,7 @@ export function StartVisitFromAppointmentDialog({
     });
     setActiveTab("visit");
     setConsultationServiceSearch("");
+    setAttachmentFile(null);
 
     void Promise.all([
       fetchConsultationServiceCatalog().then(setConsultationServices),
@@ -159,6 +165,26 @@ export function StartVisitFromAppointmentDialog({
             ? values.insurance_scheme || null
             : null,
       });
+
+      const encounterUuid =
+        visit.created_encounter?.uuid ?? visit.encounters?.[0]?.uuid ?? null;
+      if (attachmentFile && encounterUuid) {
+        try {
+          await uploadEncounterAttachment(encounterUuid, attachmentFile);
+        } catch (uploadError) {
+          toast({
+            variant: "error",
+            title: "Visit started, attachment failed",
+            description:
+              uploadError instanceof Error
+                ? uploadError.message
+                : "You can try uploading the attachment again later.",
+          });
+          onStarted(visit);
+          onOpenChange(false);
+          return;
+        }
+      }
 
       toast({
         variant: "success",
@@ -202,9 +228,12 @@ export function StartVisitFromAppointmentDialog({
       tabs={[
         { id: "visit", label: "Visit" },
         { id: "payment", label: "Payment" },
+        { id: "attachments", label: "Attachments" },
       ]}
       activeTab={activeTab}
-      onTabChange={(tabId) => setActiveTab(tabId as "visit" | "payment")}
+      onTabChange={(tabId) =>
+        setActiveTab(tabId as "visit" | "payment" | "attachments")
+      }
       className={appFont.className}
       data-testid="start-visit-from-appointment-dialog"
       footer={
@@ -220,6 +249,36 @@ export function StartVisitFromAppointmentDialog({
             <PrimaryButton type="button" onClick={() => setActiveTab("payment")}>
               Continue
             </PrimaryButton>
+          ) : activeTab === "payment" ? (
+            <>
+              <SecondaryButton
+                type="button"
+                disabled={
+                  isSubmitting ||
+                  (modeOfPayment === "insurance" && insuranceSchemes.length === 0)
+                }
+                onClick={() => setActiveTab("attachments")}
+              >
+                Add attachment
+              </SecondaryButton>
+              <PrimaryButton
+                type="button"
+                disabled={
+                  isSubmitting ||
+                  (modeOfPayment === "insurance" && insuranceSchemes.length === 0)
+                }
+                onClick={() => void handleSubmit()}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                    Starting...
+                  </>
+                ) : (
+                  "Start visit"
+                )}
+              </PrimaryButton>
+            </>
           ) : (
             <PrimaryButton
               type="button"
@@ -304,7 +363,7 @@ export function StartVisitFromAppointmentDialog({
                 )}
               />
             </>
-          ) : (
+          ) : activeTab === "payment" ? (
             <>
               <FormField
                 control={form.control}
@@ -321,8 +380,9 @@ export function StartVisitFromAppointmentDialog({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
+                        <SelectItem value="free">Free</SelectItem>
                         <SelectItem value="cash">Cash</SelectItem>
-                        <SelectItem value="insurance">Insurance</SelectItem>
+                        <SelectItem value="insurance">Insurance / payer</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -337,7 +397,7 @@ export function StartVisitFromAppointmentDialog({
                     name="insurance_scheme"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Insurance scheme</FormLabel>
+                        <FormLabel>Scheme or company details</FormLabel>
                         <Select
                           value={field.value}
                           onValueChange={field.onChange}
@@ -402,6 +462,12 @@ export function StartVisitFromAppointmentDialog({
                 </>
               ) : null}
             </>
+          ) : (
+            <VisitAttachmentDropzone
+              file={attachmentFile}
+              onFileChange={setAttachmentFile}
+              disabled={isSubmitting}
+            />
           )}
         </form>
       </Form>

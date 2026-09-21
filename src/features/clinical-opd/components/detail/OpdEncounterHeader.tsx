@@ -3,16 +3,18 @@
 import type { ReactNode } from "react";
 
 import { UserIdenticon } from "@/components/UserIdenticon";
-import { DetailPageHeaderSection } from "@/features/app-shell/components/page-layout";
+import {
+  DetailPageHeaderSection,
+  DetailPageTitle,
+} from "@/features/app-shell/components/page-layout";
 import { OpdEncounterStatusBadge } from "@/features/clinical-opd/components/OpdEncounterStatusBadge";
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
 import { formatOpdEncounterPaymentLabel } from "@/features/clinical-opd/utils/format-opd-encounter-payment";
+import { formatWaitingMinutes } from "@/features/clinical-opd/utils/opd-queue-stage";
 import type { Customer } from "@/features/customers/types/customer.types";
 import { formatVisitElapsed } from "@/features/customers/utils/format-visit-elapsed";
-import {
-  formatAdaptiveAge,
-  formatCustomerName,
-} from "@/features/customers/utils/format-customer";
+import { formatCustomerName } from "@/features/customers/utils/format-customer";
+import { formatAge } from "@/lib/age";
 
 type OpdEncounterHeaderProps = {
   customer: Customer | null;
@@ -22,7 +24,7 @@ type OpdEncounterHeaderProps = {
 const QUEUE_STAGE_LABELS: Record<string, string> = {
   registered: "Registered",
   triaged: "Ready",
-  with_clinician: "With clinician",
+  with_clinician: "With doctor",
   completed: "Completed",
   cancelled: "Cancelled",
 };
@@ -61,8 +63,8 @@ export function OpdEncounterHeader({
 
   const identity = [
     customer?.customer_identifier ?? encounter?.customer_identifier,
+    customer ? formatAge(customer.dob, { empty: "" }) || null : null,
     customer?.gender,
-    customer ? formatAdaptiveAge(customer.dob) : null,
   ]
     .filter(Boolean)
     .join(" · ");
@@ -94,7 +96,7 @@ export function OpdEncounterHeader({
     meta.push({
       key: "waiting",
       label: "Waiting",
-      value: `Waiting ${encounter.waiting_minutes} min`,
+      value: formatWaitingMinutes(encounter.waiting_minutes),
     });
   }
   meta.push({
@@ -120,20 +122,23 @@ export function OpdEncounterHeader({
           <UserIdenticon
             seed={identiconSeed}
             name={fullName}
-            className="size-10 shrink-0 rounded-lg"
+            className="size-10 shrink-0 rounded-lg sm:size-12"
             fallbackClassName="rounded-lg text-sm font-semibold"
           />
-          <div className="min-w-0">
+          <div className="min-w-0 space-y-0.5">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="truncate text-xl font-semibold tracking-tight text-brand-navy">
+              <DetailPageTitle className="text-lg sm:text-xl">
                 {fullName}
-              </h1>
+              </DetailPageTitle>
               {encounter?.status ? (
-                <OpdEncounterStatusBadge status={encounter.status} />
+                <OpdEncounterStatusBadge
+                  status={encounter.status}
+                  className="h-5 px-1.5 text-[11px]"
+                />
               ) : null}
             </div>
             {identity ? (
-              <p className="mt-0.5 truncate text-sm text-dash-muted">
+              <p className="truncate font-mono text-[13px] text-brand-muted">
                 {identity}
               </p>
             ) : null}
@@ -144,7 +149,7 @@ export function OpdEncounterHeader({
       </div>
 
       {meta.length > 0 ? (
-        <p className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-sm text-brand-slate">
+        <p className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1 text-[13px] text-brand-slate">
           {meta.map((item, index) => (
             <span key={item.key} className="inline-flex items-baseline gap-x-2">
               {index > 0 ? (

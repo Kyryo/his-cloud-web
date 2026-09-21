@@ -251,13 +251,6 @@ export const navigation: NavigationItem[] = [
     enabledInWebNew: true,
   },
   {
-    name: "Lab settings",
-    href: ROUTES.labSettings,
-    icon: "settings",
-    requiredGroup: "Lab",
-    enabledInWebNew: true,
-  },
-  {
     name: "OPD Queue",
     href: ROUTES.clinicalOpd,
     icon: "hospital",

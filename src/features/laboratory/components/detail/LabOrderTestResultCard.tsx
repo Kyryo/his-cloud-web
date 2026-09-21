@@ -41,9 +41,12 @@ type AnalyteDraft = {
   ref_high: string | number | null;
 };
 
+export type LabOrderTestResultLayout = "card" | "list";
+
 type LabOrderTestResultCardProps = {
   item: LabOrderItem;
   enabled: boolean;
+  layout?: LabOrderTestResultLayout;
   onSaved: () => void | Promise<void>;
 };
 
@@ -78,8 +81,10 @@ function draftsFromResult(result: LabResult): AnalyteDraft[] {
 export function LabOrderTestResultCard({
   item,
   enabled,
+  layout = "card",
   onSaved,
 }: LabOrderTestResultCardProps) {
+  const isCard = layout === "card";
   const { toast } = useToast();
   const [drafts, setDrafts] = useState<AnalyteDraft[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -165,17 +170,30 @@ export function LabOrderTestResultCard({
   return (
     <article
       className={cn(
-        "border-t border-dash-border/70 py-4 first:border-t-0 first:pt-0",
+        isCard
+          ? "flex h-full flex-col rounded-xl border border-dash-border/80 bg-white p-3 shadow-2xs"
+          : "border-t border-dash-border/70 py-4 first:border-t-0 first:pt-0",
         readOnly && "opacity-80",
       )}
       data-testid={`lab-order-test-result-card-${item.uuid}`}
+      data-layout={layout}
     >
-      <div className="mb-3 flex items-start justify-between gap-3">
+      <div
+        className={cn(
+          "mb-3 flex items-start justify-between",
+          isCard ? "gap-2" : "gap-3",
+        )}
+      >
         <div className="min-w-0">
           <h3 className="truncate text-sm font-semibold text-brand-navy">
             {item.test_name}
           </h3>
-          <p className="truncate font-mono text-[11px] text-dash-muted">
+          <p
+            className={cn(
+              "truncate font-mono text-[11px]",
+              isCard ? "text-brand-muted" : "text-dash-muted",
+            )}
+          >
             {item.test_code}
           </p>
         </div>
@@ -289,7 +307,7 @@ export function LabOrderTestResultCard({
         <PrimaryButton
           type="button"
           size="sm"
-          className="mt-3 h-8"
+          className={cn("mt-3 h-8", isCard && "w-full")}
           disabled={isSaving || isLoading}
           onClick={() => {
             void handleSave();

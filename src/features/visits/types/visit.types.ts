@@ -62,7 +62,7 @@ export type VisitDetail = {
   visit_date: string;
   status: string;
   mark_for_completion: boolean;
-  mode_of_payment: "cash" | "insurance";
+  mode_of_payment: "cash" | "insurance" | "free";
   insurance_scheme: string | null;
   insurance_scheme_name: string | null;
   insurance_company_name: string | null;
@@ -83,6 +83,7 @@ export type VisitDetail = {
   created_by_name: string | null;
   created_by_email?: string | null;
   encounters: VisitEncounter[];
+  created_encounter?: VisitEncounter | null;
   member_benefits?: VisitMemberBenefitsSnapshot | null;
   created_at: string;
   updated_at: string;
@@ -105,7 +106,7 @@ export type CreateVisitPayload = {
   location?: string | null;
   clinician?: number | null;
   visit_date?: string;
-  mode_of_payment: "cash" | "insurance";
+  mode_of_payment: "cash" | "insurance" | "free";
   insurance_scheme?: string | null;
   requires_pre_authorization?: boolean;
   pre_authorization_number?: string;
@@ -115,12 +116,12 @@ export type CreateVisitPayload = {
 
 export type StartVisitFromAppointmentPayload = {
   consultation_service?: string | null;
-  mode_of_payment?: "cash" | "insurance";
+  mode_of_payment?: "cash" | "insurance" | "free";
   insurance_scheme?: string | null;
 };
 
 export type UpdateVisitPaymentModePayload = {
-  mode_of_payment: "cash" | "insurance";
+  mode_of_payment: "cash" | "insurance" | "free";
   insurance_scheme?: string | null;
 };
 

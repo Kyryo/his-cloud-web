@@ -30,7 +30,9 @@ export function insightsFiltersFromSearchParams(
     period: (period === "week" || period === "month" ? period : "day") as InsightsPeriod,
     clinicUuid: params.get("clinic_uuid") ?? undefined,
     paymentMode:
-      paymentMode === "cash" || paymentMode === "insurance"
+      paymentMode === "cash" ||
+      paymentMode === "insurance" ||
+      paymentMode === "free"
         ? (paymentMode as InsightsPaymentMode)
         : undefined,
     insuranceSchemeUuid: params.get("insurance_scheme_uuid") ?? undefined,
@@ -69,6 +71,9 @@ export function paymentSourceFilterValue(filters: InsightsFilters): string {
   if (filters.paymentMode === "insurance") {
     return "insurance";
   }
+  if (filters.paymentMode === "free") {
+    return "free";
+  }
   return "all";
 }
 
@@ -94,6 +99,13 @@ export function paymentSourceFilterToFilters(
     return {
       ...filters,
       paymentMode: "insurance",
+      insuranceSchemeUuid: undefined,
+    };
+  }
+  if (value === "free") {
+    return {
+      ...filters,
+      paymentMode: "free",
       insuranceSchemeUuid: undefined,
     };
   }

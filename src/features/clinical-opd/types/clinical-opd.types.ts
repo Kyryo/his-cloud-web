@@ -35,11 +35,13 @@ export type OpdQueueEncounter = {
   customer_uuid: string;
   customer_name: string;
   customer_identifier?: string | null;
+  customer_gender?: string | null;
+  customer_dob?: string | null;
   clinic_name?: string | null;
   department_name: string;
   status: string;
   started_at: string | null;
-  mode_of_payment: "cash" | "insurance";
+  mode_of_payment: "cash" | "insurance" | "free";
   insurance_scheme_name: string | null;
   queue_stage?: OpdQueueStage | string | null;
   triaged_at?: string | null;

@@ -1,5 +1,6 @@
 import type { AppIconName } from "@/components/icons/app-icon";
 import { ROUTES } from "@/constants/routes";
+import { getModuleSettingsItems } from "@/features/settings/constants/module-settings-cards";
 
 export type SettingsNavigationItem = {
   label: string;
@@ -18,6 +19,7 @@ export type SettingsNavigationCategory = {
 const SETTINGS_BREADCRUMB_OVERRIDES: Record<string, string> = {
   [ROUTES.settingsModuleInventory]: "Inventory",
   [ROUTES.settingsModulePharmacy]: "Pharmacy",
+  [ROUTES.settingsModuleLaboratory]: "Laboratory",
   [ROUTES.settingsIntegrationsEmail]: "Email",
   [ROUTES.settingsIntegrationsMasemEclaims]: "MASM eClaims",
 };
@@ -150,6 +152,11 @@ export function resolveSettingsBreadcrumbLabel(
   const override = SETTINGS_BREADCRUMB_OVERRIDES[path];
   if (override) {
     return override;
+  }
+
+  const moduleItem = getModuleSettingsItems().find((item) => item.href === path);
+  if (moduleItem) {
+    return moduleItem.label;
   }
 
   return findActiveSettingsNavigationItem(pathname, categories)?.label ?? "Settings";

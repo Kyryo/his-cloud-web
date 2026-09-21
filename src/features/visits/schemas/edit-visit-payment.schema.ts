@@ -2,8 +2,8 @@ import { z } from "zod";
 
 export const editVisitPaymentSchema = z
   .object({
-    mode_of_payment: z.enum(["cash", "insurance"]),
-    // nullish: cash mode clears the scheme with an explicit null payload
+    mode_of_payment: z.enum(["cash", "insurance", "free"]),
+    // nullish: cash/free modes clear the scheme with an explicit null payload
     insurance_scheme: z.string().nullish(),
   })
   .superRefine((values, context) => {
@@ -20,7 +20,7 @@ export type EditVisitPaymentFormValues = z.infer<typeof editVisitPaymentSchema>;
 
 export function toEditVisitPaymentDefaultValues(
   visit: {
-    mode_of_payment: "cash" | "insurance";
+    mode_of_payment: "cash" | "insurance" | "free";
     insurance_scheme: string | null;
   },
 ): EditVisitPaymentFormValues {
@@ -33,7 +33,7 @@ export function toEditVisitPaymentDefaultValues(
 export function toUpdateVisitPaymentModePayload(
   values: EditVisitPaymentFormValues,
 ): {
-  mode_of_payment: "cash" | "insurance";
+  mode_of_payment: "cash" | "insurance" | "free";
   insurance_scheme?: string | null;
 } {
   return {

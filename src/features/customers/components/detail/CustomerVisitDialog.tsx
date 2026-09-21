@@ -35,6 +35,7 @@ import {
   findActiveCustomerVisit,
 } from "@/features/customers/services/customer-visits.service";
 import type { CustomerVisit } from "@/features/customers/types/customer-visit.types";
+import { uploadEncounterAttachment } from "@/features/visits/services/visit-attachments.service";
 import type { VisitDetail } from "@/features/visits/types/visit.types";
 import type { CustomerInsurance } from "@/features/customers/types/customer-insurance.types";
 import type { Customer } from "@/features/customers/types/customer.types";
@@ -99,6 +100,7 @@ export function CustomerVisitDialog({
   const [closeError, setCloseError] = useState<string | null>(null);
   const [consultationServiceSearch, setConsultationServiceSearch] = useState("");
   const [startStep, setStartStep] = useState<StartVisitStep>("visit");
+  const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
 
   const form = useForm<StartVisitFormValues>({
     resolver: zodResolver(startVisitSchema),
@@ -169,6 +171,7 @@ export function CustomerVisitDialog({
 
       setConsultationServiceSearch("");
       setStartStep("visit");
+      setAttachmentFile(null);
       setLoadedConsultationServices(null);
       setInsuranceSchemes(insurance);
       const active = findActiveCustomerVisit(visits);
@@ -291,6 +294,26 @@ export function CustomerVisitDialog({
         toCreateVisitPayload(customer.uuid, values),
       );
 
+      const encounterUuid =
+        visit.created_encounter?.uuid ?? visit.encounters?.[0]?.uuid ?? null;
+      if (attachmentFile && encounterUuid) {
+        try {
+          await uploadEncounterAttachment(encounterUuid, attachmentFile);
+        } catch (uploadError) {
+          toast({
+            variant: "error",
+            title: "Visit started, attachment failed",
+            description:
+              uploadError instanceof Error
+                ? uploadError.message
+                : "You can try uploading the attachment again later.",
+          });
+          onVisitChanged(visit);
+          onOpenChange(false);
+          return;
+        }
+      }
+
       onVisitChanged(visit);
       onOpenChange(false);
       toast({
@@ -377,6 +400,17 @@ export function CustomerVisitDialog({
     }
   }
 
+  async function handleContinueToAttachments() {
+    const paymentFields =
+      modeOfPayment === "insurance"
+        ? (["mode_of_payment", "insurance_scheme"] as const)
+        : (["mode_of_payment"] as const);
+    const valid = await form.trigger([...paymentFields]);
+    if (valid) {
+      setStartStep("attachments");
+    }
+  }
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
@@ -436,6 +470,8 @@ export function CustomerVisitDialog({
                   consultationServiceSearch={consultationServiceSearch}
                   onConsultationServiceSearchChange={setConsultationServiceSearch}
                   selectedClinicId={selectedClinicId}
+                  attachmentFile={attachmentFile}
+                  onAttachmentFileChange={setAttachmentFile}
                 />
               </form>
             </Form>
@@ -481,6 +517,33 @@ export function CustomerVisitDialog({
                   </DestructiveButton>
                 )}
               </>
+            ) : hasDefaultClinic && startStep === "attachments" ? (
+              <>
+                <SecondaryButton
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={() => setStartStep("payment")}
+                >
+                  Back
+                </SecondaryButton>
+                <PrimaryButton
+                  type="button"
+                  disabled={
+                    isSubmitting ||
+                    (modeOfPayment === "insurance" && insuranceSchemes.length === 0)
+                  }
+                  onClick={() => void handleStartVisit()}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                      Starting...
+                    </>
+                  ) : (
+                    "Start visit"
+                  )}
+                </PrimaryButton>
+              </>
             ) : hasDefaultClinic && startStep === "payment" ? (
               <>
                 <SecondaryButton
@@ -489,6 +552,13 @@ export function CustomerVisitDialog({
                   onClick={() => setStartStep("visit")}
                 >
                   Back
+                </SecondaryButton>
+                <SecondaryButton
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={() => void handleContinueToAttachments()}
+                >
+                  Add attachment
                 </SecondaryButton>
                 <PrimaryButton
                   type="button"

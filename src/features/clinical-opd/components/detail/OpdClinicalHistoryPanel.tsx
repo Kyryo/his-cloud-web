@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { OpdConsultColumnHeader } from "@/features/clinical-opd/components/detail/OpdConsultColumnHeader";
@@ -22,7 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const HISTORY_SECTIONS: Array<{ id: OpdHistorySectionId; label: string }> = [
-  { id: "complaint", label: "Complaint" },
+  { id: "complaint", label: "Complaints" },
   { id: "exam", label: "Exam" },
   { id: "orders", label: "Orders" },
   { id: "diagnoses", label: "Diagnosis" },
@@ -239,14 +239,20 @@ export function OpdClinicalHistoryPanel({
   embedded = false,
 }: OpdClinicalHistoryPanelProps) {
   const { visitUuid, encounterUuid } = useOpdEncounterWorkspace();
-  const section = sectionProp ?? "complaint";
+  const [section, setSection] = useState<OpdHistorySectionId>(
+    sectionProp ?? "complaint",
+  );
+
+  useEffect(() => {
+    if (sectionProp) {
+      setSection(sectionProp);
+    }
+  }, [sectionProp]);
+
   const sectionLabel = HISTORY_SECTIONS.find((item) => item.id === section)?.label;
-  // Naming the column "Previous diagnosis" beats a generic header plus a
-  // separate section row, and it costs one line instead of two.
-  const eyebrowLabel =
-    sectionProp && sectionLabel
-      ? `Previous ${sectionLabel.toLowerCase()}`
-      : "Previous visits";
+  const eyebrowLabel = sectionLabel
+    ? `Previous ${sectionLabel.toLowerCase()}`
+    : "Previous visits";
   const [historyEncounterUuid, setHistoryEncounterUuid] = useState<
     string | null
   >(null);
@@ -349,6 +355,35 @@ export function OpdClinicalHistoryPanel({
         className="bg-dash-canvas"
         data-testid="opd-clinical-history-header"
       />
+
+      <div
+        className="flex flex-wrap gap-1 border-b border-dash-border/70 px-4 py-2 sm:px-5"
+        role="tablist"
+        aria-label="History sections"
+        data-testid="opd-clinical-history-section-nav"
+      >
+        {HISTORY_SECTIONS.map((item) => {
+          const isActive = item.id === section;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              role="tab"
+              aria-selected={isActive}
+              onClick={() => setSection(item.id)}
+              className={cn(
+                "rounded-md px-2 py-1 text-[11px] font-medium transition-colors",
+                isActive
+                  ? "bg-white text-brand-navy shadow-2xs ring-1 ring-dash-border/80"
+                  : "text-brand-muted hover:bg-white/70 hover:text-brand-navy",
+              )}
+              data-testid={`opd-history-section-${item.id}`}
+            >
+              {item.label}
+            </button>
+          );
+        })}
+      </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2 sm:px-5">
         {historyQuery.isLoading ? (

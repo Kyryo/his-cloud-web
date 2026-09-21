@@ -125,7 +125,8 @@ export function CustomerActivityTimeline({
   return (
     <ActivityFeed
       className={cn(
-        "[&_[data-testid=activity-feed-list]]:px-2 sm:[&_[data-testid=activity-feed-list]]:px-3",
+        "[&_h3]:text-sm [&_h3]:font-semibold [&_[data-testid=activity-feed-list]]:px-2 sm:[&_[data-testid=activity-feed-list]]:px-3",
+        "[&_h3+p]:text-[13px]",
         className,
       )}
       title="Activity"
@@ -134,7 +135,7 @@ export function CustomerActivityTimeline({
       pagination={pagination}
       emptyTitle="No activity yet"
       emptyDescription="Events such as profile updates, insurance changes, and notes will appear here as they happen."
-      compact={false}
+      compact
       data-testid="customer-activity-timeline"
     />
   );

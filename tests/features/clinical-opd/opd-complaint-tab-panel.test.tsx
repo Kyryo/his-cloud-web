@@ -17,7 +17,9 @@ vi.mock(
   "@/features/clinical-opd/components/detail/OpdClinicalHistoryPanel",
   () => ({
     OpdClinicalHistoryPanel: () => (
-      <aside data-testid="opd-clinical-history-panel" />
+      <aside data-testid="opd-clinical-history-panel">
+        <div data-testid="opd-clinical-history-section-nav" />
+      </aside>
     ),
   }),
 );
@@ -64,6 +66,10 @@ describe("OpdComplaintTabPanel", () => {
     expect(screen.getByText("Cough for 3 days")).toBeInTheDocument();
     expect(screen.getByText("Dry cough, no fever.")).toBeInTheDocument();
     expect(screen.getByTestId("opd-clinical-history-panel")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
+    expect(
+      screen.getByTestId("opd-clinical-history-section-nav"),
+    ).toBeInTheDocument();
   });
 
   it("labels each column so the three zones stay identifiable while scrolling", () => {

@@ -43,7 +43,7 @@ export function ModulesSettingsPage() {
   return (
     <SettingsPageLayout
       title="Modules"
-      description="Configure operational modules for your organization. Additional modules will become available here over time."
+      description="Configure operational modules for your organization."
       className="max-w-3xl"
     >
       <ModuleSettingsList />

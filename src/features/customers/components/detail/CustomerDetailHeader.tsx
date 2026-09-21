@@ -50,7 +50,7 @@ export function CustomerDetailHeader({
           <div className="min-w-0 flex-1 space-y-2">
             {/* Top Row: Name, ID, Badges */}
             <div className="flex flex-wrap items-center gap-2 sm:gap-2.5">
-              <DetailPageTitle>{fullName}</DetailPageTitle>
+              <DetailPageTitle className="text-lg sm:text-xl">{fullName}</DetailPageTitle>
 
               <span className="inline-flex items-center rounded-md border border-slate-200/90 bg-slate-50 px-2.5 py-0.5 font-mono text-xs font-semibold text-brand-navy shadow-2xs">
                 {customer.customer_identifier}
@@ -89,7 +89,7 @@ export function CustomerDetailHeader({
             </div>
 
             {/* Middle Row: Demographics & Contact Chips */}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-brand-slate sm:text-sm">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[13px] text-brand-slate">
               <span className="font-medium text-brand-navy">
                 {ageDisplay}
                 {customer.dob_is_estimated ? " (est.)" : ""}

@@ -37,7 +37,7 @@ export type TherapyVisit = {
   customer_gender: string;
   visit_date: string;
   status: TherapyVisitStatus;
-  mode_of_payment: "cash" | "insurance";
+  mode_of_payment: "cash" | "insurance" | "free";
   is_walk_in: boolean;
   clinic: string;
   clinic_name: string;

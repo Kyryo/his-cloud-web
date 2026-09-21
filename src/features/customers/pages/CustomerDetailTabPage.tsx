@@ -13,6 +13,7 @@ import { CustomerDetailInvoicesTab } from "@/features/customers/components/detai
 import { CustomerDetailLegalGuardiansTab } from "@/features/customers/components/detail/CustomerDetailLegalGuardiansTab";
 import { CustomerDetailNotesTab } from "@/features/customers/components/detail/CustomerDetailNotesTab";
 import { CustomerDetailPaymentsTab } from "@/features/customers/components/detail/CustomerDetailPaymentsTab";
+import { CustomerDetailRelationshipsTab } from "@/features/customers/components/detail/CustomerDetailRelationshipsTab";
 import { CustomerDetailSalesOrdersTab } from "@/features/customers/components/detail/CustomerDetailSalesOrdersTab";
 import { CustomerDetailSummaryTab } from "@/features/customers/components/detail/CustomerDetailSummaryTab";
 import { CustomerDetailVisitsTab } from "@/features/customers/components/detail/CustomerDetailVisitsTab";
@@ -93,6 +94,8 @@ export function CustomerDetailTabPage({ tab }: CustomerDetailTabPageProps) {
       return <CustomerDetailAddressesTab customer={customer} isActive />;
     case "legal-guardians":
       return <CustomerDetailLegalGuardiansTab customer={customer} isActive />;
+    case "relationships":
+      return <CustomerDetailRelationshipsTab customer={customer} isActive />;
     case "appointments":
       return (
         <CustomerDetailAppointmentsTab

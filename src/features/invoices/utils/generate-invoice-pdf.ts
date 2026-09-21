@@ -110,7 +110,9 @@ function drawStatusBadge(
   doc.text(label, x - badgeWidth + 4, y);
 }
 
-export async function downloadInvoicePdf(invoice: Invoice): Promise<void> {
+export async function generateInvoicePdf(
+  invoice: Invoice,
+): Promise<{ bytes: ArrayBuffer; filename: string }> {
   const [{ jsPDF }, autoTableModule, branding] = await Promise.all([
     import("jspdf"),
     import("jspdf-autotable"),
@@ -413,7 +415,17 @@ export async function downloadInvoicePdf(invoice: Invoice): Promise<void> {
   doc.setTextColor(...colors.secondary);
   doc.text("Invoice", pageWidth - margin, footerY, { align: "right" });
 
-  doc.save(buildDocumentName(invoice));
+  const filename = buildDocumentName(invoice);
+  return {
+    bytes: doc.output("arraybuffer") as ArrayBuffer,
+    filename,
+  };
+}
+
+export async function downloadInvoicePdf(invoice: Invoice): Promise<void> {
+  const { bytes, filename } = await generateInvoicePdf(invoice);
+  const { downloadPdfBytes } = await import("@/lib/pdf-merge");
+  downloadPdfBytes(new Uint8Array(bytes), filename);
 }
 
 export { buildDocumentName as buildInvoicePdfFilename };

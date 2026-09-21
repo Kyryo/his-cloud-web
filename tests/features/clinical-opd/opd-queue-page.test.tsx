@@ -37,6 +37,9 @@ vi.mock("@/features/clinical-opd/hooks/use-clinical-opd", () => ({
         insurance_scheme_name: null,
         queue_stage: "registered",
         waiting_minutes: 14,
+        customer_identifier: "CLI-100",
+        customer_dob: "1990-06-01",
+        customer_gender: "Female",
         latest_vitals: [
           {
             code: "pulse",
@@ -84,10 +87,12 @@ describe("OpdQueuePage", () => {
     expect(screen.getByTestId("opd-queue-view-toggle")).toBeInTheDocument();
     expect(screen.getByText("Jane Doe")).toBeInTheDocument();
     expect(screen.getByTestId("opd-queue-wait")).toHaveTextContent("14 min");
-    expect(screen.getByTestId("opd-queue-vitals")).toHaveTextContent("78 bpm");
-    expect(screen.getByTestId("opd-queue-allergies")).toHaveTextContent(
-      "moderate",
-    );
+    expect(screen.getByText(/CLI-100/)).toBeInTheDocument();
+    expect(screen.getByText(/Female/)).toBeInTheDocument();
+    expect(screen.getByTestId("opd-queue-stage")).toHaveTextContent("Registered");
+    expect(screen.getByTestId("opd-queue-status")).toHaveTextContent("Waiting");
+    expect(screen.queryByTestId("opd-queue-vitals")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("opd-queue-allergies")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Open" })).toHaveAttribute(
       "href",
       "/clinical/opd/visit-1/enc-1/complaint",

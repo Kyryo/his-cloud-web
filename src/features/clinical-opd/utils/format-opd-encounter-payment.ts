@@ -1,13 +1,8 @@
 import type { OpdQueueEncounter } from "@/features/clinical-opd/types/clinical-opd.types";
+import { formatVisitPaymentModeLabel } from "@/features/visits/utils/format-visit-payment-mode";
 
 export function formatOpdEncounterPaymentLabel(
   encounter: Pick<OpdQueueEncounter, "mode_of_payment" | "insurance_scheme_name">,
 ): string {
-  const modeLabel = encounter.mode_of_payment === "insurance" ? "Insurance" : "Cash";
-
-  if (encounter.mode_of_payment === "insurance" && encounter.insurance_scheme_name) {
-    return `${modeLabel} · ${encounter.insurance_scheme_name}`;
-  }
-
-  return modeLabel;
+  return formatVisitPaymentModeLabel(encounter);
 }

@@ -9,4 +9,6 @@ export const INVOICES_API_PATHS = {
   activity: (invoiceId: number | string) => `/invoices/${invoiceId}/activity/`,
   syncLineTariffCode: (invoiceId: number | string, lineId: number | string) =>
     `/invoices/${invoiceId}/lines/${lineId}/sync-tariff-code/`,
+  attachments: (invoiceId: number | string) =>
+    `/invoices/${invoiceId}/attachments/`,
 } as const;

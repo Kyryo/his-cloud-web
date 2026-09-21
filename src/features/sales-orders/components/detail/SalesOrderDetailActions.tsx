@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { IncludeAttachmentPrintDialog } from "@/features/billing/components/IncludeAttachmentPrintDialog";
 import { RecalculateSalesOrderPricesDialog } from "@/features/sales-orders/components/detail/RecalculateSalesOrderPricesDialog";
 import { SalesOrderConvertToInvoiceAction } from "@/features/sales-orders/components/detail/SalesOrderConvertToInvoiceAction";
 import {
@@ -22,16 +23,25 @@ import type {
   RecalculateSalesOrderPricesSource,
   SalesOrder,
 } from "@/features/sales-orders/types/sales-order.types";
-import { downloadSalesOrderPdf } from "@/features/sales-orders/utils/generate-sales-order-pdf";
+import {
+  downloadSalesOrderPdf,
+  generateSalesOrderPdf,
+} from "@/features/sales-orders/utils/generate-sales-order-pdf";
 import {
   canCancelSalesOrder,
   canRecalculateSalesOrderPrices,
   getCancelSalesOrderDisabledReason,
   getRecalculateSalesOrderPricesDisabledReason,
 } from "@/features/sales-orders/utils/sales-order-status";
+import {
+  downloadEncounterAttachmentBytes,
+  fetchSalesOrderAttachments,
+} from "@/features/visits/services/visit-attachments.service";
+import type { VisitEncounterAttachment } from "@/features/visits/types/visit-attachment.types";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { getErrorMessage } from "@/lib/fetch-error";
+import { downloadPdfBytes, mergePdfDocuments } from "@/lib/pdf-merge";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
@@ -54,6 +64,10 @@ export function SalesOrderDetailActions({
   const [recalculateOpen, setRecalculateOpen] = useState(false);
   const [isRecalculating, setIsRecalculating] = useState(false);
   const [recalculateError, setRecalculateError] = useState<string | null>(null);
+  const [printDialogOpen, setPrintDialogOpen] = useState(false);
+  const [pendingAttachments, setPendingAttachments] = useState<
+    VisitEncounterAttachment[]
+  >([]);
 
   const cancelDisabledReason = getCancelSalesOrderDisabledReason(order);
   const canCancel = canCancelSalesOrder(order);
@@ -86,7 +100,7 @@ export function SalesOrderDetailActions({
     }
   }
 
-  async function handleDownloadPdf() {
+  async function runPlainDownload() {
     setIsDownloadingPdf(true);
     try {
       await downloadSalesOrderPdf(order);
@@ -95,6 +109,65 @@ export function SalesOrderDetailActions({
         title: "PDF downloaded",
         description: "The sales order PDF was saved to your device.",
       });
+    } catch (error) {
+      toast({
+        variant: "error",
+        title: "Could not download PDF",
+        description: getErrorMessage(error),
+      });
+    } finally {
+      setIsDownloadingPdf(false);
+      setPrintDialogOpen(false);
+    }
+  }
+
+  async function runMergedDownload(attachments: VisitEncounterAttachment[]) {
+    setIsDownloadingPdf(true);
+    try {
+      const generated = await generateSalesOrderPdf(order);
+      const attachmentBytes = await Promise.all(
+        attachments.map((attachment) =>
+          downloadEncounterAttachmentBytes(
+            attachment.encounter_uuid,
+            attachment.uuid,
+          ),
+        ),
+      );
+      const merged = await mergePdfDocuments(generated.bytes, attachmentBytes);
+      downloadPdfBytes(merged, generated.filename);
+      toast({
+        variant: "success",
+        title: "PDF downloaded",
+        description: "The sales order PDF with attachment was saved.",
+      });
+    } catch (error) {
+      toast({
+        variant: "error",
+        title: "Could not download PDF",
+        description: getErrorMessage(error),
+      });
+    } finally {
+      setIsDownloadingPdf(false);
+      setPrintDialogOpen(false);
+    }
+  }
+
+  async function handleDownloadPdf() {
+    setIsDownloadingPdf(true);
+    try {
+      const response = await fetchSalesOrderAttachments(order.id);
+      const attachments = response.results ?? [];
+      if (attachments.length === 0) {
+        await downloadSalesOrderPdf(order);
+        toast({
+          variant: "success",
+          title: "PDF downloaded",
+          description: "The sales order PDF was saved to your device.",
+        });
+        return;
+      }
+      setPendingAttachments(attachments);
+      setPrintDialogOpen(true);
     } catch (error) {
       toast({
         variant: "error",
@@ -202,19 +275,19 @@ export function SalesOrderDetailActions({
 
       <RecalculateSalesOrderPricesDialog
         open={recalculateOpen}
-        pricelistName={order.pricelist_name}
-        isSaving={isRecalculating}
+        onOpenChange={setRecalculateOpen}
+        isSubmitting={isRecalculating}
         error={recalculateError}
-        onOpenChange={(open) => {
-          if (!open && isRecalculating) {
-            return;
-          }
-          if (!open) {
-            setRecalculateError(null);
-          }
-          setRecalculateOpen(open);
-        }}
-        onConfirm={handleRecalculate}
+        onConfirm={(source) => void handleRecalculate(source)}
+      />
+
+      <IncludeAttachmentPrintDialog
+        open={printDialogOpen}
+        onOpenChange={setPrintDialogOpen}
+        documentLabel="Sales Order"
+        isWorking={isDownloadingPdf}
+        onInclude={() => void runMergedDownload(pendingAttachments)}
+        onWithout={() => void runPlainDownload()}
       />
     </div>
   );

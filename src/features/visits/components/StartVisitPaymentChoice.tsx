@@ -29,14 +29,19 @@ import type { StartVisitFormValues } from "@/features/visits/schemas/start-visit
 
 const PAYMENT_OPTIONS = [
   {
+    value: "free" as const,
+    label: "Free",
+    hint: "No charges for this visit",
+  },
+  {
     value: "cash" as const,
     label: "Cash",
     hint: "Collect at reception",
   },
   {
     value: "insurance" as const,
-    label: "Insurance",
-    hint: "Bill the scheme on file",
+    label: "Insurance / payer",
+    hint: "Bill a scheme or partner company on file",
   },
 ];
 
@@ -117,7 +122,7 @@ export function StartVisitPaymentChoice({
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Scheme <RequiredFieldMarker />
+                  Scheme or company details <RequiredFieldMarker />
                 </FormLabel>
                 <Select value={field.value} onValueChange={field.onChange}>
                   <FormControl>

@@ -15,11 +15,10 @@ import {
   ListPageDataTableRow,
 } from "@/features/app-shell/components/page-layout";
 import { OpdEncounterStatusBadge } from "@/features/clinical-opd/components/OpdEncounterStatusBadge";
+import { OpdQueueStageBadge } from "@/features/clinical-opd/components/OpdQueueStageBadge";
 import type { OpdQueueEncounter } from "@/features/clinical-opd/types/clinical-opd.types";
 import {
-  formatAllergySeverity,
-  formatOpdQueueStage,
-  formatQueueVitalsSnapshot,
+  formatOpdQueueClientMeta,
   formatWaitingMinutes,
   resolveOpdQueueStage,
 } from "@/features/clinical-opd/utils/opd-queue-stage";
@@ -46,10 +45,9 @@ function hrefForEncounter(
 const columns = [
   { key: "client", label: "Client" },
   { key: "wait", label: "Wait" },
-  { key: "vitals", label: "Vitals" },
-  { key: "allergies", label: "Allergies" },
   { key: "department", label: "Department" },
   { key: "stage", label: "Stage" },
+  { key: "status", label: "Status" },
   { key: "actions", label: "Actions", className: "text-right pr-4" },
 ] as const;
 
@@ -89,6 +87,7 @@ export function OpdQueueTable({
         {encounters.map((encounter) => {
           const canAddEncounter = encounter.visit_status === "active";
           const stage = resolveOpdQueueStage(encounter);
+          const clientMeta = formatOpdQueueClientMeta(encounter);
           return (
             <ListPageDataTableRow
               key={encounter.encounter_uuid}
@@ -102,17 +101,17 @@ export function OpdQueueTable({
                     name={encounter.customer_name}
                     className="size-8 shrink-0 rounded-md"
                   />
-                  <div className="min-w-0">
+                  <div className="min-w-0 space-y-0.5">
                     <Link
                       href={hrefForEncounter(encounter, encounterHref)}
-                      className="block truncate font-medium text-brand-navy transition-colors group-hover:text-brand-primary"
+                      className="block truncate text-[13px] font-medium text-brand-navy transition-colors group-hover:text-brand-primary"
                       onClick={(event) => event.stopPropagation()}
                     >
                       {encounter.customer_name}
                     </Link>
-                    {encounter.customer_identifier ? (
-                      <p className="truncate font-mono text-[11px] text-brand-muted">
-                        {encounter.customer_identifier}
+                    {clientMeta ? (
+                      <p className="truncate font-mono text-[12px] text-brand-muted">
+                        {clientMeta}
                       </p>
                     ) : null}
                   </div>
@@ -126,31 +125,16 @@ export function OpdQueueTable({
                 {formatWaitingMinutes(encounter.waiting_minutes)}
               </ListPageDataTableCell>
 
-              <ListPageDataTableCell
-                className="text-brand-slate"
-                data-testid="opd-queue-vitals"
-              >
-                {formatQueueVitalsSnapshot(encounter.latest_vitals)}
-              </ListPageDataTableCell>
-
-              <ListPageDataTableCell data-testid="opd-queue-allergies">
-                {formatAllergySeverity(
-                  encounter.highest_allergy_severity,
-                  encounter.allergy_count,
-                )}
-              </ListPageDataTableCell>
-
               <ListPageDataTableCell className="text-brand-slate">
                 {encounter.department_name || "—"}
               </ListPageDataTableCell>
 
-              <ListPageDataTableCell>
-                <div className="flex flex-col items-start gap-1">
-                  <span className="text-sm font-medium text-brand-navy">
-                    {formatOpdQueueStage(stage)}
-                  </span>
-                  <OpdEncounterStatusBadge status={encounter.status} />
-                </div>
+              <ListPageDataTableCell data-testid="opd-queue-stage">
+                <OpdQueueStageBadge stage={stage} />
+              </ListPageDataTableCell>
+
+              <ListPageDataTableCell data-testid="opd-queue-status">
+                <OpdEncounterStatusBadge status={encounter.status} />
               </ListPageDataTableCell>
 
               <ListPageDataTableCell className="pr-4 text-right">

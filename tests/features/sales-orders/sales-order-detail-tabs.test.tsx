@@ -21,6 +21,10 @@ vi.mock("@/features/sales-orders/components/detail/SalesOrderDetailActivityTab",
   SalesOrderDetailActivityTab: () => null,
 }));
 
+vi.mock("@/features/sales-orders/components/detail/SalesOrderDetailAttachmentsTab", () => ({
+  SalesOrderDetailAttachmentsTab: () => null,
+}));
+
 vi.mock("@/features/sales-orders/components/detail/SalesOrderSummaryPanel", () => ({
   SalesOrderSummaryPanel: () => (
     <aside data-testid="sales-order-summary-panel">Order summary</aside>
@@ -45,6 +49,7 @@ describe("sales order detail tabs", () => {
       "clipboard",
       "heartPulse",
       "user",
+      "file",
       "activity",
     ]);
   });
@@ -59,6 +64,7 @@ describe("sales order detail tabs", () => {
     );
     expect(screen.getByRole("button", { name: "Visit" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Client" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Attachments" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Activity" })).toBeInTheDocument();
   });
 

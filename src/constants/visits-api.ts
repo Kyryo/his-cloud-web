@@ -20,6 +20,12 @@ export const VISITS_API_PATHS = {
     `/visits/${visitUuid}/encounters/${encounterUuid}/cancel/`,
   encounterBillingMode: (visitUuid: string, encounterUuid: string) =>
     `/visits/${visitUuid}/encounters/${encounterUuid}/billing-mode/`,
+  encounterAttachments: (encounterUuid: string) =>
+    `/encounters/${encounterUuid}/attachments/`,
+  encounterAttachment: (encounterUuid: string, attachmentUuid: string) =>
+    `/encounters/${encounterUuid}/attachments/${attachmentUuid}/`,
+  encounterAttachmentDownload: (encounterUuid: string, attachmentUuid: string) =>
+    `/encounters/${encounterUuid}/attachments/${attachmentUuid}/download/`,
   customerVisits: (customerUuid: string, query?: { limit?: number }) => {
     const params = new URLSearchParams({
       customer_uuid: customerUuid,

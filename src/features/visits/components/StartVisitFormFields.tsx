@@ -16,6 +16,7 @@ import { SearchableSelect, SelectItem } from "@/components/ui/searchable-select"
 import type { ClinicalDepartment } from "@/features/clinical/types/clinical-catalog.types";
 import type { CustomerInsurance } from "@/features/customers/types/customer-insurance.types";
 import { StartVisitPaymentChoice } from "@/features/visits/components/StartVisitPaymentChoice";
+import { VisitAttachmentDropzone } from "@/features/visits/components/VisitAttachmentDropzone";
 import type { StartVisitFormValues } from "@/features/visits/schemas/start-visit.schema";
 import type { ConsultationServiceCatalogItem } from "@/features/visits/types/visit.types";
 import {
@@ -25,7 +26,7 @@ import {
 } from "@/lib/date-time-local";
 import { cn } from "@/lib/utils";
 
-export type StartVisitStep = "visit" | "payment";
+export type StartVisitStep = "visit" | "payment" | "attachments";
 
 type StartVisitFormFieldsProps = {
   form: UseFormReturn<StartVisitFormValues>;
@@ -41,6 +42,8 @@ type StartVisitFormFieldsProps = {
   consultationServiceSearch: string;
   onConsultationServiceSearchChange: (value: string) => void;
   selectedClinicId: number | null;
+  attachmentFile: File | null;
+  onAttachmentFileChange: (file: File | null) => void;
 };
 
 export function StartVisitFormFields({
@@ -57,6 +60,8 @@ export function StartVisitFormFields({
   consultationServiceSearch,
   onConsultationServiceSearchChange,
   selectedClinicId,
+  attachmentFile,
+  onAttachmentFileChange,
 }: StartVisitFormFieldsProps) {
   const [departmentSelectOpen, setDepartmentSelectOpen] = useState(false);
   const [departmentSearch, setDepartmentSearch] = useState("");
@@ -119,6 +124,17 @@ export function StartVisitFormFields({
     }
   }
 
+  async function goToAttachments() {
+    const paymentFields =
+      form.getValues("mode_of_payment") === "insurance"
+        ? (["mode_of_payment", "insurance_scheme"] as const)
+        : (["mode_of_payment"] as const);
+    const valid = await form.trigger([...paymentFields]);
+    if (valid) {
+      onStepChange("attachments");
+    }
+  }
+
   return (
     <div className="space-y-6">
       <nav
@@ -152,6 +168,21 @@ export function StartVisitFormFields({
         >
           Payment
           {step === "payment" ? (
+            <span className="absolute inset-x-0 bottom-0 h-px bg-brand-navy" />
+          ) : null}
+        </button>
+        <button
+          type="button"
+          onClick={() => void goToAttachments()}
+          className={cn(
+            "relative -mb-px pb-2.5 text-sm",
+            step === "attachments"
+              ? "font-medium text-brand-navy"
+              : "text-dash-muted hover:text-brand-navy",
+          )}
+        >
+          Attachments
+          {step === "attachments" ? (
             <span className="absolute inset-x-0 bottom-0 h-px bg-brand-navy" />
           ) : null}
         </button>
@@ -289,7 +320,7 @@ export function StartVisitFormFields({
             )}
           />
         </div>
-      ) : (
+      ) : step === "payment" ? (
         <div className="space-y-6">
           {visitRecap ? (
             <button
@@ -306,6 +337,13 @@ export function StartVisitFormFields({
             insuranceSchemes={insuranceSchemes}
             customerUuid={customerUuid}
             onInsuranceHrefClick={onInsuranceHrefClick}
+          />
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <VisitAttachmentDropzone
+            file={attachmentFile}
+            onFileChange={onAttachmentFileChange}
           />
         </div>
       )}
