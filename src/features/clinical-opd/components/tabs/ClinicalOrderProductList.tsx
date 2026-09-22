@@ -1,10 +1,10 @@
 "use client";
 
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { Check, Loader2, Plus, Search, X } from "lucide-react";
+import { Check, Loader2, Search, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
-import { SecondaryButton } from "@/components/ui/app-buttons";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { fetchCatalogProducts } from "@/features/catalog/services/catalog.service";
 import type { ClinicalOrderItemType } from "@/features/clinical-opd/schemas/clinical-opd.schema";
@@ -126,50 +126,59 @@ export function ClinicalOrderProductList({
     products.length === 0;
 
   return (
-    <div className="space-y-4" data-testid="clinical-order-product-list">
+    <div className="space-y-3" data-testid="clinical-order-product-list">
       <div className="relative">
         <Search
-          className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-brand-muted"
+          className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-dash-muted"
           aria-hidden="true"
         />
         <Input
           value={searchInput}
           onChange={(event) => setSearchInput(event.target.value)}
-          placeholder="Search products…"
-          className="pl-9"
+          placeholder="Search…"
+          className="h-9 border-dash-border/70 bg-dash-canvas/60 pl-8 text-sm shadow-none focus-visible:bg-white"
           data-testid="clinical-order-product-search"
           aria-label="Search products"
         />
       </div>
 
       {showInitialLoading ? (
-        <div className="flex items-center justify-center gap-2 py-10 text-sm text-brand-muted">
-          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-          Loading products…
+        <div className="flex items-center justify-center gap-2 py-8 text-sm text-dash-muted">
+          <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+          Loading…
         </div>
       ) : error ? (
-        <div className="rounded-lg border border-red-200 bg-red-50 px-3 py-3 text-sm text-red-700">
+        <div className="rounded-lg bg-red-50 px-3 py-2.5 text-sm text-red-700">
           {error}
         </div>
       ) : products.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-dash-border px-3 py-8 text-center text-sm text-brand-muted">
+        <div className="px-1 py-8 text-center text-sm text-dash-muted">
           {debouncedSearch
-            ? "No matching products found."
-            : "No products available for this order type."}
+            ? "No matching products."
+            : "No products for this type."}
         </div>
       ) : (
-        <ul className="divide-y divide-dash-border/70 overflow-hidden rounded-xl border border-dash-border/80">
+        <ul className="space-y-0.5">
           {products.map((product) => {
             const orderUuid = orderedProductOrderUuids.get(product.uuid);
             const isOrdered = Boolean(orderUuid);
             const isRowBusy = busyProductUuid === product.uuid;
+            const label = formatProductLabel(product);
+            const title =
+              product.display_name || product.name || label;
+            const meta = [product.default_code, product.uom_name]
+              .filter(Boolean)
+              .join(" · ");
 
             return (
               <li key={product.uuid}>
                 <div
                   className={cn(
-                    "flex w-full items-center gap-3 px-3 py-3",
-                    isBusy && !isRowBusy && "opacity-70",
+                    "group flex items-center gap-2 rounded-lg px-2.5 py-2 transition-colors",
+                    isOrdered
+                      ? "bg-emerald-50/70"
+                      : "hover:bg-dash-canvas/80",
+                    isBusy && !isRowBusy && "opacity-60",
                   )}
                   data-testid={`clinical-order-product-row-${product.uuid}`}
                 >
@@ -178,50 +187,52 @@ export function ClinicalOrderProductList({
                     disabled={isBusy || isOrdered}
                     onClick={() => onAddProduct(product)}
                     className={cn(
-                      "min-w-0 flex-1 text-left transition-colors",
-                      !isOrdered && "hover:text-brand-primary",
+                      "min-w-0 flex-1 text-left",
                       (isBusy || isOrdered) && "cursor-default",
                     )}
                     data-testid={`clinical-order-product-add-${product.uuid}`}
                   >
                     <p className="truncate text-sm font-medium text-brand-navy">
-                      {formatProductLabel(product)}
+                      {title}
                     </p>
-                    <p className="truncate text-xs text-brand-muted">
-                      {[product.default_code, product.uom_name]
-                        .filter(Boolean)
-                        .join(" · ") || "Service"}
-                    </p>
+                    {meta ? (
+                      <p className="truncate text-[11px] text-dash-muted">
+                        {meta}
+                      </p>
+                    ) : null}
                   </button>
 
                   {isOrdered && orderUuid ? (
-                    <div className="flex shrink-0 items-center gap-1.5">
+                    <div className="flex shrink-0 items-center gap-1">
                       <span
-                        className="inline-flex size-8 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700"
+                        className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700"
                         aria-label="Ordered"
                         data-testid={`clinical-order-product-ordered-${product.uuid}`}
                       >
                         {isRowBusy ? (
-                          <Loader2 className="size-4 animate-spin" />
+                          <Loader2 className="size-3.5 animate-spin" />
                         ) : (
-                          <Check className="size-4" />
+                          <Check className="size-3.5" aria-hidden="true" />
                         )}
+                        Added
                       </span>
                       <button
                         type="button"
                         disabled={isBusy}
                         onClick={() => onCancelOrder(product, orderUuid)}
                         className={cn(
-                          "inline-flex size-8 items-center justify-center rounded-full border border-red-200 bg-red-50 text-red-700 transition-colors",
-                          "hover:bg-red-100 disabled:cursor-wait disabled:opacity-70",
+                          "inline-flex size-7 items-center justify-center rounded-md text-dash-muted transition-colors",
+                          "opacity-0 group-hover:opacity-100 hover:bg-white hover:text-red-600",
+                          "focus-visible:opacity-100 disabled:cursor-wait disabled:opacity-50",
+                          isRowBusy && "opacity-100",
                         )}
-                        aria-label={`Cancel order for ${formatProductLabel(product)}`}
+                        aria-label={`Cancel order for ${label}`}
                         data-testid={`clinical-order-product-cancel-${product.uuid}`}
                       >
                         {isRowBusy ? (
-                          <Loader2 className="size-4 animate-spin" />
+                          <Loader2 className="size-3.5 animate-spin" />
                         ) : (
-                          <X className="size-4" />
+                          <X className="size-3.5" aria-hidden="true" />
                         )}
                       </button>
                     </div>
@@ -231,16 +242,18 @@ export function ClinicalOrderProductList({
                       disabled={isBusy}
                       onClick={() => onAddProduct(product)}
                       className={cn(
-                        "inline-flex size-8 shrink-0 items-center justify-center rounded-full border border-brand-border bg-white text-brand-primary transition-colors",
-                        "hover:bg-brand-tint disabled:cursor-wait disabled:opacity-70",
+                        "shrink-0 rounded-md px-2 py-1 text-[11px] font-medium text-brand-primary transition-opacity",
+                        "opacity-0 group-hover:opacity-100 focus-visible:opacity-100",
+                        "hover:bg-white disabled:cursor-wait disabled:opacity-50",
+                        isRowBusy && "opacity-100",
                       )}
-                      aria-label={`Add ${formatProductLabel(product)}`}
+                      aria-label={`Add ${label}`}
                       data-testid={`clinical-order-product-plus-${product.uuid}`}
                     >
                       {isRowBusy ? (
-                        <Loader2 className="size-4 animate-spin" />
+                        <Loader2 className="size-3.5 animate-spin" />
                       ) : (
-                        <Plus className="size-4" />
+                        "Add"
                       )}
                     </button>
                   )}
@@ -252,10 +265,12 @@ export function ClinicalOrderProductList({
       )}
 
       {hasNext ? (
-        <div className="flex justify-center">
-          <SecondaryButton
+        <div className="flex justify-center pt-1">
+          <Button
             type="button"
+            variant="ghost"
             size="sm"
+            className="h-8 text-xs text-brand-muted"
             disabled={isLoadingMore || isBusy}
             onClick={() => {
               void productsQuery.fetchNextPage();
@@ -264,13 +279,13 @@ export function ClinicalOrderProductList({
           >
             {isLoadingMore ? (
               <>
-                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
                 Loading…
               </>
             ) : (
               "Load more"
             )}
-          </SecondaryButton>
+          </Button>
         </div>
       ) : null}
     </div>

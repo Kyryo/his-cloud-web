@@ -1,6 +1,6 @@
 "use client";
 
-import { Info, Loader2, Plus } from "lucide-react";
+import { Info, Loader2, Plus, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
@@ -78,28 +78,22 @@ function AddEncounterDiagnosisForm({
   const [isSearching, setIsSearching] = useState(false);
   const [selectedCode, setSelectedCode] = useState("");
   const [selectedDescription, setSelectedDescription] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
+  const [busyCode, setBusyCode] = useState<string | null>(null);
   const [alsoSaveToEncounter, setAlsoSaveToEncounter] = useState(
     Boolean(encounterUuid) && (alsoSaveAsEncounter?.defaultChecked ?? true),
   );
 
   const trimmedSearchTerm = searchTerm.trim();
-  const selectedDisplayLabel = selectedCode
-    ? `${selectedCode} — ${selectedDescription}`.trim()
-    : "";
-  const hasConfirmedSelection =
-    selectedCode.length > 0 && trimmedSearchTerm === selectedDisplayLabel;
+  const isInline = layout === "inline";
+  const isBusy = Boolean(busyCode);
+  const hasDialogSelection = !isInline && selectedCode.length > 0;
   const visibleSearchResults =
-    !hasConfirmedSelection && trimmedSearchTerm.length >= 2 ? searchResults : [];
+    !hasDialogSelection && trimmedSearchTerm.length >= 2 ? searchResults : [];
   const claimMode = Boolean(alsoSaveAsEncounter);
   const canSaveToEncounter = Boolean(visitUuid && encounterUuid);
 
   useEffect(() => {
-    if (trimmedSearchTerm.length < 2) {
-      return;
-    }
-
-    if (hasConfirmedSelection) {
+    if (trimmedSearchTerm.length < 2 || hasDialogSelection) {
       return;
     }
 
@@ -131,70 +125,60 @@ function AddEncounterDiagnosisForm({
       cancelled = true;
       clearTimeout(timeout);
     };
-  }, [hasConfirmedSelection, trimmedSearchTerm]);
+  }, [hasDialogSelection, trimmedSearchTerm]);
 
   function handleSearchTermChange(value: string) {
     setSearchTerm(value);
-    if (
-      selectedCode &&
-      value.trim() !== `${selectedCode} — ${selectedDescription}`.trim()
-    ) {
+    if (selectedCode) {
       setSelectedCode("");
       setSelectedDescription("");
       setSearchResults([]);
     }
   }
 
-  function selectCatalogItem(item: DiagnosisCatalogItem) {
-    setSelectedCode(item.code);
-    setSelectedDescription(item.description);
-    setSearchTerm(`${item.code} — ${item.description}`);
-    setSearchResults([]);
-  }
-
-  async function handleSave() {
-    if (!selectedCode.trim()) {
+  async function persistDiagnosis(payload: AddClaimDiagnosisPayload) {
+    if (claimMode && !alsoSaveToEncounter) {
+      await alsoSaveAsEncounter!.onSaveClaimOnly(payload);
+      toast({
+        variant: "success",
+        title: "Diagnosis added",
+        description: `${payload.code} was added to this claim.`,
+      });
       return;
     }
 
-    setIsSaving(true);
-    try {
-      const payload: AddClaimDiagnosisPayload = {
-        code: selectedCode.trim(),
-        description: selectedDescription.trim(),
-        standard: "ICD10",
-      };
+    if (!encounterUuid) {
+      throw new Error(
+        "An encounter is required to save this as an encounter diagnosis.",
+      );
+    }
 
-      if (claimMode && !alsoSaveToEncounter) {
-        await alsoSaveAsEncounter!.onSaveClaimOnly(payload);
-        toast({
-          variant: "success",
-          title: "Diagnosis added",
-          description: `${selectedCode} was added to this claim.`,
-        });
-      } else {
-        if (!encounterUuid) {
-          throw new Error(
-            "An encounter is required to save this as an encounter diagnosis.",
-          );
-        }
-        await createEncounterDiagnosis(visitUuid, encounterUuid, {
-          code: payload.code,
-          description: payload.description,
-          standard: "ICD10",
-          is_primary: isPrimaryDefault,
-          // Always send an explicit value — JSON.stringify drops `undefined`, and the
-          // API defaults missing source_platform to CLINICAL (which enforces visit status).
-          source_platform: sourcePlatform === "INVOICE" ? "INVOICE" : "CLINICAL",
-        });
-        toast({
-          variant: "success",
-          title: "Diagnosis added",
-          description: claimMode
-            ? `${selectedCode} was recorded on the encounter and synced to this claim.`
-            : `${selectedCode} was recorded for this encounter.`,
-        });
-      }
+    await createEncounterDiagnosis(visitUuid, encounterUuid, {
+      code: payload.code,
+      description: payload.description,
+      standard: "ICD10",
+      is_primary: isPrimaryDefault,
+      // Always send an explicit value — JSON.stringify drops `undefined`, and the
+      // API defaults missing source_platform to CLINICAL (which enforces visit status).
+      source_platform: sourcePlatform === "INVOICE" ? "INVOICE" : "CLINICAL",
+    });
+    toast({
+      variant: "success",
+      title: "Diagnosis added",
+      description: claimMode
+        ? `${payload.code} was recorded on the encounter and synced to this claim.`
+        : `${payload.code} was recorded for this encounter.`,
+    });
+  }
+
+  async function addDiagnosis(payload: AddClaimDiagnosisPayload) {
+    if (isBusy) {
+      return;
+    }
+
+    setBusyCode(payload.code);
+    try {
+      await persistDiagnosis(payload);
       await onSuccess?.();
       onCancel();
     } catch (error) {
@@ -210,48 +194,128 @@ function AddEncounterDiagnosisForm({
         description: message,
       });
     } finally {
-      setIsSaving(false);
+      setBusyCode(null);
     }
+  }
+
+  function selectCatalogItem(item: DiagnosisCatalogItem) {
+    if (isInline) {
+      void addDiagnosis({
+        code: item.code.trim(),
+        description: item.description.trim(),
+        standard: "ICD10",
+      });
+      return;
+    }
+
+    setSelectedCode(item.code);
+    setSelectedDescription(item.description);
+    setSearchTerm(`${item.code} — ${item.description}`);
+    setSearchResults([]);
   }
 
   return (
     <>
       <div
         className={
-          layout === "inline"
-            ? "space-y-4"
+          isInline
+            ? "space-y-3"
             : "flex-1 space-y-4 overflow-y-auto px-6 py-6"
         }
       >
-        <div>
-          <label className="text-sm font-medium text-brand-navy">
-            Search ICD-10 <RequiredFieldMarker />
-          </label>
-          <Input
-            value={searchTerm}
-            onChange={(event) => handleSearchTermChange(event.target.value)}
-            placeholder="Search by code or description"
-            className="mt-1.5"
-            autoComplete="off"
-          />
-          {isSearching ? (
-            <p className="mt-1 text-xs text-brand-muted">Searching...</p>
+        <div className="space-y-3">
+          {!isInline ? (
+            <label className="text-sm font-medium text-brand-navy">
+              Search ICD-10 <RequiredFieldMarker />
+            </label>
           ) : null}
-          {visibleSearchResults.length > 0 ? (
-            <ul className="mt-2 max-h-40 overflow-y-auto rounded-md border border-brand-border bg-white">
-              {visibleSearchResults.map((item) => (
-                <li key={item.code}>
-                  <button
-                    type="button"
-                    className="w-full px-3 py-2 text-left text-sm hover:bg-muted/50"
-                    onClick={() => selectCatalogItem(item)}
-                  >
-                    <span className="font-mono font-medium">{item.code}</span>
-                    <span className="ml-2 text-brand-muted">{item.description}</span>
-                  </button>
-                </li>
-              ))}
+
+          <div className="relative">
+            <Search
+              className="pointer-events-none absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2 text-dash-muted"
+              aria-hidden="true"
+            />
+            <Input
+              value={searchTerm}
+              onChange={(event) => handleSearchTermChange(event.target.value)}
+              placeholder="Search ICD-10…"
+              className={cn(
+                "pl-8",
+                isInline &&
+                  "h-9 border-dash-border/70 bg-dash-canvas/60 text-sm shadow-none focus-visible:bg-white",
+                !isInline && "mt-1.5",
+              )}
+              autoComplete="off"
+              disabled={isBusy}
+              aria-label="Search ICD-10"
+              data-testid="diagnosis-catalog-search"
+            />
+          </div>
+
+          {isSearching ? (
+            <div className="flex items-center justify-center gap-2 py-6 text-sm text-dash-muted">
+              <Loader2 className="size-3.5 animate-spin" aria-hidden="true" />
+              Searching…
+            </div>
+          ) : trimmedSearchTerm.length >= 2 &&
+            visibleSearchResults.length === 0 &&
+            !hasDialogSelection ? (
+            <p className="px-1 py-6 text-center text-sm text-dash-muted">
+              No matching diagnoses.
+            </p>
+          ) : visibleSearchResults.length > 0 ? (
+            <ul
+              className="max-h-64 space-y-0.5 overflow-y-auto"
+              data-testid="diagnosis-catalog-results"
+            >
+              {visibleSearchResults.map((item) => {
+                const isRowBusy = busyCode === item.code;
+                return (
+                  <li key={item.code}>
+                    <button
+                      type="button"
+                      disabled={isBusy}
+                      className={cn(
+                        "group flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-left transition-colors",
+                        "hover:bg-dash-canvas/80 disabled:cursor-wait",
+                        isBusy && !isRowBusy && "opacity-60",
+                      )}
+                      onClick={() => selectCatalogItem(item)}
+                      data-testid={`diagnosis-catalog-result-${item.code}`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-brand-navy">
+                          {item.description}
+                        </p>
+                        <p className="truncate font-mono text-[11px] text-dash-muted">
+                          {item.code}
+                        </p>
+                      </div>
+                      <span
+                        className={cn(
+                          "shrink-0 rounded-md px-2 py-1 text-[11px] font-medium text-brand-primary transition-opacity",
+                          isRowBusy
+                            ? "opacity-100"
+                            : "opacity-0 group-hover:opacity-100",
+                        )}
+                      >
+                        {isRowBusy ? (
+                          <Loader2 className="size-3.5 animate-spin" />
+                        ) : isInline ? (
+                          "Add"
+                        ) : (
+                          "Select"
+                        )}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
             </ul>
+          ) : isInline ? (
+            <p className="px-1 py-4 text-center text-sm text-dash-muted">
+              Type at least 2 characters to search.
+            </p>
           ) : null}
         </div>
 
@@ -279,7 +343,7 @@ function AddEncounterDiagnosisForm({
                   <Switch
                     id="also-save-encounter-diagnosis"
                     checked={alsoSaveToEncounter && canSaveToEncounter}
-                    disabled={!canSaveToEncounter}
+                    disabled={!canSaveToEncounter || isBusy}
                     onCheckedChange={setAlsoSaveToEncounter}
                     data-testid="claim-diagnosis-also-save-encounter"
                   />
@@ -290,24 +354,24 @@ function AddEncounterDiagnosisForm({
         ) : null}
       </div>
 
-      <div
-        className={
-          layout === "inline"
-            ? "flex flex-wrap gap-2 pt-1"
-            : "mt-0 border-t border-brand-border px-6 py-5"
-        }
-      >
-        {layout === "dialog" ? (
+      {isInline ? null : (
+        <div className="mt-0 border-t border-brand-border px-6 py-5">
           <DialogFooter className="w-full sm:justify-end">
-            <SecondaryButton type="button" onClick={onCancel} disabled={isSaving}>
+            <SecondaryButton type="button" onClick={onCancel} disabled={isBusy}>
               Cancel
             </SecondaryButton>
             <PrimaryButton
               type="button"
-              disabled={isSaving || !selectedCode.trim()}
-              onClick={() => void handleSave()}
+              disabled={isBusy || !selectedCode.trim()}
+              onClick={() =>
+                void addDiagnosis({
+                  code: selectedCode.trim(),
+                  description: selectedDescription.trim(),
+                  standard: "ICD10",
+                })
+              }
             >
-              {isSaving ? (
+              {isBusy ? (
                 <>
                   <Loader2 className="size-4 animate-spin" aria-hidden="true" />
                   Saving...
@@ -320,26 +384,8 @@ function AddEncounterDiagnosisForm({
               )}
             </PrimaryButton>
           </DialogFooter>
-        ) : (
-          <PrimaryButton
-            type="button"
-            disabled={isSaving || !selectedCode.trim()}
-            onClick={() => void handleSave()}
-          >
-            {isSaving ? (
-              <>
-                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <Plus className="size-4" aria-hidden="true" />
-                Add diagnosis
-              </>
-            )}
-          </PrimaryButton>
-        )}
-      </div>
+        </div>
+      )}
     </>
   );
 }

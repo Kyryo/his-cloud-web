@@ -64,13 +64,13 @@ describe("OpdEncounterWorkspaceBody", () => {
     );
 
     expect(screen.getByTestId("opd-encounter-vitals-stats")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Complaint & HPI/ })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: /Complaints & HPI/ })).toHaveAttribute(
       "href",
       "/clinical/opd/visit-1/enc-1/complaint",
     );
     expect(screen.getByRole("link", { name: /Exam/ })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Orders/ })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Diagnosis/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Diagnoses/ })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Medication/ })).toBeInTheDocument();
     expect(screen.getByTestId("opd-encounter-tab-count-orders")).toHaveTextContent(
       "2",

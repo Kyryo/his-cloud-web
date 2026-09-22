@@ -42,7 +42,7 @@ export type OpdEncounterTab = {
 export const OPD_ENCOUNTER_TABS: OpdEncounterTab[] = [
   {
     id: "complaint",
-    label: "Complaint & HPI",
+    label: "Complaints & HPI",
     segment: "complaint",
     group: "consult",
     surface: "tab",
@@ -66,7 +66,7 @@ export const OPD_ENCOUNTER_TABS: OpdEncounterTab[] = [
   },
   {
     id: "diagnoses",
-    label: "Diagnosis",
+    label: "Diagnoses",
     segment: "diagnoses",
     group: "consult",
     surface: "tab",

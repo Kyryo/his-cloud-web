@@ -227,7 +227,7 @@ export function AddClinicalOrderDialog({
 
   return (
     <section
-      className={cn("space-y-4", appFont.className)}
+      className={cn("space-y-3", appFont.className)}
       data-testid="add-clinical-order-dialog"
     >
       {embedded ? null : (
@@ -242,7 +242,8 @@ export function AddClinicalOrderDialog({
         </div>
       )}
       <nav
-        className="flex gap-1 overflow-x-auto"
+        className="flex flex-wrap gap-1"
+        role="tablist"
         aria-label="Order catalog"
       >
         {tabs.map((tab) => {
@@ -251,13 +252,14 @@ export function AddClinicalOrderDialog({
             <button
               key={tab.id}
               type="button"
-              aria-current={isActive ? "page" : undefined}
+              role="tab"
+              aria-selected={isActive}
               onClick={() => handleTabChange(tab.id)}
               className={cn(
-                "whitespace-nowrap border-b-2 px-3 py-2 text-sm font-medium",
+                "rounded-md px-2 py-1 text-[11px] font-medium transition-colors",
                 isActive
-                  ? "border-brand-primary text-brand-primary"
-                  : "border-transparent text-brand-muted hover:border-brand-border hover:text-brand-navy",
+                  ? "bg-dash-canvas text-brand-navy ring-1 ring-dash-border/80"
+                  : "text-brand-muted hover:bg-dash-canvas/70 hover:text-brand-navy",
               )}
               data-testid={`tabbed-dialog-tab-${tab.id}`}
             >

@@ -25,7 +25,7 @@ const HISTORY_SECTIONS: Array<{ id: OpdHistorySectionId; label: string }> = [
   { id: "complaint", label: "Complaints" },
   { id: "exam", label: "Exam" },
   { id: "orders", label: "Orders" },
-  { id: "diagnoses", label: "Diagnosis" },
+  { id: "diagnoses", label: "Diagnoses" },
   { id: "medications", label: "Medication" },
 ];
 

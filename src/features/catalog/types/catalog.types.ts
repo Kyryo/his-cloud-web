@@ -175,6 +175,7 @@ export type CatalogListFilters = {
   is_radiology?: boolean;
   is_procedure?: boolean;
   is_sundry?: boolean;
+  is_drug?: boolean;
   /** Department context for procedure scope (opd | dental | ipd | physio). */
   procedure_context?: "opd" | "dental" | "ipd" | "physio";
 };

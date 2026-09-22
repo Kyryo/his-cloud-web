@@ -1,4 +1,6 @@
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import type { ComponentProps } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { AddClinicalOrderDialog } from "@/features/clinical-opd/components/tabs/AddClinicalOrderDialog";
@@ -49,6 +51,26 @@ vi.mock("@/features/catalog/services/catalog.service", () => ({
   fetchCatalogProducts: (...args: unknown[]) => fetchCatalogProducts(...args),
 }));
 
+function renderDialog(
+  props: Partial<ComponentProps<typeof AddClinicalOrderDialog>> = {},
+) {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={client}>
+      <AddClinicalOrderDialog
+        visitUuid="visit-1"
+        encounterUuid="enc-1"
+        capabilities={["order_laboratory", "order_radiology"]}
+        open
+        onOpenChange={vi.fn()}
+        {...props}
+      />
+    </QueryClientProvider>,
+  );
+}
+
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
@@ -95,17 +117,9 @@ describe("AddClinicalOrderDialog product list", () => {
   });
 
   it("shows check and cancel for already ordered products", async () => {
-    render(
-      <AddClinicalOrderDialog
-        visitUuid="visit-1"
-        encounterUuid="enc-1"
-        capabilities={["order_laboratory", "order_radiology"]}
-        open
-        onOpenChange={vi.fn()}
-      />,
-    );
+    renderDialog();
 
-    expect(await screen.findByText("CBC (LAB001)")).toBeInTheDocument();
+    expect(await screen.findByText("CBC")).toBeInTheDocument();
     expect(
       screen.getByTestId("clinical-order-product-ordered-lab-1"),
     ).toBeInTheDocument();
@@ -118,17 +132,9 @@ describe("AddClinicalOrderDialog product list", () => {
   });
 
   it("places a new order and cancels an existing one from the dialog", async () => {
-    render(
-      <AddClinicalOrderDialog
-        visitUuid="visit-1"
-        encounterUuid="enc-1"
-        capabilities={["order_laboratory", "order_radiology"]}
-        open
-        onOpenChange={vi.fn()}
-      />,
-    );
+    renderDialog();
 
-    await screen.findByText("Pregnancy test (LAB002)");
+    await screen.findByText("Pregnancy test");
     fireEvent.click(screen.getByTestId("clinical-order-product-plus-lab-2"));
 
     await waitFor(() => {
@@ -150,17 +156,9 @@ describe("AddClinicalOrderDialog product list", () => {
   });
 
   it("shows an empty state on tabs the user cannot order", async () => {
-    render(
-      <AddClinicalOrderDialog
-        visitUuid="visit-1"
-        encounterUuid="enc-1"
-        capabilities={["order_laboratory"]}
-        open
-        onOpenChange={vi.fn()}
-      />,
-    );
+    renderDialog({ capabilities: ["order_laboratory"] });
 
-    await screen.findByText("CBC (LAB001)");
+    await screen.findByText("CBC");
 
     fireEvent.click(screen.getByTestId("tabbed-dialog-tab-radiology"));
 
@@ -189,17 +187,9 @@ describe("AddClinicalOrderDialog product list", () => {
       ],
     });
 
-    render(
-      <AddClinicalOrderDialog
-        visitUuid="visit-1"
-        encounterUuid="enc-1"
-        capabilities={["order_laboratory"]}
-        open
-        onOpenChange={vi.fn()}
-      />,
-    );
+    renderDialog({ capabilities: ["order_laboratory"] });
 
-    await screen.findByText("Pregnancy test (LAB002)");
+    await screen.findByText("Pregnancy test");
     fireEvent.click(screen.getByTestId("clinical-order-product-plus-lab-2"));
 
     await waitFor(() => {

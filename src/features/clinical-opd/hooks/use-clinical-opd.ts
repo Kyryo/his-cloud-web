@@ -17,6 +17,7 @@ import {
   createPrescription,
   createProblemListItem,
   deleteChiefComplaint,
+  deletePhysicalExam,
   fetchChiefComplaints,
   fetchChiefComplaintSuggestions,
   fetchClinicalNotes,
@@ -266,6 +267,24 @@ export function useUpdatePhysicalExam(visitUuid: string, encounterUuid: string) 
   });
 }
 
+export function useDeletePhysicalExam(visitUuid: string, encounterUuid: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (examUuid: string) =>
+      deletePhysicalExam(visitUuid, encounterUuid, examUuid),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-physical-exams", visitUuid, encounterUuid],
+      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
+    },
+  });
+}
+
 export function useCreateClinicalNote(visitUuid: string, encounterUuid: string) {
   const queryClient = useQueryClient();
   return useMutation({
@@ -322,6 +341,9 @@ export function useCreatePrescription(visitUuid: string, encounterUuid: string) 
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ["encounter-prescriptions", visitUuid, encounterUuid],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-orders", visitUuid, encounterUuid],
       });
       await invalidateEncounterWorkspaceQueries(
         queryClient,

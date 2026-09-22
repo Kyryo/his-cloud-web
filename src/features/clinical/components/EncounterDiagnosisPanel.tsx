@@ -1,10 +1,10 @@
 "use client";
 
-import { Loader2, Pencil, Plus, Stethoscope, Trash2 } from "lucide-react";
+import { Loader2, Pencil, Plus, Stethoscope, X } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
-import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -13,13 +13,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  OpdEncounterRecordList,
+} from "@/features/clinical-opd/components/detail/OpdEncounterRecordList";
+import { OpdEncounterTabEmptyState } from "@/features/clinical-opd/components/detail/OpdEncounterTabEmptyState";
 import { AddEncounterDiagnosisDialog } from "@/features/clinical/components/AddEncounterDiagnosisDialog";
 import { EditEncounterDiagnosisDialog } from "@/features/clinical/components/EditEncounterDiagnosisDialog";
 import {
   deleteEncounterDiagnosis,
   fetchEncounterDiagnoses,
 } from "@/features/clinical/services/clinical-diagnosis.service";
-import type { EncounterDiagnosis, EncounterDiagnosisSourcePlatform } from "@/features/clinical/types/clinical-diagnosis.types";
+import type {
+  EncounterDiagnosis,
+  EncounterDiagnosisSourcePlatform,
+} from "@/features/clinical/types/clinical-diagnosis.types";
+import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
@@ -33,6 +41,8 @@ type EncounterDiagnosisPanelProps = {
   onDiagnosesChanged?: () => void | Promise<void>;
   readOnly?: boolean;
   hideAddButton?: boolean;
+  /** Consult workspace list styling (orders-like cards). */
+  variant?: "default" | "consult";
   className?: string;
 };
 
@@ -43,15 +53,19 @@ export function EncounterDiagnosisPanel({
   onDiagnosesChanged,
   readOnly = false,
   hideAddButton = false,
+  variant = "default",
   className,
 }: EncounterDiagnosisPanelProps) {
   const { toast } = useToast();
   const [diagnoses, setDiagnoses] = useState<EncounterDiagnosis[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
-  const [editingDiagnosis, setEditingDiagnosis] = useState<EncounterDiagnosis | null>(null);
-  const [deletingDiagnosis, setDeletingDiagnosis] = useState<EncounterDiagnosis | null>(null);
+  const [editingDiagnosis, setEditingDiagnosis] =
+    useState<EncounterDiagnosis | null>(null);
+  const [deletingDiagnosis, setDeletingDiagnosis] =
+    useState<EncounterDiagnosis | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const isConsult = variant === "consult";
 
   const loadDiagnoses = useCallback(async () => {
     if (!visitUuid || !encounterUuid) {
@@ -165,12 +179,177 @@ export function EncounterDiagnosisPanel({
     );
   }
 
+  const dialogs = (
+    <>
+      <AddEncounterDiagnosisDialog
+        visitUuid={visitUuid}
+        encounterUuid={encounterUuid}
+        isPrimaryDefault={diagnoses.length === 0}
+        sourcePlatform={sourcePlatform}
+        open={addDialogOpen}
+        onOpenChange={setAddDialogOpen}
+        onSuccess={handleDiagnosesChanged}
+      />
+
+      {!isConsult ? (
+        <EditEncounterDiagnosisDialog
+          diagnosis={editingDiagnosis}
+          open={editingDiagnosis != null}
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditingDiagnosis(null);
+            }
+          }}
+          onSuccess={handleDiagnosesChanged}
+        />
+      ) : null}
+
+      <Dialog
+        open={deletingDiagnosis != null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeletingDiagnosis(null);
+          }
+        }}
+      >
+        <DialogContent className={cn("sm:max-w-md", appFont.className)}>
+          <DialogHeader>
+            <DialogTitle>Delete diagnosis</DialogTitle>
+            <DialogDescription>
+              Remove {deletingDiagnosis?.code} from this encounter? This action
+              cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <SecondaryButton
+              type="button"
+              onClick={() => setDeletingDiagnosis(null)}
+            >
+              Cancel
+            </SecondaryButton>
+            <PrimaryButton
+              type="button"
+              disabled={isDeleting}
+              onClick={() => void handleDeleteDiagnosis()}
+            >
+              {isDeleting ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete diagnosis"
+              )}
+            </PrimaryButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+
+  if (isConsult) {
+    if (isLoading) {
+      return (
+        <div className={cn("flex items-center gap-2 text-sm text-brand-muted", className)}>
+          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+          Loading diagnoses...
+        </div>
+      );
+    }
+
+    if (diagnoses.length === 0) {
+      return (
+        <div className={className}>
+          <OpdEncounterTabEmptyState
+            icon={Stethoscope}
+            title="No diagnoses yet"
+            description="Diagnoses you save on the left will show up here for this visit."
+            data-testid="opd-diagnoses-empty-state"
+          />
+          {dialogs}
+        </div>
+      );
+    }
+
+    return (
+      <div className={className}>
+        <OpdEncounterRecordList
+          title="This visit"
+          data-testid="opd-diagnoses-list"
+        >
+          {diagnoses.map((diagnosis) => {
+            const recordedAt = diagnosis.created_at;
+            return (
+              <li
+                key={diagnosis.uuid}
+                className="px-4 py-2.5 sm:px-5"
+                data-testid={`opd-diagnosis-item-${diagnosis.uuid}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 space-y-1.5">
+                    <p className="truncate text-sm font-medium text-brand-navy">
+                      {diagnosis.description || diagnosis.code}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {diagnosis.is_primary ? (
+                        <Badge variant="secondary">Primary</Badge>
+                      ) : null}
+                      <Badge variant="outline">{diagnosis.code}</Badge>
+                      {diagnosis.status ? (
+                        <Badge variant="outline" className="capitalize">
+                          {diagnosis.status.toLowerCase()}
+                        </Badge>
+                      ) : null}
+                      {recordedAt ? (
+                        <span className="inline-flex flex-wrap items-baseline gap-x-2 text-xs text-brand-muted">
+                          <time dateTime={recordedAt}>
+                            {formatDisplayDateTime(recordedAt)}
+                          </time>
+                          {diagnosis.created_by_name ? (
+                            <>
+                              <span
+                                className="text-dash-muted"
+                                aria-hidden="true"
+                              >
+                                ·
+                              </span>
+                              <span>{diagnosis.created_by_name}</span>
+                            </>
+                          ) : null}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                  {readOnly ? null : (
+                    <SecondaryButton
+                      type="button"
+                      size="icon"
+                      className="size-7 shrink-0 rounded-full text-brand-muted hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                      aria-label={`Delete diagnosis ${diagnosis.code}`}
+                      data-testid={`opd-diagnosis-delete-${diagnosis.uuid}`}
+                      onClick={() => setDeletingDiagnosis(diagnosis)}
+                    >
+                      <X className="size-3.5" aria-hidden="true" />
+                    </SecondaryButton>
+                  )}
+                </div>
+              </li>
+            );
+          })}
+        </OpdEncounterRecordList>
+        {dialogs}
+      </div>
+    );
+  }
+
   return (
     <div className={className}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-center gap-2">
           <Stethoscope className="size-4 text-brand-muted" aria-hidden="true" />
-          <h3 className="text-sm font-medium text-brand-navy">Encounter diagnoses</h3>
+          <h3 className="text-sm font-medium text-brand-navy">
+            Encounter diagnoses
+          </h3>
         </div>
         {readOnly || hideAddButton ? null : (
           <PrimaryButton type="button" onClick={() => setAddDialogOpen(true)}>
@@ -201,30 +380,30 @@ export function EncounterDiagnosisPanel({
                     </span>
                   ) : null}
                 </p>
-                <p className="text-sm text-brand-muted">{diagnosis.description || "—"}</p>
+                <p className="text-sm text-brand-muted">
+                  {diagnosis.description || "—"}
+                </p>
               </div>
               {readOnly ? null : (
                 <div className="flex shrink-0 items-center gap-1">
-                  <Button
+                  <SecondaryButton
                     type="button"
-                    variant="ghost"
                     size="icon"
-                    className="size-8 text-brand-muted"
+                    className="size-8 rounded-full"
                     aria-label={`Edit diagnosis ${diagnosis.code}`}
                     onClick={() => setEditingDiagnosis(diagnosis)}
                   >
-                    <Pencil className="size-4" aria-hidden="true" />
-                  </Button>
-                  <Button
+                    <Pencil className="size-3.5" aria-hidden="true" />
+                  </SecondaryButton>
+                  <SecondaryButton
                     type="button"
-                    variant="ghost"
                     size="icon"
-                    className="size-8 text-brand-muted hover:text-red-700"
+                    className="size-8 rounded-full text-brand-muted hover:border-red-200 hover:bg-red-50 hover:text-red-600"
                     aria-label={`Delete diagnosis ${diagnosis.code}`}
                     onClick={() => setDeletingDiagnosis(diagnosis)}
                   >
-                    <Trash2 className="size-4" aria-hidden="true" />
-                  </Button>
+                    <X className="size-3.5" aria-hidden="true" />
+                  </SecondaryButton>
                 </div>
               )}
             </li>
@@ -236,64 +415,7 @@ export function EncounterDiagnosisPanel({
         </p>
       )}
 
-      <AddEncounterDiagnosisDialog
-        visitUuid={visitUuid}
-        encounterUuid={encounterUuid}
-        isPrimaryDefault={diagnoses.length === 0}
-        sourcePlatform={sourcePlatform}
-        open={addDialogOpen}
-        onOpenChange={setAddDialogOpen}
-        onSuccess={handleDiagnosesChanged}
-      />
-
-      <EditEncounterDiagnosisDialog
-        diagnosis={editingDiagnosis}
-        open={editingDiagnosis != null}
-        onOpenChange={(open) => {
-          if (!open) {
-            setEditingDiagnosis(null);
-          }
-        }}
-        onSuccess={handleDiagnosesChanged}
-      />
-
-      <Dialog
-        open={deletingDiagnosis != null}
-        onOpenChange={(open) => {
-          if (!open) {
-            setDeletingDiagnosis(null);
-          }
-        }}
-      >
-        <DialogContent className={cn("sm:max-w-md", appFont.className)}>
-          <DialogHeader>
-            <DialogTitle>Delete diagnosis</DialogTitle>
-            <DialogDescription>
-              Remove {deletingDiagnosis?.code} from this encounter? This action cannot be
-              undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <SecondaryButton type="button" onClick={() => setDeletingDiagnosis(null)}>
-              Cancel
-            </SecondaryButton>
-            <PrimaryButton
-              type="button"
-              disabled={isDeleting}
-              onClick={() => void handleDeleteDiagnosis()}
-            >
-              {isDeleting ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                  Deleting...
-                </>
-              ) : (
-                "Delete diagnosis"
-              )}
-            </PrimaryButton>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {dialogs}
     </div>
   );
 }

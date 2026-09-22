@@ -19,6 +19,7 @@ export const PRODUCT_LIST_QUERY_KEYS = [
   "is_radiology",
   "is_procedure",
   "is_sundry",
+  "is_drug",
   "procedure_context",
 ] as const;
 

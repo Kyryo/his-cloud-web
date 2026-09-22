@@ -71,6 +71,7 @@ export function OpdConsultLayout({
 type OpdConsultFormPanelProps = {
   title: string;
   description?: string;
+  action?: ReactNode;
   children: ReactNode;
 };
 
@@ -78,6 +79,7 @@ type OpdConsultFormPanelProps = {
 export function OpdConsultFormPanel({
   title,
   description,
+  action,
   children,
 }: OpdConsultFormPanelProps) {
   return (
@@ -85,6 +87,7 @@ export function OpdConsultFormPanel({
       <OpdConsultColumnHeader
         eyebrow="Record"
         title={title}
+        action={action}
         className="bg-white"
       />
       <div className="space-y-4 px-4 py-4 sm:px-5">

@@ -127,6 +127,21 @@ export async function updatePhysicalExam(
   );
 }
 
+export async function deletePhysicalExam(
+  visitUuid: string,
+  encounterUuid: string,
+  examUuid: string,
+) {
+  return bffRequest<void>(
+    BFF_CLINICAL_OPD_ROUTES.encounterPhysicalExam(
+      visitUuid,
+      encounterUuid,
+      examUuid,
+    ),
+    { method: "DELETE" },
+  );
+}
+
 export async function fetchClinicalNotes(visitUuid: string, encounterUuid: string) {
   const response = await bffRequest<ListResponse<EncounterClinicalNote>>(
     BFF_CLINICAL_OPD_ROUTES.encounterClinicalNotes(visitUuid, encounterUuid),

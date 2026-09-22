@@ -1,17 +1,9 @@
 "use client";
 
-import {
-  ClipboardList,
-  FlaskConical,
-  Package,
-  Plus,
-  Scan,
-  Stethoscope,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { ClipboardList, Plus, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
+import { SecondaryButton } from "@/components/ui/app-buttons";
 import {
   OpdConsultContentPanel,
   OpdConsultFormLocked,
@@ -19,10 +11,7 @@ import {
   OpdConsultLayout,
 } from "@/features/clinical-opd/components/detail/OpdConsultLayout";
 import { Badge } from "@/components/ui/badge";
-import {
-  OpdEncounterRecordList,
-  OpdEncounterRecordListItem,
-} from "@/features/clinical-opd/components/detail/OpdEncounterRecordList";
+import { OpdEncounterRecordList } from "@/features/clinical-opd/components/detail/OpdEncounterRecordList";
 import { OpdEncounterTabEmptyState } from "@/features/clinical-opd/components/detail/OpdEncounterTabEmptyState";
 import { OpdEncounterTabSkeleton } from "@/features/clinical-opd/components/detail/OpdEncounterTabSkeleton";
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
@@ -39,6 +28,7 @@ import {
   CLINICAL_ORDER_ITEM_TYPE_OPTIONS,
   getOrderItemTypesForCapabilities,
 } from "@/features/clinical-opd/utils/clinical-order-item-types";
+import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { cn } from "@/lib/utils";
@@ -60,15 +50,19 @@ const ORDER_FILTERS: Array<{ id: OrderFilterId; label: string }> = [
   { id: "SUNDRY", label: "Sundries" },
 ];
 
-const ORDER_TYPE_ICONS: Record<string, LucideIcon> = {
-  LABORATORY: FlaskConical,
-  RADIOLOGY: Scan,
-  PROCEDURE: Stethoscope,
-  SUNDRY: Package,
+const ORDER_TYPE_BADGE_LABELS: Record<string, string> = {
+  LABORATORY: "Lab",
+  RADIOLOGY: "Radiology",
+  PROCEDURE: "Procedure",
+  SUNDRY: "Sundry",
 };
 
-function orderTypeIcon(itemType: string): LucideIcon {
-  return ORDER_TYPE_ICONS[itemType] ?? ClipboardList;
+function orderTypeBadgeLabel(order: EncounterClinicalOrder): string {
+  return (
+    ORDER_TYPE_BADGE_LABELS[order.item_type] ||
+    order.item_type_display ||
+    order.item_type
+  );
 }
 
 function matchesOrderFilter(
@@ -103,20 +97,19 @@ export function OpdOrdersTabPanel({
   isActive = true,
 }: OpdOrdersTabPanelProps) {
   const { toast } = useToast();
-  const { capabilities, chartSummary, isChartLocked } =
-    useOpdEncounterWorkspace();
+  const { capabilities, isChartLocked } = useOpdEncounterWorkspace();
   const { data: orders = [], isLoading } = useEncounterOrders(
     visitUuid,
     encounterUuid,
   );
   const cancelOrder = useCancelOrder(visitUuid, encounterUuid);
   const createOrder = useCreateOrder(visitUuid, encounterUuid);
-  const [dialogOpen, setDialogOpen] = useState(true);
   const [filter, setFilter] = useState<OrderFilterId>("all");
   const [reorderOrder, setReorderOrder] = useState<EncounterClinicalOrder | null>(
     null,
   );
   const [isReordering, setIsReordering] = useState(false);
+  const [cancellingUuid, setCancellingUuid] = useState<string | null>(null);
 
   const canAddOrder =
     getOrderItemTypesForCapabilities(capabilities).length > 0 && !isChartLocked;
@@ -167,6 +160,28 @@ export function OpdOrdersTabPanel({
     }
   };
 
+  const handleCancelOrder = async (order: EncounterClinicalOrder) => {
+    try {
+      setCancellingUuid(order.uuid);
+      await cancelOrder.mutateAsync(order.uuid);
+      toast({
+        title: "Order cancelled",
+        variant: "success",
+      });
+    } catch (error) {
+      toast({
+        title: "Could not cancel order",
+        description:
+          error instanceof BffError
+            ? formatBffErrorMessage(error.message, error.errors)
+            : "Unable to cancel this order.",
+        variant: "error",
+      });
+    } finally {
+      setCancellingUuid(null);
+    }
+  };
+
   if (!isActive) {
     return null;
   }
@@ -175,21 +190,9 @@ export function OpdOrdersTabPanel({
     return <OpdEncounterTabSkeleton rows={4} />;
   }
 
-  const addAction = canAddOrder ? (
-    <PrimaryButton
-      type="button"
-      size="sm"
-      onClick={() => setDialogOpen(true)}
-      data-testid="opd-orders-add-button"
-    >
-      <Plus className="size-4" aria-hidden="true" />
-      Add order
-    </PrimaryButton>
-  ) : null;
-
   const filterToolbar = (
     <div
-      className="flex flex-wrap gap-1.5"
+      className="flex flex-wrap gap-1"
       role="tablist"
       aria-label="Filter clinical orders"
       data-testid="opd-orders-type-filters"
@@ -204,10 +207,10 @@ export function OpdOrdersTabPanel({
             aria-selected={isSelected}
             onClick={() => setFilter(option.id)}
             className={cn(
-              "rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+              "rounded-md px-2 py-1 text-[11px] font-medium transition-colors",
               isSelected
-                ? "border-brand-primary bg-brand-primary/10 text-brand-primary"
-                : "border-dash-border bg-white text-brand-muted hover:border-brand-border hover:text-brand-navy",
+                ? "bg-white text-brand-navy shadow-2xs ring-1 ring-dash-border/80"
+                : "text-brand-muted hover:bg-white/70 hover:text-brand-navy",
             )}
             data-testid={`opd-orders-filter-${option.id.toLowerCase()}`}
           >
@@ -222,16 +225,13 @@ export function OpdOrdersTabPanel({
     activeOrders.length === 0 ? (
       <OpdEncounterTabEmptyState
         icon={ClipboardList}
-        title="No orders recorded"
-        description="Laboratory, radiology, procedure, and other clinical orders for this encounter will appear here."
-        action={addAction}
+        title="No orders yet"
+        description="Orders you place on the left will show up here for this visit."
         data-testid="opd-orders-empty-state"
       />
     ) : (
       <OpdEncounterRecordList
-        title="Clinical orders"
-        description="Catalog-backed orders for this encounter."
-        action={addAction}
+        title="This visit"
         toolbar={filterToolbar}
         data-testid="opd-orders-list"
       >
@@ -241,102 +241,93 @@ export function OpdOrdersTabPanel({
             orders for this encounter.
           </li>
         ) : (
-          filteredOrders.map((order) => (
-            <OpdEncounterRecordListItem
-              key={order.uuid}
-              compact
-              icon={orderTypeIcon(order.item_type)}
-              title={order.description || order.item_type_display}
-              badges={
-                <>
-                  <Badge variant="outline">
-                    {order.item_type_display || order.item_type}
-                  </Badge>
-                  <Badge variant="secondary">
-                    {order.status_display || order.status}
-                  </Badge>
-                </>
-              }
-              description={
-                <p>
-                  Clinical units: {order.clinical_quantity}
-                  {order.clinical_uom ? ` ${order.clinical_uom}` : ""} · Charged
-                  units: {order.charge_quantity}
-                </p>
-              }
-              dateTime={order.ordered_at ?? new Date(0).toISOString()}
-              createdByName={order.created_by_name}
-              menuActions={
-                order.status !== "CANCELLED"
-                  ? [
-                      {
-                        label: "Cancel order",
-                        onClick: () => {
-                          void (async () => {
-                            try {
-                              await cancelOrder.mutateAsync(order.uuid);
-                              toast({
-                                title: "Order cancelled",
-                                variant: "success",
-                              });
-                            } catch (error) {
-                              toast({
-                                title: "Could not cancel order",
-                                description:
-                                  error instanceof BffError
-                                    ? formatBffErrorMessage(
-                                        error.message,
-                                        error.errors,
-                                      )
-                                    : "Unable to cancel this order.",
-                                variant: "error",
-                              });
-                            }
-                          })();
-                        },
-                      },
-                    ]
-                  : undefined
-              }
-              afterMenu={
-                canReorderOrder(order, capabilities) ? (
-                  <SecondaryButton
-                    type="button"
-                    size="icon"
-                    className="size-7 rounded-full"
-                    aria-label={`Add another order of ${order.description || order.item_type_display}`}
-                    data-testid={`opd-orders-reorder-${order.uuid}`}
-                    onClick={() => setReorderOrder(order)}
-                  >
-                    <Plus className="size-3.5" aria-hidden="true" />
-                  </SecondaryButton>
-                ) : null
-              }
-            />
-          ))
+          filteredOrders.map((order) => {
+            const orderedAt = order.ordered_at ?? new Date(0).toISOString();
+            const canCancel = order.status !== "CANCELLED";
+            const isCancelling = cancellingUuid === order.uuid;
+
+            return (
+              <li
+                key={order.uuid}
+                className="px-4 py-2.5 sm:px-5"
+                data-testid={`opd-orders-item-${order.uuid}`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 space-y-1.5">
+                    <p className="truncate text-sm font-medium text-brand-navy">
+                      {order.description || order.item_type_display}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <Badge variant="secondary">
+                        {order.status_display || order.status}
+                      </Badge>
+                      <Badge variant="outline">
+                        {orderTypeBadgeLabel(order)}
+                      </Badge>
+                      <span className="inline-flex flex-wrap items-baseline gap-x-2 text-xs text-brand-muted">
+                        <time dateTime={orderedAt}>
+                          {formatDisplayDateTime(orderedAt)}
+                        </time>
+                        {order.created_by_name ? (
+                          <>
+                            <span className="text-dash-muted" aria-hidden="true">
+                              ·
+                            </span>
+                            <span>{order.created_by_name}</span>
+                          </>
+                        ) : null}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1">
+                    {canReorderOrder(order, capabilities) ? (
+                      <SecondaryButton
+                        type="button"
+                        size="icon"
+                        className="size-7 rounded-full"
+                        aria-label={`Add another order of ${order.description || order.item_type_display}`}
+                        data-testid={`opd-orders-reorder-${order.uuid}`}
+                        onClick={() => setReorderOrder(order)}
+                      >
+                        <Plus className="size-3.5" aria-hidden="true" />
+                      </SecondaryButton>
+                    ) : null}
+                    {canCancel ? (
+                      <SecondaryButton
+                        type="button"
+                        size="icon"
+                        className="size-7 rounded-full text-brand-muted hover:border-red-200 hover:bg-red-50 hover:text-red-600"
+                        aria-label={`Cancel order ${order.description || order.item_type_display}`}
+                        data-testid={`opd-orders-cancel-${order.uuid}`}
+                        disabled={isCancelling}
+                        onClick={() => {
+                          void handleCancelOrder(order);
+                        }}
+                      >
+                        <X className="size-3.5" aria-hidden="true" />
+                      </SecondaryButton>
+                    ) : null}
+                  </div>
+                </div>
+              </li>
+            );
+          })
         )}
       </OpdEncounterRecordList>
     );
-
-  const investigations = (chartSummary?.investigation_orders ?? []).filter(
-    (order) => order.status !== "CANCELLED",
-  );
 
   return (
     <OpdConsultLayout
       historySection="orders"
       form={
-        <OpdConsultFormPanel
-          title="Place order"
-          description="Search lab, radiology, procedures, or sundries and add them to this encounter."
-        >
+        <OpdConsultFormPanel title="Place order">
           {canAddOrder ? (
             <AddClinicalOrderDialog
               visitUuid={visitUuid}
               encounterUuid={encounterUuid}
               capabilities={capabilities}
-              open={dialogOpen}
-              onOpenChange={setDialogOpen}
+              open
+              onOpenChange={() => undefined}
               embedded
             />
           ) : (
@@ -347,36 +338,6 @@ export function OpdOrdersTabPanel({
       content={
         <OpdConsultContentPanel title="Orders" count={activeOrders.length}>
           {content}
-          {investigations.length > 0 ? (
-            <div className="mt-8">
-              <OpdEncounterRecordList
-                title="Investigations"
-                description="Lab and radiology from this client. Results live in status and notes."
-                data-testid="opd-investigation-orders"
-              >
-                {investigations.map((order) => (
-                  <OpdEncounterRecordListItem
-                    key={order.uuid}
-                    compact
-                    icon={orderTypeIcon(order.item_type)}
-                    title={order.description || order.item_type_display}
-                    badges={
-                      <Badge variant="secondary">
-                        {order.status_display || order.status}
-                      </Badge>
-                    }
-                    description={
-                      typeof order.metadata?.result_summary === "string"
-                        ? order.metadata.result_summary
-                        : undefined
-                    }
-                    dateTime={order.ordered_at ?? new Date(0).toISOString()}
-                    createdByName={order.created_by_name}
-                  />
-                ))}
-              </OpdEncounterRecordList>
-            </div>
-          ) : null}
           <ConfirmReorderClinicalOrderDialog
             order={reorderOrder}
             open={Boolean(reorderOrder)}

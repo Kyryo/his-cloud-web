@@ -57,6 +57,9 @@ function buildCatalogQuery(filters: CatalogListFilters = {}): string {
   if (filters.is_sundry !== undefined) {
     params.set("is_sundry", String(filters.is_sundry));
   }
+  if (filters.is_drug !== undefined) {
+    params.set("is_drug", String(filters.is_drug));
+  }
   if (filters.procedure_context) {
     params.set("procedure_context", filters.procedure_context);
   }

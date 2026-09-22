@@ -11,6 +11,7 @@ describe("inventory products list query forwarding", () => {
         "is_radiology",
         "is_procedure",
         "is_sundry",
+        "is_drug",
         "procedure_context",
       ]),
     );

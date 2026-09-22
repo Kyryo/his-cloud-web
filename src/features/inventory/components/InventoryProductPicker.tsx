@@ -22,6 +22,9 @@ type InventoryProductPickerProps = {
   invalid?: boolean;
   helperText?: string;
   filterBatchEligible?: boolean;
+  /** When true, only products marked as drugs (`metadata.is_drug`) are returned. */
+  drugsOnly?: boolean;
+  compact?: boolean;
 };
 
 function isBatchEligibleProduct(product: InventoryProduct): boolean {
@@ -41,6 +44,8 @@ export function InventoryProductPicker({
   invalid = false,
   helperText = "Search by product name or SKU.",
   filterBatchEligible = false,
+  drugsOnly = false,
+  compact = false,
 }: InventoryProductPickerProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -61,6 +66,7 @@ export function InventoryProductPicker({
           const products = await searchInventoryProducts({
             q: trimmedSearch,
             active: true,
+            is_drug: drugsOnly ? true : undefined,
           });
           const filtered = filterBatchEligible
             ? products.filter(isBatchEligibleProduct)
@@ -82,7 +88,7 @@ export function InventoryProductPicker({
       cancelled = true;
       window.clearTimeout(handle);
     };
-  }, [filterBatchEligible, open, product, trimmedSearch]);
+  }, [drugsOnly, filterBatchEligible, open, product, trimmedSearch]);
 
   function handleOpenChange(nextOpen: boolean) {
     setOpen(nextOpen);
@@ -103,9 +109,9 @@ export function InventoryProductPicker({
   }
 
   return (
-    <div className="space-y-2">
+    <div className={compact ? "space-y-1" : "space-y-2"}>
       <div>
-        <Label htmlFor={id}>
+        <Label htmlFor={id} className={cn(compact && "text-xs")}>
           {label}
           {required ? <> <RequiredFieldMarker /></> : null}
         </Label>
@@ -121,19 +127,25 @@ export function InventoryProductPicker({
         open={open}
         onOpenChange={handleOpenChange}
         disabled={disabled}
-        placeholder="Select a product"
+        placeholder={drugsOnly ? "Select a drug" : "Select a product"}
         displayValue={product ? formatProductLabel(product) : undefined}
         searchValue={search}
         onSearchChange={setSearch}
-        searchPlaceholder="Search products..."
+        searchPlaceholder={drugsOnly ? "Search drugs..." : "Search products..."}
         emptySearchMessage="Type at least 2 characters to search."
         noResultsMessage={
-          filterBatchEligible
-            ? "No stockable or consumable products found."
-            : "No products found."
+          drugsOnly
+            ? "No drugs found."
+            : filterBatchEligible
+              ? "No stockable or consumable products found."
+              : "No products found."
         }
         isLoading={isLoadingResults}
-        triggerClassName={cn("w-full", invalid && "border-destructive")}
+        triggerClassName={cn(
+          "w-full",
+          compact && "h-8",
+          invalid && "border-destructive",
+        )}
       >
         {options.map((option) => (
           <SelectItem key={option.uuid} value={option.uuid}>

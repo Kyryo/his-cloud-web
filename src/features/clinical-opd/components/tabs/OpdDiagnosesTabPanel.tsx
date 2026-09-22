@@ -49,10 +49,7 @@ export function OpdDiagnosesTabPanel({
     <OpdConsultLayout
       historySection="diagnoses"
       form={
-        <OpdConsultFormPanel
-          title="Add diagnosis"
-          description="Search ICD-10 and record the working diagnosis for this visit."
-        >
+        <OpdConsultFormPanel title="Diagnosis">
           {isChartLocked ? (
             <OpdConsultFormLocked message="This chart is locked. Diagnoses can still be reviewed for this encounter." />
           ) : (
@@ -73,6 +70,7 @@ export function OpdDiagnosesTabPanel({
             sourcePlatform="CLINICAL"
             readOnly={isChartLocked}
             hideAddButton
+            variant="consult"
             onDiagnosesChanged={handleDiagnosesChanged}
           />
         </OpdConsultContentPanel>

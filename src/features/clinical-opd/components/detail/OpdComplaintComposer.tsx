@@ -227,6 +227,7 @@ function OpdComplaintComposerForm({
             id={`opd-chief-complaint-${complaint?.uuid ?? "new"}`}
             placeholder="e.g. Cough"
             autoComplete="off"
+            autoFocus={!complaint && canWriteComplaint}
             disabled={!canWriteComplaint}
             {...form.register("text")}
           />
