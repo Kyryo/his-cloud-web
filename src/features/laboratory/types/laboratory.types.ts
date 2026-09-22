@@ -101,6 +101,11 @@ export type LabAccession = {
   accessioned_by_name: string | null;
 };
 
+export type LabResultAnalyteCodedOption = {
+  code: string;
+  label: string;
+};
+
 export type LabResultAnalyte = {
   uuid: string;
   analyte_uuid: string;
@@ -108,6 +113,7 @@ export type LabResultAnalyte = {
   analyte_name: string;
   value_type?: string | null;
   decimal_precision?: number | null;
+  coded_options?: LabResultAnalyteCodedOption[] | null;
   value_text: string;
   value_numeric: string | number | null;
   unit: string;

@@ -28,8 +28,12 @@ export function OpdEncounterWorkspaceBody({
   );
   const isConsultLayout = isOpdPhysicianHistoryTab(activeTab);
   const { observations } = useEncounterWorkspace(visitUuid, encounterUuid);
-  const stripObservations =
+  const thisEncounterVitals =
     observations.data ?? chartSummary?.this_encounter_vitals ?? [];
+  const stripObservations =
+    thisEncounterVitals.length > 0
+      ? thisEncounterVitals
+      : (chartSummary?.last_vitals ?? []);
 
   return (
     <div
@@ -39,6 +43,7 @@ export function OpdEncounterWorkspaceBody({
       <OpdEncounterAllergyBanner allergies={chartSummary?.allergies ?? []} />
       <OpdEncounterVitalsStatsStrip
         observations={stripObservations}
+        encounterObservations={thisEncounterVitals}
         isLoading={observations.isLoading && !chartSummary}
       />
       <OpdEncounterTabs />

@@ -9,6 +9,7 @@ import { OpdClientTabPanel } from "@/features/clinical-opd/components/tabs/OpdCl
 import { OpdComplaintTabPanel } from "@/features/clinical-opd/components/tabs/OpdComplaintTabPanel";
 import { OpdDiagnosesTabPanel } from "@/features/clinical-opd/components/tabs/OpdDiagnosesTabPanel";
 import { OpdDispositionTabPanel } from "@/features/clinical-opd/components/tabs/OpdDispositionTabPanel";
+import { OpdInvestigationResultsTabPanel } from "@/features/clinical-opd/components/tabs/OpdInvestigationResultsTabPanel";
 import { OpdMedicationsTabPanel } from "@/features/clinical-opd/components/tabs/OpdMedicationsTabPanel";
 import { OpdNotesTabPanel } from "@/features/clinical-opd/components/tabs/OpdNotesTabPanel";
 import { OpdNursingTabPanel } from "@/features/clinical-opd/components/tabs/OpdNursingTabPanel";
@@ -98,6 +99,14 @@ export function OpdEncounterTabPage({ tab }: OpdEncounterTabPageProps) {
     case "orders":
       return (
         <OpdOrdersTabPanel
+          visitUuid={visitUuid}
+          encounterUuid={encounterUuid}
+          isActive
+        />
+      );
+    case "investigation-results":
+      return (
+        <OpdInvestigationResultsTabPanel
           visitUuid={visitUuid}
           encounterUuid={encounterUuid}
           isActive

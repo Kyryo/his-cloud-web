@@ -3,9 +3,12 @@ import { describe, expect, it } from "vitest";
 import {
   buildOpdEncounterVitalStats,
   formatLatestBloodPressure,
+  formatVitalRangeHint,
   getLatestVitalDisplayValue,
+  groupObservationsIntoVitalSets,
   latestVitalRecordedAt,
   splitVitalDisplay,
+  statusForNumericValue,
 } from "@/features/clinical-opd/utils/opd-encounter-vitals";
 import type { EncounterObservation } from "@/features/clinical-opd/types/clinical-opd.types";
 
@@ -151,5 +154,30 @@ describe("opd-encounter-vitals", () => {
       amount: "Not recorded",
       unit: null,
     });
+  });
+
+  it("groups near-simultaneous readings into one capture set", () => {
+    const sets = groupObservationsIntoVitalSets(observations);
+    expect(sets).toHaveLength(2);
+    expect(sets[0].observations.map((item) => item.definition_code).sort()).toEqual(
+      ["bp_diastolic", "bp_systolic", "pulse", "temperature"].sort(),
+    );
+    expect(sets[1].observations.map((item) => item.definition_code)).toEqual([
+      "weight",
+    ]);
+  });
+
+  it("formats range hints for form labels", () => {
+    expect(formatVitalRangeHint("temperature", "°C")).toBe("36.1–37.5°C");
+    expect(formatVitalRangeHint("pulse", "bpm")).toBe("60–100 bpm");
+    expect(formatVitalRangeHint("spo2", "%")).toBe("≥95%");
+    expect(formatVitalRangeHint("weight", "kg")).toBeNull();
+  });
+
+  it("flags typed values against the adult reference range", () => {
+    expect(statusForNumericValue("pulse", "72")).toBe("normal");
+    expect(statusForNumericValue("pulse", "124")).toBe("high");
+    expect(statusForNumericValue("temperature", "35.2")).toBe("low");
+    expect(statusForNumericValue("pulse", "")).toBe("unknown");
   });
 });

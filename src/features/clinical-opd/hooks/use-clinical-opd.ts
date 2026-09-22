@@ -27,6 +27,7 @@ import {
   fetchEncounterClinicalHistory,
   fetchEncounterDisposition,
   fetchEncounterHistorySummary,
+  fetchEncounterLabResults,
   fetchEncounterObservations,
   fetchEncounterTimeline,
   fetchNursingNotes,
@@ -43,6 +44,7 @@ import {
   updateChiefComplaintHpi,
   updateCurrentMedication,
   updateEncounterAllergy,
+  updateEncounterObservation,
   updatePhysicalExam,
   updateProblemListItem,
   updateRoleCapabilities,
@@ -178,15 +180,14 @@ export function useOpdEncounterTabCounts(
   visitUuid: string,
   encounterUuid: string,
 ) {
-  const { observations, orders, prescriptions } = useEncounterWorkspace(
-    visitUuid,
-    encounterUuid,
-  );
+  const { observations, orders, prescriptions, nursingNotes } =
+    useEncounterWorkspace(visitUuid, encounterUuid);
 
   return buildOpdEncounterTabCounts({
     observations: observations.data,
     orders: orders.data,
     prescriptions: prescriptions.data,
+    nursingNotes: nursingNotes.data,
   });
 }
 
@@ -195,6 +196,35 @@ export function useCreateObservation(visitUuid: string, encounterUuid: string) {
   return useMutation({
     mutationFn: (payload: Record<string, unknown>) =>
       createEncounterObservation(visitUuid, encounterUuid, payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-observations", visitUuid, encounterUuid],
+      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
+    },
+  });
+}
+
+export function useUpdateObservation(visitUuid: string, encounterUuid: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      observationUuid,
+      payload,
+    }: {
+      observationUuid: string;
+      payload: Record<string, unknown>;
+    }) =>
+      updateEncounterObservation(
+        visitUuid,
+        encounterUuid,
+        observationUuid,
+        payload,
+      ),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ["encounter-observations", visitUuid, encounterUuid],
@@ -404,6 +434,18 @@ export function useEncounterOrders(
   return useQuery({
     queryKey: ["encounter-orders", visitUuid, encounterUuid],
     queryFn: () => fetchOrders(visitUuid, encounterUuid),
+    enabled: options?.enabled ?? Boolean(visitUuid && encounterUuid),
+  });
+}
+
+export function useEncounterLabResults(
+  visitUuid: string,
+  encounterUuid: string,
+  options?: { enabled?: boolean },
+) {
+  return useQuery({
+    queryKey: ["encounter-lab-results", visitUuid, encounterUuid],
+    queryFn: () => fetchEncounterLabResults(visitUuid, encounterUuid),
     enabled: options?.enabled ?? Boolean(visitUuid && encounterUuid),
   });
 }

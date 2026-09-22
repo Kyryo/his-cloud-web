@@ -8,6 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   fetchLabOrderItemResults,
   upsertLabOrderItemResults,
 } from "@/features/laboratory/services/laboratory.service";
@@ -15,6 +22,7 @@ import type {
   LabOrderItem,
   LabResult,
   LabResultAnalyte,
+  LabResultAnalyteCodedOption,
 } from "@/features/laboratory/types/laboratory.types";
 import {
   formatAnalyteReferenceRange,
@@ -35,6 +43,7 @@ type AnalyteDraft = {
   unit: string;
   value_type: string;
   decimal_precision: number | null;
+  coded_options: LabResultAnalyteCodedOption[];
   value_text: string;
   value_numeric: string;
   ref_low: string | number | null;
@@ -50,6 +59,20 @@ type LabOrderTestResultCardProps = {
   onSaved: () => void | Promise<void>;
 };
 
+function normalizeCodedOptions(
+  options: LabResultAnalyte["coded_options"],
+): LabResultAnalyteCodedOption[] {
+  if (!Array.isArray(options)) {
+    return [];
+  }
+  return options
+    .map((option) => ({
+      code: String(option?.code ?? "").trim(),
+      label: String(option?.label ?? "").trim(),
+    }))
+    .filter((option) => option.code && option.label);
+}
+
 function draftsFromResult(result: LabResult): AnalyteDraft[] {
   return result.analytes.map((analyte: LabResultAnalyte) => {
     const valueType = String(analyte.value_type || "").toUpperCase();
@@ -62,11 +85,16 @@ function draftsFromResult(result: LabResult): AnalyteDraft[] {
       analyte_code: analyte.analyte_code,
       analyte_name: analyte.analyte_name,
       unit: analyte.unit,
-      value_type: isNumeric ? "NUMERIC" : valueType || "TEXT",
+      value_type: isNumeric
+        ? "NUMERIC"
+        : valueType === "CODED"
+          ? "CODED"
+          : valueType || "TEXT",
       decimal_precision:
         analyte.decimal_precision == null
           ? null
           : Number(analyte.decimal_precision),
+      coded_options: normalizeCodedOptions(analyte.coded_options),
       value_text: analyte.value_text ?? "",
       value_numeric:
         analyte.value_numeric === null || analyte.value_numeric === undefined
@@ -145,9 +173,10 @@ export function LabOrderTestResultCard({
         values: drafts.map((draft) => ({
           analyte_uuid: draft.analyte_uuid,
           value_text: draft.value_text.trim() || undefined,
-          value_numeric: draft.value_numeric.trim()
-            ? draft.value_numeric.trim()
-            : null,
+          value_numeric:
+            draft.value_type === "NUMERIC" && draft.value_numeric.trim()
+              ? draft.value_numeric.trim()
+              : null,
         })),
       });
       toast({
@@ -221,6 +250,8 @@ export function LabOrderTestResultCard({
               draft.ref_high,
             );
             const isNumeric = draft.value_type === "NUMERIC";
+            const isCoded =
+              draft.value_type === "CODED" && draft.coded_options.length > 0;
             const outOfRange =
               isNumeric &&
               isNumericOutOfReferenceRange(
@@ -248,7 +279,9 @@ export function LabOrderTestResultCard({
                     <span
                       className={cn(
                         "shrink-0 text-[11px] tabular-nums",
-                        outOfRange ? "font-medium text-red-600" : "text-brand-muted",
+                        outOfRange
+                          ? "font-medium text-red-600"
+                          : "text-brand-muted",
                       )}
                       data-testid={`lab-order-analyte-ref-${draft.analyte_uuid}`}
                     >
@@ -279,6 +312,28 @@ export function LabOrderTestResultCard({
                     )}
                     data-testid={`lab-order-analyte-numeric-${draft.analyte_uuid}`}
                   />
+                ) : isCoded ? (
+                  <Select
+                    value={draft.value_text || undefined}
+                    onValueChange={(value) =>
+                      updateDraft(draft.analyte_uuid, { value_text: value })
+                    }
+                    disabled={readOnly || isSaving}
+                  >
+                    <SelectTrigger
+                      className="h-8 text-sm"
+                      data-testid={`lab-order-analyte-coded-${draft.analyte_uuid}`}
+                    >
+                      <SelectValue placeholder="Select result" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {draft.coded_options.map((option) => (
+                        <SelectItem key={option.code} value={option.code}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 ) : (
                   <Input
                     value={draft.value_text}

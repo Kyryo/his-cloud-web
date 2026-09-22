@@ -118,9 +118,13 @@ export async function verifyLabOrderItemResults(
 
 export async function releaseLabOrderItemResults(
   itemUuid: string,
+  options?: { allowUnverified?: boolean },
 ): Promise<LabResult> {
   return bffRequest<LabResult>(BFF_LABORATORY_ROUTES.release(itemUuid), {
     method: "POST",
+    body: {
+      allow_unverified: Boolean(options?.allowUnverified),
+    },
   });
 }
 

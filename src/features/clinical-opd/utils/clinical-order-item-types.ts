@@ -33,12 +33,26 @@ export const CLINICAL_ORDER_ITEM_TYPE_OPTIONS: Array<{
   },
 ];
 
+/** Place-order types on the Orders tab (drugs belong on Medications). */
+export const ORDERS_TAB_ITEM_TYPE_OPTIONS = CLINICAL_ORDER_ITEM_TYPE_OPTIONS.filter(
+  (option) => option.value !== "MEDICATION",
+);
+
 export function getOrderItemTypesForCapabilities(
   capabilities: readonly string[],
 ) {
   const capabilitySet = new Set(capabilities);
   return CLINICAL_ORDER_ITEM_TYPE_OPTIONS.filter((option) =>
     capabilitySet.has(option.capability),
+  );
+}
+
+/** Capabilities that can place non-medication orders on the Orders tab. */
+export function getOrdersTabItemTypesForCapabilities(
+  capabilities: readonly string[],
+) {
+  return getOrderItemTypesForCapabilities(capabilities).filter(
+    (option) => option.value !== "MEDICATION",
   );
 }
 

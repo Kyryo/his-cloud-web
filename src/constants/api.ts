@@ -182,6 +182,12 @@ export const BFF_CLINICAL_OPD_ROUTES = {
   myCapabilities: "/api/clinical/opd/my-capabilities",
   encounterObservations: (visitUuid: string, encounterUuid: string) =>
     `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/observations`,
+  encounterObservation: (
+    visitUuid: string,
+    encounterUuid: string,
+    observationUuid: string,
+  ) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/observations/${observationUuid}`,
   encounterNursingNotes: (visitUuid: string, encounterUuid: string) =>
     `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/nursing-notes`,
   encounterPhysicalExams: (visitUuid: string, encounterUuid: string) =>
@@ -210,6 +216,8 @@ export const BFF_CLINICAL_OPD_ROUTES = {
     `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/prescriptions/${prescriptionUuid}/cancel`,
   encounterOrders: (visitUuid: string, encounterUuid: string) =>
     `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/orders`,
+  encounterLabResults: (visitUuid: string, encounterUuid: string) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/lab-results`,
   cancelOrder: (
     visitUuid: string,
     encounterUuid: string,

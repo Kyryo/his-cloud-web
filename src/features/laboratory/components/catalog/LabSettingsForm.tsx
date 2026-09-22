@@ -253,7 +253,7 @@ export function LabSettingsForm({
                 name: "auto_accession_on_collect",
                 label: "Auto-accession on collect",
                 description:
-                  "Accession the order as soon as specimens are collected.",
+                  "Accession specimens as soon as they are collected. Turn off to require a separate Accession step.",
               }}
             />
             <SettingsToggleRow

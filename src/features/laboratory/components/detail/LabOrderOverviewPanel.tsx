@@ -20,6 +20,8 @@ import {
 import { AddClinicalOrderDialog } from "@/features/clinical-opd/components/tabs/AddClinicalOrderDialog";
 import { useMyClinicalCapabilities } from "@/features/clinical-opd/hooks/use-clinical-opd";
 import { LabOrderStatusBadge } from "@/features/laboratory/components/LabOrderStatusBadge";
+import { LabOrderDetailWorkflowActions } from "@/features/laboratory/components/detail/LabOrderDetailWorkflowActions";
+import { LabOrderFetchResultsButton } from "@/features/laboratory/components/detail/LabOrderFetchResultsButton";
 import { LabOrderTestResultCard } from "@/features/laboratory/components/detail/LabOrderTestResultCard";
 import {
   LabOrderedTestsViewToggle,
@@ -39,6 +41,7 @@ import {
   readLabOrderedTestsViewMode,
   writeLabOrderedTestsViewMode,
 } from "@/features/laboratory/utils/lab-ordered-tests-view";
+import { sortLabOrderItems } from "@/features/laboratory/utils/sort-lab-order-items";
 import { cn } from "@/lib/utils";
 
 const DEFAULT_ORDER_CAPABILITIES = ["order_laboratory"] as const;
@@ -52,7 +55,7 @@ function itemsForProduct(
       (item) => item.visit_order_uuid === product.visit_order_uuid,
     );
     if (matched.length > 0) {
-      return [...matched].sort((a, b) => a.sort_order - b.sort_order);
+      return sortLabOrderItems(matched);
     }
   }
 
@@ -61,7 +64,7 @@ function itemsForProduct(
       (item) => item.panel_uuid === product.panel_uuid,
     );
     if (matched.length > 0) {
-      return [...matched].sort((a, b) => a.sort_order - b.sort_order);
+      return sortLabOrderItems(matched);
     }
   }
 
@@ -152,19 +155,34 @@ function ProductOrderCard({
       <CollapsibleContent
         className={cn(isCards && "border-t border-dash-border/70")}
       >
+        <div
+          className={cn(
+            "flex flex-wrap items-center justify-start gap-1.5",
+            isCards ? "bg-slate-50/40 px-4 pt-3" : "pt-1 pb-2",
+          )}
+          data-testid={`lab-order-workflow-actions-${productKey}`}
+        >
+          <LabOrderDetailWorkflowActions
+            items={items}
+            testId={`lab-action-submit-${productKey}`}
+          />
+          <LabOrderFetchResultsButton
+            testId={`lab-action-fetch-results-${productKey}`}
+          />
+        </div>
         {items.length === 0 ? (
           <p
             className={cn(
               "text-sm",
               isCards
-                ? "bg-slate-50/40 px-4 py-4 text-brand-muted"
+                ? "bg-slate-50/40 px-4 pb-4 text-brand-muted"
                 : "pb-4 text-dash-muted",
             )}
           >
             No expanded tests for this product yet.
           </p>
         ) : isCards ? (
-          <div className="bg-slate-50/40 px-4 py-4">
+          <div className="bg-slate-50/40 px-4 pb-4 pt-3">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {items.map((item) => (
                 <LabOrderTestResultCard
@@ -300,7 +318,7 @@ export function LabOrderOverviewPanel() {
           className={cn("pt-5", viewMode === "cards" && "space-y-3")}
           aria-labelledby="lab-ordered-products-heading"
         >
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <h2
               id="lab-ordered-products-heading"
               className="text-sm font-semibold text-brand-navy"

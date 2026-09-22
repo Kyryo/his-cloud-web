@@ -4,6 +4,7 @@ import { Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -21,6 +22,7 @@ import type {
   LabOrder,
   LabResult,
   LabResultAnalyte,
+  LabResultAnalyteCodedOption,
 } from "@/features/laboratory/types/laboratory.types";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
@@ -42,22 +44,43 @@ type AnalyteDraft = {
   analyte_code: string;
   analyte_name: string;
   unit: string;
+  value_type: string;
+  coded_options: LabResultAnalyteCodedOption[];
   value_text: string;
   value_numeric: string;
 };
 
+function normalizeCodedOptions(
+  options: LabResultAnalyte["coded_options"],
+): LabResultAnalyteCodedOption[] {
+  if (!Array.isArray(options)) {
+    return [];
+  }
+  return options
+    .map((option) => ({
+      code: String(option?.code ?? "").trim(),
+      label: String(option?.label ?? "").trim(),
+    }))
+    .filter((option) => option.code && option.label);
+}
+
 function draftsFromResult(result: LabResult): AnalyteDraft[] {
-  return result.analytes.map((analyte: LabResultAnalyte) => ({
-    analyte_uuid: analyte.analyte_uuid,
-    analyte_code: analyte.analyte_code,
-    analyte_name: analyte.analyte_name,
-    unit: analyte.unit,
-    value_text: analyte.value_text ?? "",
-    value_numeric:
-      analyte.value_numeric === null || analyte.value_numeric === undefined
-        ? ""
-        : String(analyte.value_numeric),
-  }));
+  return result.analytes.map((analyte: LabResultAnalyte) => {
+    const valueType = String(analyte.value_type || "").toUpperCase();
+    return {
+      analyte_uuid: analyte.analyte_uuid,
+      analyte_code: analyte.analyte_code,
+      analyte_name: analyte.analyte_name,
+      unit: analyte.unit,
+      value_type: valueType || "TEXT",
+      coded_options: normalizeCodedOptions(analyte.coded_options),
+      value_text: analyte.value_text ?? "",
+      value_numeric:
+        analyte.value_numeric === null || analyte.value_numeric === undefined
+          ? ""
+          : String(analyte.value_numeric),
+    };
+  });
 }
 
 export function EnterResultsDialog({
@@ -162,9 +185,10 @@ export function EnterResultsDialog({
         values: drafts.map((draft) => ({
           analyte_uuid: draft.analyte_uuid,
           value_text: draft.value_text.trim() || undefined,
-          value_numeric: draft.value_numeric.trim()
-            ? draft.value_numeric.trim()
-            : null,
+          value_numeric:
+            draft.value_type === "NUMERIC" && draft.value_numeric.trim()
+              ? draft.value_numeric.trim()
+              : null,
         })),
       });
       toast({
@@ -254,53 +278,88 @@ export function EnterResultsDialog({
           </p>
         ) : (
           <div className="space-y-3">
-            {drafts.map((draft) => (
-              <div
-                key={draft.analyte_uuid}
-                className="grid gap-2 rounded-lg border border-dash-border p-3 sm:grid-cols-2"
-              >
-                <div className="sm:col-span-2">
-                  <p className="text-sm font-medium text-brand-navy">
-                    {draft.analyte_name}
-                  </p>
-                  <p className="font-mono text-xs text-brand-muted">
-                    {draft.analyte_code}
-                    {draft.unit ? ` · ${draft.unit}` : ""}
-                  </p>
+            {drafts.map((draft) => {
+              const isNumeric = draft.value_type === "NUMERIC";
+              const isCoded =
+                draft.value_type === "CODED" && draft.coded_options.length > 0;
+
+              return (
+                <div
+                  key={draft.analyte_uuid}
+                  className="space-y-2 rounded-lg border border-dash-border p-3"
+                >
+                  <div>
+                    <p className="text-sm font-medium text-brand-navy">
+                      {draft.analyte_name}
+                    </p>
+                    <p className="font-mono text-xs text-brand-muted">
+                      {draft.analyte_code}
+                      {draft.unit ? ` · ${draft.unit}` : ""}
+                    </p>
+                  </div>
+                  {isNumeric ? (
+                    <div className="space-y-1">
+                      <Label htmlFor={`numeric-${draft.analyte_uuid}`}>
+                        Numeric value
+                      </Label>
+                      <Input
+                        id={`numeric-${draft.analyte_uuid}`}
+                        value={draft.value_numeric}
+                        onChange={(event) =>
+                          updateDraft(draft.analyte_uuid, {
+                            value_numeric: event.target.value,
+                          })
+                        }
+                        className="h-9 font-mono text-sm"
+                        inputMode="decimal"
+                      />
+                    </div>
+                  ) : isCoded ? (
+                    <div className="space-y-1">
+                      <Label>Result</Label>
+                      <Select
+                        value={draft.value_text || undefined}
+                        onValueChange={(value) =>
+                          updateDraft(draft.analyte_uuid, {
+                            value_text: value,
+                          })
+                        }
+                      >
+                        <SelectTrigger
+                          className="h-9 text-sm"
+                          data-testid={`enter-results-coded-${draft.analyte_uuid}`}
+                        >
+                          <SelectValue placeholder="Select result" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {draft.coded_options.map((option) => (
+                            <SelectItem key={option.code} value={option.code}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  ) : (
+                    <div className="space-y-1">
+                      <Label htmlFor={`text-${draft.analyte_uuid}`}>
+                        Text value
+                      </Label>
+                      <Input
+                        id={`text-${draft.analyte_uuid}`}
+                        value={draft.value_text}
+                        onChange={(event) =>
+                          updateDraft(draft.analyte_uuid, {
+                            value_text: event.target.value,
+                          })
+                        }
+                        className="h-9 text-sm"
+                      />
+                    </div>
+                  )}
                 </div>
-                <div className="space-y-1">
-                  <Label htmlFor={`numeric-${draft.analyte_uuid}`}>
-                    Numeric value
-                  </Label>
-                  <input
-                    id={`numeric-${draft.analyte_uuid}`}
-                    value={draft.value_numeric}
-                    onChange={(event) =>
-                      updateDraft(draft.analyte_uuid, {
-                        value_numeric: event.target.value,
-                      })
-                    }
-                    className="h-9 w-full rounded-lg border border-dash-border bg-white px-3 font-mono text-sm"
-                    inputMode="decimal"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <Label htmlFor={`text-${draft.analyte_uuid}`}>
-                    Text value
-                  </Label>
-                  <input
-                    id={`text-${draft.analyte_uuid}`}
-                    value={draft.value_text}
-                    onChange={(event) =>
-                      updateDraft(draft.analyte_uuid, {
-                        value_text: event.target.value,
-                      })
-                    }
-                    className="h-9 w-full rounded-lg border border-dash-border bg-white px-3 text-sm"
-                  />
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>

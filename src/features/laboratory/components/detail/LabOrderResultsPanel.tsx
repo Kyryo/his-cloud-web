@@ -28,6 +28,7 @@ import {
   formatLabOrderItemStatusLabel,
   formatLabResultStatusLabel,
 } from "@/features/laboratory/utils/format-lab-order";
+import { sortLabOrderItems } from "@/features/laboratory/utils/sort-lab-order-items";
 import { getErrorMessage } from "@/lib/fetch-error";
 import { useToast } from "@/providers/toast-provider";
 
@@ -43,8 +44,9 @@ export function LabOrderResultsPanel() {
   const [rejectReason, setRejectReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const items = order.items.filter((item) => item.status !== "CANCELLED");
-
+  const items = sortLabOrderItems(
+    order.items.filter((item) => item.status !== "CANCELLED"),
+  );
   function openConfirm(item: LabOrderItem, action: ConfirmAction) {
     setConfirmItem(item);
     setConfirmAction(action);

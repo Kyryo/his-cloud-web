@@ -28,6 +28,11 @@ export const CLINICAL_WORKSPACE_TAB_CAPABILITIES: ClinicalRoleCapabilityMeta[] =
     description: "Labs, imaging, and other orders",
   },
   {
+    key: "view_investigation_results_tab",
+    label: "Investigation results",
+    description: "Released laboratory and radiology results",
+  },
+  {
     key: "view_diagnoses_tab",
     label: "Diagnoses",
     description: "Diagnoses recorded for the visit",
@@ -36,6 +41,11 @@ export const CLINICAL_WORKSPACE_TAB_CAPABILITIES: ClinicalRoleCapabilityMeta[] =
     key: "view_medications_tab",
     label: "Medications",
     description: "Active and prescribed medications",
+  },
+  {
+    key: "view_nursing_notes_tab",
+    label: "Nurse's notes",
+    description: "Nurse's notes for the visit",
   },
   {
     key: "view_client_tab",
@@ -52,8 +62,8 @@ export const CLINICAL_ROLE_ACTION_CAPABILITIES: ClinicalRoleCapabilityMeta[] = [
   },
   {
     key: "record_nursing_note",
-    label: "Nursing notes",
-    description: "Write nursing notes on the visit",
+    label: "Record nursing notes",
+    description: "Write and amend nursing notes on the visit",
   },
   {
     key: "order_laboratory",

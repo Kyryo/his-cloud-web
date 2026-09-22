@@ -10,6 +10,7 @@ export type OpdEncounterTabId =
   | "physical-examination"
   | "notes"
   | "orders"
+  | "investigation-results"
   | "diagnoses"
   | "problems"
   | "medications"
@@ -65,6 +66,14 @@ export const OPD_ENCOUNTER_TABS: OpdEncounterTab[] = [
     requiredCapability: "view_orders_tab",
   },
   {
+    id: "investigation-results",
+    label: "Investigation results",
+    segment: "investigation-results",
+    group: "consult",
+    surface: "tab",
+    requiredCapability: "view_investigation_results_tab",
+  },
+  {
     id: "diagnoses",
     label: "Diagnoses",
     segment: "diagnoses",
@@ -82,19 +91,19 @@ export const OPD_ENCOUNTER_TABS: OpdEncounterTab[] = [
   },
   {
     id: "vital-signs",
-    label: "Vitals",
+    label: "Vitals signs",
     segment: "vital-signs",
-    group: "nurse",
-    surface: "menu",
+    group: "consult",
+    surface: "tab",
     requiredCapability: "view_vital_signs_tab",
   },
   {
     id: "nursing",
-    label: "Nursing",
+    label: "Nurse's notes",
     segment: "nursing",
-    group: "nurse",
-    surface: "menu",
-    requiredCapability: "record_nursing_note",
+    group: "consult",
+    surface: "tab",
+    requiredCapability: "view_nursing_notes_tab",
   },
   {
     id: "allergies",

@@ -214,14 +214,15 @@ export function CreateCustomerDialog({
         description:
           mode === "quick"
             ? `${getCustomerDisplayName(customer)} was added.`
-            : `${getCustomerDisplayName(customer)} was added. Choose what to do next, or add insurance later.`,
+            : `${getCustomerDisplayName(customer)} was added. Continue with insurance, or skip ahead.`,
       });
       if (mode === "quick") {
         finalizeCreatedCustomer(customer);
         return;
       }
       setCreatedCustomer(customer);
-      setActiveTab("whats-next");
+      setActiveTab("insurance");
+      void loadInsuranceSchemes();
     } catch (error) {
       if (error instanceof BffError) {
         const fieldErrors = mapBffErrorsToForm(error.errors);

@@ -122,6 +122,7 @@ export const ROUTES = {
       | "physical-examination"
       | "notes"
       | "orders"
+      | "investigation-results"
       | "diagnoses"
       | "problems"
       | "medications"
@@ -138,6 +139,7 @@ export const ROUTES = {
       "physical-examination": "physical-examination",
       notes: "notes",
       orders: "orders",
+      "investigation-results": "investigation-results",
       diagnoses: "diagnoses",
       problems: "problems",
       medications: "medications",

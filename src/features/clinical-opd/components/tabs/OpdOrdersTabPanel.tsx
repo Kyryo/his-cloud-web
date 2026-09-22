@@ -25,8 +25,8 @@ import {
 import type { ClinicalOrderItemType } from "@/features/clinical-opd/schemas/clinical-opd.schema";
 import type { EncounterClinicalOrder } from "@/features/clinical-opd/types/clinical-opd.types";
 import {
-  CLINICAL_ORDER_ITEM_TYPE_OPTIONS,
-  getOrderItemTypesForCapabilities,
+  ORDERS_TAB_ITEM_TYPE_OPTIONS,
+  getOrdersTabItemTypesForCapabilities,
 } from "@/features/clinical-opd/utils/clinical-order-item-types";
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { BffError } from "@/lib/bff-client";
@@ -79,10 +79,14 @@ function canReorderOrder(
   order: EncounterClinicalOrder,
   capabilities: readonly string[],
 ): boolean {
-  if (!order.product_uuid || order.status === "CANCELLED") {
+  if (
+    !order.product_uuid ||
+    order.status === "CANCELLED" ||
+    order.item_type === "MEDICATION"
+  ) {
     return false;
   }
-  const option = CLINICAL_ORDER_ITEM_TYPE_OPTIONS.find(
+  const option = ORDERS_TAB_ITEM_TYPE_OPTIONS.find(
     (item) => item.value === order.item_type,
   );
   if (!option) {
@@ -112,11 +116,15 @@ export function OpdOrdersTabPanel({
   const [cancellingUuid, setCancellingUuid] = useState<string | null>(null);
 
   const canAddOrder =
-    getOrderItemTypesForCapabilities(capabilities).length > 0 && !isChartLocked;
+    getOrdersTabItemTypesForCapabilities(capabilities).length > 0 &&
+    !isChartLocked;
   const activeOrders = useMemo(
     () =>
       orders.filter(
-        (order) => order.status !== "CANCELLED" && order.is_active !== false,
+        (order) =>
+          order.status !== "CANCELLED" &&
+          order.is_active !== false &&
+          order.item_type !== "MEDICATION",
       ),
     [orders],
   );

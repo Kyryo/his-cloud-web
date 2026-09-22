@@ -6,6 +6,12 @@ export const CLINICAL_OPD_API_PATHS = {
   myCapabilities: "/clinical/my-capabilities/",
   encounterObservations: (visitUuid: string, encounterUuid: string) =>
     `/clinical/visits/${visitUuid}/encounters/${encounterUuid}/observations/`,
+  encounterObservation: (
+    visitUuid: string,
+    encounterUuid: string,
+    observationUuid: string,
+  ) =>
+    `/clinical/visits/${visitUuid}/encounters/${encounterUuid}/observations/${observationUuid}/`,
   encounterNursingNotes: (visitUuid: string, encounterUuid: string) =>
     `/clinical/visits/${visitUuid}/encounters/${encounterUuid}/nursing-notes/`,
   amendNursingNote: (
@@ -46,6 +52,8 @@ export const CLINICAL_OPD_API_PATHS = {
     `/clinical/visits/${visitUuid}/encounters/${encounterUuid}/prescriptions/${prescriptionUuid}/cancel/`,
   encounterOrders: (visitUuid: string, encounterUuid: string) =>
     `/clinical/visits/${visitUuid}/encounters/${encounterUuid}/orders/`,
+  encounterLabResults: (visitUuid: string, encounterUuid: string) =>
+    `/clinical/visits/${visitUuid}/encounters/${encounterUuid}/lab-results/`,
   cancelOrder: (
     visitUuid: string,
     encounterUuid: string,

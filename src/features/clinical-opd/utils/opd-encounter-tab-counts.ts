@@ -1,5 +1,6 @@
 import type {
   EncounterClinicalOrder,
+  EncounterNursingNote,
   EncounterObservation,
   EncounterPrescription,
 } from "@/features/clinical-opd/types/clinical-opd.types";
@@ -11,6 +12,7 @@ type OpdEncounterTabCountsInput = {
   observations?: EncounterObservation[];
   orders?: EncounterClinicalOrder[];
   prescriptions?: EncounterPrescription[];
+  nursingNotes?: EncounterNursingNote[];
 };
 
 /**
@@ -21,6 +23,7 @@ export function buildOpdEncounterTabCounts({
   observations,
   orders,
   prescriptions,
+  nursingNotes,
 }: OpdEncounterTabCountsInput): OpdEncounterTabCounts {
   const counts: OpdEncounterTabCounts = {};
 
@@ -41,6 +44,11 @@ export function buildOpdEncounterTabCounts({
   ).length;
   if (medicationsCount > 0) {
     counts.medications = medicationsCount;
+  }
+
+  const nursingCount = nursingNotes?.length ?? 0;
+  if (nursingCount > 0) {
+    counts.nursing = nursingCount;
   }
 
   return counts;

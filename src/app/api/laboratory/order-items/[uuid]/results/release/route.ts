@@ -8,7 +8,11 @@ type RouteContext = {
   params: Promise<{ uuid: string }>;
 };
 
-export async function POST(_request: Request, context: RouteContext) {
+type ReleaseBody = {
+  allow_unverified?: boolean;
+};
+
+export async function POST(request: Request, context: RouteContext) {
   try {
     const auth = await requireAccessToken();
     if ("error" in auth) {
@@ -16,12 +20,21 @@ export async function POST(_request: Request, context: RouteContext) {
     }
 
     const { uuid } = await context.params;
+    let body: ReleaseBody = {};
+    try {
+      body = (await request.json()) as ReleaseBody;
+    } catch {
+      body = {};
+    }
+
     const result = await hmisApiRequest<LabResult>(
       LABORATORY_API_PATHS.release(uuid),
       {
         method: "POST",
         token: auth.accessToken,
-        body: {},
+        body: {
+          allow_unverified: Boolean(body.allow_unverified),
+        },
       },
     );
 

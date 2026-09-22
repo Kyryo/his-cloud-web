@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 
 type OpdInlineComposerProps = {
   id: string;
+  formId?: string;
   title?: string;
   description?: string;
   label: string;
@@ -20,6 +21,8 @@ type OpdInlineComposerProps = {
   submitLabel: string;
   isPending?: boolean;
   disabled?: boolean;
+  /** When false, omit the inline submit button (e.g. header Save). */
+  showSubmitButton?: boolean;
   extra?: ReactNode;
   textareaProps?: ComponentProps<typeof Textarea>;
   onSubmit: FormEventHandler<HTMLFormElement>;
@@ -29,6 +32,7 @@ type OpdInlineComposerProps = {
 
 export function OpdInlineComposer({
   id,
+  formId,
   title,
   description,
   label,
@@ -39,6 +43,7 @@ export function OpdInlineComposer({
   submitLabel,
   isPending = false,
   disabled = false,
+  showSubmitButton = true,
   extra,
   textareaProps,
   onSubmit,
@@ -49,6 +54,7 @@ export function OpdInlineComposer({
 
   return (
     <form
+      id={formId}
       className={cn("space-y-3", className)}
       onSubmit={onSubmit}
       data-testid={testId}
@@ -79,9 +85,11 @@ export function OpdInlineComposer({
 
       {extra}
 
-      <Button type="submit" disabled={isDisabled}>
-        {isPending ? "Saving..." : submitLabel}
-      </Button>
+      {showSubmitButton ? (
+        <Button type="submit" disabled={isDisabled}>
+          {isPending ? "Saving..." : submitLabel}
+        </Button>
+      ) : null}
     </form>
   );
 }

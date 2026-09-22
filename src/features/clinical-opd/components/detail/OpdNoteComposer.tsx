@@ -36,6 +36,9 @@ type OpdNoteComposerProps = {
   disabled?: boolean;
   amendTarget?: OpdNoteAmendTarget | null;
   onAmendCleared?: () => void;
+  formId?: string;
+  showSubmitButton?: boolean;
+  onSaved?: () => void;
 };
 
 export function OpdNoteComposer({
@@ -45,6 +48,9 @@ export function OpdNoteComposer({
   disabled = false,
   amendTarget = null,
   onAmendCleared,
+  formId,
+  showSubmitButton = true,
+  onSaved,
 }: OpdNoteComposerProps) {
   const isNursing = kind === "nursing";
   const isAmending = Boolean(amendTarget);
@@ -76,6 +82,8 @@ export function OpdNoteComposer({
   return (
     <OpdInlineComposer
       id={fieldId}
+      formId={formId}
+      showSubmitButton={showSubmitButton}
       title={
         isAmending
           ? isNursing
@@ -141,6 +149,7 @@ export function OpdNoteComposer({
           await createClinicalNote.mutateAsync({ body: values.body });
         }
         form.reset({ body: "", amendment_reason: "" });
+        onSaved?.();
       })}
     />
   );

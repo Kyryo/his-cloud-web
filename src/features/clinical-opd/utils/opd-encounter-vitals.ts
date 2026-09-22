@@ -87,14 +87,72 @@ export type OpdEncounterVitalStat = {
  * Adult reference ranges. A reading outside its range is surfaced to the
  * clinician; anything without a range here reads as `unknown`.
  */
-const ADULT_VITAL_RANGES: Record<string, { low: number; high: number }> = {
+export const ADULT_VITAL_RANGES: Record<string, { low: number; high: number }> = {
   temperature: { low: 36.1, high: 37.5 },
   pulse: { low: 60, high: 100 },
   bp_systolic: { low: 90, high: 140 },
   bp_diastolic: { low: 60, high: 90 },
   respiratory_rate: { low: 12, high: 20 },
   spo2: { low: 95, high: 100 },
+  pain_score: { low: 0, high: 10 },
 };
+
+export function getVitalRange(
+  code: string,
+): { low: number; high: number } | null {
+  return ADULT_VITAL_RANGES[code] ?? null;
+}
+
+/** Human-readable range for form labels, e.g. "36.1–37.5°C" or "≥95%". */
+export function formatVitalRangeHint(
+  code: string,
+  unitLabel: string = "",
+): string | null {
+  const range = getVitalRange(code);
+  if (!range) {
+    return null;
+  }
+
+  const unit = unitLabel.trim();
+  const attachUnit = (value: string) => {
+    if (!unit) return value;
+    // Symbols stick to the number; word units get a space.
+    if (/^[%°/]/.test(unit) || unit.startsWith("°")) {
+      return `${value}${unit}`;
+    }
+    return `${value} ${unit}`;
+  };
+
+  // SpO2 is typically discussed as a floor rather than a tight band.
+  if (code === "spo2") {
+    return attachUnit(`≥${range.low}`);
+  }
+
+  return attachUnit(`${range.low}–${range.high}`);
+}
+
+export function statusForNumericValue(
+  code: string,
+  raw: string,
+): OpdVitalStatus {
+  const range = getVitalRange(code);
+  const trimmed = raw.trim();
+  if (!range || !trimmed) {
+    return "unknown";
+  }
+
+  const value = Number(trimmed);
+  if (!Number.isFinite(value)) {
+    return "unknown";
+  }
+  if (value < range.low) {
+    return "low";
+  }
+  if (value > range.high) {
+    return "high";
+  }
+  return "normal";
+}
 
 function numericValue(observation: EncounterObservation | null): number | null {
   if (!observation) {
@@ -217,6 +275,104 @@ export function buildOpdEncounterVitalStats(
       status: "unknown",
     },
   ];
+}
+
+const SET_EXTRA_CODES: Array<{ code: string; label: string }> = [
+  { code: "respiratory_rate", label: "Resp. rate" },
+  { code: "spo2", label: "SpO₂" },
+  { code: "height", label: "Height" },
+  { code: "blood_glucose", label: "Glucose" },
+  { code: "pain_score", label: "Pain" },
+];
+
+/**
+ * Primary strip vitals plus secondary readings for a single capture set.
+ * Empty values are omitted so cards stay compact.
+ */
+export function buildVitalSetStats(
+  observations: EncounterObservation[],
+): OpdEncounterVitalStat[] {
+  const primary = buildOpdEncounterVitalStats(observations).filter(
+    (stat) => stat.value != null,
+  );
+  const extras: OpdEncounterVitalStat[] = [];
+
+  for (const { code, label } of SET_EXTRA_CODES) {
+    const observation = getLatestObservation(observations, code);
+    const value = formatObservationValue(observation);
+    if (!value) continue;
+    extras.push({
+      key: code,
+      label,
+      value,
+      recordedAt: latestRecordedAt(observation),
+      status: statusFor(observation, code),
+    });
+  }
+
+  return [...primary, ...extras];
+}
+
+/** Observations recorded within this window are treated as one nurse capture. */
+export const VITAL_SET_WINDOW_MS = 120_000;
+
+export type OpdVitalSet = {
+  id: string;
+  recordedAt: string;
+  recordedByName: string | null;
+  observations: EncounterObservation[];
+};
+
+/**
+ * Groups flat encounter observations into capture sets (newest first).
+ * A new set starts when the gap from the previous reading exceeds the window.
+ */
+export function groupObservationsIntoVitalSets(
+  observations: EncounterObservation[],
+  windowMs: number = VITAL_SET_WINDOW_MS,
+): OpdVitalSet[] {
+  const sorted = [...observations]
+    .filter((observation) => observation.definition_code !== "bmi")
+    .sort(
+      (left, right) =>
+        new Date(right.recorded_at).getTime() -
+        new Date(left.recorded_at).getTime(),
+    );
+
+  if (sorted.length === 0) {
+    return [];
+  }
+
+  const sets: OpdVitalSet[] = [];
+  let current: EncounterObservation[] = [sorted[0]];
+
+  for (let index = 1; index < sorted.length; index += 1) {
+    const observation = sorted[index];
+    const previous = current[current.length - 1];
+    const gap =
+      new Date(previous.recorded_at).getTime() -
+      new Date(observation.recorded_at).getTime();
+
+    if (gap > windowMs) {
+      sets.push(toVitalSet(current));
+      current = [observation];
+    } else {
+      current.push(observation);
+    }
+  }
+
+  sets.push(toVitalSet(current));
+  return sets;
+}
+
+function toVitalSet(observations: EncounterObservation[]): OpdVitalSet {
+  const newest = observations[0];
+  return {
+    id: newest.uuid,
+    recordedAt: newest.recorded_at,
+    recordedByName: newest.recorded_by_name,
+    observations,
+  };
 }
 
 /** Most recent moment any of the strip vitals were taken. */

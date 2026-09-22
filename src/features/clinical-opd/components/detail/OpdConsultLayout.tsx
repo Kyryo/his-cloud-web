@@ -21,6 +21,10 @@ type OpdConsultLayoutProps = {
   /** Middle column: what has been recorded on this encounter. */
   content: ReactNode;
   historySection?: OpdHistorySectionId;
+  /** Restrict which history section tabs are shown (e.g. vitals-only for nurses). */
+  historyAllowedSections?: readonly OpdHistorySectionId[];
+  /** Wider record column for multi-field forms (e.g. vital signs). */
+  wideForm?: boolean;
   "data-testid"?: string;
 };
 
@@ -32,11 +36,18 @@ export function OpdConsultLayout({
   form,
   content,
   historySection,
+  historyAllowedSections,
+  wideForm = false,
   "data-testid": dataTestId = "opd-consult-layout",
 }: OpdConsultLayoutProps) {
   return (
     <div
-      className="grid min-h-0 flex-1 grid-cols-1 xl:grid-cols-[21rem_minmax(0,1fr)_20rem] 2xl:grid-cols-[23rem_minmax(0,1fr)_22rem]"
+      className={cn(
+        "grid min-h-0 flex-1 grid-cols-1",
+        wideForm
+          ? "xl:grid-cols-[minmax(0,26rem)_minmax(0,1fr)_20rem] 2xl:grid-cols-[28rem_minmax(0,1fr)_22rem]"
+          : "xl:grid-cols-[21rem_minmax(0,1fr)_20rem] 2xl:grid-cols-[23rem_minmax(0,1fr)_22rem]",
+      )}
       data-testid={dataTestId}
     >
       <section
@@ -62,7 +73,11 @@ export function OpdConsultLayout({
       </section>
 
       <div className={cn("min-w-0", STICKY_COLUMN_CLASS)}>
-        <OpdClinicalHistoryPanel section={historySection} embedded />
+        <OpdClinicalHistoryPanel
+          section={historySection}
+          allowedSections={historyAllowedSections}
+          embedded
+        />
       </div>
     </div>
   );

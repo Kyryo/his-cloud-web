@@ -10,7 +10,7 @@ import {
   TestTube2,
   XCircle,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
@@ -24,7 +24,7 @@ import {
 import { AccessionOrderDialog } from "@/features/laboratory/components/detail/AccessionOrderDialog";
 import { CollectSpecimenDialog } from "@/features/laboratory/components/detail/CollectSpecimenDialog";
 import { ConfirmLabActionDialog } from "@/features/laboratory/components/detail/ConfirmLabActionDialog";
-import { EnterResultsDialog } from "@/features/laboratory/components/detail/EnterResultsDialog";
+import { fetchLabSettings } from "@/features/laboratory/services/laboratory-catalog.service";
 import {
   accessionLabOrder,
   cancelLabOrder,
@@ -67,7 +67,6 @@ export function LabOrderDetailActions({
   const { toast } = useToast();
   const [collectOpen, setCollectOpen] = useState(false);
   const [accessionOpen, setAccessionOpen] = useState(false);
-  const [enterResultsOpen, setEnterResultsOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [verifyItem, setVerifyItem] = useState<LabOrderItem | null>(null);
   const [releaseItem, setReleaseItem] = useState<LabOrderItem | null>(null);
@@ -76,9 +75,28 @@ export function LabOrderDetailActions({
   const [isReleasing, setIsReleasing] = useState(false);
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [isAccessioning, setIsAccessioning] = useState(false);
+  /** Default on; hide Accession until settings confirm manual mode. */
+  const [autoAccessionOnCollect, setAutoAccessionOnCollect] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetchLabSettings()
+      .then((settings) => {
+        if (!cancelled) {
+          setAutoAccessionOnCollect(settings.auto_accession_on_collect);
+        }
+      })
+      .catch(() => {
+        // Keep default (auto-accession on) when settings cannot be loaded.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const showCollect = canCollectSpecimen(order.status);
-  const showAccession = canAccessionOrder(order.status);
+  const showAccession =
+    !autoAccessionOnCollect && canAccessionOrder(order.status);
   const showCancel = canCancelLabOrder(order.status);
   const verifiableItems = order.items.filter(
     (item) => item.result_status === "ENTERED",
@@ -240,14 +258,6 @@ export function LabOrderDetailActions({
         </SecondaryButton>
       ) : null}
 
-      <SecondaryButton
-        type="button"
-        onClick={() => setEnterResultsOpen(true)}
-        data-testid="lab-action-enter-results"
-      >
-        Enter results
-      </SecondaryButton>
-
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
@@ -320,15 +330,6 @@ export function LabOrderDetailActions({
         onOpenChange={setAccessionOpen}
         onConfirm={(specimenUuids) => {
           void handleAccession(specimenUuids);
-        }}
-      />
-
-      <EnterResultsDialog
-        order={order}
-        open={enterResultsOpen}
-        onOpenChange={setEnterResultsOpen}
-        onSaved={async () => {
-          await refreshOrder();
         }}
       />
 

@@ -11,6 +11,7 @@ import type {
   EncounterClinicalOrder,
   EncounterDisposition,
   EncounterHistorySummary,
+  EncounterLabResult,
   EncounterNursingNote,
   EncounterObservation,
   EncounterPhysicalExam,
@@ -72,6 +73,22 @@ export async function createEncounterObservation(
   return bffRequest<EncounterObservation>(
     BFF_CLINICAL_OPD_ROUTES.encounterObservations(visitUuid, encounterUuid),
     { method: "POST", body: payload },
+  );
+}
+
+export async function updateEncounterObservation(
+  visitUuid: string,
+  encounterUuid: string,
+  observationUuid: string,
+  payload: Record<string, unknown>,
+) {
+  return bffRequest<EncounterObservation>(
+    BFF_CLINICAL_OPD_ROUTES.encounterObservation(
+      visitUuid,
+      encounterUuid,
+      observationUuid,
+    ),
+    { method: "PATCH", body: payload },
   );
 }
 
@@ -211,6 +228,16 @@ export async function cancelPrescription(
 export async function fetchOrders(visitUuid: string, encounterUuid: string) {
   const response = await bffRequest<ListResponse<EncounterClinicalOrder>>(
     BFF_CLINICAL_OPD_ROUTES.encounterOrders(visitUuid, encounterUuid),
+  );
+  return response.results;
+}
+
+export async function fetchEncounterLabResults(
+  visitUuid: string,
+  encounterUuid: string,
+) {
+  const response = await bffRequest<ListResponse<EncounterLabResult>>(
+    BFF_CLINICAL_OPD_ROUTES.encounterLabResults(visitUuid, encounterUuid),
   );
   return response.results;
 }

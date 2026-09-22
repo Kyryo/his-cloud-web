@@ -39,7 +39,8 @@ describe("lab order detail tabs", () => {
 
   it("validates known tab segments", () => {
     expect(isLabOrderDetailTabSegment(undefined)).toBe(true);
-    expect(isLabOrderDetailTabSegment("items")).toBe(true);
+    expect(isLabOrderDetailTabSegment("specimens")).toBe(true);
+    expect(isLabOrderDetailTabSegment("items")).toBe(false);
     expect(isLabOrderDetailTabSegment("unknown")).toBe(false);
   });
 });

@@ -149,6 +149,32 @@ export type EncounterClinicalOrder = {
   allergy_alerts?: AllergyAlert[];
 };
 
+export type EncounterLabResultAnalyte = {
+  code: string;
+  name: string;
+  value_text: string;
+  value_numeric: string | null;
+  unit: string;
+  flag: string | null;
+};
+
+export type EncounterLabResult = {
+  order_uuid: string;
+  item_uuid: string;
+  /** Clinical visit-order line that produced this item, when known. */
+  visit_order_uuid?: string | null;
+  /** Product/panel name as ordered by the clinician. */
+  ordered_name?: string | null;
+  panel_uuid?: string | null;
+  panel_code?: string | null;
+  panel_name?: string | null;
+  test_code: string;
+  test_name: string;
+  released_at: string | null;
+  released_by_name?: string | null;
+  analytes: EncounterLabResultAnalyte[];
+};
+
 export type ClinicalAllergy = {
   uuid: string;
   allergy_name: string;
@@ -311,6 +337,7 @@ export type ClinicalVisitHistory = {
     created_at: string;
   }>;
   medications: EncounterPrescription[];
+  observations?: EncounterObservation[];
   chief_complaints?: ChiefComplaint[];
   hpis?: HistoryOfPresentIllness[];
 };
@@ -344,6 +371,8 @@ export type ClinicalCapabilityKey =
   | "view_orders_tab"
   | "view_diagnoses_tab"
   | "view_medications_tab"
+  | "view_nursing_notes_tab"
+  | "view_investigation_results_tab"
   | "view_activity_tab"
   | "view_client_tab";
 

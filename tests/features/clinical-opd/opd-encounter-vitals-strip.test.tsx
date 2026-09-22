@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { OpdEncounterVitalsStatsStrip } from "@/features/clinical-opd/components/detail/OpdEncounterVitalsStatsStrip";
@@ -81,6 +81,41 @@ describe("OpdEncounterVitalsStatsStrip", () => {
     render(<OpdEncounterVitalsStatsStrip observations={[]} />);
 
     expect(screen.queryByTestId("opd-encounter-vitals-taken-at")).toBeNull();
+    expect(screen.queryByTestId("opd-encounter-vitals-view-more")).toBeNull();
     expect(screen.getAllByText("—")).toHaveLength(4);
+  });
+
+  it("shows a View more link after the taken label", () => {
+    render(
+      <OpdEncounterVitalsStatsStrip
+        observations={[observation("pulse", "82", "bpm")]}
+        encounterObservations={[observation("pulse", "82", "bpm")]}
+      />,
+    );
+
+    expect(screen.getByTestId("opd-encounter-vitals-taken-at")).toHaveTextContent(
+      "·",
+    );
+    expect(
+      screen.getByTestId("opd-encounter-vitals-view-more"),
+    ).toBeInTheDocument();
+  });
+
+  it("opens the encounter vitals dialog from View more", () => {
+    render(
+      <OpdEncounterVitalsStatsStrip
+        observations={[observation("pulse", "82", "bpm")]}
+        encounterObservations={[observation("pulse", "82", "bpm")]}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId("opd-encounter-vitals-view-more"));
+
+    expect(
+      screen.getByTestId("opd-encounter-vitals-dialog"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByTestId("opd-encounter-vitals-dialog-list"),
+    ).toBeInTheDocument();
   });
 });

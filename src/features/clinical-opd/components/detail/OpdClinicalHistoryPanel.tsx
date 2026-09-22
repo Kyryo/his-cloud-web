@@ -5,14 +5,17 @@ import { useEffect, useMemo, useState } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { OpdConsultColumnHeader } from "@/features/clinical-opd/components/detail/OpdConsultColumnHeader";
+import { OpdVitalSetCard } from "@/features/clinical-opd/components/detail/OpdVitalSetCard";
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
 import { useEncounterClinicalHistory } from "@/features/clinical-opd/hooks/use-clinical-opd";
 import type { OpdHistorySectionId } from "@/features/clinical-opd/utils/opd-physician-history-tabs";
+import { groupObservationsIntoVitalSets } from "@/features/clinical-opd/utils/opd-encounter-vitals";
 import type {
   ClinicalHistoryNote,
   ClinicalHistoryVisit,
   ClinicalVisitHistory,
   EncounterClinicalOrder,
+  EncounterObservation,
   EncounterPrescription,
 } from "@/features/clinical-opd/types/clinical-opd.types";
 import {
@@ -25,8 +28,19 @@ const HISTORY_SECTIONS: Array<{ id: OpdHistorySectionId; label: string }> = [
   { id: "complaint", label: "Complaints" },
   { id: "exam", label: "Exam" },
   { id: "orders", label: "Orders" },
+  { id: "investigations", label: "Investigations" },
   { id: "diagnoses", label: "Diagnoses" },
   { id: "medications", label: "Medication" },
+  { id: "nursing", label: "Nurse's notes" },
+  { id: "vitals", label: "Vitals" },
+];
+
+const DEFAULT_ALLOWED_SECTIONS: OpdHistorySectionId[] = [
+  "complaint",
+  "exam",
+  "orders",
+  "diagnoses",
+  "medications",
 ];
 
 const NOTE_KIND_LABELS: Record<string, string> = {
@@ -159,6 +173,21 @@ function OrdersList({ orders }: { orders: EncounterClinicalOrder[] }) {
   );
 }
 
+function InvestigationsList({ orders }: { orders: EncounterClinicalOrder[] }) {
+  const investigationOrders = orders.filter((order) => {
+    const type = order.item_type?.toUpperCase();
+    return type === "LABORATORY" || type === "RADIOLOGY";
+  });
+
+  if (investigationOrders.length === 0) {
+    return (
+      <HistoryEmptyState message="No lab or radiology orders on this visit." />
+    );
+  }
+
+  return <OrdersList orders={investigationOrders} />;
+}
+
 function DiagnosesList({
   diagnoses,
 }: {
@@ -229,27 +258,61 @@ function MedicationsList({
   );
 }
 
+function VitalsList({ observations }: { observations: EncounterObservation[] }) {
+  const sets = groupObservationsIntoVitalSets(observations);
+
+  if (sets.length === 0) {
+    return <HistoryEmptyState message="No vital signs on this visit." />;
+  }
+
+  return (
+    <ul className="space-y-2.5" data-testid="opd-history-vitals-list">
+      {sets.map((set) => (
+        <li key={set.id}>
+          <OpdVitalSetCard set={set} compact />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 type OpdClinicalHistoryPanelProps = {
   section?: OpdHistorySectionId;
+  /** Limit which section tabs are available. Defaults to physician consult sections. */
+  allowedSections?: readonly OpdHistorySectionId[];
   embedded?: boolean;
 };
 
 export function OpdClinicalHistoryPanel({
   section: sectionProp,
+  allowedSections = DEFAULT_ALLOWED_SECTIONS,
   embedded = false,
 }: OpdClinicalHistoryPanelProps) {
   const { visitUuid, encounterUuid } = useOpdEncounterWorkspace();
-  const [section, setSection] = useState<OpdHistorySectionId>(
-    sectionProp ?? "complaint",
+  const visibleSections = useMemo(
+    () => HISTORY_SECTIONS.filter((item) => allowedSections.includes(item.id)),
+    [allowedSections],
   );
+  const defaultSection =
+    sectionProp && allowedSections.includes(sectionProp)
+      ? sectionProp
+      : (visibleSections[0]?.id ?? "complaint");
+  const [section, setSection] = useState<OpdHistorySectionId>(defaultSection);
 
   useEffect(() => {
-    if (sectionProp) {
+    if (sectionProp && allowedSections.includes(sectionProp)) {
       setSection(sectionProp);
+      return;
     }
-  }, [sectionProp]);
+    setSection((current) =>
+      allowedSections.includes(current)
+        ? current
+        : (visibleSections[0]?.id ?? "complaint"),
+    );
+  }, [sectionProp, allowedSections, visibleSections]);
 
-  const sectionLabel = HISTORY_SECTIONS.find((item) => item.id === section)?.label;
+  const showSectionNav = visibleSections.length > 1;
+  const sectionLabel = visibleSections.find((item) => item.id === section)?.label;
   const eyebrowLabel = sectionLabel
     ? `Previous ${sectionLabel.toLowerCase()}`
     : "Previous visits";
@@ -356,34 +419,36 @@ export function OpdClinicalHistoryPanel({
         data-testid="opd-clinical-history-header"
       />
 
-      <div
-        className="flex flex-wrap gap-1 border-b border-dash-border/70 px-4 py-2 sm:px-5"
-        role="tablist"
-        aria-label="History sections"
-        data-testid="opd-clinical-history-section-nav"
-      >
-        {HISTORY_SECTIONS.map((item) => {
-          const isActive = item.id === section;
-          return (
-            <button
-              key={item.id}
-              type="button"
-              role="tab"
-              aria-selected={isActive}
-              onClick={() => setSection(item.id)}
-              className={cn(
-                "rounded-md px-2 py-1 text-[11px] font-medium transition-colors",
-                isActive
-                  ? "bg-white text-brand-navy shadow-2xs ring-1 ring-dash-border/80"
-                  : "text-brand-muted hover:bg-white/70 hover:text-brand-navy",
-              )}
-              data-testid={`opd-history-section-${item.id}`}
-            >
-              {item.label}
-            </button>
-          );
-        })}
-      </div>
+      {showSectionNav ? (
+        <div
+          className="flex flex-wrap gap-1 border-b border-dash-border/70 px-4 py-2 sm:px-5"
+          role="tablist"
+          aria-label="History sections"
+          data-testid="opd-clinical-history-section-nav"
+        >
+          {visibleSections.map((item) => {
+            const isActive = item.id === section;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                onClick={() => setSection(item.id)}
+                className={cn(
+                  "rounded-md px-2 py-1 text-[11px] font-medium transition-colors",
+                  isActive
+                    ? "bg-white text-brand-navy shadow-2xs ring-1 ring-dash-border/80"
+                    : "text-brand-muted hover:bg-white/70 hover:text-brand-navy",
+                )}
+                data-testid={`opd-history-section-${item.id}`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-2 sm:px-5">
         {historyQuery.isLoading ? (
@@ -408,8 +473,19 @@ export function OpdClinicalHistoryPanel({
           />
         ) : section === "orders" ? (
           <OrdersList orders={history?.orders ?? []} />
+        ) : section === "investigations" ? (
+          <InvestigationsList orders={history?.orders ?? []} />
         ) : section === "diagnoses" ? (
           <DiagnosesList diagnoses={history?.diagnoses ?? []} />
+        ) : section === "vitals" ? (
+          <VitalsList observations={history?.observations ?? []} />
+        ) : section === "nursing" ? (
+          <NotesList
+            notes={(history?.notes ?? []).filter(
+              (note) => note.kind === "nursing_note",
+            )}
+            emptyMessage="No nursing notes on this visit."
+          />
         ) : (
           <MedicationsList medications={history?.medications ?? []} />
         )}

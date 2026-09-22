@@ -83,21 +83,29 @@ describe("opd-encounter-tabs", () => {
   it("keeps the consult flow in the tab bar and moves the rest to More", () => {
     expect(
       getVisibleOpdEncounterTabs(["view_vital_signs_tab"]).map((tab) => tab.id),
-    ).toEqual([]);
+    ).toEqual(["vital-signs"]);
     expect(
       getVisibleOpdEncounterMenuSections(["view_vital_signs_tab"]).map(
         (tab) => tab.id,
       ),
-    ).toEqual(["vital-signs", "overview"]);
+    ).toEqual(["overview"]);
     expect(
       getVisibleOpdEncounterTabs([
         "view_activity_tab",
+        "view_vital_signs_tab",
         "view_physical_examination_tab",
         "view_diagnoses_tab",
         "view_medications_tab",
+        "view_nursing_notes_tab",
         "view_client_tab",
       ]).map((tab) => tab.id),
-    ).toEqual(["physical-examination", "diagnoses", "medications"]);
+    ).toEqual([
+      "physical-examination",
+      "diagnoses",
+      "medications",
+      "vital-signs",
+      "nursing",
+    ]);
     expect(
       getVisibleOpdEncounterTabs([
         "record_chief_complaint",

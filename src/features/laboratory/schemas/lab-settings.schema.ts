@@ -14,7 +14,7 @@ export const labSettingsSchema = z.object({
 export type LabSettingsFormValues = z.infer<typeof labSettingsSchema>;
 
 export const labSettingsDefaultValues: LabSettingsFormValues = {
-  auto_accession_on_collect: false,
+  auto_accession_on_collect: true,
   require_verify_before_release: true,
   critical_notify_enabled: true,
   default_department_uuid: "",
