@@ -9,7 +9,7 @@ describe("LandingSocialProofSection", () => {
 
     expect(
       screen.getByRole("heading", {
-        name: "A few of the clinics powered by Sigma.",
+        name: "Clinics powered by Sigma.",
       }),
     ).toBeInTheDocument();
 

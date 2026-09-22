@@ -1,7 +1,7 @@
 import { ROUTES } from "@/constants/routes";
 
 export const LANDING_SOCIAL_PROOF = {
-  headline: "A few of the clinics powered by Sigma.",
+  headline: "Clinics powered by Sigma.",
 } as const;
 
 export const LANDING_PROBLEM = {
