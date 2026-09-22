@@ -30,6 +30,7 @@ import type { InventoryLocationOption } from "@/features/inventory/types/invento
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
+import { useSessionStore } from "@/state/session.store";
 
 type DispenseSelectedDialogProps = {
   open: boolean;
@@ -47,10 +48,21 @@ export function DispenseSelectedDialog({
   onDispensed,
 }: DispenseSelectedDialogProps) {
   const { toast } = useToast();
+  const userLocations = useSessionStore((state) => state.user?.locations);
   const [locations, setLocations] = useState<InventoryLocationOption[]>([]);
   const [locationId, setLocationId] = useState<string>("");
   const [isLoadingLocations, setIsLoadingLocations] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const assignedLocationIds = useMemo(() => {
+    const ids = new Set<number>();
+    for (const association of userLocations ?? []) {
+      if (association.is_active) {
+        ids.add(association.location);
+      }
+    }
+    return ids;
+  }, [userLocations]);
 
   const items = useMemo(
     () =>
@@ -82,7 +94,11 @@ export function DispenseSelectedDialog({
       try {
         const response = await fetchInventoryLocations(clinicId ?? undefined);
         if (!cancelled) {
-          setLocations(response.results);
+          setLocations(
+            response.results.filter((location) =>
+              assignedLocationIds.has(location.id),
+            ),
+          );
         }
       } catch (error) {
         if (!cancelled) {
@@ -104,7 +120,7 @@ export function DispenseSelectedDialog({
     return () => {
       cancelled = true;
     };
-  }, [clinicId, open, toast]);
+  }, [assignedLocationIds, clinicId, open, toast]);
 
   const handleSubmit = useCallback(async () => {
     if (!locationId || items.length === 0) {
