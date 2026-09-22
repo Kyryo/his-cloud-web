@@ -2,6 +2,7 @@
   "name": "hmis-web",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "npm@10.9.2",
   "scripts": {
     "dev": "next dev --turbopack",
     "dev:clean": "rm -rf .next && next dev --turbopack",

@@ -59,7 +59,7 @@ export function OpdNoteComposer({
     : isNursing
       ? nursingNoteSchema
       : clinicalNoteSchema;
-  const form = useForm({
+  const form = useForm<{ body: string; amendment_reason?: string }>({
     resolver: zodResolver(schema),
     defaultValues: {
       body: amendTarget?.body ?? "",

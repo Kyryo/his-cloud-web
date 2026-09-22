@@ -3,7 +3,6 @@ import type {
   CreateCustomerRelationshipPayload,
   CustomerRelationship,
   CustomerRelationshipListResponse,
-  UpdateCustomerRelationshipPayload,
 } from "@/features/customers/types/customer-relationship.types";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
 import { hmisApiRequest } from "@/lib/server/hmis-api";

@@ -276,7 +276,8 @@ export function SalesOrderDetailActions({
       <RecalculateSalesOrderPricesDialog
         open={recalculateOpen}
         onOpenChange={setRecalculateOpen}
-        isSubmitting={isRecalculating}
+        pricelistName={order.pricelist_name}
+        isSaving={isRecalculating}
         error={recalculateError}
         onConfirm={(source) => void handleRecalculate(source)}
       />

@@ -55,16 +55,17 @@ export const dispositionSchema = z.object({
   referral_destination: z.string().optional(),
 });
 
+export const clinicalNoteSchema = z.object({
+  body: z.string().trim().min(1, "Clinical note is required."),
+  amendment_reason: z.string().optional(),
+});
+
 export const physicalExamSchema = z.object({
-  section: z.enum(["general", "system", "free_text"]).default("general"),
+  section: z.enum(["general", "system", "free_text"]),
   system_code: z.string().optional(),
   findings: z
     .string()
     .refine(hasRichTextContent, "Findings are required."),
-});
-
-export const clinicalNoteSchema = z.object({
-  body: z.string().trim().min(1, "Clinical note is required."),
 });
 
 export const observationSchema = z.object({

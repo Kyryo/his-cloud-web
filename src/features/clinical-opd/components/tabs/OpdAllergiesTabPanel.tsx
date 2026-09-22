@@ -134,6 +134,9 @@ export function OpdAllergiesTabPanel({
               icon={ShieldAlert}
               title={allergy.allergy_name}
               description={`${allergy.allergy_type} · ${allergy.severity}${allergy.reaction ? ` · ${allergy.reaction}` : ""}`}
+              dateTime={
+                allergy.date_identified?.trim() || new Date(0).toISOString()
+              }
               menuActions={
                 canWrite
                   ? [

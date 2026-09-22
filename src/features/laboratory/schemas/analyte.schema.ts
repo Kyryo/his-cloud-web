@@ -15,7 +15,7 @@ export const analyteSchema = z
     value_type: z.enum(ANALYTE_VALUE_TYPES),
     unit: z.string().trim().max(32).optional().or(z.literal("")),
     decimal_precision: z.string().trim().optional().or(z.literal("")),
-    coded_options: z.array(analyteCodedOptionSchema).default([]),
+    coded_options: z.array(analyteCodedOptionSchema),
   })
   .superRefine((values, ctx) => {
     if (values.value_type === "CODED" && values.coded_options.length === 0) {

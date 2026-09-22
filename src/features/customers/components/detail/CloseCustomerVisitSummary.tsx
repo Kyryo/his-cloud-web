@@ -22,7 +22,8 @@ export function CloseCustomerVisitSummary({
   closeError,
 }: CloseCustomerVisitSummaryProps) {
   const elapsed = formatVisitElapsed(visit.visit_date);
-  const rows = [
+  type SummaryRow = { label: string; value: string; capitalize?: boolean };
+  const rows: SummaryRow[] = [
     {
       label: "Started",
       value: [
@@ -41,16 +42,14 @@ export function CloseCustomerVisitSummary({
       value: visit.mode_of_payment,
       capitalize: true,
     },
-    visit.clinic_name
-      ? { label: "Clinic", value: visit.clinic_name }
-      : null,
+    ...(visit.clinic_name
+      ? [{ label: "Clinic", value: visit.clinic_name }]
+      : []),
     {
       label: "Started by",
       value: formatVisitStartedBy(visit),
     },
-  ].filter((row): row is { label: string; value: string; capitalize?: boolean } =>
-    Boolean(row),
-  );
+  ];
 
   return (
     <div className="space-y-5">
