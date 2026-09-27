@@ -1,5 +1,7 @@
-import { ClientTagsSettingsPage } from "@/features/settings/pages/ClientTagsSettingsPage";
+import { redirect } from "next/navigation";
+
+import { ROUTES } from "@/constants/routes";
 
 export default function Page() {
-  return <ClientTagsSettingsPage />;
+  redirect(`${ROUTES.settingsModuleRegistration}?tab=client-tags`);
 }

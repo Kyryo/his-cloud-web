@@ -20,6 +20,8 @@ const SETTINGS_BREADCRUMB_OVERRIDES: Record<string, string> = {
   [ROUTES.settingsModuleInventory]: "Inventory",
   [ROUTES.settingsModulePharmacy]: "Pharmacy",
   [ROUTES.settingsModuleLaboratory]: "Laboratory",
+  [ROUTES.settingsModuleClinical]: "EMR",
+  [ROUTES.settingsModuleRegistration]: "Front Desk",
   [ROUTES.settingsIntegrationsEmail]: "Email",
   [ROUTES.settingsIntegrationsMasemEclaims]: "MASM eClaims",
 };
@@ -62,12 +64,6 @@ const SETTINGS_NAV_CATEGORIES: SettingsNavigationCategory[] = [
         adminOnly: true,
       },
       {
-        label: "Client tags",
-        href: ROUTES.settingsClientTags,
-        icon: "tag",
-        adminOnly: true,
-      },
-      {
         label: "Finance & Operations",
         href: ROUTES.settingsFinanceOperations,
         icon: "wallet",
@@ -78,18 +74,6 @@ const SETTINGS_NAV_CATEGORIES: SettingsNavigationCategory[] = [
         href: ROUTES.settingsModules,
         icon: "layers",
         matchPrefix: true,
-        adminOnly: true,
-      },
-      {
-        label: "Providers",
-        href: ROUTES.settingsClinicalProviders,
-        icon: "stethoscope",
-        adminOnly: true,
-      },
-      {
-        label: "Clinical role capabilities",
-        href: ROUTES.settingsClinicalRoleCapabilities,
-        icon: "clipboard",
         adminOnly: true,
       },
       {

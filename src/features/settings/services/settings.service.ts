@@ -6,6 +6,7 @@ import type {
   CreateOrganizationDepartmentPayload,
   CreateOrganizationPayerPayload,
   CreateOrganizationPayerSchemePayload,
+  UpdateOrganizationPayerPayload,
   CreateOrganizationPricelistPayload,
   CreateOrganizationServicePayload,
   CreateTenantEmailConfigurationPayload,
@@ -20,6 +21,7 @@ import type {
   OrganizationService,
   TenantBranding,
   TenantCurrency,
+  TenantCustomerIdentifierSettings,
   TenantDetail,
   TenantEmailConfiguration,
   UpdateOrganizationClinicPayload,
@@ -33,6 +35,7 @@ import type {
   UpdateProfilePayload,
   UpdateTenantBrandingPayload,
   UpdateTenantCurrencyPayload,
+  UpdateTenantCustomerIdentifierSettingsPayload,
   UpdateTenantEmailConfigurationPayload,
 } from "@/features/settings/types/settings.types";
 import { joinDisplayName } from "@/features/settings/utils/user-name";
@@ -47,8 +50,34 @@ export async function updateProfile(
       firstName: payload.firstName.trim(),
       lastName: payload.lastName.trim(),
       name: joinDisplayName(payload.firstName, payload.lastName),
+      ...(payload.about !== undefined ? { about: payload.about } : {}),
+      ...(payload.timezone ? { timezone: payload.timezone } : {}),
     },
   });
+
+  return data.user;
+}
+
+export async function uploadProfileAvatar(image: File): Promise<User> {
+  const formData = new FormData();
+  formData.set("avatar", image);
+
+  const data = await bffRequest<{ user: User }>(
+    BFF_SETTINGS_ROUTES.updateProfileAvatar,
+    {
+      method: "POST",
+      body: formData,
+    },
+  );
+
+  return data.user;
+}
+
+export async function clearProfileAvatar(): Promise<User> {
+  const data = await bffRequest<{ user: User }>(
+    BFF_SETTINGS_ROUTES.updateProfileAvatar,
+    { method: "DELETE" },
+  );
 
   return data.user;
 }
@@ -256,6 +285,19 @@ export async function createOrganizationPayer(
   });
 }
 
+export async function updateOrganizationPayer(
+  uuid: string,
+  payload: UpdateOrganizationPayerPayload,
+): Promise<OrganizationPayer> {
+  return bffRequest<OrganizationPayer>(
+    BFF_SETTINGS_ROUTES.insuranceCompanyDetail(uuid),
+    {
+      method: "PATCH",
+      body: payload,
+    },
+  );
+}
+
 export async function fetchOrganizationPayerSchemes(): Promise<
   OrganizationListResponse<OrganizationPayerScheme>
 > {
@@ -433,4 +475,26 @@ export async function updateTenantEmailConfiguration(
   );
 
   return data.configuration;
+}
+
+export async function fetchCustomerIdentifierSettings(): Promise<TenantCustomerIdentifierSettings> {
+  const data = await bffRequest<{ settings: TenantCustomerIdentifierSettings }>(
+    BFF_SETTINGS_ROUTES.customerIdentifierSettings,
+  );
+
+  return data.settings;
+}
+
+export async function updateCustomerIdentifierSettings(
+  payload: UpdateTenantCustomerIdentifierSettingsPayload,
+): Promise<TenantCustomerIdentifierSettings> {
+  const data = await bffRequest<{ settings: TenantCustomerIdentifierSettings }>(
+    BFF_SETTINGS_ROUTES.customerIdentifierSettings,
+    {
+      method: "PATCH",
+      body: payload,
+    },
+  );
+
+  return data.settings;
 }

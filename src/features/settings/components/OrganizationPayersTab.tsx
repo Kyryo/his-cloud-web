@@ -5,7 +5,9 @@ import { useEffect, useState } from "react";
 import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { AddPayerDialog } from "@/features/settings/components/AddPayerDialog";
+import { EditPayerDialog } from "@/features/settings/components/EditPayerDialog";
 import { SettingsPanelSection } from "@/features/settings/components/SettingsPageLayout";
+import { UpdatePayerStatusDialog } from "@/features/settings/components/UpdatePayerStatusDialog";
 import { fetchOrganizationPayers } from "@/features/settings/services/settings.service";
 import type { OrganizationPayer } from "@/features/settings/types/settings.types";
 
@@ -25,6 +27,8 @@ export function OrganizationPayersTab({ isActive }: OrganizationPayersTabProps) 
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [addPayerDialogOpen, setAddPayerDialogOpen] = useState(false);
+  const [editingPayer, setEditingPayer] = useState<OrganizationPayer | null>(null);
+  const [statusPayer, setStatusPayer] = useState<OrganizationPayer | null>(null);
 
   useEffect(() => {
     if (!isActive) {
@@ -73,6 +77,12 @@ export function OrganizationPayersTab({ isActive }: OrganizationPayersTabProps) 
     setReloadToken((current) => current + 1);
   }
 
+  function handlePayerUpdated(updated: OrganizationPayer) {
+    setPayers((current) =>
+      current.map((payer) => (payer.uuid === updated.uuid ? updated : payer)),
+    );
+  }
+
   return (
     <>
       <SettingsPanelSection
@@ -106,7 +116,7 @@ export function OrganizationPayersTab({ isActive }: OrganizationPayersTabProps) 
               return (
                 <li
                   key={payer.uuid}
-                  className="flex items-start justify-between gap-4 py-3.5"
+                  className="flex flex-col gap-3 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-brand-navy">
@@ -123,9 +133,29 @@ export function OrganizationPayersTab({ isActive }: OrganizationPayersTabProps) 
                       </p>
                     ) : null}
                   </div>
-                  <span className="shrink-0 text-xs text-slate-400">
-                    {payer.is_active ? "Active" : "Inactive"}
-                  </span>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <span className="text-xs text-slate-400">
+                      {payer.is_active ? "Active" : "Inactive"}
+                    </span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 text-brand-muted hover:text-brand-navy"
+                      onClick={() => setEditingPayer(payer)}
+                    >
+                      Edit
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 text-brand-muted hover:text-brand-navy"
+                      onClick={() => setStatusPayer(payer)}
+                    >
+                      {payer.is_active ? "Deactivate" : "Reactivate"}
+                    </Button>
+                  </div>
                 </li>
               );
             })}
@@ -137,6 +167,28 @@ export function OrganizationPayersTab({ isActive }: OrganizationPayersTabProps) 
         open={addPayerDialogOpen}
         onOpenChange={setAddPayerDialogOpen}
         onCreated={handleReload}
+      />
+
+      <EditPayerDialog
+        payer={editingPayer}
+        open={Boolean(editingPayer)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingPayer(null);
+          }
+        }}
+        onUpdated={handlePayerUpdated}
+      />
+
+      <UpdatePayerStatusDialog
+        payer={statusPayer}
+        open={Boolean(statusPayer)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setStatusPayer(null);
+          }
+        }}
+        onUpdated={handlePayerUpdated}
       />
     </>
   );

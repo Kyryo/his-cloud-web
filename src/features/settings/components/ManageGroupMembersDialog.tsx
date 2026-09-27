@@ -1,20 +1,22 @@
 "use client";
 
 import { Loader2, UserMinus, UserPlus } from "lucide-react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
+import { UserIdenticon } from "@/components/UserIdenticon";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { portalGroupLabel } from "@/constants/portal-groups";
+import { CustomerVisitSheetFooter } from "@/features/customers/components/detail/CustomerVisitSheetFooter";
 import { InventoryListPagination } from "@/features/inventory/components/list/InventoryListTable";
 import { OrganizationUserPicker } from "@/features/settings/components/OrganizationUserPicker";
 import {
@@ -51,13 +53,17 @@ export function ManageGroupMembersDialog({
   const [memberPage, setMemberPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isMutating, setIsMutating] = useState(false);
+  const groupLabel = portalGroupLabel(group.name);
 
   const loadGroup = useCallback(async () => {
     setIsLoading(true);
 
     try {
       const detail = await fetchOrganizationGroup(group.id);
-      setGroupDetail(detail);
+      setGroupDetail({
+        ...detail,
+        users: detail.users ?? [],
+      });
     } catch (error) {
       toast({
         variant: "error",
@@ -69,6 +75,18 @@ export function ManageGroupMembersDialog({
       setIsLoading(false);
     }
   }, [group.id, toast]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setSelectedUser(null);
+    setMemberSearch("");
+    setMemberPage(1);
+    setGroupDetail(null);
+    void loadGroup();
+  }, [group.id, loadGroup, open]);
 
   const memberIds = useMemo(
     () => groupDetail?.users.map((user) => user.id) ?? [],
@@ -99,21 +117,6 @@ export function ManageGroupMembersDialog({
     const start = (currentMemberPage - 1) * MEMBERS_PAGE_SIZE;
     return filteredMembers.slice(start, start + MEMBERS_PAGE_SIZE);
   }, [currentMemberPage, filteredMembers]);
-
-  function resetDialogState() {
-    setSelectedUser(null);
-    setMemberSearch("");
-    setMemberPage(1);
-    setGroupDetail(null);
-  }
-
-  function handleOpenChange(nextOpen: boolean) {
-    if (nextOpen) {
-      resetDialogState();
-      void loadGroup();
-    }
-    onOpenChange(nextOpen);
-  }
 
   const handleAddMember = async () => {
     if (!selectedUser) {
@@ -172,19 +175,43 @@ export function ManageGroupMembersDialog({
     }
   };
 
-  return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent
-        className={cn("flex max-h-[85vh] flex-col gap-0 overflow-hidden p-0 sm:max-w-lg", appFont.className)}
-      >
-        <DialogHeader className="border-b border-brand-border px-6 py-4">
-          <DialogTitle>Manage members</DialogTitle>
-          <DialogDescription>
-            Add or remove users in the {group.name} group.
-          </DialogDescription>
-        </DialogHeader>
+  const memberCount = groupDetail?.users.length ?? 0;
 
-        <div className="space-y-5 overflow-y-auto px-6 py-4">
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent
+        className={cn(
+          appFont.className,
+          "flex w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-xl",
+        )}
+        data-testid="manage-group-members-sheet"
+      >
+        <SheetHeader className="space-y-0 border-b border-dash-border/70 px-6 py-5 pr-14 text-left">
+          <div className="flex items-center gap-3.5">
+            <UserIdenticon
+              seed={group.name}
+              name={groupLabel}
+              className="size-11 shrink-0 rounded-xl"
+              fallbackClassName="text-sm font-semibold"
+            />
+            <div className="min-w-0">
+              <SheetTitle className="text-sm font-medium text-dash-muted">
+                Group members
+              </SheetTitle>
+              <p className="truncate text-base font-semibold tracking-tight text-brand-navy">
+                {groupLabel}
+              </p>
+              <p className="mt-0.5 truncate text-sm text-dash-muted">
+                Add or remove people in this group.
+              </p>
+            </div>
+          </div>
+          <SheetDescription className="sr-only">
+            Add or remove users in the {groupLabel} group.
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <div className="min-w-0 flex-1">
               <OrganizationUserPicker
@@ -284,12 +311,18 @@ export function ManageGroupMembersDialog({
           </div>
         </div>
 
-        <DialogFooter className="border-t border-brand-border px-6 py-4">
-          <SecondaryButton type="button" onClick={() => handleOpenChange(false)}>
+        <CustomerVisitSheetFooter
+          recap={
+            isLoading
+              ? "Loading members"
+              : `${memberCount} ${memberCount === 1 ? "member" : "members"}`
+          }
+        >
+          <SecondaryButton type="button" onClick={() => onOpenChange(false)}>
             Close
           </SecondaryButton>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </CustomerVisitSheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

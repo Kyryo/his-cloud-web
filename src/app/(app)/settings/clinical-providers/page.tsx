@@ -1,5 +1,7 @@
-import { ClinicalProvidersSettingsPage } from "@/features/settings/pages/ClinicalProvidersSettingsPage";
+import { redirect } from "next/navigation";
+
+import { ROUTES } from "@/constants/routes";
 
 export default function Page() {
-  return <ClinicalProvidersSettingsPage />;
+  redirect(ROUTES.settingsModuleClinical);
 }

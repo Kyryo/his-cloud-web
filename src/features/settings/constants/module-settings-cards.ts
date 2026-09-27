@@ -17,7 +17,7 @@ export type ModuleSettingsItem = {
 };
 
 const MODULE_DESCRIPTIONS: Record<string, string> = {
-  Registration: "Client registration, visits, and front desk workflows.",
+  Registration: "Client ID / MRN format, tags, and front desk workflows.",
   Billing: "Sales orders, invoices, and payment configuration.",
   Claims: "Insurance claims, submissions, and remittance settings.",
   Orders: "Clinical and service order routing.",
@@ -26,7 +26,7 @@ const MODULE_DESCRIPTIONS: Record<string, string> = {
   Radiology: "Imaging orders and reporting configuration.",
   Inventory: "Stock, purchasing, transfers, and approval workflows.",
   Dental: "Dental clinic charting and procedure settings.",
-  Clinical: "Patient records and clinical documentation.",
+  Clinical: "Patient records, providers, and clinical documentation.",
   Therapy: "Therapy sessions, plans, and documentation settings.",
 };
 
@@ -35,7 +35,7 @@ const MODULE_SETTINGS_META: Record<
   string,
   { slug: string; hasSettings: boolean }
 > = {
-  Registration: { slug: "registration", hasSettings: false },
+  Registration: { slug: "registration", hasSettings: true },
   Billing: { slug: "billing", hasSettings: false },
   Claims: { slug: "claims", hasSettings: false },
   Orders: { slug: "orders", hasSettings: false },
@@ -44,7 +44,7 @@ const MODULE_SETTINGS_META: Record<
   Radiology: { slug: "radiology", hasSettings: false },
   Inventory: { slug: "inventory", hasSettings: true },
   Dental: { slug: "dental", hasSettings: false },
-  Clinical: { slug: "clinical", hasSettings: false },
+  Clinical: { slug: "clinical", hasSettings: true },
   Therapy: { slug: "therapy", hasSettings: false },
 };
 
@@ -57,6 +57,12 @@ function hrefForSlug(slug: string): string {
   }
   if (slug === "laboratory") {
     return ROUTES.settingsModuleLaboratory;
+  }
+  if (slug === "clinical") {
+    return ROUTES.settingsModuleClinical;
+  }
+  if (slug === "registration") {
+    return ROUTES.settingsModuleRegistration;
   }
   return ROUTES.settingsModule(slug);
 }

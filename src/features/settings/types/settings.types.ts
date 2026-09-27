@@ -26,6 +26,8 @@ export type TenantDetail = {
 export type UpdateProfilePayload = {
   firstName: string;
   lastName: string;
+  about?: string;
+  timezone?: string;
 };
 
 export type UpdateOrganizationContactPayload = {
@@ -198,6 +200,16 @@ export type CreateOrganizationPayerPayload = {
   is_active?: boolean;
 };
 
+export type UpdateOrganizationPayerPayload = {
+  name?: string;
+  code?: string;
+  description?: string;
+  phone_number?: string;
+  email?: string;
+  address?: string;
+  is_active?: boolean;
+};
+
 export type OrganizationPayerScheme = {
   id: number;
   uuid: string;
@@ -261,6 +273,27 @@ export type TenantBranding = {
 };
 
 export type UpdateTenantBrandingPayload = Partial<TenantBranding>;
+
+export type TenantCustomerIdentifierSettings = {
+  customer_identifier_prefix: string;
+  customer_identifier_digits: number;
+  customer_identifier_separator: string;
+  customer_identifier_suffix: string;
+  customer_identifier_start_number: number;
+  effective_prefix: string;
+  preview: string;
+};
+
+export type UpdateTenantCustomerIdentifierSettingsPayload = Partial<
+  Pick<
+    TenantCustomerIdentifierSettings,
+    | "customer_identifier_prefix"
+    | "customer_identifier_digits"
+    | "customer_identifier_separator"
+    | "customer_identifier_suffix"
+    | "customer_identifier_start_number"
+  >
+>;
 
 export type TenantCurrency = {
   tenant_id: number;

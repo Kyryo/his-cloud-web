@@ -2,11 +2,12 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 
+import { UserIdenticon } from "@/components/UserIdenticon";
+import { PasswordInput } from "@/components/password-input";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
-import { TabbedDialog } from "@/components/ui/tabbed-dialog";
 import {
   Form,
   FormControl,
@@ -16,21 +17,24 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { PasswordInput } from "@/components/password-input";
-import { Switch } from "@/components/ui/switch";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
+import { Switch } from "@/components/ui/switch";
+import { CustomerVisitSheetFooter } from "@/features/customers/components/detail/CustomerVisitSheetFooter";
+import { StartVisitChoiceRow } from "@/features/visits/components/StartVisitChoiceRow";
+import { SettingsUnderlineTabs } from "@/features/settings/components/SettingsPageLayout";
 import { UpdateUserClinicsPanel } from "@/features/settings/components/UpdateUserClinicsPanel";
 import { UpdateUserLocationsPanel } from "@/features/settings/components/UpdateUserLocationsPanel";
 import { UpdateUserSalesReportsPanel } from "@/features/settings/components/UpdateUserSalesReportsPanel";
 import { UpdateUserTabLoader } from "@/features/settings/components/UpdateUserTabLoader";
 import {
   ORGANIZATION_USER_ROLE_OPTIONS,
+  formatOrganizationUserRole,
   toUpdateOrganizationUserPayload,
   toUpdateOrganizationUserRolePayload,
   updateOrganizationUserGeneralSchema,
@@ -49,6 +53,7 @@ import type {
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
 type UpdateUserDialogProps = {
@@ -58,17 +63,20 @@ type UpdateUserDialogProps = {
   onUpdated: (user: OrganizationUser) => void;
 };
 
-type UpdateUserDialogTab = "general" | "role" | "clinics" | "locations" | "reports";
+type UpdateUserDialogTab =
+  | "general"
+  | "role"
+  | "clinics"
+  | "locations"
+  | "reports";
 
-const tabs = [
+const TABS = [
   { id: "general", label: "General" },
   { id: "role", label: "Role" },
   { id: "clinics", label: "Clinics" },
   { id: "locations", label: "Locations" },
   { id: "reports", label: "Reports" },
 ] as const satisfies ReadonlyArray<{ id: UpdateUserDialogTab; label: string }>;
-
-const UNASSIGNED_ROLE_VALUE = "__unassigned__";
 
 function toGeneralFormValues(
   user: OrganizationUser,
@@ -173,9 +181,10 @@ export function UpdateUserDialog({
       if (error instanceof BffError) {
         const fieldErrors = mapBffErrorsToForm(error.errors);
         for (const [field, message] of Object.entries(fieldErrors)) {
-          generalForm.setError(field as keyof UpdateOrganizationUserGeneralFormValues, {
-            message,
-          });
+          generalForm.setError(
+            field as keyof UpdateOrganizationUserGeneralFormValues,
+            { message },
+          );
         }
         toast({
           variant: "error",
@@ -230,230 +239,259 @@ export function UpdateUserDialog({
   const isSaving =
     generalForm.formState.isSubmitting || roleForm.formState.isSubmitting;
 
-  function renderFooter() {
-    if (activeTab === "clinics" || activeTab === "locations" || activeTab === "reports") {
-      return (
-        <SecondaryButton type="button" onClick={() => onOpenChange(false)}>
-          Close
-        </SecondaryButton>
-      );
-    }
+  const footerRecap = useMemo(() => {
+    const parts = [
+      currentUser.email,
+      currentUser.is_admin
+        ? "Administrator"
+        : formatOrganizationUserRole(currentUser.user_role ?? ""),
+    ].filter(Boolean);
+    return parts.join(" · ");
+  }, [currentUser.email, currentUser.is_admin, currentUser.user_role]);
 
-    return (
-      <>
-        <SecondaryButton
-          type="button"
-          onClick={() => onOpenChange(false)}
-          disabled={isSaving}
-        >
-          Cancel
-        </SecondaryButton>
-        <PrimaryButton
-          type="submit"
-          form={
-            activeTab === "general"
-              ? "update-user-general-form"
-              : "update-user-role-form"
-          }
-          disabled={isSaving || isLoadingUser}
-        >
-          {isSaving ? (
-            <>
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              Saving...
-            </>
-          ) : (
-            "Save changes"
-          )}
-        </PrimaryButton>
-      </>
-    );
-  }
+  const headerMeta = useMemo(() => {
+    const parts = [
+      currentUser.email,
+      currentUser.primary_clinic?.name ?? null,
+    ].filter(Boolean);
+    return parts.join(" · ");
+  }, [currentUser.email, currentUser.primary_clinic?.name]);
 
   return (
-    <TabbedDialog
-      open={open}
-      onOpenChange={handleOpenChange}
-      title="Update user"
-      description={`Manage profile, role, and access for ${currentUser.name}.`}
-      tabs={[...tabs]}
-      activeTab={activeTab}
-      onTabChange={(tabId) => {
-        if (
-          tabId === "general" ||
-          tabId === "role" ||
-          tabId === "clinics" ||
-          tabId === "locations" ||
-          tabId === "reports"
-        ) {
-          setActiveTab(tabId);
-        }
-      }}
-      className={appFont.className}
-      data-testid="update-user-dialog"
-      footer={renderFooter()}
-    >
-      {isLoadingUser &&
-      (activeTab === "general" || activeTab === "role") ? (
-        <UpdateUserTabLoader message="Loading user details..." />
-      ) : null}
-
-      {activeTab === "general" && !isLoadingUser ? (
-        <Form {...generalForm}>
-          <form
-            id="update-user-general-form"
-            className="space-y-4"
-            onSubmit={(event) => void handleSaveGeneral(event)}
-          >
-            <FormField
-              control={generalForm.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full name</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+    <Sheet open={open} onOpenChange={handleOpenChange}>
+      <SheetContent
+        className={cn(
+          appFont.className,
+          "flex w-full flex-col gap-0 overflow-hidden p-0 sm:max-w-xl",
+        )}
+        data-testid="update-user-dialog"
+      >
+        <SheetHeader className="space-y-0 border-b border-dash-border/70 px-6 py-5 pr-14 text-left">
+          <div className="flex items-center gap-3.5">
+            <UserIdenticon
+              seed={currentUser.email || currentUser.name}
+              name={currentUser.name}
+              className="size-11 shrink-0 rounded-xl"
+              fallbackClassName="text-sm font-semibold"
             />
+            <div className="min-w-0">
+              <SheetTitle className="text-sm font-medium text-dash-muted">
+                Update user
+              </SheetTitle>
+              <p className="truncate text-base font-semibold tracking-tight text-brand-navy">
+                {currentUser.name}
+              </p>
+              {headerMeta ? (
+                <p className="mt-0.5 truncate text-sm text-dash-muted">
+                  {headerMeta}
+                </p>
+              ) : null}
+            </div>
+          </div>
+          <SheetDescription className="sr-only">
+            Manage profile, role, and access for {currentUser.name}
+          </SheetDescription>
+        </SheetHeader>
 
-            <FormField
-              control={generalForm.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input type="email" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+        <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+          <div className="mb-6">
+            <SettingsUnderlineTabs
+              tabs={[...TABS]}
+              activeTab={activeTab}
+              onChange={setActiveTab}
+              ariaLabel="Update user sections"
             />
+          </div>
 
-            <FormField
-              control={generalForm.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>New password</FormLabel>
-                  <FormControl>
-                    <PasswordInput
-                      autoComplete="new-password"
-                      placeholder="Leave blank to keep current"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+          {isLoadingUser &&
+          (activeTab === "general" || activeTab === "role") ? (
+            <UpdateUserTabLoader message="Loading user details..." />
+          ) : null}
+
+          {activeTab === "general" && !isLoadingUser ? (
+            <Form {...generalForm}>
+              <form
+                id="update-user-general-form"
+                className="space-y-4"
+                onSubmit={(event) => void handleSaveGeneral(event)}
+              >
+                <FormField
+                  control={generalForm.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Full name</FormLabel>
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={generalForm.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <FormControl>
+                        <Input type="email" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={generalForm.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>New password</FormLabel>
+                      <FormControl>
+                        <PasswordInput
+                          autoComplete="new-password"
+                          placeholder="Leave blank to keep current"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={generalForm.control}
+                  name="is_admin"
+                  render={({ field }) => (
+                    <FormItem className="flex items-center justify-between gap-4 rounded-lg border border-brand-border px-4 py-3">
+                      <div className="space-y-1">
+                        <FormLabel className="text-base">
+                          Tenant administrator
+                        </FormLabel>
+                        <p className="text-xs text-brand-muted">
+                          Administrators can manage users, groups, and
+                          organization settings.
+                        </p>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          data-testid="update-user-is-admin-switch"
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </form>
+            </Form>
+          ) : null}
+
+          {activeTab === "role" && !isLoadingUser ? (
+            <Form {...roleForm}>
+              <form
+                id="update-user-role-form"
+                className="space-y-4"
+                onSubmit={(event) => void handleSaveRole(event)}
+              >
+                <FormField
+                  control={roleForm.control}
+                  name="user_role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>User role</FormLabel>
+                      <div
+                        role="radiogroup"
+                        aria-label="User role"
+                        className="divide-y divide-dash-border/70"
+                      >
+                        {ORGANIZATION_USER_ROLE_OPTIONS.map((option) => (
+                          <StartVisitChoiceRow
+                            key={option.value || "unassigned"}
+                            selected={field.value === option.value}
+                            title={option.label}
+                            onSelect={() => field.onChange(option.value)}
+                          />
+                        ))}
+                      </div>
+                      <p className="text-xs text-brand-muted">
+                        Defines the user&apos;s clinical or operational role in
+                        the system.
+                      </p>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </form>
+            </Form>
+          ) : null}
+
+          {activeTab === "clinics" ? (
+            <UpdateUserClinicsPanel
+              userId={user.id}
+              isActive={activeTab === "clinics"}
+              onChanged={() => void refreshUserSummary()}
             />
+          ) : null}
 
-            <FormField
-              control={generalForm.control}
-              name="is_admin"
-              render={({ field }) => (
-                <FormItem className="flex items-center justify-between gap-4 rounded-lg border border-brand-border px-4 py-3">
-                  <div className="space-y-1">
-                    <FormLabel className="text-base">Tenant administrator</FormLabel>
-                    <p className="text-xs text-brand-muted">
-                      Administrators can manage users, groups, and organization
-                      settings.
-                    </p>
-                  </div>
-                  <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      data-testid="update-user-is-admin-switch"
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
+          {activeTab === "locations" ? (
+            <UpdateUserLocationsPanel
+              userId={user.id}
+              isActive={activeTab === "locations"}
+              onChanged={() => void refreshUserSummary()}
             />
-          </form>
-        </Form>
-      ) : null}
+          ) : null}
 
-      {activeTab === "role" && !isLoadingUser ? (
-        <Form {...roleForm}>
-          <form
-            id="update-user-role-form"
-            className="space-y-4"
-            onSubmit={(event) => void handleSaveRole(event)}
-          >
-            <FormField
-              control={roleForm.control}
-              name="user_role"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>User role</FormLabel>
-                  <Select
-                    value={field.value === "" ? UNASSIGNED_ROLE_VALUE : field.value}
-                    onValueChange={(value) =>
-                      field.onChange(
-                        value === UNASSIGNED_ROLE_VALUE
-                          ? ""
-                          : (value as OrganizationUserRole),
-                      )
-                    }
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a role" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {ORGANIZATION_USER_ROLE_OPTIONS.map((option) => (
-                        <SelectItem
-                          key={option.value || UNASSIGNED_ROLE_VALUE}
-                          value={
-                            option.value === "" ? UNASSIGNED_ROLE_VALUE : option.value
-                          }
-                        >
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-brand-muted">
-                    Defines the user&apos;s clinical or operational role in the
-                    system.
-                  </p>
-                  <FormMessage />
-                </FormItem>
-              )}
+          {activeTab === "reports" ? (
+            <UpdateUserSalesReportsPanel
+              userId={user.id}
+              userName={currentUser.name}
+              isActive={activeTab === "reports"}
+              onChanged={() => void refreshUserSummary()}
             />
-          </form>
-        </Form>
-      ) : null}
+          ) : null}
+        </div>
 
-      {activeTab === "clinics" ? (
-        <UpdateUserClinicsPanel
-          userId={user.id}
-          isActive={activeTab === "clinics"}
-          onChanged={() => void refreshUserSummary()}
-        />
-      ) : null}
-
-      {activeTab === "locations" ? (
-        <UpdateUserLocationsPanel
-          userId={user.id}
-          isActive={activeTab === "locations"}
-          onChanged={() => void refreshUserSummary()}
-        />
-      ) : null}
-
-      {activeTab === "reports" ? (
-        <UpdateUserSalesReportsPanel
-          userId={user.id}
-          userName={currentUser.name}
-          isActive={activeTab === "reports"}
-          onChanged={() => void refreshUserSummary()}
-        />
-      ) : null}
-    </TabbedDialog>
+        <CustomerVisitSheetFooter recap={footerRecap}>
+          {activeTab === "clinics" ||
+          activeTab === "locations" ||
+          activeTab === "reports" ? (
+            <SecondaryButton type="button" onClick={() => onOpenChange(false)}>
+              Close
+            </SecondaryButton>
+          ) : (
+            <>
+              <SecondaryButton
+                type="button"
+                onClick={() => onOpenChange(false)}
+                disabled={isSaving}
+              >
+                Cancel
+              </SecondaryButton>
+              <PrimaryButton
+                type="submit"
+                form={
+                  activeTab === "general"
+                    ? "update-user-general-form"
+                    : "update-user-role-form"
+                }
+                disabled={isSaving || isLoadingUser}
+              >
+                {isSaving ? (
+                  <>
+                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                    Saving...
+                  </>
+                ) : (
+                  "Save changes"
+                )}
+              </PrimaryButton>
+            </>
+          )}
+        </CustomerVisitSheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

@@ -1,5 +1,7 @@
-import { ClinicalRoleCapabilitiesSettingsPage } from "@/features/settings/pages/ClinicalRoleCapabilitiesSettingsPage";
+import { redirect } from "next/navigation";
+
+import { ROUTES } from "@/constants/routes";
 
 export default function Page() {
-  return <ClinicalRoleCapabilitiesSettingsPage />;
+  redirect(`${ROUTES.settingsModuleClinical}?tab=capabilities`);
 }
