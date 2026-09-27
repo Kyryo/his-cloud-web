@@ -50,7 +50,7 @@ export function OpdConsultationPanel({
         <h2 className="text-base font-semibold text-brand-navy">Triage review</h2>
         <div className="mt-4 grid gap-4 md:grid-cols-2">
           <div>
-            <h3 className="text-sm font-medium text-brand-navy">Vitals</h3>
+            <h3 className="text-sm font-medium text-brand-navy">Vital signs</h3>
             <div className="mt-2 space-y-1 text-sm text-brand-slate">
               {(observations.data ?? []).map((item) => (
                 <p key={item.uuid}>

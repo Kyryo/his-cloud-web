@@ -16,6 +16,7 @@ import {
 } from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
 import { OpdEncounterHeader } from "@/features/clinical-opd/components/detail/OpdEncounterHeader";
+import { OpdEncounterScheduleButton } from "@/features/clinical-opd/components/detail/OpdEncounterScheduleButton";
 import { OpdEncounterTabSkeleton } from "@/features/clinical-opd/components/detail/OpdEncounterTabSkeleton";
 import { OpdEncounterWorkspaceBody } from "@/features/clinical-opd/components/detail/OpdEncounterWorkspaceBody";
 import { OpdEncounterWorkspaceProvider } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
@@ -228,7 +229,10 @@ export function OpdEncounterWorkspacePage({
       }}
     >
       <DetailPageLayout data-testid="opd-encounter-workspace">
-        <OpdEncounterHeader customer={customer} />
+        <OpdEncounterHeader
+          customer={customer}
+          actions={<OpdEncounterScheduleButton customer={customer} />}
+        />
         <DetailPageTabsSection>
           <OpdEncounterWorkspaceBody>
             {isCustomerLoading && !customer ? (

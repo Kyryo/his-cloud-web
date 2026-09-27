@@ -27,6 +27,8 @@ export function OpdEncounterWorkspaceBody({
     encounterUuid,
   );
   const isConsultLayout = isOpdPhysicianHistoryTab(activeTab);
+  // Activity uses a client-style main + aside grid and needs full width.
+  const isFullWidthLayout = isConsultLayout || activeTab === "activity";
   const { observations } = useEncounterWorkspace(visitUuid, encounterUuid);
   const thisEncounterVitals =
     observations.data ?? chartSummary?.this_encounter_vitals ?? [];
@@ -48,7 +50,7 @@ export function OpdEncounterWorkspaceBody({
       />
       <OpdEncounterTabs />
 
-      {isConsultLayout ? (
+      {isFullWidthLayout ? (
         children
       ) : (
         <DetailPageMainSection className="max-w-3xl">{children}</DetailPageMainSection>

@@ -8,6 +8,7 @@ import {
   createChiefComplaint,
   createChiefComplaintHpi,
   createClinicalNote,
+  createClinicalReferral,
   createCurrentMedication,
   createEncounterAllergy,
   createEncounterObservation,
@@ -29,6 +30,7 @@ import {
   fetchEncounterHistorySummary,
   fetchEncounterLabResults,
   fetchEncounterObservations,
+  fetchEncounterReferrals,
   fetchEncounterTimeline,
   fetchNursingNotes,
   fetchObservationDefinitions,
@@ -37,6 +39,7 @@ import {
   fetchPhysicalExams,
   fetchPrescriptions,
   fetchProblemList,
+  fetchReferralReceivingClinics,
   fetchRoleCapabilities,
   fetchMyClinicalCapabilities,
   finalizePrescription,
@@ -476,6 +479,60 @@ export function useCancelOrder(visitUuid: string, encounterUuid: string) {
     onSuccess: async () => {
       await queryClient.invalidateQueries({
         queryKey: ["encounter-orders", visitUuid, encounterUuid],
+      });
+      await invalidateEncounterWorkspaceQueries(
+        queryClient,
+        visitUuid,
+        encounterUuid,
+      );
+    },
+  });
+}
+
+export function useEncounterReferrals(
+  visitUuid: string,
+  encounterUuid: string,
+  options?: { enabled?: boolean },
+) {
+  return useQuery({
+    queryKey: ["encounter-referrals", visitUuid, encounterUuid],
+    queryFn: () => fetchEncounterReferrals(visitUuid, encounterUuid),
+    enabled: options?.enabled ?? Boolean(visitUuid && encounterUuid),
+  });
+}
+
+export function useReferralReceivingClinics(
+  visitUuid: string,
+  encounterUuid: string,
+  options?: { enabled?: boolean },
+) {
+  return useQuery({
+    queryKey: ["referral-receiving-clinics", visitUuid, encounterUuid],
+    queryFn: () => fetchReferralReceivingClinics(visitUuid, encounterUuid),
+    enabled: options?.enabled ?? Boolean(visitUuid && encounterUuid),
+  });
+}
+
+export function useCreateClinicalReferral(
+  visitUuid: string,
+  encounterUuid: string,
+) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: {
+      receiving_clinic_uuid: string;
+      source_visit_order_uuids: string[];
+      notes?: string;
+    }) => createClinicalReferral(visitUuid, encounterUuid, payload),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-orders", visitUuid, encounterUuid],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-referrals", visitUuid, encounterUuid],
+      });
+      await queryClient.invalidateQueries({
+        queryKey: ["encounter-timeline", visitUuid, encounterUuid],
       });
       await invalidateEncounterWorkspaceQueries(
         queryClient,

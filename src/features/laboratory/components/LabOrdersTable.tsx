@@ -14,7 +14,6 @@ import {
 import { LabOrderStatusBadge } from "@/features/laboratory/components/LabOrderStatusBadge";
 import type { LabOrder } from "@/features/laboratory/types/laboratory.types";
 import {
-  formatLabAccession,
   formatLabOrderedRelative,
   formatLabOrderPriorityLabel,
   formatLabPatientName,
@@ -31,7 +30,7 @@ type LabOrdersTableProps = {
 
 const columns = [
   { key: "patient", label: "Patient" },
-  { key: "accession", label: "Accession", className: "hidden sm:table-cell" },
+  { key: "gender", label: "Gender", className: "hidden sm:table-cell" },
   { key: "clinic", label: "Clinic", className: "hidden md:table-cell" },
   { key: "priority", label: "Priority" },
   { key: "status", label: "Status" },
@@ -65,6 +64,7 @@ export function LabOrdersTable({
           const identiconSeed =
             order.customer_uuid || identifier || name;
           const ageLabel = formatAge(order.customer_dob);
+          const gender = order.customer_gender?.trim() || "—";
 
           return (
             <ListPageDataTableRow
@@ -93,9 +93,7 @@ export function LabOrdersTable({
                 </div>
               </ListPageDataTableCell>
               <ListPageDataTableCell className="hidden sm:table-cell">
-                <span className="font-mono text-[12px] text-brand-navy">
-                  {formatLabAccession(order)}
-                </span>
+                <span className="text-sm text-brand-navy">{gender}</span>
               </ListPageDataTableCell>
               <ListPageDataTableCell className="hidden md:table-cell">
                 <span className="text-sm text-brand-navy">
@@ -113,7 +111,18 @@ export function LabOrdersTable({
                 </Badge>
               </ListPageDataTableCell>
               <ListPageDataTableCell>
-                <LabOrderStatusBadge status={order.status} />
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <LabOrderStatusBadge status={order.status} />
+                  {order.is_referred_in || order.referral_uuid ? (
+                    <Badge
+                      variant="outline"
+                      className="font-normal"
+                      data-testid={`lab-order-referred-in-${order.uuid}`}
+                    >
+                      Referred in
+                    </Badge>
+                  ) : null}
+                </div>
               </ListPageDataTableCell>
               <ListPageDataTableCell className="hidden xl:table-cell">
                 <span className="text-sm text-brand-slate">

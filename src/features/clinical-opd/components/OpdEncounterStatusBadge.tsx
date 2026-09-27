@@ -20,7 +20,7 @@ type OpdEncounterStatusBadgeProps = {
 };
 
 /**
- * Queue status chip styled like a compact outline button.
+ * Compact queue status chip (matches OPD encounter header sizing).
  */
 export function OpdEncounterStatusBadge({
   status,
@@ -29,7 +29,7 @@ export function OpdEncounterStatusBadge({
   return (
     <span
       className={cn(
-        "inline-flex h-7 items-center justify-center rounded-md border px-2.5 text-xs font-medium",
+        "inline-flex h-5 items-center justify-center rounded-md border px-1.5 text-[11px] font-medium",
         styles[status] ??
           "border-dash-border bg-white text-brand-slate",
         className,

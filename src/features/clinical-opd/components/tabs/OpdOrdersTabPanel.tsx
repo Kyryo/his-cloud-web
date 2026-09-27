@@ -1,6 +1,6 @@
 "use client";
 
-import { ClipboardList, Plus, X } from "lucide-react";
+import { ClipboardList, Plus, Share2, X } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { SecondaryButton } from "@/components/ui/app-buttons";
@@ -17,6 +17,7 @@ import { OpdEncounterTabSkeleton } from "@/features/clinical-opd/components/deta
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
 import { AddClinicalOrderDialog } from "@/features/clinical-opd/components/tabs/AddClinicalOrderDialog";
 import { ConfirmReorderClinicalOrderDialog } from "@/features/clinical-opd/components/tabs/ConfirmReorderClinicalOrderDialog";
+import { ReferLabOrdersDialog } from "@/features/clinical-opd/components/tabs/ReferLabOrdersDialog";
 import {
   useCancelOrder,
   useCreateOrder,
@@ -82,6 +83,7 @@ function canReorderOrder(
   if (
     !order.product_uuid ||
     order.status === "CANCELLED" ||
+    order.status === "REFERRED" ||
     order.item_type === "MEDICATION"
   ) {
     return false;
@@ -114,19 +116,30 @@ export function OpdOrdersTabPanel({
   );
   const [isReordering, setIsReordering] = useState(false);
   const [cancellingUuid, setCancellingUuid] = useState<string | null>(null);
+  const [referOpen, setReferOpen] = useState(false);
 
   const canAddOrder =
     getOrdersTabItemTypesForCapabilities(capabilities).length > 0 &&
     !isChartLocked;
+  const canRefer =
+    capabilities.includes("refer_clinical_orders") && !isChartLocked;
   const activeOrders = useMemo(
     () =>
       orders.filter(
         (order) =>
           order.status !== "CANCELLED" &&
-          order.is_active !== false &&
+          (order.is_active !== false || order.status === "REFERRED") &&
           order.item_type !== "MEDICATION",
       ),
     [orders],
+  );
+  const referableLabOrders = useMemo(
+    () =>
+      activeOrders.filter(
+        (order) =>
+          order.item_type === "LABORATORY" && order.status !== "REFERRED",
+      ),
+    [activeOrders],
   );
   const filteredOrders = useMemo(
     () => activeOrders.filter((order) => matchesOrderFilter(order, filter)),
@@ -199,33 +212,47 @@ export function OpdOrdersTabPanel({
   }
 
   const filterToolbar = (
-    <div
-      className="flex flex-wrap gap-1"
-      role="tablist"
-      aria-label="Filter clinical orders"
-      data-testid="opd-orders-type-filters"
-    >
-      {ORDER_FILTERS.map((option) => {
-        const isSelected = filter === option.id;
-        return (
-          <button
-            key={option.id}
-            type="button"
-            role="tab"
-            aria-selected={isSelected}
-            onClick={() => setFilter(option.id)}
-            className={cn(
-              "rounded-md px-2 py-1 text-[11px] font-medium transition-colors",
-              isSelected
-                ? "bg-white text-brand-navy shadow-2xs ring-1 ring-dash-border/80"
-                : "text-brand-muted hover:bg-white/70 hover:text-brand-navy",
-            )}
-            data-testid={`opd-orders-filter-${option.id.toLowerCase()}`}
-          >
-            {option.label}
-          </button>
-        );
-      })}
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <div
+        className="flex flex-wrap gap-1"
+        role="tablist"
+        aria-label="Filter clinical orders"
+        data-testid="opd-orders-type-filters"
+      >
+        {ORDER_FILTERS.map((option) => {
+          const isSelected = filter === option.id;
+          return (
+            <button
+              key={option.id}
+              type="button"
+              role="tab"
+              aria-selected={isSelected}
+              onClick={() => setFilter(option.id)}
+              className={cn(
+                "rounded-md px-2 py-1 text-[11px] font-medium transition-colors",
+                isSelected
+                  ? "bg-white text-brand-navy shadow-2xs ring-1 ring-dash-border/80"
+                  : "text-brand-muted hover:bg-white/70 hover:text-brand-navy",
+              )}
+              data-testid={`opd-orders-filter-${option.id.toLowerCase()}`}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+      {canRefer && referableLabOrders.length > 0 ? (
+        <SecondaryButton
+          type="button"
+          size="sm"
+          className="h-7 gap-1.5 px-2 text-[11px]"
+          data-testid="opd-orders-refer-button"
+          onClick={() => setReferOpen(true)}
+        >
+          <Share2 className="size-3.5" aria-hidden="true" />
+          Refer
+        </SecondaryButton>
+      ) : null}
     </div>
   );
 
@@ -251,7 +278,9 @@ export function OpdOrdersTabPanel({
         ) : (
           filteredOrders.map((order) => {
             const orderedAt = order.ordered_at ?? new Date(0).toISOString();
-            const canCancel = order.status !== "CANCELLED";
+            const isReferred = order.status === "REFERRED";
+            const canCancel =
+              order.status !== "CANCELLED" && order.status !== "REFERRED";
             const isCancelling = cancellingUuid === order.uuid;
 
             return (
@@ -266,12 +295,23 @@ export function OpdOrdersTabPanel({
                       {order.description || order.item_type_display}
                     </p>
                     <div className="flex flex-wrap items-center gap-1.5">
-                      <Badge variant="secondary">
-                        {order.status_display || order.status}
+                      <Badge variant={isReferred ? "warning" : "secondary"}>
+                        {isReferred
+                          ? "Referred"
+                          : order.status_display || order.status}
                       </Badge>
                       <Badge variant="outline">
                         {orderTypeBadgeLabel(order)}
                       </Badge>
+                      {isReferred && order.referral_receiving_clinic_name ? (
+                        <span className="text-xs text-brand-muted">
+                          to {order.referral_receiving_clinic_name}
+                        </span>
+                      ) : isReferred ? (
+                        <span className="text-xs text-brand-muted">
+                          to another clinic
+                        </span>
+                      ) : null}
                       <span className="inline-flex flex-wrap items-baseline gap-x-2 text-xs text-brand-muted">
                         <time dateTime={orderedAt}>
                           {formatDisplayDateTime(orderedAt)}
@@ -358,6 +398,13 @@ export function OpdOrdersTabPanel({
             onConfirm={() => {
               void handleConfirmReorder();
             }}
+          />
+          <ReferLabOrdersDialog
+            visitUuid={visitUuid}
+            encounterUuid={encounterUuid}
+            orders={referableLabOrders}
+            open={referOpen}
+            onOpenChange={setReferOpen}
           />
         </OpdConsultContentPanel>
       }

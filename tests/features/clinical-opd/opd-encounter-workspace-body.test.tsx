@@ -112,4 +112,17 @@ describe("OpdEncounterWorkspaceBody", () => {
       screen.queryByTestId("opd-physician-history-layout"),
     ).not.toBeInTheDocument();
   });
+
+  it("renders the activity tab full width for the aside panel", () => {
+    route.pathname = "/clinical/opd/visit-1/enc-1/activity";
+
+    render(
+      <OpdEncounterWorkspaceBody>
+        <p>Activity content</p>
+      </OpdEncounterWorkspaceBody>,
+    );
+
+    expect(screen.getByText("Activity content")).toBeInTheDocument();
+    expect(screen.getByText("Activity content").closest("main")).toBeNull();
+  });
 });

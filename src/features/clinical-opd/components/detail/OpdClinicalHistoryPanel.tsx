@@ -32,7 +32,7 @@ const HISTORY_SECTIONS: Array<{ id: OpdHistorySectionId; label: string }> = [
   { id: "diagnoses", label: "Diagnoses" },
   { id: "medications", label: "Medication" },
   { id: "nursing", label: "Nurse's notes" },
-  { id: "vitals", label: "Vitals" },
+  { id: "vitals", label: "Vital signs" },
 ];
 
 const DEFAULT_ALLOWED_SECTIONS: OpdHistorySectionId[] = [

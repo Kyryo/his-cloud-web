@@ -59,16 +59,16 @@ export function OpdTriagePanel({
   return (
     <div className={`space-y-6 ${appFont.className}`}>
       <section className="rounded-xl border border-dash-border/80 bg-white p-4">
-        <h2 className="text-base font-semibold text-brand-navy">Vitals</h2>
+        <h2 className="text-base font-semibold text-brand-navy">Vital signs</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           <div className="space-y-2">
-            <Label>Vital</Label>
+            <Label>Vital sign</Label>
             <select
               className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
               value={selectedDefinition}
               onChange={(event) => setSelectedDefinition(event.target.value)}
             >
-              <option value="">Select vital</option>
+              <option value="">Select vital sign</option>
               {(definitions.data ?? []).map((definition) => (
                 <option key={definition.uuid} value={definition.uuid}>
                   {definition.name}
@@ -88,7 +88,7 @@ export function OpdTriagePanel({
           </div>
           <div className="flex items-end">
             <Button type="button" onClick={() => void handleSaveVital()}>
-              Record vital
+              Record vital sign
             </Button>
           </div>
         </div>

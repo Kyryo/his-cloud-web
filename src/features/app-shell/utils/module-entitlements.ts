@@ -41,6 +41,8 @@ export function resolvePortalModuleForPath(
     pathname.startsWith(`${ROUTES.appointments}/`) ||
     pathname === ROUTES.activeVisits ||
     pathname.startsWith(`${ROUTES.activeVisits}/`) ||
+    pathname === ROUTES.referrals ||
+    pathname.startsWith(`${ROUTES.referrals}/`) ||
     pathname.startsWith("/visits/")
   ) {
     return "Registration";

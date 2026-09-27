@@ -52,6 +52,18 @@ export const CLINICAL_OPD_API_PATHS = {
     `/clinical/visits/${visitUuid}/encounters/${encounterUuid}/prescriptions/${prescriptionUuid}/cancel/`,
   encounterOrders: (visitUuid: string, encounterUuid: string) =>
     `/clinical/visits/${visitUuid}/encounters/${encounterUuid}/orders/`,
+  encounterReferrals: (visitUuid: string, encounterUuid: string) =>
+    `/clinical/visits/${visitUuid}/encounters/${encounterUuid}/referrals/`,
+  encounterReferralReceivingClinics: (
+    visitUuid: string,
+    encounterUuid: string,
+  ) =>
+    `/clinical/visits/${visitUuid}/encounters/${encounterUuid}/referrals/receiving-clinics/`,
+  cancelReferral: (referralUuid: string) =>
+    `/clinical/referrals/${referralUuid}/cancel/`,
+  startReferral: (referralUuid: string) =>
+    `/clinical/referrals/${referralUuid}/start/`,
+  clinicalReferrals: "/clinical/referrals/",
   encounterLabResults: (visitUuid: string, encounterUuid: string) =>
     `/clinical/visits/${visitUuid}/encounters/${encounterUuid}/lab-results/`,
   cancelOrder: (

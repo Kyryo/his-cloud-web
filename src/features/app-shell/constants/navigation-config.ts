@@ -76,6 +76,13 @@ export const navigation: NavigationItem[] = [
     enabledInWebNew: true,
   },
   {
+    name: "Referrals",
+    href: ROUTES.referrals,
+    icon: "transfer",
+    requiredGroup: "Registration",
+    enabledInWebNew: true,
+  },
+  {
     name: "Sales Orders",
     href: ROUTES.salesOrders,
     icon: "file",

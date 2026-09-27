@@ -140,6 +140,9 @@ export type EncounterClinicalOrder = {
   quantity: string;
   status: string;
   status_display: string;
+  /** Laboratory LIS status when item_type is LABORATORY. */
+  lab_status?: string | null;
+  lab_status_display?: string | null;
   ordered_at: string | null;
   product: number | null;
   product_uuid: string | null;
@@ -147,6 +150,67 @@ export type EncounterClinicalOrder = {
   is_active: boolean;
   metadata?: Record<string, unknown> | null;
   allergy_alerts?: AllergyAlert[];
+  referral_uuid?: string | null;
+  referral_receiving_clinic_name?: string | null;
+};
+
+export type ClinicalReferralItem = {
+  uuid: string;
+  status: string;
+  description: string;
+  source_visit_order_uuid: string;
+  receiving_visit_order_uuid: string | null;
+  product_uuid: string | null;
+  product_name: string | null;
+  item_type: string;
+  item_type_display: string;
+};
+
+export type ClinicalReferral = {
+  uuid: string;
+  service_type: string;
+  status: string;
+  notes: string;
+  sent_at: string | null;
+  completed_at: string | null;
+  cancelled_at: string | null;
+  referring_clinic_uuid: string;
+  referring_clinic_name: string;
+  receiving_clinic_uuid: string;
+  receiving_clinic_name: string;
+  referring_visit_uuid: string;
+  referring_encounter_uuid: string;
+  receiving_visit_uuid: string | null;
+  receiving_encounter_uuid: string | null;
+  customer_uuid: string;
+  customer_name: string;
+  customer_identifier: string | null;
+  referred_by_name: string | null;
+  awaiting_start: boolean;
+  item_count: number;
+  item_summaries: string[];
+  mode_of_payment: "cash" | "insurance" | "free";
+  insurance_scheme_uuid: string | null;
+  insurance_scheme_name: string | null;
+  requires_pre_authorization: boolean;
+  pre_authorization_number: string;
+  pre_authorization_comments: string;
+  items: ClinicalReferralItem[];
+};
+
+export type StartClinicalReferralPayload = {
+  mode_of_payment?: "cash" | "insurance" | "free";
+  insurance_scheme_uuid?: string | null;
+  requires_pre_authorization?: boolean;
+  pre_authorization_number?: string;
+  pre_authorization_comments?: string;
+  notes?: string;
+};
+
+export type ReferralReceivingClinic = {
+  uuid: string;
+  name: string;
+  code?: string;
 };
 
 export type EncounterLabResultAnalyte = {
@@ -366,6 +430,7 @@ export type ClinicalCapabilityKey =
   | "manage_current_medications"
   | "record_allergy"
   | "record_disposition"
+  | "refer_clinical_orders"
   | "view_vital_signs_tab"
   | "view_physical_examination_tab"
   | "view_orders_tab"

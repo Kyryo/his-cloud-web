@@ -11,13 +11,12 @@ import {
 
 const columns = [
   { key: "patient", label: "Patient" },
-  { key: "gender", label: "Gender" },
-  { key: "dob", label: "DOB" },
-  { key: "clinic", label: "Clinic" },
+  { key: "gender", label: "Gender", className: "hidden sm:table-cell" },
+  { key: "clinic", label: "Clinic", className: "hidden md:table-cell" },
   { key: "priority", label: "Priority" },
   { key: "status", label: "Status" },
-  { key: "ordered_by", label: "Ordered by" },
-  { key: "ordered", label: "Ordered" },
+  { key: "ordered_by", label: "Ordered by", className: "hidden xl:table-cell" },
+  { key: "ordered", label: "Ordered", className: "hidden lg:table-cell" },
 ] as const;
 
 type LabOrdersTableSkeletonProps = {
@@ -34,7 +33,10 @@ export function LabOrdersTableSkeleton({
       <ListPageDataTableHeader>
         <ListPageDataTableHeaderRow>
           {columns.map((column) => (
-            <ListPageDataTableHeaderCell key={column.key}>
+            <ListPageDataTableHeaderCell
+              key={column.key}
+              className={"className" in column ? column.className : undefined}
+            >
               {column.label}
             </ListPageDataTableHeaderCell>
           ))}
@@ -52,16 +54,10 @@ export function LabOrdersTableSkeleton({
                 </div>
               </div>
             </ListPageDataTableCell>
-            <ListPageDataTableCell>
+            <ListPageDataTableCell className="hidden sm:table-cell">
               <Skeleton className="h-4 w-14" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell>
-              <div className="space-y-1">
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="h-3 w-14" />
-              </div>
-            </ListPageDataTableCell>
-            <ListPageDataTableCell>
+            <ListPageDataTableCell className="hidden md:table-cell">
               <Skeleton className="h-4 w-24" />
             </ListPageDataTableCell>
             <ListPageDataTableCell>
@@ -70,10 +66,10 @@ export function LabOrdersTableSkeleton({
             <ListPageDataTableCell>
               <Skeleton className="h-5 w-20 rounded-full" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell>
+            <ListPageDataTableCell className="hidden xl:table-cell">
               <Skeleton className="h-4 w-24" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell>
+            <ListPageDataTableCell className="hidden lg:table-cell">
               <Skeleton className="h-4 w-20" />
             </ListPageDataTableCell>
           </ListPageDataTableRow>

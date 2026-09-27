@@ -155,6 +155,22 @@ describe("buildAppBreadcrumbs", () => {
     ]);
   });
 
+  it("returns settings modules emr crumbs", () => {
+    expect(buildAppBreadcrumbs(ROUTES.settingsModuleClinical)).toEqual([
+      { label: "Settings" },
+      { label: "Modules", href: ROUTES.settingsModules },
+      { label: "EMR" },
+    ]);
+  });
+
+  it("returns settings modules front desk crumbs", () => {
+    expect(buildAppBreadcrumbs(ROUTES.settingsModuleRegistration)).toEqual([
+      { label: "Settings" },
+      { label: "Modules", href: ROUTES.settingsModules },
+      { label: "Front Desk" },
+    ]);
+  });
+
   it("returns settings integrations crumbs", () => {
     expect(buildAppBreadcrumbs(ROUTES.settingsIntegrations)).toEqual([
       { label: "Settings" },

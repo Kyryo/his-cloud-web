@@ -98,6 +98,30 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
       ];
     }
 
+    if (pathname === ROUTES.settingsModuleLaboratory) {
+      return [
+        { label: "Settings" },
+        { label: "Modules", href: ROUTES.settingsModules },
+        { label: "Laboratory" },
+      ];
+    }
+
+    if (pathname === ROUTES.settingsModuleClinical) {
+      return [
+        { label: "Settings" },
+        { label: "Modules", href: ROUTES.settingsModules },
+        { label: "EMR" },
+      ];
+    }
+
+    if (pathname === ROUTES.settingsModuleRegistration) {
+      return [
+        { label: "Settings" },
+        { label: "Modules", href: ROUTES.settingsModules },
+        { label: "Front Desk" },
+      ];
+    }
+
     if (pathname === ROUTES.settingsIntegrations) {
       return [{ label: "Settings" }, { label: "Integrations" }];
     }
@@ -165,6 +189,13 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
       return [
         { label: getModuleLabel("Registration") },
         { label: "Active Visits" },
+      ];
+    }
+
+    if (pathname === ROUTES.referrals) {
+      return [
+        { label: getModuleLabel("Registration") },
+        { label: "Referrals" },
       ];
     }
 

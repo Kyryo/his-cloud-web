@@ -1,9 +1,6 @@
 "use client";
 
-import { Activity } from "lucide-react";
-
 import { OpdClinicalTimeline } from "@/features/clinical-opd/components/shared/OpdClinicalTimeline";
-import { OpdEncounterTabEmptyState } from "@/features/clinical-opd/components/detail/OpdEncounterTabEmptyState";
 import type { ClinicalTimelineEvent } from "@/features/clinical-opd/types/clinical-opd.types";
 
 type OpdEncounterActivityLogProps = {
@@ -29,20 +26,14 @@ export function OpdEncounterActivityLog({
     );
   }
 
-  if (events.length === 0) {
-    return (
-      <OpdEncounterTabEmptyState
-        icon={Activity}
-        title={emptyTitle}
-        description={emptyDescription}
-        data-testid={`${dataTestId}-empty`}
-      />
-    );
-  }
-
   return (
-    <div data-testid={dataTestId}>
-      <OpdClinicalTimeline events={events} />
-    </div>
+    <OpdClinicalTimeline
+      events={events}
+      title={null}
+      description={null}
+      emptyTitle={emptyTitle}
+      emptyDescription={emptyDescription}
+      data-testid={dataTestId}
+    />
   );
 }

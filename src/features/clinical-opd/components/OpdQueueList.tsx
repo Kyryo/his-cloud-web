@@ -20,7 +20,6 @@ import { cn } from "@/lib/utils";
 type OpdQueueListProps = {
   encounters: OpdQueueEncounter[];
   onRowClick?: (encounter: OpdQueueEncounter) => void;
-  onAddEncounter?: (encounter: OpdQueueEncounter) => void;
   encounterHref?: (encounter: OpdQueueEncounter) => string;
   className?: string;
 };
@@ -46,7 +45,6 @@ const STAGE_ACCENT: Record<string, string> = {
 export function OpdQueueList({
   encounters,
   onRowClick,
-  onAddEncounter,
   encounterHref,
   className,
 }: OpdQueueListProps) {
@@ -103,7 +101,6 @@ export function OpdQueueList({
                   encounter={encounter}
                   encounterHref={hrefForEncounter(encounter, encounterHref)}
                   onOpen={handleOpen}
-                  onAddEncounter={onAddEncounter}
                 />
               ))}
             </ul>
@@ -118,14 +115,11 @@ function OpdQueueListRow({
   encounter,
   encounterHref,
   onOpen,
-  onAddEncounter,
 }: {
   encounter: OpdQueueEncounter;
   encounterHref: string;
   onOpen: (encounter: OpdQueueEncounter) => void;
-  onAddEncounter?: (encounter: OpdQueueEncounter) => void;
 }) {
-  const canAddEncounter = encounter.visit_status === "active";
   const stage = resolveOpdQueueStage(encounter);
 
   return (
@@ -175,19 +169,6 @@ function OpdQueueListRow({
           className="flex shrink-0 items-center gap-2"
           onClick={(event) => event.stopPropagation()}
         >
-          {onAddEncounter ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="hidden h-7 rounded-md border-dash-border bg-white px-2.5 text-xs font-medium text-brand-navy hover:bg-dash-canvas sm:inline-flex"
-              disabled={!canAddEncounter}
-              onClick={() => onAddEncounter(encounter)}
-              data-testid="opd-queue-add-encounter"
-            >
-              Add encounter
-            </Button>
-          ) : null}
           <Button
             asChild
             variant="outline"

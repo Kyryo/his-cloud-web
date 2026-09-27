@@ -89,7 +89,7 @@ export function OpdOverviewTabPanel({
 
       {!isContextLoading && !canDocument && isFirstVisitEmpty ? (
         <p className="text-sm text-dash-muted" data-testid="opd-overview-empty">
-          First visit. Record vitals or a complaint to start the chart.
+          First visit. Record vital signs or a complaint to start the chart.
         </p>
       ) : null}
 
@@ -114,7 +114,7 @@ export function OpdOverviewTabPanel({
           <OpdEncounterActivityLog
             events={recentEvents}
             emptyTitle="Nothing recorded yet"
-            emptyDescription="Vitals, notes, orders, and diagnoses will show up here."
+            emptyDescription="Vital signs, notes, orders, and diagnoses will show up here."
             data-testid="opd-overview-activity"
           />
         </div>

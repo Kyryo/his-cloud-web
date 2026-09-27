@@ -20,7 +20,7 @@ export function formatLabOrderStatusLabel(status: string | undefined): string {
     case "IN_LAB":
       return "In lab";
     case "PARTIAL":
-      return "Partial";
+      return "Partially submitted";
     case "COMPLETED":
       return "Completed";
     case "CANCELLED":

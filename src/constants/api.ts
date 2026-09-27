@@ -216,6 +216,18 @@ export const BFF_CLINICAL_OPD_ROUTES = {
     `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/prescriptions/${prescriptionUuid}/cancel`,
   encounterOrders: (visitUuid: string, encounterUuid: string) =>
     `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/orders`,
+  encounterReferrals: (visitUuid: string, encounterUuid: string) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/referrals`,
+  encounterReferralReceivingClinics: (
+    visitUuid: string,
+    encounterUuid: string,
+  ) =>
+    `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/referrals/receiving-clinics`,
+  cancelReferral: (referralUuid: string) =>
+    `/api/clinical/opd/referrals/${referralUuid}/cancel`,
+  startReferral: (referralUuid: string) =>
+    `/api/clinical/opd/referrals/${referralUuid}/start`,
+  clinicalReferrals: "/api/clinical/opd/referrals",
   encounterLabResults: (visitUuid: string, encounterUuid: string) =>
     `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/lab-results`,
   cancelOrder: (
@@ -615,6 +627,7 @@ export const BFF_CARE_PROVIDERS_ROUTES = {
 /** Browser-facing BFF settings routes (same origin). */
 export const BFF_SETTINGS_ROUTES = {
   updateProfile: "/api/auth/me",
+  updateProfileAvatar: "/api/auth/me/avatar",
   organization: "/api/tenants/current",
   clinics: "/api/clinics",
   clinicDetail: (uuid: string) => `/api/clinics/${uuid}`,
@@ -627,6 +640,7 @@ export const BFF_SETTINGS_ROUTES = {
   consultationServices: "/api/consultation-services",
   consultationServiceDetail: (uuid: string) => `/api/consultation-services/${uuid}`,
   insuranceCompanies: "/api/insurance-companies",
+  insuranceCompanyDetail: (uuid: string) => `/api/insurance-companies/${uuid}`,
   insuranceSchemes: "/api/insurance-schemes",
   insuranceSchemeDetail: (uuid: string) => `/api/insurance-schemes/${uuid}`,
   pricelists: "/api/pricelists",
@@ -639,6 +653,8 @@ export const BFF_SETTINGS_ROUTES = {
   pricelistDefault: "/api/pricelists/default",
   branding: "/api/tenants/current/branding",
   currency: "/api/tenants/current/currency",
+  customerIdentifierSettings:
+    "/api/tenants/current/customer-identifier-settings",
   users: "/api/user-management",
   userDetail: (id: number) => `/api/user-management/${id}`,
   groups: "/api/groups",

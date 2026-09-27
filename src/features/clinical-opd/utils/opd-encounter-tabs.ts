@@ -36,11 +36,19 @@ export type OpdEncounterTab = {
 };
 
 /**
- * Consult flow first, in the order clinicians work: complaint → exam →
- * orders → diagnosis → medication. Remaining sections stay reachable from
- * the header menu.
+ * Activity first (shared by nurses and physicians), then the consult flow in
+ * the order clinicians work. Remaining sections stay reachable from the
+ * header menu.
  */
 export const OPD_ENCOUNTER_TABS: OpdEncounterTab[] = [
+  {
+    id: "activity",
+    label: "Activity",
+    segment: "activity",
+    group: "record",
+    surface: "tab",
+    requiredCapability: "view_activity_tab",
+  },
   {
     id: "complaint",
     label: "Complaints & HPI",
@@ -91,7 +99,7 @@ export const OPD_ENCOUNTER_TABS: OpdEncounterTab[] = [
   },
   {
     id: "vital-signs",
-    label: "Vitals signs",
+    label: "Vital signs",
     segment: "vital-signs",
     group: "consult",
     surface: "tab",
@@ -144,14 +152,6 @@ export const OPD_ENCOUNTER_TABS: OpdEncounterTab[] = [
     group: "record",
     surface: "menu",
     requiredCapability: "record_disposition",
-  },
-  {
-    id: "activity",
-    label: "Activity",
-    segment: "activity",
-    group: "record",
-    surface: "menu",
-    requiredCapability: "view_activity_tab",
   },
   {
     id: "client",
@@ -266,16 +266,19 @@ export function getDefaultOpdEncounterTab(
     return "overview";
   }
 
-  const preferredTabByRole: Record<string, OpdEncounterTabId> = {
-    nurse: "vital-signs",
-    physician: "complaint",
+  const preferredTabsByRole: Record<string, OpdEncounterTabId[]> = {
+    nurse: ["activity", "vital-signs"],
+    physician: ["activity", "complaint"],
   };
-  const preferredTab = userRole ? preferredTabByRole[userRole] : undefined;
-  if (
-    preferredTab &&
-    visibleSections.some((section) => section.id === preferredTab)
-  ) {
-    return preferredTab;
+  const preferredTabs = userRole ? preferredTabsByRole[userRole] : undefined;
+  if (preferredTabs) {
+    for (const preferredTab of preferredTabs) {
+      if (
+        visibleSections.some((section) => section.id === preferredTab)
+      ) {
+        return preferredTab;
+      }
+    }
   }
 
   return visibleTabs[0]?.id ?? visibleSections[0].id;

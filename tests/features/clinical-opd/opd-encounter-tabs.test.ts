@@ -80,7 +80,7 @@ describe("opd-encounter-tabs", () => {
     ).toBeNull();
   });
 
-  it("keeps the consult flow in the tab bar and moves the rest to More", () => {
+  it("keeps activity first in the tab bar and moves the rest to More", () => {
     expect(
       getVisibleOpdEncounterTabs(["view_vital_signs_tab"]).map((tab) => tab.id),
     ).toEqual(["vital-signs"]);
@@ -100,6 +100,7 @@ describe("opd-encounter-tabs", () => {
         "view_client_tab",
       ]).map((tab) => tab.id),
     ).toEqual([
+      "activity",
       "physical-examination",
       "diagnoses",
       "medications",
@@ -129,24 +130,35 @@ describe("opd-encounter-tabs", () => {
     expect(isOpdEncounterLocked("waiting")).toBe(false);
   });
 
-  it("lands physicians on chief complaint and nurses on vitals", () => {
+  it("lands physicians and nurses on activity when available", () => {
     expect(
       getDefaultOpdEncounterTab(
-        ["record_chief_complaint", "record_hpi", "view_vital_signs_tab"],
+        [
+          "view_activity_tab",
+          "record_chief_complaint",
+          "record_hpi",
+          "view_vital_signs_tab",
+        ],
         "physician",
       ),
-    ).toBe("complaint");
+    ).toBe("activity");
     expect(
       getDefaultOpdEncounterTab(
-        ["view_vital_signs_tab", "view_diagnoses_tab"],
+        ["view_activity_tab", "view_vital_signs_tab", "view_diagnoses_tab"],
         "nurse",
       ),
-    ).toBe("vital-signs");
+    ).toBe("activity");
     expect(
       getDefaultOpdEncounterTab(
         ["view_vital_signs_tab", "view_diagnoses_tab"],
         "physician",
       ),
     ).toBe("diagnoses");
+    expect(
+      getDefaultOpdEncounterTab(
+        ["view_vital_signs_tab", "view_diagnoses_tab"],
+        "nurse",
+      ),
+    ).toBe("vital-signs");
   });
 });

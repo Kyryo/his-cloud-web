@@ -69,6 +69,10 @@ export type LabOrder = {
   visit_order_uuid: string;
   ordered_by_name: string | null;
   accession_number: string | null;
+  referral_uuid?: string | null;
+  referral_referring_clinic_name?: string | null;
+  referral_referred_by_name?: string | null;
+  is_referred_in?: boolean;
   items: LabOrderItem[];
   ordered_products?: LabOrderedProduct[];
   specimens?: LabSpecimen[];

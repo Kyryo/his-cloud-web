@@ -131,10 +131,7 @@ export function OpdEncounterHeader({
                 {fullName}
               </DetailPageTitle>
               {encounter?.status ? (
-                <OpdEncounterStatusBadge
-                  status={encounter.status}
-                  className="h-5 px-1.5 text-[11px]"
-                />
+                <OpdEncounterStatusBadge status={encounter.status} />
               ) : null}
             </div>
             {identity ? (

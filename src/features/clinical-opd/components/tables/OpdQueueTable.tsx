@@ -27,7 +27,6 @@ import { ROUTES } from "@/constants/routes";
 type OpdQueueTableProps = {
   encounters: OpdQueueEncounter[];
   onRowClick?: (encounter: OpdQueueEncounter) => void;
-  onAddEncounter?: (encounter: OpdQueueEncounter) => void;
   encounterHref?: (encounter: OpdQueueEncounter) => string;
   className?: string;
 };
@@ -54,7 +53,6 @@ const columns = [
 export function OpdQueueTable({
   encounters,
   onRowClick,
-  onAddEncounter,
   encounterHref,
   className,
 }: OpdQueueTableProps) {
@@ -85,7 +83,6 @@ export function OpdQueueTable({
       </ListPageDataTableHeader>
       <ListPageDataTableBody>
         {encounters.map((encounter) => {
-          const canAddEncounter = encounter.visit_status === "active";
           const stage = resolveOpdQueueStage(encounter);
           const clientMeta = formatOpdQueueClientMeta(encounter);
           return (
@@ -142,28 +139,13 @@ export function OpdQueueTable({
                   className="inline-flex items-center justify-end gap-2"
                   onClick={(event) => event.stopPropagation()}
                 >
-                  {onAddEncounter ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="h-7 rounded-md border-dash-border bg-white px-2.5 text-xs font-medium text-brand-navy hover:bg-dash-canvas"
-                      disabled={!canAddEncounter}
-                      onClick={() => onAddEncounter(encounter)}
-                      data-testid="opd-queue-add-encounter"
-                    >
-                      Add encounter
-                    </Button>
-                  ) : null}
                   <Button
                     asChild
                     variant="outline"
                     size="sm"
                     className="h-7 rounded-md border-dash-border bg-white px-2.5 text-xs font-medium text-brand-navy hover:bg-dash-canvas"
                   >
-                    <Link
-                      href={hrefForEncounter(encounter, encounterHref)}
-                    >
+                    <Link href={hrefForEncounter(encounter, encounterHref)}>
                       Open
                     </Link>
                   </Button>

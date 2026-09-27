@@ -409,6 +409,26 @@ export function formatCustomerActivityCopy(encounter: CustomerEncounter): {
       return clinicalOrderCopy(details, "placed");
     case "CLINICAL_ORDER_CANCELLED":
       return clinicalOrderCopy(details, "cancelled");
+    case "REFERRAL_SENT":
+      return {
+        title: "Lab referral sent",
+        summary: "Laboratory orders were referred to another clinic.",
+      };
+    case "REFERRAL_IN_PROGRESS":
+      return {
+        title: "Lab referral in progress",
+        summary: "A referred laboratory order is being processed.",
+      };
+    case "REFERRAL_COMPLETED":
+      return {
+        title: "Lab referral completed",
+        summary: "Referred laboratory results are available.",
+      };
+    case "REFERRAL_CANCELLED":
+      return {
+        title: "Lab referral cancelled",
+        summary: "A laboratory referral was cancelled.",
+      };
     case "PRESCRIPTION_ISSUED":
       return {
         title: "Prescription issued",
@@ -530,6 +550,7 @@ const CLINICAL_PRIVACY_ACTION_PREFIXES = [
   "CURRENT_MEDICATION_",
   "VITALS_",
   "DISPOSITION_",
+  "REFERRAL_",
   "ENCOUNTER_",
   "BILLING_MODE_",
 ] as const;

@@ -9,6 +9,7 @@ import {
 } from "@/features/app-shell/components/page-layout";
 import { LabOrderPriorityBadge } from "@/features/laboratory/components/LabOrderPriorityBadge";
 import { LabOrderStatusBadge } from "@/features/laboratory/components/LabOrderStatusBadge";
+import { Badge } from "@/components/ui/badge";
 import type { LabOrder } from "@/features/laboratory/types/laboratory.types";
 import {
   formatLabAccession,
@@ -75,7 +76,24 @@ export function LabOrderDetailHeader({
               <DetailPageTitle className="truncate">{name}</DetailPageTitle>
               <LabOrderStatusBadge status={order.status} />
               <LabOrderPriorityBadge priority={order.priority} />
+              {order.is_referred_in || order.referral_uuid ? (
+                <Badge
+                  variant="outline"
+                  className="font-normal"
+                  data-testid="lab-order-referred-in-badge"
+                >
+                  Referred in
+                </Badge>
+              ) : null}
             </div>
+            {order.referral_referring_clinic_name ? (
+              <p className="mt-0.5 truncate text-sm text-dash-muted">
+                Referred from {order.referral_referring_clinic_name}
+                {order.referral_referred_by_name
+                  ? ` · ${order.referral_referred_by_name}`
+                  : ""}
+              </p>
+            ) : null}
             {identity ? (
               <p className="mt-0.5 truncate text-sm text-dash-muted">
                 {identity}

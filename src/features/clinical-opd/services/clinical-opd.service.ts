@@ -3,6 +3,7 @@ import type {
   ChiefComplaint,
   ChiefComplaintSuggestion,
   ClinicalAllergy,
+  ClinicalReferral,
   ClinicalRoleCapability,
   ClinicalTimelineEvent,
   ClinicalVisitHistory,
@@ -22,6 +23,8 @@ import type {
   OpdChartSummary,
   OpdQueueEncounter,
   ProblemListItem,
+  ReferralReceivingClinic,
+  StartClinicalReferralPayload,
 } from "@/features/clinical-opd/types/clinical-opd.types";
 import { BffError, bffRequest } from "@/lib/bff-client";
 
@@ -261,6 +264,77 @@ export async function cancelOrder(
   return bffRequest<EncounterClinicalOrder>(
     BFF_CLINICAL_OPD_ROUTES.cancelOrder(visitUuid, encounterUuid, orderUuid),
     { method: "POST", body: {} },
+  );
+}
+
+export async function fetchEncounterReferrals(
+  visitUuid: string,
+  encounterUuid: string,
+) {
+  const response = await bffRequest<ListResponse<ClinicalReferral>>(
+    BFF_CLINICAL_OPD_ROUTES.encounterReferrals(visitUuid, encounterUuid),
+  );
+  return response.results;
+}
+
+export async function fetchReferralReceivingClinics(
+  visitUuid: string,
+  encounterUuid: string,
+) {
+  const response = await bffRequest<ListResponse<ReferralReceivingClinic>>(
+    BFF_CLINICAL_OPD_ROUTES.encounterReferralReceivingClinics(
+      visitUuid,
+      encounterUuid,
+    ),
+  );
+  return response.results;
+}
+
+export async function createClinicalReferral(
+  visitUuid: string,
+  encounterUuid: string,
+  payload: {
+    receiving_clinic_uuid: string;
+    source_visit_order_uuids: string[];
+    notes?: string;
+  },
+) {
+  return bffRequest<ClinicalReferral>(
+    BFF_CLINICAL_OPD_ROUTES.encounterReferrals(visitUuid, encounterUuid),
+    { method: "POST", body: payload },
+  );
+}
+
+export async function cancelClinicalReferral(referralUuid: string) {
+  return bffRequest<ClinicalReferral>(
+    BFF_CLINICAL_OPD_ROUTES.cancelReferral(referralUuid),
+    { method: "POST", body: {} },
+  );
+}
+
+export async function fetchIncomingReferralsAwaitingStart(params?: {
+  clinicUuid?: string;
+}) {
+  const search = new URLSearchParams({
+    direction: "incoming",
+    awaiting_start: "1",
+  });
+  if (params?.clinicUuid) {
+    search.set("clinic", params.clinicUuid);
+  }
+  const response = await bffRequest<{ results: ClinicalReferral[] }>(
+    `${BFF_CLINICAL_OPD_ROUTES.clinicalReferrals}?${search.toString()}`,
+  );
+  return response.results;
+}
+
+export async function startClinicalReferral(
+  referralUuid: string,
+  payload: StartClinicalReferralPayload,
+) {
+  return bffRequest<ClinicalReferral>(
+    BFF_CLINICAL_OPD_ROUTES.startReferral(referralUuid),
+    { method: "POST", body: payload },
   );
 }
 

@@ -73,6 +73,16 @@ export function OpdInvestigationResultsTabPanel({
       ),
     [orders.data],
   );
+  const referredPendingLabs = useMemo(
+    () =>
+      (orders.data ?? []).filter(
+        (order) =>
+          order.is_active !== false &&
+          order.item_type?.toUpperCase() === "LABORATORY" &&
+          order.status === "REFERRED",
+      ),
+    [orders.data],
+  );
 
   if (!isActive) return null;
   if (labResults.isLoading || orders.isLoading) {
@@ -157,11 +167,32 @@ export function OpdInvestigationResultsTabPanel({
             data-testid="opd-investigation-lab-panel"
           >
             {labCount === 0 ? (
-              <OpdEncounterTabEmptyState
-                icon={FlaskConical}
-                title="No lab results yet"
-                description="Released laboratory results for this visit will appear here."
-              />
+              referredPendingLabs.length > 0 ? (
+                <ul
+                  className="space-y-2"
+                  data-testid="opd-investigation-referred-pending"
+                >
+                  {referredPendingLabs.map((order) => (
+                    <li
+                      key={order.uuid}
+                      className="rounded-xl border border-dash-border/80 bg-white px-4 py-3"
+                    >
+                      <p className="text-sm font-medium text-brand-navy">
+                        {order.description || order.item_type_display}
+                      </p>
+                      <p className="mt-1 text-xs text-brand-muted">
+                        Referred — awaiting results from the receiving laboratory
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <OpdEncounterTabEmptyState
+                  icon={FlaskConical}
+                  title="No lab results yet"
+                  description="Released laboratory results for this visit will appear here."
+                />
+              )
             ) : (
               <ul
                 className="space-y-3"
@@ -179,6 +210,28 @@ export function OpdInvestigationResultsTabPanel({
                     />
                   </li>
                 ))}
+                {referredPendingLabs.length > 0 ? (
+                  <li>
+                    <ul
+                      className="space-y-2"
+                      data-testid="opd-investigation-referred-pending"
+                    >
+                      {referredPendingLabs.map((order) => (
+                        <li
+                          key={order.uuid}
+                          className="rounded-xl border border-dashed border-dash-border/80 bg-dash-canvas/50 px-4 py-3"
+                        >
+                          <p className="text-sm font-medium text-brand-navy">
+                            {order.description || order.item_type_display}
+                          </p>
+                          <p className="mt-1 text-xs text-brand-muted">
+                            Referred — awaiting results from the receiving laboratory
+                          </p>
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                ) : null}
               </ul>
             )}
           </OpdConsultContentPanel>

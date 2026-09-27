@@ -16,7 +16,7 @@ type OpdQueueStageBadgeProps = {
 };
 
 /**
- * Queue stage chip styled like a compact outline button.
+ * Compact queue stage chip (matches OPD encounter header status sizing).
  */
 export function OpdQueueStageBadge({
   stage,
@@ -25,7 +25,7 @@ export function OpdQueueStageBadge({
   return (
     <span
       className={cn(
-        "inline-flex h-7 items-center justify-center rounded-md border px-2.5 text-xs font-medium",
+        "inline-flex h-5 items-center justify-center rounded-md border px-1.5 text-[11px] font-medium",
         styles[stage] ??
           "border-dash-border bg-white text-brand-slate",
         className,

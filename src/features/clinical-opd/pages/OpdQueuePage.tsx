@@ -1,8 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -23,20 +21,11 @@ import {
 import type { OpdQueueEncounter } from "@/features/clinical-opd/types/clinical-opd.types";
 import type { OpdQueueViewMode } from "@/features/clinical-opd/utils/opd-queue-views";
 import { opdEncounterLandingHref } from "@/features/clinical-opd/utils/opd-encounter-tabs";
-import { AddVisitEncounterDialog } from "@/features/visits/components/AddVisitEncounterDialog";
-import { fetchVisit } from "@/features/visits/services/visits.service";
-import type { VisitDetail, VisitEncounter } from "@/features/visits/types/visit.types";
-import { BffError } from "@/lib/bff-client";
-import { formatBffErrorMessage } from "@/lib/bff-field-errors";
-import { useToast } from "@/providers/toast-provider";
 import { useUser } from "@/providers/user-provider";
 
 const DEFAULT_PAGE_SIZE = 20;
 
 export function OpdQueuePage() {
-  const router = useRouter();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { userData, isLoading: isUserLoading } = useUser();
   const { data: capabilitiesData } = useMyClinicalCapabilities();
   const landingHref = (encounter: OpdQueueEncounter) =>
@@ -50,11 +39,6 @@ export function OpdQueuePage() {
   const [activeSearch, setActiveSearch] = useState("");
   const [page, setPage] = useState(1);
   const [viewMode, setViewMode] = useState<OpdQueueViewMode>("table");
-  const [addEncounterVisit, setAddEncounterVisit] = useState<VisitDetail | null>(
-    null,
-  );
-  const [isAddEncounterOpen, setIsAddEncounterOpen] = useState(false);
-  const [isLoadingAddEncounter, setIsLoadingAddEncounter] = useState(false);
 
   const {
     data = [],
@@ -101,59 +85,6 @@ export function OpdQueuePage() {
     setPage(1);
   }
 
-  async function handleAddEncounter(encounter: OpdQueueEncounter) {
-    if (encounter.visit_status !== "active") {
-      toast({
-        title: "Visit is not active",
-        description: "Encounters can only be added to active visits.",
-        variant: "error",
-      });
-      return;
-    }
-
-    try {
-      setIsLoadingAddEncounter(true);
-      const visit = await fetchVisit(encounter.visit_uuid);
-      setAddEncounterVisit(visit);
-      setIsAddEncounterOpen(true);
-    } catch (loadError) {
-      toast({
-        title: "Could not load visit",
-        description:
-          loadError instanceof BffError
-            ? formatBffErrorMessage(loadError.message, loadError.errors)
-            : "Unable to open add encounter.",
-        variant: "error",
-      });
-    } finally {
-      setIsLoadingAddEncounter(false);
-    }
-  }
-
-  async function handleEncounterCreated(created: VisitEncounter) {
-    await queryClient.invalidateQueries({ queryKey: ["opd-queue"] });
-    setIsAddEncounterOpen(false);
-    setAddEncounterVisit(null);
-
-    if (created.department_type === "opd") {
-      router.push(
-        opdEncounterLandingHref(
-          created.visit,
-          created.uuid,
-          capabilitiesData?.capabilities ?? [],
-          userData?.user_role,
-        ),
-      );
-      return;
-    }
-
-    toast({
-      title: "Encounter added",
-      description: `${created.department_name} was added. Open it from Active Visits if needed.`,
-      variant: "success",
-    });
-  }
-
   if (isUserLoading || isLoading) {
     return <OpdQueuePageSkeleton />;
   }
@@ -176,7 +107,7 @@ export function OpdQueuePage() {
       <OpdQueuePageHeader
         search={search}
         viewMode={viewMode}
-        isLoading={isFetching || isLoadingAddEncounter}
+        isLoading={isFetching}
         onSearchChange={setSearch}
         onSearchSubmit={handleSearchSubmit}
         onClearSearch={handleClearSearch}
@@ -228,17 +159,11 @@ export function OpdQueuePage() {
               <OpdQueueList
                 encounters={data}
                 encounterHref={landingHref}
-                onAddEncounter={(encounter) => {
-                  void handleAddEncounter(encounter);
-                }}
               />
             ) : (
               <OpdQueueTable
                 encounters={paginatedEncounters}
                 encounterHref={landingHref}
-                onAddEncounter={(encounter) => {
-                  void handleAddEncounter(encounter);
-                }}
               />
             )}
             {viewMode === "table" ? (
@@ -255,22 +180,6 @@ export function OpdQueuePage() {
           </>
         )}
       </ListPageTableSection>
-
-      {addEncounterVisit ? (
-        <AddVisitEncounterDialog
-          visit={addEncounterVisit}
-          open={isAddEncounterOpen}
-          onOpenChange={(open) => {
-            setIsAddEncounterOpen(open);
-            if (!open) {
-              setAddEncounterVisit(null);
-            }
-          }}
-          onCreated={(encounter) => {
-            void handleEncounterCreated(encounter);
-          }}
-        />
-      ) : null}
     </ListPageLayout>
   );
 }

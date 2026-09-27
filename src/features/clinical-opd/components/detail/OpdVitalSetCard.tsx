@@ -26,6 +26,11 @@ type OpdVitalSetCardProps = {
   recordedByName?: string | null;
   /** Tighter spacing for the previous-visit history column. */
   compact?: boolean;
+  /**
+   * When false, render readings without the bordered card chrome
+   * (used on the Activity aside Vital signs section).
+   */
+  framed?: boolean;
   /** When set, each reading value is clickable (content pane editing). */
   onValueClick?: (statKey: string) => void;
   "data-testid"?: string;
@@ -39,6 +44,7 @@ export function OpdVitalSetCard({
   releasedByName,
   recordedByName: recordedByNameProp,
   compact = false,
+  framed = true,
   onValueClick,
   "data-testid": dataTestId,
 }: OpdVitalSetCardProps) {
@@ -51,8 +57,8 @@ export function OpdVitalSetCard({
   return (
     <article
       className={cn(
-        "rounded-xl border border-dash-border/70 bg-white",
-        compact ? "px-3 py-2.5" : "px-4 py-3",
+        framed && "rounded-xl border border-dash-border/70 bg-white",
+        framed && (compact ? "px-3 py-2.5" : "px-4 py-3"),
       )}
       data-testid={dataTestId ?? (set ? `opd-vital-set-${set.id}` : "opd-vital-set")}
     >
