@@ -82,6 +82,7 @@ export async function fetchPlatformAdminTenant(
 ): Promise<PlatformAdminTenant> {
   return bffRequest<PlatformAdminTenant>(
     BFF_PLATFORM_ADMIN_ROUTES.tenantDetail(tenantUuid),
+    { timeoutMs: 60_000 },
   );
 }
 
@@ -210,12 +211,9 @@ export async function fetchPlatformAdminTenantUsage(
   tenantUuid: string,
   filters: PlatformAdminUsageFilters,
 ): Promise<PlatformAdminUsageResponse> {
-  const timeoutMs = filters.sections?.length === 1 && filters.sections[0] === "overview"
-    ? 30_000
-    : 90_000;
   return bffRequest<PlatformAdminUsageResponse>(
     `${BFF_PLATFORM_ADMIN_ROUTES.tenantUsage(tenantUuid)}${buildUsageQuery(filters)}`,
-    { timeoutMs },
+    { timeoutMs: 90_000 },
   );
 }
 
