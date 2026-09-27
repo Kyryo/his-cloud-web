@@ -9,11 +9,16 @@ import { requireAccessToken } from "@/lib/server/require-access-token";
 import { requireTenantAdmin } from "@/lib/server/require-tenant-admin";
 import { resolveSession } from "@/lib/server/session";
 
-const IDENTIFIER_FIELDS = [
+const IDENTIFIER_STRING_FIELDS = [
   "customer_identifier_prefix",
-  "customer_identifier_digits",
   "customer_identifier_separator",
   "customer_identifier_suffix",
+] as const satisfies ReadonlyArray<
+  keyof UpdateTenantCustomerIdentifierSettingsPayload
+>;
+
+const IDENTIFIER_NUMBER_FIELDS = [
+  "customer_identifier_digits",
   "customer_identifier_start_number",
 ] as const satisfies ReadonlyArray<
   keyof UpdateTenantCustomerIdentifierSettingsPayload
@@ -53,14 +58,16 @@ function pickIdentifierPayload(
 ): UpdateTenantCustomerIdentifierSettingsPayload {
   const payload: UpdateTenantCustomerIdentifierSettingsPayload = {};
 
-  for (const field of IDENTIFIER_FIELDS) {
-    if (!(field in body)) {
-      continue;
-    }
+  for (const field of IDENTIFIER_STRING_FIELDS) {
     const value = body[field];
     if (typeof value === "string") {
       payload[field] = value.trim();
-    } else if (typeof value === "number") {
+    }
+  }
+
+  for (const field of IDENTIFIER_NUMBER_FIELDS) {
+    const value = body[field];
+    if (typeof value === "number") {
       payload[field] = value;
     }
   }

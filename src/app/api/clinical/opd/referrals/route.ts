@@ -1,6 +1,5 @@
 import { CLINICAL_OPD_API_PATHS } from "@/constants/clinical-opd-api";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
-import { handleClinicalAction } from "@/lib/server/clinical-bff-handlers";
 import { hmisApiRequest } from "@/lib/server/hmis-api";
 import { requireAccessToken } from "@/lib/server/require-access-token";
 

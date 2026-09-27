@@ -96,7 +96,7 @@ export function IncomingReferralsTable({
                 {referral.referred_by_name || "—"}
               </ListPageDataTableCell>
               <ListPageDataTableCell className="tabular-nums text-dash-muted">
-                {formatDisplayDateTime(referral.sent_at)}
+                {referral.sent_at ? formatDisplayDateTime(referral.sent_at) : "—"}
               </ListPageDataTableCell>
               <ListPageDataTableCell>
                 <span className="inline-flex rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">

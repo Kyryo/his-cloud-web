@@ -130,6 +130,7 @@ export function ClientIdentifierSettingsPanel() {
       toast({
         title: "Client ID format saved",
         description: "New clients will receive IDs using this pattern.",
+        variant: "success",
       });
     } catch (error) {
       toast({
