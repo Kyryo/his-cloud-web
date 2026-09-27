@@ -18,7 +18,7 @@ type FilterSelectFieldProps = {
   disabled?: boolean;
   placeholder?: string;
   onValueChange: (value: string) => void;
-  options: Array<{ value: string; label: string }>;
+  options: Array<{ value: string; label: string; disabled?: boolean }>;
 };
 
 export function FilterSelectField({
@@ -47,7 +47,11 @@ export function FilterSelectField({
         </SelectTrigger>
         <SelectContent position="popper" className={appFont.className}>
           {options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
+            <SelectItem
+              key={option.value}
+              value={option.value}
+              disabled={option.disabled}
+            >
               {option.label}
             </SelectItem>
           ))}

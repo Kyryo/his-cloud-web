@@ -50,6 +50,7 @@ export function NavUser() {
   const [open, setOpen] = useState(false);
   const displayName = userData?.name?.trim() || "Account";
   const email = userData?.email?.trim() ?? "";
+  const avatarUrl = userData?.avatar_url?.trim() || null;
 
   function closeMenu() {
     setOpen(false);
@@ -69,6 +70,7 @@ export function NavUser() {
               <UserIdenticon
                 seed={email || displayName}
                 name={displayName}
+                imageUrl={avatarUrl}
                 className="size-8"
               />
               <div className="grid flex-1 text-left text-sm leading-tight">
@@ -97,6 +99,7 @@ export function NavUser() {
               <UserIdenticon
                 seed={email || displayName}
                 name={displayName}
+                imageUrl={avatarUrl}
                 className="size-8"
               />
               <div className="min-w-0 flex-1">

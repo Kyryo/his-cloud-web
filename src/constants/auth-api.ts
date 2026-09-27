@@ -13,6 +13,7 @@ export const AUTH_API_PATHS = {
   tokenRefresh: "/auth/token/refresh/",
   logout: "/auth/logout/",
   me: "/users/me/",
+  avatar: "/users/me/avatar/",
   userDetail: (userId: number) => `/users/${userId}/`,
   mfa: "/auth/mfa/",
   mfaPreferred: "/auth/mfa/preferred/",

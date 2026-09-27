@@ -16,6 +16,8 @@ vi.mock("@/providers/toast-provider", () => ({
 
 vi.mock("@/features/settings/services/settings.service", () => ({
   updateProfile: vi.fn(),
+  uploadProfileAvatar: vi.fn(),
+  clearProfileAvatar: vi.fn(),
 }));
 
 vi.mock("@/features/appointments/services/appointments.service", () => ({
@@ -81,6 +83,7 @@ afterEach(() => {
 const user: User = {
   id: 12,
   name: "Jane Doe",
+  avatar_url: "http://localhost:8000/media/users/12/avatar/photo.png",
   url: "/users/12",
   email: "jane@example.com",
   permissions: {},
@@ -106,7 +109,20 @@ const user: User = {
       is_active: true,
     },
   ],
-  locations: [],
+  locations: [
+    {
+      id: 4,
+      location: 20,
+      location_name: "Main Pharmacy",
+      location_code: "PHARM",
+      clinic_name: "Main Clinic",
+      clinic_code: "MAIN",
+      tenant_name: "Sigma Clinic",
+      role: "staff",
+      is_primary: true,
+      is_active: true,
+    },
+  ],
   primary_clinic: null,
   primary_location: null,
 };
@@ -128,6 +144,21 @@ describe("AccountSettingsPage", () => {
     ).toBeInTheDocument();
   });
 
+  it("hides use a gravatar until a photo is uploaded", () => {
+    useUser.mockReturnValue({
+      userData: { ...user, avatar_url: "" },
+      isLoading: false,
+      refreshUser: vi.fn(),
+    });
+
+    render(<AccountSettingsPage />);
+
+    expect(
+      screen.queryByRole("button", { name: "Use a gravatar" }),
+    ).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Upload avatar")).toBeInTheDocument();
+  });
+
   it("shows profile fields and switches to clinics and appointments", async () => {
     useUser.mockReturnValue({
       userData: user,
@@ -140,13 +171,31 @@ describe("AccountSettingsPage", () => {
     expect(screen.getByDisplayValue("Jane Doe")).toBeInTheDocument();
     expect(screen.getByText("jane@example.com")).toBeInTheDocument();
     expect(screen.getByLabelText("Upload avatar")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Jane Doe avatar" })).toHaveAttribute(
+      "src",
+      "http://localhost:8000/media/users/12/avatar/photo.png",
+    );
+    expect(
+      screen.getByRole("button", { name: "Use a gravatar" }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Save profile" })).toBeInTheDocument();
     expect(screen.queryByText("MAIN · Clinician · Sigma Clinic")).not.toBeInTheDocument();
+
+    expect(
+      screen.getByText("English is the only available language for now."),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/Current time:/)).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Clinics" }));
     expect(screen.getByText("MAIN · Clinician · Sigma Clinic")).toBeInTheDocument();
     expect(screen.getByText("Primary · Active")).toBeInTheDocument();
     expect(screen.queryByRole("columnheader", { name: "Clinic" })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Locations" }));
+    expect(screen.getByText("Main Pharmacy")).toBeInTheDocument();
+    expect(
+      screen.getByText("PHARM · Main Clinic · Staff · Sigma Clinic"),
+    ).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole("button", { name: "Appointments" }));
     await waitFor(() => {

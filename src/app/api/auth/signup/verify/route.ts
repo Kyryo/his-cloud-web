@@ -5,6 +5,7 @@ import type {
 } from "@/features/auth/types/auth.types";
 import { setAuthCookies } from "@/lib/server/auth-cookies";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
+import { withBrowserAvatar } from "@/lib/server/media-url";
 import { hmisApiRequest } from "@/lib/server/hmis-api";
 
 type RequestBody = {
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
 
     await setAuthCookies(session.tokens);
 
-    const response: AuthVerifyResponse = { user: session.user };
+    const response: AuthVerifyResponse = { user: withBrowserAvatar(session.user) };
     return bffSuccess(response, 201);
   } catch (error) {
     return bffError(error);

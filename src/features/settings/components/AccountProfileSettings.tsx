@@ -1,7 +1,7 @@
 "use client";
 
 import { Loader2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -21,81 +21,41 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { User } from "@/features/auth/types/auth.types";
 import { SettingsFieldRow } from "@/features/settings/components/SettingsPageLayout";
-import { updateProfile } from "@/features/settings/services/settings.service";
+import {
+  clearProfileAvatar,
+  updateProfile,
+  uploadProfileAvatar,
+} from "@/features/settings/services/settings.service";
+import { splitDisplayName } from "@/features/settings/utils/user-name";
+import {
+  formatCurrentTime,
+  formatTimezoneLabel,
+  listTimezones,
+} from "@/features/settings/utils/timezone-options";
 import { useToast } from "@/providers/toast-provider";
 import { useUser } from "@/providers/user-provider";
+
+const DEFAULT_TIMEZONE = "Africa/Blantyre";
 
 const accountProfileSchema = z.object({
   displayName: z.string().trim().min(1, "Display name is required"),
   about: z.string().trim().max(500, "About must be 500 characters or fewer"),
-  language: z.string().trim().min(1, "Select a language"),
+  language: z.literal("en"),
   timezone: z.string().trim().min(1, "Select a timezone"),
 });
 
 type AccountProfileFormValues = z.infer<typeof accountProfileSchema>;
 
-type StoredAccountPreferences = {
-  about: string;
-  language: string;
-  timezone: string;
-  avatarImage?: string | null;
-};
-
 const LANGUAGE_OPTIONS = [
   { value: "en", label: "English" },
-  { value: "fr", label: "French" },
-  { value: "pt", label: "Portuguese" },
-  { value: "sw", label: "Swahili" },
-] as const;
-
-const TIMEZONE_OPTIONS = [
-  { value: "Africa/Blantyre", label: "Africa / Blantyre (CAT)" },
-  { value: "Africa/Johannesburg", label: "Africa / Johannesburg (SAST)" },
-  { value: "Africa/Nairobi", label: "Africa / Nairobi (EAT)" },
-  { value: "UTC", label: "UTC" },
+  { value: "fr", label: "French", disabled: true },
+  { value: "pt", label: "Portuguese", disabled: true },
+  { value: "sw", label: "Swahili", disabled: true },
 ] as const;
 
 type AccountProfileSettingsProps = {
   user: User;
 };
-
-function preferencesStorageKey(userId: number) {
-  return `hmis-account-preferences-${userId}`;
-}
-
-function defaultPreferences(): StoredAccountPreferences {
-  return {
-    about: "",
-    language: "en",
-    timezone: "Africa/Blantyre",
-    avatarImage: null,
-  };
-}
-
-function readStoredPreferences(userId: number): StoredAccountPreferences {
-  if (typeof window === "undefined") {
-    return defaultPreferences();
-  }
-
-  try {
-    const raw = window.localStorage.getItem(preferencesStorageKey(userId));
-    if (!raw) {
-      return defaultPreferences();
-    }
-    return { ...defaultPreferences(), ...JSON.parse(raw) };
-  } catch {
-    return defaultPreferences();
-  }
-}
-
-function readImageFile(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(new Error("Could not read image."));
-    reader.readAsDataURL(file);
-  });
-}
 
 export function AccountProfileSettings({ user }: AccountProfileSettingsProps) {
   return <AccountProfileSettingsForm key={user.id} user={user} />;
@@ -105,85 +65,123 @@ function AccountProfileSettingsForm({ user }: AccountProfileSettingsProps) {
   const { toast } = useToast();
   const { refreshUser } = useUser();
   const avatarInputRef = useRef<HTMLInputElement>(null);
-  const stored = readStoredPreferences(user.id);
-  const [avatarImage, setAvatarImage] = useState<string | null>(
-    stored.avatarImage ?? null,
-  );
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [useGravatar, setUseGravatar] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isClearingAvatar, setIsClearingAvatar] = useState(false);
+  const timezoneOptions = useMemo(
+    () =>
+      listTimezones().map((timeZone) => ({
+        value: timeZone,
+        label: formatTimezoneLabel(timeZone),
+      })),
+    [],
+  );
 
   const form = useForm<AccountProfileFormValues>({
     resolver: zodResolver(accountProfileSchema),
     defaultValues: {
       displayName: user.name || "",
-      about: stored.about,
-      language: stored.language,
-      timezone: stored.timezone,
+      about: user.about ?? "",
+      language: "en",
+      timezone: user.timezone || DEFAULT_TIMEZONE,
     },
   });
 
-  useEffect(() => {
-    let cancelled = false;
+  const selectedTimezone = form.watch("timezone");
 
-    async function hydrate() {
-      await Promise.resolve();
-      if (cancelled) {
-        return;
-      }
-      const nextStored = readStoredPreferences(user.id);
-      setAvatarImage(nextStored.avatarImage ?? null);
-      form.reset({
-        displayName: user.name || "",
-        about: nextStored.about,
-        language: nextStored.language,
-        timezone: nextStored.timezone,
-      });
+  useEffect(() => {
+    form.reset({
+      displayName: user.name || "",
+      about: user.about ?? "",
+      language: "en",
+      timezone: user.timezone || DEFAULT_TIMEZONE,
+    });
+  }, [form, user.about, user.name, user.timezone]);
+
+  useEffect(() => {
+    if (!user.avatar_url) {
+      setUseGravatar(false);
+    }
+  }, [user.avatar_url]);
+
+  useEffect(() => {
+    if (!avatarFile) {
+      setAvatarPreview(null);
+      return;
     }
 
-    void hydrate();
-    return () => {
-      cancelled = true;
-    };
-  }, [form, user.id, user.name]);
+    const previewUrl = URL.createObjectURL(avatarFile);
+    setAvatarPreview(previewUrl);
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [avatarFile]);
 
-  async function handleAvatarChange(file: File | undefined) {
+  function handleAvatarChange(file: File | undefined) {
     if (!file) {
       return;
     }
+
+    if (!file.type.startsWith("image/")) {
+      toast({
+        variant: "error",
+        description: "Profile photo must be an image.",
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        variant: "error",
+        description: "Profile photo must be 5 MB or smaller.",
+      });
+      return;
+    }
+
+    setUseGravatar(false);
+    setAvatarFile(file);
+  }
+
+  async function handleUseGravatar() {
+    setIsClearingAvatar(true);
+    setAvatarFile(null);
+    setUseGravatar(true);
     try {
-      const dataUrl = await readImageFile(file);
-      setAvatarImage(dataUrl);
+      await clearProfileAvatar();
+      await refreshUser();
+      toast({
+        variant: "success",
+        description: "Your profile photo now uses a gravatar.",
+      });
     } catch (error) {
+      setUseGravatar(false);
       toast({
         variant: "error",
         description:
-          error instanceof Error ? error.message : "Could not load image.",
+          error instanceof Error
+            ? error.message
+            : "Unable to switch to a gravatar.",
       });
+    } finally {
+      setIsClearingAvatar(false);
     }
   }
 
   const onSubmit = form.handleSubmit(async (values) => {
     setIsSaving(true);
     try {
-      const trimmedName = values.displayName.trim();
-      const parts = trimmedName.split(/\s+/);
-      const firstName = parts[0] ?? "";
-      const lastName = parts.slice(1).join(" ");
-
+      const { firstName, lastName } = splitDisplayName(values.displayName.trim());
       await updateProfile({
         firstName,
         lastName,
+        about: values.about,
+        timezone: values.timezone,
       });
 
-      const payload: StoredAccountPreferences = {
-        about: values.about,
-        language: values.language,
-        timezone: values.timezone,
-        avatarImage,
-      };
-      window.localStorage.setItem(
-        preferencesStorageKey(user.id),
-        JSON.stringify(payload),
-      );
+      if (avatarFile) {
+        await uploadProfileAvatar(avatarFile);
+        setAvatarFile(null);
+      }
 
       await refreshUser();
       toast({
@@ -204,6 +202,8 @@ function AccountProfileSettingsForm({ user }: AccountProfileSettingsProps) {
   });
 
   const displayName = user.name || "User";
+  const hasUploadedPhoto = Boolean(user.avatar_url) && !useGravatar;
+  const photoUrl = useGravatar ? null : avatarPreview || user.avatar_url || null;
 
   return (
     <div data-testid="account-profile-settings">
@@ -215,13 +215,13 @@ function AccountProfileSettingsForm({ user }: AccountProfileSettingsProps) {
       <Form {...form}>
         <form onSubmit={onSubmit} className="mt-5">
           <SettingsFieldRow label="Photo">
-            <div className="flex items-center gap-3">
-              {avatarImage ? (
-                <div
-                  className="size-12 rounded-full bg-cover bg-center"
-                  style={{ backgroundImage: `url(${avatarImage})` }}
-                  role="img"
-                  aria-label={`${displayName} avatar`}
+            <div className="flex flex-wrap items-center gap-3">
+              {photoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={photoUrl}
+                  alt={`${displayName} avatar`}
+                  className="size-12 shrink-0 rounded-full object-cover"
                 />
               ) : (
                 <UserIdenticon
@@ -236,9 +236,21 @@ function AccountProfileSettingsForm({ user }: AccountProfileSettingsProps) {
                 size="sm"
                 onClick={() => avatarInputRef.current?.click()}
                 aria-label="Upload avatar"
+                disabled={isClearingAvatar}
               >
                 Change photo
               </Button>
+              {hasUploadedPhoto ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void handleUseGravatar()}
+                  disabled={isClearingAvatar || isSaving}
+                >
+                  Use a gravatar
+                </Button>
+              ) : null}
             </div>
           </SettingsFieldRow>
 
@@ -302,9 +314,12 @@ function AccountProfileSettingsForm({ user }: AccountProfileSettingsProps) {
                       label=""
                       value={field.value}
                       options={[...LANGUAGE_OPTIONS]}
-                      onValueChange={field.onChange}
+                      onValueChange={() => field.onChange("en")}
                     />
                   </FormControl>
+                  <p className="mt-1 text-sm text-slate-400">
+                    English is the only available language for now.
+                  </p>
                   <FormMessage />
                 </SettingsFieldRow>
               </FormItem>
@@ -318,14 +333,23 @@ function AccountProfileSettingsForm({ user }: AccountProfileSettingsProps) {
               <FormItem className="space-y-0">
                 <SettingsFieldRow label="Timezone">
                   <FormControl>
-                    <FilterSelectField
+                    <select
                       id="account-timezone"
-                      label=""
+                      aria-label="Timezone"
+                      className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
                       value={field.value}
-                      options={[...TIMEZONE_OPTIONS]}
-                      onValueChange={field.onChange}
-                    />
+                      onChange={(event) => field.onChange(event.target.value)}
+                    >
+                      {timezoneOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
                   </FormControl>
+                  <p className="mt-1 text-sm text-slate-400">
+                    Current time: {formatCurrentTime(selectedTimezone)}
+                  </p>
                   <FormMessage />
                 </SettingsFieldRow>
               </FormItem>
@@ -357,7 +381,7 @@ function AccountProfileSettingsForm({ user }: AccountProfileSettingsProps) {
         accept="image/*"
         className="hidden"
         onChange={(event) => {
-          void handleAvatarChange(event.target.files?.[0]);
+          handleAvatarChange(event.target.files?.[0]);
           event.target.value = "";
         }}
       />

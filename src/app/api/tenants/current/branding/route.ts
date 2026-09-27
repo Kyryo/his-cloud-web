@@ -1,4 +1,3 @@
-import { HMIS_API_URL } from "@/constants/api";
 import { TENANTS_API_PATHS } from "@/constants/tenants-api";
 import type {
   TenantBranding,
@@ -6,6 +5,7 @@ import type {
 } from "@/features/settings/types/settings.types";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
 import { hmisApiRequest } from "@/lib/server/hmis-api";
+import { absoluteMediaUrl } from "@/lib/server/media-url";
 import { requireAccessToken } from "@/lib/server/require-access-token";
 import { requireTenantAdmin } from "@/lib/server/require-tenant-admin";
 import { resolveSession } from "@/lib/server/session";
@@ -17,27 +17,10 @@ const BRANDING_FIELDS = [
   "branding_accent_color",
 ] as const satisfies ReadonlyArray<keyof UpdateTenantBrandingPayload>;
 
-function mediaBaseUrl(): string {
-  if (!HMIS_API_URL) {
-    return "";
-  }
-
-  return HMIS_API_URL.replace(/\/api\/v\d+\/?$/, "");
-}
-
 function normalizeBrandingLogoUrl(branding: TenantBranding): TenantBranding {
-  if (!branding.branding_logo_url.startsWith("/media/")) {
-    return branding;
-  }
-
-  const baseUrl = mediaBaseUrl();
-  if (!baseUrl) {
-    return branding;
-  }
-
   return {
     ...branding,
-    branding_logo_url: `${baseUrl}${branding.branding_logo_url}`,
+    branding_logo_url: absoluteMediaUrl(branding.branding_logo_url),
   };
 }
 

@@ -75,19 +75,27 @@ export function formatDisplayDate(value: string): string {
   }).format(date);
 }
 
-export function formatDisplayDateTime(value: string): string {
+export function formatDisplayDateTime(value: string, timeZone?: string): string {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {
     return value;
   }
 
-  return new Intl.DateTimeFormat("en-GB", {
+  const options: Intl.DateTimeFormatOptions = {
     day: "numeric",
     month: "short",
     year: "numeric",
     hour: "2-digit",
     minute: "2-digit",
-  }).format(date);
+    ...(timeZone ? { timeZone } : {}),
+  };
+
+  try {
+    return new Intl.DateTimeFormat("en-GB", options).format(date);
+  } catch {
+    const { timeZone: _ignored, ...fallback } = options;
+    return new Intl.DateTimeFormat("en-GB", fallback).format(date);
+  }
 }
 
 export function calculateAgeInDays(dob?: string | null): number | null {

@@ -11,11 +11,22 @@ vi.mock("@/features/auth/services/auth.service", () => ({
   logout: () => logout(),
 }));
 
+vi.mock("@/components/UserIdenticon", () => ({
+  UserIdenticon: ({
+    name,
+    imageUrl,
+  }: {
+    name: string;
+    imageUrl?: string | null;
+  }) => <img alt={name} src={imageUrl || "identicon"} />,
+}));
+
 vi.mock("@/providers/user-provider", () => ({
   useUser: () => ({
     userData: {
       name: "Ada Lovelace",
       email: "ada@example.com",
+      avatar_url: "http://localhost:8000/media/users/1/avatar/ada.png",
       is_superuser: false,
       tenant: { id: 1 },
     },
@@ -41,9 +52,17 @@ describe("NavUser", () => {
   it("opens a right-side account popover with account, pages, and logout", () => {
     renderNavUser();
 
+    expect(screen.getByRole("img", { name: "Ada Lovelace" })).toHaveAttribute(
+      "src",
+      "http://localhost:8000/media/users/1/avatar/ada.png",
+    );
+
     fireEvent.click(screen.getByTestId("sidebar-account-trigger"));
 
     const popover = screen.getByTestId("sidebar-account-popover");
+    expect(
+      popover.querySelector("img")?.getAttribute("src"),
+    ).toBe("http://localhost:8000/media/users/1/avatar/ada.png");
     expect(popover).toBeInTheDocument();
     expect(popover).toHaveAttribute("data-side", "right");
     expect(popover).toHaveTextContent("Account");
@@ -58,7 +77,7 @@ describe("NavUser", () => {
       ROUTES.settings,
     );
     expect(screen.getByTestId("sidebar-account-logout")).toHaveTextContent(
-      "Log out",
+      "Sign out",
     );
   });
 

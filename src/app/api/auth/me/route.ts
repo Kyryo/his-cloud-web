@@ -3,6 +3,7 @@ import type { User } from "@/features/auth/types/auth.types";
 import { joinDisplayName } from "@/features/settings/utils/user-name";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
 import { hmisApiRequest } from "@/lib/server/hmis-api";
+import { withBrowserAvatar } from "@/lib/server/media-url";
 import { requireAccessToken } from "@/lib/server/require-access-token";
 import { resolveSession } from "@/lib/server/session";
 
@@ -35,6 +36,8 @@ export async function PATCH(request: Request) {
       firstName?: string;
       lastName?: string;
       name?: string;
+      about?: string;
+      timezone?: string;
     };
 
     const name =
@@ -46,16 +49,24 @@ export async function PATCH(request: Request) {
       return bffSuccess({ message: "Name is required." }, 400);
     }
 
+    const payload: { name: string; about?: string; timezone?: string } = { name };
+    if (typeof body.about === "string") {
+      payload.about = body.about.trim();
+    }
+    if (typeof body.timezone === "string" && body.timezone.trim()) {
+      payload.timezone = body.timezone.trim();
+    }
+
     const user = await hmisApiRequest<User>(
       AUTH_API_PATHS.userDetail(session.user.id),
       {
         method: "PATCH",
         token: auth.accessToken,
-        body: { name },
+        body: payload,
       },
     );
 
-    return bffSuccess({ user });
+    return bffSuccess({ user: withBrowserAvatar(user) });
   } catch (error) {
     return bffError(error);
   }

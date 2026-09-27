@@ -8,15 +8,22 @@ import { AccountAppointmentsSection } from "@/features/settings/components/Accou
 import { AccountProfileSettings } from "@/features/settings/components/AccountProfileSettings";
 import { AccountSalesReportsSection } from "@/features/settings/components/AccountSalesReportsSection";
 import { AssignedClinicsList } from "@/features/settings/components/AssignedClinicsList";
+import { AssignedLocationsList } from "@/features/settings/components/AssignedLocationsList";
 import { SettingsUnderlineTabs } from "@/features/settings/components/SettingsPageLayout";
 
-type AccountTabId = "profile" | "notifications" | "appointments" | "clinics";
+type AccountTabId =
+  | "profile"
+  | "notifications"
+  | "appointments"
+  | "clinics"
+  | "locations";
 
 const tabs: Array<{ id: AccountTabId; label: string }> = [
   { id: "profile", label: "Profile" },
   { id: "notifications", label: "Notifications" },
   { id: "appointments", label: "Appointments" },
   { id: "clinics", label: "Clinics" },
+  { id: "locations", label: "Locations" },
 ];
 
 type AccountSettingsTabsProps = {
@@ -55,6 +62,15 @@ export function AccountSettingsTabs({ user }: AccountSettingsTabsProps) {
               Clinics linked to your account and your role at each location.
             </p>
             <AssignedClinicsList clinics={user.clinics ?? []} />
+          </div>
+        ) : null}
+
+        {activeTab === "locations" ? (
+          <div className="space-y-5">
+            <p className="max-w-xl text-sm text-slate-400">
+              Locations linked to your account and your role at each one.
+            </p>
+            <AssignedLocationsList locations={user.locations ?? []} />
           </div>
         ) : null}
       </div>

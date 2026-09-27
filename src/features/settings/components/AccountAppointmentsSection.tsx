@@ -12,6 +12,7 @@ import type {
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { ROUTES } from "@/constants/routes";
 import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
+import { useUser } from "@/providers/user-provider";
 
 const STATUS_LABELS: Record<AppointmentStatus, string> = {
   scheduled: "Scheduled",
@@ -23,11 +24,11 @@ const STATUS_LABELS: Record<AppointmentStatus, string> = {
   rescheduled: "Rescheduled",
 };
 
-function appointmentMeta(appointment: Appointment) {
+function appointmentMeta(appointment: Appointment, timeZone: string) {
   return [
     appointment.clinic_name,
     appointment.department_name,
-    formatDisplayDateTime(appointment.scheduled_start),
+    formatDisplayDateTime(appointment.scheduled_start, timeZone),
   ]
     .filter((value) => Boolean(value))
     .join(" · ");
@@ -38,6 +39,8 @@ function appointmentStatusLabel(status: Appointment["status"]) {
 }
 
 export function AccountAppointmentsSection() {
+  const { userData } = useUser();
+  const timeZone = userData?.timezone || "Africa/Blantyre";
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -105,7 +108,7 @@ export function AccountAppointmentsSection() {
                   {appointment.patient_name}
                 </p>
                 <p className="mt-0.5 truncate text-sm text-slate-400">
-                  {appointmentMeta(appointment)}
+                  {appointmentMeta(appointment, timeZone)}
                 </p>
               </div>
               <span className="shrink-0 text-xs text-slate-400">

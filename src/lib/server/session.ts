@@ -6,6 +6,7 @@ import {
   setAuthCookies,
 } from "@/lib/server/auth-cookies";
 import { hmisApiRequest } from "@/lib/server/hmis-api";
+import { withBrowserAvatar } from "@/lib/server/media-url";
 import type { User } from "@/features/auth/types/auth.types";
 
 export type SessionState = {
@@ -40,7 +41,7 @@ export async function resolveSession(): Promise<SessionState> {
 
   try {
     const user = await hmisApiRequest<User>(AUTH_API_PATHS.me, { token: access });
-    return { authenticated: true, user };
+    return { authenticated: true, user: withBrowserAvatar(user) };
   } catch {
     await clearAuthCookies();
     return { authenticated: false };

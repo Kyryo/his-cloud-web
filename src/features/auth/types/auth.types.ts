@@ -11,6 +11,9 @@ export interface TokenPayload {
 export interface User {
   id: number;
   name: string;
+  avatar_url?: string;
+  about?: string;
+  timezone?: string;
   url: string;
   email: string;
   permissions: Record<string, boolean>;
