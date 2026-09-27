@@ -50,6 +50,7 @@ export function DispenseLineDialog({
 }: DispenseLineDialogProps) {
   const { toast } = useToast();
   const userLocations = useSessionStore((state) => state.user?.locations);
+  const isTenantAdmin = Boolean(useSessionStore((state) => state.user?.is_admin));
   const [locations, setLocations] = useState<InventoryLocationOption[]>([]);
   const [locationId, setLocationId] = useState<string>("");
   const [quantity, setQuantity] = useState("");
@@ -94,9 +95,11 @@ export function DispenseLineDialog({
         const response = await fetchInventoryLocations(clinicId ?? undefined);
         if (!cancelled) {
           setLocations(
-            response.results.filter((location) =>
-              assignedLocationIds.has(location.id),
-            ),
+            isTenantAdmin
+              ? response.results
+              : response.results.filter((location) =>
+                  assignedLocationIds.has(location.id),
+                ),
           );
         }
       } catch (error) {
@@ -119,7 +122,7 @@ export function DispenseLineDialog({
     return () => {
       cancelled = true;
     };
-  }, [assignedLocationIds, clinicId, open, toast]);
+  }, [assignedLocationIds, clinicId, isTenantAdmin, open, toast]);
 
   const handleSubmit = useCallback(async () => {
     if (!line) {

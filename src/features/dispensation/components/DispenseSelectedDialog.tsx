@@ -49,6 +49,7 @@ export function DispenseSelectedDialog({
 }: DispenseSelectedDialogProps) {
   const { toast } = useToast();
   const userLocations = useSessionStore((state) => state.user?.locations);
+  const isTenantAdmin = Boolean(useSessionStore((state) => state.user?.is_admin));
   const [locations, setLocations] = useState<InventoryLocationOption[]>([]);
   const [locationId, setLocationId] = useState<string>("");
   const [isLoadingLocations, setIsLoadingLocations] = useState(false);
@@ -95,9 +96,11 @@ export function DispenseSelectedDialog({
         const response = await fetchInventoryLocations(clinicId ?? undefined);
         if (!cancelled) {
           setLocations(
-            response.results.filter((location) =>
-              assignedLocationIds.has(location.id),
-            ),
+            isTenantAdmin
+              ? response.results
+              : response.results.filter((location) =>
+                  assignedLocationIds.has(location.id),
+                ),
           );
         }
       } catch (error) {
@@ -120,7 +123,7 @@ export function DispenseSelectedDialog({
     return () => {
       cancelled = true;
     };
-  }, [assignedLocationIds, clinicId, open, toast]);
+  }, [assignedLocationIds, clinicId, isTenantAdmin, open, toast]);
 
   const handleSubmit = useCallback(async () => {
     if (!locationId || items.length === 0) {
