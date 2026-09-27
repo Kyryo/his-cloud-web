@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import type { UseFormReturn } from "react-hook-form";
+import type { FieldValues, Path, UseFormReturn } from "react-hook-form";
 
 import { PrimaryButton } from "@/components/ui/app-buttons";
 import {
@@ -25,7 +25,6 @@ import { Switch } from "@/components/ui/switch";
 import type { CustomerInsurance } from "@/features/customers/types/customer-insurance.types";
 import { customerDetailTabHref } from "@/features/customers/utils/customer-detail-tabs";
 import { StartVisitChoiceRow } from "@/features/visits/components/StartVisitChoiceRow";
-import type { StartVisitFormValues } from "@/features/visits/schemas/start-visit.schema";
 
 const PAYMENT_OPTIONS = [
   {
@@ -45,22 +44,32 @@ const PAYMENT_OPTIONS = [
   },
 ];
 
-type StartVisitPaymentChoiceProps = {
-  form: UseFormReturn<StartVisitFormValues>;
+export type VisitStartPaymentFieldValues = FieldValues & {
+  mode_of_payment: "cash" | "insurance" | "free";
+  insurance_scheme?: string;
+  requires_pre_authorization: boolean;
+  pre_authorization_number: string;
+  pre_authorization_comments: string;
+};
+
+type StartVisitPaymentChoiceProps<T extends VisitStartPaymentFieldValues> = {
+  form: UseFormReturn<T>;
   insuranceSchemes: CustomerInsurance[];
   customerUuid: string;
   onInsuranceHrefClick?: () => void;
 };
 
-export function StartVisitPaymentChoice({
+export function StartVisitPaymentChoice<T extends VisitStartPaymentFieldValues>({
   form,
   insuranceSchemes,
   customerUuid,
   onInsuranceHrefClick,
-}: StartVisitPaymentChoiceProps) {
-  const modeOfPayment = form.watch("mode_of_payment");
-  const requiresPreAuth = form.watch("requires_pre_authorization");
-  const selectedSchemeUuid = form.watch("insurance_scheme");
+}: StartVisitPaymentChoiceProps<T>) {
+  const modeOfPayment = form.watch("mode_of_payment" as Path<T>);
+  const requiresPreAuth = form.watch("requires_pre_authorization" as Path<T>);
+  const selectedSchemeUuid = form.watch("insurance_scheme" as Path<T>) as
+    | string
+    | undefined;
   const selectedScheme =
     insuranceSchemes.find((scheme) => scheme.uuid === selectedSchemeUuid) ?? null;
   const hasAssignedInsurance = insuranceSchemes.length > 0;
@@ -69,7 +78,7 @@ export function StartVisitPaymentChoice({
     <div className="space-y-6">
       <FormField
         control={form.control}
-        name="mode_of_payment"
+        name={"mode_of_payment" as Path<T>}
         render={({ field }) => (
           <FormItem>
             <FormLabel>
@@ -118,7 +127,7 @@ export function StartVisitPaymentChoice({
         <>
           <FormField
             control={form.control}
-            name="insurance_scheme"
+            name={"insurance_scheme" as Path<T>}
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
@@ -153,7 +162,7 @@ export function StartVisitPaymentChoice({
 
           <FormField
             control={form.control}
-            name="requires_pre_authorization"
+            name={"requires_pre_authorization" as Path<T>}
             render={({ field }) => (
               <FormItem className="flex items-center justify-between gap-4 border-t border-dash-border/70 pt-4">
                 <FormLabel className="text-sm font-medium text-brand-navy">
@@ -161,7 +170,7 @@ export function StartVisitPaymentChoice({
                 </FormLabel>
                 <FormControl>
                   <Switch
-                    checked={field.value}
+                    checked={Boolean(field.value)}
                     onCheckedChange={field.onChange}
                     aria-label="Requires pre-authorization"
                   />
@@ -174,14 +183,14 @@ export function StartVisitPaymentChoice({
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
-                name="pre_authorization_number"
+                name={"pre_authorization_number" as Path<T>}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>
                       Auth number <RequiredFieldMarker />
                     </FormLabel>
                     <FormControl>
-                      <Input className="h-11" {...field} />
+                      <Input className="h-11" {...field} value={field.value ?? ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -190,12 +199,12 @@ export function StartVisitPaymentChoice({
 
               <FormField
                 control={form.control}
-                name="pre_authorization_comments"
+                name={"pre_authorization_comments" as Path<T>}
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Notes</FormLabel>
                     <FormControl>
-                      <Input className="h-11" {...field} />
+                      <Input className="h-11" {...field} value={field.value ?? ""} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

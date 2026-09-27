@@ -1,6 +1,7 @@
 "use client";
 
 import { BarChart3 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -12,11 +13,14 @@ import {
   ListPageStatsSection,
   ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
+import { useMyClinicalCapabilities } from "@/features/clinical-opd/hooks/use-clinical-opd";
+import { opdEncounterLandingHref } from "@/features/clinical-opd/utils/opd-encounter-tabs";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
 import { ActiveVisitsEmptyState } from "@/features/visits/components/ActiveVisitsEmptyState";
 import { ActiveVisitsPageHeader } from "@/features/visits/components/ActiveVisitsPageHeader";
 import { ActiveVisitsTable } from "@/features/visits/components/tables/active-visits-table";
 import { ActiveVisitsTableSkeleton } from "@/features/visits/components/ActiveVisitsTableSkeleton";
+import { AddVisitEncounterDialog } from "@/features/visits/components/AddVisitEncounterDialog";
 import { VisitDetailDialog } from "@/features/visits/components/VisitDetailDialog";
 import { VisitQueueSummaryCards } from "@/features/visits/components/VisitQueueSummaryCards";
 import { useVisitsList } from "@/features/visits/hooks/use-visits-list";
@@ -24,16 +28,28 @@ import {
   fetchVisitQueueSummary,
   fetchVisits,
 } from "@/features/visits/services/visits.service";
-import type { VisitDetail, VisitQueueSummary } from "@/features/visits/types/visit.types";
+import type {
+  VisitDetail,
+  VisitEncounter,
+  VisitQueueSummary,
+} from "@/features/visits/types/visit.types";
 import {
   countActiveVisitFilters,
   DEFAULT_ACTIVE_VISIT_FILTERS,
   type ActiveVisitListFilterState,
 } from "@/features/visits/utils/visit-list-filters";
 import { cn } from "@/lib/utils";
+import { useUser } from "@/providers/user-provider";
 
 export function ActiveVisitsListPage() {
+  const router = useRouter();
+  const { userData } = useUser();
+  const { data: capabilitiesData } = useMyClinicalCapabilities();
   const [selectedVisitUuid, setSelectedVisitUuid] = useState<string | null>(null);
+  const [addEncounterVisit, setAddEncounterVisit] = useState<VisitDetail | null>(
+    null,
+  );
+  const [isAddEncounterOpen, setIsAddEncounterOpen] = useState(false);
   const [showStats, setShowStats] = useState(false);
   const [stats, setStats] = useState<VisitQueueSummary | null>(null);
   const [isStatsLoading, setIsStatsLoading] = useState(true);
@@ -128,9 +144,39 @@ export function ActiveVisitsListPage() {
     setSelectedVisitUuid(visit.uuid);
   }, []);
 
+  const handleAddEncounter = useCallback((visit: VisitDetail) => {
+    setAddEncounterVisit(visit);
+    setIsAddEncounterOpen(true);
+  }, []);
+
   const handleReload = useCallback(async () => {
     await Promise.all([reload(), reloadStats()]);
   }, [reload, reloadStats]);
+
+  const handleEncounterCreated = useCallback(
+    async (created: VisitEncounter) => {
+      setIsAddEncounterOpen(false);
+      setAddEncounterVisit(null);
+      await handleReload();
+
+      if (created.department_type === "opd") {
+        router.push(
+          opdEncounterLandingHref(
+            created.visit,
+            created.uuid,
+            capabilitiesData?.capabilities ?? [],
+            userData?.user_role,
+          ),
+        );
+      }
+    },
+    [
+      capabilitiesData?.capabilities,
+      handleReload,
+      router,
+      userData?.user_role,
+    ],
+  );
 
   if (isUnauthorized) {
     return <InventoryListAccessDenied />;
@@ -208,7 +254,11 @@ export function ActiveVisitsListPage() {
             </div>
           ) : (
             <>
-              <ActiveVisitsTable visits={items} onRowClick={handleRowClick} />
+              <ActiveVisitsTable
+                visits={items}
+                onRowClick={handleRowClick}
+                onAddEncounter={handleAddEncounter}
+              />
               <ListPagePagination
                 page={page}
                 pageSize={pageSize}
@@ -233,6 +283,22 @@ export function ActiveVisitsListPage() {
         }}
         onVisitUpdated={() => void handleReload()}
       />
+
+      {addEncounterVisit ? (
+        <AddVisitEncounterDialog
+          visit={addEncounterVisit}
+          open={isAddEncounterOpen}
+          onOpenChange={(open) => {
+            setIsAddEncounterOpen(open);
+            if (!open) {
+              setAddEncounterVisit(null);
+            }
+          }}
+          onCreated={(encounter) => {
+            void handleEncounterCreated(encounter);
+          }}
+        />
+      ) : null}
     </>
   );
 }

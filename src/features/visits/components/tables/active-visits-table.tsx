@@ -1,6 +1,7 @@
 "use client";
 
 import { UserIdenticon } from "@/components/UserIdenticon";
+import { Button } from "@/components/ui/button";
 import {
   ListPageDataTable,
   ListPageDataTableBody,
@@ -17,22 +18,37 @@ import type { VisitDetail } from "@/features/visits/types/visit.types";
 type ActiveVisitsTableProps = {
   visits: VisitDetail[];
   onRowClick?: (visit: VisitDetail) => void;
+  onAddEncounter?: (visit: VisitDetail) => void;
   className?: string;
 };
 
 const columns = [
   { key: "patient", label: "Client" },
-  { key: "service", label: "Service" },
+  { key: "department", label: "Department" },
   { key: "clinic", label: "Clinic", className: "hidden md:table-cell" },
   { key: "status", label: "Status" },
   { key: "visit_date", label: "Started" },
+  { key: "actions", label: "Actions", className: "text-right pr-4" },
 ] as const;
 
 export const ACTIVE_VISITS_TABLE_SKELETON_COLUMNS = columns;
 
+function formatVisitDepartments(visit: VisitDetail): string {
+  const names = [
+    ...new Set(
+      (visit.encounters ?? [])
+        .filter((encounter) => encounter.is_active)
+        .map((encounter) => encounter.department_name?.trim())
+        .filter((name): name is string => Boolean(name)),
+    ),
+  ];
+  return names.length > 0 ? names.join(", ") : "—";
+}
+
 export function ActiveVisitsTable({
   visits,
   onRowClick,
+  onAddEncounter,
   className,
 }: ActiveVisitsTableProps) {
   return (
@@ -40,7 +56,10 @@ export function ActiveVisitsTable({
       <ListPageDataTableHeader>
         <ListPageDataTableHeaderRow>
           {columns.map((column) => (
-            <ListPageDataTableHeaderCell key={column.key} className={"className" in column ? column.className : undefined}>
+            <ListPageDataTableHeaderCell
+              key={column.key}
+              className={"className" in column ? column.className : undefined}
+            >
               {column.label}
             </ListPageDataTableHeaderCell>
           ))}
@@ -49,6 +68,7 @@ export function ActiveVisitsTable({
       <ListPageDataTableBody>
         {visits.map((visit) => {
           const clientName = visit.customer_name?.trim() || "—";
+          const canAddEncounter = visit.status === "active";
 
           return (
             <ListPageDataTableRow
@@ -77,7 +97,7 @@ export function ActiveVisitsTable({
                 </div>
               </ListPageDataTableCell>
               <ListPageDataTableCell>
-                {visit.consultation_service_name || "—"}
+                {formatVisitDepartments(visit)}
               </ListPageDataTableCell>
               <ListPageDataTableCell className="hidden md:table-cell">
                 {visit.clinic_name || "—"}
@@ -87,6 +107,26 @@ export function ActiveVisitsTable({
               </ListPageDataTableCell>
               <ListPageDataTableCell className="tabular-nums text-dash-muted">
                 {formatDisplayDateTime(visit.visit_date)}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="pr-4 text-right">
+                <div
+                  className="inline-flex items-center justify-end"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  {onAddEncounter ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 rounded-md border-dash-border bg-white px-2.5 text-xs font-medium text-brand-navy hover:bg-dash-canvas"
+                      disabled={!canAddEncounter}
+                      onClick={() => onAddEncounter(visit)}
+                      data-testid="active-visits-add-encounter"
+                    >
+                      Add encounter
+                    </Button>
+                  ) : null}
+                </div>
               </ListPageDataTableCell>
             </ListPageDataTableRow>
           );
