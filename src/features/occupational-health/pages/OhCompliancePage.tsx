@@ -47,13 +47,13 @@ export function OhCompliancePage() {
       anchor.download = filename;
       anchor.click();
       URL.revokeObjectURL(url);
-      toast({ title: "Compliance CSV downloaded" });
+      toast({ variant: "success", title: "Compliance CSV downloaded" });
     } catch (extractError) {
       toast({
         title: "Extract failed",
         description:
           extractError instanceof Error ? extractError.message : undefined,
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setIsExtracting(false);

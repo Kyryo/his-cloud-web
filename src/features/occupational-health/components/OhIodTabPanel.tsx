@@ -88,13 +88,13 @@ export function OhIodTabPanel({
       setMechanism("");
       setBodyPart("");
       setIncidentLocation("");
-      toast({ title: "IOD case opened" });
+      toast({ variant: "success", title: "IOD case opened" });
       onCreated();
     } catch (error) {
       toast({
         title: "Could not create IOD case",
         description: error instanceof Error ? error.message : undefined,
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setIsSubmitting(false);
@@ -111,12 +111,12 @@ export function OhIodTabPanel({
       anchor.download = filename;
       anchor.click();
       URL.revokeObjectURL(url);
-      toast({ title: "Statutory pack downloaded" });
+      toast({ variant: "success", title: "Statutory pack downloaded" });
     } catch (error) {
       toast({
         title: "Could not load statutory pack",
         description: error instanceof Error ? error.message : undefined,
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setDownloadingUuid(null);

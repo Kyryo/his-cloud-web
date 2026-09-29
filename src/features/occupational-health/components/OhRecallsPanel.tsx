@@ -64,13 +64,13 @@ export function OhRecallsPanel({ customer, encounterId }: OhRecallsPanelProps) {
       });
       setVaccineCode("");
       setNotes("");
-      toast({ title: "Immunisation recorded" });
+      toast({ variant: "success", title: "Immunisation recorded" });
       recalls.refetchAll();
     } catch (error) {
       toast({
         title: "Could not save immunisation",
         description: error instanceof Error ? error.message : undefined,
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setIsSubmitting(false);
@@ -89,13 +89,13 @@ export function OhRecallsPanel({ customer, encounterId }: OhRecallsPanelProps) {
       });
       setPpeType("");
       setNotes("");
-      toast({ title: "PPE fit test recorded" });
+      toast({ variant: "success", title: "PPE fit test recorded" });
       recalls.refetchAll();
     } catch (error) {
       toast({
         title: "Could not save PPE fit test",
         description: error instanceof Error ? error.message : undefined,
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setIsSubmitting(false);
@@ -112,13 +112,13 @@ export function OhRecallsPanel({ customer, encounterId }: OhRecallsPanelProps) {
         notes,
       });
       setNotes("");
-      toast({ title: "Food handler clearance recorded" });
+      toast({ variant: "success", title: "Food handler clearance recorded" });
       recalls.refetchAll();
     } catch (error) {
       toast({
         title: "Could not save food handler clearance",
         description: error instanceof Error ? error.message : undefined,
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setIsSubmitting(false);
@@ -139,13 +139,13 @@ export function OhRecallsPanel({ customer, encounterId }: OhRecallsPanelProps) {
         issued_at: new Date().toISOString(),
         clinician: userData.id,
       });
-      toast({ title: "Sick leave certificate recorded" });
+      toast({ variant: "success", title: "Sick leave certificate recorded" });
       recalls.refetchAll();
     } catch (error) {
       toast({
         title: "Could not save sick leave certificate",
         description: error instanceof Error ? error.message : undefined,
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setIsSubmitting(false);

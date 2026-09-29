@@ -72,7 +72,7 @@ export function OhFitnessTabPanel({
       toast({
         title: "Clinician required",
         description: "Sign in again if your user profile is missing.",
-        variant: "destructive",
+        variant: "error",
       });
       return;
     }
@@ -80,7 +80,7 @@ export function OhFitnessTabPanel({
       toast({
         title: "Review date required",
         description: "Temporarily unfit assessments need a review date.",
-        variant: "destructive",
+        variant: "error",
       });
       return;
     }
@@ -93,13 +93,13 @@ export function OhFitnessTabPanel({
         review_date: reviewDate || null,
         clinician: userData.id,
       });
-      toast({ title: "Fitness assessment saved" });
+      toast({ variant: "success", title: "Fitness assessment saved" });
       onCreated();
     } catch (error) {
       toast({
         title: "Could not save fitness assessment",
         description: error instanceof Error ? error.message : undefined,
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setIsSubmitting(false);
@@ -111,7 +111,7 @@ export function OhFitnessTabPanel({
     if (!certificateAssessmentId || !userData?.id) {
       toast({
         title: "Clinician required",
-        variant: "destructive",
+        variant: "error",
       });
       return;
     }
@@ -127,13 +127,13 @@ export function OhFitnessTabPanel({
         signed_by: userData.id,
         payload: { outcome },
       });
-      toast({ title: "Fitness certificate issued" });
+      toast({ variant: "success", title: "Fitness certificate issued" });
       onCreated();
     } catch (error) {
       toast({
         title: "Could not issue certificate",
         description: error instanceof Error ? error.message : undefined,
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setIsSubmitting(false);
@@ -144,13 +144,13 @@ export function OhFitnessTabPanel({
     setWithdrawingUuid(uuid);
     try {
       await withdrawFitnessCertificate(uuid);
-      toast({ title: "Certificate withdrawn" });
+      toast({ variant: "success", title: "Certificate withdrawn" });
       onCreated();
     } catch (error) {
       toast({
         title: "Could not withdraw certificate",
         description: error instanceof Error ? error.message : undefined,
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setWithdrawingUuid(null);

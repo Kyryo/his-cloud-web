@@ -193,6 +193,7 @@ export type ClaimListItem = {
   claim_reference_number: string | null;
   external_claim_id: string | null;
   customer_name: string;
+  customer_uuid?: string | null;
   invoice_name: string;
   submitted_at: string | null;
   created_at: string;

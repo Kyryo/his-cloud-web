@@ -54,13 +54,13 @@ export function OhFindingsTabPanel({
       setCode("");
       setNumericValue("");
       setUnit("");
-      toast({ title: "Finding recorded" });
+      toast({ variant: "success", title: "Finding recorded" });
       onCreated();
     } catch (error) {
       toast({
         title: "Could not save finding",
         description: error instanceof Error ? error.message : undefined,
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setIsSubmitting(false);

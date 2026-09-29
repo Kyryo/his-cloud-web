@@ -52,13 +52,13 @@ export function OhExamTabPanel({
         notes,
       });
       setNotes("");
-      toast({ title: "Examination recorded" });
+      toast({ variant: "success", title: "Examination recorded" });
       onCreated();
     } catch (error) {
       toast({
         title: "Could not save examination",
         description: error instanceof Error ? error.message : undefined,
-        variant: "destructive",
+        variant: "error",
       });
     } finally {
       setIsSubmitting(false);
