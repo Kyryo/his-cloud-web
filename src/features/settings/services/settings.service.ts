@@ -6,6 +6,8 @@ import type {
   CreateOrganizationDepartmentPayload,
   CreateOrganizationPayerPayload,
   CreateOrganizationPayerSchemePayload,
+  CountryPayer,
+  ProposeCountryPayerPayload,
   UpdateOrganizationPayerPayload,
   CreateOrganizationPricelistPayload,
   CreateOrganizationServicePayload,
@@ -296,6 +298,30 @@ export async function updateOrganizationPayer(
       body: payload,
     },
   );
+}
+
+export async function fetchCountryPayers(options?: {
+  search?: string;
+}): Promise<OrganizationListResponse<CountryPayer>> {
+  const params = new URLSearchParams({
+    page_size: "100",
+    ordering: "display_name",
+  });
+  if (options?.search?.trim()) {
+    params.set("search", options.search.trim());
+  }
+  return bffRequest<OrganizationListResponse<CountryPayer>>(
+    `${BFF_SETTINGS_ROUTES.countryPayers}?${params.toString()}`,
+  );
+}
+
+export async function proposeCountryPayer(
+  payload: ProposeCountryPayerPayload,
+): Promise<CountryPayer> {
+  return bffRequest<CountryPayer>(BFF_SETTINGS_ROUTES.countryPayers, {
+    method: "POST",
+    body: payload,
+  });
 }
 
 export async function fetchOrganizationPayerSchemes(): Promise<

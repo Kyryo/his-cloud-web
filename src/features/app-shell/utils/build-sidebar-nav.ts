@@ -33,10 +33,11 @@ export function buildSidebarNavItems(
   pathname: string,
   isTenantAdmin = false,
   isPlatformAdmin = false,
+  enabledModules: string[] = [],
 ): SidebarNavItem[] {
   const filtered = isPlatformAdmin
     ? []
-    : filterNavigation(userGroups, { isTenantAdmin });
+    : filterNavigation(userGroups, { isTenantAdmin, enabledModules });
   const modules = groupNavigationByModule(filtered);
   const items: SidebarNavItem[] = [];
 
@@ -121,7 +122,9 @@ export function buildSidebarNavItems(
       url: ROUTES.platformAdminBackups,
       icon: "hardDrive",
       section: "admin",
-      isActive: pathname.startsWith(`${ROUTES.platformAdmin}/backups`),
+      isActive:
+        pathname.startsWith(`${ROUTES.platformAdmin}/backups`) ||
+        pathname.startsWith(ROUTES.platformAdminPayerRegistry),
       items: [
         {
           title: "Backups",
@@ -129,6 +132,13 @@ export function buildSidebarNavItems(
           isActive:
             pathname === ROUTES.platformAdminBackups ||
             pathname.startsWith(`${ROUTES.platformAdminBackups}/`),
+        },
+        {
+          title: "Payer registry",
+          url: ROUTES.platformAdminPayerRegistry,
+          isActive:
+            isNavItemActive(pathname, ROUTES.platformAdminPayerRegistry) ||
+            pathname.startsWith(`${ROUTES.platformAdminPayerRegistry}/`),
         },
       ],
     });

@@ -307,6 +307,49 @@ export const BFF_CLINICAL_OPD_ROUTES = {
     `/api/clinical/opd/visits/${visitUuid}/encounters/${encounterUuid}/disposition`,
 } as const;
 
+/** Browser-facing BFF occupational health routes (same origin). */
+export const BFF_OCCUPATIONAL_HEALTH_ROUTES = {
+  encounters: "/api/occupational-health/encounters",
+  employmentEpisodes: "/api/occupational-health/employment-episodes",
+  employmentEpisode: (uuid: string) =>
+    `/api/occupational-health/employment-episodes/${uuid}`,
+  employers: "/api/occupational-health/employers",
+  employerSites: "/api/occupational-health/employer-sites",
+  jobTitles: "/api/occupational-health/job-titles",
+  hazards: "/api/occupational-health/hazards",
+  hazardProfiles: "/api/occupational-health/hazard-profiles",
+  examinations: "/api/occupational-health/examinations",
+  examination: (uuid: string) =>
+    `/api/occupational-health/examinations/${uuid}`,
+  examFindings: "/api/occupational-health/exam-findings",
+  examFinding: (uuid: string) =>
+    `/api/occupational-health/exam-findings/${uuid}`,
+  fitnessAssessments: "/api/occupational-health/fitness-assessments",
+  fitnessAssessment: (uuid: string) =>
+    `/api/occupational-health/fitness-assessments/${uuid}`,
+  iodCases: "/api/occupational-health/iod-cases",
+  iodCase: (uuid: string) => `/api/occupational-health/iod-cases/${uuid}`,
+  iodCaseStatutoryPack: (uuid: string) =>
+    `/api/occupational-health/iod-cases/${uuid}/statutory-pack`,
+  campaignQueue: "/api/occupational-health/campaign-queue",
+  surveillanceRequirements: "/api/occupational-health/surveillance-requirements",
+  fitnessValidityAlerts: "/api/occupational-health/fitness-validity-alerts",
+  fitnessCertificates: "/api/occupational-health/fitness-certificates",
+  fitnessCertificate: (uuid: string) =>
+    `/api/occupational-health/fitness-certificates/${uuid}`,
+  fitnessCertificateAmend: (uuid: string) =>
+    `/api/occupational-health/fitness-certificates/${uuid}/amend`,
+  fitnessCertificateWithdraw: (uuid: string) =>
+    `/api/occupational-health/fitness-certificates/${uuid}/withdraw`,
+  ohImmunisations: "/api/occupational-health/oh-immunisations",
+  ppeFitTests: "/api/occupational-health/ppe-fit-tests",
+  foodHandlerClearances: "/api/occupational-health/food-handler-clearances",
+  sickLeaveCertificates: "/api/occupational-health/sick-leave-certificates",
+  hrFitness: "/api/occupational-health/hr/fitness",
+  complianceDashboard: "/api/occupational-health/compliance/dashboard",
+  complianceExtract: "/api/occupational-health/compliance/extract",
+} as const;
+
 /** Browser-facing BFF insurance catalog routes (same origin). */
 export const BFF_INSURANCE_ROUTES = {
   schemes: "/api/insurance-schemes",
@@ -643,6 +686,8 @@ export const BFF_SETTINGS_ROUTES = {
   insuranceCompanyDetail: (uuid: string) => `/api/insurance-companies/${uuid}`,
   insuranceSchemes: "/api/insurance-schemes",
   insuranceSchemeDetail: (uuid: string) => `/api/insurance-schemes/${uuid}`,
+  countryPayers: "/api/country-payers",
+  countryPayerDetail: (uuid: string) => `/api/country-payers/${uuid}`,
   pricelists: "/api/pricelists",
   pricelistDetail: (id: number | string) => `/api/pricelists/${id}`,
   pricelistAddProduct: (id: number | string) => `/api/pricelists/${id}/products`,
@@ -719,6 +764,14 @@ export const BFF_PLATFORM_ADMIN_ROUTES = {
   backups: "/api/platform-admin/backups",
   backupDownload: (backupUuid: string) =>
     `/api/platform-admin/backups/${backupUuid}/download`,
+  payerRegistry: "/api/platform-admin/payer-registry",
+  payerRegistryDetail: (uuid: string) =>
+    `/api/platform-admin/payer-registry/${uuid}`,
+  payerRegistryReview: (uuid: string) =>
+    `/api/platform-admin/payer-registry/${uuid}/review`,
+  payerPolicies: "/api/platform-admin/payer-policies",
+  payerPolicyDetail: (uuid: string) =>
+    `/api/platform-admin/payer-policies/${uuid}`,
 } as const;
 
 /** Browser-facing BFF report job routes (same origin). */

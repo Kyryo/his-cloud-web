@@ -24,6 +24,9 @@ const DEFAULT_QUERY_KEYS = [
   "delivery_status",
   "type",
   "target",
+  "country_code",
+  "needs_review",
+  "requires_admin_approval",
 ] as const;
 
 export function buildPlatformAdminQuery(request: Request): string {

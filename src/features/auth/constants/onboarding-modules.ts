@@ -61,6 +61,18 @@ export const ONBOARDING_MODULE_OPTIONS: OnboardingModuleOption[] = [
     label: "Clinical",
     description: "Consultations, notes, and care plans.",
   },
+  {
+    id: "occupational_health",
+    name: "OccupationalHealth",
+    label: "Occupational health",
+    description: "Employment surveillance, fitness, and compliance.",
+  },
+  {
+    id: "therapy",
+    name: "Therapy",
+    label: "Therapy",
+    description: "Physio, occupational, and speech therapy queues.",
+  },
 ] as const;
 
 export const REGISTRATION_MODULE_NAME = "Registration";

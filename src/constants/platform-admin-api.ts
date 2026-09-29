@@ -35,4 +35,12 @@ export const PLATFORM_ADMIN_API_PATHS = {
   backups: "/platform-admin/backups/",
   backupDownload: (backupUuid: string) =>
     `/platform-admin/backups/${backupUuid}/download/`,
+  payerRegistry: "/platform-admin/payer-registry/",
+  payerRegistryDetail: (uuid: string) =>
+    `/platform-admin/payer-registry/${uuid}/`,
+  payerRegistryReview: (uuid: string) =>
+    `/platform-admin/payer-registry/${uuid}/review/`,
+  payerPolicies: "/platform-admin/payer-policies/",
+  payerPolicyDetail: (uuid: string) =>
+    `/platform-admin/payer-policies/${uuid}/`,
 } as const;

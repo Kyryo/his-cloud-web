@@ -15,6 +15,12 @@ describe("therapy access", () => {
     );
   });
 
+  it("allows the Therapy portal group across all disciplines", () => {
+    expect(canAccessTherapyDiscipline(["Therapy"], "speech")).toBe(true);
+    expect(canAccessTherapyDiscipline(["Therapy"], "physio")).toBe(true);
+    expect(canAccessTherapyDiscipline(["Therapy"], "occupational")).toBe(true);
+  });
+
   it("recognizes supported therapy route segments", () => {
     expect(isTherapyDiscipline("speech")).toBe(true);
     expect(isTherapyDiscipline("physio")).toBe(true);

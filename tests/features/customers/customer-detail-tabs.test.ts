@@ -27,6 +27,9 @@ describe("customer detail tab routes", () => {
     expect(customerDetailTabHref(CUSTOMER_ID, "relationships")).toBe(
       `/customers/${CUSTOMER_ID}/relationships`,
     );
+    expect(customerDetailTabHref(CUSTOMER_ID, "employment")).toBe(
+      `/customers/${CUSTOMER_ID}/employment`,
+    );
   });
 
   it("reads the active tab from the pathname", () => {
@@ -53,12 +56,12 @@ describe("customer detail tab routes", () => {
     ).toBe(true);
   });
 
-  it("places invoices, payments, visits, and address under More", () => {
+  it("places invoices, payments, visits, address, and employment under More", () => {
     expect(
       CUSTOMER_DETAIL_TABS.filter((tab) => tab.surface === "menu").map(
         (tab) => tab.id,
       ),
-    ).toEqual(["invoices", "payments", "visits", "addresses"]);
+    ).toEqual(["invoices", "payments", "visits", "addresses", "employment"]);
   });
 
   it("accepts known tab segments and the empty summary segment", () => {

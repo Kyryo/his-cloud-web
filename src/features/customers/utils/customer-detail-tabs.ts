@@ -11,6 +11,7 @@ export const CUSTOMER_DETAIL_TAB_IDS = [
   "addresses",
   "legal-guardians",
   "relationships",
+  "employment",
   "appointments",
   "notes",
 ] as const;
@@ -94,6 +95,13 @@ export const CUSTOMER_DETAIL_TABS: CustomerDetailTab[] = [
     surface: "tab",
   },
   {
+    id: "employment",
+    label: "Employment",
+    segment: "employment",
+    icon: "building",
+    surface: "menu",
+  },
+  {
     id: "appointments",
     label: "Appointments",
     segment: "appointments",
@@ -107,21 +115,38 @@ const TAB_SEGMENTS = new Set(
   CUSTOMER_DETAIL_TABS.flatMap((tab) => (tab.segment ? [tab.segment] : [])),
 );
 
+export type CustomerDetailTabVisibility = {
+  showBenefitsTab?: boolean;
+  showEmploymentTab?: boolean;
+};
+
+function isCustomerDetailTabVisible(
+  tab: CustomerDetailTab,
+  visibility: CustomerDetailTabVisibility,
+): boolean {
+  if (tab.id === "benefits" && !visibility.showBenefitsTab) {
+    return false;
+  }
+  if (tab.id === "employment" && !visibility.showEmploymentTab) {
+    return false;
+  }
+  return true;
+}
+
 export function getCustomerDetailPrimaryTabs(
-  showBenefitsTab: boolean,
+  visibility: CustomerDetailTabVisibility = {},
 ): CustomerDetailTab[] {
   return CUSTOMER_DETAIL_TABS.filter(
-    (tab) =>
-      tab.surface === "tab" && (tab.id !== "benefits" || showBenefitsTab),
+    (tab) => tab.surface === "tab" && isCustomerDetailTabVisible(tab, visibility),
   );
 }
 
 export function getCustomerDetailMenuTabs(
-  showBenefitsTab: boolean,
+  visibility: CustomerDetailTabVisibility = {},
 ): CustomerDetailTab[] {
   return CUSTOMER_DETAIL_TABS.filter(
     (tab) =>
-      tab.surface === "menu" && (tab.id !== "benefits" || showBenefitsTab),
+      tab.surface === "menu" && isCustomerDetailTabVisible(tab, visibility),
   );
 }
 

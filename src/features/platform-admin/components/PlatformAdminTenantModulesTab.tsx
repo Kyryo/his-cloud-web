@@ -93,8 +93,8 @@ export function PlatformAdminTenantModulesTab({
         <div>
           <CardTitle className="text-base">Module entitlements</CardTitle>
           <p className="mt-1 text-sm text-brand-muted">
-            Turn portal modules on or off for this tenant. Disabled modules stay
-            visible in navigation and show an upgrade state when opened.
+            Turn portal modules on or off for this tenant. Disabled modules are
+            hidden from navigation and blocked on the API.
           </p>
         </div>
         <Button

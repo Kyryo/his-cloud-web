@@ -1,6 +1,7 @@
 "use client";
 
-import { TableEntityCell, TableTextCell } from "@/components/table-text-cell";
+import { TableTextCell } from "@/components/table-text-cell";
+import { UserIdenticon } from "@/components/UserIdenticon";
 import {
   ListPageDataTable,
   ListPageDataTableBody,
@@ -24,7 +25,6 @@ const columns = [
   { key: "client", label: "Client" },
   { key: "invoice", label: "Invoice" },
   { key: "payer", label: "Payer" },
-  { key: "membership", label: "Membership #", className: "hidden md:table-cell" },
   { key: "status", label: "Status" },
   { key: "payer_status", label: "Payer status", className: "hidden lg:table-cell" },
   { key: "submitted", label: "Submitted", className: "hidden lg:table-cell" },
@@ -64,6 +64,12 @@ export function ClaimsTable({ claims, onRowClick, className }: ClaimsTableProps)
       <ListPageDataTableBody>
         {claims.map((claim) => {
           const clientName = claim.customer_name?.trim() || "";
+          const displayName = clientName || "Unknown client";
+          const identiconSeed =
+            claim.customer_uuid?.trim() ||
+            claim.membership_number?.trim() ||
+            displayName;
+
           return (
             <ListPageDataTableRow
               key={claim.id}
@@ -72,12 +78,23 @@ export function ClaimsTable({ claims, onRowClick, className }: ClaimsTableProps)
               data-testid={`claim-row-${claim.id}`}
             >
               <ListPageDataTableCell>
-                <TableEntityCell
-                  name={clientName || "Unknown client"}
-                  unassigned={!clientName}
-                  unassignedLabel="—"
-                  className="max-w-[16rem] font-medium text-brand-navy"
-                />
+                <div className="flex min-w-0 max-w-[16rem] items-center gap-2.5">
+                  <UserIdenticon
+                    seed={identiconSeed}
+                    name={displayName}
+                    className="size-8 shrink-0 rounded-md"
+                  />
+                  <TableTextCell
+                    className={
+                      clientName
+                        ? "font-medium text-brand-navy"
+                        : "text-brand-muted"
+                    }
+                    title={displayName}
+                  >
+                    {displayName}
+                  </TableTextCell>
+                </div>
               </ListPageDataTableCell>
               <ListPageDataTableCell>
                 <TableTextCell className="text-brand-slate">
@@ -87,11 +104,6 @@ export function ClaimsTable({ claims, onRowClick, className }: ClaimsTableProps)
               <ListPageDataTableCell>
                 <TableTextCell className="text-brand-slate">
                   {claim.payer_code || "—"}
-                </TableTextCell>
-              </ListPageDataTableCell>
-              <ListPageDataTableCell className="hidden md:table-cell">
-                <TableTextCell className="font-mono text-brand-slate">
-                  {claim.membership_number || "—"}
                 </TableTextCell>
               </ListPageDataTableCell>
               <ListPageDataTableCell>

@@ -31,6 +31,7 @@ const TAB_ITEM_CLASS =
 type CustomerDetailTabsProps = {
   customer: Customer;
   showBenefitsTab: boolean;
+  showEmploymentTab?: boolean;
 };
 
 function CustomerDetailTabLabel({ tab }: { tab: CustomerDetailTab }) {
@@ -47,11 +48,13 @@ function CustomerDetailTabLabel({ tab }: { tab: CustomerDetailTab }) {
 export function CustomerDetailTabs({
   customer,
   showBenefitsTab,
+  showEmploymentTab = false,
 }: CustomerDetailTabsProps) {
   const pathname = usePathname();
   const activeTab = customerDetailTabFromPathname(pathname, customer.uuid);
-  const primaryTabs = getCustomerDetailPrimaryTabs(showBenefitsTab);
-  const menuTabs = getCustomerDetailMenuTabs(showBenefitsTab);
+  const visibility = { showBenefitsTab, showEmploymentTab };
+  const primaryTabs = getCustomerDetailPrimaryTabs(visibility);
+  const menuTabs = getCustomerDetailMenuTabs(visibility);
   const isMenuActive = menuTabs.some((tab) => tab.id === activeTab);
 
   return (

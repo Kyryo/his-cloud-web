@@ -59,6 +59,10 @@ export async function PATCH(request: Request, context: RouteContext) {
       payload.is_active = body.is_active;
     }
 
+    if (body.registry_payer !== undefined) {
+      payload.registry_payer = body.registry_payer;
+    }
+
     if (Object.keys(payload).length === 0) {
       return bffSuccess({ message: "No payer changes were provided." }, 400);
     }

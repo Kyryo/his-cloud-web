@@ -9,6 +9,8 @@ export type CustomerDetailWorkspaceValue = {
   customer: Customer;
   hasMasemPayer: boolean;
   isInsuranceReady: boolean;
+  showEmploymentTab: boolean;
+  isEmploymentReady: boolean;
   visitsRefreshKey: number;
   billingRefreshKey: number;
   onUpdateClick: () => void;

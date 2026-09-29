@@ -9,6 +9,7 @@ import {
   type ModuleSettingsItem,
 } from "@/features/settings/constants/module-settings-cards";
 import { cn } from "@/lib/utils";
+import { useUser } from "@/providers/user-provider";
 
 function ModuleRow({ module }: { module: ModuleSettingsItem }) {
   return (
@@ -42,7 +43,8 @@ function ModuleRow({ module }: { module: ModuleSettingsItem }) {
 }
 
 export function ModuleSettingsList() {
-  const modules = getModuleSettingsItems();
+  const { userData } = useUser();
+  const modules = getModuleSettingsItems(userData?.enabled_modules);
 
   return (
     <SettingsSection

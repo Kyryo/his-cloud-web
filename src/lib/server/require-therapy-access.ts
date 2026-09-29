@@ -1,19 +1,19 @@
 import { getValidAccessToken } from "@/lib/server/auth-cookies";
 import { resolveSession } from "@/lib/server/session";
 import type { User } from "@/features/auth/types/auth.types";
+import {
+  canAccessTherapyDiscipline,
+  isTherapyDiscipline,
+  THERAPY_PORTAL_GROUP,
+} from "@/features/therapy/utils/therapy-access";
+import type { TherapyDiscipline } from "@/features/therapy/types/therapy.types";
 
-const THERAPY_GROUPS = {
-  speech: "Speech",
-  physio: "Physio",
-  occupational: "Occupational",
-} as const;
-
-export type ServerTherapyDiscipline = keyof typeof THERAPY_GROUPS;
+export type ServerTherapyDiscipline = TherapyDiscipline;
 
 export function isServerTherapyDiscipline(
   value: string | null,
 ): value is ServerTherapyDiscipline {
-  return value !== null && Object.hasOwn(THERAPY_GROUPS, value);
+  return value !== null && isTherapyDiscipline(value);
 }
 
 export async function requireTherapyAccess(
@@ -27,9 +27,17 @@ export async function requireTherapyAccess(
     return { error: "Not authenticated.", status: 401 };
   }
 
-  if (!session.user.groups.includes(THERAPY_GROUPS[discipline])) {
+  const enabledModules = session.user.enabled_modules ?? [];
+  if (!enabledModules.includes(THERAPY_PORTAL_GROUP)) {
     return {
-      error: `You must belong to the ${THERAPY_GROUPS[discipline]} group.`,
+      error: "Therapy is not enabled for this workspace.",
+      status: 403,
+    };
+  }
+
+  if (!canAccessTherapyDiscipline(session.user.groups, discipline)) {
+    return {
+      error: "You do not have access to this therapy discipline.",
       status: 403,
     };
   }

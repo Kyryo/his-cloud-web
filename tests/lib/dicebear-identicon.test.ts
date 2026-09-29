@@ -16,7 +16,13 @@ describe("createIdenticonDataUri", () => {
 
 describe("buildSidebarNavItems", () => {
   it("includes enabled clients navigation for registration users", () => {
-    const items = buildSidebarNavItems(["Registration"], ROUTES.customers);
+    const items = buildSidebarNavItems(
+      ["Registration"],
+      ROUTES.customers,
+      false,
+      false,
+      ["Registration"],
+    );
 
     expect(items).toEqual(
       expect.arrayContaining([
@@ -51,6 +57,9 @@ describe("buildSidebarNavItems", () => {
     const items = buildSidebarNavItems(
       ["Speech", "Occupational"],
       ROUTES.therapySpeech,
+      false,
+      false,
+      ["Therapy"],
     );
     const therapy = items.find((item) => item.title === "Therapy");
 
@@ -71,6 +80,25 @@ describe("buildSidebarNavItems", () => {
           }),
         ],
       }),
+    );
+  });
+
+  it("shows every therapy queue when the user has the Therapy group", () => {
+    const items = buildSidebarNavItems(
+      ["Therapy"],
+      ROUTES.therapyPhysio,
+      false,
+      false,
+      ["Therapy"],
+    );
+    const therapy = items.find((item) => item.title === "Therapy");
+
+    expect(therapy?.items).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ title: "Physio Queue" }),
+        expect.objectContaining({ title: "OT Queue" }),
+        expect.objectContaining({ title: "Speech Queue" }),
+      ]),
     );
   });
 });

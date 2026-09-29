@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Sparkles } from "lucide-react";
+import { Ban } from "lucide-react";
 
 import {
   ListPageHeaderSection,
@@ -8,7 +8,7 @@ import {
   ListPageLayout,
 } from "@/features/app-shell/components/page-layout";
 
-type ModuleEmptyStateVariant = "upgrade" | "coming_soon";
+type ModuleEmptyStateVariant = "unavailable" | "upgrade" | "coming_soon";
 
 type ModuleEmptyStateProps = {
   featureName: string;
@@ -22,6 +22,11 @@ const VARIANT_COPY: Record<
   ModuleEmptyStateVariant,
   { title: (name: string) => string; body: (name: string) => string }
 > = {
+  unavailable: {
+    title: () => "This page isn’t available",
+    body: () =>
+      "This page isn’t available in your workspace. If you need access, contact your administrator.",
+  },
   upgrade: {
     title: (name) => `Upgrade your Sigma plan to access ${name}`,
     body: (name) =>
@@ -36,8 +41,8 @@ const VARIANT_COPY: Record<
 
 export function ModuleEmptyState({
   featureName,
-  variant = "upgrade",
-  icon: Icon = Sparkles,
+  variant = "unavailable",
+  icon: Icon = Ban,
   "data-testid": dataTestId,
 }: ModuleEmptyStateProps) {
   const copy = VARIANT_COPY[variant];
@@ -66,7 +71,7 @@ type ModuleEmptyStatePageProps = ModuleEmptyStateProps & {
 export function ModuleEmptyStatePage({
   featureName,
   pageDescription,
-  variant = "upgrade",
+  variant = "unavailable",
   icon,
   "data-testid": dataTestId,
 }: ModuleEmptyStatePageProps) {

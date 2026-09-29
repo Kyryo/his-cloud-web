@@ -287,9 +287,9 @@ export function CustomersTable({
                     ) : (
                       <Button
                         type="button"
-                        variant="primary"
+                        variant="outline"
                         size="sm"
-                        className="h-7 rounded-md px-2.5 text-xs font-medium"
+                        className="h-7 rounded-md border-dash-border bg-white px-2.5 text-xs font-medium text-brand-navy hover:bg-dash-canvas"
                         onClick={() => handleVisitAction(customer)}
                       >
                         Start visit

@@ -44,6 +44,7 @@ export function AppSidebar(props: ComponentProps<typeof Sidebar>) {
     pathname,
     Boolean(userData?.is_admin),
     isPlatformAdmin,
+    userData?.enabled_modules ?? [],
   );
 
   return (

@@ -122,6 +122,14 @@ export function buildAppBreadcrumbs(pathname: string): AppBreadcrumb[] {
       ];
     }
 
+    if (pathname === ROUTES.settingsModuleOccupationalHealth) {
+      return [
+        { label: "Settings" },
+        { label: "Modules", href: ROUTES.settingsModules },
+        { label: "Occupational health" },
+      ];
+    }
+
     if (pathname === ROUTES.settingsIntegrations) {
       return [{ label: "Settings" }, { label: "Integrations" }];
     }

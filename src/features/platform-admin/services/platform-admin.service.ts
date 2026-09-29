@@ -333,3 +333,63 @@ export async function getPlatformAdminBackupDownload(
     BFF_PLATFORM_ADMIN_ROUTES.backupDownload(backupUuid),
   );
 }
+
+export async function fetchPlatformAdminPayerRegistry(
+  options: PlatformAdminListOptions & {
+    countryCode?: string;
+    needsReview?: string;
+  } = {},
+): Promise<PlatformAdminListResponse<import("@/features/settings/types/settings.types").CountryPayer>> {
+  const params = new URLSearchParams();
+  if (options.page) params.set("page", String(options.page));
+  if (options.pageSize) params.set("page_size", String(options.pageSize));
+  if (options.search?.trim()) params.set("search", options.search.trim());
+  if (options.ordering) params.set("ordering", options.ordering);
+  if (options.status) params.set("status", options.status);
+  if (options.countryCode) params.set("country_code", options.countryCode);
+  if (options.needsReview) params.set("needs_review", options.needsReview);
+  const query = params.toString();
+  return bffRequest(
+    `${BFF_PLATFORM_ADMIN_ROUTES.payerRegistry}${query ? `?${query}` : ""}`,
+  );
+}
+
+export async function reviewPlatformAdminPayerRegistry(
+  uuid: string,
+  payload: { approve: boolean; review_note?: string },
+): Promise<import("@/features/settings/types/settings.types").CountryPayer> {
+  return bffRequest(BFF_PLATFORM_ADMIN_ROUTES.payerRegistryReview(uuid), {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export async function fetchPlatformAdminPayerPolicies(): Promise<
+  PlatformAdminListResponse<
+    import("@/features/settings/types/settings.types").CountryPayerPolicy
+  >
+> {
+  return bffRequest(
+    `${BFF_PLATFORM_ADMIN_ROUTES.payerPolicies}?page_size=100&ordering=country_code`,
+  );
+}
+
+export async function updatePlatformAdminPayerPolicy(
+  uuid: string,
+  payload: { requires_admin_approval?: boolean; is_active?: boolean },
+): Promise<import("@/features/settings/types/settings.types").CountryPayerPolicy> {
+  return bffRequest(BFF_PLATFORM_ADMIN_ROUTES.payerPolicyDetail(uuid), {
+    method: "PATCH",
+    body: payload,
+  });
+}
+
+export async function createPlatformAdminPayerPolicy(payload: {
+  country_code: string;
+  requires_admin_approval: boolean;
+}): Promise<import("@/features/settings/types/settings.types").CountryPayerPolicy> {
+  return bffRequest(BFF_PLATFORM_ADMIN_ROUTES.payerPolicies, {
+    method: "POST",
+    body: payload,
+  });
+}

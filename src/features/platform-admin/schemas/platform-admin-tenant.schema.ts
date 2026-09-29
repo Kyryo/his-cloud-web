@@ -14,6 +14,14 @@ export const platformAdminTenantSchema = z.object({
   city: z.string().trim(),
   state_province: z.string().trim(),
   country: z.string().trim(),
+  country_code: z
+    .string()
+    .trim()
+    .toUpperCase()
+    .refine(
+      (value) => value === "" || /^[A-Z]{2}$/.test(value),
+      "Use a 2-letter ISO country code.",
+    ),
   postal_code: z.string().trim(),
   status: z.enum(["ACTIVE", "INACTIVE", "SUSPENDED", "PENDING"]),
   is_active: z.boolean(),

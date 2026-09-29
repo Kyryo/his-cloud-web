@@ -8,6 +8,7 @@ import { CustomerDetailAppointmentsTab } from "@/features/appointments/component
 import { CustomerDetailAddressesTab } from "@/features/customers/components/detail/CustomerDetailAddressesTab";
 import { CustomerDetailBenefitsTab } from "@/features/customers/components/detail/CustomerDetailBenefitsTab";
 import { useCustomerDetailWorkspace } from "@/features/customers/components/detail/customer-detail-workspace-context";
+import { CustomerDetailEmploymentTab } from "@/features/customers/components/detail/CustomerDetailEmploymentTab";
 import { CustomerDetailInsuranceTab } from "@/features/customers/components/detail/CustomerDetailInsuranceTab";
 import { CustomerDetailInvoicesTab } from "@/features/customers/components/detail/CustomerDetailInvoicesTab";
 import { CustomerDetailLegalGuardiansTab } from "@/features/customers/components/detail/CustomerDetailLegalGuardiansTab";
@@ -31,6 +32,8 @@ export function CustomerDetailTabPage({ tab }: CustomerDetailTabPageProps) {
     customer,
     hasMasemPayer,
     isInsuranceReady,
+    showEmploymentTab,
+    isEmploymentReady,
     visitsRefreshKey,
     billingRefreshKey,
     onVisitChanged,
@@ -38,16 +41,27 @@ export function CustomerDetailTabPage({ tab }: CustomerDetailTabPageProps) {
 
   const shouldRedirectBenefits =
     tab === "benefits" && isInsuranceReady && !hasMasemPayer;
+  const shouldRedirectEmployment =
+    tab === "employment" && isEmploymentReady && !showEmploymentTab;
 
   useEffect(() => {
-    if (!shouldRedirectBenefits) {
+    if (!shouldRedirectBenefits && !shouldRedirectEmployment) {
       return;
     }
 
     router.replace(customerDetailTabHref(customer.uuid));
-  }, [customer.uuid, router, shouldRedirectBenefits]);
+  }, [
+    customer.uuid,
+    router,
+    shouldRedirectBenefits,
+    shouldRedirectEmployment,
+  ]);
 
   if (tab === "benefits" && (!isInsuranceReady || !hasMasemPayer)) {
+    return <CustomerTabSkeleton />;
+  }
+
+  if (tab === "employment" && (!isEmploymentReady || !showEmploymentTab)) {
     return <CustomerTabSkeleton />;
   }
 
@@ -96,6 +110,8 @@ export function CustomerDetailTabPage({ tab }: CustomerDetailTabPageProps) {
       return <CustomerDetailLegalGuardiansTab customer={customer} isActive />;
     case "relationships":
       return <CustomerDetailRelationshipsTab customer={customer} isActive />;
+    case "employment":
+      return <CustomerDetailEmploymentTab customer={customer} isActive />;
     case "appointments":
       return (
         <CustomerDetailAppointmentsTab

@@ -76,6 +76,8 @@ export async function POST(request: Request) {
           email: body.email?.trim() || "",
           address: body.address?.trim() || "",
           is_active: body.is_active ?? true,
+          registry_payer:
+            body.registry_payer === undefined ? undefined : body.registry_payer,
         },
       },
     );

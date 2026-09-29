@@ -16,6 +16,7 @@ import {
   type OverviewActivityKind,
 } from "@/features/overview/utils/overview-workspace";
 import { cn } from "@/lib/utils";
+import { useUser } from "@/providers/user-provider";
 import { formatCompactNumber } from "@/utils/format-compact-number";
 
 export function OverviewCount({
@@ -344,43 +345,56 @@ const WORKSTATIONS: Array<{
   description: string;
   href: string;
   icon: AppIconName;
+  module?: string;
 }> = [
   {
     name: "Active Visits Queue",
     description: "Live waiting room and consultation flow",
     href: ROUTES.activeVisits,
     icon: "heartPulse",
+    module: "Registration",
   },
   {
     name: "Appointments Calendar",
     description: "Schedule consultations and provider bookings",
     href: ROUTES.appointments,
     icon: "calendar",
+    module: "Registration",
   },
   {
     name: "Client Directory",
     description: "Search and manage all patient profiles",
     href: ROUTES.customers,
     icon: "users",
+    module: "Registration",
   },
   {
     name: "Pharmacy Dispensing",
     description: "Prescriptions fulfillment and medication stock",
     href: ROUTES.pharmacyQueue,
     icon: "pill",
+    module: "Dispensation",
   },
   {
     name: "Insurance Claims Engine",
     description: "Payer submissions and reconciliation batches",
     href: ROUTES.claims,
     icon: "shield",
+    module: "Claims",
   },
 ];
 
 export function OverviewWorkstations() {
+  const { userData } = useUser();
+  const enabledModules = userData?.enabled_modules ?? [];
+  const stations = WORKSTATIONS.filter(
+    (station) =>
+      !station.module || enabledModules.includes(station.module),
+  );
+
   return (
     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
-      {WORKSTATIONS.map((station) => (
+      {stations.map((station) => (
         <Link
           key={station.name}
           href={station.href}

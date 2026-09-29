@@ -26,8 +26,12 @@ describe("buildSidebarNavItems platform admin", () => {
 
     expect(platformIndex).toBeGreaterThan(-1);
     expect(resourcesIndex).toBeGreaterThan(platformIndex);
-    expect(platformNav?.items?.map((item) => item.title)).toEqual(["Backups"]);
+    expect(platformNav?.items?.map((item) => item.title)).toEqual([
+      "Backups",
+      "Payer registry",
+    ]);
     expect(platformNav?.items?.[0]?.url).toBe(ROUTES.platformAdminBackups);
+    expect(platformNav?.items?.[1]?.url).toBe(ROUTES.platformAdminPayerRegistry);
   });
 
   it("adds a Resources menu with Sales for platform admins", () => {

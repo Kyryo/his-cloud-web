@@ -16,10 +16,21 @@ export const COMMAND_PALETTE_INVOICES_GROUP = "Invoices";
 type CommandPaletteAccessOptions = {
   isTenantAdmin?: boolean;
   isPlatformAdmin?: boolean;
+  enabledModules?: string[];
 };
 
 function effectiveGroups(userGroups: string[]) {
   return userGroups.length > 0 ? userGroups : ["Registration"];
+}
+
+function moduleEnabled(
+  options: CommandPaletteAccessOptions,
+  moduleName: string,
+) {
+  if (!options.enabledModules) {
+    return true;
+  }
+  return options.enabledModules.includes(moduleName);
 }
 
 export function canSearchCommandPaletteClients(
@@ -27,6 +38,9 @@ export function canSearchCommandPaletteClients(
   options: CommandPaletteAccessOptions = {},
 ) {
   if (options.isPlatformAdmin) {
+    return false;
+  }
+  if (!moduleEnabled(options, "Registration")) {
     return false;
   }
   if (options.isTenantAdmin) {
@@ -40,6 +54,9 @@ export function canSearchCommandPaletteBilling(
   options: CommandPaletteAccessOptions = {},
 ) {
   if (options.isPlatformAdmin) {
+    return false;
+  }
+  if (!moduleEnabled(options, "Billing")) {
     return false;
   }
   if (options.isTenantAdmin) {

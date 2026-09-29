@@ -17,6 +17,11 @@ import {
   DetailPageTabsSection,
 } from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
+import {
+  ACTIVE_CLINIC_CHANGE_EVENT,
+  readActiveClinicId,
+} from "@/features/app-shell/utils/active-clinic";
+import { fetchClinicalDepartments } from "@/features/clinical/services/clinical-catalog.service";
 import { CustomerDetailActions } from "@/features/customers/components/detail/CustomerDetailActions";
 import { CustomerDetailHeader } from "@/features/customers/components/detail/CustomerDetailHeader";
 import { CustomerDetailTabs } from "@/features/customers/components/detail/CustomerDetailTabs";
@@ -32,6 +37,9 @@ import { customerHasMasemPayer } from "@/features/customers/utils/customer-has-m
 import { formatCustomerName } from "@/features/customers/utils/format-customer";
 import { ManageEntityTagsDialog } from "@/features/tags/components/ManageEntityTagsDialog";
 import { cn } from "@/lib/utils";
+import { useUser } from "@/providers/user-provider";
+
+const OH_DEPARTMENT_TYPE = "occupational_health";
 
 type CustomerDetailPageProps = {
   customerId: string;
@@ -42,6 +50,7 @@ export function CustomerDetailPage({
   customerId,
   children,
 }: CustomerDetailPageProps) {
+  const { userData } = useUser();
   const [customer, setCustomer] = useState<Customer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -53,8 +62,38 @@ export function CustomerDetailPage({
   const [showSummaryPanel, setShowSummaryPanel] = useState(false);
   const [hasMasemPayer, setHasMasemPayer] = useState(false);
   const [isInsuranceReady, setIsInsuranceReady] = useState(false);
+  const [showEmploymentTab, setShowEmploymentTab] = useState(false);
+  const [isEmploymentReady, setIsEmploymentReady] = useState(false);
+  const [activeClinicId, setActiveClinicId] = useState<number | null>(() =>
+    readActiveClinicId(),
+  );
 
   useAppBreadcrumb(customer ? formatCustomerName(customer) : null);
+
+  useEffect(() => {
+    const fallbackClinicId =
+      userData?.clinics?.find((clinic) => clinic.is_primary && clinic.is_active)
+        ?.clinic ??
+      userData?.clinics?.find((clinic) => clinic.is_active)?.clinic ??
+      userData?.primary_clinic?.id ??
+      null;
+
+    setActiveClinicId((current) => current ?? fallbackClinicId);
+  }, [userData]);
+
+  useEffect(() => {
+    function handleClinicChange(event: Event) {
+      const clinicId = (event as CustomEvent<number>).detail;
+      if (Number.isInteger(clinicId) && clinicId > 0) {
+        setActiveClinicId(clinicId);
+      }
+    }
+
+    window.addEventListener(ACTIVE_CLINIC_CHANGE_EVENT, handleClinicChange);
+    return () => {
+      window.removeEventListener(ACTIVE_CLINIC_CHANGE_EVENT, handleClinicChange);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -116,6 +155,48 @@ export function CustomerDetailPage({
     };
   }, [customer?.uuid]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setIsEmploymentReady(false);
+
+    async function loadEmploymentAvailability() {
+      if (!activeClinicId) {
+        if (!cancelled) {
+          setShowEmploymentTab(false);
+          setIsEmploymentReady(true);
+        }
+        return;
+      }
+
+      try {
+        const departments = await fetchClinicalDepartments(activeClinicId);
+        if (!cancelled) {
+          setShowEmploymentTab(
+            departments.some(
+              (department) =>
+                department.department_type === OH_DEPARTMENT_TYPE &&
+                department.is_active,
+            ),
+          );
+        }
+      } catch {
+        if (!cancelled) {
+          setShowEmploymentTab(false);
+        }
+      } finally {
+        if (!cancelled) {
+          setIsEmploymentReady(true);
+        }
+      }
+    }
+
+    void loadEmploymentAvailability();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [activeClinicId]);
+
   const handleCustomerUpdated = useCallback((updatedCustomer: Customer) => {
     setCustomer(updatedCustomer);
   }, []);
@@ -166,6 +247,8 @@ export function CustomerDetailPage({
         customer,
         hasMasemPayer,
         isInsuranceReady,
+        showEmploymentTab,
+        isEmploymentReady,
         visitsRefreshKey,
         billingRefreshKey,
         onUpdateClick: () => setUpdateDialogOpen(true),
@@ -200,6 +283,7 @@ export function CustomerDetailPage({
           <CustomerDetailTabs
             customer={customer}
             showBenefitsTab={hasMasemPayer}
+            showEmploymentTab={showEmploymentTab}
           />
 
           <DetailPageMainAsideGrid>
@@ -249,7 +333,9 @@ export function CustomerDetailPage({
           customer={customer}
           open={appointmentDialogOpen}
           onOpenChange={setAppointmentDialogOpen}
-          onCreated={() => setVisitsRefreshKey((current) => current + 1)}
+          onCreated={() => {
+            setVisitsRefreshKey((current) => current + 1);
+          }}
         />
       </DetailPageLayout>
     </CustomerDetailWorkspaceProvider>

@@ -3,6 +3,8 @@ import {
   type TherapyDiscipline,
 } from "@/features/therapy/types/therapy.types";
 
+export const THERAPY_PORTAL_GROUP = "Therapy";
+
 export const THERAPY_DISCIPLINE_CONFIG: Record<
   TherapyDiscipline,
   { label: string; queueLabel: string; group: string; description: string }
@@ -37,5 +39,8 @@ export function canAccessTherapyDiscipline(
   userGroups: string[],
   discipline: TherapyDiscipline,
 ): boolean {
+  if (userGroups.includes(THERAPY_PORTAL_GROUP)) {
+    return true;
+  }
   return userGroups.includes(THERAPY_DISCIPLINE_CONFIG[discipline].group);
 }

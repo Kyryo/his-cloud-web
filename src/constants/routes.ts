@@ -11,6 +11,7 @@ export const ROUTES = {
   platformAdminBackups: "/platform-admin/backups",
   platformAdminBackupsHmis: "/platform-admin/backups/hmis",
   platformAdminBackupsClaimsEngine: "/platform-admin/backups/claims-engine",
+  platformAdminPayerRegistry: "/platform-admin/payer-registry",
   platformAdminResourcesSales: "/platform-admin/resources/sales",
   platformAdminSalesPlaybook: "/platform-admin/resources/sales/playbook",
   customers: "/customers",
@@ -108,6 +109,19 @@ export const ROUTES = {
   appointmentsBoard: "/appointments/board",
   appointmentsCalendar: "/appointments/calendar",
   clinicalOpd: "/clinical/opd",
+  occupationalHealth: "/occupational-health",
+  occupationalHealthCompliance: "/occupational-health/compliance",
+  occupationalHealthSurveillance: "/occupational-health/surveillance",
+  occupationalHealthRecalls: (customerUuid?: string) =>
+    customerUuid
+      ? `/occupational-health/recalls?customer=${encodeURIComponent(customerUuid)}`
+      : "/occupational-health/recalls",
+  occupationalHealthEmployment: (customerUuid?: string) =>
+    customerUuid
+      ? `/occupational-health/employment?customer=${encodeURIComponent(customerUuid)}`
+      : "/occupational-health/employment",
+  occupationalHealthEncounter: (visitUuid: string, encounterUuid: string) =>
+    `/occupational-health/${visitUuid}/${encounterUuid}`,
   clinicalOpdEncounter: (visitUuid: string, encounterUuid: string) =>
     `/clinical/opd/${visitUuid}/${encounterUuid}`,
   clinicalOpdEncounterTab: (
@@ -169,6 +183,7 @@ export const ROUTES = {
   settingsModuleLaboratory: "/settings/modules/laboratory",
   settingsModuleClinical: "/settings/modules/clinical",
   settingsModuleRegistration: "/settings/modules/registration",
+  settingsModuleOccupationalHealth: "/settings/modules/occupational-health",
   settingsModule: (slug: string) => `/settings/modules/${slug}`,
   settingsIntegrations: "/settings/integrations",
   settingsIntegrationsEmail: "/settings/integrations/email",
@@ -225,6 +240,7 @@ export const WEB_NEW_ROUTE_PREFIXES = [
   ROUTES.referrals,
   ROUTES.appointments,
   ROUTES.clinicalOpd,
+  ROUTES.occupationalHealth,
   "/clinical",
   "/reports",
   "/visits",
@@ -282,6 +298,7 @@ export const APP_ROUTE_PREFIXES = [
   ROUTES.referrals,
   ROUTES.appointments,
   ROUTES.clinicalOpd,
+  ROUTES.occupationalHealth,
   "/clinical",
   "/reports",
   "/visits",
@@ -336,6 +353,7 @@ export const PROTECTED_ROUTES = [
   ROUTES.referrals,
   ROUTES.appointments,
   ROUTES.clinicalOpd,
+  ROUTES.occupationalHealth,
   "/clinical",
   "/reports",
   "/visits",

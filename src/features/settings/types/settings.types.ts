@@ -91,6 +91,17 @@ export type OrganizationService = {
   created_at: string;
 };
 
+export type OrganizationPayerRegistryLink = {
+  id: number;
+  uuid: string;
+  country_code: string;
+  code: string;
+  official_name: string;
+  display_name: string;
+  status: string;
+  integration_code: string;
+};
+
 export type OrganizationPayer = {
   id: number;
   uuid: string;
@@ -100,8 +111,47 @@ export type OrganizationPayer = {
   phone_number: string;
   email: string;
   address: string;
+  registry_payer: number | null;
+  registry_payer_detail: OrganizationPayerRegistryLink | null;
+  registry_linked_at: string | null;
   is_active: boolean;
   created_at: string;
+};
+
+export type CountryPayer = {
+  id: number;
+  uuid: string;
+  country_code: string;
+  code: string;
+  official_name: string;
+  display_name: string;
+  status: string;
+  integration_code: string;
+  needs_review: boolean;
+  legacy_names: string[];
+  is_active: boolean;
+  reviewed_at: string | null;
+  review_note: string;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CountryPayerPolicy = {
+  id: number;
+  uuid: string;
+  country_code: string;
+  requires_admin_approval: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type ProposeCountryPayerPayload = {
+  country_code?: string;
+  code: string;
+  official_name: string;
+  display_name?: string;
+  integration_code?: string;
 };
 
 export type OrganizationDepartment = {
@@ -198,6 +248,7 @@ export type CreateOrganizationPayerPayload = {
   email?: string;
   address?: string;
   is_active?: boolean;
+  registry_payer?: number | null;
 };
 
 export type UpdateOrganizationPayerPayload = {
@@ -208,6 +259,7 @@ export type UpdateOrganizationPayerPayload = {
   email?: string;
   address?: string;
   is_active?: boolean;
+  registry_payer?: number | null;
 };
 
 export type OrganizationPayerScheme = {

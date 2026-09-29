@@ -86,9 +86,10 @@ export function AppCommandMenu() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
 
   const userGroups = useMemo(() => userData?.groups ?? [], [userData?.groups]);
+  const enabledModules = userData?.enabled_modules ?? [];
   const isTenantAdmin = Boolean(userData?.is_admin);
   const isPlatformAdmin = Boolean(userData?.is_superuser && userData.tenant === null);
-  const accessOptions = { isTenantAdmin, isPlatformAdmin };
+  const accessOptions = { isTenantAdmin, isPlatformAdmin, enabledModules };
   const canSearchClients = canSearchCommandPaletteClients(
     userGroups,
     accessOptions,
@@ -117,13 +118,21 @@ export function AppCommandMenu() {
       pathname,
       isTenantAdmin,
       isPlatformAdmin,
+      userData?.enabled_modules ?? [],
     );
 
     return filterCommandPaletteItems(
       buildCommandPaletteItems(navItems),
       search,
     );
-  }, [isPlatformAdmin, isTenantAdmin, pathname, search, userGroups]);
+  }, [
+    isPlatformAdmin,
+    isTenantAdmin,
+    pathname,
+    search,
+    userData?.enabled_modules,
+    userGroups,
+  ]);
 
   useEffect(() => {
     const handle = window.setTimeout(() => {
@@ -165,7 +174,7 @@ export function AppCommandMenu() {
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key.toLowerCase() !== "k" || !(event.metaKey || event.ctrlKey)) {
+      if (event.key?.toLowerCase() !== "k" || !(event.metaKey || event.ctrlKey)) {
         return;
       }
       event.preventDefault();

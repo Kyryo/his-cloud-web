@@ -13,7 +13,6 @@ const columns = [
   { key: "client", label: "Client" },
   { key: "invoice", label: "Invoice" },
   { key: "payer", label: "Payer" },
-  { key: "membership", label: "Membership #", className: "hidden md:table-cell" },
   { key: "status", label: "Status" },
   { key: "payer_status", label: "Payer status", className: "hidden lg:table-cell" },
   { key: "submitted", label: "Submitted", className: "hidden lg:table-cell" },
@@ -57,9 +56,6 @@ export function ClaimsTableSkeleton({
             </ListPageDataTableCell>
             <ListPageDataTableCell>
               <Skeleton className="h-3.5 w-16" />
-            </ListPageDataTableCell>
-            <ListPageDataTableCell className="hidden md:table-cell">
-              <Skeleton className="h-3.5 w-20" />
             </ListPageDataTableCell>
             <ListPageDataTableCell>
               <Skeleton className="h-5 w-16 rounded-md" />

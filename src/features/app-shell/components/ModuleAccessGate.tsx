@@ -3,10 +3,10 @@
 import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 
-import { ModuleEmptyStatePage } from "@/features/app-shell/components/ModuleEmptyState";
+import { ModuleEmptyState } from "@/features/app-shell/components/ModuleEmptyState";
+import { ListPageLayout } from "@/features/app-shell/components/page-layout";
 import {
   isModuleEnabled,
-  portalModuleDisplayName,
   resolvePortalModuleForPath,
 } from "@/features/app-shell/utils/module-entitlements";
 import { useUser } from "@/providers/user-provider";
@@ -21,14 +21,14 @@ export function ModuleAccessGate({ children }: ModuleAccessGateProps) {
   const moduleName = resolvePortalModuleForPath(pathname);
 
   if (moduleName && !isModuleEnabled(userData, moduleName)) {
-    const label = portalModuleDisplayName(moduleName);
     return (
-      <ModuleEmptyStatePage
-        featureName={label}
-        pageDescription={`Upgrade your Sigma plan to use ${label} in this workspace.`}
-        variant="upgrade"
-        data-testid={`module-upgrade-empty-state-${moduleName.toLowerCase()}`}
-      />
+      <ListPageLayout>
+        <ModuleEmptyState
+          featureName={moduleName}
+          variant="unavailable"
+          data-testid="module-unavailable-empty-state"
+        />
+      </ListPageLayout>
     );
   }
 

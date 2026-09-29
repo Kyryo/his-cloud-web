@@ -41,6 +41,7 @@ export type PlatformAdminTenant = {
   city: string;
   state_province: string;
   country: string;
+  country_code: string;
   postal_code: string;
   full_address: string;
   branding_logo_url: string;
@@ -78,6 +79,7 @@ export type PlatformAdminTenantPayload = Pick<
   | "city"
   | "state_province"
   | "country"
+  | "country_code"
   | "postal_code"
   | "status"
   | "is_active"

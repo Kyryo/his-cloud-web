@@ -22,6 +22,7 @@ export const moduleDisplayNames: Record<string, string> = {
   Inventory: "Inventory",
   Clinical: "EMR",
   Therapy: "Therapy",
+  OccupationalHealth: "OH",
 };
 
 export const moduleIcons: Record<string, AppIconName> = {
@@ -36,6 +37,7 @@ export const moduleIcons: Record<string, AppIconName> = {
   Dental: "dental",
   Clinical: "hospital",
   Therapy: "dumbbell",
+  OccupationalHealth: "clipboard",
 };
 
 export const moduleOrder = [
@@ -50,6 +52,7 @@ export const moduleOrder = [
   "Dental",
   "Clinical",
   "Therapy",
+  "OccupationalHealth",
 ] as const;
 
 /** Mirrors web-old navigation; only enabled routes appear in web-new for now. */
@@ -266,6 +269,30 @@ export const navigation: NavigationItem[] = [
     enabledInWebNew: true,
   },
   {
+    name: "OH Queue",
+    href: ROUTES.occupationalHealth,
+    icon: "clipboard",
+    requiredGroup: "OccupationalHealth",
+    moduleName: "OccupationalHealth",
+    enabledInWebNew: true,
+  },
+  {
+    name: "OH Compliance",
+    href: ROUTES.occupationalHealthCompliance,
+    icon: "clipboard",
+    requiredGroup: "OccupationalHealth",
+    moduleName: "OccupationalHealth",
+    enabledInWebNew: true,
+  },
+  {
+    name: "OH Surveillance",
+    href: ROUTES.occupationalHealthSurveillance,
+    icon: "clipboard",
+    requiredGroup: "OccupationalHealth",
+    moduleName: "OccupationalHealth",
+    enabledInWebNew: true,
+  },
+  {
     name: "Patient File",
     href: "/patients",
     icon: "file",
@@ -357,10 +384,13 @@ const PORTAL_NAV_GROUPS = new Set([
   "Radiology",
   "Dental",
   "Clinical",
+  "OccupationalHealth",
+  "Therapy",
 ]);
 
 export type NavAccessOptions = {
   isTenantAdmin?: boolean;
+  enabledModules?: string[];
 };
 
 export function hasNavAccess(
@@ -371,20 +401,23 @@ export function hasNavAccess(
   if (!item.enabledInWebNew) {
     return false;
   }
+  const portalModule = item.moduleName || item.requiredGroup;
+  if (
+    portalModule &&
+    PORTAL_NAV_GROUPS.has(portalModule) &&
+    options.enabledModules &&
+    !options.enabledModules.includes(portalModule)
+  ) {
+    return false;
+  }
   if (!item.requiredGroup) {
     return true;
   }
-  if (userGroups.includes(item.requiredGroup)) {
+  // Therapy portal group unlocks all discipline queues; discipline groups stay optional.
+  if (item.moduleName === "Therapy" && userGroups.includes("Therapy")) {
     return true;
   }
-  // Tenant admins see locked portal modules so they can open upgrade empty states.
-  if (
-    options.isTenantAdmin &&
-    PORTAL_NAV_GROUPS.has(item.moduleName || item.requiredGroup)
-  ) {
-    return true;
-  }
-  return false;
+  return userGroups.includes(item.requiredGroup);
 }
 
 export function filterNavigation(

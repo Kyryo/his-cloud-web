@@ -28,6 +28,8 @@ const MODULE_DESCRIPTIONS: Record<string, string> = {
   Dental: "Dental clinic charting and procedure settings.",
   Clinical: "Patient records, providers, and clinical documentation.",
   Therapy: "Therapy sessions, plans, and documentation settings.",
+  OccupationalHealth:
+    "Employers, job titles, hazard profiles, and worksite catalogs.",
 };
 
 /** URL slug + whether the module has a real settings surface yet. */
@@ -46,6 +48,7 @@ const MODULE_SETTINGS_META: Record<
   Dental: { slug: "dental", hasSettings: false },
   Clinical: { slug: "clinical", hasSettings: true },
   Therapy: { slug: "therapy", hasSettings: false },
+  OccupationalHealth: { slug: "occupational-health", hasSettings: true },
 };
 
 function hrefForSlug(slug: string): string {
@@ -64,32 +67,49 @@ function hrefForSlug(slug: string): string {
   if (slug === "registration") {
     return ROUTES.settingsModuleRegistration;
   }
+  if (slug === "occupational-health") {
+    return ROUTES.settingsModuleOccupationalHealth;
+  }
   return ROUTES.settingsModule(slug);
 }
 
-export function getModuleSettingsItems(): ModuleSettingsItem[] {
-  return moduleOrder.map((moduleId) => {
-    const meta = MODULE_SETTINGS_META[moduleId] ?? {
-      slug: moduleId.toLowerCase(),
-      hasSettings: false,
-    };
+export function getModuleSettingsItems(
+  enabledModules?: string[],
+): ModuleSettingsItem[] {
+  return moduleOrder
+    .filter((moduleId) => {
+      if (!enabledModules) {
+        return true;
+      }
+      // Orders is a settings label outside portal entitlements.
+      if (moduleId === "Orders") {
+        return true;
+      }
+      return enabledModules.includes(moduleId);
+    })
+    .map((moduleId) => {
+      const meta = MODULE_SETTINGS_META[moduleId] ?? {
+        slug: moduleId.toLowerCase(),
+        hasSettings: false,
+      };
 
-    return {
-      id: moduleId,
-      slug: meta.slug,
-      label: getModuleLabel(moduleId),
-      description:
-        MODULE_DESCRIPTIONS[moduleId] ??
-        `${getModuleLabel(moduleId)} settings.`,
-      icon: getModuleIcon(moduleId),
-      href: hrefForSlug(meta.slug),
-      hasSettings: meta.hasSettings,
-    };
-  });
+      return {
+        id: moduleId,
+        slug: meta.slug,
+        label: getModuleLabel(moduleId),
+        description:
+          MODULE_DESCRIPTIONS[moduleId] ??
+          `${getModuleLabel(moduleId)} settings.`,
+        icon: getModuleIcon(moduleId),
+        href: hrefForSlug(meta.slug),
+        hasSettings: meta.hasSettings,
+      };
+    });
 }
 
 export function getModuleSettingsItemBySlug(
   slug: string,
+  enabledModules?: string[],
 ): ModuleSettingsItem | undefined {
-  return getModuleSettingsItems().find((item) => item.slug === slug);
+  return getModuleSettingsItems(enabledModules).find((item) => item.slug === slug);
 }

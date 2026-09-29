@@ -4,6 +4,7 @@ export const ORGANIZATION_DEPARTMENT_TYPES = [
   { value: "physio", label: "Physiotherapy" },
   { value: "speech", label: "Speech Therapy" },
   { value: "occupational", label: "Occupational Therapy" },
+  { value: "occupational_health", label: "Occupational Health" },
   { value: "radiology", label: "Radiology" },
   { value: "lab", label: "Laboratory" },
   { value: "pharmacy", label: "Pharmacy" },

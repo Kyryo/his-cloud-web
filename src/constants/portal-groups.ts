@@ -10,6 +10,15 @@ export const PORTAL_GROUP_OPTIONS = [
   { name: "Radiology", label: "Radiology" },
   { name: "Dental", label: "Dental" },
   { name: "Clinical", label: "Clinical" },
+  { name: "OccupationalHealth", label: "Occupational health" },
+  { name: "Therapy", label: "Therapy" },
+] as const;
+
+/** Discipline Auth groups nested under Therapy (not Platform Admin entitlements). */
+export const THERAPY_DISCIPLINE_GROUPS = [
+  "Physio",
+  "Occupational",
+  "Speech",
 ] as const;
 
 export type PortalGroupName = (typeof PORTAL_GROUP_OPTIONS)[number]["name"];

@@ -2,7 +2,9 @@ import { ROUTES } from "@/constants/routes";
 import { getModuleLabel } from "@/features/app-shell/constants/navigation-config";
 import type { User } from "@/features/auth/types/auth.types";
 
-/** Portal modules that can be entitled via TenantGroup.is_active. */
+/** Portal modules that can be entitled via TenantGroup.is_active.
+ * Keep in sync with api/eportal/tenants/constants/portal_groups.py.
+ */
 export const PORTAL_MODULE_NAMES = [
   "Registration",
   "Billing",
@@ -13,6 +15,8 @@ export const PORTAL_MODULE_NAMES = [
   "Radiology",
   "Dental",
   "Clinical",
+  "OccupationalHealth",
+  "Therapy",
 ] as const;
 
 export type PortalModuleName = (typeof PORTAL_MODULE_NAMES)[number];
@@ -73,29 +77,99 @@ export function resolvePortalModuleForPath(
     pathname === ROUTES.pharmacyQueue ||
     pathname.startsWith(`${ROUTES.pharmacyQueue}/`) ||
     pathname === ROUTES.pharmacyHistory ||
-    pathname.startsWith(`${ROUTES.pharmacyHistory}/`)
+    pathname.startsWith(`${ROUTES.pharmacyHistory}/`) ||
+    pathname === ROUTES.settingsModulePharmacy ||
+    pathname.startsWith(`${ROUTES.settingsModulePharmacy}/`)
   ) {
     return "Dispensation";
   }
 
-  if (pathname.startsWith("/inventory/")) {
+  if (
+    pathname.startsWith("/inventory/") ||
+    pathname === ROUTES.settingsModuleInventory ||
+    pathname.startsWith(`${ROUTES.settingsModuleInventory}/`)
+  ) {
     return "Inventory";
   }
 
   if (
     pathname.startsWith("/lab-orders") ||
-    pathname.startsWith("/lab") ||
+    pathname.startsWith("/lab/") ||
     pathname === ROUTES.labOrders ||
-    pathname.startsWith(`${ROUTES.labOrders}/`)
+    pathname.startsWith(`${ROUTES.labOrders}/`) ||
+    pathname === ROUTES.settingsModuleLaboratory ||
+    pathname.startsWith(`${ROUTES.settingsModuleLaboratory}/`)
   ) {
     return "Lab";
   }
 
   if (
+    pathname.startsWith("/radiology") ||
+    pathname === ROUTES.settingsModule("radiology") ||
+    pathname.startsWith(`${ROUTES.settingsModule("radiology")}/`)
+  ) {
+    return "Radiology";
+  }
+
+  if (
+    pathname.startsWith("/dental") ||
+    pathname === ROUTES.settingsModule("dental") ||
+    pathname.startsWith(`${ROUTES.settingsModule("dental")}/`)
+  ) {
+    return "Dental";
+  }
+
+  if (
     pathname === ROUTES.clinicalOpd ||
-    pathname.startsWith(`${ROUTES.clinicalOpd}/`)
+    pathname.startsWith(`${ROUTES.clinicalOpd}/`) ||
+    pathname === ROUTES.settingsModuleClinical ||
+    pathname.startsWith(`${ROUTES.settingsModuleClinical}/`)
   ) {
     return "Clinical";
+  }
+
+  if (
+    pathname === ROUTES.occupationalHealth ||
+    pathname.startsWith(`${ROUTES.occupationalHealth}/`) ||
+    pathname === ROUTES.settingsModuleOccupationalHealth ||
+    pathname.startsWith(`${ROUTES.settingsModuleOccupationalHealth}/`)
+  ) {
+    return "OccupationalHealth";
+  }
+
+  if (
+    pathname === ROUTES.therapyPhysio ||
+    pathname.startsWith(`${ROUTES.therapyPhysio}/`) ||
+    pathname === ROUTES.therapySpeech ||
+    pathname.startsWith(`${ROUTES.therapySpeech}/`) ||
+    pathname === ROUTES.therapyOccupational ||
+    pathname.startsWith(`${ROUTES.therapyOccupational}/`) ||
+    pathname.startsWith("/therapy/") ||
+    pathname === ROUTES.settingsModule("therapy") ||
+    pathname.startsWith(`${ROUTES.settingsModule("therapy")}/`)
+  ) {
+    return "Therapy";
+  }
+
+  if (
+    pathname === ROUTES.settingsModuleRegistration ||
+    pathname.startsWith(`${ROUTES.settingsModuleRegistration}/`)
+  ) {
+    return "Registration";
+  }
+
+  if (
+    pathname === ROUTES.settingsModule("billing") ||
+    pathname.startsWith(`${ROUTES.settingsModule("billing")}/`)
+  ) {
+    return "Billing";
+  }
+
+  if (
+    pathname === ROUTES.settingsModule("claims") ||
+    pathname.startsWith(`${ROUTES.settingsModule("claims")}/`)
+  ) {
+    return "Claims";
   }
 
   return null;

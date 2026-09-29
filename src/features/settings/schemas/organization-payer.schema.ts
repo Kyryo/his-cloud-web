@@ -13,6 +13,7 @@ export const createOrganizationPayerSchema = z.object({
     ),
   phone_number: z.string().trim().optional(),
   address: z.string().trim().optional(),
+  registry_payer: z.number().int().positive().nullable().optional(),
 });
 
 export type CreateOrganizationPayerFormValues = z.infer<
@@ -27,6 +28,7 @@ export const createOrganizationPayerDefaultValues: CreateOrganizationPayerFormVa
     email: "",
     phone_number: "",
     address: "",
+    registry_payer: null,
   };
 
 export function toCreateOrganizationPayerPayload(
@@ -39,5 +41,22 @@ export function toCreateOrganizationPayerPayload(
     email: values.email?.trim() || "",
     phone_number: values.phone_number?.trim() || "",
     address: values.address?.trim() || "",
+    registry_payer: values.registry_payer ?? null,
   };
 }
+
+export const proposeCountryPayerSchema = z.object({
+  code: z.string().trim().min(1, "Code is required"),
+  official_name: z.string().trim().min(1, "Official name is required"),
+  display_name: z.string().trim().optional(),
+});
+
+export type ProposeCountryPayerFormValues = z.infer<
+  typeof proposeCountryPayerSchema
+>;
+
+export const proposeCountryPayerDefaultValues: ProposeCountryPayerFormValues = {
+  code: "",
+  official_name: "",
+  display_name: "",
+};

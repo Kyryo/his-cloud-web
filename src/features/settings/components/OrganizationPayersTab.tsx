@@ -1,11 +1,13 @@
 "use client";
 
+import { Link2, Link2Off } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
+import { StatusPill } from "@/components/ui/status-pill";
 import { AddPayerDialog } from "@/features/settings/components/AddPayerDialog";
 import { EditPayerDialog } from "@/features/settings/components/EditPayerDialog";
+import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { SettingsPanelSection } from "@/features/settings/components/SettingsPageLayout";
 import { UpdatePayerStatusDialog } from "@/features/settings/components/UpdatePayerStatusDialog";
 import { fetchOrganizationPayers } from "@/features/settings/services/settings.service";
@@ -19,6 +21,28 @@ function payerMeta(payer: OrganizationPayer) {
   return [payer.code, payer.email, payer.phone_number]
     .filter((value) => Boolean(value))
     .join(" · ");
+}
+
+function PayerRegistryBadge({ payer }: { payer: OrganizationPayer }) {
+  if (payer.registry_payer_detail) {
+    return (
+      <StatusPill
+        label={payer.registry_payer_detail.display_name}
+        variant="success"
+        icon={Link2}
+        className="shrink-0"
+      />
+    );
+  }
+
+  return (
+    <StatusPill
+      label="Not linked"
+      variant="warning"
+      icon={Link2Off}
+      className="shrink-0"
+    />
+  );
 }
 
 export function OrganizationPayersTab({ isActive }: OrganizationPayersTabProps) {
@@ -119,9 +143,12 @@ export function OrganizationPayersTab({ isActive }: OrganizationPayersTabProps) 
                   className="flex flex-col gap-3 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:gap-4"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-brand-navy">
-                      {payer.name}
-                    </p>
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+                      <p className="truncate text-sm font-medium text-brand-navy">
+                        {payer.name}
+                      </p>
+                      <PayerRegistryBadge payer={payer} />
+                    </div>
                     {payer.description ? (
                       <p className="mt-0.5 text-sm text-slate-400">
                         {payer.description}

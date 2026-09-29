@@ -248,69 +248,88 @@ export function ClaimsListPage() {
       ) : null}
 
       {!hasNoRecords ? (
-        <ListPageDataSectionsStack>
+        <ListPageDataSectionsStack className="space-y-0">
           <ListPageStatsSection className={cn(!showStats && "hidden sm:block")}>
             <ClaimSummaryStatsCards stats={stats} isLoading={isStatsLoading} />
           </ListPageStatsSection>
-        </ListPageDataSectionsStack>
-      ) : null}
 
-      <ListPageTableSection>
-        {isLoading ? (
-          <ClaimsTableSkeleton rows={8} />
-        ) : error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-            <h2 className="text-sm font-semibold text-red-800">Could not load claims</h2>
-            <p className="mt-2 text-sm text-red-700">{error}</p>
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-4"
-              onClick={() => void reloadClaims()}
-            >
-              Try again
-            </Button>
-          </div>
-        ) : hasNoRecords ? (
-          <ClaimsEmptyState />
-        ) : isFilteredEmpty ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center">
-            <h2 className="text-base font-semibold text-brand-navy">No matching claims</h2>
-            <p className="mt-1 text-sm text-brand-muted">
-              Adjust your search or filters and try again.
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="mt-4"
-              onClick={handleClearSearchAndFilters}
-            >
-              Clear search & filters
-            </Button>
-          </div>
-        ) : (
-          <>
-            <ClaimsTable
-              claims={claims}
-              onRowClick={(claim) => router.push(ROUTES.claimDetail(claim.uuid))}
-            />
-            <ListPagePagination
-              page={currentPage}
-              pageSize={DEFAULT_PAGE_SIZE}
-              totalCount={totalCount}
-              hasNext={hasNext}
-              hasPrevious={hasPrevious}
-              isLoading={isRefreshing}
-              onPageChange={(nextPage) => {
-                setIsRefreshing(true);
-                setPage(nextPage);
-                setPageForQuery(queryKey);
-              }}
-            />
-          </>
-        )}
-      </ListPageTableSection>
+          <ListPageTableSection>
+            {isLoading ? (
+              <ClaimsTableSkeleton rows={8} />
+            ) : error ? (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+                <h2 className="text-sm font-semibold text-red-800">Could not load claims</h2>
+                <p className="mt-2 text-sm text-red-700">{error}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => void reloadClaims()}
+                >
+                  Try again
+                </Button>
+              </div>
+            ) : isFilteredEmpty ? (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center">
+                <h2 className="text-base font-semibold text-brand-navy">No matching claims</h2>
+                <p className="mt-1 text-sm text-brand-muted">
+                  Adjust your search or filters and try again.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={handleClearSearchAndFilters}
+                >
+                  Clear search & filters
+                </Button>
+              </div>
+            ) : (
+              <>
+                <ClaimsTable
+                  claims={claims}
+                  onRowClick={(claim) => router.push(ROUTES.claimDetail(claim.uuid))}
+                />
+                <ListPagePagination
+                  page={currentPage}
+                  pageSize={DEFAULT_PAGE_SIZE}
+                  totalCount={totalCount}
+                  hasNext={hasNext}
+                  hasPrevious={hasPrevious}
+                  isLoading={isRefreshing}
+                  onPageChange={(nextPage) => {
+                    setIsRefreshing(true);
+                    setPage(nextPage);
+                    setPageForQuery(queryKey);
+                  }}
+                />
+              </>
+            )}
+          </ListPageTableSection>
+        </ListPageDataSectionsStack>
+      ) : (
+        <ListPageTableSection>
+          {isLoading ? (
+            <ClaimsTableSkeleton rows={8} />
+          ) : error ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+              <h2 className="text-sm font-semibold text-red-800">Could not load claims</h2>
+              <p className="mt-2 text-sm text-red-700">{error}</p>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-4"
+                onClick={() => void reloadClaims()}
+              >
+                Try again
+              </Button>
+            </div>
+          ) : (
+            <ClaimsEmptyState />
+          )}
+        </ListPageTableSection>
+      )}
     </ListPageLayout>
   );
 }

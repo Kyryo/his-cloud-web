@@ -50,6 +50,7 @@ const DEFAULT_VALUES: PlatformAdminTenantFormValues = {
   city: "",
   state_province: "",
   country: "",
+  country_code: "",
   postal_code: "",
   status: "PENDING",
   is_active: true,
@@ -82,6 +83,7 @@ export function PlatformAdminTenantDialog({
             city: tenant.city ?? "",
             state_province: tenant.state_province ?? "",
             country: tenant.country ?? "",
+            country_code: tenant.country_code ?? "",
             postal_code: tenant.postal_code ?? "",
             status: tenant.status,
             is_active: tenant.is_active,
@@ -95,6 +97,7 @@ export function PlatformAdminTenantDialog({
     await onSubmit({
       ...values,
       code: values.code.trim().toUpperCase(),
+      country_code: values.country_code.trim().toUpperCase(),
     });
   }
 
@@ -131,6 +134,23 @@ export function PlatformAdminTenantDialog({
             </Field>
             <Field label="Country" error={form.formState.errors.country?.message}>
               <Input {...form.register("country")} />
+            </Field>
+            <Field
+              label="Country code"
+              error={form.formState.errors.country_code?.message}
+            >
+              <Input
+                {...form.register("country_code")}
+                placeholder="e.g. MW"
+                maxLength={2}
+                onChange={(event) =>
+                  form.setValue(
+                    "country_code",
+                    event.target.value.toUpperCase(),
+                    { shouldDirty: true, shouldValidate: true },
+                  )
+                }
+              />
             </Field>
             <Field
               label="Currency"
