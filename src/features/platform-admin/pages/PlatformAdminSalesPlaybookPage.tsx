@@ -1,6 +1,5 @@
 import { Children, isValidElement, type ReactNode } from "react";
 import Link from "next/link";
-import { Source_Sans_3 } from "next/font/google";
 import {
   ArrowLeft,
   Clock,
@@ -17,14 +16,8 @@ import {
   readSalesPlaybookMarkdown,
   slugifyHeading,
 } from "@/features/platform-admin/services/sales-playbook";
+import { landingBody } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
-
-const sourceSans = Source_Sans_3({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  display: "swap",
-  variable: "--font-landing-body",
-});
 
 function nodeToPlainText(node: ReactNode): string {
   return Children.toArray(node)
@@ -158,8 +151,8 @@ export async function PlatformAdminSalesPlaybookPage() {
     <div
       data-brand-page
       className={cn(
-        sourceSans.variable,
-        sourceSans.className,
+        landingBody.variable,
+        landingBody.className,
         // Cancel AppShell content inset so the header band meets the sidebar.
         "-mx-4 bg-white text-[color:var(--landing-ledger-ink)]",
       )}
