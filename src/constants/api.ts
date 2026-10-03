@@ -772,6 +772,14 @@ export const BFF_PLATFORM_ADMIN_ROUTES = {
   payerPolicies: "/api/platform-admin/payer-policies",
   payerPolicyDetail: (uuid: string) =>
     `/api/platform-admin/payer-policies/${uuid}`,
+  blogPosts: "/api/platform-admin/blog/posts",
+  blogPostDetail: (postId: string) =>
+    `/api/platform-admin/blog/posts/${postId}`,
+  blogAuthors: "/api/platform-admin/blog/authors",
+  blogCategories: "/api/platform-admin/blog/categories",
+  blogTags: "/api/platform-admin/blog/tags",
+  blogSettings: "/api/platform-admin/blog/settings",
+  blogUploads: "/api/platform-admin/blog/uploads",
 } as const;
 
 /** Browser-facing BFF report job routes (same origin). */

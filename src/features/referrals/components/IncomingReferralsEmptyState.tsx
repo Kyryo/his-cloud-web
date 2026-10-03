@@ -13,7 +13,7 @@ export function IncomingReferralsEmptyState() {
         No pending referrals
       </h2>
       <p className="mt-2 max-w-sm text-sm text-brand-muted">
-        Incoming lab referrals awaiting front-desk intake will appear here.
+        Incoming referrals awaiting front-desk intake will appear here.
       </p>
     </div>
   );

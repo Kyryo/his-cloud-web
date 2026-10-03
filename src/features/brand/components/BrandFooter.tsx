@@ -21,6 +21,10 @@ const FOOTER_COLUMNS = [
       { label: "Company", href: ROUTES.company },
       { label: "Contact", href: ROUTES.contacts },
       { label: "Pricing", href: ROUTES.pricing },
+      {
+        label: "Blog",
+        href: process.env.NEXT_PUBLIC_BLOG_URL || "http://localhost:3001",
+      },
     ],
   },
   {

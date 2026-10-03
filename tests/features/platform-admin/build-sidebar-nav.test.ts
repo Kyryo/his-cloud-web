@@ -17,21 +17,54 @@ describe("buildSidebarNavItems platform admin", () => {
     expect(tenantOpsNav?.items?.[1]?.url).toBe(ROUTES.platformAdminTenants);
   });
 
-  it("adds a Platform menu with Backups above Resources", () => {
+  it("adds a Platform menu with Backups above Content and Resources", () => {
     const items = buildSidebarNavItems([], ROUTES.platformAdmin, false, true);
     const titles = items.map((item) => item.title);
     const platformIndex = titles.indexOf("Platform");
+    const contentIndex = titles.indexOf("Content");
     const resourcesIndex = titles.indexOf("Resources");
     const platformNav = items.find((item) => item.title === "Platform");
 
     expect(platformIndex).toBeGreaterThan(-1);
-    expect(resourcesIndex).toBeGreaterThan(platformIndex);
+    expect(contentIndex).toBeGreaterThan(platformIndex);
+    expect(resourcesIndex).toBeGreaterThan(contentIndex);
     expect(platformNav?.items?.map((item) => item.title)).toEqual([
       "Backups",
       "Payer registry",
     ]);
     expect(platformNav?.items?.[0]?.url).toBe(ROUTES.platformAdminBackups);
     expect(platformNav?.items?.[1]?.url).toBe(ROUTES.platformAdminPayerRegistry);
+  });
+
+  it("adds a Content menu with Blog for platform admins", () => {
+    const items = buildSidebarNavItems([], ROUTES.platformAdmin, false, true);
+    const contentNav = items.find((item) => item.title === "Content");
+
+    expect(contentNav).toBeDefined();
+    expect(contentNav?.items?.map((item) => item.title)).toEqual(["Blog"]);
+    expect(contentNav?.items?.[0]?.url).toBe(ROUTES.platformAdminBlog);
+  });
+
+  it("marks Blog active on blog CMS routes", () => {
+    const hubItems = buildSidebarNavItems(
+      [],
+      ROUTES.platformAdminBlog,
+      false,
+      true,
+    );
+    const postsItems = buildSidebarNavItems(
+      [],
+      ROUTES.platformAdminBlogPosts,
+      false,
+      true,
+    );
+    const hubNav = hubItems.find((item) => item.title === "Content");
+    const postsNav = postsItems.find((item) => item.title === "Content");
+
+    expect(hubNav?.isActive).toBe(true);
+    expect(hubNav?.items?.[0]?.isActive).toBe(true);
+    expect(postsNav?.isActive).toBe(true);
+    expect(postsNav?.items?.[0]?.isActive).toBe(true);
   });
 
   it("adds a Resources menu with Sales for platform admins", () => {

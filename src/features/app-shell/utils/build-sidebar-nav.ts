@@ -144,6 +144,23 @@ export function buildSidebarNavItems(
     });
 
     items.push({
+      title: "Content",
+      url: ROUTES.platformAdminBlog,
+      icon: "file",
+      section: "admin",
+      isActive: pathname.startsWith(ROUTES.platformAdminBlog),
+      items: [
+        {
+          title: "Blog",
+          url: ROUTES.platformAdminBlog,
+          isActive:
+            pathname === ROUTES.platformAdminBlog ||
+            pathname.startsWith(`${ROUTES.platformAdminBlog}/`),
+        },
+      ],
+    });
+
+    items.push({
       title: "Resources",
       url: ROUTES.platformAdminResourcesSales,
       icon: "book",

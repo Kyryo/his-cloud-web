@@ -120,6 +120,11 @@ export const BRAND_NAV_ITEMS = [
     name: "Contact",
     href: ROUTES.contacts,
   },
+  {
+    kind: "link",
+    name: "Blog",
+    href: process.env.NEXT_PUBLIC_BLOG_URL || "http://localhost:3001",
+  },
 ] as const satisfies readonly BrandNavItem[];
 
 export function getMenuChildLinks(
