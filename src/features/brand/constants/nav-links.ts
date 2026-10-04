@@ -22,7 +22,7 @@ export type BrandNavItem =
       name: string;
       href: string;
       sections: readonly BrandNavSection[];
-      featured?: BrandNavSection;
+      featured?: readonly BrandNavSection[];
     };
 
 export const BRAND_NAV_ITEMS = [
@@ -52,21 +52,23 @@ export const BRAND_NAV_ITEMS = [
         ],
       },
     ],
-    featured: {
-      title: "Overview",
-      items: [
-        {
-          name: "All solutions",
-          href: ROUTES.solutions,
-          description: "How billing, claims, and payments connect",
-        },
-        {
-          name: "Talk to sales",
-          href: ROUTES.pricing,
-          description: "Pricing for your clinic",
-        },
-      ],
-    },
+    featured: [
+      {
+        title: "Overview",
+        items: [
+          {
+            name: "All solutions",
+            href: ROUTES.solutions,
+            description: "How billing, claims, and payments connect",
+          },
+          {
+            name: "Talk to sales",
+            href: ROUTES.pricing,
+            description: "Pricing for your clinic",
+          },
+        ],
+      },
+    ],
   },
   {
     kind: "link",
@@ -99,37 +101,52 @@ export const BRAND_NAV_ITEMS = [
         ],
       },
     ],
-    featured: {
-      title: "Legal",
-      items: [
-        {
-          name: "Privacy",
-          href: ROUTES.privacy,
-          description: "How we handle clinic and patient data",
-        },
-        {
-          name: "Terms of Service",
-          href: ROUTES.terms,
-          description: "The agreement for using Sigma",
-        },
-      ],
-    },
+    featured: [
+      {
+        title: "Legal",
+        items: [
+          {
+            name: "Privacy",
+            href: ROUTES.privacy,
+            description: "How we handle clinic and patient data",
+          },
+          {
+            name: "Terms of Service",
+            href: ROUTES.terms,
+            description: "The agreement for using Sigma",
+          },
+        ],
+      },
+      {
+        title: "Support and Blog",
+        items: [
+          {
+            name: "Blog",
+            href: "https://blog.sigmahmis.com",
+            description: "Product notes, guides, and clinic stories",
+          },
+          {
+            name: "Documentation",
+            href: "https://docs.sigmahmis.com",
+            description: "Guides for setting up and using Sigma",
+          },
+        ],
+      },
+    ],
   },
   {
     kind: "link",
     name: "Contact",
     href: ROUTES.contacts,
   },
-  {
-    kind: "link",
-    name: "Blog",
-    href: process.env.NEXT_PUBLIC_BLOG_URL || "http://localhost:3001",
-  },
 ] as const satisfies readonly BrandNavItem[];
 
 export function getMenuChildLinks(
   item: Extract<BrandNavItem, { kind: "menu" }>,
 ) {
-  const featured = item.featured?.items ?? [];
-  return [...item.sections.flatMap((section) => section.items), ...featured];
+  const featured = item.featured ?? [];
+  return [
+    ...item.sections.flatMap((section) => section.items),
+    ...featured.flatMap((section) => section.items),
+  ];
 }

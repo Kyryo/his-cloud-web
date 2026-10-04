@@ -164,21 +164,25 @@ function DesktopNavMenu({
             ))}
           </div>
 
-          {featured ? (
-            <div className="w-[14.5rem] shrink-0 bg-[color:var(--landing-warm)] p-5 sm:p-6">
-              <p className="px-3 text-[13px] font-medium text-[color:var(--landing-ledger-ink)]">
-                {featured.title}
-              </p>
-              <div className="mt-2 space-y-1">
-                {featured.items.map((child) => (
-                  <MegaMenuLink
-                    key={`${featured.title}-${child.href}-${child.name}`}
-                    child={child}
-                    pathname={pathname}
-                    tone="featured"
-                  />
-                ))}
-              </div>
+          {featured?.length ? (
+            <div className="w-[14.5rem] shrink-0 space-y-6 bg-[color:var(--landing-warm)] p-5 sm:p-6">
+              {featured.map((section) => (
+                <div key={section.title}>
+                  <p className="px-3 text-[13px] font-medium text-[color:var(--landing-ledger-ink)]">
+                    {section.title}
+                  </p>
+                  <div className="mt-2 space-y-1">
+                    {section.items.map((child) => (
+                      <MegaMenuLink
+                        key={`${section.title}-${child.href}-${child.name}`}
+                        child={child}
+                        pathname={pathname}
+                        tone="featured"
+                      />
+                    ))}
+                  </div>
+                </div>
+              ))}
             </div>
           ) : null}
         </div>
@@ -197,7 +201,7 @@ function MobileNavMenu({
   onNavigate: () => void;
 }) {
   const [expanded, setExpanded] = useState(() => isItemActive(pathname, item));
-  const links = getMenuChildLinks(item);
+  const groups = [...item.sections, ...(item.featured ?? [])];
 
   return (
     <div className="border-b border-[color:var(--landing-border)] last:border-b-0">
@@ -217,28 +221,37 @@ function MobileNavMenu({
         />
       </button>
       {expanded ? (
-        <div className="space-y-1 pb-3 pl-2">
-          {links.map((child) => (
-            <Link
-              key={`${item.name}-${child.href}-${child.name}`}
-              href={child.href}
-              className={cn(
-                "landing-focus block rounded-xl px-3 py-2.5",
-                isPathActive(pathname, child.href)
-                  ? "bg-[color:var(--landing-warm)]"
-                  : "hover:bg-[color:var(--landing-warm)]",
-              )}
-              onClick={onNavigate}
-            >
-              <span className="block text-sm font-semibold text-[color:var(--landing-ink)]">
-                {child.name}
-              </span>
-              {child.description ? (
-                <span className="mt-0.5 block text-xs leading-snug text-[color:var(--landing-ledger-ink)]">
-                  {child.description}
-                </span>
-              ) : null}
-            </Link>
+        <div className="space-y-4 pb-3 pl-2">
+          {groups.map((section) => (
+            <div key={section.title}>
+              <p className="px-3 text-xs font-medium text-[color:var(--landing-ledger-ink)]">
+                {section.title}
+              </p>
+              <div className="mt-1 space-y-1">
+                {section.items.map((child) => (
+                  <Link
+                    key={`${item.name}-${section.title}-${child.href}-${child.name}`}
+                    href={child.href}
+                    className={cn(
+                      "landing-focus block rounded-xl px-3 py-2.5",
+                      isPathActive(pathname, child.href)
+                        ? "bg-[color:var(--landing-warm)]"
+                        : "hover:bg-[color:var(--landing-warm)]",
+                    )}
+                    onClick={onNavigate}
+                  >
+                    <span className="block text-sm font-semibold text-[color:var(--landing-ink)]">
+                      {child.name}
+                    </span>
+                    {child.description ? (
+                      <span className="mt-0.5 block text-xs leading-snug text-[color:var(--landing-ledger-ink)]">
+                        {child.description}
+                      </span>
+                    ) : null}
+                  </Link>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       ) : null}

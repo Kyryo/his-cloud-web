@@ -17,6 +17,7 @@ import {
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -186,6 +187,11 @@ export function EditPayerDialog({
                         disabled={isSubmitting}
                       />
                     </FormControl>
+                    <FormDescription>
+                      Lets this payer use the registry&apos;s pre-configured
+                      claim rules and official payer code. Your name and code
+                      stay as you entered them.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

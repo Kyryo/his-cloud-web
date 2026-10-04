@@ -23,7 +23,11 @@ const FOOTER_COLUMNS = [
       { label: "Pricing", href: ROUTES.pricing },
       {
         label: "Blog",
-        href: process.env.NEXT_PUBLIC_BLOG_URL || "http://localhost:3001",
+        href: "https://blog.sigmahmis.com",
+      },
+      {
+        label: "Documentation",
+        href: "https://docs.sigmahmis.com",
       },
     ],
   },
