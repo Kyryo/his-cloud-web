@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { ROUTES } from "@/constants/routes";
@@ -43,6 +43,7 @@ import {
   type CreateCustomerFormValues,
 } from "@/features/customers/schemas/customer.schema";
 import { splitClientSearchName } from "@/features/customers/utils/format-customer";
+import type { CustomerRegistrationDraft } from "@/features/customers/utils/membership-registration";
 import { createCustomerAddress } from "@/features/customers/services/customer-addresses.service";
 import { createCustomerInsurance } from "@/features/customers/services/customer-insurance.service";
 import { createCustomerNote } from "@/features/customers/services/customer-notes.service";
@@ -61,6 +62,7 @@ type CreateCustomerDialogProps = {
   onOpenChange: (open: boolean) => void;
   onCreated: (customer: Customer) => void;
   initialName?: string;
+  registration?: CustomerRegistrationDraft | null;
   /** Save the client and return immediately — skip insurance, address, and notes. */
   mode?: "full" | "quick";
 };
@@ -86,6 +88,7 @@ export function CreateCustomerDialog({
   onOpenChange,
   onCreated,
   initialName = "",
+  registration = null,
   mode = "full",
 }: CreateCustomerDialogProps) {
   const router = useRouter();
@@ -119,6 +122,61 @@ export function CreateCustomerDialog({
     resolver: zodResolver(createCustomerNoteSchema),
     defaultValues: createCustomerNoteDefaultValues,
   });
+  const appliedRegistrationKey = useRef("");
+
+  const registrationKey = registration
+    ? [
+        registration.membershipNumber,
+        registration.suffix,
+        registration.firstName,
+        registration.lastName,
+      ].join("|")
+    : "";
+
+  useEffect(() => {
+    if (!open) {
+      appliedRegistrationKey.current = "";
+      return;
+    }
+    const key = registrationKey || "blank";
+    if (appliedRegistrationKey.current === key) {
+      return;
+    }
+    appliedRegistrationKey.current = key;
+    setActiveTab("personal");
+    setCreatedCustomer(null);
+    const searchedName = registration ? null : splitClientSearchName(initialName);
+    personalForm.reset({
+      ...createCustomerDefaultValues,
+      first_name: registration?.firstName || searchedName?.first_name || "",
+      middle_name: registration?.middleName || searchedName?.middle_name || "",
+      last_name: registration?.lastName || searchedName?.last_name || "",
+      gender: registration?.gender ?? createCustomerDefaultValues.gender,
+      dob: registration?.dob ?? "",
+      phone_number: registration?.phoneNumber ?? "",
+      email: registration?.email ?? "",
+    });
+    insuranceForm.reset({
+      ...createCustomerInsuranceDefaultValues,
+      membership_number: registration?.membershipNumber ?? "",
+      suffix: registration?.suffix ?? "",
+      is_principal_member: registration?.isPrincipalMember ?? false,
+      principal_member_name: registration?.principalMemberName ?? "",
+      relationship_to_principal_member: registration?.relationship ?? "",
+      is_primary: Boolean(registration?.membershipNumber),
+    });
+    addressForm.reset(createCustomerAddressDefaultValues);
+    notesForm.reset(createCustomerNoteDefaultValues);
+  }, [
+    addressForm,
+    initialName,
+    insuranceForm,
+    notesForm,
+    open,
+    personalForm,
+    registration,
+    registrationKey,
+  ]);
 
   const isCustomerCreated = Boolean(createdCustomer);
   const isCreatingCustomer = personalForm.formState.isSubmitting;
@@ -156,7 +214,23 @@ export function CreateCustomerDialog({
   }, [addressForm, insuranceForm, notesForm, personalForm]);
 
   const loadInsuranceSchemes = useCallback(async () => {
+    const hint = registration?.schemeName.trim().toLowerCase();
+    const applyScheme = (nextSchemes: InsuranceScheme[]) => {
+      if (!hint) {
+        return;
+      }
+      const match = nextSchemes.find((scheme) => {
+        const name = scheme.name.trim().toLowerCase();
+        const code = scheme.code.trim().toLowerCase();
+        return name === hint || code === hint;
+      });
+      if (match) {
+        insuranceForm.setValue("insurance_scheme", match.id);
+      }
+    };
+
     if (schemes.length > 0) {
+      applyScheme(schemes);
       return;
     }
 
@@ -164,6 +238,7 @@ export function CreateCustomerDialog({
       setIsLoadingSchemes(true);
       const nextSchemes = await fetchInsuranceSchemes();
       setSchemes(nextSchemes);
+      applyScheme(nextSchemes);
     } catch (error) {
       toast({
         variant: "error",
@@ -174,7 +249,7 @@ export function CreateCustomerDialog({
     } finally {
       setIsLoadingSchemes(false);
     }
-  }, [schemes.length, toast]);
+  }, [insuranceForm, registration?.schemeName, schemes, toast]);
 
   function handleTabChange(tabId: CreateCustomerTab) {
     setActiveTab(tabId);

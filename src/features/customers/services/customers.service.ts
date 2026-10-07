@@ -39,6 +39,10 @@ function buildCustomersQuery(filters: CustomerListFilters = {}): string {
     params.set("tags", filters.tags.join(","));
   }
 
+  if (filters.membershipNumber?.trim()) {
+    params.set("membership_number", filters.membershipNumber.trim());
+  }
+
   const query = params.toString();
   return query ? `?${query}` : "";
 }

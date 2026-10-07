@@ -27,11 +27,15 @@ const EVENT_SINGLE_DESCRIPTION: Record<string, string> = {
   needs_attention: "Review the findings before submitting this claim.",
   submitted: "The claim was submitted successfully.",
   requires_manual_submission: "This claim needs to be submitted manually.",
+  automation_completed:
+    "Clients were matched or registered and a visit was started for each one.",
+  automation_failed: "Some clients could not be processed.",
 };
 
 const MODULE_ALIASES: Record<string, { label: string; icon: AppIconName }> = {
   payments: { label: "Payments", icon: "creditCard" },
   laboratory: { label: "Laboratory", icon: "flask" },
+  customers: { label: "Clients", icon: "patient" },
 };
 
 function matchModuleKey(moduleName: string): string | undefined {

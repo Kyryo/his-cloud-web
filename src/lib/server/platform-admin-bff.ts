@@ -108,3 +108,20 @@ export async function platformAdminWrite<T>(
     return bffError(error);
   }
 }
+
+export async function platformAdminDelete(path: string) {
+  try {
+    const admin = await requirePlatformAdmin();
+    if ("error" in admin) {
+      return admin.error;
+    }
+
+    await hmisApiRequest(path, {
+      method: "DELETE",
+      token: admin.accessToken,
+    });
+    return bffSuccess({ ok: true }, 204);
+  } catch (error) {
+    return bffError(error);
+  }
+}

@@ -91,6 +91,22 @@ export type OrganizationService = {
   created_at: string;
 };
 
+export type RegistryPayerScheme = {
+  id: number;
+  uuid: string;
+  code: string;
+  name: string;
+  description: string;
+  is_active: boolean;
+};
+
+export type RegistryPayerSchemeCatalogItem = RegistryPayerScheme & {
+  payer_uuid: string;
+  payer_name: string;
+  payer_code: string;
+  country_code: string;
+};
+
 export type OrganizationPayerRegistryLink = {
   id: number;
   uuid: string;
@@ -100,6 +116,10 @@ export type OrganizationPayerRegistryLink = {
   display_name: string;
   status: string;
   integration_code: string;
+  capabilities?: string[];
+  has_claims_rules?: boolean;
+  schemes?: RegistryPayerScheme[];
+  is_active?: boolean;
 };
 
 export type OrganizationPayer = {
@@ -127,6 +147,9 @@ export type CountryPayer = {
   display_name: string;
   status: string;
   integration_code: string;
+  capabilities?: string[];
+  has_claims_rules?: boolean;
+  schemes?: RegistryPayerScheme[];
   needs_review: boolean;
   legacy_names: string[];
   is_active: boolean;
@@ -142,6 +165,7 @@ export type CountryPayerPolicy = {
   country_code: string;
   requires_admin_approval: boolean;
   is_active: boolean;
+  has_approved_payer?: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -271,6 +295,8 @@ export type OrganizationPayerScheme = {
   code: string;
   description: string;
   pricelist_id: number | null;
+  registry_scheme: number | null;
+  registry_scheme_name: string | null;
   is_active: boolean;
   created_at: string;
 };
@@ -281,12 +307,14 @@ export type CreateOrganizationPayerSchemePayload = {
   code: string;
   description?: string;
   pricelist_id?: number | null;
+  registry_scheme?: number | null;
   create_corresponding_pricelist?: boolean;
   is_active?: boolean;
 };
 
 export type UpdateOrganizationPayerSchemePayload = {
   is_active: boolean;
+  registry_scheme?: number | null;
 };
 
 export type OrganizationPricelist = {

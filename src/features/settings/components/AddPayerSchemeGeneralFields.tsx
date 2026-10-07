@@ -4,6 +4,7 @@ import type { UseFormReturn } from "react-hook-form";
 
 import {
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -39,7 +40,10 @@ export function AddPayerSchemeGeneralFields({
             <FormLabel>Payer</FormLabel>
             <Select
               value={field.value}
-              onValueChange={field.onChange}
+              onValueChange={(next) => {
+                field.onChange(next);
+                form.setValue("registry_scheme", "");
+              }}
               disabled={payers.length === 0}
             >
               <FormControl>
@@ -64,6 +68,59 @@ export function AddPayerSchemeGeneralFields({
             <FormMessage />
           </FormItem>
         )}
+      />
+
+      <FormField
+        control={form.control}
+        name="registry_scheme"
+        render={({ field }) => {
+          const payer = payers.find(
+            (item) => String(item.id) === form.watch("insurance_company"),
+          );
+          const registrySchemes = payer?.registry_payer_detail?.schemes ?? [];
+          const linked = Boolean(payer?.registry_payer);
+
+          return (
+            <FormItem>
+              <FormLabel>Link to registry scheme (optional)</FormLabel>
+              <Select
+                value={field.value || "__none__"}
+                onValueChange={(next) => {
+                  field.onChange(next === "__none__" ? "" : next);
+                }}
+                disabled={!linked || registrySchemes.length === 0}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        linked
+                          ? "Optional — link to a registry scheme"
+                          : "Link the payer to the registry first"
+                      }
+                    />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="__none__">Not linked</SelectItem>
+                  {registrySchemes.map((scheme) => (
+                    <SelectItem key={scheme.uuid} value={String(scheme.id)}>
+                      {scheme.name} ({scheme.code})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                {linked
+                  ? registrySchemes.length > 0
+                    ? "Attaches this plan to a scheme on the payer's registry entry. Your name and code stay as you entered them."
+                    : "This registry payer has no schemes yet."
+                  : "Link this payer to a registry payer before attaching a registry scheme."}
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          );
+        }}
       />
 
       <FormField

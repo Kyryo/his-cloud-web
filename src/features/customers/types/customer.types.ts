@@ -51,6 +51,7 @@ export type CustomerListFilters = {
   isActive?: boolean;
   ordering?: string;
   tags?: string[];
+  membershipNumber?: string;
 };
 
 export type CreateCustomerPayload = {

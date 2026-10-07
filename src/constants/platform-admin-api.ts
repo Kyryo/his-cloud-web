@@ -36,10 +36,15 @@ export const PLATFORM_ADMIN_API_PATHS = {
   backupDownload: (backupUuid: string) =>
     `/platform-admin/backups/${backupUuid}/download/`,
   payerRegistry: "/platform-admin/payer-registry/",
+  payerRegistrySchemesCatalog: "/platform-admin/payer-registry/schemes/",
   payerRegistryDetail: (uuid: string) =>
     `/platform-admin/payer-registry/${uuid}/`,
   payerRegistryReview: (uuid: string) =>
     `/platform-admin/payer-registry/${uuid}/review/`,
+  payerRegistrySchemes: (uuid: string) =>
+    `/platform-admin/payer-registry/${uuid}/schemes/`,
+  payerRegistrySchemeDetail: (uuid: string, schemeUuid: string) =>
+    `/platform-admin/payer-registry/${uuid}/schemes/${schemeUuid}/`,
   payerPolicies: "/platform-admin/payer-policies/",
   payerPolicyDetail: (uuid: string) =>
     `/platform-admin/payer-policies/${uuid}/`,

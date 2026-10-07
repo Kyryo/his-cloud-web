@@ -5,6 +5,7 @@ export const createOrganizationPayerSchemeSchema = z.object({
   name: z.string().trim().min(1, "Name is required"),
   code: z.string().trim().min(1, "Code is required"),
   description: z.string().trim().optional(),
+  registry_scheme: z.string().optional(),
   create_corresponding_pricelist: z.boolean(),
 });
 
@@ -18,6 +19,7 @@ export const createOrganizationPayerSchemeDefaultValues: CreateOrganizationPayer
     name: "",
     code: "",
     description: "",
+    registry_scheme: "",
     create_corresponding_pricelist: true,
   };
 
@@ -31,6 +33,9 @@ export function toCreateOrganizationPayerSchemePayload(
     name: values.name.trim(),
     code: values.code.trim(),
     description: values.description?.trim() || "",
+    registry_scheme: values.registry_scheme
+      ? Number(values.registry_scheme)
+      : null,
     create_corresponding_pricelist: createPricelist,
     is_active: createPricelist,
   };

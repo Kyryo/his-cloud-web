@@ -21,7 +21,13 @@ type OrganizationPayerSchemesTabProps = {
 };
 
 function schemeMeta(scheme: OrganizationPayerScheme) {
-  return [scheme.insurance_company_name, scheme.code]
+  return [
+    scheme.insurance_company_name,
+    scheme.code,
+    scheme.registry_scheme_name
+      ? `Registry: ${scheme.registry_scheme_name}`
+      : "",
+  ]
     .filter((value) => Boolean(value))
     .join(" · ");
 }
@@ -184,6 +190,7 @@ export function OrganizationPayerSchemesTab({
 
       <UpdatePayerSchemeStatusDialog
         scheme={editingScheme}
+        payers={payers}
         open={editingScheme != null}
         onOpenChange={(open) => {
           if (!open) {

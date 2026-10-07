@@ -13,9 +13,20 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { updateOrganizationPayerScheme } from "@/features/settings/services/settings.service";
-import type { OrganizationPayerScheme } from "@/features/settings/types/settings.types";
+import type {
+  OrganizationPayer,
+  OrganizationPayerScheme,
+  RegistryPayerScheme,
+} from "@/features/settings/types/settings.types";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
@@ -24,24 +35,59 @@ import { useToast } from "@/providers/toast-provider";
 
 type UpdatePayerSchemeStatusDialogProps = {
   scheme: OrganizationPayerScheme | null;
+  payers: OrganizationPayer[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdated: (scheme: OrganizationPayerScheme) => void;
 };
 
+function registrySchemeChoices(
+  scheme: OrganizationPayerScheme | null,
+  payers: OrganizationPayer[],
+): { linked: boolean; schemes: RegistryPayerScheme[] } {
+  const payer = payers.find((item) => item.id === scheme?.insurance_company);
+  const schemes = [...(payer?.registry_payer_detail?.schemes ?? [])];
+  if (
+    scheme?.registry_scheme != null &&
+    !schemes.some((item) => item.id === scheme.registry_scheme)
+  ) {
+    schemes.unshift({
+      id: scheme.registry_scheme,
+      uuid: `current-${scheme.registry_scheme}`,
+      code: "",
+      name: scheme.registry_scheme_name ?? "Linked scheme",
+      description: "",
+      is_active: true,
+    });
+  }
+  return {
+    linked: Boolean(payer?.registry_payer),
+    schemes,
+  };
+}
+
 export function UpdatePayerSchemeStatusDialog({
   scheme,
+  payers,
   open,
   onOpenChange,
   onUpdated,
 }: UpdatePayerSchemeStatusDialogProps) {
   const { toast } = useToast();
   const [isActive, setIsActive] = useState(false);
+  const [registrySchemeId, setRegistrySchemeId] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const { linked, schemes: registrySchemes } = registrySchemeChoices(
+    scheme,
+    payers,
+  );
 
   useEffect(() => {
     if (open && scheme) {
       setIsActive(scheme.is_active);
+      setRegistrySchemeId(
+        scheme.registry_scheme != null ? String(scheme.registry_scheme) : "",
+      );
     }
   }, [open, scheme]);
 
@@ -50,7 +96,9 @@ export function UpdatePayerSchemeStatusDialog({
       return;
     }
 
-    if (isActive === scheme.is_active) {
+    const currentRegistryId =
+      scheme.registry_scheme != null ? String(scheme.registry_scheme) : "";
+    if (isActive === scheme.is_active && registrySchemeId === currentRegistryId) {
       onOpenChange(false);
       return;
     }
@@ -59,11 +107,12 @@ export function UpdatePayerSchemeStatusDialog({
     try {
       const updated = await updateOrganizationPayerScheme(scheme.uuid, {
         is_active: isActive,
+        registry_scheme: registrySchemeId ? Number(registrySchemeId) : null,
       });
       toast({
         variant: "success",
         title: "Scheme updated",
-        description: `${updated.name} is now ${updated.is_active ? "on" : "off"}.`,
+        description: `${updated.name} was saved.`,
       });
       onUpdated(updated);
       onOpenChange(false);
@@ -90,10 +139,10 @@ export function UpdatePayerSchemeStatusDialog({
         data-testid="update-payer-scheme-status-dialog"
       >
         <DialogHeader>
-          <DialogTitle>Update scheme status</DialogTitle>
+          <DialogTitle>Update scheme</DialogTitle>
           <DialogDescription>
-            Turn {scheme?.name ?? "this scheme"} on or off for billing and
-            membership workflows.
+            Turn {scheme?.name ?? "this scheme"} on or off, and optionally
+            attach a scheme from the payer registry.
           </DialogDescription>
         </DialogHeader>
 
@@ -130,6 +179,42 @@ export function UpdatePayerSchemeStatusDialog({
               onCheckedChange={setIsActive}
               data-testid="payer-scheme-active-switch"
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="payer-scheme-registry">Registry scheme</Label>
+            <Select
+              value={registrySchemeId || "__none__"}
+              onValueChange={(next) => {
+                setRegistrySchemeId(next === "__none__" ? "" : next);
+              }}
+              disabled={isSaving || !linked || registrySchemes.length === 0}
+            >
+              <SelectTrigger id="payer-scheme-registry">
+                <SelectValue
+                  placeholder={
+                    linked
+                      ? "Optional — link to a registry scheme"
+                      : "Link the payer to the registry first"
+                  }
+                />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__none__">Not linked</SelectItem>
+                {registrySchemes.map((item) => (
+                  <SelectItem key={item.uuid} value={String(item.id)}>
+                    {item.code ? `${item.name} (${item.code})` : item.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-brand-muted">
+              {linked
+                ? registrySchemes.length > 0
+                  ? "Attaches this plan to a scheme on the payer's registry entry. The scheme name and code stay as they are."
+                  : "This registry payer has no schemes yet."
+                : "Link this payer to a registry payer before attaching a registry scheme."}
+            </p>
           </div>
         </div>
 

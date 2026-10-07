@@ -354,6 +354,19 @@ export async function fetchPlatformAdminPayerRegistry(
   );
 }
 
+export async function createPlatformAdminPayer(payload: {
+  country_code: string;
+  code: string;
+  official_name: string;
+  display_name?: string;
+  integration_code?: string;
+}): Promise<import("@/features/settings/types/settings.types").CountryPayer> {
+  return bffRequest(BFF_PLATFORM_ADMIN_ROUTES.payerRegistry, {
+    method: "POST",
+    body: payload,
+  });
+}
+
 export async function reviewPlatformAdminPayerRegistry(
   uuid: string,
   payload: { approve: boolean; review_note?: string },
@@ -364,13 +377,99 @@ export async function reviewPlatformAdminPayerRegistry(
   });
 }
 
-export async function fetchPlatformAdminPayerPolicies(): Promise<
+export async function fetchPlatformAdminPayerSchemes(
+  payerUuid: string,
+): Promise<
+  PlatformAdminListResponse<
+    import("@/features/settings/types/settings.types").RegistryPayerScheme
+  >
+> {
+  return bffRequest(
+    `${BFF_PLATFORM_ADMIN_ROUTES.payerRegistrySchemes(payerUuid)}?page_size=100&ordering=name`,
+  );
+}
+
+export async function createPlatformAdminPayerScheme(
+  payerUuid: string,
+  payload: { code: string; name: string; description?: string },
+): Promise<import("@/features/settings/types/settings.types").RegistryPayerScheme> {
+  return bffRequest(BFF_PLATFORM_ADMIN_ROUTES.payerRegistrySchemes(payerUuid), {
+    method: "POST",
+    body: payload,
+  });
+}
+
+export async function fetchPlatformAdminPayerPolicies(
+  options: { page?: number; pageSize?: number } = {},
+): Promise<
   PlatformAdminListResponse<
     import("@/features/settings/types/settings.types").CountryPayerPolicy
   >
 > {
+  const params = new URLSearchParams();
+  params.set("page", String(options.page ?? 1));
+  params.set("page_size", String(options.pageSize ?? 8));
+  return bffRequest(`${BFF_PLATFORM_ADMIN_ROUTES.payerPolicies}?${params}`);
+}
+
+export async function fetchPlatformAdminPayerSchemeCatalog(
+  options: { page?: number; pageSize?: number; search?: string } = {},
+): Promise<
+  PlatformAdminListResponse<
+    import("@/features/settings/types/settings.types").RegistryPayerSchemeCatalogItem
+  >
+> {
+  const params = new URLSearchParams();
+  params.set("page", String(options.page ?? 1));
+  params.set("page_size", String(options.pageSize ?? 8));
+  if (options.search?.trim()) {
+    params.set("search", options.search.trim());
+  }
   return bffRequest(
-    `${BFF_PLATFORM_ADMIN_ROUTES.payerPolicies}?page_size=100&ordering=country_code`,
+    `${BFF_PLATFORM_ADMIN_ROUTES.payerRegistrySchemesCatalog}?${params}`,
+  );
+}
+
+export async function updatePlatformAdminPayer(
+  uuid: string,
+  payload: {
+    official_name?: string;
+    display_name?: string;
+    integration_code?: string;
+    capabilities?: string[];
+    status?: string;
+    is_active?: boolean;
+  },
+): Promise<import("@/features/settings/types/settings.types").CountryPayer> {
+  return bffRequest(BFF_PLATFORM_ADMIN_ROUTES.payerRegistryDetail(uuid), {
+    method: "PATCH",
+    body: payload,
+  });
+}
+
+export async function updatePlatformAdminPayerScheme(
+  payerUuid: string,
+  schemeUuid: string,
+  payload: {
+    code?: string;
+    name?: string;
+    description?: string;
+    is_active?: boolean;
+  },
+): Promise<import("@/features/settings/types/settings.types").RegistryPayerScheme> {
+  return bffRequest(
+    BFF_PLATFORM_ADMIN_ROUTES.payerRegistrySchemeDetail(payerUuid, schemeUuid),
+    { method: "PATCH", body: payload },
+  );
+}
+
+export async function deletePlatformAdminPayerScheme(
+  payerUuid: string,
+  schemeUuid: string,
+): Promise<void> {
+  await bffRequest(
+    BFF_PLATFORM_ADMIN_ROUTES.payerRegistrySchemeDetail(payerUuid, schemeUuid),
+    { method: "DELETE" },
   );
 }
 

@@ -2,6 +2,7 @@
 
 import { AppIcon } from "@/components/icons/app-icon";
 import { PageActionButton } from "@/components/ui/app-buttons";
+import { Button } from "@/components/ui/button";
 import { ACTIONS } from "@/constants/copy";
 import { ListPageHeaderSection } from "@/features/app-shell/components/page-layout";
 import { CustomerListToolbar } from "@/features/customers/components/CustomerListToolbar";
@@ -24,6 +25,7 @@ type CustomersPageHeaderProps = {
     >,
   ) => void;
   onAddClient: () => void;
+  onSearchMembership?: () => void;
 };
 
 export function CustomersPageHeader({
@@ -35,6 +37,7 @@ export function CustomersPageHeader({
   onClearSearch,
   onFiltersApply,
   onAddClient,
+  onSearchMembership,
 }: CustomersPageHeaderProps) {
   return (
     <ListPageHeaderSection>
@@ -47,13 +50,28 @@ export function CustomersPageHeader({
         onClearSearch={onClearSearch}
         onFiltersApply={onFiltersApply}
         trailing={
-          <PageActionButton
-            onClick={onAddClient}
-            data-testid="add-client-button"
-          >
-            <AppIcon name="add" className="size-3.5" />
-            <span>{ACTIONS.registerClient}</span>
-          </PageActionButton>
+          <div className="flex items-center gap-2">
+            {onSearchMembership ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-8 gap-1 rounded-lg px-2"
+                aria-label="Search and add by membership number"
+                data-testid="membership-search-button"
+                onClick={onSearchMembership}
+              >
+                <AppIcon name="search" size={14} />
+                <AppIcon name="add" size={14} />
+              </Button>
+            ) : null}
+            <PageActionButton
+              onClick={onAddClient}
+              data-testid="add-client-button"
+            >
+              <AppIcon name="add" className="size-3.5" />
+              <span>{ACTIONS.registerClient}</span>
+            </PageActionButton>
+          </div>
         }
       />
     </ListPageHeaderSection>

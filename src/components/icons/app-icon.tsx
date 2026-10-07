@@ -44,6 +44,7 @@ import {
   UserIcon,
   UserMultipleIcon,
   Wallet01Icon,
+  WorkflowSquare01Icon,
 } from "@hugeicons/core-free-icons";
 
 const APP_ICONS = {
@@ -86,6 +87,7 @@ const APP_ICONS = {
   user: UserIcon,
   users: UserMultipleIcon,
   wallet: Wallet01Icon,
+  automation: WorkflowSquare01Icon,
   chevronRight: ArrowRight01Icon,
   chevronUpDown: UnfoldMoreIcon,
 } as const;

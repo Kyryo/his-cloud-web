@@ -36,6 +36,11 @@ export const CLAIMS_API_PATHS = {
     `/eclaims/integrations/payers/${payer}/clinics/${clinicId}/`,
   clinicPortalCredentials: (payer: string, clinicId: number | string) =>
     `/eclaims/integrations/payers/${payer}/clinics/${clinicId}/portal-credentials/`,
+  clinicMemberSearch: (payer: string, clinicId: number | string) =>
+    `/eclaims/integrations/payers/${encodeURIComponent(payer)}/clinics/${clinicId}/members/`,
+  memberVisitAutomation: "/eclaims/member-visit-automation/",
+  clinicMemberVisitAutomation: (payer: string, clinicId: number | string) =>
+    `/eclaims/integrations/payers/${encodeURIComponent(payer)}/clinics/${clinicId}/member-visit-automation/`,
   tariffCategories: "/claims-rules/tariff-categories/",
   validationPacks: "/claims-rules/packs/",
   pricelistConfig: (pricelistUuid: string) =>

@@ -3,6 +3,7 @@
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { AppCommandMenu } from "@/features/app-shell/components/AppCommandMenu";
 import { AppHeaderNotifications } from "@/features/app-shell/components/AppHeaderNotifications";
+import { MemberVisitAutomationStatus } from "@/features/customers/components/MemberVisitAutomationStatus";
 
 export function AppHeader() {
   return (
@@ -14,7 +15,10 @@ export function AppHeader() {
         <SidebarTrigger className="md:hidden" />
         <AppCommandMenu />
       </div>
-      <AppHeaderNotifications />
+      <div className="flex items-center gap-1">
+        <MemberVisitAutomationStatus />
+        <AppHeaderNotifications />
+      </div>
     </header>
   );
 }

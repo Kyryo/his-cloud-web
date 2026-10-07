@@ -8,6 +8,7 @@ import { FabButton } from "@/components/ui/fab-button";
 import { Button } from "@/components/ui/button";
 import { CreateAppointmentDialog } from "@/features/appointments/components/CreateAppointmentDialog";
 import { CreateCustomerDialog } from "@/features/customers/components/CreateCustomerDialog";
+import { MembershipSearchDialog } from "@/features/customers/components/MembershipSearchDialog";
 import { CustomerSummaryStatsCards } from "@/features/customers/components/CustomerSummaryStats";
 import { CustomersEmptyState } from "@/features/customers/components/CustomersEmptyState";
 import { CustomersPageHeader } from "@/features/customers/components/CustomersPageHeader";
@@ -16,6 +17,14 @@ import { CustomersTableSkeleton } from "@/features/customers/components/Customer
 import { CustomerVisitDialog } from "@/features/customers/components/detail/CustomerVisitDialog";
 import { UpdateCustomerDialog } from "@/features/customers/components/UpdateCustomerDialog";
 import { fetchCustomers } from "@/features/customers/services/customers.service";
+import { fetchOrganizationPayers } from "@/features/settings/services/settings.service";
+import { membershipSearchPayers, type MembershipSearchPayer } from "@/features/customers/utils/membership-search-payers";
+import { toCustomerRegistrationDraft, type CustomerRegistrationDraft } from "@/features/customers/utils/membership-registration";
+import type { PayerMember } from "@/features/customers/types/payer-member.types";
+import { resolveInitialClinicId } from "@/features/app-shell/utils/workspace-clinics";
+import { useWorkspaceStore } from "@/state/workspace.store";
+import { useUser } from "@/providers/user-provider";
+import { useToast } from "@/providers/toast-provider";
 import type { Customer } from "@/features/customers/types/customer.types";
 import {
   buildCustomerListFilters,
@@ -55,6 +64,9 @@ const DEFAULT_PAGE_SIZE = 20;
 export function CustomersListPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { userData } = useUser();
+  const activeClinicId = useWorkspaceStore((state) => state.activeClinicId);
+  const clinicId = activeClinicId ?? resolveInitialClinicId(userData);
   const urlSearch = searchParams.get(CUSTOMER_SEARCH_PARAM) ?? "";
   const page = parseListPage(searchParams.get(CUSTOMER_PAGE_PARAM));
   const gender = parseCustomerGender(searchParams.get(CUSTOMER_GENDER_PARAM));
@@ -75,6 +87,13 @@ export function CustomersListPage() {
   const [isStatsLoading, setIsStatsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isUnauthorized, setIsUnauthorized] = useState(false);
+  const { toast } = useToast();
+  const [membershipSearchOpen, setMembershipSearchOpen] = useState(false);
+  const [membershipPayers, setMembershipPayers] = useState<MembershipSearchPayer[]>(
+    [],
+  );
+  const [registrationDraft, setRegistrationDraft] =
+    useState<CustomerRegistrationDraft | null>(null);
   const [visitCustomer, setVisitCustomer] = useState<Customer | null>(null);
   const [appointmentCustomer, setAppointmentCustomer] = useState<Customer | null>(
     null,
@@ -131,8 +150,42 @@ export function CustomersListPage() {
   );
 
   const handleAddClient = useCallback(() => {
+    setRegistrationDraft(null);
     replaceList({ newClient: true });
   }, [replaceList]);
+
+  const handleMemberSelected = useCallback(
+    async (member: PayerMember, payerCode: string) => {
+      const membershipNumber = member.membership_number?.trim() ?? "";
+      if (!membershipNumber) {
+        return;
+      }
+      try {
+        const response = await fetchCustomers({
+          membershipNumber,
+          pageSize: 5,
+        });
+        const existing = response.results[0];
+        setMembershipSearchOpen(false);
+        if (existing) {
+          router.push(ROUTES.customerDetail(existing.uuid));
+          return;
+        }
+        setRegistrationDraft(toCustomerRegistrationDraft(member, payerCode));
+        replaceList({ newClient: true });
+      } catch (lookupError) {
+        toast({
+          variant: "error",
+          title: "Could not open the client",
+          description:
+            lookupError instanceof Error
+              ? lookupError.message
+              : "Something went wrong.",
+        });
+      }
+    },
+    [replaceList, router, toast],
+  );
 
   const handleCustomerCreated = useCallback(
     (customer: Customer) => {
@@ -166,6 +219,24 @@ export function CustomersListPage() {
       setIsRefreshing(false);
     }
   }, [listFilters]);
+
+  useEffect(() => {
+    let active = true;
+    void fetchOrganizationPayers()
+      .then((response) => {
+        if (active) {
+          setMembershipPayers(membershipSearchPayers(response.results));
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setMembershipPayers([]);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -305,14 +376,28 @@ export function CustomersListPage() {
         onClearSearch={handleClearSearch}
         onFiltersApply={handleFiltersApply}
         onAddClient={handleAddClient}
+        onSearchMembership={
+          membershipPayers.length > 0
+            ? () => setMembershipSearchOpen(true)
+            : undefined
+        }
+      />
+      <MembershipSearchDialog
+        open={membershipSearchOpen}
+        payers={membershipPayers}
+        clinicId={clinicId}
+        onOpenChange={setMembershipSearchOpen}
+        onSelectMember={handleMemberSelected}
       />
       <CreateCustomerDialog
         open={createDialogOpen}
+        registration={registrationDraft}
         onOpenChange={(open) => {
           if (open) {
             replaceList({ newClient: true });
             return;
           }
+          setRegistrationDraft(null);
           replaceList({ newClient: false });
         }}
         onCreated={handleCustomerCreated}

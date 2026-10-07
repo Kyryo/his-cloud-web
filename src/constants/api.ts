@@ -482,6 +482,11 @@ export const BFF_CLAIMS_ROUTES = {
     `/api/integrations/eclaims/masm/clinics/${clinicId}`,
   clinicPortalCredentials: (clinicId: number | string) =>
     `/api/integrations/eclaims/masm/clinics/${clinicId}/portal-credentials`,
+  clinicMemberSearch: (payer: string, clinicId: number | string) =>
+    `/api/integrations/eclaims/payers/${encodeURIComponent(payer)}/clinics/${clinicId}/members`,
+  memberVisitAutomation: "/api/integrations/eclaims/member-visit-automation",
+  clinicMemberVisitAutomation: (payer: string, clinicId: number | string) =>
+    `/api/integrations/eclaims/payers/${encodeURIComponent(payer)}/clinics/${clinicId}/member-visit-automation`,
   practitionerMappings: "/api/integrations/eclaims/practitioner-mappings",
   practitionerMappingsUpsert:
     "/api/integrations/eclaims/practitioner-mappings/upsert",
@@ -765,10 +770,15 @@ export const BFF_PLATFORM_ADMIN_ROUTES = {
   backupDownload: (backupUuid: string) =>
     `/api/platform-admin/backups/${backupUuid}/download`,
   payerRegistry: "/api/platform-admin/payer-registry",
+  payerRegistrySchemesCatalog: "/api/platform-admin/payer-registry/schemes",
   payerRegistryDetail: (uuid: string) =>
     `/api/platform-admin/payer-registry/${uuid}`,
   payerRegistryReview: (uuid: string) =>
     `/api/platform-admin/payer-registry/${uuid}/review`,
+  payerRegistrySchemes: (uuid: string) =>
+    `/api/platform-admin/payer-registry/${uuid}/schemes`,
+  payerRegistrySchemeDetail: (uuid: string, schemeUuid: string) =>
+    `/api/platform-admin/payer-registry/${uuid}/schemes/${schemeUuid}`,
   payerPolicies: "/api/platform-admin/payer-policies",
   payerPolicyDetail: (uuid: string) =>
     `/api/platform-admin/payer-policies/${uuid}`,
