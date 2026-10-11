@@ -135,6 +135,11 @@
     background-color: var(--landing-clay);
   }
 
+  [data-brand-page] ::selection {
+    background-color: color-mix(in srgb, var(--landing-teal) 32%, white);
+    color: var(--landing-ink);
+  }
+
   [data-brand-page] .landing-body {
     font-family: var(--font-landing-body), ui-sans-serif, system-ui, sans-serif;
   }

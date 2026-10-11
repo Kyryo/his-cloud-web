@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { OrganizationPayerSchemesTab } from "@/features/settings/components/OrganizationPayerSchemesTab";
@@ -14,8 +15,18 @@ const tabs: Array<{ id: FinanceOperationsTabId; label: string }> = [
   { id: "pricelists", label: "Pricelists" },
 ];
 
+function financeTabFromSearch(value: string | null): FinanceOperationsTabId {
+  if (tabs.some((tab) => tab.id === value)) {
+    return value as FinanceOperationsTabId;
+  }
+  return "payers";
+}
+
 export function FinanceOperationsSettingsTabs() {
-  const [activeTab, setActiveTab] = useState<FinanceOperationsTabId>("payers");
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState<FinanceOperationsTabId>(() =>
+    financeTabFromSearch(searchParams.get("tab")),
+  );
 
   return (
     <div>

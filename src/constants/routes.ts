@@ -23,10 +23,10 @@ export const ROUTES = {
   platformAdminResourcesSales: "/platform-admin/resources/sales",
   platformAdminSalesPlaybook: "/platform-admin/resources/sales/playbook",
   customers: "/customers",
-  /** Clinic home: recent activity and clients. */
+  /** Clinic home workspace. */
   overview: "/overview",
   /** Default destination after successful sign-in / sign-up. */
-  postAuth: "/customers",
+  postAuth: "/overview",
   contacts: "/contacts",
   ourProducts: "/our-products",
   pricing: "/pricing",

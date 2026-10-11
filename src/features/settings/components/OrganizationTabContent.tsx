@@ -99,19 +99,24 @@ export function groupByClinicName<T>(
 export function OrganizationClinicGroup({
   title,
   count,
+  action,
   children,
 }: {
   title: string;
   count: number;
+  action?: ReactNode;
   children: ReactNode;
 }) {
   return (
     <div>
-      <div className="flex items-baseline justify-between gap-3 pb-1">
+      <div className="flex items-center justify-between gap-3 pb-1">
         <h4 className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400">
           {title}
         </h4>
-        <p className="text-xs text-slate-400">{count}</p>
+        <div className="flex items-center gap-3">
+          {action}
+          <p className="text-xs text-slate-400">{count}</p>
+        </div>
       </div>
       <ul className="divide-y divide-brand-border">{children}</ul>
     </div>

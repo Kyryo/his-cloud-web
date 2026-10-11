@@ -16,7 +16,22 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const initialize = useSessionStore((state) => state.initialize);
 
   useEffect(() => {
-    void initialize();
+    let active = true;
+
+    void (async () => {
+      await initialize();
+      if (!active || useSessionStore.getState().status !== "ready") {
+        return;
+      }
+
+      // Signup stores the account before module groups exist. Reload used to
+      // be the first time the shell read them. Refresh once the shell mounts.
+      await useSessionStore.getState().refreshUser();
+    })();
+
+    return () => {
+      active = false;
+    };
   }, [initialize]);
 
   useEffect(() => {

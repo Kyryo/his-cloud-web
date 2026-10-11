@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
@@ -35,6 +36,9 @@ function schemeMeta(scheme: OrganizationPayerScheme) {
 export function OrganizationPayerSchemesTab({
   isActive,
 }: OrganizationPayerSchemesTabProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [payers, setPayers] = useState<OrganizationPayer[]>([]);
   const [schemes, setSchemes] = useState<OrganizationPayerScheme[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -45,6 +49,18 @@ export function OrganizationPayerSchemesTab({
     useState<OrganizationPayerScheme | null>(null);
 
   const canAddScheme = payers.length > 0;
+
+  useEffect(() => {
+    if (!isActive || searchParams.get("add") !== "scheme") {
+      return;
+    }
+
+    setAddSchemeDialogOpen(true);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("add");
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [isActive, pathname, router, searchParams]);
 
   useEffect(() => {
     if (!isActive) {

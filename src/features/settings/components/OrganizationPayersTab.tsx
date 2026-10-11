@@ -1,6 +1,7 @@
 "use client";
 
 import { Link2, Link2Off } from "lucide-react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -46,6 +47,9 @@ function PayerRegistryBadge({ payer }: { payer: OrganizationPayer }) {
 }
 
 export function OrganizationPayersTab({ isActive }: OrganizationPayersTabProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [payers, setPayers] = useState<OrganizationPayer[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -53,6 +57,18 @@ export function OrganizationPayersTab({ isActive }: OrganizationPayersTabProps) 
   const [addPayerDialogOpen, setAddPayerDialogOpen] = useState(false);
   const [editingPayer, setEditingPayer] = useState<OrganizationPayer | null>(null);
   const [statusPayer, setStatusPayer] = useState<OrganizationPayer | null>(null);
+
+  useEffect(() => {
+    if (!isActive || searchParams.get("add") !== "payer") {
+      return;
+    }
+
+    setAddPayerDialogOpen(true);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("add");
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [isActive, pathname, router, searchParams]);
 
   useEffect(() => {
     if (!isActive) {

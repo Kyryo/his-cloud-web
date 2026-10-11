@@ -20,7 +20,7 @@ type CommandPaletteAccessOptions = {
 };
 
 function effectiveGroups(userGroups: string[]) {
-  return userGroups.length > 0 ? userGroups : ["Registration"];
+  return userGroups;
 }
 
 function moduleEnabled(

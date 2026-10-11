@@ -18,10 +18,7 @@ import {
 } from "@/features/auth/components/FloatingLabelField";
 import { PasswordStrengthMeter } from "@/features/auth/components/PasswordStrengthMeter";
 import { SignupEmailConfirmStep } from "@/features/auth/components/SignupEmailConfirmStep";
-import {
-  DEFAULT_SIGNUP_MODULE_IDS,
-  moduleIdsToGroupNames,
-} from "@/features/auth/constants/onboarding-modules";
+import { SIGNUP_BASELINE_MODULES } from "@/features/auth/constants/signup-departments";
 import {
   markAuthenticatedSession,
   requestSignupOtp,
@@ -63,8 +60,6 @@ const STEP_COPY = {
       "We sent a 6-digit code to your inbox. Enter it below to verify ownership.",
   },
 } as const;
-
-const DEFAULT_SIGNUP_GROUPS = moduleIdsToGroupNames([...DEFAULT_SIGNUP_MODULE_IDS]);
 
 
 function WizardFooter({
@@ -248,9 +243,16 @@ export function SignUpForm() {
         country: profile.country?.trim() || undefined,
         verification_token: verified.verification_token,
       });
-      await configureOnboardingModules(DEFAULT_SIGNUP_GROUPS);
-      useSessionStore.getState().hydrate(signup.user);
+      await configureOnboardingModules([...SIGNUP_BASELINE_MODULES]);
       markAuthenticatedSession();
+      await useSessionStore.getState().refreshUser();
+      if (!useSessionStore.getState().user?.groups?.length) {
+        await useSessionStore.getState().refreshUser();
+      }
+      if (!useSessionStore.getState().user) {
+        useSessionStore.getState().hydrate(signup.user);
+      }
+      router.refresh();
       router.push(ROUTES.postAuth);
     } catch (error) {
       setOtpCode("");

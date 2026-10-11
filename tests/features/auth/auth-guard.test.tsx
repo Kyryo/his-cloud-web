@@ -24,7 +24,7 @@ vi.mock("next/image", () => ({
   },
 }));
 
-import { bootstrapSession } from "@/features/auth/services/auth.service";
+import { bootstrapSession, getCurrentUser } from "@/features/auth/services/auth.service";
 
 const user = {
   id: 1,
@@ -52,6 +52,7 @@ describe("AuthGuard", () => {
   beforeEach(() => {
     useSessionStore.getState().reset();
     vi.clearAllMocks();
+    vi.mocked(getCurrentUser).mockResolvedValue(user);
   });
 
   afterEach(() => {

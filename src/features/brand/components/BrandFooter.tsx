@@ -55,9 +55,10 @@ export function BrandFooter() {
               showWordmark
               imageClassName="h-9 w-auto sm:h-10"
             />
-            <p className="landing-body mt-5 max-w-[28ch] text-sm leading-relaxed text-[color:var(--landing-ledger-ink)]">
-              Billing, claims, and payments in one place — so clinics collect
-              what they already earned.
+            <p className="landing-body mt-5 max-w-[36ch] text-sm leading-relaxed text-[color:var(--landing-ledger-ink)]">
+              Sigma is a hospital management system that bills patients,
+              submits insurance claims automatically, and tracks every payment
+              until you&apos;re paid fully.
             </p>
           </div>
 

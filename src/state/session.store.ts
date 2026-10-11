@@ -65,6 +65,10 @@ export const useSessionStore = create<SessionState>((set, get) => ({
       return;
     }
 
+    if (get().user) {
+      return;
+    }
+
     get().reset();
   },
   reset: () => {

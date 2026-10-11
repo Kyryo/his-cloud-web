@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { ROUTES } from "@/constants/routes";
 import {
+  canAccessAppPath,
   filterNavigation,
   hasNavAccess,
   type NavigationItem,
@@ -114,5 +115,23 @@ describe("navigation module entitlements", () => {
         enabledModules: ["Therapy"],
       }),
     ).toBe(true);
+  });
+
+  it("keeps the client directory on the Front Desk group", () => {
+    const modules = ["Registration", "Billing"];
+    expect(canAccessAppPath(ROUTES.customers, ["Billing"], modules)).toBe(
+      false,
+    );
+    expect(canAccessAppPath(`${ROUTES.customers}/abc`, [], modules)).toBe(
+      false,
+    );
+    expect(
+      canAccessAppPath(ROUTES.customers, ["Registration"], modules),
+    ).toBe(true);
+    expect(
+      filterNavigation([], { enabledModules: modules }).some(
+        (item) => item.href === ROUTES.customers,
+      ),
+    ).toBe(false);
   });
 });

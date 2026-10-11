@@ -1,14 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 import { TabbedDialog } from "@/components/ui/tabbed-dialog";
 import { AddPayerSchemeGeneralFields } from "@/features/settings/components/AddPayerSchemeGeneralFields";
 import { AddPayerSchemePricelistFields } from "@/features/settings/components/AddPayerSchemePricelistFields";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
+import { SetupSaveActions } from "@/components/ui/setup-save-actions";
+import { useOnboardingReturn } from "@/features/overview/hooks/use-onboarding-return";
 import { Form } from "@/components/ui/form";
 import {
   createOrganizationPayerSchemeDefaultValues,
@@ -56,6 +57,8 @@ export function AddPayerSchemeDialog({
     defaultValues: createOrganizationPayerSchemeDefaultValues,
   });
 
+  const { finishSetup } = useOnboardingReturn();
+  const addAnotherRef = useRef(false);
   const isSubmitting = form.formState.isSubmitting;
 
   const resetDialogState = useCallback(() => {
@@ -83,6 +86,8 @@ export function AddPayerSchemeDialog({
   }
 
   async function handleSubmit(values: CreateOrganizationPayerSchemeFormValues) {
+    const addAnother = addAnotherRef.current;
+    addAnotherRef.current = false;
     try {
       const scheme = await createOrganizationPayerScheme(
         toCreateOrganizationPayerSchemePayload(values),
@@ -94,9 +99,17 @@ export function AddPayerSchemeDialog({
           ? `${scheme.name} was created with a linked ERP pricelist.`
           : `${scheme.name} was created. Attach a pricelist later to activate billing.`,
       });
-      resetDialogState();
       onCreated(scheme);
+      if (addAnother) {
+        resetDialogState();
+        if (payers.length === 1) {
+          form.setValue("insurance_company", String(payers[0].id));
+        }
+        return;
+      }
+      resetDialogState();
       onOpenChange(false);
+      finishSetup();
     } catch (error) {
       if (error instanceof BffError) {
         const fieldErrors = mapBffErrorsToForm(error.errors);
@@ -166,30 +179,17 @@ export function AddPayerSchemeDialog({
     }
 
     return (
-      <>
-        <SecondaryButton
-          type="button"
-          disabled={isSubmitting}
-          onClick={() => setActiveTab("general")}
-        >
-          Back
-        </SecondaryButton>
-        <PrimaryButton
-          type="submit"
-          form="add-payer-scheme-form"
-          disabled={isSubmitting || payers.length === 0}
-          data-testid="add-payer-scheme-submit"
-        >
-          {isSubmitting ? (
-            <>
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              Saving...
-            </>
-          ) : (
-            "Add scheme"
-          )}
-        </PrimaryButton>
-      </>
+      <SetupSaveActions
+        formId="add-payer-scheme-form"
+        open={open}
+        isSubmitting={isSubmitting}
+        disabled={payers.length === 0}
+        cancelLabel="Back"
+        onCancel={() => setActiveTab("general")}
+        onIntent={(addAnother) => {
+          addAnotherRef.current = addAnother;
+        }}
+      />
     );
   }
 

@@ -7,14 +7,6 @@ import { useForm } from "react-hook-form";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   Form,
   FormControl,
   FormField,
@@ -22,6 +14,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Switch } from "@/components/ui/switch";
+import { TabbedDialog } from "@/components/ui/tabbed-dialog";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -48,8 +42,11 @@ import type {
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
-import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
+
+const FORM_ID = "update-department-form";
+
+type UpdateDepartmentTab = "details" | "active";
 
 type UpdateDepartmentDialogProps = {
   department: OrganizationDepartment;
@@ -65,6 +62,7 @@ export function UpdateDepartmentDialog({
   onUpdated,
 }: UpdateDepartmentDialogProps) {
   const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState<UpdateDepartmentTab>("details");
   const [clinics, setClinics] = useState<OrganizationClinic[]>([]);
   const [isLoadingClinics, setIsLoadingClinics] = useState(false);
 
@@ -107,6 +105,7 @@ export function UpdateDepartmentDialog({
 
   useEffect(() => {
     if (open) {
+      setActiveTab("details");
       form.reset(toUpdateOrganizationDepartmentFormValues(department));
     }
   }, [department, form, open]);
@@ -153,21 +152,60 @@ export function UpdateDepartmentDialog({
 
   const isSubmitting = form.formState.isSubmitting;
 
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className={cn("max-h-[90vh] overflow-y-auto sm:max-w-lg", appFont.className)}
-        data-testid="update-department-dialog"
-      >
-        <DialogHeader>
-          <DialogTitle>Update department</DialogTitle>
-          <DialogDescription>
-            Edit details for this department within your organization.
-          </DialogDescription>
-        </DialogHeader>
+  const isActive = form.watch("is_active");
 
-        <Form {...form}>
-          <form className="space-y-4" onSubmit={form.handleSubmit(handleSubmit)}>
+  return (
+    <TabbedDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Update department"
+      description="Edit details for this department within your organization."
+      tabs={[
+        { id: "details", label: "Details" },
+        { id: "active", label: "Active" },
+      ]}
+      activeTab={activeTab}
+      onTabChange={(tabId) => {
+        if (tabId === "details" || tabId === "active") {
+          setActiveTab(tabId);
+        }
+      }}
+      className={appFont.className}
+      data-testid="update-department-dialog"
+      footer={
+        <>
+          <SecondaryButton
+            type="button"
+            disabled={isSubmitting}
+            onClick={() => onOpenChange(false)}
+          >
+            Cancel
+          </SecondaryButton>
+          <PrimaryButton
+            type="submit"
+            form={FORM_ID}
+            disabled={isSubmitting || isLoadingClinics || clinics.length === 0}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                Saving...
+              </>
+            ) : (
+              "Save changes"
+            )}
+          </PrimaryButton>
+        </>
+      }
+    >
+      <Form {...form}>
+        <form
+          id={FORM_ID}
+          className="space-y-4"
+          onSubmit={form.handleSubmit(handleSubmit, () => setActiveTab("details"))}
+        >
+            {activeTab === "details" ? (
+            <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
@@ -324,32 +362,37 @@ export function UpdateDepartmentDialog({
                 )}
               />
             </div>
-
-            <DialogFooter>
-              <SecondaryButton
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </SecondaryButton>
-              <PrimaryButton
-                type="submit"
-                disabled={isSubmitting || isLoadingClinics || clinics.length === 0}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                    Saving...
-                  </>
-                ) : (
-                  "Save changes"
+            </div>
+            ) : (
+              <FormField
+                control={form.control}
+                name="is_active"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between gap-4 space-y-0 rounded-xl border border-brand-border px-4 py-3">
+                    <div className="min-w-0">
+                      <FormLabel className="text-sm text-brand-navy">
+                        Department is {isActive ? "active" : "inactive"}
+                      </FormLabel>
+                      <p className="mt-1 text-xs text-brand-muted">
+                        {isActive
+                          ? "Active departments can be used for visits and scheduling."
+                          : "Inactive departments stay on file and are hidden from new visits."}
+                      </p>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                        disabled={isSubmitting}
+                        data-testid="department-active-switch"
+                      />
+                    </FormControl>
+                  </FormItem>
                 )}
-              </PrimaryButton>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+              />
+            )}
+        </form>
+      </Form>
+    </TabbedDialog>
   );
 }

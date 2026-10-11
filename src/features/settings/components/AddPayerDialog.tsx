@@ -1,13 +1,13 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import { Form } from "@/components/ui/form";
+import { SetupSaveActions } from "@/components/ui/setup-save-actions";
 import { TabbedDialog } from "@/components/ui/tabbed-dialog";
+import { useOnboardingReturn } from "@/features/overview/hooks/use-onboarding-return";
 import {
   PayerDialogFields,
   payerTabForFieldErrors,
@@ -43,6 +43,8 @@ export function AddPayerDialog({
   onCreated,
 }: AddPayerDialogProps) {
   const { toast } = useToast();
+  const { finishSetup } = useOnboardingReturn();
+  const addAnotherRef = useRef(false);
   const [activeTab, setActiveTab] = useState<PayerDialogTab>("general");
 
   const form = useForm<CreateOrganizationPayerFormValues>({
@@ -58,6 +60,8 @@ export function AddPayerDialog({
   }, [form, open]);
 
   async function handleSubmit(values: CreateOrganizationPayerFormValues) {
+    const addAnother = addAnotherRef.current;
+    addAnotherRef.current = false;
     try {
       const payer = await createOrganizationPayer(
         toCreateOrganizationPayerPayload(values),
@@ -67,10 +71,16 @@ export function AddPayerDialog({
         title: "Payer added",
         description: `${payer.name} was created successfully.`,
       });
+      onCreated(payer);
+      if (addAnother) {
+        form.reset(createOrganizationPayerDefaultValues);
+        setActiveTab("general");
+        return;
+      }
       form.reset(createOrganizationPayerDefaultValues);
       setActiveTab("general");
-      onCreated(payer);
       onOpenChange(false);
+      finishSetup();
     } catch (error) {
       if (error instanceof BffError) {
         const fieldErrors = mapBffErrorsToForm(error.errors);
@@ -119,29 +129,15 @@ export function AddPayerDialog({
       className={appFont.className}
       data-testid="add-payer-dialog"
       footer={
-        <>
-          <SecondaryButton
-            type="button"
-            disabled={isSubmitting}
-            onClick={() => onOpenChange(false)}
-          >
-            Cancel
-          </SecondaryButton>
-          <PrimaryButton
-            type="submit"
-            form="add-payer-form"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                Saving...
-              </>
-            ) : (
-              "Add payer"
-            )}
-          </PrimaryButton>
-        </>
+        <SetupSaveActions
+          formId="add-payer-form"
+          open={open}
+          isSubmitting={isSubmitting}
+          onCancel={() => onOpenChange(false)}
+          onIntent={(addAnother) => {
+            addAnotherRef.current = addAnother;
+          }}
+        />
       }
     >
       <Form {...form}>

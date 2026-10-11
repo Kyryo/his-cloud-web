@@ -166,14 +166,53 @@ export async function updateOrganizationLocation(
   );
 }
 
+export async function activateOrganizationModule(name: string): Promise<void> {
+  await bffRequest(BFF_SETTINGS_ROUTES.moduleActivate, {
+    method: "POST",
+    body: { name },
+  });
+}
+
+export async function setOrganizationClinicActive(
+  uuid: string,
+  active: boolean,
+): Promise<void> {
+  await bffRequest(
+    active
+      ? BFF_SETTINGS_ROUTES.clinicActivate(uuid)
+      : BFF_SETTINGS_ROUTES.clinicDeactivate(uuid),
+    { method: "POST" },
+  );
+}
+
 export type FetchOrganizationDepartmentsOptions = {
   clinicId?: number;
+  page?: number;
   pageSize?: number;
 };
+
+export async function fetchOrganizationDepartmentsPage(
+  options: FetchOrganizationDepartmentsOptions = {},
+): Promise<OrganizationListResponse<OrganizationDepartment>> {
+  const params = new URLSearchParams({
+    page: String(options.page ?? 1),
+    page_size: String(options.pageSize ?? 10),
+    ordering: options.clinicId ? "name" : "clinic__name,name",
+  });
+  if (options.clinicId) {
+    params.set("clinic", String(options.clinicId));
+  }
+  return bffRequest<OrganizationListResponse<OrganizationDepartment>>(
+    `${BFF_SETTINGS_ROUTES.departments}?${params.toString()}`,
+  );
+}
 
 export async function fetchOrganizationDepartments(
   options: FetchOrganizationDepartmentsOptions = {},
 ): Promise<OrganizationListResponse<OrganizationDepartment>> {
+  if (options.page) {
+    return fetchOrganizationDepartmentsPage(options);
+  }
   const pageSize = options.pageSize ?? 100;
   const results: OrganizationDepartment[] = [];
   let page = 1;

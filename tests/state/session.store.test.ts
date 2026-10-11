@@ -9,7 +9,7 @@ vi.mock("@/features/auth/services/auth.service", () => ({
   getCurrentUser: vi.fn(),
 }));
 
-import { bootstrapSession } from "@/features/auth/services/auth.service";
+import { bootstrapSession, getCurrentUser } from "@/features/auth/services/auth.service";
 
 function makeUser(overrides: Partial<User> = {}): User {
   return {
@@ -82,6 +82,30 @@ describe("session.store", () => {
       user: null,
       status: "unauthenticated",
     });
+  });
+
+  it("keeps the signed-in user when a refresh comes back empty", async () => {
+    useSessionStore.getState().hydrate(makeUser());
+    vi.mocked(getCurrentUser).mockResolvedValue(null);
+
+    await useSessionStore.getState().refreshUser();
+
+    expect(useSessionStore.getState().user?.email).toBe("ada@example.com");
+    expect(useSessionStore.getState().status).toBe("ready");
+  });
+
+  it("replaces the signed-in user when a refresh returns groups", async () => {
+    useSessionStore.getState().hydrate(makeUser({ groups: [] }));
+    vi.mocked(getCurrentUser).mockResolvedValue(
+      makeUser({ groups: ["Registration", "Billing"] }),
+    );
+
+    await useSessionStore.getState().refreshUser();
+
+    expect(useSessionStore.getState().user?.groups).toEqual([
+      "Registration",
+      "Billing",
+    ]);
   });
 
   it("reset clears session and workspace state", () => {

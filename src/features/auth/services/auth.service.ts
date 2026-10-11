@@ -155,6 +155,7 @@ export async function verifySignup(
       country: payload.country?.trim() || undefined,
       code: payload.code,
       verification_token: payload.verification_token,
+      departments: payload.departments,
     },
   });
 }

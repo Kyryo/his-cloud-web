@@ -1,12 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import { TabbedDialog } from "@/components/ui/tabbed-dialog";
+import { SetupSaveActions } from "@/components/ui/setup-save-actions";
+import { useOnboardingReturn } from "@/features/overview/hooks/use-onboarding-return";
 import { Form } from "@/components/ui/form";
 import {
   ProductFormFields,
@@ -33,7 +33,10 @@ import { useToast } from "@/providers/toast-provider";
 type CreateProductDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreated: (product: InventoryProduct) => void;
+  onCreated: (
+    product: InventoryProduct,
+    meta?: { addAnother: boolean },
+  ) => void;
 };
 
 export function CreateProductDialog({
@@ -42,6 +45,8 @@ export function CreateProductDialog({
   onCreated,
 }: CreateProductDialogProps) {
   const { toast } = useToast();
+  const { finishSetup } = useOnboardingReturn();
+  const addAnotherRef = useRef(false);
   const [activeTab, setActiveTab] = useState<ProductFormTab>("general");
 
   const form = useForm<CreateInventoryProductFormValues>({
@@ -73,6 +78,8 @@ export function CreateProductDialog({
   }, [form, open]);
 
   const handleSubmit = form.handleSubmit(async (values) => {
+    const addAnother = addAnotherRef.current;
+    addAnotherRef.current = false;
     try {
       const createdProduct = await createInventoryProduct(
         toCreateInventoryProductPayload(values),
@@ -82,8 +89,14 @@ export function CreateProductDialog({
         title: "Product created",
         description: `${createdProduct.display_name || createdProduct.name} was added to ERP.`,
       });
-      onCreated(createdProduct);
+      onCreated(createdProduct, { addAnother });
+      if (addAnother) {
+        setActiveTab("general");
+        form.reset(createInventoryProductDefaultValues);
+        return;
+      }
       onOpenChange(false);
+      finishSetup();
     } catch (error) {
       if (error instanceof BffError) {
         const fieldErrors = mapBffErrorsToForm(error.errors);
@@ -146,29 +159,15 @@ export function CreateProductDialog({
       className={appFont.className}
       data-testid="create-product-dialog"
       footer={
-        <>
-          <SecondaryButton
-            type="button"
-            onClick={() => onOpenChange(false)}
-            disabled={isSubmitting}
-          >
-            Cancel
-          </SecondaryButton>
-          <PrimaryButton
-            type="submit"
-            form="create-product-form"
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                Creating...
-              </>
-            ) : (
-              "Create product"
-            )}
-          </PrimaryButton>
-        </>
+        <SetupSaveActions
+          formId="create-product-form"
+          open={open}
+          isSubmitting={isSubmitting}
+          onCancel={() => onOpenChange(false)}
+          onIntent={(addAnother) => {
+            addAnotherRef.current = addAnother;
+          }}
+        />
       }
     >
       <Form {...form}>

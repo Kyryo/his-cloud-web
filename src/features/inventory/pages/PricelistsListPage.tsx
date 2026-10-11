@@ -1,8 +1,8 @@
 "use client";
 
 import { Receipt } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { FabButton } from "@/components/ui/fab-button";
@@ -21,6 +21,7 @@ import { PricelistsTable } from "@/features/inventory/components/tables/pricelis
 import { PricelistsTableSkeleton } from "@/features/inventory/components/tables/PricelistsTableSkeleton";
 import { useInventoryListFilters } from "@/features/inventory/hooks/use-inventory-list-filters";
 import type { InventoryListFilters } from "@/features/inventory/types/inventory.types";
+import { isOnboardingReturn } from "@/features/overview/utils/onboarding-return";
 import { AddPricelistDialog } from "@/features/settings/components/AddPricelistDialog";
 import type { OrganizationPricelist } from "@/features/settings/types/settings.types";
 import type { PaginatedListResponse } from "@/types/api.types";
@@ -48,7 +49,21 @@ async function fetchPricelists(
 
 export function PricelistsListPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const fromOnboarding = isOnboardingReturn(searchParams);
   const [createOpen, setCreateOpen] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("add") !== "pricelist") {
+      return;
+    }
+    setCreateOpen(true);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("add");
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
   const fetchFn = useCallback(
     (filters: InventoryListFilters) => fetchPricelists(filters),
     [],
@@ -85,11 +100,14 @@ export function PricelistsListPage() {
   }, []);
 
   const handlePricelistCreated = useCallback(
-    (pricelist: OrganizationPricelist) => {
+    (pricelist: OrganizationPricelist, meta?: { addAnother: boolean }) => {
       void reload();
+      if (meta?.addAnother || fromOnboarding) {
+        return;
+      }
       router.push(ROUTES.inventoryPricelistDetail(pricelist.uuid));
     },
-    [reload, router],
+    [fromOnboarding, reload, router],
   );
 
   const handleRowClick = useCallback(

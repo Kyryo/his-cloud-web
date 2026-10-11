@@ -32,7 +32,7 @@ describe("HeroProductStage", () => {
         name: "A clinic front desk taking a patient card payment",
       }),
     ).toBeInTheDocument();
-    expect(screen.getByText("Claim ready")).toBeInTheDocument();
-    expect(screen.getByText("All checks passed")).toBeInTheDocument();
+    expect(screen.queryByText("Claim ready")).not.toBeInTheDocument();
+    expect(screen.queryByText("All checks passed")).not.toBeInTheDocument();
   });
 });

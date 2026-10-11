@@ -1,8 +1,8 @@
 "use client";
 
 import { Package } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { FabButton } from "@/components/ui/fab-button";
@@ -20,6 +20,7 @@ import { ProductsPageHeader } from "@/features/inventory/components/ProductsPage
 import { ProductsTable } from "@/features/inventory/components/tables/products-table";
 import { ProductsTableSkeleton } from "@/features/inventory/components/tables/ProductsTableSkeleton";
 import { useInventoryListFilters } from "@/features/inventory/hooks/use-inventory-list-filters";
+import { isOnboardingReturn } from "@/features/overview/utils/onboarding-return";
 import type {
   InventoryListFilters,
   InventoryProduct,
@@ -44,7 +45,21 @@ async function fetchProducts(
 
 export function ProductsListPage() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const fromOnboarding = isOnboardingReturn(searchParams);
   const [createOpen, setCreateOpen] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("add") !== "product") {
+      return;
+    }
+    setCreateOpen(true);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("add");
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
   const fetchFn = useCallback(
     (f: InventoryListFilters) => fetchProducts(f),
     [],
@@ -88,11 +103,14 @@ export function ProductsListPage() {
   }, []);
 
   const handleProductCreated = useCallback(
-    (product: InventoryProduct) => {
+    (product: InventoryProduct, meta?: { addAnother: boolean }) => {
       void reload();
+      if (meta?.addAnother || fromOnboarding) {
+        return;
+      }
       router.push(ROUTES.inventoryProductDetail(product.uuid));
     },
-    [reload, router],
+    [fromOnboarding, reload, router],
   );
 
   const handleRowClick = useCallback(

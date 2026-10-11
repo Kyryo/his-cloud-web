@@ -62,6 +62,8 @@ describe("SignUpForm step split", () => {
     });
     fireEvent.click(screen.getByTestId("signup-continue"));
 
+    expect(screen.queryByRole("heading", { name: /What departments/ })).not.toBeInTheDocument();
+
     await waitFor(() => {
       expect(screen.getByTestId("signup-name")).toBeInTheDocument();
     });

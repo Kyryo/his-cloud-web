@@ -114,14 +114,6 @@ export function HeroProductStage() {
               imageClassName="object-[60%_center]"
             />
           </div>
-          <figcaption className="absolute bottom-2 left-2 w-[min(9.5rem,70%)] rounded-xl bg-white px-2.5 py-2 shadow-[0_10px_22px_-12px_rgba(31,42,36,0.5)]">
-            <p className="text-[11px] font-semibold leading-none text-[color:var(--landing-ink)]">
-              Claim ready
-            </p>
-            <p className="mt-1 text-[11px] leading-snug text-[color:var(--landing-ledger-ink)]">
-              All checks passed
-            </p>
-          </figcaption>
         </HeroCollageTile>
 
         <HeroCollageTile className="col-span-2 w-[72%] justify-self-end sm:w-[68%] lg:col-span-8 lg:col-start-5 lg:w-auto">

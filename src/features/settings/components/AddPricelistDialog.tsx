@@ -1,11 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, Receipt } from "lucide-react";
-import { useEffect } from "react";
+import { Receipt } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 
-import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
+import { SetupSaveActions } from "@/components/ui/setup-save-actions";
+import { useOnboardingReturn } from "@/features/overview/hooks/use-onboarding-return";
 import {
   Dialog,
   DialogContent,
@@ -40,7 +41,10 @@ import { useToast } from "@/providers/toast-provider";
 type AddPricelistDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onCreated: (pricelist: OrganizationPricelist) => void;
+  onCreated: (
+    pricelist: OrganizationPricelist,
+    meta?: { addAnother: boolean },
+  ) => void;
 };
 
 export function AddPricelistDialog({
@@ -49,6 +53,8 @@ export function AddPricelistDialog({
   onCreated,
 }: AddPricelistDialogProps) {
   const { toast } = useToast();
+  const { finishSetup } = useOnboardingReturn();
+  const addAnotherRef = useRef(false);
 
   const form = useForm<CreateOrganizationPricelistFormValues>({
     resolver: zodResolver(createOrganizationPricelistSchema),
@@ -62,6 +68,8 @@ export function AddPricelistDialog({
   }, [form, open]);
 
   async function handleSubmit(values: CreateOrganizationPricelistFormValues) {
+    const addAnother = addAnotherRef.current;
+    addAnotherRef.current = false;
     try {
       const pricelist = await createOrganizationPricelist(
         toCreateOrganizationPricelistPayload(values),
@@ -71,9 +79,14 @@ export function AddPricelistDialog({
         title: "Pricelist added",
         description: `${pricelist.name} was created in ERP.`,
       });
+      onCreated(pricelist, { addAnother });
+      if (addAnother) {
+        form.reset(createOrganizationPricelistDefaultValues);
+        return;
+      }
       form.reset(createOrganizationPricelistDefaultValues);
-      onCreated(pricelist);
       onOpenChange(false);
+      finishSetup();
     } catch (error) {
       if (error instanceof BffError) {
         const fieldErrors = mapBffErrorsToForm(error.errors);
@@ -128,6 +141,7 @@ export function AddPricelistDialog({
 
         <Form {...form}>
           <form
+            id="add-pricelist-form"
             className="flex min-h-0 flex-1 flex-col"
             onSubmit={form.handleSubmit(handleSubmit)}
           >
@@ -196,23 +210,15 @@ export function AddPricelistDialog({
             </div>
 
             <DialogFooter className="mt-0 border-t border-brand-border px-6 py-4">
-              <SecondaryButton
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </SecondaryButton>
-              <PrimaryButton type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                    Saving...
-                  </>
-                ) : (
-                  "Add pricelist"
-                )}
-              </PrimaryButton>
+              <SetupSaveActions
+                formId="add-pricelist-form"
+                open={open}
+                isSubmitting={isSubmitting}
+                onCancel={() => onOpenChange(false)}
+                onIntent={(addAnother) => {
+                  addAnotherRef.current = addAnother;
+                }}
+              />
             </DialogFooter>
           </form>
         </Form>

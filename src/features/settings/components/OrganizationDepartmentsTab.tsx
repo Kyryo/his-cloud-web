@@ -1,7 +1,9 @@
 "use client";
 
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
+import { ListPagePagination } from "@/features/app-shell/components/page-layout";
 import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { AddDepartmentDialog } from "@/features/settings/components/AddDepartmentDialog";
@@ -13,8 +15,10 @@ import {
 } from "@/features/settings/components/OrganizationTabContent";
 import { UpdateDepartmentDialog } from "@/features/settings/components/UpdateDepartmentDialog";
 import { getDepartmentTypeLabel } from "@/features/settings/constants/department-types";
-import { fetchOrganizationDepartments } from "@/features/settings/services/settings.service";
+import { fetchOrganizationDepartmentsPage } from "@/features/settings/services/settings.service";
 import type { OrganizationDepartment } from "@/features/settings/types/settings.types";
+
+const DEPARTMENT_PAGE_SIZE = 10;
 
 type OrganizationDepartmentsTabProps = {
   isActive: boolean;
@@ -40,13 +44,32 @@ function departmentMeta(department: OrganizationDepartment) {
 export function OrganizationDepartmentsTab({
   isActive,
 }: OrganizationDepartmentsTabProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [departments, setDepartments] = useState<OrganizationDepartment[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
+  const [hasPrevious, setHasPrevious] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reloadToken, setReloadToken] = useState(0);
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] =
     useState<OrganizationDepartment | null>(null);
+
+  useEffect(() => {
+    if (!isActive || searchParams.get("add") !== "department") {
+      return;
+    }
+
+    setAddDialogOpen(true);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("add");
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [isActive, pathname, router, searchParams]);
 
   useEffect(() => {
     if (!isActive) {
@@ -60,9 +83,15 @@ export function OrganizationDepartmentsTab({
       setError(null);
 
       try {
-        const response = await fetchOrganizationDepartments();
+        const response = await fetchOrganizationDepartmentsPage({
+          page,
+          pageSize: DEPARTMENT_PAGE_SIZE,
+        });
         if (active) {
           setDepartments(response.results);
+          setTotalCount(response.pagination?.count ?? response.results.length);
+          setHasNext(Boolean(response.pagination?.next));
+          setHasPrevious(Boolean(response.pagination?.previous));
         }
       } catch (loadError) {
         if (active) {
@@ -85,7 +114,7 @@ export function OrganizationDepartmentsTab({
     return () => {
       active = false;
     };
-  }, [isActive, reloadToken]);
+  }, [isActive, page, reloadToken]);
 
   const clinicGroups = useMemo(
     () =>
@@ -138,7 +167,7 @@ export function OrganizationDepartmentsTab({
           <div className="space-y-7">
             {clinicGroups.map((group) => (
               <OrganizationClinicGroup
-                key={group.clinicName}
+                key={`${group.clinicName}-${group.items[0]?.clinic ?? "none"}`}
                 title={group.clinicName}
                 count={group.items.length}
               >
@@ -164,6 +193,17 @@ export function OrganizationDepartmentsTab({
                 ))}
               </OrganizationClinicGroup>
             ))}
+            {totalCount > DEPARTMENT_PAGE_SIZE ? (
+              <ListPagePagination
+                page={page}
+                pageSize={DEPARTMENT_PAGE_SIZE}
+                totalCount={totalCount}
+                hasNext={hasNext}
+                hasPrevious={hasPrevious}
+                isLoading={isLoading}
+                onPageChange={setPage}
+              />
+            ) : null}
           </div>
         )}
       </OrganizationTabPanel>

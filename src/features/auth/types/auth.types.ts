@@ -144,4 +144,5 @@ export interface SignupVerifyRequest {
   country?: string;
   code?: string;
   verification_token?: string;
+  departments?: string[];
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import { OrganizationBrandingTab } from "@/features/settings/components/OrganizationBrandingTab";
@@ -28,11 +29,21 @@ type OrganizationSettingsTabsProps = {
   onTenantUpdated: (tenant: TenantDetail) => void;
 };
 
+function organizationTabFromSearch(value: string | null): OrganizationTabId {
+  if (tabs.some((tab) => tab.id === value)) {
+    return value as OrganizationTabId;
+  }
+  return "general";
+}
+
 export function OrganizationSettingsTabs({
   tenant,
   onTenantUpdated,
 }: OrganizationSettingsTabsProps) {
-  const [activeTab, setActiveTab] = useState<OrganizationTabId>("general");
+  const searchParams = useSearchParams();
+  const [activeTab, setActiveTab] = useState<OrganizationTabId>(() =>
+    organizationTabFromSearch(searchParams.get("tab")),
+  );
 
   return (
     <div>

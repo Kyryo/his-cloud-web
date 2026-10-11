@@ -16,6 +16,7 @@ type RequestBody = {
   country?: string;
   code?: string;
   verification_token?: string;
+  departments?: string[];
 };
 
 export async function POST(request: Request) {
@@ -47,6 +48,9 @@ export async function POST(request: Request) {
           country: body.country?.trim() || undefined,
           code: body.code,
           verification_token: body.verification_token,
+          departments: Array.isArray(body.departments)
+            ? body.departments.filter((department) => typeof department === "string")
+            : undefined,
         },
       },
     );

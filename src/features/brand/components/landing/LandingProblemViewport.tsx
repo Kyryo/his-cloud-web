@@ -34,21 +34,6 @@ export function LandingProblemViewport() {
                 className="object-cover object-[center_46%]"
                 priority
               />
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgb(20_28_24/0.08),rgb(20_28_24/0.28))]" />
-              <div className="absolute inset-0 flex items-center justify-center p-6">
-                <div className="rounded-full bg-white px-5 py-3 shadow-[0_12px_32px_-16px_rgba(31,42,36,0.45)]">
-                  <p className="text-[13px] font-semibold leading-none text-[color:var(--landing-ink)]">
-                    Claim rejected
-                  </p>
-                  <p className="mt-1.5 flex items-center gap-2 text-[12px] leading-none text-[color:var(--landing-ledger-ink)]">
-                    <span
-                      aria-hidden="true"
-                      className="inline-block h-px w-6 bg-[color:var(--landing-teal)]"
-                    />
-                    Missing auth number
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
 

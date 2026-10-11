@@ -1,19 +1,9 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
-import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -22,6 +12,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
+import { SectionedDialog } from "@/components/ui/sectioned-dialog";
+import { SetupSaveActions } from "@/components/ui/setup-save-actions";
+import { useOnboardingReturn } from "@/features/overview/hooks/use-onboarding-return";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -51,6 +45,8 @@ import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
+const FORM_ID = "add-department-form";
+
 type AddDepartmentDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -63,6 +59,8 @@ export function AddDepartmentDialog({
   onCreated,
 }: AddDepartmentDialogProps) {
   const { toast } = useToast();
+  const { finishSetup } = useOnboardingReturn();
+  const addAnotherRef = useRef(false);
   const [clinics, setClinics] = useState<OrganizationClinic[]>([]);
   const [isLoadingClinics, setIsLoadingClinics] = useState(false);
 
@@ -109,7 +107,19 @@ export function AddDepartmentDialog({
     }
   }, [form, open]);
 
+  useEffect(() => {
+    if (!open || clinics.length !== 1) {
+      return;
+    }
+    if (form.getValues("clinic")) {
+      return;
+    }
+    form.setValue("clinic", String(clinics[0].id), { shouldValidate: true });
+  }, [clinics, form, open]);
+
   async function handleSubmit(values: CreateOrganizationDepartmentFormValues) {
+    const addAnother = addAnotherRef.current;
+    addAnotherRef.current = false;
     try {
       const department = await createOrganizationDepartment(
         toCreateOrganizationDepartmentPayload(values),
@@ -119,9 +129,17 @@ export function AddDepartmentDialog({
         title: "Department added",
         description: `${department.name} was created successfully.`,
       });
-      form.reset(createOrganizationDepartmentDefaultValues);
       onCreated(department);
+      if (addAnother) {
+        form.reset({
+          ...createOrganizationDepartmentDefaultValues,
+          clinic: clinics.length === 1 ? String(clinics[0].id) : "",
+        });
+        return;
+      }
+      form.reset(createOrganizationDepartmentDefaultValues);
       onOpenChange(false);
+      finishSetup();
     } catch (error) {
       if (error instanceof BffError) {
         const fieldErrors = mapBffErrorsToForm(error.errors);
@@ -152,27 +170,41 @@ export function AddDepartmentDialog({
   const isSubmitting = form.formState.isSubmitting;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className={cn("max-h-[90vh] overflow-y-auto sm:max-w-lg", appFont.className)}
-        data-testid="add-department-dialog"
-      >
-        <DialogHeader>
-          <DialogTitle>Add department</DialogTitle>
-          <DialogDescription>
-            Create a clinical or operational department under one of your clinics.
-          </DialogDescription>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form className="space-y-4" onSubmit={form.handleSubmit(handleSubmit)}>
+    <SectionedDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Add department"
+      description="Create a clinical or operational department under one of your clinics."
+      className={cn("sm:max-w-lg", appFont.className)}
+      data-testid="add-department-dialog"
+      footer={
+        <SetupSaveActions
+          formId={FORM_ID}
+          open={open}
+          isSubmitting={isSubmitting}
+          disabled={isLoadingClinics || clinics.length === 0}
+          onCancel={() => onOpenChange(false)}
+          onIntent={(addAnother) => {
+            addAnotherRef.current = addAnother;
+          }}
+        />
+      }
+    >
+      <Form {...form}>
+        <form
+          id={FORM_ID}
+          className="space-y-4"
+          onSubmit={form.handleSubmit(handleSubmit)}
+        >
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
                 name="name"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Name</FormLabel>
+                    <FormLabel>
+                      Name <RequiredFieldMarker />
+                    </FormLabel>
                     <FormControl>
                       <Input {...field} autoComplete="off" />
                     </FormControl>
@@ -185,7 +217,9 @@ export function AddDepartmentDialog({
                 name="code"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Code</FormLabel>
+                    <FormLabel>
+                      Code <RequiredFieldMarker />
+                    </FormLabel>
                     <FormControl>
                       <Input {...field} autoComplete="off" className="uppercase" />
                     </FormControl>
@@ -200,7 +234,9 @@ export function AddDepartmentDialog({
               name="clinic"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Clinic</FormLabel>
+                  <FormLabel>
+                    Clinic <RequiredFieldMarker />
+                  </FormLabel>
                   <Select
                     value={field.value}
                     onValueChange={field.onChange}
@@ -237,7 +273,9 @@ export function AddDepartmentDialog({
               name="department_type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Department type</FormLabel>
+                  <FormLabel>
+                    Department type <RequiredFieldMarker />
+                  </FormLabel>
                   <Select value={field.value} onValueChange={field.onChange}>
                     <FormControl>
                       <SelectTrigger>
@@ -276,7 +314,9 @@ export function AddDepartmentDialog({
               name="default_appointment_duration_minutes"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Default appointment duration (minutes)</FormLabel>
+                  <FormLabel>
+                    Default appointment duration (minutes) <RequiredFieldMarker />
+                  </FormLabel>
                   <FormControl>
                     <Input type="number" min={5} max={480} {...field} />
                   </FormControl>
@@ -322,32 +362,8 @@ export function AddDepartmentDialog({
                 )}
               />
             </div>
-
-            <DialogFooter>
-              <SecondaryButton
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </SecondaryButton>
-              <PrimaryButton
-                type="submit"
-                disabled={isSubmitting || isLoadingClinics || clinics.length === 0}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                    Saving...
-                  </>
-                ) : (
-                  "Add department"
-                )}
-              </PrimaryButton>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+        </form>
+      </Form>
+    </SectionedDialog>
   );
 }

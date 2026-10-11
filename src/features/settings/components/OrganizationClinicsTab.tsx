@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { Button } from "@/components/ui/button";
 import { AddClinicDialog } from "@/features/settings/components/AddClinicDialog";
+import { ClinicActiveSwitch } from "@/features/settings/components/ClinicActiveSwitch";
 import {
   OrganizationEntityRow,
   OrganizationTabPanel,
@@ -154,15 +155,21 @@ export function OrganizationClinicsTab({ isActive }: OrganizationClinicsTabProps
                 meta={clinicMeta(clinic)}
                 status={clinic.is_active ? "Active" : "Inactive"}
                 actions={
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 text-brand-muted hover:text-brand-navy"
-                    onClick={() => setEditingClinic(clinic)}
-                  >
-                    Update
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <ClinicActiveSwitch
+                      clinic={clinic}
+                      onChanged={handleUpdated}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 text-brand-muted hover:text-brand-navy"
+                      onClick={() => setEditingClinic(clinic)}
+                    >
+                      Update
+                    </Button>
+                  </div>
                 }
               />
             ))}

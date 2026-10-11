@@ -57,10 +57,14 @@ export function toCreateOrganizationDepartmentPayload(
   };
 }
 
-export const updateOrganizationDepartmentSchema = createOrganizationDepartmentSchema;
+export const updateOrganizationDepartmentSchema =
+  createOrganizationDepartmentSchema.extend({
+    is_active: z.boolean(),
+  });
 
-export type UpdateOrganizationDepartmentFormValues =
-  CreateOrganizationDepartmentFormValues;
+export type UpdateOrganizationDepartmentFormValues = z.infer<
+  typeof updateOrganizationDepartmentSchema
+>;
 
 export function toUpdateOrganizationDepartmentFormValues(
   department: {
@@ -72,6 +76,7 @@ export function toUpdateOrganizationDepartmentFormValues(
     requires_appointment: boolean;
     walk_in_allowed: boolean;
     default_appointment_duration_minutes: number;
+    is_active: boolean;
   },
 ): UpdateOrganizationDepartmentFormValues {
   return {
@@ -84,11 +89,16 @@ export function toUpdateOrganizationDepartmentFormValues(
     walk_in_allowed: department.walk_in_allowed,
     default_appointment_duration_minutes:
       department.default_appointment_duration_minutes,
+    is_active: department.is_active,
   };
 }
 
 export function toUpdateOrganizationDepartmentPayload(
   values: UpdateOrganizationDepartmentFormValues,
 ) {
-  return toCreateOrganizationDepartmentPayload(values);
+  return {
+    ...toCreateOrganizationDepartmentPayload(values),
+    is_active: values.is_active,
+    status: values.is_active ? "ACTIVE" : "INACTIVE",
+  };
 }

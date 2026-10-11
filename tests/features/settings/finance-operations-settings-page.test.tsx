@@ -9,6 +9,12 @@ const fetchOrganizationPayerSchemes = vi.fn();
 const fetchOrganizationPricelists = vi.fn();
 const fetchOrganizationDefaultPricelist = vi.fn();
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+  usePathname: () => "/settings/finance-operations",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 vi.mock("@/providers/user-provider", () => ({
   useUser: () => useUser(),
 }));

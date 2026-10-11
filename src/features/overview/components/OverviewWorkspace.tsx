@@ -1,150 +1,114 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ROUTES } from "@/constants/routes";
+import { OverviewBlogSection } from "@/features/overview/components/OverviewBlogSection";
 import {
-  OverviewActivityStream,
-  OverviewCount,
-  OverviewRecentClients,
-  OverviewSection,
-} from "@/features/overview/components/overview-workspace-sections";
-import { useOverviewWorkspace } from "@/features/overview/hooks/use-overview-workspace";
-import {
-  buildOverviewActivityItems,
-  type OverviewActivityKind,
-} from "@/features/overview/utils/overview-workspace";
-import { formatCompactNumber } from "@/utils/format-compact-number";
+  OVERVIEW_DAILY_LEAD,
+  OVERVIEW_SETUP_LEAD,
+  OverviewGreeting,
+} from "@/features/overview/components/OverviewGreeting";
+import { OverviewQuickLinks } from "@/features/overview/components/OverviewQuickLinks";
+import { OverviewSetupSection } from "@/features/overview/components/OverviewSetupSection";
+import { OverviewUsageSection } from "@/features/overview/components/OverviewUsageSection";
+import { OverviewWorkspaceSkeleton } from "@/features/overview/components/OverviewWorkspaceSkeleton";
+import type { OverviewSetupMode } from "@/features/overview/utils/overview-setup";
+import { cn } from "@/lib/utils";
+import { useUser } from "@/providers/user-provider";
+
+type SetupChrome = OverviewSetupMode | "pending";
+
+const SWAP_MS = 180;
+
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function useSettledMode(mode: SetupChrome) {
+  const [shown, setShown] = useState(mode);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    if (mode === shown) {
+      return;
+    }
+    if (prefersReducedMotion()) {
+      setShown(mode);
+      setVisible(true);
+      return;
+    }
+
+    setVisible(false);
+    const timer = window.setTimeout(() => {
+      setShown(mode);
+      window.requestAnimationFrame(() => setVisible(true));
+    }, SWAP_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [mode, shown]);
+
+  return { shown, visible };
+}
 
 export function OverviewWorkspace() {
-  const { data, isLoading } = useOverviewWorkspace();
-  const [selectedKind, setSelectedKind] = useState<"all" | OverviewActivityKind>(
-    "all",
-  );
-
-  const activity = buildOverviewActivityItems({
-    visits: data?.visits ?? [],
-    appointments: data?.appointments ?? [],
-    inbox: data?.inbox ?? [],
-  });
-  const clients = data?.customers ?? [];
+  const { userData } = useUser();
+  const userGroups = userData?.groups ?? [];
+  const enabledModules = userData?.enabled_modules ?? [];
+  const [setupMode, setSetupMode] = useState<SetupChrome>("pending");
+  const { shown, visible } = useSettledMode(setupMode);
+  const showDailyOverview = shown !== "checklist" && shown !== "pending";
+  const lead =
+    shown === "checklist"
+      ? OVERVIEW_SETUP_LEAD
+      : shown === "pending"
+        ? null
+        : OVERVIEW_DAILY_LEAD;
 
   return (
-    <div className="space-y-8">
-      {isLoading ? (
-        <div className="space-y-8" aria-busy="true">
-          <div className="grid grid-cols-2 divide-y divide-dash-border/60 border-b border-dash-border/80 py-2 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x">
-            {Array.from({ length: 4 }, (_, index) => (
-              <div key={index} className="p-4">
-                <Skeleton className="h-4 w-20" />
-                <Skeleton className="mt-3 h-8 w-16" />
-                <Skeleton className="mt-2 h-3 w-28" />
-              </div>
-            ))}
-          </div>
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.9fr)]">
-            <div className="space-y-4">
-              <Skeleton className="h-6 w-36" />
-              <Skeleton className="h-64 w-full rounded-xl" />
-            </div>
-            <div className="space-y-4">
-              <Skeleton className="h-6 w-36" />
-              <Skeleton className="h-64 w-full rounded-xl" />
-            </div>
-          </div>
+    <div className="relative mx-auto w-full max-w-3xl pb-10 pt-8 sm:pt-12">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 -top-4 h-72 bg-[radial-gradient(ellipse_90%_80%_at_50%_0%,var(--color-brand-tint)_0%,transparent_70%)]"
+      />
+      <div className="relative">
+        <OverviewGreeting name={userData?.name} lead={null} />
+        <div
+          className={cn(
+            "mt-3 space-y-3 transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none",
+            visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-1 opacity-0",
+          )}
+        >
+          {lead ? (
+            <p className="mx-auto max-w-md text-center text-[15px] leading-6 text-dash-muted">
+              {lead}
+            </p>
+          ) : null}
+          {shown === "pending" ? <OverviewWorkspaceSkeleton /> : null}
+          <OverviewSetupSection
+            isAdmin={Boolean(userData?.is_admin)}
+            present={shown === "checklist" || shown === "ready"}
+            onMode={setSetupMode}
+          />
         </div>
-      ) : (
-        <>
-          {/* Cardless Clinic Pulse Bar */}
-          <dl className="grid grid-cols-2 divide-y divide-dash-border/60 border-b border-dash-border/80 py-1 sm:grid-cols-2 sm:divide-y-0 lg:grid-cols-4 lg:divide-x">
-            <OverviewCount
-              label="Active visits"
-              value={data?.activeVisitCount ?? 0}
-              hint={
-                data?.completedVisitsToday
-                  ? `${formatCompactNumber(data.completedVisitsToday)} completed today`
-                  : "Currently in clinic"
-              }
-              href={ROUTES.activeVisits}
-              indicator="emerald"
-              pulse
+        {showDailyOverview ? (
+          <div
+            className={cn(
+              "mt-12 space-y-12 transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none",
+              visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-1 opacity-0",
+            )}
+          >
+            <OverviewQuickLinks
+              userGroups={userGroups}
+              enabledModules={enabledModules}
             />
-            <OverviewCount
-              label="Today's schedule"
-              value={data?.todaysAppointmentCount ?? 0}
-              hint={
-                data?.inProgressAppointmentCount
-                  ? `${formatCompactNumber(data.inProgressAppointmentCount)} in progress`
-                  : "Appointments booked"
-              }
-              href={ROUTES.appointments}
-              indicator="blue"
+            <OverviewUsageSection
+              userGroups={userGroups}
+              enabledModules={enabledModules}
             />
-            <OverviewCount
-              label="Registered clients"
-              value={data?.customerCount ?? 0}
-              hint={
-                data?.newClientsThisMonth
-                  ? `+${formatCompactNumber(data.newClientsThisMonth)} new this month`
-                  : "Total patient records"
-              }
-              href={ROUTES.customers}
-              indicator="teal"
-            />
-            <OverviewCount
-              label="Updates & tasks"
-              value={data?.inbox?.length ?? 0}
-              hint="Priority inbox notifications"
-              href={ROUTES.notifications}
-              indicator="amber"
-            />
-          </dl>
-
-          {/* Two-Column Interactive Workspace */}
-          <div className="grid gap-10 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,0.9fr)]">
-            {/* Primary Operations Timeline */}
-            <div className="space-y-6">
-              <OverviewSection
-                title="Activity"
-                badge={
-                  activity.length > 0 ? (
-                    <Badge variant="secondary" className="h-4.5 px-1.5 text-[10px]">
-                      {activity.length} updates
-                    </Badge>
-                  ) : null
-                }
-                href={ROUTES.notifications}
-                actionLabel="Inbox"
-              >
-                <OverviewActivityStream
-                  items={activity}
-                  selectedKind={selectedKind}
-                  onSelectKind={setSelectedKind}
-                />
-              </OverviewSection>
-            </div>
-
-            <div className="space-y-8">
-              <OverviewSection
-                title="Recently Registered"
-                badge={
-                  clients.length > 0 ? (
-                    <Badge variant="secondary" className="h-4.5 px-1.5 text-[10px]">
-                      {clients.length} clients
-                    </Badge>
-                  ) : null
-                }
-                href={ROUTES.customers}
-                actionLabel="Directory"
-              >
-                <OverviewRecentClients clients={clients} />
-              </OverviewSection>
-            </div>
+            <OverviewBlogSection />
           </div>
-        </>
-      )}
+        ) : null}
+      </div>
     </div>
   );
 }

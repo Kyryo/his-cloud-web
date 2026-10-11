@@ -424,9 +424,37 @@ export function filterNavigation(
   userGroups: string[],
   options: NavAccessOptions = {},
 ) {
-  const groups = userGroups.length > 0 ? userGroups : ["Registration"];
+  return navigation.filter((item) => hasNavAccess(item, userGroups, options));
+}
 
-  return navigation.filter((item) => hasNavAccess(item, groups, options));
+/** Direct URLs follow the same group rules as the sidebar. Unlisted pages stay open. */
+export function canAccessAppPath(
+  pathname: string,
+  userGroups: string[],
+  enabledModules?: string[],
+) {
+  const options = { enabledModules };
+  const matches = navigation.filter(
+    (item) =>
+      item.enabledInWebNew &&
+      (pathname === item.href || pathname.startsWith(`${item.href}/`)),
+  );
+
+  if (matches.length > 0) {
+    const mostSpecific = matches.reduce((best, item) =>
+      item.href.length > best.href.length ? item : best,
+    );
+    return hasNavAccess(mostSpecific, userGroups, options);
+  }
+
+  if (
+    pathname === ROUTES.reportsExports ||
+    pathname.startsWith(`${ROUTES.reportsExports}/`)
+  ) {
+    return canAccessReports(userGroups);
+  }
+
+  return true;
 }
 
 export function groupNavigationByModule(items: NavigationItem[]) {

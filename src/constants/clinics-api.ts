@@ -2,4 +2,6 @@
 export const CLINICS_API_PATHS = {
   list: "/clinics/",
   detail: (uuid: string) => `/clinics/${uuid}/`,
+  activate: (uuid: string) => `/clinics/${uuid}/activate/`,
+  deactivate: (uuid: string) => `/clinics/${uuid}/deactivate/`,
 } as const;

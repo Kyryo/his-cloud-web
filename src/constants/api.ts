@@ -663,6 +663,8 @@ export const BFF_DISPENSATION_ROUTES = {
 
 /** Browser-facing BFF onboarding routes (same origin). */
 export const BFF_ONBOARDING_ROUTES = {
+  progress: "/api/onboarding",
+  dismiss: "/api/onboarding/dismiss",
   modules: "/api/onboarding/modules",
 } as const;
 
@@ -677,8 +679,11 @@ export const BFF_SETTINGS_ROUTES = {
   updateProfile: "/api/auth/me",
   updateProfileAvatar: "/api/auth/me/avatar",
   organization: "/api/tenants/current",
+  moduleActivate: "/api/tenants/current/modules/activate",
   clinics: "/api/clinics",
   clinicDetail: (uuid: string) => `/api/clinics/${uuid}`,
+  clinicActivate: (uuid: string) => `/api/clinics/${uuid}/activate`,
+  clinicDeactivate: (uuid: string) => `/api/clinics/${uuid}/deactivate`,
   locations: "/api/locations",
   locationDetail: (uuid: string) => `/api/locations/${uuid}`,
   departments: "/api/departments",

@@ -8,6 +8,12 @@ const fetchOrganization = vi.fn();
 const fetchOrganizationClinics = vi.fn();
 const fetchOrganizationCurrency = vi.fn();
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: vi.fn(), push: vi.fn() }),
+  usePathname: () => "/settings/organization",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 vi.mock("@/providers/user-provider", () => ({
   useUser: () => useUser(),
 }));
