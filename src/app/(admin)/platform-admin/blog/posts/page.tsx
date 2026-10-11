@@ -1,10 +1,11 @@
 import { Suspense } from "react";
 
+import { BlogPostsPageSkeleton } from "@/features/platform-admin/components/blog/BlogPostsPageSkeleton";
 import { PlatformAdminBlogPostsPage } from "@/features/platform-admin/pages/PlatformAdminBlogPostsPage";
 
 export default function Page() {
   return (
-    <Suspense fallback={<div className="p-6 text-sm text-brand-muted">Loading…</div>}>
+    <Suspense fallback={<BlogPostsPageSkeleton />}>
       <PlatformAdminBlogPostsPage />
     </Suspense>
   );

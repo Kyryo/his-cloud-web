@@ -1,0 +1,232 @@
+/*
+ * Blog content typography, shared by the read-only preview (.blog-prose) and the
+ * Quill editor surface (.blog-quill .ql-editor). Colours come from the app theme
+ * tokens so both follow the design system (and a dark theme once one is defined).
+ */
+.blog-prose,
+.blog-quill .ql-editor {
+  color: var(--color-brand-slate);
+  font-size: 15px;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+.blog-prose > * + *,
+.blog-quill .ql-editor > * + * {
+  margin-top: 0.9em;
+}
+
+.blog-prose :is(h1, h2, h3, h4, h5, h6),
+.blog-quill .ql-editor :is(h1, h2, h3, h4, h5, h6) {
+  color: var(--color-brand-navy);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.blog-prose :is(h1, h2, h3, h4, h5, h6):not(:first-child),
+.blog-quill .ql-editor :is(h1, h2, h3, h4, h5, h6):not(:first-child) {
+  margin-top: 1.6em;
+}
+
+.blog-prose h1, .blog-quill .ql-editor h1 { font-size: 1.875rem; }
+.blog-prose h2, .blog-quill .ql-editor h2 { font-size: 1.5rem; }
+.blog-prose h3, .blog-quill .ql-editor h3 { font-size: 1.25rem; }
+.blog-prose h4, .blog-quill .ql-editor h4 { font-size: 1.075rem; }
+.blog-prose h5, .blog-quill .ql-editor h5 { font-size: 1rem; }
+.blog-prose h6, .blog-quill .ql-editor h6 { font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.06em; }
+
+.blog-prose a,
+.blog-quill .ql-editor a {
+  color: var(--color-brand-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.blog-prose :is(ul, ol) {
+  padding-left: 1.4em;
+}
+
+.blog-prose ul { list-style: disc; }
+.blog-prose ol { list-style: decimal; }
+.blog-prose li + li { margin-top: 0.3em; }
+.blog-prose li > p { margin: 0; }
+
+.blog-prose blockquote,
+.blog-quill .ql-editor blockquote {
+  border-left: 2px solid var(--color-brand-primary);
+  color: var(--color-brand-navy);
+  font-style: italic;
+  padding-left: 1em;
+}
+
+.blog-prose :not(pre) > code,
+.blog-quill .ql-editor code:not(.ql-code-block code) {
+  background: var(--color-dash-canvas);
+  border-radius: 4px;
+  font-size: 0.875em;
+  padding: 0.1em 0.35em;
+}
+
+.blog-prose pre,
+.blog-quill .ql-editor .ql-code-block-container {
+  background: var(--color-dash-canvas);
+  border-radius: 6px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+  padding: 0.9em 1.1em;
+}
+
+.blog-prose img,
+.blog-quill .ql-editor img {
+  border-radius: 6px;
+  height: auto;
+  max-width: 100%;
+}
+
+.blog-prose iframe,
+.blog-quill .ql-editor iframe.ql-video {
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 6px;
+  height: auto;
+  max-width: 100%;
+  width: 100%;
+}
+
+.blog-prose table {
+  border-collapse: collapse;
+  font-size: 14px;
+  width: 100%;
+}
+
+.blog-prose :is(th, td) {
+  border-bottom: 1px solid var(--color-dash-border);
+  padding: 0.5em 0.75em;
+  text-align: left;
+  vertical-align: top;
+}
+
+.blog-prose th {
+  color: var(--color-brand-navy);
+  font-weight: 600;
+}
+
+.blog-prose :is(th, td) > p { margin: 0; }
+
+.blog-prose hr {
+  border: 0;
+  border-top: 1px solid var(--color-dash-border);
+  margin: 2em 0;
+}
+
+/* ---------- Quill editor chrome (snow theme, flattened) ---------- */
+
+.blog-quill {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+.blog-quill .ql-toolbar.ql-snow {
+  background: var(--color-background);
+  border: 0;
+  border-bottom: 1px solid var(--color-dash-border);
+  font-family: var(--font-app, inherit);
+  padding: 6px 0;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.blog-quill .ql-toolbar.ql-snow .ql-formats {
+  margin-right: 10px;
+  padding-right: 10px;
+  border-right: 1px solid var(--color-dash-border);
+}
+
+.blog-quill .ql-toolbar.ql-snow .ql-formats:last-child {
+  border-right: 0;
+}
+
+.blog-quill .ql-snow .ql-stroke { stroke: var(--color-brand-slate); }
+.blog-quill .ql-snow .ql-fill { fill: var(--color-brand-slate); }
+.blog-quill .ql-snow .ql-picker { color: var(--color-brand-slate); }
+
+.blog-quill .ql-snow.ql-toolbar button:hover .ql-stroke,
+.blog-quill .ql-snow.ql-toolbar button.ql-active .ql-stroke,
+.blog-quill .ql-snow .ql-picker-label:hover .ql-stroke,
+.blog-quill .ql-snow .ql-picker-label.ql-active .ql-stroke {
+  stroke: var(--color-brand-primary);
+}
+
+.blog-quill .ql-snow.ql-toolbar button:hover .ql-fill,
+.blog-quill .ql-snow.ql-toolbar button.ql-active .ql-fill,
+.blog-quill .ql-snow .ql-picker-label:hover .ql-fill,
+.blog-quill .ql-snow .ql-picker-label.ql-active .ql-fill {
+  fill: var(--color-brand-primary);
+}
+
+.blog-quill .ql-snow.ql-toolbar button:hover,
+.blog-quill .ql-snow.ql-toolbar button.ql-active,
+.blog-quill .ql-snow .ql-picker-label:hover,
+.blog-quill .ql-snow .ql-picker-label.ql-active,
+.blog-quill .ql-snow .ql-picker-item:hover,
+.blog-quill .ql-snow .ql-picker-item.ql-selected {
+  color: var(--color-brand-primary);
+}
+
+.blog-quill .ql-snow .ql-picker-options {
+  background: var(--color-popover);
+  border: 1px solid var(--color-dash-border) !important;
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.08);
+}
+
+.blog-quill .ql-container.ql-snow {
+  border: 0;
+  flex: 1;
+  font-family: var(--font-app, inherit);
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.blog-quill .ql-editor {
+  margin: 0 auto;
+  max-width: 46rem;
+  min-height: 100%;
+  padding: 2rem 1.5rem 6rem;
+}
+
+.blog-quill .ql-editor.ql-blank::before {
+  color: var(--color-dash-muted);
+  font-style: normal;
+  left: max(1.5rem, calc((100% - 46rem) / 2 + 1.5rem));
+}
+
+.blog-quill .ql-snow .ql-tooltip {
+  background: var(--color-popover);
+  border: 1px solid var(--color-dash-border);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.08);
+  color: var(--color-brand-slate);
+  z-index: 3;
+}
+
+.blog-quill .ql-snow .ql-tooltip input[type="text"] {
+  border: 1px solid var(--color-dash-border);
+  border-radius: 4px;
+}
+
+.blog-quill .ql-snow .ql-tooltip a.ql-action,
+.blog-quill .ql-snow .ql-tooltip a.ql-remove {
+  color: var(--color-brand-primary);
+}
+
+.blog-quill .ql-editor table td,
+.blog-quill .ql-editor table th {
+  border-color: var(--color-dash-border);
+}
