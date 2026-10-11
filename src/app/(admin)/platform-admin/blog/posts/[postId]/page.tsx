@@ -1,5 +1,5 @@
-import { PlatformAdminBlogPostEditorPage } from "@/features/platform-admin/pages/PlatformAdminBlogPostEditorPage";
+import { PlatformAdminBlogPostDetailPage } from "@/features/platform-admin/pages/PlatformAdminBlogPostDetailPage";
 
 export default function Page() {
-  return <PlatformAdminBlogPostEditorPage />;
+  return <PlatformAdminBlogPostDetailPage />;
 }
