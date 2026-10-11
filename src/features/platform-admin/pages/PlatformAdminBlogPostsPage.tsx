@@ -1,187 +1,63 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { Plus } from "lucide-react";
+import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { ROUTES } from "@/constants/routes";
 import {
   ListPageHeaderSection,
   ListPageHeaderTitleBlock,
   ListPageHeaderTopRow,
   ListPageLayout,
-  ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
-import {
-  deleteBlogPost,
-  fetchBlogPosts,
-} from "@/features/platform-admin/services/blog-cms.service";
+import { BlogDeletePostDialog } from "@/features/platform-admin/components/blog/BlogDeletePostDialog";
+import { BlogPostCreateSheet } from "@/features/platform-admin/components/blog/BlogPostCreateSheet";
+import { BlogPostsResults } from "@/features/platform-admin/components/blog/BlogPostsResults";
+import { BlogPostsToolbar } from "@/features/platform-admin/components/blog/BlogPostsToolbar";
+import { useBlogCategories, useBlogPosts } from "@/features/platform-admin/hooks/use-blog-cms";
+import { useBlogPostListQuery } from "@/features/platform-admin/hooks/use-blog-post-list-query";
 import type { BlogPost } from "@/features/platform-admin/types/blog.types";
-import { useToast } from "@/providers/toast-provider";
+import { countActiveBlogFilters, selectBlogPostPage } from "@/features/platform-admin/utils/blog-post-list";
 
 export function PlatformAdminBlogPostsPage() {
-  const { toast } = useToast();
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const [posts, setPosts] = useState<BlogPost[]>([]);
-  const [search, setSearch] = useState("");
-  const [status, setStatus] = useState(searchParams.get("status") || "all");
-  const [isLoading, setIsLoading] = useState(true);
-
-  const load = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const response = await fetchBlogPosts({
-        status: status === "all" ? undefined : status,
-        search: search.trim() || undefined,
-      });
-      setPosts(response.results);
-    } catch (error) {
-      toast({
-        variant: "error",
-        title: "Unable to load posts",
-        description:
-          error instanceof Error ? error.message : "Something went wrong.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [search, status, toast]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const { query, setQuery, isCreateOpen, setCreateOpen } = useBlogPostListQuery();
+  const [postToDelete, setPostToDelete] = useState<BlogPost | null>(null);
+  const postsQuery = useBlogPosts({
+    status: query.status === "all" ? undefined : query.status,
+    search: query.search || undefined,
+  });
+  const categories = useBlogCategories().data?.results ?? [];
+  const page = selectBlogPostPage(postsQuery.data?.results ?? [], query);
 
   return (
-    <ListPageLayout data-testid="platform-admin-blog-posts">
+    <ListPageLayout data-testid="platform-admin-blog-posts" className="space-y-5">
       <ListPageHeaderSection>
         <ListPageHeaderTopRow>
-          <ListPageHeaderTitleBlock
-            title="Blog posts"
-            description="Draft and publish posts for the public blog site."
-          />
-          <div className="flex gap-2">
-            <Button asChild variant="outline">
-              <Link href={ROUTES.platformAdminBlog}>Hub</Link>
-            </Button>
-            <Button asChild>
-              <Link href={ROUTES.platformAdminBlogPost("new")}>New post</Link>
-            </Button>
-          </div>
+          <ListPageHeaderTitleBlock title="Posts" description="Draft, schedule and publish posts for the public blog." />
+          <Button variant="primary" size="sm" onClick={() => setCreateOpen(true)} data-testid="blog-new-post">
+            <Plus className="size-4" aria-hidden="true" />
+            New post
+          </Button>
         </ListPageHeaderTopRow>
       </ListPageHeaderSection>
 
-      <ListPageTableSection>
-        <div className="mb-4 flex flex-wrap gap-2">
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search title, slug, body…"
-            className="max-w-xs"
-          />
-          <select
-            value={status}
-            onChange={(e) => setStatus(e.target.value)}
-            className="h-9 rounded-md border border-brand-border bg-white px-3 text-sm"
-          >
-            <option value="all">All statuses</option>
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-          </select>
-          <Button type="button" variant="outline" onClick={() => void load()}>
-            Refresh
-          </Button>
-        </div>
+      <BlogPostsToolbar query={query} categories={categories} onChange={setQuery} />
 
-        {isLoading ? (
-          <p className="text-sm text-brand-muted">Loading…</p>
-        ) : posts.length === 0 ? (
-          <p className="text-sm text-brand-muted">No posts found.</p>
-        ) : (
-          <div className="overflow-hidden rounded-xl border border-brand-border bg-white">
-            <table className="min-w-full text-left text-sm">
-              <thead className="border-b border-brand-border bg-brand-canvas/50 text-brand-muted">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Title</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Updated</th>
-                  <th className="px-4 py-3 font-medium" />
-                </tr>
-              </thead>
-              <tbody>
-                {posts.map((post) => (
-                  <tr key={post.id} className="border-b border-brand-border last:border-0">
-                    <td className="px-4 py-3">
-                      <button
-                        type="button"
-                        className="text-left font-medium text-brand-navy hover:underline"
-                        onClick={() =>
-                          router.push(ROUTES.platformAdminBlogPost(post.id))
-                        }
-                      >
-                        {post.title}
-                      </button>
-                      <div className="text-xs text-brand-muted">/{post.slug}</div>
-                    </td>
-                    <td className="px-4 py-3 capitalize">{post.status}</td>
-                    <td className="px-4 py-3 text-brand-muted">
-                      {post.updatedAt
-                        ? new Date(post.updatedAt).toLocaleString()
-                        : "—"}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        className="mr-2"
-                        onClick={() =>
-                          router.push(ROUTES.platformAdminBlogPost(post.id))
-                        }
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        className="text-red-600"
-                        onClick={() => {
-                          if (!window.confirm(`Delete “${post.title}”?`)) {
-                            return;
-                          }
-                          void deleteBlogPost(post.id)
-                            .then(() => {
-                              toast({
-                                variant: "success",
-                                title: "Post deleted",
-                              });
-                              void load();
-                            })
-                            .catch((error) =>
-                              toast({
-                                variant: "error",
-                                title: "Delete failed",
-                                description:
-                                  error instanceof Error
-                                    ? error.message
-                                    : "Something went wrong.",
-                              }),
-                            );
-                        }}
-                      >
-                        Delete
-                      </Button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </ListPageTableSection>
+      <BlogPostsResults
+        isPending={postsQuery.isPending}
+        isError={postsQuery.isError}
+        isFetching={postsQuery.isFetching}
+        hasActiveFilters={countActiveBlogFilters(query) > 0}
+        page={page}
+        onRetry={() => void postsQuery.refetch()}
+        onClearFilters={() => setQuery({ search: "", status: "all", categoryId: "all" })}
+        onCreate={() => setCreateOpen(true)}
+        onPageChange={(next) => setQuery({ page: next })}
+        onDelete={setPostToDelete}
+      />
+
+      <BlogPostCreateSheet open={isCreateOpen} onOpenChange={setCreateOpen} />
+      <BlogDeletePostDialog post={postToDelete} onOpenChange={(open) => !open && setPostToDelete(null)} />
     </ListPageLayout>
   );
 }
