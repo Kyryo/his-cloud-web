@@ -1,7 +1,7 @@
 "use client";
 
+import { Plus } from "lucide-react";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
@@ -10,99 +10,74 @@ import {
   ListPageHeaderTitleBlock,
   ListPageHeaderTopRow,
   ListPageLayout,
-  ListPageTableSection,
+  PAGE_SECTION_TITLE_CLASS,
 } from "@/features/app-shell/components/page-layout";
-import { fetchBlogCmsStats } from "@/features/platform-admin/services/blog-cms.service";
-import type { BlogCmsStats } from "@/features/platform-admin/types/blog.types";
-import { useToast } from "@/providers/toast-provider";
+import { BlogOverviewStats } from "@/features/platform-admin/components/blog/BlogOverviewStats";
+import { BlogQuickLinks } from "@/features/platform-admin/components/blog/BlogQuickLinks";
+import { BlogRecentPostsList } from "@/features/platform-admin/components/blog/BlogRecentPostsList";
+import { useBlogCmsStats, useBlogPosts } from "@/features/platform-admin/hooks/use-blog-cms";
+import { BLOG_POST_LIST_PARAMS, recentBlogPosts } from "@/features/platform-admin/utils/blog-post-list";
 
-const EMPTY_STATS: BlogCmsStats = {
-  posts: 0,
-  published: 0,
-  drafts: 0,
-  authors: 0,
-  categories: 0,
-  tags: 0,
-};
+const NEW_POST_HREF = `${ROUTES.platformAdminBlogPosts}?${BLOG_POST_LIST_PARAMS.create}=1`;
 
 export function PlatformAdminBlogHubPage() {
-  const { toast } = useToast();
-  const [stats, setStats] = useState<BlogCmsStats>(EMPTY_STATS);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const load = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      setStats(await fetchBlogCmsStats());
-    } catch (error) {
-      toast({
-        variant: "error",
-        title: "Unable to load blog CMS",
-        description:
-          error instanceof Error ? error.message : "Something went wrong.",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast]);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
+  const statsQuery = useBlogCmsStats();
+  const postsQuery = useBlogPosts();
+  const recent = recentBlogPosts(postsQuery.data?.results ?? []);
 
   return (
-    <ListPageLayout data-testid="platform-admin-blog-hub">
+    <ListPageLayout data-testid="platform-admin-blog-hub" className="space-y-8">
       <ListPageHeaderSection>
         <ListPageHeaderTopRow>
           <ListPageHeaderTitleBlock
-            title="Blog CMS"
-            description="Manage public marketing blog content stored in the platform API."
+            title="Blog"
+            description="Everything published on the public marketing blog."
           />
-          <Button asChild>
-            <Link href={ROUTES.platformAdminBlogPost("new")}>New post</Link>
-          </Button>
+          <div className="flex gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link href={ROUTES.platformAdminBlogPosts}>All posts</Link>
+            </Button>
+            <Button asChild variant="primary" size="sm">
+              <Link href={NEW_POST_HREF}>
+                <Plus className="size-4" aria-hidden="true" />
+                New post
+              </Link>
+            </Button>
+          </div>
         </ListPageHeaderTopRow>
       </ListPageHeaderSection>
 
-      <ListPageTableSection>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {(
-            [
-              ["Posts", stats.posts, ROUTES.platformAdminBlogPosts],
-              ["Published", stats.published, ROUTES.platformAdminBlogPosts],
-              ["Drafts", stats.drafts, `${ROUTES.platformAdminBlogPosts}?status=draft`],
-              ["Authors", stats.authors, ROUTES.platformAdminBlogAuthors],
-              ["Categories", stats.categories, ROUTES.platformAdminBlogCategories],
-              ["Tags", stats.tags, ROUTES.platformAdminBlogTags],
-            ] as const
-          ).map(([label, value, href]) => (
-            <Link
-              key={label}
-              href={href}
-              className="rounded-xl border border-brand-border bg-white p-4 transition-colors hover:border-brand-primary/40"
-            >
-              <p className="text-sm text-brand-muted">{label}</p>
-              <p className="mt-2 text-3xl font-semibold text-brand-navy">
-                {isLoading ? "—" : value}
-              </p>
-            </Link>
-          ))}
-        </div>
+      <section aria-label="Key figures" className="border-y border-dash-border/80 py-5">
+        <BlogOverviewStats stats={statsQuery.data} isLoading={statsQuery.isPending} />
+        {statsQuery.isError ? (
+          <p className="mt-3 text-xs text-red-700">Post counts could not be loaded. Refresh to try again.</p>
+        ) : null}
+      </section>
 
-        <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          {[
-            ["All posts", ROUTES.platformAdminBlogPosts],
-            ["Authors", ROUTES.platformAdminBlogAuthors],
-            ["Categories", ROUTES.platformAdminBlogCategories],
-            ["Tags", ROUTES.platformAdminBlogTags],
-            ["Site settings", ROUTES.platformAdminBlogSettings],
-          ].map(([label, href]) => (
-            <Button key={href} asChild variant="outline" className="justify-start">
-              <Link href={href}>{label}</Link>
-            </Button>
-          ))}
-        </div>
-      </ListPageTableSection>
+      <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem]">
+        <section aria-labelledby="blog-recent-heading">
+          <div className="flex items-baseline justify-between">
+            <h2 id="blog-recent-heading" className={PAGE_SECTION_TITLE_CLASS}>Recently updated</h2>
+            <Link href={ROUTES.platformAdminBlogPosts} className="text-xs font-medium text-brand-primary hover:underline">
+              View all
+            </Link>
+          </div>
+          <div className="mt-2">
+            {postsQuery.isError ? (
+              <p className="py-6 text-sm text-red-700">Posts could not be loaded.</p>
+            ) : (
+              <BlogRecentPostsList posts={recent} isLoading={postsQuery.isPending} />
+            )}
+          </div>
+        </section>
+
+        <section aria-labelledby="blog-manage-heading">
+          <h2 id="blog-manage-heading" className={PAGE_SECTION_TITLE_CLASS}>Manage</h2>
+          <div className="mt-2">
+            <BlogQuickLinks stats={statsQuery.data} />
+          </div>
+        </section>
+      </div>
     </ListPageLayout>
   );
 }
