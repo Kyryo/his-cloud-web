@@ -131,6 +131,7 @@ export function ProductsListPage() {
         onCreated={handleProductCreated}
       />
 
+      {hasNoRecords ? null : (
       <ProductsPageHeader
         search={search}
         filters={sheetFilters}
@@ -141,6 +142,7 @@ export function ProductsListPage() {
         onFiltersApply={handleFiltersApply}
         onNewProduct={handleCreate}
       />
+      )}
 
       <FabButton
         label="New product"

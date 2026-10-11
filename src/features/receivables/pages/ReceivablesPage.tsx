@@ -226,9 +226,11 @@ export function ReceivablesPage() {
   const rows = view === "invoices" ? invoices : debtors;
   const showSkeleton = isLoading || loadedView !== view;
   const isEmpty = !showSkeleton && !error && rows.length === 0;
+  const hasNoRecords = isEmpty && !query && aging == null;
 
   return (
     <ListPageLayout data-testid="receivables-page">
+      {hasNoRecords ? null : (
       <ReceivablesToolbar
         view={view}
         search={search}
@@ -237,6 +239,7 @@ export function ReceivablesPage() {
         onSearchSubmit={handleSearchSubmit}
         onClearSearch={handleClearSearch}
       />
+      )}
 
       <ListPageStatsSection>
         <ReceivablesInsights

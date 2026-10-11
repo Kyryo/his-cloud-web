@@ -69,7 +69,7 @@ afterEach(() => {
 });
 
 describe("CustomersListPage empty state", () => {
-  it("hides header actions and centers the empty state when there are no clients", async () => {
+  it("hides header actions when there are no clients", async () => {
     render(<CustomersListPage />);
 
     expect(await screen.findByTestId("customers-empty-state")).toBeInTheDocument();
@@ -79,13 +79,6 @@ describe("CustomersListPage empty state", () => {
     expect(screen.queryByTestId("customers-filters-button")).not.toBeInTheDocument();
     expect(screen.queryByTestId("membership-search-button")).not.toBeInTheDocument();
     expect(screen.queryByTestId("add-client-button")).not.toBeInTheDocument();
-
-    const emptyState = screen.getByTestId("customers-empty-state");
-    expect(emptyState.parentElement).toHaveClass(
-      "flex-1",
-      "items-center",
-      "justify-center",
-    );
 
     await waitFor(() => {
       expect(screen.queryByTestId("customers-search")).not.toBeInTheDocument();

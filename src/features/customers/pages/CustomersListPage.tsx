@@ -529,7 +529,7 @@ export function CustomersListPage() {
           </ListPageTableSection>
         </ListPageDataSectionsStack>
       ) : (
-        <ListPageTableSection className="flex min-h-0 flex-1 items-center justify-center">
+        <ListPageTableSection>
           <CustomersEmptyState onAddClient={handleAddClient} />
         </ListPageTableSection>
       )}

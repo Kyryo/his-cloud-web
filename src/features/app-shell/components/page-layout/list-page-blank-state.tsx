@@ -10,7 +10,6 @@ type ListPageBlankStateProps = {
   action?: ReactNode;
   tone?: "default" | "error";
   compact?: boolean;
-  className?: string;
   "data-testid"?: string;
 };
 
@@ -21,7 +20,6 @@ export function ListPageBlankState({
   action,
   tone = "default",
   compact = false,
-  className,
   "data-testid": dataTestId,
 }: ListPageBlankStateProps) {
   return (
@@ -31,7 +29,6 @@ export function ListPageBlankState({
         compact
           ? "py-14"
           : "min-h-[min(380px,calc(100vh-16rem))] py-16",
-        className,
       )}
       data-testid={dataTestId}
     >

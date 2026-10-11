@@ -236,6 +236,7 @@ export function PaymentsListPage() {
 
   return (
     <ListPageLayout data-testid="payments-page">
+      {hasNoRecords ? null : (
       <PaymentsPageHeader
         search={search}
         filters={filters}
@@ -250,6 +251,7 @@ export function PaymentsListPage() {
         }}
         onRecordPayment={() => setRecordPaymentOpen(true)}
       />
+      )}
 
       {!hasNoRecords ? (
         <FabButton

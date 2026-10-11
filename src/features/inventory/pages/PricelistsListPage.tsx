@@ -128,6 +128,7 @@ export function PricelistsListPage() {
         onCreated={handlePricelistCreated}
       />
 
+      {hasNoRecords ? null : (
       <PricelistsPageHeader
         search={search}
         isLoading={isRefreshing}
@@ -136,6 +137,7 @@ export function PricelistsListPage() {
         onClearSearch={handleClearSearch}
         onNewPricelist={handleCreate}
       />
+      )}
 
       <FabButton
         label="New pricelist"

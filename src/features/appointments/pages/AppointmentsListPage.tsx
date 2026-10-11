@@ -315,23 +315,25 @@ export function AppointmentsListPage() {
         data-testid="appointments-page"
         className={cn((isBoardView || isCalendarView) && "overflow-hidden sm:pb-3")}
       >
-        <AppointmentsPageHeader
-          search={search}
-          filters={filters}
-          viewMode={viewMode}
-          isLoading={isRefreshing}
-          onSearchChange={setSearch}
-          onSearchSubmit={handleSearchSubmit}
-          onClearSearch={handleClearSearch}
-          onFiltersApply={(nextFilters) => {
-            setFilters(nextFilters);
-            resetPage();
-          }}
-          onNewAppointment={() => {
-            setCreatePrefill(undefined);
-            router.replace(appointmentsHref({ pathname, newAppointment: true }));
-          }}
-        />
+        {isListView && hasNoRecords ? null : (
+          <AppointmentsPageHeader
+            search={search}
+            filters={filters}
+            viewMode={viewMode}
+            isLoading={isRefreshing}
+            onSearchChange={setSearch}
+            onSearchSubmit={handleSearchSubmit}
+            onClearSearch={handleClearSearch}
+            onFiltersApply={(nextFilters) => {
+              setFilters(nextFilters);
+              resetPage();
+            }}
+            onNewAppointment={() => {
+              setCreatePrefill(undefined);
+              router.replace(appointmentsHref({ pathname, newAppointment: true }));
+            }}
+          />
+        )}
 
         {isListView && !hasNoRecords ? (
           <FabButton

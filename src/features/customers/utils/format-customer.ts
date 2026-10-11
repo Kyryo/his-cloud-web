@@ -98,13 +98,28 @@ export function formatDisplayDateTime(value: string, timeZone?: string): string 
   }
 }
 
+function parseCalendarDate(value: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value.trim());
+  if (match) {
+    const date = new Date(
+      Number(match[1]),
+      Number(match[2]) - 1,
+      Number(match[3]),
+    );
+    return Number.isNaN(date.getTime()) ? null : date;
+  }
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
 export function calculateAgeInDays(dob?: string | null): number | null {
   if (!dob) {
     return null;
   }
 
-  const birthDate = new Date(dob);
-  if (Number.isNaN(birthDate.getTime())) {
+  const birthDate = parseCalendarDate(dob);
+  if (!birthDate) {
     return null;
   }
 
@@ -132,7 +147,10 @@ export function formatAdaptiveAge(dob?: string | null): string {
     return `${weeks} week${weeks === 1 ? "" : "s"}`;
   }
 
-  const birthDate = new Date(dob as string);
+  const birthDate = parseCalendarDate(dob as string);
+  if (!birthDate) {
+    return "N/A";
+  }
   const today = new Date();
 
   const months =
@@ -153,4 +171,16 @@ export function formatAdaptiveAge(dob?: string | null): string {
   }
 
   return `${years} year${years === 1 ? "" : "s"}`;
+}
+
+export function formatCustomerListAge(customer: {
+  age: number;
+  dob?: string | null;
+}): string | null {
+  if (customer.age > 0) {
+    return `${customer.age} yrs`;
+  }
+
+  const adaptive = formatAdaptiveAge(customer.dob);
+  return adaptive === "N/A" ? null : adaptive;
 }

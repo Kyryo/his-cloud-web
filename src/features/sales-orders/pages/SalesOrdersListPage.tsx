@@ -277,6 +277,7 @@ export function SalesOrdersListPage() {
 
   return (
     <ListPageLayout data-testid="sales-orders-page">
+      {hasNoRecords ? null : (
       <SalesOrdersPageHeader
         search={search}
         filters={filters}
@@ -287,6 +288,7 @@ export function SalesOrdersListPage() {
         onFiltersApply={handleFiltersApply}
         onNewOrder={handleNewOrder}
       />
+      )}
 
       {!hasNoRecords ? (
         <FabButton

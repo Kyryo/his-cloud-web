@@ -52,6 +52,11 @@ export function DateOfBirthField({
 }: DateOfBirthFieldProps) {
   const [open, setOpen] = useState(false);
   const selectedDate = useMemo(() => parseDateValue(value), [value]);
+  const today = useMemo(() => new Date(), []);
+  const startMonth = useMemo(
+    () => new Date(today.getFullYear() - 120, 0, 1),
+    [today],
+  );
 
   function handleInputChange(nextValue: string) {
     onChange(formatPartialIsoDateInput(nextValue, value));
@@ -105,9 +110,15 @@ export function DateOfBirthField({
         >
           <Calendar
             mode="single"
+            captionLayout="dropdown"
+            navLayout="after"
+            reverseYears
+            startMonth={startMonth}
+            endMonth={today}
+            defaultMonth={selectedDate ?? today}
             selected={selectedDate}
             onSelect={handleCalendarSelect}
-            disabled={(date) => date > new Date()}
+            disabled={(date) => date > today}
           />
         </PopoverContent>
       </Popover>

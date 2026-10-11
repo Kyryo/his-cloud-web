@@ -174,6 +174,7 @@ export function InvoicesListPage() {
 
   return (
     <ListPageLayout data-testid="invoices-page">
+      {hasNoRecords ? null : (
       <InvoicesPageHeader
         search={search}
         filters={filters}
@@ -183,6 +184,7 @@ export function InvoicesListPage() {
         onClearSearch={handleClearSearch}
         onFiltersApply={handleFiltersApply}
       />
+      )}
 
       {!hasNoRecords ? (
         <FabButton

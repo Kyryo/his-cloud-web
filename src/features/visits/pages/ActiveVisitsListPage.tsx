@@ -185,15 +185,17 @@ export function ActiveVisitsListPage() {
   return (
     <>
       <ListPageLayout data-testid="active-visits-page">
-        <ActiveVisitsPageHeader
-          search={search}
-          filters={filters}
-          isLoading={isRefreshing}
-          onSearchChange={setSearch}
-          onSearchSubmit={handleSearchSubmit}
-          onClearSearch={handleClearSearch}
-          onFiltersApply={handleFiltersApply}
-        />
+        {hasNoRecords ? null : (
+          <ActiveVisitsPageHeader
+            search={search}
+            filters={filters}
+            isLoading={isRefreshing}
+            onSearchChange={setSearch}
+            onSearchSubmit={handleSearchSubmit}
+            onClearSearch={handleClearSearch}
+            onFiltersApply={handleFiltersApply}
+          />
+        )}
 
         {!hasNoRecords ? (
           <FabButton

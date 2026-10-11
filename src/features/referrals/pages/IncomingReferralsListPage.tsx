@@ -103,13 +103,15 @@ export function IncomingReferralsListPage() {
   return (
     <>
       <ListPageLayout data-testid="incoming-referrals-page">
-        <IncomingReferralsPageHeader
-          search={search}
-          isLoading={isRefreshing}
-          onSearchChange={setSearch}
-          onSearchSubmit={handleSearchSubmit}
-          onClearSearch={handleClearSearch}
-        />
+        {hasNoRecords ? null : (
+          <IncomingReferralsPageHeader
+            search={search}
+            isLoading={isRefreshing}
+            onSearchChange={setSearch}
+            onSearchSubmit={handleSearchSubmit}
+            onClearSearch={handleClearSearch}
+          />
+        )}
 
         <ListPageTableSection>
           {isLoading ? (

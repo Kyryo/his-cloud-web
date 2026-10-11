@@ -44,6 +44,7 @@ import { CustomerVisitStatusBadge } from "@/features/customers/components/Custom
 import type { Customer } from "@/features/customers/types/customer.types";
 import { isCustomerVisitActive } from "@/features/customers/utils/customer-visit-status";
 import {
+  formatCustomerListAge,
   formatCustomerName,
   formatDisplayDate,
 } from "@/features/customers/utils/format-customer";
@@ -98,7 +99,7 @@ function CustomerHoverPreview({ customer }: { customer: Customer }) {
         <dd className="font-medium text-brand-navy">{customer.gender || "—"}</dd>
         <dt className="text-brand-muted">Age</dt>
         <dd className="font-medium text-brand-navy">
-          {customer.age > 0 ? `${customer.age} yrs` : "—"}
+          {formatCustomerListAge(customer) ?? "—"}
         </dd>
         <dt className="text-brand-muted">Phone</dt>
         <dd className="font-medium text-brand-navy">{customer.phone_number || "—"}</dd>
@@ -182,6 +183,7 @@ export function CustomersTable({
             const identifier = customer.customer_identifier || "—";
             const isVisitActive = isCustomerVisitActive(customer.visit_status);
             const isCopied = copiedUuid === customer.uuid;
+            const listAge = formatCustomerListAge(customer);
 
             return (
               <ListPageDataTableRow
@@ -259,8 +261,11 @@ export function CustomersTable({
                 <ListPageDataTableCell>
                   <div className="font-medium text-brand-navy">
                     <span>{customer.gender || "—"}</span>
-                    {customer.age > 0 ? (
-                      <span className="font-normal text-dash-muted"> · {customer.age} yrs</span>
+                    {listAge ? (
+                      <span className="font-normal text-dash-muted">
+                        {" "}
+                        · {listAge}
+                      </span>
                     ) : null}
                   </div>
                 </ListPageDataTableCell>
