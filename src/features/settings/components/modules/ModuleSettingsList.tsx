@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { AppIcon } from "@/components/icons/app-icon";
 import { isPortalModuleName } from "@/features/app-shell/utils/module-entitlements";
@@ -10,10 +10,27 @@ import {
   getModuleSettingsItems,
   type ModuleSettingsItem,
 } from "@/features/settings/constants/module-settings-cards";
-import { activateOrganizationModule } from "@/features/settings/services/settings.service";
+import {
+  activateOrganizationModule,
+  syncOrganizationModules,
+} from "@/features/settings/services/settings.service";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 import { useUser } from "@/providers/user-provider";
+
+function ModuleIdentity({ module }: { module: ModuleSettingsItem }) {
+  return (
+    <>
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-slate-50 text-slate-500 ring-1 ring-slate-200/70 transition-colors group-hover:bg-white group-hover:text-brand-primary">
+        <AppIcon name={module.icon} size={16} aria-hidden="true" />
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-brand-navy">{module.label}</p>
+        <p className="mt-0.5 text-sm text-slate-400">{module.description}</p>
+      </div>
+    </>
+  );
+}
 
 function ModuleRow({
   module,
@@ -26,30 +43,18 @@ function ModuleRow({
   pending: boolean;
   onAdd: (moduleId: string) => void;
 }) {
-  const body = (
-    <>
-      <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-slate-50 text-slate-500 ring-1 ring-slate-200/70">
-        <AppIcon name={module.icon} size={16} aria-hidden="true" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-brand-navy">{module.label}</p>
-        <p className="mt-0.5 text-sm text-slate-400">{module.description}</p>
-      </div>
-    </>
-  );
-
-  return (
-    <li className="flex items-center gap-3 py-3.5">
-      {added ? (
+  if (added) {
+    return (
+      <li>
         <Link
           href={module.href}
           className={cn(
-            "group flex min-w-0 flex-1 items-center gap-3 rounded-lg transition-colors",
+            "group flex items-center gap-3 rounded-lg py-3.5 transition-colors",
             "hover:bg-slate-50/80 focus-visible:bg-slate-50/80 focus-visible:outline-none",
           )}
           data-testid={`module-settings-link-${module.slug}`}
         >
-          {body}
+          <ModuleIdentity module={module} />
           <AppIcon
             name="chevronRight"
             size={16}
@@ -57,27 +62,24 @@ function ModuleRow({
             aria-hidden="true"
           />
         </Link>
-      ) : (
-        <div className="flex min-w-0 flex-1 items-center gap-3">{body}</div>
-      )}
-      {added ? (
-        <span
-          className="inline-flex h-8 shrink-0 items-center rounded-full bg-brand-tint px-3.5 text-[13px] font-medium text-brand-primary"
-          data-testid={`module-added-${module.slug}`}
-        >
-          Added
-        </span>
-      ) : (
-        <button
-          type="button"
-          className="inline-flex h-8 shrink-0 items-center rounded-full bg-brand-primary px-3.5 text-[13px] font-medium text-white hover:bg-brand-primary-hover disabled:opacity-60"
-          data-testid={`module-add-${module.slug}`}
-          disabled={pending}
-          onClick={() => onAdd(module.id)}
-        >
-          {pending ? "Adding…" : "Add"}
-        </button>
-      )}
+      </li>
+    );
+  }
+
+  return (
+    <li className="flex items-center gap-3 py-3.5">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <ModuleIdentity module={module} />
+      </div>
+      <button
+        type="button"
+        className="inline-flex h-8 shrink-0 items-center rounded-full bg-brand-primary px-3.5 text-[13px] font-medium text-white hover:bg-brand-primary-hover disabled:opacity-60"
+        data-testid={`module-add-${module.slug}`}
+        disabled={pending}
+        onClick={() => onAdd(module.id)}
+      >
+        {pending ? "Adding…" : "Add"}
+      </button>
     </li>
   );
 }
@@ -92,6 +94,26 @@ export function ModuleSettingsList() {
     isPortalModuleName(module.id),
   );
 
+  useEffect(() => {
+    let active = true;
+
+    async function syncRoles() {
+      try {
+        await syncOrganizationModules();
+        if (active) {
+          await refreshUser();
+        }
+      } catch {
+        // The list still reflects the last session. Add remains available.
+      }
+    }
+
+    void syncRoles();
+    return () => {
+      active = false;
+    };
+  }, [refreshUser]);
+
   async function addModule(moduleId: string) {
     setPendingId(moduleId);
     try {
@@ -103,7 +125,7 @@ export function ModuleSettingsList() {
       toast({
         variant: "success",
         title: "Module added",
-        description: "It is available for this clinic.",
+        description: "It is available in the menu for this clinic.",
       });
     } catch (error) {
       toast({

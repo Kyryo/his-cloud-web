@@ -44,6 +44,7 @@ describe("CustomersPageHeader", () => {
     // Action buttons
     expect(screen.queryByText("Active Queue")).not.toBeInTheDocument();
     expect(screen.queryByText("Appointments")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("membership-search-button")).not.toBeInTheDocument();
     expect(screen.getByTestId("add-client-button")).toHaveTextContent(
       "Register client",
     );

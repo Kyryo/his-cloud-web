@@ -14,7 +14,7 @@ import { Input } from "@/components/ui/input";
 import { RegistryPayerPicker } from "@/features/settings/components/RegistryPayerPicker";
 import type { CreateOrganizationPayerFormValues } from "@/features/settings/schemas/organization-payer.schema";
 
-export type PayerDialogTab = "general" | "contact";
+export type PayerDialogTab = "general" | "contact" | "schemes";
 
 const generalFields = ["name", "code", "registry_payer", "description"] as const;
 const contactFields = ["email", "phone_number", "address"] as const;
@@ -55,6 +55,9 @@ export function PayerDialogFields({
   activeTab,
   disabled = false,
 }: PayerDialogFieldsProps) {
+  if (activeTab === "schemes") {
+    return null;
+  }
   if (activeTab === "contact") {
     return (
       <div className="space-y-4">

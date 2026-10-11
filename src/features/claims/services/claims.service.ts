@@ -312,6 +312,14 @@ export async function applyClaimAdvisoryFinding(
   });
 }
 
+export async function fetchMasmIntegrationStatus(
+  clinicId: number,
+): Promise<{ is_enabled: boolean }> {
+  return bffRequest<{ is_enabled: boolean }>(
+    BFF_CLAIMS_ROUTES.masmIntegrationStatus(clinicId),
+  );
+}
+
 export async function fetchMasemPayerIntegration(
   clinicId: number,
 ): Promise<MasmPayerIntegration> {

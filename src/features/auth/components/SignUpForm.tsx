@@ -130,6 +130,7 @@ export function SignUpForm() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [otpCode, setOtpCode] = useState("");
   const [isFinalizing, setIsFinalizing] = useState(false);
+  const [isContinuing, setIsContinuing] = useState(false);
   const clinicInputRef = useRef<HTMLInputElement | null>(null);
   const nameInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -168,24 +169,27 @@ export function SignUpForm() {
 
   async function handleClinicContinue() {
     setSubmitError(null);
-
-    const profileValid = await profileForm.trigger(["clinic_name", "country"]);
-    if (!profileValid) return;
-    setCurrentStep(2);
+    setIsContinuing(true);
+    try {
+      const profileValid = await profileForm.trigger(["clinic_name", "country"]);
+      if (!profileValid) return;
+      setCurrentStep(2);
+    } finally {
+      setIsContinuing(false);
+    }
   }
 
   async function handleAccountContinue() {
     setSubmitError(null);
-
-    const [credentialsValid, nameValid] = await Promise.all([
-      credentialsForm.trigger(),
-      profileForm.trigger("name"),
-    ]);
-    if (!credentialsValid || !nameValid) return;
-
-    const values = credentialsForm.getValues();
-
+    setIsContinuing(true);
     try {
+      const [credentialsValid, nameValid] = await Promise.all([
+        credentialsForm.trigger(),
+        profileForm.trigger("name"),
+      ]);
+      if (!credentialsValid || !nameValid) return;
+
+      const values = credentialsForm.getValues();
       await requestSignupOtp({
         email: values.email,
         password: values.password,
@@ -197,6 +201,8 @@ export function SignUpForm() {
       setSubmitError(
         error instanceof Error ? error.message : "Could not start sign up.",
       );
+    } finally {
+      setIsContinuing(false);
     }
   }
 
@@ -301,6 +307,7 @@ export function SignUpForm() {
         formId="signup-clinic-form"
         continueLabel="Continue"
         continueTestId="signup-continue"
+        isBusy={isContinuing}
       />
     ) : currentStep === 2 ? (
       <WizardFooter
@@ -309,7 +316,7 @@ export function SignUpForm() {
         formId="signup-account-form"
         continueLabel="Continue"
         continueTestId="signup-account-continue"
-        isBusy={credentialsForm.formState.isSubmitting}
+        isBusy={isContinuing}
       />
     ) : (
       <WizardFooter
@@ -346,6 +353,7 @@ export function SignUpForm() {
             label="Clinic name"
             data-testid="signup-clinic-name"
             autoComplete="organization"
+            disabled={isContinuing}
             error={profileForm.formState.errors.clinic_name?.message}
             {...clinicRegister}
             ref={(element) => {
@@ -360,6 +368,7 @@ export function SignUpForm() {
                 id="country"
                 data-testid="signup-country"
                 value={countryValue}
+                disabled={isContinuing}
                 hasError={Boolean(profileForm.formState.errors.country)}
                 onChange={(value) =>
                   profileForm.setValue("country", value, {
@@ -404,6 +413,7 @@ export function SignUpForm() {
             label="Your name"
             data-testid="signup-name"
             autoComplete="name"
+            disabled={isContinuing}
             error={profileForm.formState.errors.name?.message}
             {...nameRegister}
             ref={(element) => {
@@ -421,6 +431,7 @@ export function SignUpForm() {
             autoComplete="email"
             autoCapitalize="none"
             spellCheck={false}
+            disabled={isContinuing}
             error={credentialsForm.formState.errors.email?.message}
             {...emailRegister}
           />
@@ -430,6 +441,7 @@ export function SignUpForm() {
             label="Password"
             data-testid="signup-password"
             autoComplete="new-password"
+            disabled={isContinuing}
             error={credentialsForm.formState.errors.password?.message}
             hint={<PasswordStrengthMeter password={passwordValue ?? ""} />}
             {...passwordRegister}

@@ -34,6 +34,8 @@ export const CLAIMS_API_PATHS = {
   masmIntegration: "/eclaims/integrations/payers/masm/",
   clinicPayerIntegration: (payer: string, clinicId: number | string) =>
     `/eclaims/integrations/payers/${payer}/clinics/${clinicId}/`,
+  clinicPayerIntegrationStatus: (payer: string, clinicId: number | string) =>
+    `/eclaims/integrations/payers/${payer}/clinics/${clinicId}/status/`,
   clinicPortalCredentials: (payer: string, clinicId: number | string) =>
     `/eclaims/integrations/payers/${payer}/clinics/${clinicId}/portal-credentials/`,
   clinicMemberSearch: (payer: string, clinicId: number | string) =>

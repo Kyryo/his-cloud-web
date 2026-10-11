@@ -173,6 +173,10 @@ export async function activateOrganizationModule(name: string): Promise<void> {
   });
 }
 
+export async function syncOrganizationModules(): Promise<void> {
+  await bffRequest(BFF_SETTINGS_ROUTES.moduleSync, { method: "POST" });
+}
+
 export async function setOrganizationClinicActive(
   uuid: string,
   active: boolean,

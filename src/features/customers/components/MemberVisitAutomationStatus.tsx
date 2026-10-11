@@ -4,6 +4,7 @@ import { Lock } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
+import { useMasmIntegrationEnabled } from "@/features/claims/hooks/use-masm-integration-enabled";
 import { AppIcon } from "@/components/icons/app-icon";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
@@ -43,6 +44,7 @@ function hasFrontDeskAccess(groups: string[] | undefined) {
 
 export function MemberVisitAutomationStatus() {
   const { userData } = useUser();
+  const masmEnabled = useMasmIntegrationEnabled(userData?.primary_clinic?.id ?? null);
   const [runs, setRuns] = useState<MemberVisitAutomationRun[]>([]);
   const [open, setOpen] = useState(false);
   const [denied, setDenied] = useState(false);
@@ -68,6 +70,9 @@ export function MemberVisitAutomationStatus() {
   }, [userData]);
 
   useEffect(() => {
+    if (!masmEnabled) {
+      return;
+    }
     void refresh();
     const onRefresh = () => {
       void refresh();
@@ -76,7 +81,7 @@ export function MemberVisitAutomationStatus() {
     return () => {
       window.removeEventListener(MEMBER_VISIT_AUTOMATION_REFRESH, onRefresh);
     };
-  }, [refresh]);
+  }, [masmEnabled, refresh]);
 
   const active = runs.filter(isRunning);
   const running = active.length > 0;
@@ -97,6 +102,10 @@ export function MemberVisitAutomationStatus() {
       ? `${active.length} automations running`
       : `Automation running. ${featured ? progressLabel(featured) : ""}`.trim()
     : "Visit automation";
+
+  if (!masmEnabled) {
+    return null;
+  }
 
   return (
     <>

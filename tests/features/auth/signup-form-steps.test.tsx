@@ -72,4 +72,50 @@ describe("SignUpForm step split", () => {
     expect(screen.queryByTestId("signup-clinic-name")).not.toBeInTheDocument();
     expect(requestSignupOtp).not.toHaveBeenCalled();
   });
+
+  it("shows Working while the verification code is requested and disables the fields", async () => {
+    let resolveOtp: (value: unknown) => void = () => {};
+    requestSignupOtp.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveOtp = resolve;
+        }),
+    );
+
+    render(<SignUpForm />);
+    fireEvent.change(screen.getByTestId("signup-clinic-name"), {
+      target: { value: "Lakeview Clinic" },
+    });
+    fireEvent.click(screen.getByTestId("signup-continue"));
+
+    await waitFor(() => {
+      expect(screen.getByTestId("signup-name")).toBeInTheDocument();
+    });
+
+    fireEvent.change(screen.getByTestId("signup-name"), {
+      target: { value: "Ada Lovelace" },
+    });
+    fireEvent.change(screen.getByTestId("signup-email"), {
+      target: { value: "ada@lakeview.test" },
+    });
+    fireEvent.change(screen.getByTestId("signup-password"), {
+      target: { value: "password1" },
+    });
+    fireEvent.click(screen.getByTestId("signup-account-continue"));
+
+    expect(await screen.findByText("Working…")).toBeInTheDocument();
+    expect(screen.getByTestId("signup-name")).toBeDisabled();
+    expect(screen.getByTestId("signup-email")).toBeDisabled();
+    expect(screen.getByTestId("signup-password")).toBeDisabled();
+
+    resolveOtp(undefined);
+
+    await waitFor(() => {
+      expect(screen.getByTestId("signup-submit")).toBeInTheDocument();
+    });
+    expect(requestSignupOtp).toHaveBeenCalledWith({
+      email: "ada@lakeview.test",
+      password: "password1",
+    });
+  });
 });

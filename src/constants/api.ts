@@ -480,6 +480,8 @@ export const BFF_CLAIMS_ROUTES = {
   masmIntegration: "/api/integrations/eclaims/masm",
   clinicPayerIntegration: (clinicId: number | string) =>
     `/api/integrations/eclaims/masm/clinics/${clinicId}`,
+  masmIntegrationStatus: (clinicId: number | string) =>
+    `/api/integrations/eclaims/masm/clinics/${clinicId}/status`,
   clinicPortalCredentials: (clinicId: number | string) =>
     `/api/integrations/eclaims/masm/clinics/${clinicId}/portal-credentials`,
   clinicMemberSearch: (payer: string, clinicId: number | string) =>
@@ -680,6 +682,7 @@ export const BFF_SETTINGS_ROUTES = {
   updateProfileAvatar: "/api/auth/me/avatar",
   organization: "/api/tenants/current",
   moduleActivate: "/api/tenants/current/modules/activate",
+  moduleSync: "/api/tenants/current/modules/sync",
   clinics: "/api/clinics",
   clinicDetail: (uuid: string) => `/api/clinics/${uuid}`,
   clinicActivate: (uuid: string) => `/api/clinics/${uuid}/activate`,

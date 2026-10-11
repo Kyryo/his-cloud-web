@@ -13,6 +13,7 @@ export function CustomersEmptyState({ onAddClient }: CustomersEmptyStateProps) {
       icon="users"
       title="No clients yet"
       description="Register the first client to start visits, appointments, and billing."
+      className="min-h-0 py-0"
       data-testid="customers-empty-state"
       action={
         <PageActionButton onClick={onAddClient} data-testid="add-first-client-button">

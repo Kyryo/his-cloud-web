@@ -367,21 +367,23 @@ export function CustomersListPage() {
 
   return (
     <ListPageLayout data-testid="customers-page">
-      <CustomersPageHeader
-        search={search}
-        filters={filters}
-        isLoading={isRefreshing}
-        onSearchChange={setSearch}
-        onSearchSubmit={handleSearchSubmit}
-        onClearSearch={handleClearSearch}
-        onFiltersApply={handleFiltersApply}
-        onAddClient={handleAddClient}
-        onSearchMembership={
-          membershipPayers.length > 0
-            ? () => setMembershipSearchOpen(true)
-            : undefined
-        }
-      />
+      {hasNoCustomerRecords ? null : (
+        <CustomersPageHeader
+          search={search}
+          filters={filters}
+          isLoading={isRefreshing}
+          onSearchChange={setSearch}
+          onSearchSubmit={handleSearchSubmit}
+          onClearSearch={handleClearSearch}
+          onFiltersApply={handleFiltersApply}
+          onAddClient={handleAddClient}
+          onSearchMembership={
+            membershipPayers.length > 0
+              ? () => setMembershipSearchOpen(true)
+              : undefined
+          }
+        />
+      )}
       <MembershipSearchDialog
         open={membershipSearchOpen}
         payers={membershipPayers}
@@ -527,7 +529,7 @@ export function CustomersListPage() {
           </ListPageTableSection>
         </ListPageDataSectionsStack>
       ) : (
-        <ListPageTableSection>
+        <ListPageTableSection className="flex min-h-0 flex-1 items-center justify-center">
           <CustomersEmptyState onAddClient={handleAddClient} />
         </ListPageTableSection>
       )}

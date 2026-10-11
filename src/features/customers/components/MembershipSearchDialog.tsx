@@ -15,6 +15,7 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
+import { useMasmIntegrationEnabled } from "@/features/claims/hooks/use-masm-integration-enabled";
 import { MemberVisitAutomationDialog } from "@/features/customers/components/MemberVisitAutomationDialog";
 import {
   notifyMemberVisitAutomationRefresh,
@@ -158,6 +159,7 @@ export function MembershipSearchDialog({
   onSelectMember,
 }: MembershipSearchDialogProps) {
   const { toast } = useToast();
+  const masmEnabled = useMasmIntegrationEnabled(clinicId);
   const [query, setQuery] = useState("");
   const [selectedPayer, setSelectedPayer] = useState<MembershipSearchPayer | null>(
     null,
@@ -381,42 +383,48 @@ export function MembershipSearchDialog({
               >
                 Search
               </Button>
-              <Button
-                type="button"
-                variant={automation.enabled ? "primary" : "outline"}
-                size="icon"
-                className="size-8 shrink-0 rounded-full"
-                aria-pressed={automation.enabled}
-                aria-label={
-                  automation.enabled ? "Turn automation off" : "Turn automation on"
-                }
-                onClick={toggleAutomation}
-                data-testid="membership-automation-toggle"
-              >
-                <AppIcon name="automation" size={15} />
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                size="icon"
-                className={
-                  automation.enabled
-                    ? "size-8 shrink-0 rounded-full"
-                    : "size-8 shrink-0 rounded-full text-dash-muted"
-                }
-                aria-label="Automation settings"
-                onClick={() => {
-                  if (!automation.enabled) {
-                    setSettingsNoticeOpen(true);
-                    return;
-                  }
-                  setSetupMode("edit");
-                  setSetupOpen(true);
-                }}
-                data-testid="membership-automation-settings"
-              >
-                <AppIcon name="settings" size={15} />
-              </Button>
+              {masmEnabled ? (
+                <>
+                  <Button
+                    type="button"
+                    variant={automation.enabled ? "primary" : "outline"}
+                    size="icon"
+                    className="size-8 shrink-0 rounded-full"
+                    aria-pressed={automation.enabled}
+                    aria-label={
+                      automation.enabled
+                        ? "Turn automation off"
+                        : "Turn automation on"
+                    }
+                    onClick={toggleAutomation}
+                    data-testid="membership-automation-toggle"
+                  >
+                    <AppIcon name="automation" size={15} />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className={
+                      automation.enabled
+                        ? "size-8 shrink-0 rounded-full"
+                        : "size-8 shrink-0 rounded-full text-dash-muted"
+                    }
+                    aria-label="Automation settings"
+                    onClick={() => {
+                      if (!automation.enabled) {
+                        setSettingsNoticeOpen(true);
+                        return;
+                      }
+                      setSetupMode("edit");
+                      setSetupOpen(true);
+                    }}
+                    data-testid="membership-automation-settings"
+                  >
+                    <AppIcon name="settings" size={15} />
+                  </Button>
+                </>
+              ) : null}
             </span>
           )
         }

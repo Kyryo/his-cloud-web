@@ -11,31 +11,17 @@ import { TabbedDialog } from "@/components/ui/tabbed-dialog";
 import { NextStepOptionsList } from "@/components/ui/next-step-options-list";
 import { CreateAppointmentDialog } from "@/features/appointments/components/CreateAppointmentDialog";
 import type { Appointment } from "@/features/appointments/types/appointment.types";
-import { CustomerAddressFormFields } from "@/features/customers/components/CustomerAddressFormFields";
 import { CustomerFormFields } from "@/features/customers/components/CustomerFormFields";
 import { CustomerInsuranceFormFields } from "@/features/customers/components/CustomerInsuranceFormFields";
-import { CustomerNoteFormFields } from "@/features/customers/components/CustomerNoteFormFields";
 import { CustomerVisitDialog } from "@/features/customers/components/detail/CustomerVisitDialog";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import { Form } from "@/components/ui/form";
-import {
-  createCustomerAddressDefaultValues,
-  createCustomerAddressSchema,
-  toCustomerAddressPayload,
-  type CreateCustomerAddressFormValues,
-} from "@/features/customers/schemas/customer-address.schema";
 import {
   createCustomerInsuranceDefaultValues,
   createCustomerInsuranceSchema,
   toCustomerInsurancePayload,
   type CreateCustomerInsuranceFormValues,
 } from "@/features/customers/schemas/customer-insurance.schema";
-import {
-  createCustomerNoteDefaultValues,
-  createCustomerNoteSchema,
-  toCustomerNotePayload,
-  type CreateCustomerNoteFormValues,
-} from "@/features/customers/schemas/customer-note.schema";
 import {
   createCustomerDefaultValues,
   createCustomerSchema,
@@ -44,9 +30,7 @@ import {
 } from "@/features/customers/schemas/customer.schema";
 import { splitClientSearchName } from "@/features/customers/utils/format-customer";
 import type { CustomerRegistrationDraft } from "@/features/customers/utils/membership-registration";
-import { createCustomerAddress } from "@/features/customers/services/customer-addresses.service";
 import { createCustomerInsurance } from "@/features/customers/services/customer-insurance.service";
-import { createCustomerNote } from "@/features/customers/services/customer-notes.service";
 import { createCustomer } from "@/features/customers/services/customers.service";
 import { fetchInsuranceSchemes } from "@/features/customers/services/insurance-schemes.service";
 import type { Customer } from "@/features/customers/types/customer.types";
@@ -63,16 +47,11 @@ type CreateCustomerDialogProps = {
   onCreated: (customer: Customer) => void;
   initialName?: string;
   registration?: CustomerRegistrationDraft | null;
-  /** Save the client and return immediately — skip insurance, address, and notes. */
+  /** Save the client and return immediately — skip insurance. */
   mode?: "full" | "quick";
 };
 
-type CreateCustomerTab =
-  | "personal"
-  | "insurance"
-  | "address"
-  | "notes"
-  | "whats-next";
+type CreateCustomerTab = "personal" | "insurance" | "whats-next";
 
 function getCustomerDisplayName(customer: Customer) {
   return (
@@ -111,16 +90,6 @@ export function CreateCustomerDialog({
   const insuranceForm = useForm<CreateCustomerInsuranceFormValues>({
     resolver: zodResolver(createCustomerInsuranceSchema),
     defaultValues: createCustomerInsuranceDefaultValues,
-  });
-
-  const addressForm = useForm<CreateCustomerAddressFormValues>({
-    resolver: zodResolver(createCustomerAddressSchema),
-    defaultValues: createCustomerAddressDefaultValues,
-  });
-
-  const notesForm = useForm<CreateCustomerNoteFormValues>({
-    resolver: zodResolver(createCustomerNoteSchema),
-    defaultValues: createCustomerNoteDefaultValues,
   });
   const appliedRegistrationKey = useRef("");
 
@@ -165,13 +134,9 @@ export function CreateCustomerDialog({
       relationship_to_principal_member: registration?.relationship ?? "",
       is_primary: Boolean(registration?.membershipNumber),
     });
-    addressForm.reset(createCustomerAddressDefaultValues);
-    notesForm.reset(createCustomerNoteDefaultValues);
   }, [
-    addressForm,
     initialName,
     insuranceForm,
-    notesForm,
     open,
     personalForm,
     registration,
@@ -181,13 +146,7 @@ export function CreateCustomerDialog({
   const isCustomerCreated = Boolean(createdCustomer);
   const isCreatingCustomer = personalForm.formState.isSubmitting;
   const isSavingInsurance = insuranceForm.formState.isSubmitting;
-  const isSavingAddress = addressForm.formState.isSubmitting;
-  const isSavingNote = notesForm.formState.isSubmitting;
-  const isBusy =
-    isCreatingCustomer ||
-    isSavingInsurance ||
-    isSavingAddress ||
-    isSavingNote;
+  const isBusy = isCreatingCustomer || isSavingInsurance;
 
   const customerFullName = useMemo(() => {
     if (createdCustomer) {
@@ -209,9 +168,7 @@ export function CreateCustomerDialog({
     setAppointmentDialogOpen(false);
     personalForm.reset(createCustomerDefaultValues);
     insuranceForm.reset(createCustomerInsuranceDefaultValues);
-    addressForm.reset(createCustomerAddressDefaultValues);
-    notesForm.reset(createCustomerNoteDefaultValues);
-  }, [addressForm, insuranceForm, notesForm, personalForm]);
+  }, [insuranceForm, personalForm]);
 
   const loadInsuranceSchemes = useCallback(async () => {
     const hint = registration?.schemeName.trim().toLowerCase();
@@ -342,7 +299,7 @@ export function CreateCustomerDialog({
         description: "Insurance details were saved for this client.",
       });
       insuranceForm.reset(createCustomerInsuranceDefaultValues);
-      setActiveTab("address");
+      setActiveTab("whats-next");
     } catch (error) {
       if (error instanceof BffError) {
         const fieldErrors = mapBffErrorsToForm(error.errors);
@@ -372,115 +329,12 @@ export function CreateCustomerDialog({
     }
   }
 
-  async function handleSaveAddress(values: CreateCustomerAddressFormValues) {
-    if (!createdCustomer) {
-      return;
-    }
-
-    try {
-      await createCustomerAddress(
-        toCustomerAddressPayload(createdCustomer.id, values),
-      );
-      toast({
-        variant: "success",
-        title: "Address added",
-        description: "Address details were saved for this client.",
-      });
-      setActiveTab("notes");
-    } catch (error) {
-      if (error instanceof BffError) {
-        const fieldErrors = mapBffErrorsToForm(error.errors);
-        for (const [field, message] of Object.entries(fieldErrors)) {
-          if (field in createCustomerAddressDefaultValues) {
-            addressForm.setError(field as keyof CreateCustomerAddressFormValues, {
-              message,
-            });
-          }
-        }
-
-        toast({
-          variant: "error",
-          title: "Could not add address",
-          description: formatBffErrorMessage(error.message, error.errors),
-        });
-        return;
-      }
-
-      toast({
-        variant: "error",
-        title: "Could not add address",
-        description:
-          error instanceof Error ? error.message : "Something went wrong.",
-      });
-    }
-  }
-
-  async function handleSaveNote(values: CreateCustomerNoteFormValues) {
-    if (!createdCustomer) {
-      return;
-    }
-
-    try {
-      await createCustomerNote(
-        toCustomerNotePayload(createdCustomer.id, values),
-      );
-      toast({
-        variant: "success",
-        title: "Note added",
-        description: "The note was saved for this client.",
-      });
-      notesForm.reset(createCustomerNoteDefaultValues);
-      setActiveTab("whats-next");
-    } catch (error) {
-      if (error instanceof BffError) {
-        const fieldErrors = mapBffErrorsToForm(error.errors);
-        for (const [field, message] of Object.entries(fieldErrors)) {
-          if (field in createCustomerNoteDefaultValues) {
-            notesForm.setError(field as keyof CreateCustomerNoteFormValues, {
-              message,
-            });
-          }
-        }
-
-        toast({
-          variant: "error",
-          title: "Could not add note",
-          description: formatBffErrorMessage(error.message, error.errors),
-        });
-        return;
-      }
-
-      toast({
-        variant: "error",
-        title: "Could not add note",
-        description:
-          error instanceof Error ? error.message : "Something went wrong.",
-      });
-    }
-  }
-
-  async function handleNotesNext() {
-    if (!createdCustomer) {
-      return;
-    }
-
-    const body = notesForm.getValues("body").trim();
-    if (!body) {
-      setActiveTab("whats-next");
-      return;
-    }
-
-    await notesForm.handleSubmit(handleSaveNote)();
-  }
-
   const tabs =
     mode === "quick"
       ? [{ id: "personal", label: "Client" }]
       : [
           { id: "personal", label: "Personal" },
           { id: "insurance", label: "Insurance", disabled: !isCustomerCreated },
-          { id: "address", label: "Address", disabled: !isCustomerCreated },
-          { id: "notes", label: "Notes", disabled: !isCustomerCreated },
           { id: "whats-next", label: "What's next?", disabled: !isCustomerCreated },
         ];
 
@@ -606,7 +460,7 @@ export function CreateCustomerDialog({
           <SecondaryButton
             type="button"
             disabled={isBusy}
-            onClick={() => setActiveTab("address")}
+            onClick={() => setActiveTab("whats-next")}
           >
             {hasInsuranceSchemes ? "Skip for now" : "Continue without insurance"}
           </SecondaryButton>
@@ -631,35 +485,6 @@ export function CreateCustomerDialog({
       );
     }
 
-    if (activeTab === "address") {
-      return (
-        <>
-          <SecondaryButton
-            type="button"
-            disabled={isBusy}
-            onClick={() => setActiveTab("notes")}
-          >
-            Skip for now
-          </SecondaryButton>
-          <PrimaryButton
-            type="submit"
-            form="create-customer-address-form"
-            disabled={isBusy}
-            data-testid="create-customer-address-submit"
-          >
-            {isSavingAddress ? (
-              <>
-                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                Saving...
-              </>
-            ) : (
-              "Save"
-            )}
-          </PrimaryButton>
-        </>
-      );
-    }
-
     if (activeTab === "whats-next") {
       return (
         <SecondaryButton
@@ -672,32 +497,7 @@ export function CreateCustomerDialog({
       );
     }
 
-    return (
-      <>
-        <SecondaryButton
-          type="button"
-          disabled={isBusy}
-          onClick={() => setActiveTab("whats-next")}
-        >
-          Skip for now
-        </SecondaryButton>
-        <PrimaryButton
-          type="button"
-          disabled={isBusy}
-          data-testid="create-customer-notes-submit"
-          onClick={() => void handleNotesNext()}
-        >
-          {isSavingNote ? (
-            <>
-              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-              Saving...
-            </>
-          ) : (
-            "Next"
-          )}
-        </PrimaryButton>
-      </>
-    );
+    return null;
   }
 
   return (
@@ -717,8 +517,6 @@ export function CreateCustomerDialog({
         if (
           tabId === "personal" ||
           tabId === "insurance" ||
-          tabId === "address" ||
-          tabId === "notes" ||
           tabId === "whats-next"
         ) {
           handleTabChange(tabId);
@@ -742,7 +540,7 @@ export function CreateCustomerDialog({
                 data-testid="create-customer-locked-notice"
               >
                 Client created. Personal details are locked while you add
-                insurance, address, notes, or choose what to do next.
+                insurance or choose what to do next.
               </p>
             ) : null}
             <CustomerFormFields
@@ -769,38 +567,6 @@ export function CreateCustomerDialog({
               isLoadingSchemes={isLoadingSchemes}
               isSubmitting={isSavingInsurance}
               customerFullName={customerFullName}
-            />
-          </form>
-        </Form>
-      ) : null}
-
-      {activeTab === "address" && isCustomerCreated ? (
-        <Form {...addressForm}>
-          <form
-            id="create-customer-address-form"
-            className="space-y-4"
-            onSubmit={addressForm.handleSubmit(handleSaveAddress)}
-            data-testid="create-customer-address-form"
-          >
-            <CustomerAddressFormFields
-              form={addressForm}
-              isSubmitting={isSavingAddress}
-            />
-          </form>
-        </Form>
-      ) : null}
-
-      {activeTab === "notes" && isCustomerCreated ? (
-        <Form {...notesForm}>
-          <form
-            id="create-customer-notes-form"
-            className="space-y-4"
-            onSubmit={notesForm.handleSubmit(handleSaveNote)}
-            data-testid="create-customer-notes-form"
-          >
-            <CustomerNoteFormFields
-              form={notesForm}
-              isSubmitting={isSavingNote}
             />
           </form>
         </Form>

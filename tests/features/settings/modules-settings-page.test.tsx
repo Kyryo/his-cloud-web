@@ -4,9 +4,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { ROUTES } from "@/constants/routes";
 import { ModulesSettingsPage } from "@/features/settings/pages/ModulesSettingsPage";
 
-const { useUser, activateOrganizationModule, toast } = vi.hoisted(() => ({
+const { useUser, activateOrganizationModule, syncOrganizationModules, toast } = vi.hoisted(() => ({
   useUser: vi.fn(),
   activateOrganizationModule: vi.fn(),
+  syncOrganizationModules: vi.fn(),
   toast: vi.fn(),
 }));
 
@@ -21,12 +22,14 @@ vi.mock("@/providers/toast-provider", () => ({
 vi.mock("@/features/settings/services/settings.service", () => ({
   activateOrganizationModule: (...args: unknown[]) =>
     activateOrganizationModule(...args),
+  syncOrganizationModules: (...args: unknown[]) => syncOrganizationModules(...args),
 }));
 
 afterEach(() => {
   cleanup();
   useUser.mockReset();
   activateOrganizationModule.mockReset();
+  syncOrganizationModules.mockReset();
   toast.mockReset();
 });
 
@@ -50,6 +53,7 @@ describe("ModulesSettingsPage", () => {
   it("links added modules and lets an admin add one that is missing", async () => {
     const refreshUser = vi.fn().mockResolvedValue(undefined);
     activateOrganizationModule.mockResolvedValue(undefined);
+    syncOrganizationModules.mockResolvedValue(undefined);
     useUser.mockReturnValue({
       userData: {
         is_admin: true,
@@ -62,7 +66,7 @@ describe("ModulesSettingsPage", () => {
     render(<ModulesSettingsPage />);
 
     expect(screen.getByRole("heading", { name: "Operational modules" })).toBeInTheDocument();
-    expect(screen.getByTestId("module-added-inventory")).toHaveTextContent("Added");
+    expect(screen.queryByText("Added")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Inventory/ })).toHaveAttribute(
       "href",
       ROUTES.settingsModuleInventory,
@@ -78,8 +82,11 @@ describe("ModulesSettingsPage", () => {
     await waitFor(() => {
       expect(activateOrganizationModule).toHaveBeenCalledWith("Claims");
     });
-    expect(await screen.findByTestId("module-added-claims")).toHaveTextContent("Added");
+    expect(await screen.findByRole("link", { name: /Claims/ })).toHaveAttribute(
+      "href",
+      ROUTES.settingsModule("claims"),
+    );
+    expect(screen.queryByTestId("module-add-claims")).not.toBeInTheDocument();
     expect(refreshUser).toHaveBeenCalled();
-    expect(screen.queryByRole("link", { name: /Claims/ })).toBeInTheDocument();
   });
 });
