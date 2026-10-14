@@ -58,7 +58,6 @@ describe("PlatformAdminOverviewView", () => {
         overview={overviewFixture}
         tenants={tenantsFixture}
         dashboard={dashboardFixture}
-        onFinanceRecorded={() => {}}
       />,
     );
     const stats = screen.getAllByRole("definition").map((el) => el.textContent);
@@ -74,7 +73,6 @@ describe("PlatformAdminOverviewView", () => {
         overview={overviewFixture}
         tenants={tenantsFixture}
         dashboard={dashboardFixture}
-        onFinanceRecorded={() => {}}
       />,
     );
     expect(
@@ -96,7 +94,6 @@ describe("PlatformAdminOverviewView", () => {
       <PlatformAdminOverviewView
         overview={overviewFixture}
         tenants={tenantsFixture}
-        onFinanceRecorded={() => {}}
       />,
     );
     fireEvent.click(screen.getByRole("tab", { name: "Curves" }));
@@ -114,13 +111,7 @@ describe("PlatformAdminOverviewView", () => {
   });
 
   it("shows empty states and omits deltas without data", () => {
-    render(
-      <PlatformAdminOverviewView
-        overview={emptyOverview}
-        tenants={[]}
-        onFinanceRecorded={() => {}}
-      />,
-    );
+    render(<PlatformAdminOverviewView overview={emptyOverview} tenants={[]} />);
     expect(
       screen.getByText("No onboarding cohorts with product activity yet."),
     ).toBeInTheDocument();
@@ -131,5 +122,21 @@ describe("PlatformAdminOverviewView", () => {
     ).toBeInTheDocument();
     expect(screen.queryAllByTestId("overview-sparkline")).toHaveLength(0);
     expect(screen.getByText("Record payments to populate")).toBeInTheDocument();
+  });
+
+  it("no longer renders the page header or finance records", () => {
+    render(
+      <PlatformAdminOverviewView
+        overview={overviewFixture}
+        tenants={tenantsFixture}
+      />,
+    );
+    expect(
+      screen.queryByRole("heading", { level: 1, name: "Overview" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /refresh/i }),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByText("Finance records")).not.toBeInTheDocument();
   });
 });

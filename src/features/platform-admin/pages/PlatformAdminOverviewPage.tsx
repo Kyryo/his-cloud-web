@@ -12,8 +12,7 @@ import {
 } from "@/features/platform-admin/hooks/use-platform-admin-overview-query";
 
 export function PlatformAdminOverviewPage() {
-  const { data, error, isPending, isFetching, refetch } =
-    usePlatformAdminOverviewQuery();
+  const { data, error, isPending } = usePlatformAdminOverviewQuery();
   const dashboardQuery = usePlatformAdminDashboardQuery();
 
   useEffect(() => {
@@ -32,12 +31,6 @@ export function PlatformAdminOverviewPage() {
           tenants={data.tenants}
           tenantsArePartial={data.tenantsArePartial}
           dashboard={dashboardQuery.data ?? null}
-          isRefreshing={isFetching}
-          onRefresh={() => {
-            void refetch();
-            void dashboardQuery.refetch();
-          }}
-          onFinanceRecorded={() => void refetch()}
         />
       )}
     </ListPageLayout>

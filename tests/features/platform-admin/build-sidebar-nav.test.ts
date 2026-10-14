@@ -6,7 +6,9 @@ import { buildSidebarNavItems } from "@/features/app-shell/utils/build-sidebar-n
 describe("buildSidebarNavItems platform admin", () => {
   it("shows Tenant operations with Overview before Tenants", () => {
     const items = buildSidebarNavItems([], ROUTES.platformAdmin, false, true);
-    const tenantOpsNav = items.find((item) => item.title === "Tenant operations");
+    const tenantOpsNav = items.find(
+      (item) => item.title === "Tenant operations",
+    );
 
     expect(tenantOpsNav).toBeDefined();
     expect(tenantOpsNav?.items?.map((item) => item.title)).toEqual([
@@ -33,7 +35,9 @@ describe("buildSidebarNavItems platform admin", () => {
       "Payer registry",
     ]);
     expect(platformNav?.items?.[0]?.url).toBe(ROUTES.platformAdminBackups);
-    expect(platformNav?.items?.[1]?.url).toBe(ROUTES.platformAdminPayerRegistry);
+    expect(platformNav?.items?.[1]?.url).toBe(
+      ROUTES.platformAdminPayerRegistry,
+    );
   });
 
   it("adds a Content menu with Blog for platform admins", () => {
@@ -73,7 +77,9 @@ describe("buildSidebarNavItems platform admin", () => {
 
     expect(resourcesNav).toBeDefined();
     expect(resourcesNav?.items?.map((item) => item.title)).toEqual(["Sales"]);
-    expect(resourcesNav?.items?.[0]?.url).toBe(ROUTES.platformAdminResourcesSales);
+    expect(resourcesNav?.items?.[0]?.url).toBe(
+      ROUTES.platformAdminResourcesSales,
+    );
   });
 
   it("marks Overview active only on the overview route", () => {
@@ -142,11 +148,35 @@ describe("buildSidebarNavItems platform admin", () => {
       true,
     );
     const salesNav = salesItems.find((item) => item.title === "Resources");
-    const playbookNav = playbookItems.find((item) => item.title === "Resources");
+    const playbookNav = playbookItems.find(
+      (item) => item.title === "Resources",
+    );
 
     expect(salesNav?.isActive).toBe(true);
     expect(salesNav?.items?.[0]?.isActive).toBe(true);
     expect(playbookNav?.isActive).toBe(true);
     expect(playbookNav?.items?.[0]?.isActive).toBe(true);
+  });
+
+  it("adds a Finance menu after Tenant operations and marks it active", () => {
+    const items = buildSidebarNavItems(
+      [],
+      ROUTES.platformAdminFinance,
+      false,
+      true,
+    );
+    const titles = items.map((item) => item.title);
+    const financeNav = items.find((item) => item.title === "Finance");
+
+    expect(titles.indexOf("Finance")).toBe(
+      titles.indexOf("Tenant operations") + 1,
+    );
+    expect(financeNav?.icon).toBe("wallet");
+    expect(financeNav?.isActive).toBe(true);
+    expect(financeNav?.items?.map((item) => item.title)).toEqual([
+      "Revenue & costs",
+    ]);
+    expect(financeNav?.items?.[0]?.url).toBe(ROUTES.platformAdminFinance);
+    expect(financeNav?.items?.[0]?.isActive).toBe(true);
   });
 });

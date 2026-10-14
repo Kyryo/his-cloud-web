@@ -55,9 +55,10 @@ function buildQuery(options: PlatformAdminListOptions = {}): string {
   return query ? `?${query}` : "";
 }
 
-export async function fetchPlatformAdminDashboard():
-  Promise<PlatformAdminDashboard> {
-  return bffRequest<PlatformAdminDashboard>(BFF_PLATFORM_ADMIN_ROUTES.dashboard);
+export async function fetchPlatformAdminDashboard(): Promise<PlatformAdminDashboard> {
+  return bffRequest<PlatformAdminDashboard>(
+    BFF_PLATFORM_ADMIN_ROUTES.dashboard,
+  );
 }
 
 export async function fetchPlatformAdminTenants(
@@ -217,7 +218,9 @@ export async function fetchPlatformAdminTenantUsage(
   );
 }
 
-function buildWebhookQuery(options: PlatformAdminWebhookListOptions = {}): string {
+function buildWebhookQuery(
+  options: PlatformAdminWebhookListOptions = {},
+): string {
   const params = new URLSearchParams();
   if (options.page) params.set("page", String(options.page));
   if (options.pageSize) params.set("page_size", String(options.pageSize));
@@ -258,9 +261,32 @@ export async function resendPlatformAdminTenantWebhook(
   );
 }
 
-export async function fetchPlatformAdminOverview():
-  Promise<PlatformAdminOverview> {
+export async function fetchPlatformAdminOverview(): Promise<PlatformAdminOverview> {
   return bffRequest<PlatformAdminOverview>(BFF_PLATFORM_ADMIN_ROUTES.overview);
+}
+
+export async function listPlatformAdminTenantPayments(
+  options: PlatformAdminListOptions = {},
+): Promise<PlatformAdminListResponse<PlatformAdminTenantPayment>> {
+  return bffRequest<PlatformAdminListResponse<PlatformAdminTenantPayment>>(
+    `${BFF_PLATFORM_ADMIN_ROUTES.financeTenantPayments}${buildQuery(options)}`,
+  );
+}
+
+export async function listPlatformAdminOperatingCosts(
+  options: PlatformAdminListOptions = {},
+): Promise<PlatformAdminListResponse<PlatformAdminOperatingCost>> {
+  return bffRequest<PlatformAdminListResponse<PlatformAdminOperatingCost>>(
+    `${BFF_PLATFORM_ADMIN_ROUTES.financeOperatingCosts}${buildQuery(options)}`,
+  );
+}
+
+export async function listPlatformAdminCashSnapshots(
+  options: PlatformAdminListOptions = {},
+): Promise<PlatformAdminListResponse<PlatformAdminCashSnapshot>> {
+  return bffRequest<PlatformAdminListResponse<PlatformAdminCashSnapshot>>(
+    `${BFF_PLATFORM_ADMIN_ROUTES.financeCashSnapshots}${buildQuery(options)}`,
+  );
 }
 
 export async function createPlatformAdminTenantPayment(
@@ -339,7 +365,11 @@ export async function fetchPlatformAdminPayerRegistry(
     countryCode?: string;
     needsReview?: string;
   } = {},
-): Promise<PlatformAdminListResponse<import("@/features/settings/types/settings.types").CountryPayer>> {
+): Promise<
+  PlatformAdminListResponse<
+    import("@/features/settings/types/settings.types").CountryPayer
+  >
+> {
   const params = new URLSearchParams();
   if (options.page) params.set("page", String(options.page));
   if (options.pageSize) params.set("page_size", String(options.pageSize));
@@ -392,7 +422,9 @@ export async function fetchPlatformAdminPayerSchemes(
 export async function createPlatformAdminPayerScheme(
   payerUuid: string,
   payload: { code: string; name: string; description?: string },
-): Promise<import("@/features/settings/types/settings.types").RegistryPayerScheme> {
+): Promise<
+  import("@/features/settings/types/settings.types").RegistryPayerScheme
+> {
   return bffRequest(BFF_PLATFORM_ADMIN_ROUTES.payerRegistrySchemes(payerUuid), {
     method: "POST",
     body: payload,
@@ -456,7 +488,9 @@ export async function updatePlatformAdminPayerScheme(
     description?: string;
     is_active?: boolean;
   },
-): Promise<import("@/features/settings/types/settings.types").RegistryPayerScheme> {
+): Promise<
+  import("@/features/settings/types/settings.types").RegistryPayerScheme
+> {
   return bffRequest(
     BFF_PLATFORM_ADMIN_ROUTES.payerRegistrySchemeDetail(payerUuid, schemeUuid),
     { method: "PATCH", body: payload },
@@ -476,7 +510,9 @@ export async function deletePlatformAdminPayerScheme(
 export async function updatePlatformAdminPayerPolicy(
   uuid: string,
   payload: { requires_admin_approval?: boolean; is_active?: boolean },
-): Promise<import("@/features/settings/types/settings.types").CountryPayerPolicy> {
+): Promise<
+  import("@/features/settings/types/settings.types").CountryPayerPolicy
+> {
   return bffRequest(BFF_PLATFORM_ADMIN_ROUTES.payerPolicyDetail(uuid), {
     method: "PATCH",
     body: payload,
@@ -486,7 +522,9 @@ export async function updatePlatformAdminPayerPolicy(
 export async function createPlatformAdminPayerPolicy(payload: {
   country_code: string;
   requires_admin_approval: boolean;
-}): Promise<import("@/features/settings/types/settings.types").CountryPayerPolicy> {
+}): Promise<
+  import("@/features/settings/types/settings.types").CountryPayerPolicy
+> {
   return bffRequest(BFF_PLATFORM_ADMIN_ROUTES.payerPolicies, {
     method: "POST",
     body: payload,

@@ -118,6 +118,23 @@ export function buildSidebarNavItems(
     });
 
     items.push({
+      title: "Finance",
+      url: ROUTES.platformAdminFinance,
+      icon: "wallet",
+      section: "admin",
+      isActive: pathname.startsWith(ROUTES.platformAdminFinance),
+      items: [
+        {
+          title: "Revenue & costs",
+          url: ROUTES.platformAdminFinance,
+          isActive:
+            pathname === ROUTES.platformAdminFinance ||
+            pathname.startsWith(`${ROUTES.platformAdminFinance}/`),
+        },
+      ],
+    });
+
+    items.push({
       title: "Platform",
       url: ROUTES.platformAdminBackups,
       icon: "hardDrive",
