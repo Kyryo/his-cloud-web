@@ -8,6 +8,7 @@ export const ROUTES = {
   platformAdminTenants: "/platform-admin/tenants",
   platformAdminTenant: (tenantUuid: string) =>
     `/platform-admin/tenants/${tenantUuid}`,
+  platformAdminFinance: "/platform-admin/finance",
   platformAdminBackups: "/platform-admin/backups",
   platformAdminBackupsHmis: "/platform-admin/backups/hmis",
   platformAdminBackupsClaimsEngine: "/platform-admin/backups/claims-engine",
@@ -74,7 +75,8 @@ export const ROUTES = {
   notifications: "/notifications",
   claimDetail: (claimId: number | string) => `/claims/${claimId}`,
   claimsRemittances: "/claims/remittances",
-  remittanceDetail: (batchId: number | string) => `/claims/remittances/${batchId}`,
+  remittanceDetail: (batchId: number | string) =>
+    `/claims/remittances/${batchId}`,
   claimsReconciliations: "/claims/reconciliations",
   claimsRejections: "/claims/rejections",
   claimsAppeals: "/claims/appeals",
@@ -211,7 +213,8 @@ export const ROUTES = {
   reportsExports: "/reports",
   reportsAppointmentsToday: "/reports/appointments/today",
   reportsExportHistory: "/reports/history",
-  reportsExportWithType: (type: string) => `/reports?type=${encodeURIComponent(type)}`,
+  reportsExportWithType: (type: string) =>
+    `/reports?type=${encodeURIComponent(type)}`,
 } as const;
 
 /** Paths served by web-new through the deploy gateway. */
