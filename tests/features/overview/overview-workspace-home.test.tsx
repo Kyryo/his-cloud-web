@@ -77,9 +77,15 @@ describe("overview quick links", () => {
     );
 
     expect(screen.getAllByRole("link")).toHaveLength(4);
-    expect(
-      screen.getByRole("link", { name: "Register or view clients" }),
-    ).toBeInTheDocument();
+    for (const label of [
+      "Register or view clients",
+      "Book or view appointments",
+      "Create or view sales orders",
+      "Review or send invoices",
+    ]) {
+      const labelText = screen.getByRole("link", { name: label }).querySelector("span");
+      expect(labelText).toHaveClass("text-sm", "font-medium", "text-dash-muted");
+    }
     expect(
       screen.queryByRole("link", { name: /open lab orders/i }),
     ).not.toBeInTheDocument();

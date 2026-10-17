@@ -10,18 +10,15 @@ import {
   ListPageDataTableRow,
 } from "@/features/app-shell/components/page-layout";
 import type { CatalogPricelist } from "@/features/catalog/types/catalog.types";
+import { InventoryCreatedByCell } from "@/features/inventory/components/InventoryCreatedByCell";
+import { PRICELISTS_TABLE_COLUMNS } from "@/features/inventory/components/tables/pricelists-table-columns";
+import { formatDisplayDateTime } from "@/features/inventory/utils/format-inventory";
 
 type PricelistsTableProps = {
   pricelists: CatalogPricelist[];
   onRowClick?: (pricelist: CatalogPricelist) => void;
   className?: string;
 };
-
-const columns = [
-  { key: "name", label: "Pricelist" },
-  { key: "currency", label: "Currency" },
-  { key: "status", label: "Status" },
-] as const;
 
 export function PricelistsTable({
   pricelists,
@@ -32,7 +29,7 @@ export function PricelistsTable({
     <ListPageDataTable className={className}>
       <ListPageDataTableHeader>
         <ListPageDataTableHeaderRow>
-          {columns.map((column) => (
+          {PRICELISTS_TABLE_COLUMNS.map((column) => (
             <ListPageDataTableHeaderCell key={column.key}>
               {column.label}
             </ListPageDataTableHeaderCell>
@@ -64,6 +61,12 @@ export function PricelistsTable({
               >
                 {pricelist.is_active ? "Active" : "Archived"}
               </span>
+            </ListPageDataTableCell>
+            <ListPageDataTableCell className="tabular-nums text-dash-muted">
+              {formatDisplayDateTime(pricelist.created_at)}
+            </ListPageDataTableCell>
+            <ListPageDataTableCell>
+              <InventoryCreatedByCell name={pricelist.created_by_name} size="sm" />
             </ListPageDataTableCell>
           </ListPageDataTableRow>
         ))}

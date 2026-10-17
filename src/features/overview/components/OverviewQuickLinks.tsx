@@ -43,7 +43,7 @@ export function OverviewQuickLinks({
                 size={18}
                 className="shrink-0 text-brand-navy"
               />
-              <span className="min-w-0 flex-1 text-[15px] font-medium">
+              <span className="min-w-0 flex-1 text-sm font-medium text-dash-muted">
                 {link.label}
               </span>
               <AppIcon

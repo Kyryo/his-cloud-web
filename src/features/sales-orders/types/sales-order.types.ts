@@ -67,6 +67,9 @@ export type SalesOrder = {
   lines?: SalesOrderLine[];
   /** True when the linked visit has an active dental-department encounter. */
   has_dental_encounter?: boolean;
+  source_sales_order_id?: number | null;
+  source_sales_order_uuid?: string | null;
+  source_sales_order_name?: string | null;
 };
 
 export type SalesOrderLineDental = {
@@ -89,6 +92,7 @@ export type SalesOrderLine = {
   discount?: string | number | null;
   tariff_code?: string | null;
   is_payable: boolean;
+  payability_overridden?: boolean;
   list_price_at_order?: string | number | null;
   pricelist_amount_at_order?: string | number | null;
   insurer_due?: string | number | null;

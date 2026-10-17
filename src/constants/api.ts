@@ -404,6 +404,10 @@ export const BFF_SALES_ORDERS_ROUTES = {
     `/api/sales-orders/${orderId}/lines/${lineId}/dental`,
   lineReprice: (orderId: number | string, lineId: number | string) =>
     `/api/sales-orders/${orderId}/lines/${lineId}/reprice`,
+  split: (orderId: number | string) => `/api/sales-orders/${orderId}/split`,
+  mergeLines: (orderId: number | string) => `/api/sales-orders/${orderId}/lines/merge`,
+  linePayability: (orderId: number | string, lineId: number | string) =>
+    `/api/sales-orders/${orderId}/lines/${lineId}/payability`,
   invoice: (orderId: number | string) => `/api/sales-orders/${orderId}/invoice`,
   cancel: (orderId: number | string) => `/api/sales-orders/${orderId}/cancel`,
   reprice: (orderId: number | string) => `/api/sales-orders/${orderId}/reprice`,

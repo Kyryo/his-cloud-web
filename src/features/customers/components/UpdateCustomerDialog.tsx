@@ -7,15 +7,8 @@ import { useForm } from "react-hook-form";
 
 import { CustomerFormFields } from "@/features/customers/components/CustomerFormFields";
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
+import { SectionedDialog } from "@/components/ui/sectioned-dialog";
 import {
   createCustomerSchema,
   toCustomerWritePayload,
@@ -29,6 +22,8 @@ import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-error
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
+
+const FORM_ID = "update-customer-form";
 
 type UpdateCustomerDialogProps = {
   customer: Customer;
@@ -97,60 +92,54 @@ export function UpdateCustomerDialog({
   const isSubmitting = form.formState.isSubmitting;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className={cn(
-          "max-h-[90vh] overflow-y-auto sm:max-w-lg",
-          appFont.className,
-        )}
-        data-testid="update-customer-dialog"
-      >
-        <DialogHeader>
-          <DialogTitle>Update client</DialogTitle>
-          <DialogDescription>
-            Edit this client&apos;s profile details. Required fields are marked
-            with an asterisk.
-          </DialogDescription>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form
-            className="space-y-4"
-            onSubmit={form.handleSubmit(handleSubmit)}
-            data-testid="update-customer-form"
+    <SectionedDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Update client"
+      description="Edit this client's profile details. Required fields are marked with an asterisk."
+      className={cn("sm:max-w-lg", appFont.className)}
+      data-testid="update-customer-dialog"
+      footer={
+        <>
+          <SecondaryButton
+            type="button"
+            disabled={isSubmitting}
+            onClick={() => onOpenChange(false)}
           >
-            <CustomerFormFields
-              form={form}
-              isSubmitting={isSubmitting}
-              idPrefix="update-customer"
-            />
-
-            <DialogFooter>
-              <SecondaryButton
-                type="button"
-                disabled={isSubmitting}
-                onClick={() => onOpenChange(false)}
-              >
-                Cancel
-              </SecondaryButton>
-              <PrimaryButton
-                type="submit"
-                disabled={isSubmitting}
-                data-testid="update-customer-submit"
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                    Saving...
-                  </>
-                ) : (
-                  "Save changes"
-                )}
-              </PrimaryButton>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+            Cancel
+          </SecondaryButton>
+          <PrimaryButton
+            type="submit"
+            form={FORM_ID}
+            disabled={isSubmitting}
+            data-testid="update-customer-submit"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                Saving...
+              </>
+            ) : (
+              "Save changes"
+            )}
+          </PrimaryButton>
+        </>
+      }
+    >
+      <Form {...form}>
+        <form
+          id={FORM_ID}
+          className="space-y-4"
+          onSubmit={form.handleSubmit(handleSubmit)}
+          data-testid="update-customer-form"
+        >
+          <CustomerFormFields
+            form={form}
+            isSubmitting={isSubmitting}
+            idPrefix="update-customer"
+          />
+        </form>
+      </Form>
+    </SectionedDialog>
   );
 }

@@ -12,6 +12,8 @@ export type SalesOrderLineDraft = {
   price_unit: string;
   price_total?: string | number | null;
   is_payable?: boolean;
+  payability_overridden?: boolean;
+  provider_id?: number | null;
   priceUnitOverridden?: boolean;
   isNew?: boolean;
   client_due?: string;
@@ -52,6 +54,8 @@ export function salesOrderLineToDraft(line: SalesOrderLine): SalesOrderLineDraft
     price_unit: line.price_unit != null ? String(line.price_unit) : "",
     price_total: line.price_total,
     is_payable: line.is_payable,
+    payability_overridden: line.payability_overridden,
+    provider_id: line.provider_id ?? null,
     client_due: line.client_due != null ? String(line.client_due) : undefined,
     insurer_due: line.insurer_due != null ? String(line.insurer_due) : undefined,
     isCoPayment: isCoPaymentPricingSnapshot(line.pricing_rule_snapshot),

@@ -1,6 +1,6 @@
 "use client";
 
-import { Maximize2, Trash2 } from "lucide-react";
+import { Check, Maximize2, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -43,18 +43,62 @@ function formatTariffCode(value: string | null | undefined): string {
   return value?.trim() ? value : "—";
 }
 
+function LineSelectionCheckbox({
+  checked,
+  label,
+  onChange,
+}: {
+  checked: boolean;
+  label: string;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <span className="relative inline-flex size-3.5 shrink-0">
+      <input
+        type="checkbox"
+        aria-label={label}
+        className="peer size-3.5 appearance-none rounded-[3px] border border-dash-border bg-white checked:border-brand-primary checked:bg-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/25"
+        checked={checked}
+        onClick={(event) => event.stopPropagation()}
+        onChange={(event) => onChange(event.target.checked)}
+      />
+      <Check
+        className="pointer-events-none absolute inset-0 m-auto size-2.5 text-white opacity-0 peer-checked:opacity-100"
+        strokeWidth={3}
+        aria-hidden="true"
+      />
+    </span>
+  );
+}
+
 function LineListShell({
   children,
   footer,
+  selection,
 }: {
   children: ReactNode;
   footer?: ReactNode;
+  selection?: {
+    allSelected: boolean;
+    onToggleAll: (selected: boolean) => void;
+  };
 }) {
+  const columnCount = selection ? 7 : 6;
+
   return (
     <div data-testid="sales-order-lines-list">
       <ListPageDataTable>
         <ListPageDataTableHeader>
           <ListPageDataTableHeaderRow>
+            {selection ? (
+              <ListPageDataTableHeaderCell className="w-10">
+                <LineSelectionCheckbox
+                  checked={selection.allSelected}
+                  label="Select all line items"
+                  onChange={selection.onToggleAll}
+                />
+              </ListPageDataTableHeaderCell>
+            ) : null}
             <ListPageDataTableHeaderCell>Item</ListPageDataTableHeaderCell>
             <ListPageDataTableHeaderCell>Tariff</ListPageDataTableHeaderCell>
             <ListPageDataTableHeaderCell className="text-right">
@@ -75,7 +119,7 @@ function LineListShell({
         {footer ? (
           <tfoot>
             <tr>
-              <td colSpan={6} className="px-4 py-3">
+              <td colSpan={columnCount} className="px-4 py-3">
                 {footer}
               </td>
             </tr>
@@ -89,16 +133,49 @@ function LineListShell({
 export function SalesOrderReadOnlyLineList({
   order,
   onNonPayableClick,
+  selectedLineIds,
+  onSelectedLineIdsChange,
 }: {
   order: SalesOrder;
   onNonPayableClick?: (lineId: number) => void;
+  selectedLineIds?: number[];
+  onSelectedLineIdsChange?: (lineIds: number[]) => void;
 }) {
   const lines = order.lines ?? [];
+  const selectableIds = lines.map((line) => line.id);
+  const selected = new Set(selectedLineIds ?? []);
+  const selection =
+    onSelectedLineIdsChange == null
+      ? undefined
+      : {
+          allSelected:
+            selectableIds.length > 0 &&
+            selectableIds.every((id) => selected.has(id)),
+          onToggleAll: (checked: boolean) =>
+            onSelectedLineIdsChange(checked ? selectableIds : []),
+        };
 
   return (
-    <LineListShell>
+    <LineListShell selection={selection}>
       {lines.map((line) => (
         <ListPageDataTableRow key={line.id}>
+          {selection ? (
+            <ListPageDataTableCell className="py-3">
+              <LineSelectionCheckbox
+                checked={selected.has(line.id)}
+                label={`Select ${line.name}`}
+                onChange={(checked) => {
+                  const next = new Set(selected);
+                  if (checked) {
+                    next.add(line.id);
+                  } else {
+                    next.delete(line.id);
+                  }
+                  onSelectedLineIdsChange?.(Array.from(next));
+                }}
+              />
+            </ListPageDataTableCell>
+          ) : null}
           <ListPageDataTableCell className="py-3">
             <div className="flex flex-wrap items-center gap-1.5">
               <p className="text-sm font-medium text-brand-navy">{line.name}</p>
@@ -150,6 +227,8 @@ type SalesOrderEditableLineListProps = {
   onViewDetails: (lineId: number) => void;
   onNonPayableClick?: (lineId: number) => void;
   onPriceBlur: (key: string) => void;
+  selectedLineIds?: number[];
+  onSelectedLineIdsChange?: (lineIds: number[]) => void;
 };
 
 export function SalesOrderEditableLineList({
@@ -167,9 +246,26 @@ export function SalesOrderEditableLineList({
   onViewDetails,
   onNonPayableClick,
   onPriceBlur,
+  selectedLineIds,
+  onSelectedLineIdsChange,
 }: SalesOrderEditableLineListProps) {
+  const selectableIds = lines
+    .filter((line) => line.id != null && line.isNew !== true)
+    .map((line) => line.id as number);
+  const selected = new Set(selectedLineIds ?? []);
+  const selection =
+    onSelectedLineIdsChange == null
+      ? undefined
+      : {
+          allSelected:
+            selectableIds.length > 0 &&
+            selectableIds.every((id) => selected.has(id)),
+          onToggleAll: (checked: boolean) =>
+            onSelectedLineIdsChange(checked ? selectableIds : []),
+        };
+
   return (
-    <LineListShell footer={footerAction}>
+    <LineListShell footer={footerAction} selection={selection}>
       {lines.map((line) => {
         const isEditing = line.isNew === true || editingRowKey === line.key;
         const isActive = activeRowKey === line.key || editingRowKey === line.key;
@@ -195,6 +291,21 @@ export function SalesOrderEditableLineList({
             onViewDetails={onViewDetails}
             onNonPayableClick={onNonPayableClick}
             onPriceBlur={onPriceBlur}
+            showSelectionColumn={selection != null}
+            selected={line.id != null && selected.has(line.id)}
+            onSelectedChange={
+              selection && line.id != null && line.isNew !== true
+                ? (checked) => {
+                    const next = new Set(selected);
+                    if (checked) {
+                      next.add(line.id as number);
+                    } else {
+                      next.delete(line.id as number);
+                    }
+                    onSelectedLineIdsChange?.(Array.from(next));
+                  }
+                : undefined
+            }
           />
         );
       })}
@@ -217,6 +328,9 @@ function EditableLineRow({
   onViewDetails,
   onNonPayableClick,
   onPriceBlur,
+  showSelectionColumn = false,
+  selected = false,
+  onSelectedChange,
 }: {
   order: SalesOrder;
   line: SalesOrderLineDraft;
@@ -235,6 +349,9 @@ function EditableLineRow({
   onViewDetails: (lineId: number) => void;
   onNonPayableClick?: (lineId: number) => void;
   onPriceBlur: (key: string) => void;
+  showSelectionColumn?: boolean;
+  selected?: boolean;
+  onSelectedChange?: (checked: boolean) => void;
 }) {
   return (
     <ListPageDataTableRow
@@ -250,6 +367,17 @@ function EditableLineRow({
         }
       }}
     >
+      {showSelectionColumn ? (
+        <ListPageDataTableCell className="w-10 py-3">
+          {onSelectedChange ? (
+            <LineSelectionCheckbox
+              checked={selected}
+              label={`Select ${line.productName || "line"}`}
+              onChange={onSelectedChange}
+            />
+          ) : null}
+        </ListPageDataTableCell>
+      ) : null}
       <ListPageDataTableCell className="py-3">
         {isEditing ? (
           <SalesOrderLineProductPicker

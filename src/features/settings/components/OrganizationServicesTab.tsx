@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
@@ -26,6 +27,9 @@ function serviceMeta(service: OrganizationService) {
 export function OrganizationServicesTab({
   isActive,
 }: OrganizationServicesTabProps) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [services, setServices] = useState<OrganizationService[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,6 +37,18 @@ export function OrganizationServicesTab({
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [editingService, setEditingService] =
     useState<OrganizationService | null>(null);
+
+  useEffect(() => {
+    if (!isActive || searchParams.get("add") !== "service") {
+      return;
+    }
+
+    setAddDialogOpen(true);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("add");
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [isActive, pathname, router, searchParams]);
 
   useEffect(() => {
     if (!isActive) {

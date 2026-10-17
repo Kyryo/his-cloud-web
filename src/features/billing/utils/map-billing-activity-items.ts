@@ -35,6 +35,10 @@ const ACTION_ICONS: Record<string, LucideIcon> = {
   ORDER_LINE_ADDED: ShoppingCart,
   ORDER_LINE_UPDATED: ShoppingCart,
   ORDER_LINE_REMOVED: Ban,
+  ORDER_LINES_MOVED: Send,
+  ORDER_SPLIT_CREATED: ShoppingCart,
+  ORDER_LINES_MERGED: RefreshCw,
+  ORDER_LINE_PAYABILITY_CHANGED: Wallet,
   INVOICE_CREATED: FileText,
   INVOICE_UPDATED: FileText,
   INVOICE_CANCELLED: Ban,
@@ -62,6 +66,10 @@ const ACTION_TONES: Record<string, ActivityIconTone> = {
   ORDER_REOPENED: "warning",
   ORDER_LINE_ADDED: "info",
   ORDER_LINE_REMOVED: "danger",
+  ORDER_LINES_MOVED: "info",
+  ORDER_SPLIT_CREATED: "info",
+  ORDER_LINES_MERGED: "info",
+  ORDER_LINE_PAYABILITY_CHANGED: "warning",
   INVOICE_CREATED: "info",
   INVOICE_CANCELLED: "danger",
   PAYMENT_RECORDED: "success",
@@ -138,6 +146,14 @@ function formatActivityTitle(record: BillingActivityRecord): string {
         : "Claim advisories evaluated";
     case "ORDER_ADDED":
       return "Sales order created";
+    case "ORDER_LINES_MOVED":
+      return "Lines moved to a new sales order";
+    case "ORDER_SPLIT_CREATED":
+      return "Sales order created from another order";
+    case "ORDER_LINES_MERGED":
+      return "Line items merged";
+    case "ORDER_LINE_PAYABILITY_CHANGED":
+      return "Line payability changed";
     case "ORDER_CONFIRMED":
       return "Sales order confirmed";
     case "ORDER_INVOICED":

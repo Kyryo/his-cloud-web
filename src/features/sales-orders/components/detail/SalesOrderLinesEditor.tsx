@@ -1,15 +1,26 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import {
+  useMemo,
   useRef,
   useState,
   useEffect,
   type MutableRefObject,
+  type ReactNode,
 } from "react";
 
 import { LineItemsEmptyState } from "@/components/detail/line-items-empty-state";
-import { SecondaryButton } from "@/components/ui/app-buttons";
+import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { StatusBanner } from "@/components/ui/status-banner";
 import {
   SalesOrderEditableLineList,
@@ -34,7 +45,12 @@ import type { SalesOrderLineProductSelection } from "@/features/sales-orders/com
 import { SalesOrderPendingChangesBar } from "@/features/sales-orders/components/detail/SalesOrderPendingChangesBar";
 import { SalesOrderProviderSelector } from "@/features/sales-orders/components/detail/SalesOrderProviderSelector";
 import { useSalesOrderLinesEditor } from "@/features/sales-orders/hooks/use-sales-order-lines-editor";
-import { setSalesOrderLineDentalTeeth } from "@/features/sales-orders/services/sales-orders.service";
+import {
+  mergeSalesOrderLines,
+  setSalesOrderLineDentalTeeth,
+  setSalesOrderLinePayability,
+  splitSalesOrderLines,
+} from "@/features/sales-orders/services/sales-orders.service";
 import type { SalesOrder } from "@/features/sales-orders/types/sales-order.types";
 import type { SalesOrderLineDraft } from "@/features/sales-orders/types/sales-order-line-draft";
 import {
@@ -42,6 +58,13 @@ import {
   resolveInitialLineIsPayable,
 } from "@/features/sales-orders/utils/sales-order-line-payability";
 import { canEditSalesOrderLines } from "@/features/sales-orders/utils/sales-order-status";
+import {
+  mergePreviewForSelection,
+  savedSelectableLines,
+} from "@/features/sales-orders/utils/sales-order-line-selection";
+import { ROUTES } from "@/constants/routes";
+import { BffError } from "@/lib/bff-client";
+import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { getLineSplitMismatch } from "@/features/sales-orders/utils/sales-order-line-split-mismatch";
 import { useEnterEscapeShortcuts } from "@/hooks/use-enter-escape-shortcuts";
 import { useToast } from "@/providers/toast-provider";
@@ -180,19 +203,22 @@ function SalesOrderLinesToolbar({
   order,
   canEdit,
   onOrderUpdated,
+  children,
 }: {
   order: SalesOrder;
   canEdit: boolean;
   onOrderUpdated: (order: SalesOrder) => void;
+  children?: ReactNode;
 }) {
   return (
-    <div className="mb-3 flex flex-wrap items-center justify-end gap-3">
+    <div className="mb-3 flex flex-wrap items-center justify-start gap-2">
       <SalesOrderProviderSelector
         order={order}
         canEdit={canEdit}
         onOrderUpdated={onOrderUpdated}
         className="shrink-0"
       />
+      {children}
     </div>
   );
 }
@@ -227,12 +253,17 @@ export function SalesOrderLinesEditor({
   onSplitMismatchChange,
 }: SalesOrderLinesEditorProps) {
   const { toast } = useToast();
+  const router = useRouter();
   const canEdit = canEditSalesOrderLines(order.state);
   const selectionTokenByLineKeyRef = useRef<Map<string, number>>(new Map());
   const [breakdownLineId, setBreakdownLineId] = useState<number | null>(null);
   const [splitDialogLineKey, setSplitDialogLineKey] = useState<string | null>(null);
   const [isSavingTeeth, setIsSavingTeeth] = useState(false);
   const [nonPayableLineId, setNonPayableLineId] = useState<number | null>(null);
+  const [selectedLineIds, setSelectedLineIds] = useState<number[]>([]);
+  const [confirmAction, setConfirmAction] = useState<"split" | "merge" | null>(null);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [isSavingPayability, setIsSavingPayability] = useState(false);
 
   const editor = useSalesOrderLinesEditor({
     order,
@@ -260,6 +291,17 @@ export function SalesOrderLinesEditor({
     onEnter: editor.saveChanges,
     onEscape: editor.discardChanges,
   });
+
+  const selectedLines = useMemo(
+    () =>
+      savedSelectableLines(editor.draftLines).filter(
+        (line) => line.id != null && selectedLineIds.includes(line.id),
+      ),
+    [editor.draftLines, selectedLineIds],
+  );
+  const selectedSavedIds = selectedLines.map((line) => line.id as number);
+  const mergePreview = mergePreviewForSelection(editor.draftLines, selectedSavedIds);
+  const canChangeLines = canEdit && order.invoice_status !== "invoiced";
 
   const breakdownLine =
     order.lines?.find((line) => line.id === breakdownLineId) ?? null;
@@ -310,6 +352,49 @@ export function SalesOrderLinesEditor({
     );
   }
 
+  async function confirmLineAction() {
+    if (!confirmAction) {
+      return;
+    }
+
+    setIsConfirming(true);
+    try {
+      if (confirmAction === "split") {
+        const created = await splitSalesOrderLines(order.id, selectedSavedIds);
+        setConfirmAction(null);
+        setSelectedLineIds([]);
+        router.push(ROUTES.salesOrderDetail(created.uuid || created.id));
+        return;
+      }
+
+      const updated = await mergeSalesOrderLines(
+        order.id,
+        mergePreview?.lineIds ?? selectedSavedIds,
+      );
+      onOrderUpdated(updated);
+      setSelectedLineIds([]);
+      setConfirmAction(null);
+      toast({
+        variant: "success",
+        title: "Lines merged",
+        description: "Quantity and pricing were updated for the combined line.",
+      });
+    } catch (error) {
+      toast({
+        variant: "error",
+        title: confirmAction === "split" ? "Could not create order" : "Could not merge lines",
+        description:
+          error instanceof BffError
+            ? formatBffErrorMessage(error.message, error.errors)
+            : error instanceof Error
+              ? error.message
+              : "Something went wrong.",
+      });
+    } finally {
+      setIsConfirming(false);
+    }
+  }
+
   const hasRows = editor.draftLines.length > 0;
   const addDisabled =
     editor.isSaving || editor.splitMismatchKeys.size > 0;
@@ -331,7 +416,26 @@ export function SalesOrderLinesEditor({
         order={order}
         canEdit={canEdit}
         onOrderUpdated={onOrderUpdated}
-      />
+      >
+        <SecondaryButton
+          type="button"
+          size="sm"
+          disabled={!canChangeLines || selectedSavedIds.length === 0 || isConfirming}
+          onClick={() => setConfirmAction("split")}
+          data-testid="sales-order-new-order"
+        >
+          New order
+        </SecondaryButton>
+        <SecondaryButton
+          type="button"
+          size="sm"
+          disabled={!canChangeLines || mergePreview == null || isConfirming}
+          onClick={() => setConfirmAction("merge")}
+          data-testid="sales-order-merge-lines"
+        >
+          Merge
+        </SecondaryButton>
+      </SalesOrderLinesToolbar>
 
       {!hasRows ? (
         <LineItemsEmptyState
@@ -390,6 +494,8 @@ export function SalesOrderLinesEditor({
                 setSplitDialogLineKey(key);
               }
             }}
+            selectedLineIds={selectedSavedIds}
+            onSelectedLineIdsChange={setSelectedLineIds}
           />
         </>
       )}
@@ -433,6 +539,41 @@ export function SalesOrderLinesEditor({
         })}
         canEditTeeth={canEdit}
         isSavingTeeth={isSavingTeeth}
+        canChangePayability={canChangeLines}
+        isSavingPayability={isSavingPayability}
+        onSetPayability={
+          breakdownLineId == null
+            ? undefined
+            : async (isPayable) => {
+                setIsSavingPayability(true);
+                try {
+                  const updated = await setSalesOrderLinePayability(
+                    order.id,
+                    breakdownLineId,
+                    isPayable,
+                  );
+                  onOrderUpdated(updated);
+                  toast({
+                    variant: "success",
+                    title: isPayable ? "Line marked payable" : "Line marked non-payable",
+                    description: "The payment split was updated for this line.",
+                  });
+                } catch (error) {
+                  toast({
+                    variant: "error",
+                    title: "Could not update payability",
+                    description:
+                      error instanceof BffError
+                        ? formatBffErrorMessage(error.message, error.errors)
+                        : error instanceof Error
+                          ? error.message
+                          : "Something went wrong.",
+                  });
+                } finally {
+                  setIsSavingPayability(false);
+                }
+              }
+        }
         onSaveTeeth={
           breakdownLineId == null
             ? undefined
@@ -511,6 +652,52 @@ export function SalesOrderLinesEditor({
         onSkip={editor.skipTeethAssignment}
         onConfirm={editor.confirmTeethAssignment}
       />
+
+      <Dialog
+        open={confirmAction != null}
+        onOpenChange={(open) => {
+          if (!open && !isConfirming) {
+            setConfirmAction(null);
+          }
+        }}
+      >
+        <DialogContent data-testid="sales-order-line-action-dialog">
+          <DialogHeader>
+            <DialogTitle>
+              {confirmAction === "merge" ? "Merge line items" : "Create a new sales order"}
+            </DialogTitle>
+            <DialogDescription>
+              {confirmAction === "merge"
+                ? `Merge ${mergePreview?.quantity ?? ""} ${mergePreview?.productName ?? "items"} into one line. Pricing will be recalculated.`
+                : "The selected lines will move to a new sales order. The client, visit, pricelist, insurance, and providers stay the same."}
+            </DialogDescription>
+          </DialogHeader>
+          {confirmAction === "split" ? (
+            <ul className="list-disc space-y-1 pl-5 text-sm text-brand-navy">
+              {selectedLines.map((line) => (
+                <li key={line.id}>{line.productName || "Line item"}</li>
+              ))}
+            </ul>
+          ) : null}
+          <DialogFooter>
+            <SecondaryButton
+              type="button"
+              disabled={isConfirming}
+              onClick={() => setConfirmAction(null)}
+            >
+              Cancel
+            </SecondaryButton>
+            <PrimaryButton
+              type="button"
+              disabled={isConfirming}
+              onClick={() => void confirmLineAction()}
+              data-testid="sales-order-line-action-confirm"
+            >
+              {confirmAction === "merge" ? "Merge lines" : "Create order"}
+            </PrimaryButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

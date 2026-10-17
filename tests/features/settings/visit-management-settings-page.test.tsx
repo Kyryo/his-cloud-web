@@ -5,6 +5,16 @@ import { VisitManagementSettingsPage } from "@/features/settings/pages/VisitMana
 
 const useUser = vi.fn();
 const fetchOrganizationServices = vi.fn();
+const navigation = vi.hoisted(() => ({
+  query: "",
+  replace: vi.fn(),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ replace: navigation.replace }),
+  usePathname: () => "/settings/visit-management",
+  useSearchParams: () => new URLSearchParams(navigation.query),
+}));
 
 vi.mock("@/providers/user-provider", () => ({
   useUser: () => useUser(),
@@ -25,6 +35,8 @@ afterEach(() => {
   cleanup();
   useUser.mockReset();
   fetchOrganizationServices.mockReset();
+  navigation.query = "";
+  navigation.replace.mockReset();
 });
 
 describe("VisitManagementSettingsPage", () => {
@@ -72,5 +84,23 @@ describe("VisitManagementSettingsPage", () => {
     expect(screen.getByText("GP · Chargeable")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Update" })).toBeInTheDocument();
     expect(screen.queryByRole("columnheader")).not.toBeInTheDocument();
+  });
+
+  it("opens the add service dialog from the create link", async () => {
+    navigation.query = "add=service";
+    useUser.mockReturnValue({
+      userData: { is_admin: true },
+      isLoading: false,
+    });
+    fetchOrganizationServices.mockResolvedValue({ results: [] });
+
+    render(<VisitManagementSettingsPage />);
+
+    expect(
+      await screen.findByRole("heading", { name: "Add consultation service" }),
+    ).toBeInTheDocument();
+    expect(navigation.replace).toHaveBeenCalledWith("/settings/visit-management", {
+      scroll: false,
+    });
   });
 });

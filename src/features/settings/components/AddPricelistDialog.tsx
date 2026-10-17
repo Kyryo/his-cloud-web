@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Receipt } from "lucide-react";
 import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 
@@ -126,17 +125,10 @@ export function AddPricelistDialog({
         data-testid="add-pricelist-dialog"
       >
         <DialogHeader className="border-b border-brand-border px-6 py-5">
-          <div className="flex items-start gap-3">
-            <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-primary/10 text-brand-primary">
-              <Receipt className="size-5" aria-hidden="true" />
-            </div>
-            <div className="space-y-1.5">
-              <DialogTitle>Add pricelist</DialogTitle>
-              <DialogDescription>
-                Create an ERP pricelist for cash billing or payer scheme tariffs.
-              </DialogDescription>
-            </div>
-          </div>
+          <DialogTitle>Add pricelist</DialogTitle>
+          <DialogDescription>
+            Create an ERP pricelist for cash billing or payer scheme tariffs.
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -146,67 +138,52 @@ export function AddPricelistDialog({
             onSubmit={form.handleSubmit(handleSubmit)}
           >
             <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
-              <section className="space-y-4 rounded-xl border border-brand-border bg-slate-50/40 p-4">
-                <div>
-                  <p className="text-sm font-medium text-brand-navy">Details</p>
-                  <p className="text-xs text-brand-muted">
-                    This name appears in ERP and when linking payer schemes.
-                  </p>
-                </div>
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        autoComplete="off"
+                        placeholder="Cash Pricelist"
+                      />
+                    </FormControl>
+                    <p className="text-xs text-brand-muted">
+                      This name appears in ERP and when linking payer schemes.
+                    </p>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Name</FormLabel>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          autoComplete="off"
-                          placeholder="Cash Pricelist"
-                          className="bg-white"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </section>
-
-              <section className="space-y-3 rounded-xl border border-brand-border px-4 py-4">
-                <div>
-                  <p className="text-sm font-medium text-brand-navy">Availability</p>
-                  <p className="text-xs text-brand-muted">
-                    Inactive pricelists cannot be used for new billing.
-                  </p>
-                </div>
-
-                <FormField
-                  control={form.control}
-                  name="active"
-                  render={({ field }) => (
-                    <FormItem className="flex items-center justify-between gap-4 space-y-0 rounded-lg border border-brand-border bg-white px-4 py-3">
-                      <div>
-                        <FormLabel className="font-medium text-brand-navy">
-                          Active
-                        </FormLabel>
-                        <p className="text-xs text-brand-muted">
-                          Available for cash visits and scheme linking.
-                        </p>
-                      </div>
-                      <FormControl>
-                        <input
-                          type="checkbox"
-                          checked={field.value}
-                          onChange={field.onChange}
-                          className="size-4 rounded border-brand-border text-brand-primary focus:ring-brand-primary"
-                        />
-                      </FormControl>
-                    </FormItem>
-                  )}
-                />
-              </section>
+              <FormField
+                control={form.control}
+                name="active"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between gap-4 space-y-0">
+                    <div>
+                      <FormLabel className="font-medium text-brand-navy">
+                        Active
+                      </FormLabel>
+                      <p className="text-xs text-brand-muted">
+                        Available for cash visits and scheme linking. Inactive
+                        pricelists cannot be used for new billing.
+                      </p>
+                    </div>
+                    <FormControl>
+                      <input
+                        type="checkbox"
+                        checked={field.value}
+                        onChange={field.onChange}
+                        className="size-4 rounded border-brand-border text-brand-primary focus:ring-brand-primary"
+                      />
+                    </FormControl>
+                  </FormItem>
+                )}
+              />
             </div>
 
             <DialogFooter className="mt-0 border-t border-brand-border px-6 py-4">

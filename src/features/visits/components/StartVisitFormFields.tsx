@@ -1,7 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import type { UseFormReturn } from "react-hook-form";
+
+import { ROUTES } from "@/constants/routes";
 
 import { DateTimePicker } from "@/components/ui/date-time-picker";
 import {
@@ -66,6 +69,23 @@ export function StartVisitFormFields({
   const [departmentSelectOpen, setDepartmentSelectOpen] = useState(false);
   const [departmentSearch, setDepartmentSearch] = useState("");
   const [serviceSelectOpen, setServiceSelectOpen] = useState(false);
+
+  useEffect(() => {
+    if (insuranceSchemes.length !== 1) {
+      return;
+    }
+
+    const onlyScheme = insuranceSchemes[0];
+    if (!onlyScheme || form.getValues("insurance_scheme")) {
+      return;
+    }
+
+    form.setValue("insurance_scheme", onlyScheme.uuid, {
+      shouldDirty: false,
+      shouldValidate: true,
+    });
+  }, [form, insuranceSchemes]);
+
   const selectedDepartmentUuid = form.watch("department");
   const selectedServiceUuid = form.watch("consultation_service");
   const visitDate = form.watch("visit_date");
@@ -195,9 +215,17 @@ export function StartVisitFormFields({
             name="department"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>
-                  Department <RequiredFieldMarker />
-                </FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel>
+                    Department <RequiredFieldMarker />
+                  </FormLabel>
+                  <Link
+                    href={`${ROUTES.settingsOrganization}?tab=departments&add=department`}
+                    className="text-xs text-brand-primary hover:underline"
+                  >
+                    Create department
+                  </Link>
+                </div>
                 <FormControl>
                   <SearchableSelect
                     value={field.value || undefined}
@@ -277,7 +305,15 @@ export function StartVisitFormFields({
             name="consultation_service"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Service</FormLabel>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Service</FormLabel>
+                  <Link
+                    href={`${ROUTES.settingsVisitManagement}?add=service`}
+                    className="text-xs text-brand-primary hover:underline"
+                  >
+                    Create service
+                  </Link>
+                </div>
                 <FormControl>
                   <SearchableSelect
                     value={field.value || undefined}

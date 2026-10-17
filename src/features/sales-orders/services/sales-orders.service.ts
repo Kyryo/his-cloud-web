@@ -213,3 +213,37 @@ export async function repriceSalesOrder(
     body: payload,
   });
 }
+
+export async function splitSalesOrderLines(
+  orderId: number | string,
+  lineIds: number[],
+): Promise<SalesOrder> {
+  return bffRequest<SalesOrder>(BFF_SALES_ORDERS_ROUTES.split(orderId), {
+    method: "POST",
+    body: { line_ids: lineIds },
+  });
+}
+
+export async function mergeSalesOrderLines(
+  orderId: number | string,
+  lineIds: number[],
+): Promise<SalesOrder> {
+  return bffRequest<SalesOrder>(BFF_SALES_ORDERS_ROUTES.mergeLines(orderId), {
+    method: "POST",
+    body: { line_ids: lineIds },
+  });
+}
+
+export async function setSalesOrderLinePayability(
+  orderId: number | string,
+  lineId: number,
+  isPayable: boolean,
+): Promise<SalesOrder> {
+  return bffRequest<SalesOrder>(
+    BFF_SALES_ORDERS_ROUTES.linePayability(orderId, lineId),
+    {
+      method: "POST",
+      body: { is_payable: isPayable },
+    },
+  );
+}

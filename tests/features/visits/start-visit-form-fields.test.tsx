@@ -116,11 +116,19 @@ describe("StartVisitFormFields", () => {
     expect(screen.getByRole("button", { name: "Payment" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Attachments" })).toBeInTheDocument();
     expect(screen.getByText("Department")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Create department" })).toHaveAttribute(
+      "href",
+      "/settings/organization?tab=departments&add=department",
+    );
     expect(screen.getByText("City Clinic")).toBeInTheDocument();
     expect(screen.getByText("Arrived")).toBeInTheDocument();
     expect(screen.getByTestId("start-visit-datetime")).toBeInTheDocument();
     expect(document.querySelector("input[type='datetime-local']")).toBeNull();
     expect(screen.getByText("Service")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Create service" })).toHaveAttribute(
+      "href",
+      "/settings/visit-management?add=service",
+    );
     expect(screen.queryByRole("radio", { name: /Cash/i })).not.toBeInTheDocument();
     expect(screen.queryByText("Scheme")).not.toBeInTheDocument();
   });
@@ -155,6 +163,7 @@ describe("StartVisitFormFields", () => {
     fireEvent.click(screen.getByRole("radio", { name: /Insurance/i }));
 
     expect(screen.getByText("Scheme or company details")).toBeInTheDocument();
+    expect(screen.getByRole("combobox")).toHaveTextContent("MASM Corporate");
     expect(screen.getByText("Pre-authorization required")).toBeInTheDocument();
     expect(
       screen.getByRole("switch", { name: "Requires pre-authorization" }),
@@ -177,6 +186,30 @@ describe("StartVisitFormFields", () => {
       "href",
       "/customers/b6b3954f-9f77-4c19-a087-fe91fd302a8a/insurance",
     );
+  });
+
+  it("leaves the scheme blank when the client has more than one payer", () => {
+    render(
+      <StartVisitFormHarness
+        step="payment"
+        insuranceSchemes={[
+          {
+            uuid: "scheme-1",
+            scheme_name: "MASM Corporate",
+            insurance_company_name: "MASM",
+          },
+          {
+            uuid: "scheme-2",
+            scheme_name: "Liberty Health",
+            insurance_company_name: "Liberty",
+          },
+        ]}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole("radio", { name: /Insurance/i }));
+
+    expect(screen.getByText("Select a scheme")).toBeInTheDocument();
   });
 
   it("shows the optional attachment dropzone on the attachments step", () => {

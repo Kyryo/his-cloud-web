@@ -16,7 +16,7 @@ import { formatSalesOrderAmount } from "@/features/sales-orders/utils/format-sal
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 
-type LineDetailsTab = "pricing" | "tariff-code" | "odontogram";
+type LineDetailsTab = "pricing" | "inputs" | "tariff-code" | "odontogram";
 
 type LinePricingBreakdownDialogProps = {
   line: PricingBreakdownLine | null;
@@ -30,10 +30,14 @@ type LinePricingBreakdownDialogProps = {
   canEditTeeth?: boolean;
   onSaveTeeth?: (toothNumbers: number[]) => Promise<void> | void;
   isSavingTeeth?: boolean;
+  canChangePayability?: boolean;
+  isSavingPayability?: boolean;
+  onSetPayability?: (isPayable: boolean) => Promise<void> | void;
 };
 
 const BASE_TABS: Array<{ id: LineDetailsTab; label: string }> = [
   { id: "pricing", label: "Pricing" },
+  { id: "inputs", label: "Inputs" },
   { id: "tariff-code", label: "Tariff code" },
 ];
 
@@ -174,7 +178,7 @@ function FormulaBlock({ formula }: { formula: string }) {
   );
 }
 
-function PricingTabContent({
+function PricingInputsContent({
   line,
 }: {
   line: PricingBreakdownLine;
@@ -187,14 +191,58 @@ function PricingTabContent({
   const showRuleName = Boolean(snapshot?.rule_name?.trim());
   const showRuleTypes = Boolean(snapshot?.rule_types?.length);
   const showFormula = Boolean(formula);
-  const showInsurerDue = Number(line.insurer_due ?? 0) > 0;
+  const showListPrice = hasDisplayAmount(line.list_price_at_order);
+  const hasPricingInputs =
+    showListPrice || showPricelistAmount || showRuleName || showRuleTypes || showFormula;
+
+  if (!hasPricingInputs) {
+    return <p className="text-sm text-brand-muted">No pricing inputs for this line.</p>;
+  }
+
+  return (
+    <BreakdownSection title="Pricing inputs">
+      {showListPrice ? (
+        <BreakdownRow
+          label="List price"
+          value={formatSalesOrderAmount(line.list_price_at_order)}
+        />
+      ) : null}
+      {showPricelistAmount ? (
+        <BreakdownRow
+          label="Pricelist amount"
+          value={formatSalesOrderAmount(line.pricelist_amount_at_order)}
+        />
+      ) : null}
+      {showRuleName ? (
+        <BreakdownRow label="Rule name" value={snapshot?.rule_name ?? "—"} />
+      ) : null}
+      {showRuleTypes ? (
+        <BreakdownRow
+          label="Rule types"
+          value={formatRuleTypesLabel(snapshot?.rule_types)}
+        />
+      ) : null}
+      {showFormula ? <FormulaBlock formula={formula} /> : null}
+    </BreakdownSection>
+  );
+}
+
+function PricingTabContent({
+  line,
+  canChangePayability = false,
+  isSavingPayability = false,
+  onSetPayability,
+}: {
+  line: PricingBreakdownLine;
+  canChangePayability?: boolean;
+  isSavingPayability?: boolean;
+  onSetPayability?: (isPayable: boolean) => Promise<void> | void;
+}) {
+  const isPayable = "is_payable" in line ? line.is_payable === true : false;
   const showExcess =
     line.has_excess === true &&
     hasDisplayAmount(line.excess_amount) &&
     Number(line.excess_amount) > 0;
-  const showListPrice = hasDisplayAmount(line.list_price_at_order);
-  const hasPricingInputs =
-    showListPrice || showPricelistAmount || showRuleName || showRuleTypes || showFormula;
 
   const lineTotal = hasDisplayAmount(line.price_total)
     ? line.price_total
@@ -202,44 +250,56 @@ function PricingTabContent({
 
   return (
     <div className="space-y-5">
-      {hasPricingInputs ? (
-        <BreakdownSection title="Pricing inputs">
-          {showListPrice ? (
-            <BreakdownRow
-              label="List price"
-              value={formatSalesOrderAmount(line.list_price_at_order)}
-            />
-          ) : null}
-          {showPricelistAmount ? (
-            <BreakdownRow
-              label="Pricelist amount"
-              value={formatSalesOrderAmount(line.pricelist_amount_at_order)}
-            />
-          ) : null}
-          {showRuleName ? (
-            <BreakdownRow label="Rule name" value={snapshot?.rule_name ?? "—"} />
-          ) : null}
-          {showRuleTypes ? (
-            <BreakdownRow
-              label="Rule types"
-              value={formatRuleTypesLabel(snapshot?.rule_types)}
-            />
-          ) : null}
-          {showFormula ? <FormulaBlock formula={formula} /> : null}
-        </BreakdownSection>
-      ) : null}
+      <section>
+        <h3 className="text-[11px] font-medium uppercase tracking-wide text-brand-muted">
+          Payment split
+        </h3>
+        <div className="mt-2 overflow-hidden rounded-md border border-brand-border">
+          <table className="w-full text-sm" data-testid="line-payment-split-table">
+            <thead className="bg-slate-50 text-left text-brand-muted">
+              <tr>
+                <th className="px-3 py-2 font-medium">Insurer due</th>
+                <th className="px-3 py-2 font-medium">Client due</th>
+                <th className="px-3 py-2 font-medium">Payable</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td className="px-3 py-3 font-medium text-brand-navy">
+                  {formatSalesOrderAmount(line.insurer_due)}
+                </td>
+                <td className="px-3 py-3 font-medium text-brand-navy">
+                  {formatSalesOrderAmount(line.client_due)}
+                </td>
+                <td className="px-3 py-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-medium text-brand-navy">
+                      {isPayable ? "Payable" : "Non-payable"}
+                    </span>
+                    {canChangePayability && onSetPayability ? (
+                      <button
+                        type="button"
+                        className="text-xs text-brand-primary hover:underline disabled:opacity-50"
+                        disabled={isSavingPayability}
+                        data-testid="line-payability-toggle"
+                        onClick={() => void onSetPayability(!isPayable)}
+                      >
+                        {isSavingPayability
+                          ? "Saving..."
+                          : isPayable
+                            ? "Mark non-payable"
+                            : "Mark payable"}
+                      </button>
+                    ) : null}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
 
-      <BreakdownSection title="Payment split">
-        {showInsurerDue ? (
-          <BreakdownRow
-            label="Insurer due"
-            value={formatSalesOrderAmount(line.insurer_due)}
-          />
-        ) : null}
-        <BreakdownRow
-          label="Client due"
-          value={formatSalesOrderAmount(line.client_due)}
-        />
+      <BreakdownSection title="Totals">
         {showExcess ? (
           <BreakdownRow
             label="Excess"
@@ -404,6 +464,9 @@ export function LinePricingBreakdownDialog({
   canEditTeeth = false,
   onSaveTeeth,
   isSavingTeeth = false,
+  canChangePayability = false,
+  isSavingPayability = false,
+  onSetPayability,
 }: LinePricingBreakdownDialogProps) {
   const [activeTab, setActiveTab] = useState<LineDetailsTab>("pricing");
   const [draftTeeth, setDraftTeeth] = useState<number[]>([]);
@@ -485,7 +548,14 @@ export function LinePricingBreakdownDialog({
       }
     >
       {activeTab === "pricing" ? (
-        <PricingTabContent line={line} />
+        <PricingTabContent
+          line={line}
+          canChangePayability={canChangePayability}
+          isSavingPayability={isSavingPayability}
+          onSetPayability={onSetPayability}
+        />
+      ) : activeTab === "inputs" ? (
+        <PricingInputsContent line={line} />
       ) : activeTab === "tariff-code" ? (
         <TariffCodeTabContent
           tariffCode={tariffCode}

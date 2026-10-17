@@ -35,6 +35,8 @@ export type CatalogPricelist = {
   name: string;
   is_active: boolean;
   currency_code: string;
+  created_at?: string | null;
+  created_by_name?: string | null;
 };
 
 export type CatalogPricelistMembership = {

@@ -1,7 +1,10 @@
 "use client";
 
 import { Calendar } from "lucide-react";
+import Link from "next/link";
 import type { ReactNode } from "react";
+
+import { ROUTES } from "@/constants/routes";
 
 import { Badge } from "@/components/ui/badge";
 import { SalesOrderStateBadge } from "@/features/sales-orders/components/SalesOrderStatusBadge";
@@ -54,6 +57,16 @@ export function SalesOrderDetailHeader({
               <Calendar className="size-3.5 shrink-0" aria-hidden="true" />
               Ordered {formatSalesOrderDateTime(order.date_order)}
             </span>
+            {order.source_sales_order_name ? (
+              <Link
+                href={ROUTES.salesOrderDetail(
+                  order.source_sales_order_uuid || order.source_sales_order_id || "",
+                )}
+                className="text-brand-primary hover:underline"
+              >
+                From {order.source_sales_order_name}
+              </Link>
+            ) : null}
           </div>
         </div>
 

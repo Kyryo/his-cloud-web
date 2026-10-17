@@ -12,6 +12,10 @@ export const SALES_ORDERS_API_PATHS = {
     `/sales-orders/${orderId}/lines/${lineId}/dental/`,
   lineReprice: (orderId: number | string, lineId: number | string) =>
     `/sales-orders/${orderId}/lines/${lineId}/reprice/`,
+  split: (orderId: number | string) => `/sales-orders/${orderId}/split/`,
+  mergeLines: (orderId: number | string) => `/sales-orders/${orderId}/lines/merge/`,
+  linePayability: (orderId: number | string, lineId: number | string) =>
+    `/sales-orders/${orderId}/lines/${lineId}/payability/`,
   invoice: (orderId: number | string) => `/sales-orders/${orderId}/invoice/`,
   cancel: (orderId: number | string) => `/sales-orders/${orderId}/cancel/`,
   reprice: (orderId: number | string) => `/sales-orders/${orderId}/reprice/`,
