@@ -85,12 +85,14 @@ export function AddPayerDialog({
     let active = true;
     setSchemesLoading(true);
     void fetchOrganizationPayerSchemes()
-      .then((all) => {
+      .then((response) => {
         if (!active || !createdPayer) {
           return;
         }
         setSchemes(
-          all.filter((scheme) => scheme.insurance_company === createdPayer.id),
+          response.results.filter(
+            (scheme) => scheme.insurance_company === createdPayer.id,
+          ),
         );
       })
       .catch(() => {

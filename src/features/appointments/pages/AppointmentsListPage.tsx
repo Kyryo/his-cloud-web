@@ -355,132 +355,137 @@ export function AppointmentsListPage() {
           data-testid="new-appointment-fab"
         />
 
-        {isListView && !hasNoRecords ? (
-          <ListPageDataSectionsStack>
+        <ListPageDataSectionsStack
+          className={cn(
+            "space-y-0",
+            (isBoardView || isCalendarView) && "flex min-h-0 flex-1 flex-col",
+          )}
+        >
+          {isListView && !hasNoRecords ? (
             <ListPageStatsSection className={cn(!showStats && "hidden sm:block")}>
               <AppointmentSummaryStatsCards
                 stats={stats}
                 isLoading={isStatsLoading}
               />
             </ListPageStatsSection>
-          </ListPageDataSectionsStack>
-        ) : null}
+          ) : null}
 
-        <ListPageTableSection
-          className={cn(
-            (isBoardView || isCalendarView) && "flex min-h-0 flex-1 flex-col",
-          )}
-        >
-          {activeLoading ? (
-            isListView ? (
-              <AppointmentsTableSkeleton rows={8} />
-            ) : isBoardView ? (
-              <AppointmentsBoardSkeleton />
-            ) : (
-              <AppointmentsCalendarSkeleton visibleMonth={visibleMonth} />
-            )
-          ) : activeError ? (
-            <ListPageBlankState
-              compact
-              tone="error"
-              icon="calendarClock"
-              title="Could not load appointments"
-              description={activeError}
-              action={
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-8 rounded-lg text-[13px]"
-                  onClick={() => void reloadAll()}
-                >
-                  Try again
-                </Button>
-              }
-            />
-          ) : isListView && hasNoRecords ? (
-            <AppointmentsEmptyState
-              onNewAppointment={() => {
-                setCreatePrefill(undefined);
-                router.replace(
-                  appointmentsHref({ pathname, newAppointment: true }),
-                );
-              }}
-            />
-          ) : isListView && isFilteredEmpty ? (
-            <ListPageBlankState
-              compact
-              icon="search"
-              title="No matching appointments"
-              description="Adjust your search or filters and try again."
-              action={
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-8 rounded-lg text-[13px]"
-                  onClick={handleClearSearch}
-                >
-                  Clear search and filters
-                </Button>
-              }
-            />
-          ) : isListView ? (
-            <>
-              <AppointmentsTable
-                appointments={items}
-                actionUuid={actionUuid}
-                onRowClick={(appointment) =>
-                  setSelectedAppointmentUuid(appointment.uuid)
-                }
-                onActionRequest={(appointment, action) =>
-                  setPendingAction({ appointment, action })
-                }
-              />
-              <ListPagePagination
-                page={page}
-                pageSize={pageSize}
-                totalCount={totalCount}
-                hasNext={hasNext}
-                hasPrevious={hasPrevious}
-                isLoading={isRefreshing}
-                onPageChange={handlePageChange}
-              />
-            </>
-          ) : isBoardView ? (
-            <AppointmentsBoard
-              appointments={calendarAppointments}
-              statusFilter={filters.status}
-              onSelectAppointment={(appointment) =>
-                setSelectedAppointmentUuid(appointment.uuid)
-              }
-              onActionRequest={(appointment, action) => {
-                if (action === "confirm") {
-                  void handleAction(appointment, "confirm");
-                  return;
-                }
-                setPendingAction({ appointment, action });
-              }}
-            />
-          ) : !hasAssignedClinic ? (
-            <AppointmentClinicEmptyState className="rounded-2xl border border-dash-border bg-white py-16" />
-          ) : (
-            <Suspense
-              fallback={
+          <ListPageTableSection
+            className={cn(
+              (isBoardView || isCalendarView) && "flex min-h-0 flex-1 flex-col",
+            )}
+          >
+            {activeLoading ? (
+              isListView ? (
+                <AppointmentsTableSkeleton rows={8} />
+              ) : isBoardView ? (
+                <AppointmentsBoardSkeleton />
+              ) : (
                 <AppointmentsCalendarSkeleton visibleMonth={visibleMonth} />
-              }
-            >
-              <AppointmentsMonthCalendar
-                visibleMonth={visibleMonth}
-                appointments={calendarAppointments}
-                isLoading={isCalendarLoading || isCalendarRefreshing}
-                onVisibleMonthChange={setVisibleMonth}
-                onDaySelect={handleDaySelect}
-                onAppointmentSelect={(appointment) =>
-                  setSelectedAppointmentUuid(appointment.uuid)
+              )
+            ) : activeError ? (
+              <ListPageBlankState
+                compact
+                tone="error"
+                icon="calendarClock"
+                title="Could not load appointments"
+                description={activeError}
+                action={
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-8 rounded-lg text-[13px]"
+                    onClick={() => void reloadAll()}
+                  >
+                    Try again
+                  </Button>
                 }
               />
-            </Suspense>
-          )}
-        </ListPageTableSection>
+            ) : isListView && hasNoRecords ? (
+              <AppointmentsEmptyState
+                onNewAppointment={() => {
+                  setCreatePrefill(undefined);
+                  router.replace(
+                    appointmentsHref({ pathname, newAppointment: true }),
+                  );
+                }}
+              />
+            ) : isListView && isFilteredEmpty ? (
+              <ListPageBlankState
+                compact
+                icon="search"
+                title="No matching appointments"
+                description="Adjust your search or filters and try again."
+                action={
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-8 rounded-lg text-[13px]"
+                    onClick={handleClearSearch}
+                  >
+                    Clear search and filters
+                  </Button>
+                }
+              />
+            ) : isListView ? (
+              <>
+                <AppointmentsTable
+                  appointments={items}
+                  actionUuid={actionUuid}
+                  onRowClick={(appointment) =>
+                    setSelectedAppointmentUuid(appointment.uuid)
+                  }
+                  onActionRequest={(appointment, action) =>
+                    setPendingAction({ appointment, action })
+                  }
+                />
+                <ListPagePagination
+                  page={page}
+                  pageSize={pageSize}
+                  totalCount={totalCount}
+                  hasNext={hasNext}
+                  hasPrevious={hasPrevious}
+                  isLoading={isRefreshing}
+                  onPageChange={handlePageChange}
+                />
+              </>
+            ) : isBoardView ? (
+              <AppointmentsBoard
+                appointments={calendarAppointments}
+                statusFilter={filters.status}
+                onSelectAppointment={(appointment) =>
+                  setSelectedAppointmentUuid(appointment.uuid)
+                }
+                onActionRequest={(appointment, action) => {
+                  if (action === "confirm") {
+                    void handleAction(appointment, "confirm");
+                    return;
+                  }
+                  setPendingAction({ appointment, action });
+                }}
+              />
+            ) : !hasAssignedClinic ? (
+              <AppointmentClinicEmptyState className="rounded-2xl border border-dash-border bg-white py-16" />
+            ) : (
+              <Suspense
+                fallback={
+                  <AppointmentsCalendarSkeleton visibleMonth={visibleMonth} />
+                }
+              >
+                <AppointmentsMonthCalendar
+                  visibleMonth={visibleMonth}
+                  appointments={calendarAppointments}
+                  isLoading={isCalendarLoading || isCalendarRefreshing}
+                  onVisibleMonthChange={setVisibleMonth}
+                  onDaySelect={handleDaySelect}
+                  onAppointmentSelect={(appointment) =>
+                    setSelectedAppointmentUuid(appointment.uuid)
+                  }
+                />
+              </Suspense>
+            )}
+          </ListPageTableSection>
+        </ListPageDataSectionsStack>
       </ListPageLayout>
 
       <AppointmentsDayPanel

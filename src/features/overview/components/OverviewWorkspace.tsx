@@ -1,18 +1,20 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 
-import { OverviewBlogSection } from "@/features/overview/components/OverviewBlogSection";
+import { OverviewActivityFeed } from "@/features/overview/components/OverviewActivityFeed";
 import {
   OVERVIEW_DAILY_LEAD,
   OVERVIEW_SETUP_LEAD,
   OverviewGreeting,
 } from "@/features/overview/components/OverviewGreeting";
-import { OverviewQuickLinks } from "@/features/overview/components/OverviewQuickLinks";
+import { OverviewQuickAccessCards } from "@/features/overview/components/OverviewQuickAccessCards";
 import { OverviewSetupSection } from "@/features/overview/components/OverviewSetupSection";
-import { OverviewUsageSection } from "@/features/overview/components/OverviewUsageSection";
 import { OverviewWorkspaceSkeleton } from "@/features/overview/components/OverviewWorkspaceSkeleton";
+import { fetchOverviewHome } from "@/features/overview/services/overview-home.service";
 import type { OverviewSetupMode } from "@/features/overview/utils/overview-setup";
+import { resolveQuickAccessCards } from "@/features/overview/utils/overview-start";
 import { cn } from "@/lib/utils";
 import { useUser } from "@/providers/user-provider";
 
@@ -64,48 +66,64 @@ export function OverviewWorkspace() {
         ? null
         : OVERVIEW_DAILY_LEAD;
 
+  const home = useQuery({
+    queryKey: ["overview-home"],
+    queryFn: fetchOverviewHome,
+    enabled: showDailyOverview,
+    retry: false,
+  });
+
+  const cards = resolveQuickAccessCards(
+    home.data?.quick_access,
+    userGroups,
+    enabledModules,
+  );
+
   return (
-    <div className="relative mx-auto w-full max-w-3xl pb-10 pt-8 sm:pt-12">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 -top-4 h-72 bg-[radial-gradient(ellipse_90%_80%_at_50%_0%,var(--color-brand-tint)_0%,transparent_70%)]"
-      />
+    <div className="relative mx-auto w-full max-w-3xl pb-12 pt-8 sm:pt-10">
       <div className="relative">
-        <OverviewGreeting name={userData?.name} lead={null} />
         <div
           className={cn(
-            "mt-3 space-y-3 transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none",
-            visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-1 opacity-0",
+            "transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none",
+            visible
+              ? "translate-y-0 opacity-100"
+              : "pointer-events-none translate-y-1 opacity-0",
           )}
         >
-          {lead ? (
-            <p className="mx-auto max-w-md text-center text-[15px] leading-6 text-dash-muted">
-              {lead}
-            </p>
+          <OverviewGreeting name={userData?.name} lead={lead} />
+          {shown === "pending" ? (
+            <div className="mt-8">
+              <OverviewWorkspaceSkeleton />
+            </div>
           ) : null}
-          {shown === "pending" ? <OverviewWorkspaceSkeleton /> : null}
-          <OverviewSetupSection
-            isAdmin={Boolean(userData?.is_admin)}
-            present={shown === "checklist" || shown === "ready"}
-            onMode={setSetupMode}
-          />
+          <div className="mt-6">
+            <OverviewSetupSection
+              isAdmin={Boolean(userData?.is_admin)}
+              present={shown === "checklist" || shown === "ready"}
+              onMode={setSetupMode}
+            />
+          </div>
         </div>
+
         {showDailyOverview ? (
           <div
             className={cn(
-              "mt-12 space-y-12 transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none",
-              visible ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-1 opacity-0",
+              "mt-8 space-y-10 transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none",
+              visible
+                ? "translate-y-0 opacity-100"
+                : "pointer-events-none translate-y-1 opacity-0",
             )}
           >
-            <OverviewQuickLinks
-              userGroups={userGroups}
-              enabledModules={enabledModules}
-            />
-            <OverviewUsageSection
-              userGroups={userGroups}
-              enabledModules={enabledModules}
-            />
-            <OverviewBlogSection />
+            {home.isPending ? (
+              <OverviewWorkspaceSkeleton />
+            ) : (
+              <OverviewQuickAccessCards
+                cards={cards}
+                userGroups={userGroups}
+                enabledModules={enabledModules}
+              />
+            )}
+            <OverviewActivityFeed />
           </div>
         ) : null}
       </div>

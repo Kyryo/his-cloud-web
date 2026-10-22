@@ -24,7 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ORGANIZATION_DEPARTMENT_TYPES } from "@/features/settings/constants/department-types";
+import { DepartmentMembersPanel } from "@/features/settings/components/DepartmentMembersPanel";
+import { useDepartmentTypeOptions } from "@/features/settings/hooks/use-department-type-options";
 import {
   toUpdateOrganizationDepartmentFormValues,
   toUpdateOrganizationDepartmentPayload,
@@ -46,7 +47,20 @@ import { useToast } from "@/providers/toast-provider";
 
 const FORM_ID = "update-department-form";
 
-type UpdateDepartmentTab = "details" | "active";
+type UpdateDepartmentTab = "details" | "active" | "members";
+
+const UPDATE_DEPARTMENT_TABS: ReadonlyArray<{
+  id: UpdateDepartmentTab;
+  label: string;
+}> = [
+  { id: "details", label: "Details" },
+  { id: "active", label: "Active" },
+  { id: "members", label: "Members" },
+];
+
+function isUpdateDepartmentTab(value: string): value is UpdateDepartmentTab {
+  return UPDATE_DEPARTMENT_TABS.some((tab) => tab.id === value);
+}
 
 type UpdateDepartmentDialogProps = {
   department: OrganizationDepartment;
@@ -65,6 +79,7 @@ export function UpdateDepartmentDialog({
   const [activeTab, setActiveTab] = useState<UpdateDepartmentTab>("details");
   const [clinics, setClinics] = useState<OrganizationClinic[]>([]);
   const [isLoadingClinics, setIsLoadingClinics] = useState(false);
+  const departmentTypeOptions = useDepartmentTypeOptions();
 
   const form = useForm<UpdateOrganizationDepartmentFormValues>({
     resolver: zodResolver(updateOrganizationDepartmentSchema),
@@ -160,13 +175,10 @@ export function UpdateDepartmentDialog({
       onOpenChange={onOpenChange}
       title="Update department"
       description="Edit details for this department within your organization."
-      tabs={[
-        { id: "details", label: "Details" },
-        { id: "active", label: "Active" },
-      ]}
+      tabs={[...UPDATE_DEPARTMENT_TABS]}
       activeTab={activeTab}
       onTabChange={(tabId) => {
-        if (tabId === "details" || tabId === "active") {
+        if (isUpdateDepartmentTab(tabId)) {
           setActiveTab(tabId);
         }
       }}
@@ -285,9 +297,11 @@ export function UpdateDepartmentDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {ORGANIZATION_DEPARTMENT_TYPES.map((type) => (
+                      {departmentTypeOptions.map((type) => (
                         <SelectItem key={type.value} value={type.value}>
-                          {type.label}
+                          {type.isClinical
+                            ? `${type.label} · clinical workspace`
+                            : type.label}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -363,6 +377,11 @@ export function UpdateDepartmentDialog({
               />
             </div>
             </div>
+            ) : activeTab === "members" ? (
+              <DepartmentMembersPanel
+                departmentUuid={department.uuid}
+                isActive={open && activeTab === "members"}
+              />
             ) : (
               <FormField
                 control={form.control}

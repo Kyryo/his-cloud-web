@@ -5,10 +5,12 @@ import { computeOpdQueueStats } from "@/features/clinical-opd/utils/opd-queue-st
 import {
   formatAllergySeverity,
   formatOpdQueueClientMeta,
+  formatOpdQueueDateTime,
   formatQueueVitalsSnapshot,
   formatWaitingMinutes,
   groupOpdQueueByStage,
   resolveOpdQueueStage,
+  sortOpdQueueNewestFirst,
 } from "@/features/clinical-opd/utils/opd-queue-stage";
 
 const sampleEncounters: OpdQueueEncounter[] = [
@@ -130,6 +132,39 @@ describe("opd-queue-stage", () => {
         customer_gender: "Female",
       }),
     ).toMatch(/^CLI-1 · .+ · Female$/);
+  });
+
+  it("formats Date & Time from visit_date with created_at fallback", () => {
+    expect(
+      formatOpdQueueDateTime({
+        visit_date: "2026-10-20T09:15:00Z",
+        created_at: "2026-10-20T08:00:00Z",
+        started_at: null,
+      }),
+    ).not.toBe("—");
+    expect(
+      formatOpdQueueDateTime({
+        visit_date: null,
+        created_at: null,
+        started_at: null,
+      }),
+    ).toBe("—");
+  });
+
+  it("sorts queue newest visit first", () => {
+    const sorted = sortOpdQueueNewestFirst([
+      {
+        ...sampleEncounters[0],
+        encounter_uuid: "older",
+        visit_date: "2026-10-20T08:00:00Z",
+      },
+      {
+        ...sampleEncounters[1],
+        encounter_uuid: "newer",
+        visit_date: "2026-10-20T11:00:00Z",
+      },
+    ]);
+    expect(sorted.map((row) => row.encounter_uuid)).toEqual(["newer", "older"]);
   });
 
   it("groups encounters by queue stage and hides empty closed stages", () => {

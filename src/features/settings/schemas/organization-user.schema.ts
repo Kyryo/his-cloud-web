@@ -9,6 +9,7 @@ export const ORGANIZATION_USER_ROLE_OPTIONS: Array<{
   { value: "", label: "Unassigned" },
   { value: "nurse", label: "Nurse" },
   { value: "physician", label: "Physician" },
+  { value: "dentist", label: "Dentist" },
   { value: "pharmacist", label: "Pharmacist" },
   { value: "billing", label: "Billing" },
   { value: "housekeeping", label: "Housekeeping" },
@@ -23,9 +24,17 @@ export const ASSOCIATION_ROLE_OPTIONS = [
   { value: "viewer", label: "Viewer" },
 ] as const;
 
+/** EMR providers: nurse / physician assignment. */
 export const CLINICAL_STAFF_ROLE_OPTIONS = ORGANIZATION_USER_ROLE_OPTIONS.filter(
   (option) =>
-    option.value === "" || option.value === "nurse" || option.value === "physician",
+    option.value === "" ||
+    option.value === "nurse" ||
+    option.value === "physician",
+);
+
+/** Dental providers: dentist assignment. */
+export const DENTAL_STAFF_ROLE_OPTIONS = ORGANIZATION_USER_ROLE_OPTIONS.filter(
+  (option) => option.value === "" || option.value === "dentist",
 );
 
 export function formatOrganizationUserRole(
@@ -65,6 +74,7 @@ export const updateOrganizationUserRoleSchema = z.object({
     "",
     "nurse",
     "physician",
+    "dentist",
     "pharmacist",
     "billing",
     "housekeeping",

@@ -4,6 +4,7 @@ import type {
   CreateOrganizationUserPayload,
   CreateUserClinicAssociationPayload,
   CreateUserLocationAssociationPayload,
+  DepartmentMember,
   GroupMembershipPayload,
   OrganizationGroup,
   OrganizationGroupDetail,
@@ -15,6 +16,7 @@ import type {
   UpdateUserClinicAssociationPayload,
   UpdateUserLocationAssociationPayload,
   UserClinicAssociation,
+  UserDepartmentMembership,
   UserLocationAssociation,
 } from "@/features/settings/types/settings.types";
 import { bffRequest } from "@/lib/bff-client";
@@ -112,6 +114,44 @@ export async function setPrimaryUserClinicAssociation(
     BFF_SETTINGS_ROUTES.userClinicSetPrimary(id),
     { method: "POST" },
   );
+}
+
+export async function fetchUserDepartmentMemberships(
+  userId: number,
+): Promise<UserDepartmentMembership[]> {
+  const data = await bffRequest<{ results: UserDepartmentMembership[] }>(
+    BFF_SETTINGS_ROUTES.userDepartments(userId),
+  );
+  return data.results;
+}
+
+export async function grantUserDepartmentMembership(
+  userId: number,
+  departmentUuid: string,
+): Promise<UserDepartmentMembership> {
+  return bffRequest<UserDepartmentMembership>(
+    BFF_SETTINGS_ROUTES.userDepartments(userId),
+    { method: "POST", body: { department_uuid: departmentUuid } },
+  );
+}
+
+export async function revokeUserDepartmentMembership(
+  userId: number,
+  departmentUuid: string,
+): Promise<void> {
+  await bffRequest<void>(
+    BFF_SETTINGS_ROUTES.userDepartmentDetail(userId, departmentUuid),
+    { method: "DELETE" },
+  );
+}
+
+export async function fetchDepartmentMembers(
+  departmentUuid: string,
+): Promise<DepartmentMember[]> {
+  const data = await bffRequest<{ results: DepartmentMember[] }>(
+    BFF_SETTINGS_ROUTES.departmentMembers(departmentUuid),
+  );
+  return data.results;
 }
 
 export async function fetchUserLocationAssociations(

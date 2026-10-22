@@ -83,8 +83,8 @@ describe("overview workspace utils", () => {
     expect(formatOverviewRelativeTime("2026-09-01T10:00:00Z", now)).toBe(
       "2h ago",
     );
-    expect(formatOverviewRelativeTime("2026-08-31T12:00:00Z", now)).toBe(
-      "Yesterday",
+    expect(formatOverviewRelativeTime("2026-08-31T12:00:00Z", now)).toMatch(
+      /^Yesterday at /,
     );
   });
 });

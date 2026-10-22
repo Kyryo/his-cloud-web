@@ -111,3 +111,36 @@ export const CLINICAL_ROLE_ACTION_CAPABILITIES: ClinicalRoleCapabilityMeta[] = [
     description: "Create and manage prescriptions",
   },
 ];
+
+export const DENTAL_ROLE_CAPABILITIES: ClinicalRoleCapabilityMeta[] = [
+  {
+    key: "view_dental_chart_tab",
+    label: "Dental chart tab",
+    description: "Open the odontogram in dental encounters",
+  },
+  {
+    key: "view_treatment_plan_tab",
+    label: "Treatment plan tab",
+    description: "Open treatment plans in dental encounters",
+  },
+  {
+    key: "view_dental_history_tab",
+    label: "Dental history tab",
+    description: "Review earlier dental visits, findings, and procedures",
+  },
+  {
+    key: "record_dental_chart",
+    label: "Record dental chart",
+    description: "Record and resolve findings on teeth",
+  },
+  {
+    key: "manage_treatment_plan",
+    label: "Manage treatment plans",
+    description: "Create, sequence, and accept treatment plans",
+  },
+  {
+    key: "perform_dental_procedure",
+    label: "Perform dental procedures",
+    description: "Perform procedures and bill them to the visit",
+  },
+];

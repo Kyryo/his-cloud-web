@@ -18,13 +18,13 @@ describe("overview greeting", () => {
     const evening = new Date(2026, 9, 5, 19, 0, 0);
 
     expect(overviewGreeting("Amina Banda", morning)).toBe(
-      "Good morning, Amina Banda",
+      "Good morning, Amina",
     );
     expect(overviewGreeting("Amina Banda", afternoon)).toBe(
-      "Good afternoon, Amina Banda",
+      "Good afternoon, Amina",
     );
     expect(overviewGreeting("Amina Banda", evening)).toBe(
-      "Good evening, Amina Banda",
+      "Good evening, Amina",
     );
     expect(overviewGreeting("  ", morning)).toBe("Good morning");
     expect(overviewGreeting(undefined, evening)).toBe("Good evening");

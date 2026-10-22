@@ -186,6 +186,9 @@ export type OrganizationDepartment = {
   name: string;
   code: string;
   department_type: string;
+  /** True when the department runs a clinical workspace and queue. */
+  is_clinical?: boolean;
+  specialty_code?: string | null;
   description: string;
   status: string;
   is_active: boolean;
@@ -194,6 +197,29 @@ export type OrganizationDepartment = {
   default_appointment_duration_minutes: number;
   created_at: string;
   updated_at: string;
+};
+
+/** A department the user belongs to; membership gates clinical access. */
+export type UserDepartmentMembership = {
+  id: number;
+  department_uuid: string;
+  department_name: string;
+  department_code: string;
+  department_type: string;
+  specialty_code: string | null;
+  clinic_uuid: string;
+  clinic_name: string;
+  is_active: boolean;
+  created_at: string;
+};
+
+export type DepartmentMember = {
+  id: number;
+  user_id: number;
+  name: string;
+  email: string;
+  user_role: string;
+  created_at: string;
 };
 
 export type CreateOrganizationDepartmentPayload = {
@@ -399,6 +425,7 @@ export type OrganizationUserRole =
   | ""
   | "nurse"
   | "physician"
+  | "dentist"
   | "pharmacist"
   | "billing"
   | "housekeeping"

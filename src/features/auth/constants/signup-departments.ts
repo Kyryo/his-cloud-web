@@ -140,7 +140,7 @@ export const SIGNUP_DEPARTMENTS: readonly SignupDepartmentOption[] = [
 
 export function signupDepartmentModuleNames(departmentIds: readonly string[]): string[] {
   const selected = new Set(expandSignupDepartments(departmentIds));
-  const modules = [...SIGNUP_BASELINE_MODULES];
+  const modules: string[] = [...SIGNUP_BASELINE_MODULES];
   const seen = new Set<string>(modules);
 
   for (const department of SIGNUP_DEPARTMENTS) {

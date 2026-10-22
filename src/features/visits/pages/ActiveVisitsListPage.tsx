@@ -14,7 +14,7 @@ import {
   ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
 import { useMyClinicalCapabilities } from "@/features/clinical-opd/hooks/use-clinical-opd";
-import { opdEncounterLandingHref } from "@/features/clinical-opd/utils/opd-encounter-tabs";
+import { clinicalEncounterLandingHref } from "@/features/visits/utils/clinical-encounter-links";
 import { InventoryListAccessDenied } from "@/features/inventory/components/list/InventoryListAccessDenied";
 import { ActiveVisitsEmptyState } from "@/features/visits/components/ActiveVisitsEmptyState";
 import { ActiveVisitsPageHeader } from "@/features/visits/components/ActiveVisitsPageHeader";
@@ -159,15 +159,15 @@ export function ActiveVisitsListPage() {
       setAddEncounterVisit(null);
       await handleReload();
 
-      if (created.department_type === "opd") {
-        router.push(
-          opdEncounterLandingHref(
-            created.visit,
-            created.uuid,
-            capabilitiesData?.capabilities ?? [],
-            userData?.user_role,
-          ),
-        );
+      const landingHref = clinicalEncounterLandingHref(
+        created.department_type,
+        created.visit,
+        created.uuid,
+        capabilitiesData?.capabilities ?? [],
+        userData?.user_role,
+      );
+      if (landingHref) {
+        router.push(landingHref);
       }
     },
     [
@@ -208,71 +208,71 @@ export function ActiveVisitsListPage() {
           />
         ) : null}
 
-        {!hasNoRecords ? (
-          <ListPageDataSectionsStack>
+        <ListPageDataSectionsStack className="space-y-0">
+          {!hasNoRecords ? (
             <ListPageStatsSection className={cn(!showStats && "hidden sm:block")}>
               <VisitQueueSummaryCards stats={stats} isLoading={isStatsLoading} />
             </ListPageStatsSection>
-          </ListPageDataSectionsStack>
-        ) : null}
+          ) : null}
 
-        <ListPageTableSection>
-          {isLoading ? (
-            <ActiveVisitsTableSkeleton rows={8} />
-          ) : error ? (
-            <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-              <h2 className="text-sm font-semibold text-red-800">
-                Could not load active visits
-              </h2>
-              <p className="mt-2 text-sm text-red-700">{error}</p>
-              <Button
-                type="button"
-                variant="outline"
-                className="mt-4"
-                onClick={() => void handleReload()}
-              >
-                Try again
-              </Button>
-            </div>
-          ) : hasNoRecords ? (
-            <ActiveVisitsEmptyState />
-          ) : isFilteredEmpty ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center">
-              <h2 className="text-base font-semibold text-brand-navy">
-                No matching active visits
-              </h2>
-              <p className="mt-1 text-sm text-brand-muted">
-                Adjust your search or filters and try again.
-              </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="mt-4"
-                onClick={handleClearSearchAndFilters}
-              >
-                Clear search & filters
-              </Button>
-            </div>
-          ) : (
-            <>
-              <ActiveVisitsTable
-                visits={items}
-                onRowClick={handleRowClick}
-                onAddEncounter={handleAddEncounter}
-              />
-              <ListPagePagination
-                page={page}
-                pageSize={pageSize}
-                totalCount={totalCount}
-                hasNext={hasNext}
-                hasPrevious={hasPrevious}
-                isLoading={isRefreshing}
-                onPageChange={handlePageChange}
-              />
-            </>
-          )}
-        </ListPageTableSection>
+          <ListPageTableSection>
+            {isLoading ? (
+              <ActiveVisitsTableSkeleton rows={8} />
+            ) : error ? (
+              <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+                <h2 className="text-sm font-semibold text-red-800">
+                  Could not load active visits
+                </h2>
+                <p className="mt-2 text-sm text-red-700">{error}</p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="mt-4"
+                  onClick={() => void handleReload()}
+                >
+                  Try again
+                </Button>
+              </div>
+            ) : hasNoRecords ? (
+              <ActiveVisitsEmptyState />
+            ) : isFilteredEmpty ? (
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center">
+                <h2 className="text-base font-semibold text-brand-navy">
+                  No matching active visits
+                </h2>
+                <p className="mt-1 text-sm text-brand-muted">
+                  Adjust your search or filters and try again.
+                </p>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="mt-4"
+                  onClick={handleClearSearchAndFilters}
+                >
+                  Clear search & filters
+                </Button>
+              </div>
+            ) : (
+              <>
+                <ActiveVisitsTable
+                  visits={items}
+                  onRowClick={handleRowClick}
+                  onAddEncounter={handleAddEncounter}
+                />
+                <ListPagePagination
+                  page={page}
+                  pageSize={pageSize}
+                  totalCount={totalCount}
+                  hasNext={hasNext}
+                  hasPrevious={hasPrevious}
+                  isLoading={isRefreshing}
+                  onPageChange={handlePageChange}
+                />
+              </>
+            )}
+          </ListPageTableSection>
+        </ListPageDataSectionsStack>
       </ListPageLayout>
 
       <VisitDetailDialog

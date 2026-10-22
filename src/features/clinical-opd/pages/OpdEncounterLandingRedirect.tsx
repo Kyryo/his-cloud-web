@@ -5,10 +5,11 @@ import { useRouter } from "next/navigation";
 
 import { OpdEncounterTabSkeleton } from "@/features/clinical-opd/components/detail/OpdEncounterTabSkeleton";
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
+import { useWorkspaceRouting } from "@/features/clinical-opd/hooks/use-workspace-routing";
 import {
-  getDefaultOpdEncounterTab,
-  opdEncounterTabHref,
-} from "@/features/clinical-opd/utils/opd-encounter-tabs";
+  getDefaultWorkspaceTab,
+  workspaceTabHref,
+} from "@/features/clinical-workspace/utils/workspace-tabs";
 
 /**
  * The bare encounter URL has no section of its own. It forwards to whichever
@@ -16,16 +17,17 @@ import {
  */
 export function OpdEncounterLandingRedirect() {
   const router = useRouter();
+  const routing = useWorkspaceRouting();
   const { visitUuid, encounterUuid, visibleTabIds, capabilities, userRole } =
     useOpdEncounterWorkspace();
-  const defaultTab = getDefaultOpdEncounterTab(capabilities, userRole);
+  const defaultTab = getDefaultWorkspaceTab(routing, capabilities, userRole);
 
   useEffect(() => {
     if (visibleTabIds.length === 0) {
       return;
     }
-    router.replace(opdEncounterTabHref(visitUuid, encounterUuid, defaultTab));
-  }, [defaultTab, encounterUuid, router, visibleTabIds, visitUuid]);
+    router.replace(workspaceTabHref(routing, visitUuid, encounterUuid, defaultTab));
+  }, [defaultTab, encounterUuid, router, routing, visibleTabIds, visitUuid]);
 
   return <OpdEncounterTabSkeleton rows={4} />;
 }

@@ -1,8 +1,9 @@
 import Link from "next/link";
 
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
+import { useWorkspaceRouting } from "@/features/clinical-opd/hooks/use-workspace-routing";
 import type { ChartAllergy } from "@/features/clinical-opd/types/clinical-opd.types";
-import { opdEncounterTabHref } from "@/features/clinical-opd/utils/opd-encounter-tabs";
+import { workspaceTabHref } from "@/features/clinical-workspace/utils/workspace-tabs";
 
 const HIGH_SEVERITY = new Set(["severe", "life_threatening"]);
 
@@ -13,6 +14,7 @@ type OpdEncounterAllergyBannerProps = {
 export function OpdEncounterAllergyBanner({
   allergies,
 }: OpdEncounterAllergyBannerProps) {
+  const routing = useWorkspaceRouting();
   const { visitUuid, encounterUuid, visibleTabIds } = useOpdEncounterWorkspace();
   const active = allergies.filter(Boolean);
 
@@ -45,7 +47,7 @@ export function OpdEncounterAllergyBanner({
         <>
           {" "}
           <Link
-            href={opdEncounterTabHref(visitUuid, encounterUuid, "allergies")}
+            href={workspaceTabHref(routing, visitUuid, encounterUuid, "allergies")}
             className="font-medium text-brand-primary hover:underline"
           >
             Review allergies

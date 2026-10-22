@@ -119,6 +119,9 @@ export const ROUTES = {
   appointmentsBoard: "/appointments/board",
   appointmentsCalendar: "/appointments/calendar",
   clinicalOpd: "/clinical/opd",
+  clinicalDental: "/clinical/dental",
+  clinicalDentalEncounter: (visitUuid: string, encounterUuid: string) =>
+    `/clinical/dental/${visitUuid}/${encounterUuid}`,
   occupationalHealth: "/occupational-health",
   occupationalHealthCompliance: "/occupational-health/compliance",
   occupationalHealthSurveillance: "/occupational-health/surveillance",
@@ -192,6 +195,7 @@ export const ROUTES = {
   settingsModulePharmacy: "/settings/modules/pharmacy",
   settingsModuleLaboratory: "/settings/modules/laboratory",
   settingsModuleClinical: "/settings/modules/clinical",
+  settingsModuleDental: "/settings/modules/dental",
   settingsModuleRegistration: "/settings/modules/registration",
   settingsModuleOccupationalHealth: "/settings/modules/occupational-health",
   settingsModule: (slug: string) => `/settings/modules/${slug}`,

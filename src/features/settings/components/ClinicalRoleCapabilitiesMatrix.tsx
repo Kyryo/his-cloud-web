@@ -8,14 +8,28 @@ import { cn } from "@/lib/utils";
 export const CLINICAL_CAPABILITY_ROLES = [
   { key: "nurse", title: "Nurses" },
   { key: "physician", title: "Physicians" },
+  { key: "dentist", title: "Dentists" },
 ] as const;
 
 export type ClinicalCapabilityRoleKey =
   (typeof CLINICAL_CAPABILITY_ROLES)[number]["key"];
 
+/** OPD / EMR capability columns. */
+export const EMR_CAPABILITY_ROLES: readonly ClinicalCapabilityRoleKey[] = [
+  "nurse",
+  "physician",
+];
+
+/** Dental module capability columns. */
+export const DENTAL_CAPABILITY_ROLES: readonly ClinicalCapabilityRoleKey[] = [
+  "dentist",
+];
+
 type ClinicalRoleCapabilitiesMatrixProps = {
   capabilities: ClinicalRoleCapabilityMeta[];
   entries: ClinicalRoleCapability[];
+  /** Which role columns to show. Defaults to nurse, physician, and dentist. */
+  roles?: readonly ClinicalCapabilityRoleKey[];
   updatingKey: string | null;
   onToggle: (
     role: ClinicalCapabilityRoleKey,
@@ -37,9 +51,14 @@ function isCapabilityEnabled(
 export function ClinicalRoleCapabilitiesMatrix({
   capabilities,
   entries,
+  roles,
   updatingKey,
   onToggle,
 }: ClinicalRoleCapabilitiesMatrixProps) {
+  const roleColumns = CLINICAL_CAPABILITY_ROLES.filter((role) =>
+    roles ? roles.includes(role.key) : true,
+  );
+
   return (
     <div className="overflow-x-auto">
       <table className="w-full min-w-[28rem] table-fixed">
@@ -48,7 +67,7 @@ export function ClinicalRoleCapabilitiesMatrix({
             <th scope="col" className="pb-3 text-left">
               <span className="sr-only">Capability</span>
             </th>
-            {CLINICAL_CAPABILITY_ROLES.map((role) => (
+            {roleColumns.map((role) => (
               <th
                 key={role.key}
                 scope="col"
@@ -73,7 +92,7 @@ export function ClinicalRoleCapabilitiesMatrix({
                   {capability.description}
                 </p>
               </th>
-              {CLINICAL_CAPABILITY_ROLES.map((role) => {
+              {roleColumns.map((role) => {
                 const controlId = `${role.key}-${capability.key}`;
                 const checked = isCapabilityEnabled(
                   entries,

@@ -11,7 +11,8 @@ import {
   useEncounterWorkspace,
 } from "@/features/clinical-opd/hooks/use-clinical-opd";
 import { selectRecentOpdTimelineEvents } from "@/features/clinical-opd/utils/opd-encounter-overview";
-import { opdEncounterTabHref } from "@/features/clinical-opd/utils/opd-encounter-tabs";
+import { useWorkspaceRouting } from "@/features/clinical-opd/hooks/use-workspace-routing";
+import { workspaceTabHref } from "@/features/clinical-workspace/utils/workspace-tabs";
 
 type OpdOverviewTabPanelProps = {
   visitUuid: string;
@@ -26,6 +27,7 @@ export function OpdOverviewTabPanel({
 }: OpdOverviewTabPanelProps) {
   const { visibleTabIds, capabilities, chartSummary } =
     useOpdEncounterWorkspace();
+  const routing = useWorkspaceRouting();
   const workspace = useEncounterWorkspace(visitUuid, encounterUuid);
   const historySummary = useEncounterHistorySummary(
     visitUuid,
@@ -103,7 +105,7 @@ export function OpdOverviewTabPanel({
           </h2>
           {canViewActivity ? (
             <Link
-              href={opdEncounterTabHref(visitUuid, encounterUuid, "activity")}
+              href={workspaceTabHref(routing, visitUuid, encounterUuid, "activity")}
               className="text-sm text-brand-primary hover:underline"
             >
               View all

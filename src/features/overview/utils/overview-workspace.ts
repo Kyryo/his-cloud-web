@@ -68,12 +68,18 @@ export function formatOverviewRelativeTime(
     return `${hours}h ago`;
   }
   if (diffMs < 2 * day) {
-    return "Yesterday";
+    const time = new Intl.DateTimeFormat("en-GB", {
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(date);
+    return `Yesterday at ${time}`;
   }
 
   return new Intl.DateTimeFormat("en-GB", {
     day: "numeric",
     month: "short",
+    hour: "numeric",
+    minute: "2-digit",
   }).format(date);
 }
 

@@ -45,7 +45,7 @@ const MODULE_SETTINGS_META: Record<
   Lab: { slug: "laboratory", hasSettings: true },
   Radiology: { slug: "radiology", hasSettings: false },
   Inventory: { slug: "inventory", hasSettings: true },
-  Dental: { slug: "dental", hasSettings: false },
+  Dental: { slug: "dental", hasSettings: true },
   Clinical: { slug: "clinical", hasSettings: true },
   Therapy: { slug: "therapy", hasSettings: false },
   OccupationalHealth: { slug: "occupational-health", hasSettings: true },
@@ -63,6 +63,9 @@ function hrefForSlug(slug: string): string {
   }
   if (slug === "clinical") {
     return ROUTES.settingsModuleClinical;
+  }
+  if (slug === "dental") {
+    return ROUTES.settingsModuleDental;
   }
   if (slug === "registration") {
     return ROUTES.settingsModuleRegistration;

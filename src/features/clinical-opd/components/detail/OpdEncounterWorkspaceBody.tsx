@@ -9,8 +9,8 @@ import { OpdEncounterTabs } from "@/features/clinical-opd/components/detail/OpdE
 import { OpdEncounterVitalsStatsStrip } from "@/features/clinical-opd/components/detail/OpdEncounterVitalsStatsStrip";
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
 import { useEncounterWorkspace } from "@/features/clinical-opd/hooks/use-clinical-opd";
-import { opdEncounterTabFromPathname } from "@/features/clinical-opd/utils/opd-encounter-tabs";
-import { isOpdPhysicianHistoryTab } from "@/features/clinical-opd/utils/opd-physician-history-tabs";
+import { useWorkspaceRouting } from "@/features/clinical-opd/hooks/use-workspace-routing";
+import { workspaceTabFromPathname } from "@/features/clinical-workspace/utils/workspace-tabs";
 
 type OpdEncounterWorkspaceBodyProps = {
   children: ReactNode;
@@ -20,15 +20,18 @@ export function OpdEncounterWorkspaceBody({
   children,
 }: OpdEncounterWorkspaceBodyProps) {
   const pathname = usePathname();
+  const routing = useWorkspaceRouting();
   const { visitUuid, encounterUuid, chartSummary } = useOpdEncounterWorkspace();
-  const activeTab = opdEncounterTabFromPathname(
+  const activeTab = workspaceTabFromPathname(
+    routing,
     pathname,
     visitUuid,
     encounterUuid,
   );
-  const isConsultLayout = isOpdPhysicianHistoryTab(activeTab);
-  // Activity uses a client-style main + aside grid and needs full width.
-  const isFullWidthLayout = isConsultLayout || activeTab === "activity";
+  const isFullWidthLayout =
+    activeTab !== null &&
+    (routing.consultLayoutTabIds.has(activeTab) ||
+      routing.fullWidthTabIds.has(activeTab));
   const { observations } = useEncounterWorkspace(visitUuid, encounterUuid);
   const thisEncounterVitals =
     observations.data ?? chartSummary?.this_encounter_vitals ?? [];

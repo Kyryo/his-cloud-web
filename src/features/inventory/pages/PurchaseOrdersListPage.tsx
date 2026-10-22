@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { FabButton } from "@/components/ui/fab-button";
 import { ROUTES } from "@/constants/routes";
 import {
+  ListPageDataSectionsStack,
   ListPageLayout,
   ListPagePagination,
   ListPageStatsSection,
@@ -145,62 +146,64 @@ export function PurchaseOrdersListPage() {
         data-testid="add-purchase-order-fab"
       />
 
-      {!hasNoRecords && !error && !isFilteredEmpty ? (
-        <ListPageStatsSection>
-          <InventoryListInsights
-            cards={insights}
-            isLoading={isLoading}
-            data-testid="purchase-order-insights"
-          />
-        </ListPageStatsSection>
-      ) : null}
-
-      <ListPageTableSection>
-        {isLoading ? (
-          <InventoryTableSkeleton columns={PURCHASE_ORDERS_TABLE_SKELETON_COLUMNS} />
-        ) : error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-            <h2 className="text-sm font-semibold text-red-800">
-              Could not load purchase orders
-            </h2>
-            <p className="mt-2 text-sm text-red-700">{error}</p>
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-4"
-              onClick={() => void reload()}
-            >
-              Try again
-            </Button>
-          </div>
-        ) : hasNoRecords ? (
-          <InventoryListEmptyState
-            icon={FileText}
-            title="No purchase orders yet"
-            description="Create a purchase order to receive stock from vendors."
-            actionLabel="New purchase order"
-            onAction={handleCreate}
-          />
-        ) : isFilteredEmpty ? (
-          <InventoryListFilteredEmpty
-            title="No matching purchase orders"
-            onClear={handleClearSearchAndFilters}
-          />
-        ) : (
-          <>
-            <PurchaseOrdersTable orders={items} onRowClick={handleRowClick} />
-            <ListPagePagination
-              page={page}
-              pageSize={pageSize}
-              totalCount={totalCount}
-              hasNext={hasNext}
-              hasPrevious={hasPrevious}
-              isLoading={isRefreshing}
-              onPageChange={handlePageChange}
+      <ListPageDataSectionsStack className="space-y-0">
+        {!hasNoRecords && !error && !isFilteredEmpty ? (
+          <ListPageStatsSection>
+            <InventoryListInsights
+              cards={insights}
+              isLoading={isLoading}
+              data-testid="purchase-order-insights"
             />
-          </>
-        )}
-      </ListPageTableSection>
+          </ListPageStatsSection>
+        ) : null}
+
+        <ListPageTableSection>
+          {isLoading ? (
+            <InventoryTableSkeleton columns={PURCHASE_ORDERS_TABLE_SKELETON_COLUMNS} />
+          ) : error ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+              <h2 className="text-sm font-semibold text-red-800">
+                Could not load purchase orders
+              </h2>
+              <p className="mt-2 text-sm text-red-700">{error}</p>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-4"
+                onClick={() => void reload()}
+              >
+                Try again
+              </Button>
+            </div>
+          ) : hasNoRecords ? (
+            <InventoryListEmptyState
+              icon={FileText}
+              title="No purchase orders yet"
+              description="Create a purchase order to receive stock from vendors."
+              actionLabel="New purchase order"
+              onAction={handleCreate}
+            />
+          ) : isFilteredEmpty ? (
+            <InventoryListFilteredEmpty
+              title="No matching purchase orders"
+              onClear={handleClearSearchAndFilters}
+            />
+          ) : (
+            <>
+              <PurchaseOrdersTable orders={items} onRowClick={handleRowClick} />
+              <ListPagePagination
+                page={page}
+                pageSize={pageSize}
+                totalCount={totalCount}
+                hasNext={hasNext}
+                hasPrevious={hasPrevious}
+                isLoading={isRefreshing}
+                onPageChange={handlePageChange}
+              />
+            </>
+          )}
+        </ListPageTableSection>
+      </ListPageDataSectionsStack>
     </ListPageLayout>
   );
 }

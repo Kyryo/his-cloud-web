@@ -5,6 +5,7 @@ import { useCallback, useMemo, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
+  ListPageDataSectionsStack,
   ListPageLayout,
   ListPagePagination,
   ListPageStatsSection,
@@ -116,58 +117,60 @@ export function StockListPage() {
         onFiltersApply={applyFilters}
       />
 
-      {!hasNoRecords && !error && !isFilteredEmpty ? (
-        <ListPageStatsSection>
-          <StockOnHandInsights
-            totalLines={totalCount}
-            insights={pageInsights}
-            isLoading={isLoading}
-          />
-        </ListPageStatsSection>
-      ) : null}
-
-      <ListPageTableSection>
-        {isLoading ? (
-          <InventoryTableSkeleton columns={STOCK_TABLE_SKELETON_COLUMNS} />
-        ) : error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-            <h2 className="text-sm font-semibold text-red-800">Could not load stock</h2>
-            <p className="mt-2 text-sm text-red-700">{error}</p>
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-4"
-              onClick={() => void reload()}
-            >
-              Try again
-            </Button>
-          </div>
-        ) : hasNoRecords ? (
-          <InventoryListEmptyState
-            icon={Store}
-            title="No stock records yet"
-            description="Stock levels will appear here once inventory is received."
-          />
-        ) : isFilteredEmpty ? (
-          <InventoryListFilteredEmpty
-            title="No matching stock records"
-            onClear={handleClearSearchAndFilters}
-          />
-        ) : (
-          <>
-            <StockTable items={items} onRowClick={handleRowClick} />
-            <ListPagePagination
-              page={page}
-              pageSize={pageSize}
-              totalCount={totalCount}
-              hasNext={hasNext}
-              hasPrevious={hasPrevious}
-              isLoading={isRefreshing}
-              onPageChange={handlePageChange}
+      <ListPageDataSectionsStack className="space-y-0">
+        {!hasNoRecords && !error && !isFilteredEmpty ? (
+          <ListPageStatsSection>
+            <StockOnHandInsights
+              totalLines={totalCount}
+              insights={pageInsights}
+              isLoading={isLoading}
             />
-          </>
-        )}
-      </ListPageTableSection>
+          </ListPageStatsSection>
+        ) : null}
+
+        <ListPageTableSection>
+          {isLoading ? (
+            <InventoryTableSkeleton columns={STOCK_TABLE_SKELETON_COLUMNS} />
+          ) : error ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+              <h2 className="text-sm font-semibold text-red-800">Could not load stock</h2>
+              <p className="mt-2 text-sm text-red-700">{error}</p>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-4"
+                onClick={() => void reload()}
+              >
+                Try again
+              </Button>
+            </div>
+          ) : hasNoRecords ? (
+            <InventoryListEmptyState
+              icon={Store}
+              title="No stock records yet"
+              description="Stock levels will appear here once inventory is received."
+            />
+          ) : isFilteredEmpty ? (
+            <InventoryListFilteredEmpty
+              title="No matching stock records"
+              onClear={handleClearSearchAndFilters}
+            />
+          ) : (
+            <>
+              <StockTable items={items} onRowClick={handleRowClick} />
+              <ListPagePagination
+                page={page}
+                pageSize={pageSize}
+                totalCount={totalCount}
+                hasNext={hasNext}
+                hasPrevious={hasPrevious}
+                isLoading={isRefreshing}
+                onPageChange={handlePageChange}
+              />
+            </>
+          )}
+        </ListPageTableSection>
+      </ListPageDataSectionsStack>
     </ListPageLayout>
   );
 }

@@ -123,6 +123,8 @@ export type ClaimLineOdontogramPickerProps = {
   onSelectAll?: (toothNumbers: number[]) => void;
   /** Receives FDI numbers currently selected in the active dentition to clear. */
   onDeselectAll?: (toothNumbers: number[]) => void;
+  /** Header hint while the chart is editable. */
+  instruction?: string;
 };
 
 export function ClaimLineOdontogramPicker({
@@ -135,6 +137,7 @@ export function ClaimLineOdontogramPicker({
   showSelectAll = true,
   onSelectAll,
   onDeselectAll,
+  instruction = "Click a tooth to assign it to a claim line",
 }: ClaimLineOdontogramPickerProps) {
   const [numberingSystem, setNumberingSystem] =
     useState<ToothNumberingSystem>("fdi");
@@ -220,9 +223,7 @@ export function ClaimLineOdontogramPicker({
       <div className="border-b border-brand-border bg-slate-50/80 px-3 py-2.5">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs text-brand-muted">
-            {disabled
-              ? "Teeth assigned on this claim"
-              : "Click a tooth to assign it to a claim line"}
+            {disabled ? "Teeth assigned on this claim" : instruction}
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <ButtonGroup

@@ -10,5 +10,10 @@ export function overviewGreeting(name: string | undefined, now: Date) {
         ? "Good afternoon"
         : "Good evening";
   const trimmed = name?.trim();
-  return trimmed ? `${period}, ${trimmed}` : period;
+  if (!trimmed) {
+    return period;
+  }
+  // Prefer a short given name for the compact workspace greeting.
+  const givenName = trimmed.split(/\s+/)[0] ?? trimmed;
+  return `${period}, ${givenName}`;
 }

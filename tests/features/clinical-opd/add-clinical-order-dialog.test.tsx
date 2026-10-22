@@ -3,7 +3,10 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import type { ComponentProps } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { DENTAL_WORKSPACE_ROUTING } from "@/features/clinical-dental/constants/dental-workspace-routing";
 import { AddClinicalOrderDialog } from "@/features/clinical-opd/components/tabs/AddClinicalOrderDialog";
+import { ClinicalWorkspaceConfigProvider } from "@/features/clinical-workspace/components/clinical-workspace-config-context";
+import type { ClinicalWorkspaceConfig } from "@/features/clinical-workspace/types/clinical-workspace.types";
 
 const createOrderMutateAsync = vi.fn();
 const cancelOrderMutateAsync = vi.fn();
@@ -51,25 +54,78 @@ vi.mock("@/features/catalog/services/catalog.service", () => ({
   fetchCatalogProducts: (...args: unknown[]) => fetchCatalogProducts(...args),
 }));
 
+const DENTAL_CONFIG: ClinicalWorkspaceConfig = {
+  ...DENTAL_WORKSPACE_ROUTING,
+  panels: {},
+};
+
 function renderDialog(
   props: Partial<ComponentProps<typeof AddClinicalOrderDialog>> = {},
+  { workspace }: { workspace?: ClinicalWorkspaceConfig } = {},
 ) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
+  const dialog = (
+    <AddClinicalOrderDialog
+      visitUuid="visit-1"
+      encounterUuid="enc-1"
+      capabilities={["order_laboratory", "order_radiology"]}
+      open
+      onOpenChange={vi.fn()}
+      {...props}
+    />
+  );
   return render(
     <QueryClientProvider client={client}>
-      <AddClinicalOrderDialog
-        visitUuid="visit-1"
-        encounterUuid="enc-1"
-        capabilities={["order_laboratory", "order_radiology"]}
-        open
-        onOpenChange={vi.fn()}
-        {...props}
-      />
+      {workspace ? (
+        <ClinicalWorkspaceConfigProvider config={workspace}>
+          {dialog}
+        </ClinicalWorkspaceConfigProvider>
+      ) : (
+        dialog
+      )}
     </QueryClientProvider>,
   );
 }
+
+describe("AddClinicalOrderDialog in the dental workspace", () => {
+  beforeEach(() => {
+    fetchCatalogProducts.mockResolvedValue({
+      results: [],
+      pagination: { count: 0, next: null, previous: null },
+    });
+  });
+
+  it("offers radiology and sundries only and opens on radiology", async () => {
+    renderDialog(
+      {
+        capabilities: [
+          "order_laboratory",
+          "order_radiology",
+          "order_procedure",
+          "order_sundry",
+        ],
+      },
+      { workspace: DENTAL_CONFIG },
+    );
+
+    expect(screen.getByTestId("tabbed-dialog-tab-radiology")).toBeInTheDocument();
+    expect(screen.getByTestId("tabbed-dialog-tab-sundries")).toBeInTheDocument();
+    expect(screen.queryByTestId("tabbed-dialog-tab-lab")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("tabbed-dialog-tab-procedures"),
+    ).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(fetchCatalogProducts).toHaveBeenCalledWith(
+        expect.objectContaining({ is_radiology: true }),
+      ),
+    );
+    expect(fetchCatalogProducts).not.toHaveBeenCalledWith(
+      expect.objectContaining({ is_lab_test: true }),
+    );
+  });
+});
 
 afterEach(() => {
   cleanup();

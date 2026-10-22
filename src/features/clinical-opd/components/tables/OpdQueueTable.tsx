@@ -18,7 +18,8 @@ import { OpdEncounterStatusBadge } from "@/features/clinical-opd/components/OpdE
 import { OpdQueueStageBadge } from "@/features/clinical-opd/components/OpdQueueStageBadge";
 import type { OpdQueueEncounter } from "@/features/clinical-opd/types/clinical-opd.types";
 import {
-  formatOpdQueueClientMeta,
+  formatOpdQueueDateTime,
+  formatOpdQueueDemographics,
   formatWaitingMinutes,
   resolveOpdQueueStage,
 } from "@/features/clinical-opd/utils/opd-queue-stage";
@@ -43,6 +44,8 @@ function hrefForEncounter(
 
 const columns = [
   { key: "client", label: "Client" },
+  { key: "datetime", label: "Date & Time" },
+  { key: "demographics", label: "Demographics" },
   { key: "wait", label: "Wait" },
   { key: "department", label: "Department" },
   { key: "stage", label: "Stage" },
@@ -84,7 +87,8 @@ export function OpdQueueTable({
       <ListPageDataTableBody>
         {encounters.map((encounter) => {
           const stage = resolveOpdQueueStage(encounter);
-          const clientMeta = formatOpdQueueClientMeta(encounter);
+          const identifier = encounter.customer_identifier?.trim() || null;
+          const demographics = formatOpdQueueDemographics(encounter);
           return (
             <ListPageDataTableRow
               key={encounter.encounter_uuid}
@@ -106,12 +110,31 @@ export function OpdQueueTable({
                     >
                       {encounter.customer_name}
                     </Link>
-                    {clientMeta ? (
+                    {identifier ? (
                       <p className="truncate font-mono text-[12px] text-brand-muted">
-                        {clientMeta}
+                        {identifier}
                       </p>
                     ) : null}
                   </div>
+                </div>
+              </ListPageDataTableCell>
+
+              <ListPageDataTableCell
+                className="whitespace-nowrap text-brand-slate"
+                data-testid="opd-queue-datetime"
+              >
+                {formatOpdQueueDateTime(encounter)}
+              </ListPageDataTableCell>
+
+              <ListPageDataTableCell data-testid="opd-queue-demographics">
+                <div className="font-medium text-brand-navy">
+                  <span>{demographics.gender || "—"}</span>
+                  {demographics.age ? (
+                    <span className="font-normal text-dash-muted">
+                      {" "}
+                      · {demographics.age}
+                    </span>
+                  ) : null}
                 </div>
               </ListPageDataTableCell>
 

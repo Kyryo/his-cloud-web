@@ -1,3 +1,5 @@
+import type { ClinicalCapabilityKey } from "@/features/clinical-workspace/types/clinical-workspace.types";
+
 export type OpdQueueStage =
   | "registered"
   | "triaged"
@@ -32,13 +34,19 @@ export type OpdQueueEncounter = {
   encounter_uuid: string;
   visit_uuid: string;
   visit_status: string;
+  /** Visit open time (ISO). Used for Date & Time and newest-first ordering. */
+  visit_date?: string | null;
+  /** Encounter created_at (ISO). Fallback when visit_date is absent. */
+  created_at?: string | null;
   customer_uuid: string;
   customer_name: string;
   customer_identifier?: string | null;
   customer_gender?: string | null;
   customer_dob?: string | null;
   clinic_name?: string | null;
+  department_uuid?: string | null;
   department_name: string;
+  department_type?: string | null;
   status: string;
   started_at: string | null;
   mode_of_payment: "cash" | "insurance" | "free";
@@ -152,6 +160,8 @@ export type EncounterClinicalOrder = {
   allergy_alerts?: AllergyAlert[];
   referral_uuid?: string | null;
   referral_receiving_clinic_name?: string | null;
+  /** FDI teeth billed on procedure orders. */
+  tooth_numbers?: number[];
 };
 
 export type ClinicalReferralItem = {
@@ -412,34 +422,7 @@ export type ClinicalRoleCapability = {
   capability: string;
 };
 
-export type ClinicalCapabilityKey =
-  | "record_vitals"
-  | "record_nursing_note"
-  | "record_physical_exam"
-  | "record_clinical_note"
-  | "record_chief_complaint"
-  | "record_hpi"
-  | "prescribe"
-  | "order_laboratory"
-  | "order_radiology"
-  | "order_procedure"
-  | "order_sundry"
-  | "order_medication"
-  | "manage_diagnoses"
-  | "manage_problem_list"
-  | "manage_current_medications"
-  | "record_allergy"
-  | "record_disposition"
-  | "refer_clinical_orders"
-  | "view_vital_signs_tab"
-  | "view_physical_examination_tab"
-  | "view_orders_tab"
-  | "view_diagnoses_tab"
-  | "view_medications_tab"
-  | "view_nursing_notes_tab"
-  | "view_investigation_results_tab"
-  | "view_activity_tab"
-  | "view_client_tab";
+export type { ClinicalCapabilityKey };
 
 export type MyClinicalCapabilities = {
   capabilities: ClinicalCapabilityKey[];

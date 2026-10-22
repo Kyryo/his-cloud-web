@@ -29,6 +29,7 @@ import { CustomerVisitSheetFooter } from "@/features/customers/components/detail
 import { StartVisitChoiceRow } from "@/features/visits/components/StartVisitChoiceRow";
 import { SettingsUnderlineTabs } from "@/features/settings/components/SettingsPageLayout";
 import { UpdateUserClinicsPanel } from "@/features/settings/components/UpdateUserClinicsPanel";
+import { UpdateUserDepartmentsPanel } from "@/features/settings/components/UpdateUserDepartmentsPanel";
 import { UpdateUserLocationsPanel } from "@/features/settings/components/UpdateUserLocationsPanel";
 import { UpdateUserSalesReportsPanel } from "@/features/settings/components/UpdateUserSalesReportsPanel";
 import { UpdateUserTabLoader } from "@/features/settings/components/UpdateUserTabLoader";
@@ -67,6 +68,7 @@ type UpdateUserDialogTab =
   | "general"
   | "role"
   | "clinics"
+  | "departments"
   | "locations"
   | "reports";
 
@@ -74,6 +76,7 @@ const TABS = [
   { id: "general", label: "General" },
   { id: "role", label: "Role" },
   { id: "clinics", label: "Clinics" },
+  { id: "departments", label: "Departments" },
   { id: "locations", label: "Locations" },
   { id: "reports", label: "Reports" },
 ] as const satisfies ReadonlyArray<{ id: UpdateUserDialogTab; label: string }>;
@@ -436,6 +439,14 @@ export function UpdateUserDialog({
             />
           ) : null}
 
+          {activeTab === "departments" ? (
+            <UpdateUserDepartmentsPanel
+              userId={user.id}
+              isActive={activeTab === "departments"}
+              onChanged={() => void refreshUserSummary()}
+            />
+          ) : null}
+
           {activeTab === "locations" ? (
             <UpdateUserLocationsPanel
               userId={user.id}
@@ -456,6 +467,7 @@ export function UpdateUserDialog({
 
         <CustomerVisitSheetFooter recap={footerRecap}>
           {activeTab === "clinics" ||
+          activeTab === "departments" ||
           activeTab === "locations" ||
           activeTab === "reports" ? (
             <SecondaryButton type="button" onClick={() => onOpenChange(false)}>

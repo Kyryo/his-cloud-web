@@ -1,4 +1,7 @@
-import { Badge } from "@/components/ui/badge";
+import {
+  StatusDotBadge,
+  type StatusDotBadgeTone,
+} from "@/components/ui/status-dot-badge";
 import type { AppointmentStatus } from "@/features/appointments/types/appointment.types";
 
 const labels: Record<AppointmentStatus, string> = {
@@ -11,17 +14,14 @@ const labels: Record<AppointmentStatus, string> = {
   rescheduled: "Rescheduled",
 };
 
-const variants: Record<
-  AppointmentStatus,
-  "default" | "secondary" | "outline" | "destructive"
-> = {
-  scheduled: "secondary",
-  confirmed: "default",
-  in_progress: "default",
-  completed: "outline",
-  cancelled: "destructive",
-  no_show: "destructive",
-  rescheduled: "secondary",
+const tones: Record<AppointmentStatus, StatusDotBadgeTone> = {
+  scheduled: "neutral",
+  confirmed: "info",
+  in_progress: "success",
+  completed: "primary",
+  cancelled: "danger",
+  no_show: "danger",
+  rescheduled: "warning",
 };
 
 type AppointmentStatusBadgeProps = {
@@ -32,8 +32,8 @@ export function AppointmentStatusBadge({ status }: AppointmentStatusBadgeProps) 
   const normalized = status as AppointmentStatus;
 
   return (
-    <Badge variant={variants[normalized] ?? "secondary"}>
+    <StatusDotBadge tone={tones[normalized] ?? "neutral"}>
       {labels[normalized] ?? status}
-    </Badge>
+    </StatusDotBadge>
   );
 }

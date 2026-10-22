@@ -2,6 +2,7 @@ import type {
   OpdQueueEncounter,
   OpdQueueStage,
 } from "@/features/clinical-opd/types/clinical-opd.types";
+import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { formatAge } from "@/lib/age";
 
 export const OPD_QUEUE_STAGE_LABELS: Record<OpdQueueStage, string> = {
@@ -104,6 +105,34 @@ export function resolveOpdQueueStage(
   return "registered";
 }
 
+/** Best timestamp for the queue Date & Time column (newest-first sort key). */
+export function resolveOpdQueueDateTime(
+  encounter: Pick<OpdQueueEncounter, "visit_date" | "created_at" | "started_at">,
+): string | null {
+  return encounter.visit_date || encounter.created_at || encounter.started_at || null;
+}
+
+export function formatOpdQueueDateTime(
+  encounter: Pick<OpdQueueEncounter, "visit_date" | "created_at" | "started_at">,
+): string {
+  const value = resolveOpdQueueDateTime(encounter);
+  return value ? formatDisplayDateTime(value) : "—";
+}
+
+/** Newest visits first (stable for equal timestamps). */
+export function sortOpdQueueNewestFirst(
+  encounters: readonly OpdQueueEncounter[],
+): OpdQueueEncounter[] {
+  return [...encounters].sort((left, right) => {
+    const leftMs = Date.parse(resolveOpdQueueDateTime(left) ?? "") || 0;
+    const rightMs = Date.parse(resolveOpdQueueDateTime(right) ?? "") || 0;
+    if (rightMs !== leftMs) {
+      return rightMs - leftMs;
+    }
+    return left.encounter_uuid.localeCompare(right.encounter_uuid);
+  });
+}
+
 export function formatWaitingMinutes(minutes: number | null | undefined) {
   if (typeof minutes !== "number" || Number.isNaN(minutes) || minutes < 0) {
     return "—";
@@ -141,6 +170,16 @@ export function formatWaitingMinutes(minutes: number | null | undefined) {
 }
 
 /** Secondary client line: ID · age · gender (lab-style middle-dot dividers). */
+export function formatOpdQueueDemographics(
+  encounter: Pick<OpdQueueEncounter, "customer_dob" | "customer_gender">,
+): { gender: string | null; age: string | null } {
+  const ageLabel = formatAge(encounter.customer_dob);
+  return {
+    gender: encounter.customer_gender?.trim() || null,
+    age: ageLabel !== "—" ? ageLabel : null,
+  };
+}
+
 export function formatOpdQueueClientMeta(
   encounter: Pick<
     OpdQueueEncounter,

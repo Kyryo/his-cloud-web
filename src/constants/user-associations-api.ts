@@ -6,4 +6,7 @@ export const USER_ASSOCIATIONS_API_PATHS = {
   userLocations: "/user-locations/",
   userLocationDetail: (id: number) => `/user-locations/${id}/`,
   userLocationSetPrimary: (id: number) => `/user-locations/${id}/set_primary/`,
+  userDepartments: (userId: number) => `/users/${userId}/departments/`,
+  userDepartmentDetail: (userId: number, departmentUuid: string) =>
+    `/users/${userId}/departments/${departmentUuid}/`,
 } as const;

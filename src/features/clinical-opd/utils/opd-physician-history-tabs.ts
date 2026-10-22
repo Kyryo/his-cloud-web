@@ -1,7 +1,13 @@
-import type { OpdEncounterTabId } from "@/features/clinical-opd/utils/opd-encounter-tabs";
+import {
+  OPD_CONSULT_LAYOUT_TAB_IDS,
+  type OpdEncounterTabId,
+} from "@/features/clinical-opd/constants/opd-workspace-routing";
+
+export { OPD_CONSULT_LAYOUT_TAB_IDS };
 
 export type OpdHistorySectionId =
   | "complaint"
+  | "notes"
   | "exam"
   | "orders"
   | "investigations"
@@ -9,18 +15,6 @@ export type OpdHistorySectionId =
   | "medications"
   | "vitals"
   | "nursing";
-
-/** Tabs that use the form / content / previous-visit layout. */
-export const OPD_CONSULT_LAYOUT_TAB_IDS = new Set<OpdEncounterTabId>([
-  "complaint",
-  "physical-examination",
-  "orders",
-  "investigation-results",
-  "diagnoses",
-  "medications",
-  "nursing",
-  "vital-signs",
-]);
 
 /** @deprecated Prefer OPD_CONSULT_LAYOUT_TAB_IDS */
 export const OPD_PHYSICIAN_HISTORY_TAB_IDS = OPD_CONSULT_LAYOUT_TAB_IDS;

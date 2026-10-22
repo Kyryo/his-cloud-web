@@ -8,7 +8,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { PrimaryButton } from "@/components/ui/app-buttons";
 import { ROUTES } from "@/constants/routes";
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
-import { opdEncounterLandingHref } from "@/features/clinical-opd/utils/opd-encounter-tabs";
+import { useWorkspaceRouting } from "@/features/clinical-opd/hooks/use-workspace-routing";
+import { CLINICAL_QUEUE_QUERY_ROOT } from "@/features/clinical-workspace/hooks/use-clinical-departments";
+import { workspaceLandingHref } from "@/features/clinical-workspace/utils/workspace-tabs";
 import type { Customer } from "@/features/customers/types/customer.types";
 import { AddVisitEncounterDialog } from "@/features/visits/components/AddVisitEncounterDialog";
 import { closeVisit, fetchVisit } from "@/features/visits/services/visits.service";
@@ -29,6 +31,7 @@ export function OpdEncounterActions({
   const router = useRouter();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const routing = useWorkspaceRouting();
   const { visitUuid, isChartLocked, capabilities, userRole } =
     useOpdEncounterWorkspace();
   const [visitDetail, setVisitDetail] = useState<VisitDetail | null>(null);
@@ -72,13 +75,14 @@ export function OpdEncounterActions({
       setIsClosingVisit(true);
       await closeVisit(visitUuid);
       await queryClient.invalidateQueries({ queryKey: ["opd-queue"] });
+      await queryClient.invalidateQueries({ queryKey: [CLINICAL_QUEUE_QUERY_ROOT] });
       await queryClient.invalidateQueries({ queryKey: ["visit", visitUuid] });
       toast({
         title: "Visit closed",
         description: "The visit was completed. Chart writes are now locked.",
         variant: "success",
       });
-      router.push(ROUTES.clinicalOpd);
+      router.push(routing.specialty.basePath);
     } catch (error) {
       toast({
         title: "Could not close visit",
@@ -95,11 +99,13 @@ export function OpdEncounterActions({
 
   async function handleCreated(created: VisitEncounter) {
     await queryClient.invalidateQueries({ queryKey: ["opd-queue"] });
+    await queryClient.invalidateQueries({ queryKey: [CLINICAL_QUEUE_QUERY_ROOT] });
     setIsDialogOpen(false);
     setVisitDetail(null);
-    if (created.department_type === "opd") {
+    if (routing.specialty.departmentTypes.includes(created.department_type ?? "")) {
       router.push(
-        opdEncounterLandingHref(
+        workspaceLandingHref(
+          routing,
           created.visit,
           created.uuid,
           capabilities,

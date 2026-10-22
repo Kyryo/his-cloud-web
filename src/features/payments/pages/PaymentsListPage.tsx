@@ -270,69 +270,69 @@ export function PaymentsListPage() {
         data-testid="payments-record-payment-fab"
       />
 
-      {!hasNoRecords ? (
-        <ListPageDataSectionsStack>
+      <ListPageDataSectionsStack className="space-y-0">
+        {!hasNoRecords ? (
           <ListPageStatsSection className={cn(!showStats && "hidden sm:block")}>
             <PaymentSummaryStatsCards stats={stats} isLoading={isStatsLoading} />
           </ListPageStatsSection>
-        </ListPageDataSectionsStack>
-      ) : null}
+        ) : null}
 
-      <ListPageTableSection>
-        {isLoading ? (
-          <PaymentsTableSkeleton rows={8} />
-        ) : error ? (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-6">
-            <h2 className="text-sm font-semibold text-red-800">Could not load payments</h2>
-            <p className="mt-2 text-sm text-red-700">{error}</p>
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-4"
-              onClick={() => void reloadPayments()}
-            >
-              Try again
-            </Button>
-          </div>
-        ) : hasNoRecords ? (
-          <PaymentsEmptyState onRecordPayment={() => setRecordPaymentOpen(true)} />
-        ) : isFilteredEmpty ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center">
-            <h2 className="text-base font-semibold text-brand-navy">No matching payments</h2>
-            <p className="mt-1 text-sm text-brand-muted">
-              Adjust your search or filters and try again.
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="mt-4"
-              onClick={handleClearSearchAndFilters}
-            >
-              Clear search & filters
-            </Button>
-          </div>
-        ) : (
-          <>
-            <PaymentsTable
-              payments={payments}
-              onRowClick={(payment) => router.push(ROUTES.paymentDetail(payment.id))}
-            />
-            <ListPagePagination
-              page={page}
-              pageSize={DEFAULT_PAGE_SIZE}
-              totalCount={totalCount}
-              hasNext={hasNext}
-              hasPrevious={hasPrevious}
-              isLoading={isRefreshing}
-              onPageChange={(nextPage) => {
-                setIsRefreshing(true);
-                setPage(nextPage);
-              }}
-            />
-          </>
-        )}
-      </ListPageTableSection>
+        <ListPageTableSection>
+          {isLoading ? (
+            <PaymentsTableSkeleton rows={8} />
+          ) : error ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-6">
+              <h2 className="text-sm font-semibold text-red-800">Could not load payments</h2>
+              <p className="mt-2 text-sm text-red-700">{error}</p>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-4"
+                onClick={() => void reloadPayments()}
+              >
+                Try again
+              </Button>
+            </div>
+          ) : hasNoRecords ? (
+            <PaymentsEmptyState onRecordPayment={() => setRecordPaymentOpen(true)} />
+          ) : isFilteredEmpty ? (
+            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-dash-border py-14 text-center">
+              <h2 className="text-base font-semibold text-brand-navy">No matching payments</h2>
+              <p className="mt-1 text-sm text-brand-muted">
+                Adjust your search or filters and try again.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-4"
+                onClick={handleClearSearchAndFilters}
+              >
+                Clear search & filters
+              </Button>
+            </div>
+          ) : (
+            <>
+              <PaymentsTable
+                payments={payments}
+                onRowClick={(payment) => router.push(ROUTES.paymentDetail(payment.id))}
+              />
+              <ListPagePagination
+                page={page}
+                pageSize={DEFAULT_PAGE_SIZE}
+                totalCount={totalCount}
+                hasNext={hasNext}
+                hasPrevious={hasPrevious}
+                isLoading={isRefreshing}
+                onPageChange={(nextPage) => {
+                  setIsRefreshing(true);
+                  setPage(nextPage);
+                }}
+              />
+            </>
+          )}
+        </ListPageTableSection>
+      </ListPageDataSectionsStack>
 
       <RecordOpeningBalancePaymentDialog
         customer={selectedCustomer}

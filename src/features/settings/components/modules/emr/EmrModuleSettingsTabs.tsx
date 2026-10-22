@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ClinicalStaffRolesSection } from "@/features/settings/components/ClinicalStaffRolesSection";
 import {
   ClinicalRoleCapabilitiesMatrix,
+  EMR_CAPABILITY_ROLES,
   type ClinicalCapabilityRoleKey,
 } from "@/features/settings/components/ClinicalRoleCapabilitiesMatrix";
 import {
@@ -104,6 +105,7 @@ function RoleCapabilitiesTab() {
       >
         <ClinicalRoleCapabilitiesMatrix
           capabilities={CLINICAL_WORKSPACE_TAB_CAPABILITIES}
+          roles={EMR_CAPABILITY_ROLES}
           entries={data}
           updatingKey={updatingKey}
           onToggle={(role, capability, enabled) =>
@@ -119,6 +121,7 @@ function RoleCapabilitiesTab() {
       >
         <ClinicalRoleCapabilitiesMatrix
           capabilities={CLINICAL_ROLE_ACTION_CAPABILITIES}
+          roles={EMR_CAPABILITY_ROLES}
           entries={data}
           updatingKey={updatingKey}
           onToggle={(role, capability, enabled) =>

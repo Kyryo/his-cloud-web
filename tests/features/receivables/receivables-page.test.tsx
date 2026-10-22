@@ -125,4 +125,19 @@ describe("ReceivablesPage", () => {
     expect(fetchReceivablesInvoices).toHaveBeenCalledTimes(1);
     expect(fetchReceivablesDebtors).not.toHaveBeenCalled();
   });
+
+  it("places the table directly under the summary strip", async () => {
+    render(<ReceivablesPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Tahir Mussa")).toBeInTheDocument();
+    });
+
+    const statsSection = screen.getByTestId("receivables-insights").parentElement;
+    const stack = statsSection?.parentElement;
+    const table = screen.getByText("Tahir Mussa").closest("table");
+
+    expect(stack?.className).toContain("space-y-0");
+    expect(stack?.contains(table)).toBe(true);
+  });
 });

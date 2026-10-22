@@ -2,12 +2,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function OverviewWorkspaceSkeleton() {
   return (
-    <div data-testid="overview-skeleton" aria-hidden className="space-y-8">
-      <Skeleton className="mx-auto h-4 w-56 bg-dash-border/70" />
-      <div className="space-y-2">
-        <Skeleton className="h-16 w-full rounded-2xl bg-dash-border/60" />
-        <Skeleton className="h-16 w-full rounded-2xl bg-dash-border/60" />
-        <Skeleton className="h-16 w-full rounded-2xl bg-dash-border/60" />
+    <div data-testid="overview-skeleton" aria-hidden className="space-y-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Skeleton className="h-[5.75rem] w-full rounded-2xl bg-dash-border/60" />
+        <Skeleton className="h-[5.75rem] w-full rounded-2xl bg-dash-border/60" />
+        <Skeleton className="h-[5.75rem] w-full rounded-2xl bg-dash-border/60" />
+        <Skeleton className="h-[5.75rem] w-full rounded-2xl bg-dash-border/60" />
       </div>
     </div>
   );

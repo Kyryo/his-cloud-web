@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ROUTES } from "@/constants/routes";
 import {
+  ListPageDataSectionsStack,
   ListPageLayout,
   ListPagePagination,
   ListPageStatsSection,
@@ -241,79 +242,81 @@ export function ReceivablesPage() {
       />
       )}
 
-      <ListPageStatsSection>
-        <ReceivablesInsights
-          stats={stats}
-          view={view}
-          search={query}
-          aging={aging}
-          isLoading={isLoading && !stats}
-        />
-      </ListPageStatsSection>
-
-      <ListPageTableSection>
-        {showSkeleton ? (
-          <InventoryTableSkeleton
-            columns={
-              view === "invoices"
-                ? RECEIVABLES_INVOICES_SKELETON_COLUMNS
-                : RECEIVABLES_DEBTORS_SKELETON_COLUMNS
-            }
+      <ListPageDataSectionsStack className="space-y-0">
+        <ListPageStatsSection>
+          <ReceivablesInsights
+            stats={stats}
+            view={view}
+            search={query}
+            aging={aging}
+            isLoading={isLoading && !stats}
           />
-        ) : error ? (
-          <div className="py-10">
-            <h2 className="text-sm font-semibold text-brand-navy">
-              Could not load receivables
-            </h2>
-            <p className="mt-2 text-sm text-brand-muted" data-testid="receivables-error">
-              {error}
-            </p>
-            <Button
-              type="button"
-              variant="outline"
-              className="mt-4"
-              onClick={handleRetry}
-            >
-              Try again
-            </Button>
-          </div>
-        ) : isEmpty ? (
-          <p className="py-10 text-sm text-brand-muted" data-testid="receivables-empty">
-            {query
-              ? "No matching receivables."
-              : view === "invoices"
-                ? "No open invoices."
-                : "No clients with an outstanding balance."}
-          </p>
-        ) : (
-          <>
-            {view === "invoices" ? (
-              <ReceivablesInvoicesTable
-                invoices={invoices}
-                onRowClick={(invoice) =>
-                  router.push(ROUTES.invoiceDetail(invoice.invoice_uuid))
-                }
-              />
-            ) : (
-              <ReceivablesDebtorsTable
-                debtors={debtors}
-                onRowClick={(debtor) =>
-                  router.push(ROUTES.customerDetail(debtor.customer_uuid))
-                }
-              />
-            )}
-            <ListPagePagination
-              page={page}
-              pageSize={PAGE_SIZE}
-              totalCount={totalCount}
-              hasNext={hasNext}
-              hasPrevious={hasPrevious}
-              isLoading={isRefreshing}
-              onPageChange={handlePageChange}
+        </ListPageStatsSection>
+
+        <ListPageTableSection>
+          {showSkeleton ? (
+            <InventoryTableSkeleton
+              columns={
+                view === "invoices"
+                  ? RECEIVABLES_INVOICES_SKELETON_COLUMNS
+                  : RECEIVABLES_DEBTORS_SKELETON_COLUMNS
+              }
             />
-          </>
-        )}
-      </ListPageTableSection>
+          ) : error ? (
+            <div className="py-10">
+              <h2 className="text-sm font-semibold text-brand-navy">
+                Could not load receivables
+              </h2>
+              <p className="mt-2 text-sm text-brand-muted" data-testid="receivables-error">
+                {error}
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-4"
+                onClick={handleRetry}
+              >
+                Try again
+              </Button>
+            </div>
+          ) : isEmpty ? (
+            <p className="py-10 text-sm text-brand-muted" data-testid="receivables-empty">
+              {query
+                ? "No matching receivables."
+                : view === "invoices"
+                  ? "No open invoices."
+                  : "No clients with an outstanding balance."}
+            </p>
+          ) : (
+            <>
+              {view === "invoices" ? (
+                <ReceivablesInvoicesTable
+                  invoices={invoices}
+                  onRowClick={(invoice) =>
+                    router.push(ROUTES.invoiceDetail(invoice.invoice_uuid))
+                  }
+                />
+              ) : (
+                <ReceivablesDebtorsTable
+                  debtors={debtors}
+                  onRowClick={(debtor) =>
+                    router.push(ROUTES.customerDetail(debtor.customer_uuid))
+                  }
+                />
+              )}
+              <ListPagePagination
+                page={page}
+                pageSize={PAGE_SIZE}
+                totalCount={totalCount}
+                hasNext={hasNext}
+                hasPrevious={hasPrevious}
+                isLoading={isRefreshing}
+                onPageChange={handlePageChange}
+              />
+            </>
+          )}
+        </ListPageTableSection>
+      </ListPageDataSectionsStack>
     </ListPageLayout>
   );
 }

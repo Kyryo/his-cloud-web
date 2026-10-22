@@ -6,7 +6,6 @@ import type {
   OpdChartSummary,
   OpdQueueEncounter,
 } from "@/features/clinical-opd/types/clinical-opd.types";
-import type { OpdEncounterTabId } from "@/features/clinical-opd/utils/opd-encounter-tabs";
 import type { Customer } from "@/features/customers/types/customer.types";
 
 type OpdEncounterWorkspaceContextValue = {
@@ -16,7 +15,8 @@ type OpdEncounterWorkspaceContextValue = {
   customer: Customer | null;
   chartSummary: OpdChartSummary | null;
   capabilities: string[];
-  visibleTabIds: OpdEncounterTabId[];
+  /** Section ids of the current specialty the user may open. */
+  visibleTabIds: string[];
   userRole: string | null;
   isChartLocked: boolean;
 };

@@ -1,6 +1,7 @@
 import { ROUTES } from "@/constants/routes";
 import { getModuleLabel } from "@/features/app-shell/constants/navigation-config";
 import type { User } from "@/features/auth/types/auth.types";
+import { clinicalSpecialtyForPath } from "@/features/clinical-workspace/constants/clinical-specialties";
 
 /** Portal modules that can be entitled via TenantGroup.is_active.
  * Keep in sync with api/eportal/tenants/constants/portal_groups.py.
@@ -111,6 +112,11 @@ export function resolvePortalModuleForPath(
     return "Radiology";
   }
 
+  const specialty = clinicalSpecialtyForPath(pathname);
+  if (specialty && isPortalModuleName(specialty.moduleName)) {
+    return specialty.moduleName;
+  }
+
   if (
     pathname.startsWith("/dental") ||
     pathname === ROUTES.settingsModule("dental") ||
@@ -120,8 +126,6 @@ export function resolvePortalModuleForPath(
   }
 
   if (
-    pathname === ROUTES.clinicalOpd ||
-    pathname.startsWith(`${ROUTES.clinicalOpd}/`) ||
     pathname === ROUTES.settingsModuleClinical ||
     pathname.startsWith(`${ROUTES.settingsModuleClinical}/`)
   ) {

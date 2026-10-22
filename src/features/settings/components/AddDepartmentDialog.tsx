@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ORGANIZATION_DEPARTMENT_TYPES } from "@/features/settings/constants/department-types";
+import { useDepartmentTypeOptions } from "@/features/settings/hooks/use-department-type-options";
 import {
   createOrganizationDepartmentDefaultValues,
   createOrganizationDepartmentSchema,
@@ -63,6 +63,7 @@ export function AddDepartmentDialog({
   const addAnotherRef = useRef(false);
   const [clinics, setClinics] = useState<OrganizationClinic[]>([]);
   const [isLoadingClinics, setIsLoadingClinics] = useState(false);
+  const departmentTypeOptions = useDepartmentTypeOptions();
 
   const form = useForm<CreateOrganizationDepartmentFormValues>({
     resolver: zodResolver(createOrganizationDepartmentSchema),
@@ -283,9 +284,11 @@ export function AddDepartmentDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {ORGANIZATION_DEPARTMENT_TYPES.map((type) => (
+                      {departmentTypeOptions.map((type) => (
                         <SelectItem key={type.value} value={type.value}>
-                          {type.label}
+                          {type.isClinical
+                            ? `${type.label} · clinical workspace`
+                            : type.label}
                         </SelectItem>
                       ))}
                     </SelectContent>

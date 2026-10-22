@@ -1,5 +1,6 @@
 import type { AppIconName } from "@/components/icons/app-icon";
 import { ROUTES } from "@/constants/routes";
+import { CLINICAL_SPECIALTIES } from "@/features/clinical-workspace/constants/clinical-specialties";
 
 export type NavigationItem = {
   name: string;
@@ -260,14 +261,16 @@ export const navigation: NavigationItem[] = [
     requiredGroup: "Lab",
     enabledInWebNew: true,
   },
-  {
-    name: "OPD Queue",
-    href: ROUTES.clinicalOpd,
-    icon: "hospital",
-    requiredGroup: "Clinical",
-    moduleName: "Clinical",
-    enabledInWebNew: true,
-  },
+  ...CLINICAL_SPECIALTIES.map(
+    (specialty): NavigationItem => ({
+      name: specialty.queueNavLabel,
+      href: specialty.basePath,
+      icon: specialty.icon,
+      requiredGroup: specialty.accessGroup,
+      moduleName: specialty.moduleName,
+      enabledInWebNew: true,
+    }),
+  ),
   {
     name: "OH Queue",
     href: ROUTES.occupationalHealth,

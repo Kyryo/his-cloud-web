@@ -2,7 +2,7 @@
 
 import { overviewGreeting } from "@/features/overview/utils/overview-greeting";
 
-export const OVERVIEW_DAILY_LEAD = "Here's what you can get done today.";
+export const OVERVIEW_DAILY_LEAD = "Here's your workspace for today.";
 export const OVERVIEW_SETUP_LEAD = "Here's what your clinic still needs.";
 
 type OverviewGreetingProps = {
@@ -10,21 +10,23 @@ type OverviewGreetingProps = {
   lead?: string | null;
 };
 
-export function OverviewGreeting({ name, lead = OVERVIEW_DAILY_LEAD }: OverviewGreetingProps) {
+export function OverviewGreeting({
+  name,
+  lead = OVERVIEW_DAILY_LEAD,
+}: OverviewGreetingProps) {
   const greeting = overviewGreeting(name, new Date());
 
   return (
-    <header className="px-2 text-center">
+    <header className="max-w-xl">
       <h1
-        className="text-[2rem] font-semibold leading-tight tracking-tight text-brand-navy sm:text-4xl"
+        className="text-[1.65rem] font-semibold tracking-tight text-brand-navy sm:text-[1.85rem]"
         suppressHydrationWarning
       >
         {greeting}
+        {name?.trim() ? "." : ""}
       </h1>
       {lead ? (
-        <p className="mx-auto mt-3 max-w-md text-[15px] leading-6 text-dash-muted">
-          {lead}
-        </p>
+        <p className="mt-1.5 text-[14px] leading-6 text-dash-muted">{lead}</p>
       ) : null}
     </header>
   );

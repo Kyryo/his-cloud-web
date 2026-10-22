@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { fetchCatalogProducts } from "@/features/catalog/services/catalog.service";
+import { useWorkspaceRouting } from "@/features/clinical-opd/hooks/use-workspace-routing";
 import type { ClinicalOrderItemType } from "@/features/clinical-opd/schemas/clinical-opd.schema";
 import type { InventoryProduct } from "@/features/inventory/types/inventory.types";
 import { formatProductLabel } from "@/features/inventory/utils/format-inventory";
@@ -26,7 +27,10 @@ type ClinicalOrderProductListProps = {
   onCancelOrder: (product: InventoryProduct, orderUuid: string) => void;
 };
 
-function catalogFiltersForItemType(itemType: ClinicalOrderItemType) {
+function catalogFiltersForItemType(
+  itemType: ClinicalOrderItemType,
+  procedureContext: "opd" | "dental",
+) {
   switch (itemType) {
     case "LABORATORY":
       return {
@@ -46,7 +50,7 @@ function catalogFiltersForItemType(itemType: ClinicalOrderItemType) {
       return {
         product_type: "service" as const,
         is_procedure: true,
-        procedure_context: "opd" as const,
+        procedure_context: procedureContext,
         sale_ok: true,
         active: true,
       };
@@ -87,9 +91,10 @@ export function ClinicalOrderProductList({
     setDebouncedSearch("");
   }, [itemType]);
 
+  const { procedureContext } = useWorkspaceRouting().specialty;
   const filters = useMemo(
-    () => catalogFiltersForItemType(itemType),
-    [itemType],
+    () => catalogFiltersForItemType(itemType, procedureContext),
+    [itemType, procedureContext],
   );
 
   const productsQuery = useInfiniteQuery({

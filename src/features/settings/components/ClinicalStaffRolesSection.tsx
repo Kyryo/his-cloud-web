@@ -29,8 +29,8 @@ import type {
 import {
   filterClinicalStaff,
   groupClinicalStaff,
-  isAssignableClinicalRole,
-  isClinicalStaffUser,
+  isAssignableEmrRole,
+  isEmrStaffUser,
 } from "@/features/settings/utils/clinical-staff-roles";
 import { useToast } from "@/providers/toast-provider";
 
@@ -60,7 +60,7 @@ export function ClinicalStaffRolesSection() {
         if (cancelled) {
           return;
         }
-        setUsers(response.results.filter(isClinicalStaffUser));
+        setUsers(response.results.filter(isEmrStaffUser));
       } catch (error) {
         if (cancelled) {
           return;
@@ -209,7 +209,7 @@ export function ClinicalStaffRolesSection() {
                         onValueChange={(value) => {
                           const nextRole =
                             value === UNASSIGNED_ROLE_VALUE ? "" : value;
-                          if (!isAssignableClinicalRole(nextRole)) {
+                          if (!isAssignableEmrRole(nextRole)) {
                             return;
                           }
                           void handleRoleChange(user.id, nextRole);

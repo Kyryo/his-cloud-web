@@ -8,6 +8,7 @@ const QUEUE_QUERY_KEYS = [
   "queue_stage",
   "status",
   "clinic_uuid",
+  "department_uuid",
   "search",
   "limit",
 ] as const;

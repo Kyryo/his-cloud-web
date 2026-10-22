@@ -1,7 +1,7 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { OpdConsultColumnHeader } from "@/features/clinical-opd/components/detail/OpdConsultColumnHeader";
@@ -9,6 +9,8 @@ import { OpdVitalSetCard } from "@/features/clinical-opd/components/detail/OpdVi
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
 import { useEncounterClinicalHistory } from "@/features/clinical-opd/hooks/use-clinical-opd";
 import type { OpdHistorySectionId } from "@/features/clinical-opd/utils/opd-physician-history-tabs";
+import { useOptionalClinicalWorkspaceConfig } from "@/features/clinical-workspace/components/clinical-workspace-config-context";
+import type { ClinicalWorkspaceHistorySection } from "@/features/clinical-workspace/types/clinical-workspace.types";
 import { groupObservationsIntoVitalSets } from "@/features/clinical-opd/utils/opd-encounter-vitals";
 import type {
   ClinicalHistoryNote,
@@ -26,11 +28,12 @@ import { cn } from "@/lib/utils";
 
 const HISTORY_SECTIONS: Array<{ id: OpdHistorySectionId; label: string }> = [
   { id: "complaint", label: "Complaints" },
+  { id: "notes", label: "Notes" },
   { id: "exam", label: "Exam" },
   { id: "orders", label: "Orders" },
   { id: "investigations", label: "Investigations" },
   { id: "diagnoses", label: "Diagnoses" },
-  { id: "medications", label: "Medication" },
+  { id: "medications", label: "Medications" },
   { id: "nursing", label: "Nurse's notes" },
   { id: "vitals", label: "Vital signs" },
 ];
@@ -227,9 +230,7 @@ function MedicationsList({
   medications: EncounterPrescription[];
 }) {
   if (medications.length === 0) {
-    return (
-      <HistoryEmptyState message="No treatment on this visit." />
-    );
+    return <HistoryEmptyState message="No medications on this visit." />;
   }
 
   return (
@@ -277,39 +278,62 @@ function VitalsList({ observations }: { observations: EncounterObservation[] }) 
 }
 
 type OpdClinicalHistoryPanelProps = {
-  section?: OpdHistorySectionId;
-  /** Limit which section tabs are available. Defaults to physician consult sections. */
-  allowedSections?: readonly OpdHistorySectionId[];
+  /** Built-in section id or a specialty history section id. */
+  section?: string;
+  /**
+   * Limit which sections are available (built-in or specialty ids).
+   * Order is preserved. When omitted, specialty config or physician defaults apply.
+   */
+  allowedSections?: readonly string[];
   embedded?: boolean;
 };
 
+const NO_EXTRA_SECTIONS: readonly ClinicalWorkspaceHistorySection[] = [];
+
 export function OpdClinicalHistoryPanel({
   section: sectionProp,
-  allowedSections = DEFAULT_ALLOWED_SECTIONS,
+  allowedSections: allowedSectionsProp,
   embedded = false,
 }: OpdClinicalHistoryPanelProps) {
   const { visitUuid, encounterUuid } = useOpdEncounterWorkspace();
-  const visibleSections = useMemo(
-    () => HISTORY_SECTIONS.filter((item) => allowedSections.includes(item.id)),
-    [allowedSections],
+  const workspaceConfig = useOptionalClinicalWorkspaceConfig();
+  const extraSections = workspaceConfig?.historySections ?? NO_EXTRA_SECTIONS;
+  const allowList =
+    allowedSectionsProp ?? workspaceConfig?.historyAllowedSections ?? null;
+  const visibleSections = useMemo<Array<{ id: string; label: string }>>(() => {
+    const catalog = new Map<string, string>([
+      ...HISTORY_SECTIONS.map((item) => [item.id, item.label] as const),
+      ...extraSections.map((item) => [item.id, item.label] as const),
+    ]);
+    if (allowList) {
+      return allowList
+        .map((id) => {
+          const label = catalog.get(id);
+          return label ? { id, label } : null;
+        })
+        .filter((item): item is { id: string; label: string } => item != null);
+    }
+    return [
+      ...HISTORY_SECTIONS.filter((item) =>
+        DEFAULT_ALLOWED_SECTIONS.includes(item.id),
+      ),
+      ...extraSections.map(({ id, label }) => ({ id, label })),
+    ];
+  }, [allowList, extraSections]);
+  const isAvailable = (id: string | null | undefined): id is string =>
+    Boolean(id) && visibleSections.some((item) => item.id === id);
+  // A pick stays until the tab asks for a different section.
+  const [picked, setPicked] = useState<{ forSection?: string; id: string } | null>(
+    null,
   );
-  const defaultSection =
-    sectionProp && allowedSections.includes(sectionProp)
+  const pickedId = picked && picked.forSection === sectionProp ? picked.id : null;
+  const section = isAvailable(pickedId)
+    ? pickedId
+    : isAvailable(sectionProp)
       ? sectionProp
       : (visibleSections[0]?.id ?? "complaint");
-  const [section, setSection] = useState<OpdHistorySectionId>(defaultSection);
-
-  useEffect(() => {
-    if (sectionProp && allowedSections.includes(sectionProp)) {
-      setSection(sectionProp);
-      return;
-    }
-    setSection((current) =>
-      allowedSections.includes(current)
-        ? current
-        : (visibleSections[0]?.id ?? "complaint"),
-    );
-  }, [sectionProp, allowedSections, visibleSections]);
+  const setSection = (id: string) => setPicked({ forSection: sectionProp, id });
+  const ExtraSection = extraSections.find((item) => item.id === section)?.Component;
 
   const showSectionNav = visibleSections.length > 1;
   const sectionLabel = visibleSections.find((item) => item.id === section)?.label;
@@ -459,10 +483,23 @@ export function OpdClinicalHistoryPanel({
           </div>
         ) : visits.length === 0 ? (
           <HistoryEmptyState message="No previous visits for this client." />
+        ) : ExtraSection ? (
+          <ExtraSection
+            visitUuid={visitUuid}
+            encounterUuid={encounterUuid}
+            historyEncounterUuid={selectedEncounterUuid ?? null}
+          />
         ) : section === "complaint" ? (
           <NotesList
             notes={complaintHistoryNotes(history)}
             emptyMessage="No chief complaint or HPI on this visit."
+          />
+        ) : section === "notes" ? (
+          <NotesList
+            notes={(history?.notes ?? []).filter(
+              (note) => note.kind === "clinical_note",
+            )}
+            emptyMessage="No clinical notes on this visit."
           />
         ) : section === "exam" ? (
           <NotesList

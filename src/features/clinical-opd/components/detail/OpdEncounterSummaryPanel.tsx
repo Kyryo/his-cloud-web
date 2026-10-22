@@ -14,7 +14,8 @@ import {
   formatDisplayDate,
   formatDisplayDateTime,
 } from "@/features/customers/utils/format-customer";
-import { opdEncounterTabHref } from "@/features/clinical-opd/utils/opd-encounter-tabs";
+import { useWorkspaceRouting } from "@/features/clinical-opd/hooks/use-workspace-routing";
+import { workspaceTabHref } from "@/features/clinical-workspace/utils/workspace-tabs";
 import { cn } from "@/lib/utils";
 
 type OpdEncounterSummaryPanelProps = {
@@ -32,6 +33,9 @@ export function OpdEncounterSummaryPanel({
 }: OpdEncounterSummaryPanelProps) {
   const { encounter, visitUuid, encounterUuid, chartSummary, visibleTabIds } =
     useOpdEncounterWorkspace();
+  const routing = useWorkspaceRouting();
+  const tabHref = (tab: string) =>
+    workspaceTabHref(routing, visitUuid, encounterUuid, tab);
   const isTab = variant === "tab";
   const fullName = customer
     ? formatCustomerName(customer)
@@ -109,7 +113,7 @@ export function OpdEncounterSummaryPanel({
             title="Previous visit"
             href={
               visibleTabIds.includes("complaint")
-                ? opdEncounterTabHref(visitUuid, encounterUuid, "complaint")
+                ? tabHref("complaint")
                 : undefined
             }
           >
@@ -134,7 +138,7 @@ export function OpdEncounterSummaryPanel({
             title="Problems"
             href={
               visibleTabIds.includes("problems")
-                ? opdEncounterTabHref(visitUuid, encounterUuid, "problems")
+                ? tabHref("problems")
                 : undefined
             }
           >
@@ -151,7 +155,7 @@ export function OpdEncounterSummaryPanel({
             title="Medications"
             href={
               visibleTabIds.includes("medications")
-                ? opdEncounterTabHref(visitUuid, encounterUuid, "medications")
+                ? tabHref("medications")
                 : undefined
             }
           >
@@ -170,7 +174,7 @@ export function OpdEncounterSummaryPanel({
             title="Open orders"
             href={
               visibleTabIds.includes("orders")
-                ? opdEncounterTabHref(visitUuid, encounterUuid, "orders")
+                ? tabHref("orders")
                 : undefined
             }
           >

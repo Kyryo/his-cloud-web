@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { RefreshCw } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -11,6 +12,8 @@ type OpdQueuePageHeaderProps = {
   search: string;
   viewMode: OpdQueueViewMode;
   isLoading?: boolean;
+  /** Department picker shown before the refresh action. */
+  departmentSwitcher?: ReactNode;
   onSearchChange: (value: string) => void;
   onSearchSubmit: () => void;
   onClearSearch: () => void;
@@ -22,6 +25,7 @@ export function OpdQueuePageHeader({
   search,
   viewMode,
   isLoading = false,
+  departmentSwitcher,
   onSearchChange,
   onSearchSubmit,
   onClearSearch,
@@ -39,6 +43,8 @@ export function OpdQueuePageHeader({
         onClearSearch={onClearSearch}
         onViewModeChange={onViewModeChange}
         trailing={
+          <>
+          {departmentSwitcher}
           <Button
             type="button"
             variant="outline"
@@ -51,6 +57,7 @@ export function OpdQueuePageHeader({
             <RefreshCw className="size-3.5" />
             <span>Refresh</span>
           </Button>
+          </>
         }
       />
     </ListPageHeaderSection>

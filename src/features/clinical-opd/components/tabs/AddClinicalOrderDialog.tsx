@@ -11,7 +11,9 @@ import {
   useCreateOrder,
   useEncounterOrders,
 } from "@/features/clinical-opd/hooks/use-clinical-opd";
+import { useWorkspaceRouting } from "@/features/clinical-opd/hooks/use-workspace-routing";
 import type { ClinicalOrderItemType } from "@/features/clinical-opd/schemas/clinical-opd.schema";
+import { specialtyAllowsOrderItemType } from "@/features/clinical-workspace/constants/clinical-specialties";
 import type { ClinicalCapabilityKey } from "@/features/clinical-opd/types/clinical-opd.types";
 import { formatAllergyAlertMessage } from "@/features/clinical-opd/utils/opd-allergy-alerts";
 import type { InventoryProduct } from "@/features/inventory/types/inventory.types";
@@ -79,26 +81,30 @@ export function AddClinicalOrderDialog({
   const createOrder = useCreateOrder(visitUuid, encounterUuid);
   const cancelOrder = useCancelOrder(visitUuid, encounterUuid);
   const [busyProductUuid, setBusyProductUuid] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<OrderDialogTab>("lab");
+  const { specialty } = useWorkspaceRouting();
+  const specialtyTabs = useMemo(
+    () =>
+      ORDER_DIALOG_TABS.filter((tab) =>
+        specialtyAllowsOrderItemType(specialty, tab.itemType),
+      ),
+    [specialty],
+  );
+  const [activeTab, setActiveTab] = useState<OrderDialogTab>(
+    () => specialtyTabs[0]?.id ?? "lab",
+  );
 
   const capabilitySet = useMemo(() => new Set(capabilities), [capabilities]);
 
-  const tabs = useMemo(
-    () =>
-      ORDER_DIALOG_TABS.map((tab) => ({
-        id: tab.id,
-        label: tab.label,
-      })),
-    [],
-  );
-
   const firstPermittedTab = useMemo(
-    () => ORDER_DIALOG_TABS.find((tab) => capabilitySet.has(tab.capability)),
-    [capabilitySet],
+    () => specialtyTabs.find((tab) => capabilitySet.has(tab.capability)),
+    [capabilitySet, specialtyTabs],
   );
 
   const activeTabConfig =
-    ORDER_DIALOG_TABS.find((tab) => tab.id === activeTab) ?? ORDER_DIALOG_TABS[0];
+    specialtyTabs.find((tab) => tab.id === activeTab) ??
+    firstPermittedTab ??
+    specialtyTabs[0] ??
+    ORDER_DIALOG_TABS[0];
   const canOrderActiveTab = capabilitySet.has(activeTabConfig.capability);
 
   const orderedProductOrderUuids = useMemo(() => {
@@ -127,7 +133,7 @@ export function AddClinicalOrderDialog({
       if (cancelled) {
         return;
       }
-      setActiveTab(firstPermittedTab?.id ?? "lab");
+      setActiveTab(firstPermittedTab?.id ?? specialtyTabs[0]?.id ?? "lab");
       setBusyProductUuid(null);
     }
 
@@ -135,18 +141,12 @@ export function AddClinicalOrderDialog({
     return () => {
       cancelled = true;
     };
-  }, [firstPermittedTab?.id, open]);
+  }, [firstPermittedTab?.id, open, specialtyTabs]);
 
-  const handleTabChange = (tabId: string) => {
-    if (
-      tabId !== "lab" &&
-      tabId !== "radiology" &&
-      tabId !== "procedures" &&
-      tabId !== "sundries"
-    ) {
-      return;
+  const handleTabChange = (tabId: OrderDialogTab) => {
+    if (specialtyTabs.some((tab) => tab.id === tabId)) {
+      setActiveTab(tabId);
     }
-    setActiveTab(tabId);
   };
 
   const handleAddProduct = async (product: InventoryProduct) => {
@@ -246,8 +246,8 @@ export function AddClinicalOrderDialog({
         role="tablist"
         aria-label="Order catalog"
       >
-        {tabs.map((tab) => {
-          const isActive = activeTab === tab.id;
+        {specialtyTabs.map((tab) => {
+          const isActive = activeTabConfig.id === tab.id;
           return (
             <button
               key={tab.id}

@@ -13,6 +13,7 @@ import {
 } from "@/features/app-shell/components/page-layout";
 import type { ClinicalReferral } from "@/features/clinical-opd/types/clinical-opd.types";
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
+import { ReferralStatusBadge } from "@/features/referrals/components/ReferralStatusBadge";
 
 type IncomingReferralsTableProps = {
   referrals: ClinicalReferral[];
@@ -30,17 +31,6 @@ const columns = [
 ] as const;
 
 export const INCOMING_REFERRALS_TABLE_SKELETON_COLUMNS = columns;
-
-function formatStatusLabel(status: string): string {
-  const normalized = status.trim().toLowerCase();
-  if (normalized === "sent") {
-    return "Awaiting start";
-  }
-  return status
-    .split("_")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join(" ");
-}
 
 export function IncomingReferralsTable({
   referrals,
@@ -99,9 +89,7 @@ export function IncomingReferralsTable({
                 {referral.sent_at ? formatDisplayDateTime(referral.sent_at) : "—"}
               </ListPageDataTableCell>
               <ListPageDataTableCell>
-                <span className="inline-flex rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
-                  {formatStatusLabel(referral.status)}
-                </span>
+                <ReferralStatusBadge status={referral.status} />
               </ListPageDataTableCell>
               <ListPageDataTableCell className="pr-4 text-right">
                 <Button

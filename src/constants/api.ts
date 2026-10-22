@@ -174,6 +174,14 @@ export const BFF_CLINICAL_ROUTES = {
   locations: "/api/clinical/locations",
 } as const;
 
+/** Browser-facing BFF routes shared by every clinical specialty workspace. */
+export const BFF_CLINICAL_WORKSPACE_ROUTES = {
+  specialties: "/api/clinical/specialties",
+  memberDepartments: "/api/clinical/my-departments",
+  departmentQueue: (departmentUuid: string) =>
+    `/api/clinical/my-departments/${departmentUuid}/queue`,
+} as const;
+
 /** Browser-facing BFF clinical OPD routes (same origin). */
 export const BFF_CLINICAL_OPD_ROUTES = {
   queue: "/api/clinical/opd/queue",
@@ -674,6 +682,13 @@ export const BFF_ONBOARDING_ROUTES = {
   modules: "/api/onboarding/modules",
 } as const;
 
+/** Clinic overview workspace (quick access + activity). */
+export const BFF_OVERVIEW_ROUTES = {
+  home: "/api/overview/home",
+  pins: "/api/overview/pins",
+  activity: "/api/overview/activity",
+} as const;
+
 /** Browser-facing BFF care provider routes (same origin). */
 export const BFF_CARE_PROVIDERS_ROUTES = {
   list: "/api/care-providers",
@@ -695,6 +710,7 @@ export const BFF_SETTINGS_ROUTES = {
   locationDetail: (uuid: string) => `/api/locations/${uuid}`,
   departments: "/api/departments",
   departmentDetail: (uuid: string) => `/api/departments/${uuid}`,
+  departmentMembers: (uuid: string) => `/api/departments/${uuid}/members`,
   visitTypes: "/api/consultation-services",
   visitTypeDetail: (uuid: string) => `/api/consultation-services/${uuid}`,
   consultationServices: "/api/consultation-services",
@@ -719,6 +735,9 @@ export const BFF_SETTINGS_ROUTES = {
     "/api/tenants/current/customer-identifier-settings",
   users: "/api/user-management",
   userDetail: (id: number) => `/api/user-management/${id}`,
+  userDepartments: (id: number) => `/api/user-management/${id}/departments`,
+  userDepartmentDetail: (id: number, departmentUuid: string) =>
+    `/api/user-management/${id}/departments/${departmentUuid}`,
   groups: "/api/groups",
   groupDetail: (id: number) => `/api/groups/${id}`,
   groupAddUser: "/api/groups/add-user",

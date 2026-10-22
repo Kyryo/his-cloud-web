@@ -4,4 +4,5 @@ export const DEPARTMENTS_API_PATHS = {
   detail: (uuid: string) => `/departments/${uuid}/`,
   consultationServices: (uuid: string) =>
     `/departments/${uuid}/consultation-services/`,
+  members: (uuid: string) => `/departments/${uuid}/members/`,
 } as const;

@@ -29,6 +29,11 @@ import {
   ORDERS_TAB_ITEM_TYPE_OPTIONS,
   getOrdersTabItemTypesForCapabilities,
 } from "@/features/clinical-opd/utils/clinical-order-item-types";
+import { useWorkspaceRouting } from "@/features/clinical-opd/hooks/use-workspace-routing";
+import {
+  specialtyAllowsOrderItemType,
+  type ClinicalSpecialtyDefinition,
+} from "@/features/clinical-workspace/constants/clinical-specialties";
 import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
@@ -79,12 +84,14 @@ function matchesOrderFilter(
 function canReorderOrder(
   order: EncounterClinicalOrder,
   capabilities: readonly string[],
+  specialty: ClinicalSpecialtyDefinition,
 ): boolean {
   if (
     !order.product_uuid ||
     order.status === "CANCELLED" ||
     order.status === "REFERRED" ||
-    order.item_type === "MEDICATION"
+    order.item_type === "MEDICATION" ||
+    !specialtyAllowsOrderItemType(specialty, order.item_type)
   ) {
     return false;
   }
@@ -104,6 +111,7 @@ export function OpdOrdersTabPanel({
 }: OpdOrdersTabPanelProps) {
   const { toast } = useToast();
   const { capabilities, isChartLocked } = useOpdEncounterWorkspace();
+  const { specialty } = useWorkspaceRouting();
   const { data: orders = [], isLoading } = useEncounterOrders(
     visitUuid,
     encounterUuid,
@@ -118,20 +126,29 @@ export function OpdOrdersTabPanel({
   const [cancellingUuid, setCancellingUuid] = useState<string | null>(null);
   const [referOpen, setReferOpen] = useState(false);
 
+  const orderFilters = ORDER_FILTERS.filter(
+    (option) =>
+      option.id === "all" || specialtyAllowsOrderItemType(specialty, option.id),
+  );
   const canAddOrder =
-    getOrdersTabItemTypesForCapabilities(capabilities).length > 0 &&
-    !isChartLocked;
+    getOrdersTabItemTypesForCapabilities(capabilities).some((option) =>
+      specialtyAllowsOrderItemType(specialty, option.value),
+    ) && !isChartLocked;
   const canRefer =
-    capabilities.includes("refer_clinical_orders") && !isChartLocked;
+    capabilities.includes("refer_clinical_orders") &&
+    specialtyAllowsOrderItemType(specialty, "LABORATORY") &&
+    !isChartLocked;
   const activeOrders = useMemo(
     () =>
       orders.filter(
         (order) =>
           order.status !== "CANCELLED" &&
           (order.is_active !== false || order.status === "REFERRED") &&
-          order.item_type !== "MEDICATION",
+          order.item_type !== "MEDICATION" &&
+          // Hide specialty-out-of-scope types (e.g. dental treatment PROCEDURE lines).
+          specialtyAllowsOrderItemType(specialty, order.item_type),
       ),
-    [orders],
+    [orders, specialty],
   );
   const referableLabOrders = useMemo(
     () =>
@@ -219,7 +236,7 @@ export function OpdOrdersTabPanel({
         aria-label="Filter clinical orders"
         data-testid="opd-orders-type-filters"
       >
-        {ORDER_FILTERS.map((option) => {
+        {orderFilters.map((option) => {
           const isSelected = filter === option.id;
           return (
             <button
@@ -328,7 +345,7 @@ export function OpdOrdersTabPanel({
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
-                    {canReorderOrder(order, capabilities) ? (
+                    {canReorderOrder(order, capabilities, specialty) ? (
                       <SecondaryButton
                         type="button"
                         size="icon"

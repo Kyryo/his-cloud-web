@@ -8,7 +8,6 @@ import {
   OpdConsultColumnHeader,
   OpdConsultCountBadge,
 } from "@/features/clinical-opd/components/detail/OpdConsultColumnHeader";
-import type { OpdHistorySectionId } from "@/features/clinical-opd/utils/opd-physician-history-tabs";
 import { cn } from "@/lib/utils";
 
 /** Each column pins to the top of the workspace scroller and scrolls on its own. */
@@ -20,9 +19,10 @@ type OpdConsultLayoutProps = {
   form: ReactNode;
   /** Middle column: what has been recorded on this encounter. */
   content: ReactNode;
-  historySection?: OpdHistorySectionId;
-  /** Restrict which history section tabs are shown (e.g. vitals-only for nurses). */
-  historyAllowedSections?: readonly OpdHistorySectionId[];
+  /** Built-in history section id or a specialty history section id. */
+  historySection?: string;
+  /** Restrict which history section tabs are shown (built-in or specialty ids). */
+  historyAllowedSections?: readonly string[];
   /** Wider record column for multi-field forms (e.g. vital signs). */
   wideForm?: boolean;
   "data-testid"?: string;

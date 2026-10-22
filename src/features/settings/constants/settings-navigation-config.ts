@@ -21,6 +21,7 @@ const SETTINGS_BREADCRUMB_OVERRIDES: Record<string, string> = {
   [ROUTES.settingsModulePharmacy]: "Pharmacy",
   [ROUTES.settingsModuleLaboratory]: "Laboratory",
   [ROUTES.settingsModuleClinical]: "EMR",
+  [ROUTES.settingsModuleDental]: "Dental",
   [ROUTES.settingsModuleRegistration]: "Front Desk",
   [ROUTES.settingsModuleOccupationalHealth]: "Occupational health",
   [ROUTES.settingsIntegrationsEmail]: "Email",

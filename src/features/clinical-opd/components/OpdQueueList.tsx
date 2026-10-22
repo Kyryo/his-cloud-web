@@ -10,6 +10,7 @@ import { OpdQueueStageBadge } from "@/features/clinical-opd/components/OpdQueueS
 import type { OpdQueueEncounter } from "@/features/clinical-opd/types/clinical-opd.types";
 import {
   formatOpdQueueClientMeta,
+  formatOpdQueueDateTime,
   formatWaitingMinutes,
   groupOpdQueueByStage,
   resolveOpdQueueStage,
@@ -150,6 +151,12 @@ function OpdQueueListRow({
             ]
               .filter(Boolean)
               .join(" · ")}
+          </p>
+          <p
+            className="truncate text-[12px] text-dash-muted"
+            data-testid="opd-queue-datetime"
+          >
+            {formatOpdQueueDateTime(encounter)}
           </p>
         </div>
 

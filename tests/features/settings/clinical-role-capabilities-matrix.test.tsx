@@ -18,6 +18,7 @@ describe("ClinicalRoleCapabilitiesMatrix", () => {
             description: "Visit timeline and recent events",
           },
         ]}
+        roles={["nurse", "physician"]}
         entries={[
           {
             uuid: "1",
@@ -34,11 +35,40 @@ describe("ClinicalRoleCapabilitiesMatrix", () => {
     expect(
       screen.getByRole("columnheader", { name: "Physicians" }),
     ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("columnheader", { name: "Dentists" }),
+    ).not.toBeInTheDocument();
     expect(screen.getByText("Visit timeline and recent events")).toBeInTheDocument();
     expect(screen.getByRole("switch", { name: "Nurses: Activity" })).toBeChecked();
     expect(
       screen.getByRole("switch", { name: "Physicians: Activity" }),
     ).not.toBeChecked();
+  });
+
+  it("can show only the dentist column", () => {
+    render(
+      <ClinicalRoleCapabilitiesMatrix
+        capabilities={[
+          {
+            key: "perform_dental_procedure",
+            label: "Perform dental procedures",
+            description: "Perform procedures and bill them to the visit",
+          },
+        ]}
+        roles={["dentist"]}
+        entries={[]}
+        updatingKey={null}
+        onToggle={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByRole("columnheader", { name: "Dentists" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("columnheader", { name: "Nurses" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("columnheader", { name: "Physicians" }),
+    ).not.toBeInTheDocument();
   });
 
   it("notifies when a role toggle changes", () => {
@@ -53,6 +83,7 @@ describe("ClinicalRoleCapabilitiesMatrix", () => {
             description: "Visit timeline and recent events",
           },
         ]}
+        roles={["nurse", "physician"]}
         entries={[]}
         updatingKey={null}
         onToggle={onToggle}

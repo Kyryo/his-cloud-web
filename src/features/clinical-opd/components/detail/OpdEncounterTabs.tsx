@@ -13,12 +13,13 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useOpdEncounterWorkspace } from "@/features/clinical-opd/components/detail/opd-encounter-workspace-context";
 import { useOpdEncounterTabCounts } from "@/features/clinical-opd/hooks/use-clinical-opd";
+import { useWorkspaceRouting } from "@/features/clinical-opd/hooks/use-workspace-routing";
 import {
-  getVisibleOpdEncounterMenuSections,
-  getVisibleOpdEncounterTabs,
-  opdEncounterTabFromPathname,
-  opdEncounterTabHref,
-} from "@/features/clinical-opd/utils/opd-encounter-tabs";
+  getVisibleWorkspaceMenuSections,
+  getVisibleWorkspaceTabs,
+  workspaceTabFromPathname,
+  workspaceTabHref,
+} from "@/features/clinical-workspace/utils/workspace-tabs";
 import { cn } from "@/lib/utils";
 
 type OpdEncounterTabsProps = {
@@ -27,15 +28,20 @@ type OpdEncounterTabsProps = {
 
 export function OpdEncounterTabs({ className }: OpdEncounterTabsProps) {
   const pathname = usePathname();
+  const routing = useWorkspaceRouting();
   const { visitUuid, encounterUuid, capabilities } = useOpdEncounterWorkspace();
-  const activeTab = opdEncounterTabFromPathname(
+  const activeTab = workspaceTabFromPathname(
+    routing,
     pathname,
     visitUuid,
     encounterUuid,
   );
-  const counts = useOpdEncounterTabCounts(visitUuid, encounterUuid);
-  const tabs = getVisibleOpdEncounterTabs(capabilities);
-  const menuSections = getVisibleOpdEncounterMenuSections(capabilities);
+  const counts: Partial<Record<string, number>> = useOpdEncounterTabCounts(
+    visitUuid,
+    encounterUuid,
+  );
+  const tabs = getVisibleWorkspaceTabs(routing, capabilities);
+  const menuSections = getVisibleWorkspaceMenuSections(routing, capabilities);
   const isMenuActive = menuSections.some((section) => section.id === activeTab);
 
   if (tabs.length === 0 && menuSections.length === 0) {
@@ -44,7 +50,7 @@ export function OpdEncounterTabs({ className }: OpdEncounterTabsProps) {
 
   return (
     <nav
-      aria-label="OPD encounter sections"
+      aria-label={`${routing.encounterNoun} sections`}
       className={cn(
         "flex items-end gap-1 border-b border-dash-border/80 px-4 sm:px-6",
         className,
@@ -60,7 +66,7 @@ export function OpdEncounterTabs({ className }: OpdEncounterTabsProps) {
           return (
             <Link
               key={tab.id}
-              href={opdEncounterTabHref(visitUuid, encounterUuid, tab.id)}
+              href={workspaceTabHref(routing, visitUuid, encounterUuid, tab.id)}
               aria-current={isActive ? "page" : undefined}
               className={cn(
                 "inline-flex shrink-0 items-center gap-2 border-b-2 px-2.5 py-2.5 text-sm",
@@ -127,7 +133,8 @@ export function OpdEncounterTabs({ className }: OpdEncounterTabsProps) {
             {menuSections.map((section) => (
               <DropdownMenuItem key={section.id} asChild>
                 <Link
-                  href={opdEncounterTabHref(
+                  href={workspaceTabHref(
+                    routing,
                     visitUuid,
                     encounterUuid,
                     section.id,
