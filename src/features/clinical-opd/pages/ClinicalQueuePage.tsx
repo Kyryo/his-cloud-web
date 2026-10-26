@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -8,6 +8,7 @@ import {
   ListPagePagination,
   ListPageTableSection,
 } from "@/features/app-shell/components/page-layout";
+import { OpdQueueBoard } from "@/features/clinical-opd/components/OpdQueueBoard";
 import { OpdQueueEmptyState } from "@/features/clinical-opd/components/OpdQueueEmptyState";
 import { OpdQueueList } from "@/features/clinical-opd/components/OpdQueueList";
 import { OpdQueuePageHeader } from "@/features/clinical-opd/components/OpdQueuePageHeader";
@@ -17,7 +18,13 @@ import { OpdQueueTable } from "@/features/clinical-opd/components/tables/OpdQueu
 import { useMyClinicalCapabilities } from "@/features/clinical-opd/hooks/use-clinical-opd";
 import type { OpdQueueEncounter } from "@/features/clinical-opd/types/clinical-opd.types";
 import { sortOpdQueueNewestFirst } from "@/features/clinical-opd/utils/opd-queue-stage";
-import type { OpdQueueViewMode } from "@/features/clinical-opd/utils/opd-queue-views";
+import {
+  DEFAULT_OPD_QUEUE_VIEW_MODE,
+  readClinicalQueueViewMode,
+  subscribeClinicalQueueView,
+  writeClinicalQueueViewMode,
+  type OpdQueueViewMode,
+} from "@/features/clinical-opd/utils/opd-queue-views";
 import { ClinicalDepartmentSwitcher } from "@/features/clinical-workspace/components/ClinicalDepartmentSwitcher";
 import { ClinicalNoDepartmentsState } from "@/features/clinical-workspace/components/ClinicalNoDepartmentsState";
 import {
@@ -47,7 +54,11 @@ export function ClinicalQueuePage({ routing }: ClinicalQueuePageProps) {
   const [search, setSearch] = useState("");
   const [activeSearch, setActiveSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [viewMode, setViewMode] = useState<OpdQueueViewMode>("table");
+  const viewMode = useSyncExternalStore(
+    subscribeClinicalQueueView,
+    () => readClinicalQueueViewMode(specialty.code),
+    () => DEFAULT_OPD_QUEUE_VIEW_MODE,
+  );
 
   const {
     data = [],
@@ -105,7 +116,7 @@ export function ClinicalQueuePage({ routing }: ClinicalQueuePageProps) {
   }
 
   function handleViewModeChange(nextMode: OpdQueueViewMode) {
-    setViewMode(nextMode);
+    writeClinicalQueueViewMode(specialty.code, nextMode);
     setPage(1);
   }
 
@@ -140,7 +151,10 @@ export function ClinicalQueuePage({ routing }: ClinicalQueuePageProps) {
   }
 
   return (
-    <ListPageLayout data-testid="opd-queue-page">
+    <ListPageLayout
+      data-testid="opd-queue-page"
+      className={viewMode === "board" ? "overflow-hidden pb-3" : undefined}
+    >
       <OpdQueuePageHeader
         search={search}
         viewMode={viewMode}
@@ -160,7 +174,11 @@ export function ClinicalQueuePage({ routing }: ClinicalQueuePageProps) {
         onRefresh={() => void refetch()}
       />
 
-      <ListPageTableSection>
+      <ListPageTableSection
+        className={
+          viewMode === "board" ? "flex min-h-0 flex-1 flex-col" : undefined
+        }
+      >
         {isLoading ? (
           <OpdQueueTableSkeleton rows={8} />
         ) : error ? (
@@ -206,7 +224,12 @@ export function ClinicalQueuePage({ routing }: ClinicalQueuePageProps) {
           </div>
         ) : (
           <>
-            {viewMode === "list" ? (
+            {viewMode === "board" ? (
+              <OpdQueueBoard
+                encounters={sortedEncounters}
+                encounterHref={landingHref}
+              />
+            ) : viewMode === "list" ? (
               <OpdQueueList encounters={data} encounterHref={landingHref} />
             ) : (
               <OpdQueueTable
