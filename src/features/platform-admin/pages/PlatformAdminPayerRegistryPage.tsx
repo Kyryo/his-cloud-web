@@ -603,6 +603,10 @@ export function PlatformAdminPayerRegistryPage() {
         open={payerOpen}
         onOpenChange={setPayerOpen}
         onUpdated={handlePayerUpdated}
+        onMerged={() => {
+          setSelectedPayer(null);
+          setRefreshKey((current) => current + 1);
+        }}
       />
     </div>
   );

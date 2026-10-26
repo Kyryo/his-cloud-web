@@ -356,6 +356,8 @@ export const BFF_OCCUPATIONAL_HEALTH_ROUTES = {
   hrFitness: "/api/occupational-health/hr/fitness",
   complianceDashboard: "/api/occupational-health/compliance/dashboard",
   complianceExtract: "/api/occupational-health/compliance/extract",
+  encounterHistory: (visitUuid: string, encounterUuid: string) =>
+    `/api/occupational-health/visits/${visitUuid}/encounters/${encounterUuid}/history`,
 } as const;
 
 /** Browser-facing BFF insurance catalog routes (same origin). */
@@ -610,6 +612,8 @@ export const BFF_INVENTORY_ROUTES = {
       `/api/inventory/pricelists/${pricelistUuid}/copy-products/${jobUuid}`,
     copyProductsJobItems: (pricelistUuid: string, jobUuid: string) =>
       `/api/inventory/pricelists/${pricelistUuid}/copy-products/${jobUuid}/items`,
+    syncMasmCorePrices: (pricelistUuid: string) =>
+      `/api/inventory/pricelists/${pricelistUuid}/sync-masm-core-prices`,
     default: "/api/pricelists/default",
   },
   batches: {
@@ -806,6 +810,8 @@ export const BFF_PLATFORM_ADMIN_ROUTES = {
     `/api/platform-admin/payer-registry/${uuid}`,
   payerRegistryReview: (uuid: string) =>
     `/api/platform-admin/payer-registry/${uuid}/review`,
+  payerRegistryMerge: (uuid: string) =>
+    `/api/platform-admin/payer-registry/${uuid}/merge`,
   payerRegistrySchemes: (uuid: string) =>
     `/api/platform-admin/payer-registry/${uuid}/schemes`,
   payerRegistrySchemeDetail: (uuid: string, schemeUuid: string) =>

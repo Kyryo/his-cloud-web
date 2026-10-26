@@ -26,7 +26,7 @@ export async function GET(request: Request, context: RouteContext) {
     const suffix = query.toString() ? `?${query}` : "";
     const member = await hmisApiRequest<PayerMember>(
       `${CLAIMS_API_PATHS.clinicMemberSearch(payer, clinicId)}${suffix}`,
-      { token: auth.accessToken, timeoutMs: 90_000 },
+      { token: auth.accessToken, timeoutMs: 210_000 },
     );
 
     return bffSuccess(member);

@@ -41,6 +41,8 @@ export const PLATFORM_ADMIN_API_PATHS = {
     `/platform-admin/payer-registry/${uuid}/`,
   payerRegistryReview: (uuid: string) =>
     `/platform-admin/payer-registry/${uuid}/review/`,
+  payerRegistryMerge: (uuid: string) =>
+    `/platform-admin/payer-registry/${uuid}/merge/`,
   payerRegistrySchemes: (uuid: string) =>
     `/platform-admin/payer-registry/${uuid}/schemes/`,
   payerRegistrySchemeDetail: (uuid: string, schemeUuid: string) =>

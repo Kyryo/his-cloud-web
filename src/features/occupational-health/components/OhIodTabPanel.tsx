@@ -1,7 +1,9 @@
 "use client";
 
+import { AlertTriangle } from "lucide-react";
 import { useState } from "react";
 
+import { DetailTabEmptyState } from "@/components/detail/detail-tab-empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,11 +15,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { IodCase } from "@/features/occupational-health/types";
+import {
+  OhConsultContentPanel,
+  OhConsultFormPanel,
+  OhConsultLayout,
+} from "@/features/occupational-health/components/OhConsultLayout";
+import { OhRecordCard } from "@/features/occupational-health/components/OhRecordCard";
 import {
   createIodCase,
   downloadIodStatutoryPack,
 } from "@/features/occupational-health/services/oh.service";
+import type { IodCase } from "@/features/occupational-health/types";
+import { formatDisplayDate } from "@/features/customers/utils/format-customer";
 import { useToast } from "@/providers/toast-provider";
 
 const SEVERITIES = [
@@ -36,6 +45,8 @@ const SAFETY_CLASSES = [
 ] as const;
 
 type OhIodTabPanelProps = {
+  visitUuid: string;
+  encounterUuid: string;
   encounterId: number;
   customerId: number;
   tenantId: number;
@@ -44,6 +55,8 @@ type OhIodTabPanelProps = {
 };
 
 export function OhIodTabPanel({
+  visitUuid,
+  encounterUuid,
   encounterId,
   customerId,
   tenantId,
@@ -124,148 +137,180 @@ export function OhIodTabPanel({
   }
 
   return (
-    <div className="space-y-6" data-testid="oh-iod-tab">
-      <form
-        onSubmit={(event) => void handleSubmit(event)}
-        className="grid gap-4 rounded-xl border border-brand-border bg-white p-4 md:grid-cols-2"
-      >
-        <div className="space-y-2">
-          <Label htmlFor="oh-iod-severity">Severity</Label>
-          <Select value={severity} onValueChange={setSeverity}>
-            <SelectTrigger id="oh-iod-severity">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {SEVERITIES.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="oh-iod-safety">Safety classification</Label>
-          <Select
-            value={safetyClassification}
-            onValueChange={setSafetyClassification}
+    <OhConsultLayout
+      visitUuid={visitUuid}
+      encounterUuid={encounterUuid}
+      historySection="iod"
+      wideForm
+      data-testid="oh-iod-tab"
+      form={
+        <OhConsultFormPanel
+          title="IOD case"
+          description="Open an injury on duty case linked to this occupational health visit."
+        >
+          <form
+            onSubmit={(event) => void handleSubmit(event)}
+            className="space-y-4"
           >
-            <SelectTrigger id="oh-iod-safety">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {SAFETY_CLASSES.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="oh-iod-onset">Onset date</Label>
-          <Input
-            id="oh-iod-onset"
-            type="date"
-            value={onsetDate}
-            onChange={(event) => setOnsetDate(event.target.value)}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="oh-iod-she-ref">SHE reference</Label>
-          <Input
-            id="oh-iod-she-ref"
-            value={sheReference}
-            onChange={(event) => setSheReference(event.target.value)}
-            placeholder="Employer / SHE case reference"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="oh-iod-mechanism">Mechanism</Label>
-          <Input
-            id="oh-iod-mechanism"
-            value={mechanism}
-            onChange={(event) => setMechanism(event.target.value)}
-            placeholder="e.g. slip, struck by, chemical exposure"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="oh-iod-body-part">Body part</Label>
-          <Input
-            id="oh-iod-body-part"
-            value={bodyPart}
-            onChange={(event) => setBodyPart(event.target.value)}
-            placeholder="e.g. right hand, lower back"
-          />
-        </div>
-        <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="oh-iod-location">Incident location</Label>
-          <Input
-            id="oh-iod-location"
-            value={incidentLocation}
-            onChange={(event) => setIncidentLocation(event.target.value)}
-            placeholder="Where on site the incident occurred"
-          />
-        </div>
-        <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="oh-iod-description">Description</Label>
-          <Textarea
-            id="oh-iod-description"
-            value={description}
-            onChange={(event) => setDescription(event.target.value)}
-            rows={3}
-            required
-          />
-        </div>
-        <div className="md:col-span-2">
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Saving…" : "Open IOD case"}
-          </Button>
-        </div>
-      </form>
-
-      <ul className="divide-y rounded-xl border border-brand-border bg-white">
-        {iodCases.length === 0 ? (
-          <li className="px-4 py-3 text-sm text-brand-muted">No IOD cases linked.</li>
-        ) : (
-          iodCases.map((item) => (
-            <li
-              key={item.uuid}
-              className="flex flex-wrap items-start justify-between gap-3 px-4 py-3 text-sm"
-            >
-              <div>
-                <div className="font-medium capitalize">
-                  {item.severity} — {item.status.replace(/_/g, " ")}
-                  {item.safety_classification
-                    ? ` · ${item.safety_classification.replace(/_/g, " ")}`
-                    : ""}
-                </div>
-                {item.she_reference ? (
-                  <p className="text-brand-muted">SHE ref: {item.she_reference}</p>
-                ) : null}
-                {(item.mechanism || item.body_part || item.incident_location) && (
-                  <p className="mt-1 text-brand-muted">
-                    {[item.mechanism, item.body_part, item.incident_location]
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="oh-iod-severity">Severity</Label>
+                <Select value={severity} onValueChange={setSeverity}>
+                  <SelectTrigger id="oh-iod-severity">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SEVERITIES.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="oh-iod-safety">Safety class</Label>
+                <Select
+                  value={safetyClassification}
+                  onValueChange={setSafetyClassification}
+                >
+                  <SelectTrigger id="oh-iod-safety">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SAFETY_CLASSES.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="oh-iod-onset">Onset date</Label>
+              <Input
+                id="oh-iod-onset"
+                type="date"
+                value={onsetDate}
+                onChange={(event) => setOnsetDate(event.target.value)}
+                required
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="oh-iod-she-ref">SHE reference</Label>
+              <Input
+                id="oh-iod-she-ref"
+                value={sheReference}
+                onChange={(event) => setSheReference(event.target.value)}
+                placeholder="Employer / SHE case reference"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="oh-iod-mechanism">Mechanism</Label>
+              <Input
+                id="oh-iod-mechanism"
+                value={mechanism}
+                onChange={(event) => setMechanism(event.target.value)}
+                placeholder="e.g. slip, struck by"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="oh-iod-body-part">Body part</Label>
+              <Input
+                id="oh-iod-body-part"
+                value={bodyPart}
+                onChange={(event) => setBodyPart(event.target.value)}
+                placeholder="e.g. right hand"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="oh-iod-location">Incident location</Label>
+              <Input
+                id="oh-iod-location"
+                value={incidentLocation}
+                onChange={(event) => setIncidentLocation(event.target.value)}
+                placeholder="Where on site"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="oh-iod-description">Description</Label>
+              <Textarea
+                id="oh-iod-description"
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                rows={3}
+                required
+              />
+            </div>
+            <Button type="submit" disabled={isSubmitting} className="w-full">
+              {isSubmitting ? "Saving…" : "Open IOD case"}
+            </Button>
+          </form>
+        </OhConsultFormPanel>
+      }
+      content={
+        <OhConsultContentPanel title="IOD cases" count={iodCases.length}>
+          {iodCases.length === 0 ? (
+            <DetailTabEmptyState
+              icon={AlertTriangle}
+              title="No IOD cases yet"
+              description="Open a case on the left. Linked IOD records for this visit will show here."
+            />
+          ) : (
+            <ul className="space-y-3">
+              {iodCases.map((item) => (
+                <li key={item.uuid}>
+                  <OhRecordCard
+                    title={
+                      <span className="capitalize">
+                        {item.severity} — {item.status.replace(/_/g, " ")}
+                      </span>
+                    }
+                    meta={[
+                      formatDisplayDate(item.onset_date),
+                      item.safety_classification
+                        ? item.safety_classification.replace(/_/g, " ")
+                        : null,
+                      item.she_reference ? `SHE ${item.she_reference}` : null,
+                    ]
                       .filter(Boolean)
                       .join(" · ")}
-                  </p>
-                )}
-                <p className="mt-1 text-brand-muted">{item.description}</p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={downloadingUuid === item.uuid}
-                onClick={() => void handleStatutoryPack(item.uuid)}
-              >
-                {downloadingUuid === item.uuid ? "Loading…" : "Statutory pack"}
-              </Button>
-            </li>
-          ))
-        )}
-      </ul>
-    </div>
+                    actions={
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={downloadingUuid === item.uuid}
+                        onClick={() => void handleStatutoryPack(item.uuid)}
+                      >
+                        {downloadingUuid === item.uuid
+                          ? "Loading…"
+                          : "Statutory pack"}
+                      </Button>
+                    }
+                  >
+                    {(item.mechanism ||
+                      item.body_part ||
+                      item.incident_location) && (
+                      <p className="text-sm text-brand-muted">
+                        {[item.mechanism, item.body_part, item.incident_location]
+                          .filter(Boolean)
+                          .join(" · ")}
+                      </p>
+                    )}
+                    {item.description ? (
+                      <p className="text-sm leading-relaxed text-brand-slate">
+                        {item.description}
+                      </p>
+                    ) : null}
+                  </OhRecordCard>
+                </li>
+              ))}
+            </ul>
+          )}
+        </OhConsultContentPanel>
+      }
+    />
   );
 }

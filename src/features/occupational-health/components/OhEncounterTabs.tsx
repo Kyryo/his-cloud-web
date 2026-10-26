@@ -30,7 +30,7 @@ export function OhEncounterTabs({
     <nav
       aria-label="Occupational health encounter sections"
       className={cn(
-        "flex items-end gap-1 border-b border-dash-border/80 px-4 sm:px-6",
+        "flex items-end gap-1 border-b border-dash-border/80 bg-white px-4 sm:px-6",
         className,
       )}
       data-testid="oh-encounter-tabs"

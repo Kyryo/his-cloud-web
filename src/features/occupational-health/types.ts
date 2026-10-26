@@ -310,3 +310,24 @@ export type OhHrFitnessRow = {
   restrictions: OhHrFitnessRestriction[];
   certificate: OhHrFitnessCertificate | null;
 };
+
+export type OhHistoryVisit = {
+  visit_uuid: string;
+  encounter_uuid: string;
+  visit_date: string | null;
+  department: string | null;
+  status: string;
+  started_at: string | null;
+  ended_at: string | null;
+};
+
+export type OhVisitHistory = {
+  visits: OhHistoryVisit[];
+  selected_visit_uuid: string | null;
+  selected_encounter_uuid: string | null;
+  examinations: OhExamination[];
+  findings: OhExamFinding[];
+  fitness_assessments: FitnessAssessment[];
+  fitness_certificates: FitnessCertificate[];
+  iod_cases: IodCase[];
+};

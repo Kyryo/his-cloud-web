@@ -29,4 +29,6 @@ export const OCCUPATIONAL_HEALTH_API_PATHS = {
   campaignQueue: "/oh/campaign-queue/",
   hrFitness: "/oh/hr/fitness/",
   fitnessValidityAlerts: "/oh/fitness-validity-alerts/",
+  encounterHistory: (visitUuid: string, encounterUuid: string) =>
+    `/oh/visits/${visitUuid}/encounters/${encounterUuid}/history/`,
 } as const;

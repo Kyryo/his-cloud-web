@@ -2,7 +2,8 @@ import { BFF_CLAIMS_ROUTES } from "@/constants/api";
 import type { PayerMember } from "@/features/customers/types/payer-member.types";
 import { bffRequest } from "@/lib/bff-client";
 
-const MEMBER_SEARCH_TIMEOUT_MS = 90_000;
+/** Keep above Django CLAIMS_ENGINE_TIMEOUT_SECONDS (default 180). */
+const MEMBER_SEARCH_TIMEOUT_MS = 210_000;
 
 export async function searchPayerMember(options: {
   payer: string;

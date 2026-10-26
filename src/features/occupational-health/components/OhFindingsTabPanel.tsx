@@ -1,7 +1,9 @@
 "use client";
 
+import { FlaskConical } from "lucide-react";
 import { useState } from "react";
 
+import { DetailTabEmptyState } from "@/components/detail/detail-tab-empty-state";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,17 +14,33 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { OhExamFinding, OhExamination } from "@/features/occupational-health/types";
+import {
+  OhConsultContentPanel,
+  OhConsultFormLocked,
+  OhConsultFormPanel,
+  OhConsultLayout,
+} from "@/features/occupational-health/components/OhConsultLayout";
+import { OhRecordCard } from "@/features/occupational-health/components/OhRecordCard";
 import { createOhExamFinding } from "@/features/occupational-health/services/oh.service";
+import type {
+  OhExamFinding,
+  OhExamination,
+} from "@/features/occupational-health/types";
+import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { useToast } from "@/providers/toast-provider";
+import { cn } from "@/lib/utils";
 
 type OhFindingsTabPanelProps = {
+  visitUuid: string;
+  encounterUuid: string;
   examinations: OhExamination[];
   findings: OhExamFinding[];
   onCreated: () => void;
 };
 
 export function OhFindingsTabPanel({
+  visitUuid,
+  encounterUuid,
   examinations,
   findings,
   onCreated,
@@ -35,6 +53,7 @@ export function OhFindingsTabPanel({
   const [numericValue, setNumericValue] = useState("");
   const [unit, setUnit] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const canRecord = examinations.length > 0;
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
@@ -67,95 +86,116 @@ export function OhFindingsTabPanel({
     }
   }
 
-  if (examinations.length === 0) {
-    return (
-      <p className="text-sm text-brand-muted" data-testid="oh-findings-tab">
-        Add an examination before recording findings.
-      </p>
-    );
-  }
-
   return (
-    <div className="space-y-6" data-testid="oh-findings-tab">
-      <form
-        onSubmit={(event) => void handleSubmit(event)}
-        className="grid gap-4 rounded-xl border border-brand-border bg-white p-4 md:grid-cols-2"
-      >
-        <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="oh-finding-exam">Examination</Label>
-          <Select value={examinationId} onValueChange={setExaminationId}>
-            <SelectTrigger id="oh-finding-exam">
-              <SelectValue placeholder="Select examination" />
-            </SelectTrigger>
-            <SelectContent>
-              {examinations.map((exam) => (
-                <SelectItem key={exam.uuid} value={String(exam.id)}>
-                  {exam.exam_type.replace(/_/g, " ")} ({exam.uuid.slice(0, 8)})
-                </SelectItem>
+    <OhConsultLayout
+      visitUuid={visitUuid}
+      encounterUuid={encounterUuid}
+      historySection="findings"
+      data-testid="oh-findings-tab"
+      form={
+        <OhConsultFormPanel
+          title="Finding"
+          description="Capture measured or coded results for an examination on this visit."
+        >
+          {!canRecord ? (
+            <OhConsultFormLocked message="Add an examination before recording findings." />
+          ) : (
+            <form
+              onSubmit={(event) => void handleSubmit(event)}
+              className="space-y-4"
+            >
+              <div className="space-y-2">
+                <Label htmlFor="oh-finding-exam">Examination</Label>
+                <Select value={examinationId} onValueChange={setExaminationId}>
+                  <SelectTrigger id="oh-finding-exam">
+                    <SelectValue placeholder="Select examination" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {examinations.map((exam) => (
+                      <SelectItem key={exam.uuid} value={String(exam.id)}>
+                        {exam.exam_type.replace(/_/g, " ")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="oh-finding-code">Code</Label>
+                <Input
+                  id="oh-finding-code"
+                  value={code}
+                  onChange={(event) => setCode(event.target.value)}
+                  placeholder="e.g. audiometry_left"
+                  required
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="oh-finding-value">Value</Label>
+                  <Input
+                    id="oh-finding-value"
+                    value={numericValue}
+                    onChange={(event) => setNumericValue(event.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="oh-finding-unit">Unit</Label>
+                  <Input
+                    id="oh-finding-unit"
+                    value={unit}
+                    onChange={(event) => setUnit(event.target.value)}
+                    placeholder="dB"
+                  />
+                </div>
+              </div>
+              <Button type="submit" disabled={isSubmitting} className="w-full">
+                {isSubmitting ? "Saving…" : "Add finding"}
+              </Button>
+            </form>
+          )}
+        </OhConsultFormPanel>
+      }
+      content={
+        <OhConsultContentPanel title="Findings" count={findings.length}>
+          {findings.length === 0 ? (
+            <DetailTabEmptyState
+              icon={FlaskConical}
+              title="No findings yet"
+              description="Save a finding on the left. It will appear here for this visit."
+            />
+          ) : (
+            <ul className="space-y-3">
+              {findings.map((finding) => (
+                <li key={finding.uuid}>
+                  <OhRecordCard
+                    title={finding.code}
+                    meta={formatDisplayDateTime(finding.recorded_at)}
+                  >
+                    <p className="text-sm text-brand-slate">
+                      {[finding.numeric_value, finding.unit, finding.coded_value]
+                        .filter(Boolean)
+                        .join(" ") || "—"}
+                    </p>
+                    {finding.threshold_flag &&
+                    finding.threshold_flag !== "none" ? (
+                      <span
+                        className={cn(
+                          "mt-2 inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium uppercase",
+                          finding.threshold_flag === "alert"
+                            ? "bg-red-50 text-red-700"
+                            : "bg-amber-50 text-amber-800",
+                        )}
+                      >
+                        {finding.threshold_flag}
+                      </span>
+                    ) : null}
+                  </OhRecordCard>
+                </li>
               ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="oh-finding-code">Code</Label>
-          <Input
-            id="oh-finding-code"
-            value={code}
-            onChange={(event) => setCode(event.target.value)}
-            required
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="oh-finding-value">Numeric value</Label>
-          <Input
-            id="oh-finding-value"
-            value={numericValue}
-            onChange={(event) => setNumericValue(event.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="oh-finding-unit">Unit</Label>
-          <Input
-            id="oh-finding-unit"
-            value={unit}
-            onChange={(event) => setUnit(event.target.value)}
-          />
-        </div>
-        <div className="md:col-span-2">
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Saving…" : "Add finding"}
-          </Button>
-        </div>
-      </form>
-
-      <ul className="divide-y rounded-xl border border-brand-border bg-white">
-        {findings.length === 0 ? (
-          <li className="px-4 py-3 text-sm text-brand-muted">No findings yet.</li>
-        ) : (
-          findings.map((finding) => (
-            <li key={finding.uuid} className="px-4 py-3 text-sm">
-              <span className="font-medium">{finding.code}</span>
-              {finding.numeric_value ? (
-                <span className="text-brand-muted">
-                  {" "}
-                  — {finding.numeric_value} {finding.unit}
-                </span>
-              ) : null}
-              {finding.threshold_flag && finding.threshold_flag !== "none" ? (
-                <span
-                  className={
-                    finding.threshold_flag === "alert"
-                      ? "ml-2 rounded bg-red-50 px-1.5 py-0.5 text-xs font-medium uppercase text-red-700"
-                      : "ml-2 rounded bg-amber-50 px-1.5 py-0.5 text-xs font-medium uppercase text-amber-800"
-                  }
-                >
-                  {finding.threshold_flag}
-                </span>
-              ) : null}
-            </li>
-          ))
-        )}
-      </ul>
-    </div>
+            </ul>
+          )}
+        </OhConsultContentPanel>
+      }
+    />
   );
 }

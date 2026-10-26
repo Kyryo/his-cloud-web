@@ -23,6 +23,7 @@ import { ROUTES } from "@/constants/routes";
 import {
   fetchCatalogPricelistProducts,
   removeCatalogPricelistProduct,
+  syncCatalogMasmCorePrices,
   updateCatalogPricelistProduct,
 } from "@/features/catalog/services/catalog.service";
 import type {
@@ -75,6 +76,8 @@ export function PricelistDetailProductsTab({
     null,
   );
   const [isSaving, setIsSaving] = useState(false);
+  const [masmSyncOpen, setMasmSyncOpen] = useState(false);
+  const [isMasmSyncing, setIsMasmSyncing] = useState(false);
 
   const loadItems = useCallback(async (options?: { silent?: boolean }) => {
     if (!options?.silent) {
@@ -192,6 +195,39 @@ export function PricelistDetailProductsTab({
     }
   }
 
+  async function handleMasmCoreSync() {
+    setIsMasmSyncing(true);
+    try {
+      const result = await syncCatalogMasmCorePrices(pricelist.uuid, {
+        provider_id: 154,
+      });
+      const pending = result.approval_required || 0;
+      toast({
+        variant: "success",
+        title: "MASM Core prices synced",
+        description:
+          pending > 0
+            ? `Updated ${result.updated}, unchanged ${result.unchanged}, pending approval ${pending}.`
+            : `Updated ${result.updated} of ${result.matched} matched tariffs (${result.unchanged} unchanged).`,
+      });
+      setMasmSyncOpen(false);
+      await loadItems({ silent: true });
+    } catch (err) {
+      toast({
+        variant: "error",
+        title: "Could not sync MASM Core prices",
+        description:
+          err instanceof BffError
+            ? formatBffErrorMessage(err.message, err.errors)
+            : err instanceof Error
+              ? err.message
+              : "Something went wrong.",
+      });
+    } finally {
+      setIsMasmSyncing(false);
+    }
+  }
+
   if (!isActive) {
     return null;
   }
@@ -251,11 +287,21 @@ export function PricelistDetailProductsTab({
             <PrimaryButton
               type="button"
               className="rounded-full"
-              disabled={Boolean(activeCopyJobUuid)}
+              disabled={Boolean(activeCopyJobUuid) || isMasmSyncing}
               onClick={() => setAddOpen(true)}
             >
               Add product
             </PrimaryButton>
+            {items.length > 0 ? (
+              <SecondaryButton
+                type="button"
+                className="rounded-full"
+                disabled={isMasmSyncing || Boolean(activeCopyJobUuid)}
+                onClick={() => setMasmSyncOpen(true)}
+              >
+                Update from MASM Core
+              </SecondaryButton>
+            ) : null}
             {items.length === 0 && !activeCopyJobUuid ? (
               <SecondaryButton
                 type="button"
@@ -392,6 +438,49 @@ export function PricelistDetailProductsTab({
           setActiveCopyToastId(toastId);
         }}
       />
+
+      <Dialog
+        open={masmSyncOpen}
+        onOpenChange={(open) => {
+          if (!open && !isMasmSyncing) {
+            setMasmSyncOpen(false);
+          }
+        }}
+      >
+        <DialogContent className={cn("sm:max-w-md", appFont.className)}>
+          <DialogHeader>
+            <DialogTitle>Update prices from MASM Core?</DialogTitle>
+            <DialogDescription>
+              Match products on this pricelist by scheme tariff code and update fixed
+              prices from MASM Core. Products without a tariff code, or codes missing
+              upstream, are left unchanged.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <SecondaryButton
+              type="button"
+              disabled={isMasmSyncing}
+              onClick={() => setMasmSyncOpen(false)}
+            >
+              Cancel
+            </SecondaryButton>
+            <PrimaryButton
+              type="button"
+              disabled={isMasmSyncing}
+              onClick={() => void handleMasmCoreSync()}
+            >
+              {isMasmSyncing ? (
+                <>
+                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                  Syncing...
+                </>
+              ) : (
+                "Update prices"
+              )}
+            </PrimaryButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog
         open={Boolean(priceEdit)}

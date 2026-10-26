@@ -1,7 +1,9 @@
 "use client";
 
+import { ClipboardList } from "lucide-react";
 import { useState } from "react";
 
+import { DetailTabEmptyState } from "@/components/detail/detail-tab-empty-state";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -12,8 +14,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { OhExamination } from "@/features/occupational-health/types";
+import {
+  OhConsultContentPanel,
+  OhConsultFormPanel,
+  OhConsultLayout,
+} from "@/features/occupational-health/components/OhConsultLayout";
+import { OhRecordCard } from "@/features/occupational-health/components/OhRecordCard";
 import { createOhExamination } from "@/features/occupational-health/services/oh.service";
+import type { OhExamination } from "@/features/occupational-health/types";
+import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
 import { useToast } from "@/providers/toast-provider";
 
 const EXAM_TYPES = [
@@ -26,12 +35,16 @@ const EXAM_TYPES = [
 ] as const;
 
 type OhExamTabPanelProps = {
+  visitUuid: string;
+  encounterUuid: string;
   encounterId: number;
   examinations: OhExamination[];
   onCreated: () => void;
 };
 
 export function OhExamTabPanel({
+  visitUuid,
+  encounterUuid,
   encounterId,
   examinations,
   onCreated,
@@ -66,61 +79,87 @@ export function OhExamTabPanel({
   }
 
   return (
-    <div className="space-y-6" data-testid="oh-exam-tab">
-      <form
-        onSubmit={(event) => void handleSubmit(event)}
-        className="grid gap-4 rounded-xl border border-brand-border bg-white p-4 md:grid-cols-2"
-      >
-        <div className="space-y-2">
-          <Label htmlFor="oh-exam-type">Exam type</Label>
-          <Select value={examType} onValueChange={setExamType}>
-            <SelectTrigger id="oh-exam-type">
-              <SelectValue placeholder="Select type" />
-            </SelectTrigger>
-            <SelectContent>
-              {EXAM_TYPES.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
+    <OhConsultLayout
+      visitUuid={visitUuid}
+      encounterUuid={encounterUuid}
+      historySection="exam"
+      data-testid="oh-exam-tab"
+      form={
+        <OhConsultFormPanel
+          title="Examination"
+          description="Record the exam type and any clinical notes for this visit."
+        >
+          <form
+            onSubmit={(event) => void handleSubmit(event)}
+            className="space-y-4"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="oh-exam-type">Exam type</Label>
+              <Select value={examType} onValueChange={setExamType}>
+                <SelectTrigger id="oh-exam-type">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {EXAM_TYPES.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="oh-exam-notes">Notes</Label>
+              <Textarea
+                id="oh-exam-notes"
+                value={notes}
+                onChange={(event) => setNotes(event.target.value)}
+                rows={4}
+                placeholder="Optional notes for this examination"
+              />
+            </div>
+            <Button type="submit" disabled={isSubmitting} className="w-full">
+              {isSubmitting ? "Saving…" : "Add examination"}
+            </Button>
+          </form>
+        </OhConsultFormPanel>
+      }
+      content={
+        <OhConsultContentPanel title="Examinations" count={examinations.length}>
+          {examinations.length === 0 ? (
+            <DetailTabEmptyState
+              icon={ClipboardList}
+              title="No examinations yet"
+              description="Save an examination on the left. It will appear here for this visit."
+            />
+          ) : (
+            <ul className="space-y-3">
+              {examinations.map((exam) => (
+                <li key={exam.uuid}>
+                  <OhRecordCard
+                    title={
+                      <span className="capitalize">
+                        {exam.exam_type.replace(/_/g, " ")}
+                      </span>
+                    }
+                    meta={
+                      exam.examined_at
+                        ? formatDisplayDateTime(exam.examined_at)
+                        : undefined
+                    }
+                  >
+                    {exam.notes ? (
+                      <p className="text-sm leading-relaxed text-brand-slate">
+                        {exam.notes}
+                      </p>
+                    ) : null}
+                  </OhRecordCard>
+                </li>
               ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="oh-exam-notes">Notes</Label>
-          <Textarea
-            id="oh-exam-notes"
-            value={notes}
-            onChange={(event) => setNotes(event.target.value)}
-            rows={3}
-          />
-        </div>
-        <div className="md:col-span-2">
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? "Saving…" : "Add examination"}
-          </Button>
-        </div>
-      </form>
-
-      <div className="space-y-2">
-        <h3 className="text-sm font-semibold text-brand-navy">Examinations</h3>
-        {examinations.length === 0 ? (
-          <p className="text-sm text-brand-muted">No examinations yet.</p>
-        ) : (
-          <ul className="divide-y rounded-xl border border-brand-border bg-white">
-            {examinations.map((exam) => (
-              <li key={exam.uuid} className="px-4 py-3 text-sm">
-                <div className="font-medium capitalize">
-                  {exam.exam_type.replace(/_/g, " ")}
-                </div>
-                {exam.notes ? (
-                  <p className="mt-1 text-brand-muted">{exam.notes}</p>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-    </div>
+            </ul>
+          )}
+        </OhConsultContentPanel>
+      }
+    />
   );
 }

@@ -45,6 +45,8 @@ export const CATALOG_API_PATHS = {
       `/pricelists/${pricelistUuid}/copy-products/${jobUuid}/`,
     copyProductsJobItems: (pricelistUuid: string, jobUuid: string) =>
       `/pricelists/${pricelistUuid}/copy-products/${jobUuid}/items/`,
+    syncMasmCorePrices: (pricelistUuid: string) =>
+      `/pricelists/${pricelistUuid}/sync-masm-core-prices/`,
     tenantDefault: (tenantUuid: string) => `/tenants/${tenantUuid}/pricelists/default/`,
   },
   auditEvents: "/catalog/audit-events/",

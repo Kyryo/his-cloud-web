@@ -110,6 +110,34 @@ export type CatalogPricelistCopyJobItem = {
   error_message?: string;
 };
 
+export type CatalogMasmCorePriceSyncChange = {
+  product_uuid: string;
+  product_name: string;
+  tariff_code: string;
+  old_price: string;
+  new_price: string;
+  status?: string;
+};
+
+export type CatalogMasmCorePriceSyncResult = {
+  matched: number;
+  updated: number;
+  unchanged: number;
+  missing_in_core: number;
+  missing_tariff_code: number;
+  approval_required: number;
+  core_tariffs: number;
+  provider_id: number | null;
+  dry_run: boolean;
+  changes: CatalogMasmCorePriceSyncChange[];
+};
+
+export type SyncCatalogMasmCorePricesPayload = {
+  provider_id?: number;
+  dry_run?: boolean;
+  page_size?: number;
+};
+
 export type StartCatalogPricelistCopyPayload = {
   source_pricelist_uuid: string;
 };

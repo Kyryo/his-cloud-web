@@ -8,6 +8,7 @@ import type {
   CatalogPriceChange,
   CatalogPriceChangeMutationResult,
   CatalogPricelist,
+  CatalogMasmCorePriceSyncResult,
   CatalogPricelistCopyJob,
   CatalogPricelistCopyJobItem,
   CatalogPricelistMembership,
@@ -19,6 +20,7 @@ import type {
   OrganizationDefaultPricelistUuid,
   SetOrganizationDefaultPricelistUuidPayload,
   StartCatalogPricelistCopyPayload,
+  SyncCatalogMasmCorePricesPayload,
   UpdateCatalogPricelistPayload,
   UpdateCatalogPricelistProductPayload,
 } from "@/features/catalog/types/catalog.types";
@@ -225,6 +227,20 @@ export async function startCatalogPricelistCopy(
     {
       method: "POST",
       body: payload,
+    },
+  );
+}
+
+export async function syncCatalogMasmCorePrices(
+  pricelistUuid: string,
+  payload: SyncCatalogMasmCorePricesPayload = {},
+): Promise<CatalogMasmCorePriceSyncResult> {
+  return bffRequest<CatalogMasmCorePriceSyncResult>(
+    BFF_INVENTORY_ROUTES.pricelists.syncMasmCorePrices(pricelistUuid),
+    {
+      method: "POST",
+      body: payload,
+      timeoutMs: 210_000,
     },
   );
 }

@@ -29,7 +29,9 @@ import {
 import {
   createPlatformAdminPayerScheme,
   deletePlatformAdminPayerScheme,
+  fetchPlatformAdminPayerRegistry,
   fetchPlatformAdminPayerSchemes,
+  mergePlatformAdminPayer,
   updatePlatformAdminPayer,
 } from "@/features/platform-admin/services/platform-admin.service";
 import type {
@@ -43,6 +45,7 @@ type RegistryPayerDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onUpdated: (payer: CountryPayer) => void;
+  onMerged?: (result: { survivor: CountryPayer; retired: CountryPayer }) => void;
 };
 
 type PayerDialogTab = "details" | "schemes" | "capabilities";
@@ -60,9 +63,11 @@ export function RegistryPayerDialog({
   open,
   onOpenChange,
   onUpdated,
+  onMerged,
 }: RegistryPayerDialogProps) {
   const { toast } = useToast();
   const [tab, setTab] = useState<PayerDialogTab>("details");
+  const [code, setCode] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [officialName, setOfficialName] = useState("");
   const [integrationCode, setIntegrationCode] = useState("");
@@ -79,6 +84,13 @@ export function RegistryPayerDialog({
   const [pendingRemoveUuid, setPendingRemoveUuid] = useState<string | null>(null);
   const [removingUuid, setRemovingUuid] = useState<string | null>(null);
   const [savingCapability, setSavingCapability] = useState<string | null>(null);
+  const [mergeOpen, setMergeOpen] = useState(false);
+  const [mergeTargets, setMergeTargets] = useState<CountryPayer[]>([]);
+  const [mergeTargetsLoading, setMergeTargetsLoading] = useState(false);
+  const [mergeTargetUuid, setMergeTargetUuid] = useState("");
+  const [mergeCode, setMergeCode] = useState("");
+  const [mergeIntegrationCode, setMergeIntegrationCode] = useState("");
+  const [isMerging, setIsMerging] = useState(false);
   const openedPayerId = useRef<string | null>(null);
   const payerId = payer?.uuid ?? null;
 
@@ -92,12 +104,14 @@ export function RegistryPayerDialog({
     }
     openedPayerId.current = payer.uuid;
     setTab("details");
+    setCode(payer.code);
     setDisplayName(payer.display_name);
     setOfficialName(payer.official_name);
     setIntegrationCode(payer.integration_code);
     setStatus(payer.status);
     setIsActive(payer.is_active);
     setAddSchemeOpen(false);
+    setMergeOpen(false);
     setPendingRemoveUuid(null);
   }, [open, payer]);
 
@@ -134,8 +148,62 @@ export function RegistryPayerDialog({
     };
   }, [open, payerId, toast]);
 
+  useEffect(() => {
+    if (!mergeOpen || !payer) {
+      return;
+    }
+    let active = true;
+    setMergeTargetsLoading(true);
+    setMergeTargetUuid("");
+    setMergeCode("");
+    setMergeIntegrationCode("");
+    void fetchPlatformAdminPayerRegistry({
+      page: 1,
+      pageSize: 100,
+      countryCode: payer.country_code,
+      status: "approved",
+    })
+      .then((response) => {
+        if (!active) {
+          return;
+        }
+        setMergeTargets(
+          response.results.filter(
+            (item) => item.uuid !== payer.uuid && item.is_active,
+          ),
+        );
+      })
+      .catch((error: unknown) => {
+        if (!active) {
+          return;
+        }
+        setMergeTargets([]);
+        toast({
+          variant: "error",
+          title: "Unable to load payers",
+          description: error instanceof Error ? error.message : "Something went wrong.",
+        });
+      })
+      .finally(() => {
+        if (active) {
+          setMergeTargetsLoading(false);
+        }
+      });
+    return () => {
+      active = false;
+    };
+  }, [mergeOpen, payer, toast]);
+
   async function handleSave() {
     if (!payer) {
+      return;
+    }
+    if (!code.trim()) {
+      toast({
+        variant: "error",
+        title: "Code is required",
+        description: "Enter a registry code such as MASM.",
+      });
       return;
     }
     if (!displayName.trim() || !officialName.trim()) {
@@ -149,6 +217,7 @@ export function RegistryPayerDialog({
     setIsSaving(true);
     try {
       const updated = await updatePlatformAdminPayer(payer.uuid, {
+        code: code.trim(),
         display_name: displayName.trim(),
         official_name: officialName.trim(),
         integration_code: integrationCode.trim(),
@@ -156,6 +225,7 @@ export function RegistryPayerDialog({
         is_active: isActive,
       });
       onUpdated(updated);
+      setCode(updated.code);
       toast({
         variant: "success",
         title: "Payer updated",
@@ -169,6 +239,43 @@ export function RegistryPayerDialog({
       });
     } finally {
       setIsSaving(false);
+    }
+  }
+
+  async function handleMerge() {
+    if (!payer || !mergeTargetUuid) {
+      toast({
+        variant: "error",
+        title: "Choose a payer to keep",
+        description: "Select the registry payer that should remain after the merge.",
+      });
+      return;
+    }
+    setIsMerging(true);
+    try {
+      const result = await mergePlatformAdminPayer(payer.uuid, {
+        target_uuid: mergeTargetUuid,
+        code: mergeCode.trim() || undefined,
+        integration_code: mergeIntegrationCode.trim(),
+        review_note: `Merged ${payer.code} into survivor.`,
+      });
+      onMerged?.({ survivor: result.payer, retired: result.source });
+      onUpdated(result.payer);
+      setMergeOpen(false);
+      onOpenChange(false);
+      toast({
+        variant: "success",
+        title: "Payers merged",
+        description: `${payer.code} was merged into ${result.payer.code}.`,
+      });
+    } catch (error) {
+      toast({
+        variant: "error",
+        title: "Could not merge payers",
+        description: error instanceof Error ? error.message : "Something went wrong.",
+      });
+    } finally {
+      setIsMerging(false);
     }
   }
 
@@ -324,17 +431,26 @@ export function RegistryPayerDialog({
     >
       {tab === "details" ? (
         <div className="space-y-5">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="space-y-1.5">
-              <p className="text-sm text-slate-400">Country</p>
-              <p className="text-sm text-brand-navy">
-                {payer ? `${countryLabel(payer.country_code)} (${payer.country_code})` : "—"}
-              </p>
-            </div>
-            <div className="space-y-1.5">
-              <p className="text-sm text-slate-400">Code</p>
-              <p className="text-sm text-brand-navy">{payer?.code ?? "—"}</p>
-            </div>
+          <div className="space-y-1.5">
+            <p className="text-sm text-slate-400">Country</p>
+            <p className="text-sm text-brand-navy">
+              {payer ? `${countryLabel(payer.country_code)} (${payer.country_code})` : "—"}
+            </p>
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-sm text-slate-400" htmlFor="registry-payer-code">
+              Code
+            </label>
+            <Input
+              id="registry-payer-code"
+              value={code}
+              onChange={(event) => setCode(event.target.value)}
+              autoComplete="off"
+              placeholder="MASM"
+            />
+            <p className="text-sm text-slate-400">
+              Canonical registry code. Use MASM for Medical Aid Society of Malawi.
+            </p>
           </div>
           <div className="space-y-1.5">
             <label className="text-sm text-slate-400" htmlFor="registry-payer-display-name">
@@ -367,8 +483,11 @@ export function RegistryPayerDialog({
               value={integrationCode}
               onChange={(event) => setIntegrationCode(event.target.value)}
               autoComplete="off"
-              placeholder="Optional"
+              placeholder="MASM"
             />
+            <p className="text-sm text-slate-400">
+              Must match an automation adapter (MASM) for member search and claims.
+            </p>
           </div>
           <div className="space-y-1.5">
             <p className="text-sm text-slate-400">Status</p>
@@ -394,6 +513,20 @@ export function RegistryPayerDialog({
             </span>
             <Switch checked={isActive} onCheckedChange={setIsActive} aria-label="Payer is active" />
           </label>
+          <div className="border-t border-brand-border pt-4">
+            <p className="text-sm font-medium text-brand-navy">Merge into another payer</p>
+            <p className="mt-1 text-sm text-slate-400">
+              Move clinic links and schemes onto a survivor, then retire this payer. Use this
+              when duplicates like MA and MASM should become one registry entry.
+            </p>
+            <SecondaryButton
+              type="button"
+              className="mt-3"
+              onClick={() => setMergeOpen(true)}
+            >
+              Merge into…
+            </SecondaryButton>
+          </div>
         </div>
       ) : null}
 
@@ -511,6 +644,98 @@ export function RegistryPayerDialog({
         </div>
       ) : null}
     </TabbedDialog>
+    <SectionedDialog
+      open={mergeOpen}
+      onOpenChange={setMergeOpen}
+      title="Merge into another payer"
+      description={
+        payer
+          ? `Retire ${payer.code} and keep one canonical payer (for example MASM).`
+          : "Merge duplicate registry payers."
+      }
+      className="sm:max-w-lg"
+      data-testid="registry-payer-merge-dialog"
+      footer={
+        <>
+          <SecondaryButton type="button" onClick={() => setMergeOpen(false)}>
+            Cancel
+          </SecondaryButton>
+          <PrimaryButton
+            type="button"
+            disabled={isMerging || !mergeTargetUuid || mergeTargetsLoading}
+            onClick={() => void handleMerge()}
+          >
+            {isMerging ? "Merging..." : "Merge payers"}
+          </PrimaryButton>
+        </>
+      }
+    >
+      <div className="space-y-4">
+        {mergeTargetsLoading ? (
+          <p className="text-sm text-slate-400">Loading payers…</p>
+        ) : mergeTargets.length === 0 ? (
+          <p className="text-sm text-slate-400">
+            No other approved active payers exist for this country. Create or approve the
+            survivor first, then merge.
+          </p>
+        ) : (
+          <div className="space-y-1.5">
+            <p className="text-sm text-slate-400">Keep this payer</p>
+            <Select
+              value={mergeTargetUuid}
+              onValueChange={(next) => {
+                setMergeTargetUuid(next);
+                const selected = mergeTargets.find((item) => item.uuid === next);
+                if (selected) {
+                  setMergeCode(selected.code || "MASM");
+                  setMergeIntegrationCode(
+                    selected.integration_code || selected.code || "MASM",
+                  );
+                }
+              }}
+            >
+              <SelectTrigger aria-label="Survivor payer">
+                <SelectValue placeholder="Select payer" />
+              </SelectTrigger>
+              <SelectContent>
+                {mergeTargets.map((item) => (
+                  <SelectItem key={item.uuid} value={item.uuid}>
+                    {item.display_name} ({item.code})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+        <div className="space-y-1.5">
+          <label className="text-sm text-slate-400" htmlFor="registry-merge-code">
+            Survivor code
+          </label>
+          <Input
+            id="registry-merge-code"
+            value={mergeCode}
+            onChange={(event) => setMergeCode(event.target.value)}
+            autoComplete="off"
+            placeholder="MASM"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <label
+            className="text-sm text-slate-400"
+            htmlFor="registry-merge-integration-code"
+          >
+            Survivor integration code
+          </label>
+          <Input
+            id="registry-merge-integration-code"
+            value={mergeIntegrationCode}
+            onChange={(event) => setMergeIntegrationCode(event.target.value)}
+            autoComplete="off"
+            placeholder="MASM"
+          />
+        </div>
+      </div>
+    </SectionedDialog>
     <SectionedDialog
       open={addSchemeOpen}
       onOpenChange={setAddSchemeOpen}

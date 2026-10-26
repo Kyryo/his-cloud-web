@@ -19,6 +19,11 @@ type OpdConsultLayoutProps = {
   form: ReactNode;
   /** Middle column: what has been recorded on this encounter. */
   content: ReactNode;
+  /**
+   * Optional right-column panel. When omitted, the built-in OPD clinical
+   * history panel is used (driven by ``historySection``).
+   */
+  history?: ReactNode;
   /** Built-in history section id or a specialty history section id. */
   historySection?: string;
   /** Restrict which history section tabs are shown (built-in or specialty ids). */
@@ -35,6 +40,7 @@ type OpdConsultLayoutProps = {
 export function OpdConsultLayout({
   form,
   content,
+  history,
   historySection,
   historyAllowedSections,
   wideForm = false,
@@ -73,11 +79,13 @@ export function OpdConsultLayout({
       </section>
 
       <div className={cn("min-w-0", STICKY_COLUMN_CLASS)}>
-        <OpdClinicalHistoryPanel
-          section={historySection}
-          allowedSections={historyAllowedSections}
-          embedded
-        />
+        {history ?? (
+          <OpdClinicalHistoryPanel
+            section={historySection}
+            allowedSections={historyAllowedSections}
+            embedded
+          />
+        )}
       </div>
     </div>
   );

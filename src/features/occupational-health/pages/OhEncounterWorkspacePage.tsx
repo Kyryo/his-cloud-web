@@ -10,7 +10,6 @@ import { SecondaryButton } from "@/components/ui/app-buttons";
 import { EmptyState } from "@/components/ui/empty-state";
 import {
   DetailPageLayout,
-  DetailPageMainSection,
   DetailPageSkeleton,
   DetailPageTabsSection,
 } from "@/features/app-shell/components/page-layout";
@@ -163,15 +162,17 @@ export function OhEncounterWorkspacePage({
       />
 
       <DetailPageTabsSection>
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
           <OhEncounterTabs
             activeTab={activeTab}
             counts={tabCounts}
             onTabChange={setActiveTab}
           />
-          <DetailPageMainSection className="max-w-3xl">
+          <div className="flex min-h-0 flex-1 flex-col">
             {activeTab === "exam" ? (
               <OhExamTabPanel
+                visitUuid={visitUuid}
+                encounterUuid={encounterUuid}
                 encounterId={encounter.id}
                 examinations={workspace.examinations}
                 onCreated={() => workspace.refetchAll()}
@@ -179,6 +180,8 @@ export function OhEncounterWorkspacePage({
             ) : null}
             {activeTab === "fitness" ? (
               <OhFitnessTabPanel
+                visitUuid={visitUuid}
+                encounterUuid={encounterUuid}
                 examinations={workspace.examinations}
                 assessments={workspace.fitness}
                 certificates={workspace.fitnessCertificates}
@@ -188,6 +191,8 @@ export function OhEncounterWorkspacePage({
             {activeTab === "iod" ? (
               customer && tenantId ? (
                 <OhIodTabPanel
+                  visitUuid={visitUuid}
+                  encounterUuid={encounterUuid}
                   encounterId={encounter.id}
                   customerId={customer.id}
                   tenantId={tenantId}
@@ -195,19 +200,23 @@ export function OhEncounterWorkspacePage({
                   onCreated={() => workspace.refetchAll()}
                 />
               ) : (
-                <p className="text-sm text-brand-muted">
-                  Client and tenant context are required for IOD cases.
-                </p>
+                <div className="px-6 py-8">
+                  <p className="text-sm text-brand-muted">
+                    Client and tenant context are required for IOD cases.
+                  </p>
+                </div>
               )
             ) : null}
             {activeTab === "findings" ? (
               <OhFindingsTabPanel
+                visitUuid={visitUuid}
+                encounterUuid={encounterUuid}
                 examinations={workspace.examinations}
                 findings={workspace.findings}
                 onCreated={() => workspace.refetchAll()}
               />
             ) : null}
-          </DetailPageMainSection>
+          </div>
         </div>
       </DetailPageTabsSection>
     </DetailPageLayout>

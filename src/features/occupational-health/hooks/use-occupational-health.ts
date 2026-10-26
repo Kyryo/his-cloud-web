@@ -14,6 +14,7 @@ import {
   fetchOhExaminations,
   fetchOhHrFitness,
   fetchOhImmunisations,
+  fetchOhVisitHistory,
   fetchPpeFitTests,
   fetchSickLeaveCertificates,
   fetchSurveillanceRequirements,
@@ -145,6 +146,28 @@ export function useOhRecallsData(customerId?: number) {
       void sickLeaveQuery.refetch();
     },
   };
+}
+
+export function useOhVisitHistory(
+  visitUuid: string | null,
+  encounterUuid: string | null,
+  historyEncounterUuid?: string | null,
+) {
+  return useQuery({
+    queryKey: [
+      "oh-visit-history",
+      visitUuid ?? "",
+      encounterUuid ?? "",
+      historyEncounterUuid ?? "",
+    ],
+    queryFn: () =>
+      fetchOhVisitHistory(
+        visitUuid!,
+        encounterUuid!,
+        historyEncounterUuid,
+      ),
+    enabled: Boolean(visitUuid && encounterUuid),
+  });
 }
 
 export function useOhEncounterWorkspaceData(encounterId: number | null) {

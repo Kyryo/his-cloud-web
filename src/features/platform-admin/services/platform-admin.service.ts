@@ -465,6 +465,7 @@ export async function fetchPlatformAdminPayerSchemeCatalog(
 export async function updatePlatformAdminPayer(
   uuid: string,
   payload: {
+    code?: string;
     official_name?: string;
     display_name?: string;
     integration_code?: string;
@@ -475,6 +476,32 @@ export async function updatePlatformAdminPayer(
 ): Promise<import("@/features/settings/types/settings.types").CountryPayer> {
   return bffRequest(BFF_PLATFORM_ADMIN_ROUTES.payerRegistryDetail(uuid), {
     method: "PATCH",
+    body: payload,
+  });
+}
+
+export type MergePlatformAdminPayerResult = {
+  payer: import("@/features/settings/types/settings.types").CountryPayer;
+  source: import("@/features/settings/types/settings.types").CountryPayer;
+  stats: {
+    companies_moved: number;
+    schemes_moved: number;
+    schemes_collapsed: number;
+    schemes_relinked: number;
+  };
+};
+
+export async function mergePlatformAdminPayer(
+  sourceUuid: string,
+  payload: {
+    target_uuid: string;
+    code?: string;
+    integration_code?: string;
+    review_note?: string;
+  },
+): Promise<MergePlatformAdminPayerResult> {
+  return bffRequest(BFF_PLATFORM_ADMIN_ROUTES.payerRegistryMerge(sourceUuid), {
+    method: "POST",
     body: payload,
   });
 }

@@ -18,6 +18,7 @@ import type {
   OhImmunisation,
   OhJobTitle,
   OhVisitEncounter,
+  OhVisitHistory,
   PpeFitTest,
   SickLeaveCertificate,
   SurveillanceRequirement,
@@ -361,6 +362,20 @@ export async function fetchOhHrFitness(employmentEpisodeUuid: string) {
     `${BFF_OCCUPATIONAL_HEALTH_ROUTES.hrFitness}${listQuery({
       employment_episode: employmentEpisodeUuid,
     })}`,
+  );
+}
+
+export async function fetchOhVisitHistory(
+  visitUuid: string,
+  encounterUuid: string,
+  historyEncounterUuid?: string | null,
+) {
+  return bffRequest<OhVisitHistory>(
+    `${BFF_OCCUPATIONAL_HEALTH_ROUTES.encounterHistory(visitUuid, encounterUuid)}${listQuery(
+      {
+        history_encounter_uuid: historyEncounterUuid ?? undefined,
+      },
+    )}`,
   );
 }
 
