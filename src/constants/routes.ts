@@ -74,6 +74,10 @@ export const ROUTES = {
   claims: "/claims",
   notifications: "/notifications",
   claimDetail: (claimId: number | string) => `/claims/${claimId}`,
+  claimDetailTab: (
+    claimId: number | string,
+    tab: "claim" | "items" | "odontogram" | "reference" | "activity",
+  ) => (tab === "claim" ? `/claims/${claimId}` : `/claims/${claimId}/${tab}`),
   claimsRemittances: "/claims/remittances",
   remittanceDetail: (batchId: number | string) =>
     `/claims/remittances/${batchId}`,
