@@ -1,8 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { OpdQueuePage } from "@/features/clinical-opd/pages/OpdQueuePage";
+import {
+  clinicalQueueViewStorageKey,
+  resetClinicalQueueViewMemory,
+} from "@/features/clinical-opd/utils/opd-queue-views";
 
 const queueHooks = vi.hoisted(() => ({
   useSpecialtyQueue: vi.fn(),
@@ -96,9 +100,35 @@ function mockQueue(departments = [OPD_DEPARTMENT], rows = [QUEUE_ROW]) {
   });
 }
 
+const VIEW_STORAGE_KEY = clinicalQueueViewStorageKey("opd");
+const viewStorage = new Map<string, string>();
+
+beforeEach(() => {
+  viewStorage.clear();
+  vi.stubGlobal("localStorage", {
+    getItem: (key: string) => viewStorage.get(key) ?? null,
+    setItem: (key: string, value: string) => {
+      viewStorage.set(key, value);
+    },
+    removeItem: (key: string) => {
+      viewStorage.delete(key);
+    },
+    clear: () => {
+      viewStorage.clear();
+    },
+    key: () => null,
+    get length() {
+      return viewStorage.size;
+    },
+  });
+});
+
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  resetClinicalQueueViewMemory();
+  viewStorage.clear();
+  vi.unstubAllGlobals();
 });
 
 function renderQueuePage() {
@@ -169,5 +199,51 @@ describe("OpdQueuePage", () => {
       "You are not assigned to any OPD department",
     );
     expect(screen.queryByText("Jane Doe")).not.toBeInTheDocument();
+  });
+
+  it("shows the queue as boards", () => {
+    mockQueue();
+    renderQueuePage();
+
+    fireEvent.click(screen.getByRole("button", { name: "Board" }));
+
+    expect(screen.getByTestId("opd-queue-board")).toBeInTheDocument();
+    expect(screen.getByTestId("opd-queue-board-column-registered")).toHaveTextContent(
+      "Jane Doe",
+    );
+    expect(screen.getByTestId("opd-queue-board-column-triaged")).toBeInTheDocument();
+    expect(screen.getByTestId("opd-queue-board-column-with_clinician")).toBeInTheDocument();
+    expect(screen.queryByRole("columnheader", { name: "Date & Time" })).not.toBeInTheDocument();
+  });
+
+  it("restores the last queue view after leaving the page", () => {
+    mockQueue();
+    const firstVisit = renderQueuePage();
+
+    fireEvent.click(screen.getByRole("button", { name: "Board" }));
+    expect(window.localStorage.getItem(VIEW_STORAGE_KEY)).toBe("board");
+
+    firstVisit.unmount();
+    resetClinicalQueueViewMemory();
+    renderQueuePage();
+
+    expect(screen.getByTestId("opd-queue-board")).toBeInTheDocument();
+  });
+
+  it("opens encounter details in a sheet from a board card", () => {
+    mockQueue();
+    renderQueuePage();
+
+    fireEvent.click(screen.getByRole("button", { name: "Board" }));
+    fireEvent.click(screen.getByTestId("opd-queue-board-card-enc-1"));
+
+    const sheet = screen.getByTestId("opd-queue-board-sheet");
+    expect(sheet).toHaveTextContent("Jane Doe");
+    expect(sheet).toHaveTextContent("14 min");
+    expect(sheet).toHaveTextContent("78 bpm");
+    expect(screen.getByRole("link", { name: "Open encounter" })).toHaveAttribute(
+      "href",
+      "/clinical/opd/visit-1/enc-1/complaint",
+    );
   });
 });

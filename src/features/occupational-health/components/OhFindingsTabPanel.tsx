@@ -1,12 +1,12 @@
 "use client";
 
-import { FlaskConical } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Activity } from "lucide-react";
 
-import { DetailTabEmptyState } from "@/components/detail/detail-tab-empty-state";
-import { Button } from "@/components/ui/button";
+import { PrimaryButton } from "@/components/ui/app-buttons";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
 import {
   Select,
   SelectContent,
@@ -15,66 +15,85 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  OhConsultContentPanel,
-  OhConsultFormLocked,
-  OhConsultFormPanel,
-  OhConsultLayout,
-} from "@/features/occupational-health/components/OhConsultLayout";
-import { OhRecordCard } from "@/features/occupational-health/components/OhRecordCard";
+  OhColumnMessage,
+  OhFormFooter,
+  OhPanelSection,
+  OhRecordItem,
+  OhRecordList,
+  OhRecordsEmpty,
+  submitOnModEnter,
+} from "@/features/occupational-health/components/OhEncounterColumns";
+import { OhStatusChip } from "@/features/occupational-health/components/OhStatusChip";
+import type { OhExamFinding, OhExamination } from "@/features/occupational-health/types";
 import { createOhExamFinding } from "@/features/occupational-health/services/oh.service";
-import type {
-  OhExamFinding,
-  OhExamination,
-} from "@/features/occupational-health/types";
-import { formatDisplayDateTime } from "@/features/customers/utils/format-customer";
+import {
+  formatOhDate,
+  newestFirst,
+} from "@/features/occupational-health/utils/oh-format";
+import { formatExamTypeLabel } from "@/features/occupational-health/utils/oh-labels";
+import { appFont } from "@/lib/fonts";
 import { useToast } from "@/providers/toast-provider";
-import { cn } from "@/lib/utils";
 
-type OhFindingsTabPanelProps = {
-  visitUuid: string;
-  encounterUuid: string;
+function examOptionLabel(exam: OhExamination): string {
+  return `${formatExamTypeLabel(exam.exam_type)} · ${formatOhDate(exam.examined_at ?? exam.created_at)}`;
+}
+
+type OhFindingFormProps = {
   examinations: OhExamination[];
-  findings: OhExamFinding[];
   onCreated: () => void;
 };
 
-export function OhFindingsTabPanel({
-  visitUuid,
-  encounterUuid,
-  examinations,
-  findings,
-  onCreated,
-}: OhFindingsTabPanelProps) {
+export function OhFindingForm({ examinations, onCreated }: OhFindingFormProps) {
   const { toast } = useToast();
-  const [examinationId, setExaminationId] = useState<string>(
-    examinations[0] ? String(examinations[0].id) : "",
-  );
+  const codeInputRef = useRef<HTMLInputElement>(null);
+  const [pickedExaminationId, setPickedExaminationId] = useState("");
   const [code, setCode] = useState("");
   const [numericValue, setNumericValue] = useState("");
   const [unit, setUnit] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const canRecord = examinations.length > 0;
+
+  if (examinations.length === 0) {
+    return (
+      <OhPanelSection>
+        <OhColumnMessage data-testid="oh-findings-locked">
+          Add an examination before recording findings.
+        </OhColumnMessage>
+      </OhPanelSection>
+    );
+  }
+
+  const sortedExaminations = newestFirst(
+    examinations,
+    (exam) => exam.examined_at ?? exam.created_at,
+  );
+  const examinationId = pickedExaminationId || String(sortedExaminations[0].id);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (!examinationId) {
+    const trimmedValue = numericValue.trim();
+    if (trimmedValue && Number.isNaN(Number(trimmedValue))) {
+      toast({
+        title: "Value must be a number",
+        description: "Leave it blank for coded findings.",
+        variant: "error",
+      });
       return;
     }
     setIsSubmitting(true);
     try {
       await createOhExamFinding({
         examination: Number(examinationId),
-        code,
-        numeric_value: numericValue || null,
-        unit,
+        code: code.trim(),
+        numeric_value: trimmedValue || null,
+        unit: unit.trim(),
         recorded_at: new Date().toISOString(),
         threshold_flag: "none",
       });
       setCode("");
       setNumericValue("");
-      setUnit("");
       toast({ variant: "success", title: "Finding recorded" });
       onCreated();
+      codeInputRef.current?.focus();
     } catch (error) {
       toast({
         title: "Could not save finding",
@@ -87,114 +106,148 @@ export function OhFindingsTabPanel({
   }
 
   return (
-    <OhConsultLayout
-      visitUuid={visitUuid}
-      encounterUuid={encounterUuid}
-      historySection="findings"
-      data-testid="oh-findings-tab"
-      form={
-        <OhConsultFormPanel
-          title="Finding"
-          description="Capture measured or coded results for an examination on this visit."
-        >
-          {!canRecord ? (
-            <OhConsultFormLocked message="Add an examination before recording findings." />
-          ) : (
-            <form
-              onSubmit={(event) => void handleSubmit(event)}
-              className="space-y-4"
-            >
-              <div className="space-y-2">
-                <Label htmlFor="oh-finding-exam">Examination</Label>
-                <Select value={examinationId} onValueChange={setExaminationId}>
-                  <SelectTrigger id="oh-finding-exam">
-                    <SelectValue placeholder="Select examination" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {examinations.map((exam) => (
-                      <SelectItem key={exam.uuid} value={String(exam.id)}>
-                        {exam.exam_type.replace(/_/g, " ")}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="oh-finding-code">Code</Label>
-                <Input
-                  id="oh-finding-code"
-                  value={code}
-                  onChange={(event) => setCode(event.target.value)}
-                  placeholder="e.g. audiometry_left"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <Label htmlFor="oh-finding-value">Value</Label>
-                  <Input
-                    id="oh-finding-value"
-                    value={numericValue}
-                    onChange={(event) => setNumericValue(event.target.value)}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="oh-finding-unit">Unit</Label>
-                  <Input
-                    id="oh-finding-unit"
-                    value={unit}
-                    onChange={(event) => setUnit(event.target.value)}
-                    placeholder="dB"
-                  />
-                </div>
-              </div>
-              <Button type="submit" disabled={isSubmitting} className="w-full">
-                {isSubmitting ? "Saving…" : "Add finding"}
-              </Button>
-            </form>
-          )}
-        </OhConsultFormPanel>
-      }
-      content={
-        <OhConsultContentPanel title="Findings" count={findings.length}>
-          {findings.length === 0 ? (
-            <DetailTabEmptyState
-              icon={FlaskConical}
-              title="No findings yet"
-              description="Save a finding on the left. It will appear here for this visit."
-            />
-          ) : (
-            <ul className="space-y-3">
-              {findings.map((finding) => (
-                <li key={finding.uuid}>
-                  <OhRecordCard
-                    title={finding.code}
-                    meta={formatDisplayDateTime(finding.recorded_at)}
-                  >
-                    <p className="text-sm text-brand-slate">
-                      {[finding.numeric_value, finding.unit, finding.coded_value]
-                        .filter(Boolean)
-                        .join(" ") || "—"}
-                    </p>
-                    {finding.threshold_flag &&
-                    finding.threshold_flag !== "none" ? (
-                      <span
-                        className={cn(
-                          "mt-2 inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium uppercase",
-                          finding.threshold_flag === "alert"
-                            ? "bg-red-50 text-red-700"
-                            : "bg-amber-50 text-amber-800",
-                        )}
-                      >
-                        {finding.threshold_flag}
-                      </span>
-                    ) : null}
-                  </OhRecordCard>
-                </li>
+    <OhPanelSection description="Audiometry, spirometry, vision, and other measured results. The unit is kept between entries.">
+      <form
+        onSubmit={(event) => void handleSubmit(event)}
+        onKeyDown={submitOnModEnter}
+        className="space-y-4"
+        data-testid="oh-finding-form"
+      >
+        <div className="space-y-1.5">
+          <Label htmlFor="oh-finding-exam">
+            Examination <RequiredFieldMarker />
+          </Label>
+          <Select value={examinationId} onValueChange={setPickedExaminationId}>
+            <SelectTrigger id="oh-finding-exam" className="w-full">
+              <SelectValue placeholder="Select examination" />
+            </SelectTrigger>
+            <SelectContent className={appFont.className}>
+              {sortedExaminations.map((exam) => (
+                <SelectItem key={exam.uuid} value={String(exam.id)}>
+                  {examOptionLabel(exam)}
+                </SelectItem>
               ))}
-            </ul>
-          )}
-        </OhConsultContentPanel>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="oh-finding-code">
+            Code <RequiredFieldMarker />
+          </Label>
+          <Input
+            ref={codeInputRef}
+            id="oh-finding-code"
+            value={code}
+            onChange={(event) => setCode(event.target.value)}
+            placeholder="e.g. FEV1, HEARING_L_4K"
+            required
+          />
+        </div>
+        <div className="grid grid-cols-[minmax(0,1fr)_6rem] gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="oh-finding-value">Value</Label>
+            <Input
+              id="oh-finding-value"
+              inputMode="decimal"
+              value={numericValue}
+              onChange={(event) => setNumericValue(event.target.value)}
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="oh-finding-unit">Unit</Label>
+            <Input
+              id="oh-finding-unit"
+              value={unit}
+              onChange={(event) => setUnit(event.target.value)}
+              placeholder="dB"
+            />
+          </div>
+        </div>
+        <OhFormFooter>
+          <PrimaryButton type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "Saving…" : "Add finding"}
+          </PrimaryButton>
+        </OhFormFooter>
+      </form>
+    </OhPanelSection>
+  );
+}
+
+type OhFindingRecordsProps = {
+  examinations: OhExamination[];
+  findings: OhExamFinding[];
+};
+
+export function OhFindingRecords({ examinations, findings }: OhFindingRecordsProps) {
+  if (findings.length === 0) {
+    return (
+      <OhRecordsEmpty
+        icon={Activity}
+        title="No findings yet"
+        description={
+          examinations.length === 0
+            ? "Record an examination first, then capture its measured results here."
+            : "Add measured results on the left. They are grouped by examination."
+        }
+        data-testid="oh-finding-records-empty"
+      />
+    );
+  }
+
+  const findingsByExam = new Map<number, OhExamFinding[]>();
+  for (const finding of newestFirst(findings, (item) => item.recorded_at)) {
+    const group = findingsByExam.get(finding.examination) ?? [];
+    group.push(finding);
+    findingsByExam.set(finding.examination, group);
+  }
+  const groups = newestFirst(
+    examinations,
+    (exam) => exam.examined_at ?? exam.created_at,
+  ).flatMap((exam) => {
+    const items = findingsByExam.get(exam.id);
+    return items ? [{ exam, items }] : [];
+  });
+
+  return (
+    <>
+      {groups.map(({ exam, items }) => (
+        <OhPanelSection
+          key={exam.uuid}
+          title={examOptionLabel(exam)}
+          data-testid="oh-finding-records"
+        >
+          <OhRecordList>
+            {items.map((finding) => (
+              <OhFindingRow key={finding.uuid} finding={finding} />
+            ))}
+          </OhRecordList>
+        </OhPanelSection>
+      ))}
+    </>
+  );
+}
+
+function OhFindingRow({ finding }: { finding: OhExamFinding }) {
+  const isFlagged = Boolean(finding.threshold_flag) && finding.threshold_flag !== "none";
+
+  return (
+    <OhRecordItem
+      title={finding.code}
+      badges={isFlagged ? <OhStatusChip value={finding.threshold_flag} /> : null}
+      meta={formatOhDate(finding.recorded_at)}
+      action={
+        finding.numeric_value ? (
+          <span className="text-sm font-semibold tabular-nums text-brand-navy">
+            {finding.numeric_value}
+            {finding.unit ? (
+              <span className="ml-1 text-xs font-normal text-brand-muted">
+                {finding.unit}
+              </span>
+            ) : null}
+          </span>
+        ) : finding.coded_value ? (
+          <span className="text-sm text-brand-slate">{finding.coded_value}</span>
+        ) : null
       }
     />
   );

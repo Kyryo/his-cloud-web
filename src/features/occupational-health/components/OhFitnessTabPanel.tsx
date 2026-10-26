@@ -1,12 +1,11 @@
 "use client";
 
-import { ShieldCheck } from "lucide-react";
 import { useState } from "react";
 
-import { DetailTabEmptyState } from "@/components/detail/detail-tab-empty-state";
-import { Button } from "@/components/ui/button";
+import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
 import {
   Select,
   SelectContent,
@@ -15,75 +14,89 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  OhConsultContentPanel,
-  OhConsultFormLocked,
-  OhConsultFormPanel,
-  OhConsultLayout,
-} from "@/features/occupational-health/components/OhConsultLayout";
-import { OhRecordCard } from "@/features/occupational-health/components/OhRecordCard";
+  OhColumnMessage,
+  OhFormFooter,
+  OhPanelSection,
+  submitOnModEnter,
+} from "@/features/occupational-health/components/OhEncounterColumns";
+import type {
+  FitnessAssessment,
+  OhExamination,
+} from "@/features/occupational-health/types";
 import {
   createFitnessAssessment,
   createFitnessCertificate,
-  withdrawFitnessCertificate,
 } from "@/features/occupational-health/services/oh.service";
-import type {
-  FitnessAssessment,
-  FitnessCertificate,
-  OhExamination,
-} from "@/features/occupational-health/types";
-import { formatDisplayDate } from "@/features/customers/utils/format-customer";
+import {
+  formatOhDate,
+  latestFitnessAssessment,
+  newestFirst,
+  todayIsoDate,
+} from "@/features/occupational-health/utils/oh-format";
+import {
+  FITNESS_OUTCOMES,
+  formatExamTypeLabel,
+  formatFitnessOutcome,
+} from "@/features/occupational-health/utils/oh-labels";
+import { appFont } from "@/lib/fonts";
 import { useUser } from "@/providers/user-provider";
 import { useToast } from "@/providers/toast-provider";
 
-const OUTCOMES = [
-  { value: "fit", label: "Fit" },
-  { value: "fit_with_restrictions", label: "Fit with restrictions" },
-  { value: "temporarily_unfit", label: "Temporarily unfit" },
-  { value: "permanently_unfit", label: "Permanently unfit for job" },
-  { value: "unfit", label: "Unfit" },
-  { value: "deferred", label: "Deferred" },
-] as const;
-
-type OhFitnessTabPanelProps = {
-  visitUuid: string;
-  encounterUuid: string;
+type OhFitnessFormsProps = {
   examinations: OhExamination[];
   assessments: FitnessAssessment[];
-  certificates: FitnessCertificate[];
   onCreated: () => void;
 };
 
-export function OhFitnessTabPanel({
-  visitUuid,
-  encounterUuid,
+export function OhFitnessForms({
   examinations,
   assessments,
-  certificates,
   onCreated,
-}: OhFitnessTabPanelProps) {
+}: OhFitnessFormsProps) {
+  if (examinations.length === 0) {
+    return (
+      <OhPanelSection>
+        <OhColumnMessage data-testid="oh-fitness-locked">
+          Add an examination before recording fitness.
+        </OhColumnMessage>
+      </OhPanelSection>
+    );
+  }
+
+  return (
+    <>
+      <OhFitnessAssessmentForm examinations={examinations} onCreated={onCreated} />
+      <OhFitnessCertificateForm assessments={assessments} onCreated={onCreated} />
+    </>
+  );
+}
+
+type OhFitnessAssessmentFormProps = {
+  examinations: OhExamination[];
+  onCreated: () => void;
+};
+
+function OhFitnessAssessmentForm({
+  examinations,
+  onCreated,
+}: OhFitnessAssessmentFormProps) {
   const { userData } = useUser();
   const { toast } = useToast();
-  const [examinationId, setExaminationId] = useState<string>(
-    examinations[0] ? String(examinations[0].id) : "",
-  );
+  const [pickedExaminationId, setPickedExaminationId] = useState("");
   const [outcome, setOutcome] = useState<string>("fit");
   const [reviewDate, setReviewDate] = useState("");
-  const [certificateAssessmentId, setCertificateAssessmentId] = useState<string>(
-    assessments[0] ? String(assessments[0].id) : "",
-  );
-  const [validFrom, setValidFrom] = useState(
-    new Date().toISOString().slice(0, 10),
-  );
-  const [validTo, setValidTo] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [withdrawingUuid, setWithdrawingUuid] = useState<string | null>(null);
 
+  const sortedExaminations = newestFirst(
+    examinations,
+    (exam) => exam.examined_at ?? exam.created_at,
+  );
+  const examinationId = pickedExaminationId || String(sortedExaminations[0].id);
   const needsReviewDate = outcome === "temporarily_unfit";
-  const canRecord = examinations.length > 0;
 
-  async function handleAssessmentSubmit(event: React.FormEvent) {
+  async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (!examinationId || !userData?.id) {
+    if (!userData?.id) {
       toast({
         title: "Clinician required",
         description: "Sign in again if your user profile is missing.",
@@ -108,6 +121,7 @@ export function OhFitnessTabPanel({
         review_date: reviewDate || null,
         clinician: userData.id,
       });
+      setReviewDate("");
       toast({ variant: "success", title: "Fitness assessment saved" });
       onCreated();
     } catch (error) {
@@ -121,11 +135,113 @@ export function OhFitnessTabPanel({
     }
   }
 
-  async function handleCertificateSubmit(event: React.FormEvent) {
+  return (
+    <OhPanelSection title="Fitness assessment" data-testid="oh-fitness-assessment-form">
+      <form
+        onSubmit={(event) => void handleSubmit(event)}
+        onKeyDown={submitOnModEnter}
+        className="space-y-4"
+      >
+        <div className="space-y-1.5">
+          <Label htmlFor="oh-fitness-exam">
+            Examination <RequiredFieldMarker />
+          </Label>
+          <Select value={examinationId} onValueChange={setPickedExaminationId}>
+            <SelectTrigger id="oh-fitness-exam" className="w-full">
+              <SelectValue placeholder="Select examination" />
+            </SelectTrigger>
+            <SelectContent className={appFont.className}>
+              {sortedExaminations.map((exam) => (
+                <SelectItem key={exam.uuid} value={String(exam.id)}>
+                  {formatExamTypeLabel(exam.exam_type)} ·{" "}
+                  {formatOhDate(exam.examined_at ?? exam.created_at)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="oh-fitness-outcome">
+            Outcome <RequiredFieldMarker />
+          </Label>
+          <Select value={outcome} onValueChange={setOutcome}>
+            <SelectTrigger id="oh-fitness-outcome" className="w-full">
+              <SelectValue placeholder="Outcome" />
+            </SelectTrigger>
+            <SelectContent className={appFont.className}>
+              {FITNESS_OUTCOMES.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="oh-fitness-review-date">
+            Review date {needsReviewDate ? <RequiredFieldMarker /> : null}
+          </Label>
+          <Input
+            id="oh-fitness-review-date"
+            type="date"
+            min={todayIsoDate()}
+            value={reviewDate}
+            onChange={(event) => setReviewDate(event.target.value)}
+            required={needsReviewDate}
+          />
+        </div>
+        <OhFormFooter>
+          <PrimaryButton type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "Saving…" : "Record assessment"}
+          </PrimaryButton>
+        </OhFormFooter>
+      </form>
+    </OhPanelSection>
+  );
+}
+
+type OhFitnessCertificateFormProps = {
+  assessments: FitnessAssessment[];
+  onCreated: () => void;
+};
+
+function OhFitnessCertificateForm({
+  assessments,
+  onCreated,
+}: OhFitnessCertificateFormProps) {
+  const { userData } = useUser();
+  const { toast } = useToast();
+  const [pickedAssessmentId, setPickedAssessmentId] = useState("");
+  const [validFrom, setValidFrom] = useState(todayIsoDate);
+  const [validTo, setValidTo] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const latest = latestFitnessAssessment(assessments);
+  const assessmentId = pickedAssessmentId || (latest ? String(latest.id) : "");
+  const selectedAssessment = assessments.find(
+    (item) => String(item.id) === assessmentId,
+  );
+
+  if (!latest) {
+    return (
+      <OhPanelSection title="Fitness certificate">
+        <OhColumnMessage data-testid="oh-certificate-locked">
+          Record a fitness assessment to issue a certificate.
+        </OhColumnMessage>
+      </OhPanelSection>
+    );
+  }
+
+  async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (!certificateAssessmentId || !userData?.id) {
+    if (!selectedAssessment || !userData?.id) {
+      toast({ title: "Select an assessment to certify", variant: "error" });
+      return;
+    }
+    if (validTo && validTo < validFrom) {
       toast({
-        title: "Clinician required",
+        title: "Check the validity dates",
+        description: "Valid to must be on or after valid from.",
         variant: "error",
       });
       return;
@@ -133,15 +249,16 @@ export function OhFitnessTabPanel({
     setIsSubmitting(true);
     try {
       await createFitnessCertificate({
-        assessment: Number(certificateAssessmentId),
+        assessment: selectedAssessment.id,
         version: 1,
         status: "issued",
         valid_from: validFrom,
         valid_to: validTo || null,
         signed_at: new Date().toISOString(),
         signed_by: userData.id,
-        payload: { outcome },
+        payload: { outcome: selectedAssessment.outcome },
       });
+      setValidTo("");
       toast({ variant: "success", title: "Fitness certificate issued" });
       onCreated();
     } catch (error) {
@@ -155,239 +272,65 @@ export function OhFitnessTabPanel({
     }
   }
 
-  async function handleWithdraw(uuid: string) {
-    setWithdrawingUuid(uuid);
-    try {
-      await withdrawFitnessCertificate(uuid);
-      toast({ variant: "success", title: "Certificate withdrawn" });
-      onCreated();
-    } catch (error) {
-      toast({
-        title: "Could not withdraw certificate",
-        description: error instanceof Error ? error.message : undefined,
-        variant: "error",
-      });
-    } finally {
-      setWithdrawingUuid(null);
-    }
-  }
-
   return (
-    <OhConsultLayout
-      visitUuid={visitUuid}
-      encounterUuid={encounterUuid}
-      historySection="fitness"
-      wideForm
-      data-testid="oh-fitness-tab"
-      form={
-        <OhConsultFormPanel
-          title="Fitness"
-          description="Assess fitness for work against this visit’s examination."
-        >
-          {!canRecord ? (
-            <OhConsultFormLocked message="Add an examination before recording fitness." />
-          ) : (
-            <div className="space-y-8">
-              <form
-                onSubmit={(event) => void handleAssessmentSubmit(event)}
-                className="space-y-4"
-              >
-                <div className="space-y-2">
-                  <Label htmlFor="oh-fitness-exam">Examination</Label>
-                  <Select value={examinationId} onValueChange={setExaminationId}>
-                    <SelectTrigger id="oh-fitness-exam">
-                      <SelectValue placeholder="Select examination" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {examinations.map((exam) => (
-                        <SelectItem key={exam.uuid} value={String(exam.id)}>
-                          {exam.exam_type.replace(/_/g, " ")}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="oh-fitness-outcome">Outcome</Label>
-                  <Select value={outcome} onValueChange={setOutcome}>
-                    <SelectTrigger id="oh-fitness-outcome">
-                      <SelectValue placeholder="Outcome" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {OUTCOMES.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="oh-fitness-review-date">
-                    Review date{needsReviewDate ? " (required)" : " (optional)"}
-                  </Label>
-                  <Input
-                    id="oh-fitness-review-date"
-                    type="date"
-                    value={reviewDate}
-                    onChange={(event) => setReviewDate(event.target.value)}
-                    required={needsReviewDate}
-                  />
-                </div>
-                <Button type="submit" disabled={isSubmitting} className="w-full">
-                  {isSubmitting ? "Saving…" : "Record assessment"}
-                </Button>
-              </form>
-
-              {assessments.length > 0 ? (
-                <form
-                  onSubmit={(event) => void handleCertificateSubmit(event)}
-                  className="space-y-4 border-t border-dash-border/70 pt-6"
-                >
-                  <div>
-                    <p className="text-sm font-semibold text-brand-navy">
-                      Issue certificate
-                    </p>
-                    <p className="mt-1 text-xs text-dash-muted">
-                      Sign and issue a fitness certificate for an assessment.
-                    </p>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="oh-cert-assessment">Assessment</Label>
-                    <Select
-                      value={certificateAssessmentId}
-                      onValueChange={setCertificateAssessmentId}
-                    >
-                      <SelectTrigger id="oh-cert-assessment">
-                        <SelectValue placeholder="Assessment" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {assessments.map((item) => (
-                          <SelectItem key={item.uuid} value={String(item.id)}>
-                            {item.outcome.replace(/_/g, " ")} ·{" "}
-                            {item.assessed_at.slice(0, 10)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="oh-cert-valid-from">Valid from</Label>
-                      <Input
-                        id="oh-cert-valid-from"
-                        type="date"
-                        value={validFrom}
-                        onChange={(event) => setValidFrom(event.target.value)}
-                        required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="oh-cert-valid-to">Valid to</Label>
-                      <Input
-                        id="oh-cert-valid-to"
-                        type="date"
-                        value={validTo}
-                        onChange={(event) => setValidTo(event.target.value)}
-                      />
-                    </div>
-                  </div>
-                  <Button type="submit" disabled={isSubmitting} className="w-full">
-                    {isSubmitting ? "Issuing…" : "Issue certificate"}
-                  </Button>
-                </form>
-              ) : null}
-            </div>
-          )}
-        </OhConsultFormPanel>
-      }
-      content={
-        <OhConsultContentPanel
-          title="Fitness records"
-          count={assessments.length + certificates.length}
-        >
-          {assessments.length === 0 && certificates.length === 0 ? (
-            <DetailTabEmptyState
-              icon={ShieldCheck}
-              title="No fitness records yet"
-              description="Record a fitness assessment on the left. Certificates will appear here once issued."
+    <OhPanelSection
+      title="Fitness certificate"
+      description="Issued certificates are visible to HR without clinical detail."
+      data-testid="oh-fitness-certificate-form"
+    >
+      <form
+        onSubmit={(event) => void handleSubmit(event)}
+        onKeyDown={submitOnModEnter}
+        className="space-y-4"
+      >
+        <div className="space-y-1.5">
+          <Label htmlFor="oh-cert-assessment">
+            Assessment <RequiredFieldMarker />
+          </Label>
+          <Select value={assessmentId} onValueChange={setPickedAssessmentId}>
+            <SelectTrigger id="oh-cert-assessment" className="w-full">
+              <SelectValue placeholder="Assessment" />
+            </SelectTrigger>
+            <SelectContent className={appFont.className}>
+              {newestFirst(assessments, (item) => item.assessed_at).map((item) => (
+                <SelectItem key={item.uuid} value={String(item.id)}>
+                  {formatFitnessOutcome(item.outcome)} ·{" "}
+                  {formatOhDate(item.assessed_at)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="oh-cert-valid-from">
+              Valid from <RequiredFieldMarker />
+            </Label>
+            <Input
+              id="oh-cert-valid-from"
+              type="date"
+              value={validFrom}
+              onChange={(event) => setValidFrom(event.target.value)}
+              required
             />
-          ) : (
-            <div className="space-y-6">
-              {assessments.length > 0 ? (
-                <section className="space-y-3">
-                  <h3 className="text-xs font-medium uppercase tracking-wide text-dash-muted">
-                    Assessments
-                  </h3>
-                  <ul className="space-y-3">
-                    {assessments.map((item) => (
-                      <li key={item.uuid}>
-                        <OhRecordCard
-                          title={
-                            <span className="capitalize">
-                              {item.outcome.replace(/_/g, " ")}
-                            </span>
-                          }
-                          meta={[
-                            formatDisplayDate(item.assessed_at),
-                            item.review_date
-                              ? `review ${formatDisplayDate(item.review_date)}`
-                              : null,
-                          ]
-                            .filter(Boolean)
-                            .join(" · ")}
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              ) : null}
-
-              {certificates.length > 0 ? (
-                <section className="space-y-3">
-                  <h3 className="text-xs font-medium uppercase tracking-wide text-dash-muted">
-                    Certificates
-                  </h3>
-                  <ul className="space-y-3">
-                    {certificates.map((item) => (
-                      <li key={item.uuid}>
-                        <OhRecordCard
-                          title={
-                            <span className="capitalize">
-                              v{item.version} · {item.status}
-                            </span>
-                          }
-                          meta={`${formatDisplayDate(item.valid_from)}${
-                            item.valid_to
-                              ? ` → ${formatDisplayDate(item.valid_to)}`
-                              : ""
-                          }`}
-                          actions={
-                            item.status === "issued" ||
-                            item.status === "amended" ? (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                disabled={withdrawingUuid === item.uuid}
-                                onClick={() => void handleWithdraw(item.uuid)}
-                              >
-                                {withdrawingUuid === item.uuid
-                                  ? "Withdrawing…"
-                                  : "Withdraw"}
-                              </Button>
-                            ) : null
-                          }
-                        />
-                      </li>
-                    ))}
-                  </ul>
-                </section>
-              ) : null}
-            </div>
-          )}
-        </OhConsultContentPanel>
-      }
-    />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="oh-cert-valid-to">Valid to</Label>
+            <Input
+              id="oh-cert-valid-to"
+              type="date"
+              min={validFrom}
+              value={validTo}
+              onChange={(event) => setValidTo(event.target.value)}
+            />
+          </div>
+        </div>
+        <OhFormFooter>
+          <SecondaryButton type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "Issuing…" : "Issue certificate"}
+          </SecondaryButton>
+        </OhFormFooter>
+      </form>
+    </OhPanelSection>
   );
 }

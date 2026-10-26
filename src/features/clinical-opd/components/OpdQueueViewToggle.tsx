@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutList, Table } from "lucide-react";
+import { Columns3, LayoutList, Table } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -14,6 +14,7 @@ const VIEW_OPTIONS: Array<{
 }> = [
   { mode: "table", label: "Table", icon: Table },
   { mode: "list", label: "List", icon: LayoutList },
+  { mode: "board", label: "Board", icon: Columns3 },
 ];
 
 type OpdQueueViewToggleProps = {

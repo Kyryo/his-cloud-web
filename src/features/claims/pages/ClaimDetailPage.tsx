@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import {
   PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS,
@@ -12,15 +12,17 @@ import { SubmitClaimDialog } from "@/features/claims/components/SubmitClaimDialo
 import { ClaimDetailActions } from "@/features/claims/components/detail/ClaimDetailActions";
 import { ClaimDetailHeader } from "@/features/claims/components/detail/ClaimDetailHeader";
 import { ClaimDetailTabs } from "@/features/claims/components/detail/ClaimDetailTabs";
+import { ClaimDetailProvider } from "@/features/claims/components/detail/claim-detail-context";
 import { fetchClaim } from "@/features/claims/services/claims.service";
 import type { ClaimDetail } from "@/features/claims/types/claims.types";
 import { useClaimAdvisoryPoll } from "@/features/claims/hooks/use-claim-advisory-poll";
 
 type ClaimDetailPageProps = {
   claimId: string;
+  children: ReactNode;
 };
 
-export function ClaimDetailPage({ claimId }: ClaimDetailPageProps) {
+export function ClaimDetailPage({ claimId, children }: ClaimDetailPageProps) {
   const [claim, setClaim] = useState<ClaimDetail | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,14 +40,14 @@ export function ClaimDetailPage({ claimId }: ClaimDetailPageProps) {
 
     void (async () => {
       try {
-        setIsLoading(true);
-        setError(null);
         const data = await fetchClaim(claimId);
         if (!cancelled) {
           setClaim(data);
+          setError(null);
         }
       } catch (err) {
         if (!cancelled) {
+          setClaim(null);
           setError(err instanceof Error ? err.message : "Failed to load claim.");
         }
       } finally {
@@ -79,29 +81,36 @@ export function ClaimDetailPage({ claimId }: ClaimDetailPageProps) {
   }
 
   return (
-    <DetailPageLayout data-testid="claim-detail-page">
-      <ClaimDetailHeader
-        claim={claim}
-        actions={
-          <ClaimDetailActions
-            claim={claim}
-            onClaimUpdated={setClaim}
-            onRequestSubmit={() => setSubmitOpen(true)}
-          />
-        }
-      />
-      <ClaimDetailTabs
-        claim={claim}
-        onClaimUpdated={setClaim}
-        onRequestSubmit={() => setSubmitOpen(true)}
-      />
-      <SubmitClaimDialog
-        claim={claim}
-        open={submitOpen}
-        onOpenChange={setSubmitOpen}
-        onSuccess={setClaim}
-        onClaimUpdated={setClaim}
-      />
-    </DetailPageLayout>
+    <ClaimDetailProvider
+      value={{
+        claimId,
+        claim,
+        onClaimUpdated: setClaim,
+        requestSubmit: () => setSubmitOpen(true),
+      }}
+    >
+      <DetailPageLayout data-testid="claim-detail-page">
+        <ClaimDetailHeader
+          claim={claim}
+          actions={
+            <ClaimDetailActions
+              claim={claim}
+              onClaimUpdated={setClaim}
+              onRequestSubmit={() => setSubmitOpen(true)}
+            />
+          }
+        />
+        <ClaimDetailTabs claimId={claimId} claim={claim}>
+          {children}
+        </ClaimDetailTabs>
+        <SubmitClaimDialog
+          claim={claim}
+          open={submitOpen}
+          onOpenChange={setSubmitOpen}
+          onSuccess={setClaim}
+          onClaimUpdated={setClaim}
+        />
+      </DetailPageLayout>
+    </ClaimDetailProvider>
   );
 }

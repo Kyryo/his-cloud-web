@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
 import { FileQuestion, ShieldAlert } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -15,16 +14,13 @@ import {
 } from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
 import { OhEncounterHeader } from "@/features/occupational-health/components/OhEncounterHeader";
-import {
-  OhEncounterTabs,
-  type OhEncounterTabId,
-} from "@/features/occupational-health/components/OhEncounterTabs";
-import { OhExamTabPanel } from "@/features/occupational-health/components/OhExamTabPanel";
-import { OhFindingsTabPanel } from "@/features/occupational-health/components/OhFindingsTabPanel";
-import { OhFitnessTabPanel } from "@/features/occupational-health/components/OhFitnessTabPanel";
-import { OhIodTabPanel } from "@/features/occupational-health/components/OhIodTabPanel";
+import { OhEncounterTabs } from "@/features/occupational-health/components/OhEncounterTabs";
+import { OhEncounterWorkspaceBody } from "@/features/occupational-health/components/OhEncounterWorkspaceBody";
+import { useOhEncounterTabParam } from "@/features/occupational-health/hooks/use-oh-encounter-tab-param";
 import { useOhEncounterWorkspaceData } from "@/features/occupational-health/hooks/use-occupational-health";
 import { fetchOhEncounters } from "@/features/occupational-health/services/oh.service";
+import type { OhVisitEncounter } from "@/features/occupational-health/types";
+import { canAccessOccupationalHealth } from "@/features/occupational-health/utils/oh-access";
 import { fetchCustomer } from "@/features/customers/services/customers.service";
 import { formatCustomerName } from "@/features/customers/utils/format-customer";
 import { fetchVisit } from "@/features/visits/services/visits.service";
@@ -70,21 +66,25 @@ export function OhEncounterWorkspacePage({
   encounterUuid,
 }: OhEncounterWorkspacePageProps) {
   const { userData, isLoading: isUserLoading } = useUser();
-  const hasAccess = (userData?.groups ?? []).includes("OccupationalHealth");
-  const [activeTab, setActiveTab] = useState<OhEncounterTabId>("exam");
+  const hasAccess = canAccessOccupationalHealth(userData);
+  const [activeTab, setActiveTab] = useOhEncounterTabParam();
 
-  const encounterQuery = useQuery({
+  const visitQuery = useQuery({
+    queryKey: ["visit", visitUuid],
+    queryFn: () => fetchVisit(visitUuid),
+    enabled: Boolean(visitUuid) && hasAccess,
+  });
+
+  const encounterFromVisit: OhVisitEncounter | null =
+    visitQuery.data?.encounters.find((item) => item.uuid === encounterUuid) ?? null;
+
+  const fallbackEncounterQuery = useQuery({
     queryKey: ["oh-encounter", encounterUuid],
     queryFn: async () => {
       const rows = await fetchOhEncounters({ pageSize: 200 });
       return rows.find((row) => row.uuid === encounterUuid) ?? null;
     },
-  });
-
-  const visitQuery = useQuery({
-    queryKey: ["visit", visitUuid],
-    queryFn: () => fetchVisit(visitUuid),
-    enabled: Boolean(visitUuid),
+    enabled: hasAccess && visitQuery.isFetched && !encounterFromVisit,
   });
 
   const customerQuery = useQuery({
@@ -93,30 +93,26 @@ export function OhEncounterWorkspacePage({
     enabled: Boolean(visitQuery.data?.customer),
   });
 
-  const encounter = encounterQuery.data;
+  const encounter = encounterFromVisit ?? fallbackEncounterQuery.data ?? null;
   const workspace = useOhEncounterWorkspaceData(encounter?.id ?? null);
   const customer = customerQuery.data ?? null;
 
-  useAppBreadcrumb(
-    customer ? formatCustomerName(customer) : "OH encounter",
-  );
+  useAppBreadcrumb(customer ? formatCustomerName(customer) : "OH encounter");
 
-  const tabCounts = useMemo(
-    () => ({
-      exam: workspace.examinations.length,
-      fitness: workspace.fitness.length + workspace.fitnessCertificates.length,
-      iod: workspace.iodCases.length,
-      findings: workspace.findings.length,
-    }),
-    [workspace],
-  );
+  const tabCounts = {
+    exam: workspace.examinations.length,
+    fitness: workspace.fitness.length + workspace.fitnessCertificates.length,
+    iod: workspace.iodCases.length,
+    findings: workspace.findings.length,
+  };
 
-  if (isUserLoading || encounterQuery.isLoading || visitQuery.isLoading) {
+  if (
+    isUserLoading ||
+    visitQuery.isLoading ||
+    (!encounterFromVisit && fallbackEncounterQuery.isLoading)
+  ) {
     return (
-      <DetailPageSkeleton
-        tabCount={4}
-        data-testid="oh-encounter-workspace-skeleton"
-      />
+      <DetailPageSkeleton tabCount={4} data-testid="oh-encounter-workspace-skeleton" />
     );
   }
 
@@ -147,78 +143,37 @@ export function OhEncounterWorkspacePage({
     );
   }
 
-  const tenantId = userData?.tenant?.id;
-
   return (
     <DetailPageLayout data-testid="oh-encounter-workspace">
-      <OhEncounterHeader
-        customer={customer}
-        encounter={encounter}
-        actions={
-          <SecondaryButton asChild>
-            <Link href={ROUTES.occupationalHealth}>OH queue</Link>
-          </SecondaryButton>
-        }
-      />
+      <div className="flex min-h-full flex-col xl:h-full">
+        <OhEncounterHeader
+          customer={customer}
+          encounter={encounter}
+          actions={
+            <SecondaryButton asChild>
+              <Link href={ROUTES.occupationalHealth}>OH queue</Link>
+            </SecondaryButton>
+          }
+        />
 
-      <DetailPageTabsSection>
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <DetailPageTabsSection className="xl:min-h-0">
           <OhEncounterTabs
             activeTab={activeTab}
             counts={tabCounts}
             onTabChange={setActiveTab}
+            className="shrink-0"
           />
-          <div className="flex min-h-0 flex-1 flex-col">
-            {activeTab === "exam" ? (
-              <OhExamTabPanel
-                visitUuid={visitUuid}
-                encounterUuid={encounterUuid}
-                encounterId={encounter.id}
-                examinations={workspace.examinations}
-                onCreated={() => workspace.refetchAll()}
-              />
-            ) : null}
-            {activeTab === "fitness" ? (
-              <OhFitnessTabPanel
-                visitUuid={visitUuid}
-                encounterUuid={encounterUuid}
-                examinations={workspace.examinations}
-                assessments={workspace.fitness}
-                certificates={workspace.fitnessCertificates}
-                onCreated={() => workspace.refetchAll()}
-              />
-            ) : null}
-            {activeTab === "iod" ? (
-              customer && tenantId ? (
-                <OhIodTabPanel
-                  visitUuid={visitUuid}
-                  encounterUuid={encounterUuid}
-                  encounterId={encounter.id}
-                  customerId={customer.id}
-                  tenantId={tenantId}
-                  iodCases={workspace.iodCases}
-                  onCreated={() => workspace.refetchAll()}
-                />
-              ) : (
-                <div className="px-6 py-8">
-                  <p className="text-sm text-brand-muted">
-                    Client and tenant context are required for IOD cases.
-                  </p>
-                </div>
-              )
-            ) : null}
-            {activeTab === "findings" ? (
-              <OhFindingsTabPanel
-                visitUuid={visitUuid}
-                encounterUuid={encounterUuid}
-                examinations={workspace.examinations}
-                findings={workspace.findings}
-                onCreated={() => workspace.refetchAll()}
-              />
-            ) : null}
-          </div>
-        </div>
-      </DetailPageTabsSection>
+          <OhEncounterWorkspaceBody
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            counts={tabCounts}
+            encounter={encounter}
+            customer={customer}
+            tenantId={userData?.tenant?.id}
+            workspace={workspace}
+          />
+        </DetailPageTabsSection>
+      </div>
     </DetailPageLayout>
   );
 }

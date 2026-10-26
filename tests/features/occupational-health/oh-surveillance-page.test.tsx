@@ -49,6 +49,12 @@ vi.mock("@/features/occupational-health/hooks/use-occupational-health", () => ({
     error: null,
     refetch: vi.fn(),
   }),
+  useOhFitnessValidityAlerts: () => ({
+    data: [],
+    isLoading: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
 }));
 
 afterEach(() => {
