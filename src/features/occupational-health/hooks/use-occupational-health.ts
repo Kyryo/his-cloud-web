@@ -11,8 +11,10 @@ import {
   fetchOhComplianceDashboard,
   fetchOhEncounters,
   fetchOhExamFindings,
+  fetchOhEmployers,
   fetchOhExaminations,
   fetchOhHrFitness,
+  fetchOhJobTitles,
   fetchOhImmunisations,
   fetchPpeFitTests,
   fetchSickLeaveCertificates,
@@ -45,6 +47,31 @@ export function useEmploymentEpisodes(customerUuid?: string) {
     queryFn: () => fetchEmploymentEpisodes(customerUuid),
     enabled: Boolean(customerUuid),
   });
+}
+
+/** Resolves employer and job title ids on employment episodes to display names. */
+export function useOhEmploymentLookups(enabled: boolean) {
+  const employersQuery = useQuery({
+    queryKey: ["oh-employers"],
+    queryFn: fetchOhEmployers,
+    enabled,
+    staleTime: 5 * 60_000,
+  });
+  const jobTitlesQuery = useQuery({
+    queryKey: ["oh-job-titles"],
+    queryFn: () => fetchOhJobTitles(),
+    enabled,
+    staleTime: 5 * 60_000,
+  });
+
+  return {
+    employerNames: new Map(
+      (employersQuery.data ?? []).map((item) => [item.id, item.name]),
+    ),
+    jobTitleNames: new Map(
+      (jobTitlesQuery.data ?? []).map((item) => [item.id, item.title]),
+    ),
+  };
 }
 
 export function useOhComplianceDashboard() {
@@ -209,6 +236,12 @@ export function useOhEncounterWorkspaceData(encounterId: number | null) {
       fitnessQuery.isLoading ||
       certificatesQuery.isLoading ||
       iodQuery.isLoading,
+    isError:
+      examinationsQuery.isError ||
+      findingsQuery.isError ||
+      fitnessQuery.isError ||
+      certificatesQuery.isError ||
+      iodQuery.isError,
     refetchAll: () => {
       void examinationsQuery.refetch();
       void findingsQuery.refetch();

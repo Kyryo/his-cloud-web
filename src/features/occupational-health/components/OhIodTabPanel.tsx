@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import { PrimaryButton } from "@/components/ui/app-buttons";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
 import {
   Select,
   SelectContent,
@@ -13,11 +14,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import type { IodCase } from "@/features/occupational-health/types";
 import {
-  createIodCase,
-  downloadIodStatutoryPack,
-} from "@/features/occupational-health/services/oh.service";
+  OhFormFooter,
+  OhPanelSection,
+  submitOnModEnter,
+} from "@/features/occupational-health/components/OhEncounterColumns";
+import { createIodCase } from "@/features/occupational-health/services/oh.service";
+import { todayIsoDate } from "@/features/occupational-health/utils/oh-format";
+import { appFont } from "@/lib/fonts";
 import { useToast } from "@/providers/toast-provider";
 
 const SEVERITIES = [
@@ -35,26 +39,22 @@ const SAFETY_CLASSES = [
   { value: "fatality", label: "Fatality" },
 ] as const;
 
-type OhIodTabPanelProps = {
+type OhIodFormProps = {
   encounterId: number;
   customerId: number;
   tenantId: number;
-  iodCases: IodCase[];
   onCreated: () => void;
 };
 
-export function OhIodTabPanel({
+export function OhIodForm({
   encounterId,
   customerId,
   tenantId,
-  iodCases,
   onCreated,
-}: OhIodTabPanelProps) {
+}: OhIodFormProps) {
   const { toast } = useToast();
   const [severity, setSeverity] = useState("minor");
-  const [onsetDate, setOnsetDate] = useState(
-    new Date().toISOString().slice(0, 10),
-  );
+  const [onsetDate, setOnsetDate] = useState(todayIsoDate);
   const [sheReference, setSheReference] = useState("");
   const [mechanism, setMechanism] = useState("");
   const [bodyPart, setBodyPart] = useState("");
@@ -62,10 +62,13 @@ export function OhIodTabPanel({
   const [safetyClassification, setSafetyClassification] = useState("first_aid");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [downloadingUuid, setDownloadingUuid] = useState<string | null>(null);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
+    if (!description.trim()) {
+      toast({ title: "Describe the incident", variant: "error" });
+      return;
+    }
     setIsSubmitting(true);
     try {
       await createIodCase({
@@ -74,11 +77,11 @@ export function OhIodTabPanel({
         encounter: encounterId,
         severity,
         onset_date: onsetDate,
-        description,
-        she_reference: sheReference,
-        mechanism,
-        body_part: bodyPart,
-        incident_location: incidentLocation,
+        description: description.trim(),
+        she_reference: sheReference.trim(),
+        mechanism: mechanism.trim(),
+        body_part: bodyPart.trim(),
+        incident_location: incidentLocation.trim(),
         safety_classification: safetyClassification,
         work_related: true,
         status: "open",
@@ -101,59 +104,55 @@ export function OhIodTabPanel({
     }
   }
 
-  async function handleStatutoryPack(caseUuid: string) {
-    setDownloadingUuid(caseUuid);
-    try {
-      const { blob, filename } = await downloadIodStatutoryPack(caseUuid);
-      const url = URL.createObjectURL(blob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = filename;
-      anchor.click();
-      URL.revokeObjectURL(url);
-      toast({ variant: "success", title: "Statutory pack downloaded" });
-    } catch (error) {
-      toast({
-        title: "Could not load statutory pack",
-        description: error instanceof Error ? error.message : undefined,
-        variant: "error",
-      });
-    } finally {
-      setDownloadingUuid(null);
-    }
-  }
-
   return (
-    <div className="space-y-6" data-testid="oh-iod-tab">
+    <OhPanelSection description="Open an injury-on-duty case linked to this encounter.">
       <form
         onSubmit={(event) => void handleSubmit(event)}
-        className="grid gap-4 rounded-xl border border-brand-border bg-white p-4 md:grid-cols-2"
+        onKeyDown={submitOnModEnter}
+        className="space-y-4"
+        data-testid="oh-iod-form"
       >
-        <div className="space-y-2">
-          <Label htmlFor="oh-iod-severity">Severity</Label>
-          <Select value={severity} onValueChange={setSeverity}>
-            <SelectTrigger id="oh-iod-severity">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {SEVERITIES.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="oh-iod-severity">
+              Severity <RequiredFieldMarker />
+            </Label>
+            <Select value={severity} onValueChange={setSeverity}>
+              <SelectTrigger id="oh-iod-severity" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className={appFont.className}>
+                {SEVERITIES.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="oh-iod-onset">
+              Onset date <RequiredFieldMarker />
+            </Label>
+            <Input
+              id="oh-iod-onset"
+              type="date"
+              max={todayIsoDate()}
+              value={onsetDate}
+              onChange={(event) => setOnsetDate(event.target.value)}
+              required
+            />
+          </div>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="oh-iod-safety">Safety classification</Label>
-          <Select
-            value={safetyClassification}
-            onValueChange={setSafetyClassification}
-          >
-            <SelectTrigger id="oh-iod-safety">
+        <div className="space-y-1.5">
+          <Label htmlFor="oh-iod-safety">
+            Safety classification <RequiredFieldMarker />
+          </Label>
+          <Select value={safetyClassification} onValueChange={setSafetyClassification}>
+            <SelectTrigger id="oh-iod-safety" className="w-full">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className={appFont.className}>
               {SAFETY_CLASSES.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}
@@ -162,17 +161,36 @@ export function OhIodTabPanel({
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="oh-iod-onset">Onset date</Label>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label htmlFor="oh-iod-mechanism">Mechanism</Label>
+            <Input
+              id="oh-iod-mechanism"
+              value={mechanism}
+              onChange={(event) => setMechanism(event.target.value)}
+              placeholder="e.g. slip"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="oh-iod-body-part">Body part</Label>
+            <Input
+              id="oh-iod-body-part"
+              value={bodyPart}
+              onChange={(event) => setBodyPart(event.target.value)}
+              placeholder="e.g. right hand"
+            />
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="oh-iod-location">Incident location</Label>
           <Input
-            id="oh-iod-onset"
-            type="date"
-            value={onsetDate}
-            onChange={(event) => setOnsetDate(event.target.value)}
-            required
+            id="oh-iod-location"
+            value={incidentLocation}
+            onChange={(event) => setIncidentLocation(event.target.value)}
+            placeholder="Where on site it happened"
           />
         </div>
-        <div className="space-y-2">
+        <div className="space-y-1.5">
           <Label htmlFor="oh-iod-she-ref">SHE reference</Label>
           <Input
             id="oh-iod-she-ref"
@@ -181,91 +199,24 @@ export function OhIodTabPanel({
             placeholder="Employer / SHE case reference"
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="oh-iod-mechanism">Mechanism</Label>
-          <Input
-            id="oh-iod-mechanism"
-            value={mechanism}
-            onChange={(event) => setMechanism(event.target.value)}
-            placeholder="e.g. slip, struck by, chemical exposure"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="oh-iod-body-part">Body part</Label>
-          <Input
-            id="oh-iod-body-part"
-            value={bodyPart}
-            onChange={(event) => setBodyPart(event.target.value)}
-            placeholder="e.g. right hand, lower back"
-          />
-        </div>
-        <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="oh-iod-location">Incident location</Label>
-          <Input
-            id="oh-iod-location"
-            value={incidentLocation}
-            onChange={(event) => setIncidentLocation(event.target.value)}
-            placeholder="Where on site the incident occurred"
-          />
-        </div>
-        <div className="space-y-2 md:col-span-2">
-          <Label htmlFor="oh-iod-description">Description</Label>
+        <div className="space-y-1.5">
+          <Label htmlFor="oh-iod-description">
+            Description <RequiredFieldMarker />
+          </Label>
           <Textarea
             id="oh-iod-description"
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            rows={3}
+            rows={4}
             required
           />
         </div>
-        <div className="md:col-span-2">
-          <Button type="submit" disabled={isSubmitting}>
+        <OhFormFooter>
+          <PrimaryButton type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? "Saving…" : "Open IOD case"}
-          </Button>
-        </div>
+          </PrimaryButton>
+        </OhFormFooter>
       </form>
-
-      <ul className="divide-y rounded-xl border border-brand-border bg-white">
-        {iodCases.length === 0 ? (
-          <li className="px-4 py-3 text-sm text-brand-muted">No IOD cases linked.</li>
-        ) : (
-          iodCases.map((item) => (
-            <li
-              key={item.uuid}
-              className="flex flex-wrap items-start justify-between gap-3 px-4 py-3 text-sm"
-            >
-              <div>
-                <div className="font-medium capitalize">
-                  {item.severity} — {item.status.replace(/_/g, " ")}
-                  {item.safety_classification
-                    ? ` · ${item.safety_classification.replace(/_/g, " ")}`
-                    : ""}
-                </div>
-                {item.she_reference ? (
-                  <p className="text-brand-muted">SHE ref: {item.she_reference}</p>
-                ) : null}
-                {(item.mechanism || item.body_part || item.incident_location) && (
-                  <p className="mt-1 text-brand-muted">
-                    {[item.mechanism, item.body_part, item.incident_location]
-                      .filter(Boolean)
-                      .join(" · ")}
-                  </p>
-                )}
-                <p className="mt-1 text-brand-muted">{item.description}</p>
-              </div>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                disabled={downloadingUuid === item.uuid}
-                onClick={() => void handleStatutoryPack(item.uuid)}
-              >
-                {downloadingUuid === item.uuid ? "Loading…" : "Statutory pack"}
-              </Button>
-            </li>
-          ))
-        )}
-      </ul>
-    </div>
+    </OhPanelSection>
   );
 }

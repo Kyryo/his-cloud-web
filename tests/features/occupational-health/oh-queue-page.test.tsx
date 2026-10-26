@@ -4,10 +4,15 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { OhQueuePage } from "@/features/occupational-health/pages/OhQueuePage";
 
-const useUserMock = vi.fn(() => ({
+const AUTHORIZED_USER = {
   isLoading: false,
-  userData: { groups: ["OccupationalHealth"] },
-}));
+  userData: {
+    groups: ["OccupationalHealth"],
+    enabled_modules: ["OccupationalHealth"],
+  },
+};
+
+const useUserMock = vi.fn(() => AUTHORIZED_USER);
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({
@@ -28,6 +33,8 @@ vi.mock("@/features/occupational-health/hooks/use-occupational-health", () => ({
         id: 1,
         uuid: "enc-1",
         visit: "visit-1",
+        customer_uuid: "cust-1",
+        customer_name: "Jane Doe",
         department: "dept-1",
         department_name: "Occupational Health",
         department_type: "occupational_health",
@@ -52,18 +59,9 @@ vi.mock("@/features/occupational-health/hooks/use-occupational-health", () => ({
   }),
 }));
 
-vi.mock("@/features/visits/services/visits.service", () => ({
-  fetchVisit: vi.fn().mockResolvedValue({
-    customer_name: "Jane Doe",
-  }),
-}));
-
 afterEach(() => {
   cleanup();
-  useUserMock.mockReturnValue({
-    isLoading: false,
-    userData: { groups: ["OccupationalHealth"] },
-  });
+  useUserMock.mockReturnValue(AUTHORIZED_USER);
 });
 
 function renderPage() {
