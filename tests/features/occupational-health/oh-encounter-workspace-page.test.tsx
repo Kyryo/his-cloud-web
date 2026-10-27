@@ -21,6 +21,7 @@ const ohService = vi.hoisted(() => ({
   createOhExamFinding: vi.fn(),
   createIodCase: vi.fn(),
   downloadIodStatutoryPack: vi.fn(),
+  fetchOhVisitHistory: vi.fn(),
 }));
 
 const fetchVisitMock = vi.hoisted(() => vi.fn());
@@ -132,6 +133,16 @@ beforeEach(() => {
   ohService.fetchEmploymentEpisodes.mockResolvedValue([]);
   ohService.fetchOhEmployers.mockResolvedValue([]);
   ohService.fetchOhJobTitles.mockResolvedValue([]);
+  ohService.fetchOhVisitHistory.mockResolvedValue({
+    visits: [],
+    selected_visit_uuid: null,
+    selected_encounter_uuid: null,
+    examinations: [],
+    findings: [],
+    fitness_assessments: [],
+    fitness_certificates: [],
+    iod_cases: [],
+  });
   ohService.createOhExamination.mockResolvedValue(EXAM);
   ohService.createFitnessCertificate.mockResolvedValue({});
 });
@@ -153,13 +164,14 @@ const ASSESSMENT = {
 };
 
 describe("OhEncounterWorkspacePage", () => {
-  it("renders the record, encounter, and worker columns without loading the encounter list", async () => {
+  it("renders the record, encounter, and previous-visit columns without loading the encounter list", async () => {
     renderPage();
 
     expect(await screen.findByTestId("oh-encounter-columns")).toBeInTheDocument();
     expect(screen.getByTestId("oh-encounter-form-column")).toBeInTheDocument();
     expect(screen.getByTestId("oh-encounter-records-column")).toBeInTheDocument();
-    expect(screen.getByTestId("oh-encounter-worker-column")).toBeInTheDocument();
+    expect(screen.getByTestId("oh-encounter-history-column")).toBeInTheDocument();
+    expect(screen.getByTestId("oh-history-panel")).toBeInTheDocument();
 
     const records = await screen.findByTestId("oh-exam-records");
     expect(within(records).getByText("Periodic")).toBeInTheDocument();
@@ -215,11 +227,11 @@ describe("OhEncounterWorkspacePage", () => {
     expect(await screen.findByTestId("oh-findings-locked")).toBeInTheDocument();
   });
 
-  it("certifies the outcome of the selected assessment and summarises it for the worker", async () => {
+  it("certifies the outcome of the selected assessment", async () => {
     ohService.fetchFitnessAssessments.mockResolvedValue([ASSESSMENT]);
     renderPage();
 
-    fireEvent.click(await findTab(/Fitness/));
+    fireEvent.click(await findTab(/Certificate/));
     fireEvent.click(await screen.findByRole("button", { name: "Issue certificate" }));
 
     await waitFor(() =>
@@ -230,9 +242,6 @@ describe("OhEncounterWorkspacePage", () => {
         }),
       ),
     );
-
-    const workerFitness = screen.getByTestId("oh-worker-fitness");
-    expect(within(workerFitness).getByText("Fit with restrictions")).toBeInTheDocument();
   });
 
   it("links each examination to its findings and fitness outcome", async () => {
@@ -257,16 +266,16 @@ describe("OhEncounterWorkspacePage", () => {
     expect(within(records).getByText("Fit with restrictions")).toBeInTheDocument();
   });
 
-  it("guides the next step and switches tabs from the progress checklist", async () => {
+  it("follows the active tab in previous records", async () => {
     renderPage();
 
-    expect(await screen.findByTestId("oh-encounter-next-step")).toHaveTextContent(
-      "Next: Fitness decision",
-    );
+    const history = await screen.findByTestId("oh-history-panel");
+    expect(within(history).getByRole("tab", { name: "Exam", selected: true })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByTestId("oh-progress-step-fitness"));
+    fireEvent.click(await findTab(/^Fitness/));
 
     expect(await screen.findByTestId("oh-fitness-assessment-form")).toBeInTheDocument();
+    expect(within(history).getByRole("tab", { name: "Fitness", selected: true })).toBeInTheDocument();
     expect(window.location.search).toBe("?tab=fitness");
   });
 
@@ -311,7 +320,7 @@ describe("OhEncounterWorkspacePage", () => {
       },
     ]);
     ohService.withdrawFitnessCertificate.mockResolvedValue({});
-    window.history.replaceState(null, "", "/?tab=fitness");
+    window.history.replaceState(null, "", "/?tab=certificate");
     renderPage();
 
     fireEvent.click(await screen.findByRole("button", { name: "Withdraw" }));

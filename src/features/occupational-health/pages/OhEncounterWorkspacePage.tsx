@@ -14,10 +14,16 @@ import {
 } from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
 import { OhEncounterHeader } from "@/features/occupational-health/components/OhEncounterHeader";
-import { OhEncounterTabs } from "@/features/occupational-health/components/OhEncounterTabs";
+import {
+  OH_ENCOUNTER_TABS,
+  OhEncounterTabs,
+} from "@/features/occupational-health/components/OhEncounterTabs";
 import { OhEncounterWorkspaceBody } from "@/features/occupational-health/components/OhEncounterWorkspaceBody";
 import { useOhEncounterTabParam } from "@/features/occupational-health/hooks/use-oh-encounter-tab-param";
-import { useOhEncounterWorkspaceData } from "@/features/occupational-health/hooks/use-occupational-health";
+import {
+  useEmploymentEpisodes,
+  useOhEncounterWorkspaceData,
+} from "@/features/occupational-health/hooks/use-occupational-health";
 import { fetchOhEncounters } from "@/features/occupational-health/services/oh.service";
 import type { OhVisitEncounter } from "@/features/occupational-health/types";
 import { canAccessOccupationalHealth } from "@/features/occupational-health/utils/oh-access";
@@ -96,14 +102,17 @@ export function OhEncounterWorkspacePage({
   const encounter = encounterFromVisit ?? fallbackEncounterQuery.data ?? null;
   const workspace = useOhEncounterWorkspaceData(encounter?.id ?? null);
   const customer = customerQuery.data ?? null;
+  const episodesQuery = useEmploymentEpisodes(customer?.uuid);
 
   useAppBreadcrumb(customer ? formatCustomerName(customer) : "OH encounter");
 
   const tabCounts = {
     exam: workspace.examinations.length,
-    fitness: workspace.fitness.length + workspace.fitnessCertificates.length,
+    fitness: workspace.fitness.length,
+    certificate: workspace.fitnessCertificates.length,
     iod: workspace.iodCases.length,
     findings: workspace.findings.length,
+    employment: episodesQuery.data?.length ?? 0,
   };
 
   if (
@@ -112,7 +121,10 @@ export function OhEncounterWorkspacePage({
     (!encounterFromVisit && fallbackEncounterQuery.isLoading)
   ) {
     return (
-      <DetailPageSkeleton tabCount={4} data-testid="oh-encounter-workspace-skeleton" />
+      <DetailPageSkeleton
+        tabCount={OH_ENCOUNTER_TABS.length}
+        data-testid="oh-encounter-workspace-skeleton"
+      />
     );
   }
 
@@ -165,7 +177,7 @@ export function OhEncounterWorkspacePage({
           />
           <OhEncounterWorkspaceBody
             activeTab={activeTab}
-            onTabChange={setActiveTab}
+            visitUuid={visitUuid}
             counts={tabCounts}
             encounter={encounter}
             customer={customer}

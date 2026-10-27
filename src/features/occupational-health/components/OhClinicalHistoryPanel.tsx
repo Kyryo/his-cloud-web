@@ -7,6 +7,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import {
   OpdConsultColumnHeader,
 } from "@/features/clinical-opd/components/detail/OpdConsultColumnHeader";
+import {
+  OH_ENCOUNTER_TABS,
+  type OhEncounterTabId,
+} from "@/features/occupational-health/components/OhEncounterTabs";
 import { useOhVisitHistory } from "@/features/occupational-health/hooks/use-occupational-health";
 import type {
   FitnessAssessment,
@@ -23,14 +27,9 @@ import {
 } from "@/features/customers/utils/format-customer";
 import { cn } from "@/lib/utils";
 
-export const OH_HISTORY_SECTIONS = [
-  { id: "exam", label: "Exam" },
-  { id: "findings", label: "Findings" },
-  { id: "fitness", label: "Fitness" },
-  { id: "iod", label: "IOD" },
-] as const;
+export const OH_HISTORY_SECTIONS = OH_ENCOUNTER_TABS;
 
-export type OhHistorySectionId = (typeof OH_HISTORY_SECTIONS)[number]["id"];
+export type OhHistorySectionId = OhEncounterTabId;
 
 type OhClinicalHistoryPanelProps = {
   visitUuid: string;
@@ -113,45 +112,64 @@ function FindingsList({ findings }: { findings: OhExamFinding[] }) {
   );
 }
 
-function FitnessList({
+function FitnessList({ assessments }: { assessments: FitnessAssessment[] }) {
+  if (assessments.length === 0) {
+    return <HistoryEmptyState message="No fitness records on this visit." />;
+  }
+  return (
+    <ul className="space-y-2">
+      {assessments.map((assessment) => (
+        <li
+          key={assessment.uuid}
+          className="border-b border-dash-border/70 py-3 last:border-b-0"
+        >
+          <p className="text-xs font-semibold capitalize text-brand-navy">
+            {assessment.outcome.replaceAll("_", " ")}
+          </p>
+          <p className="mt-0.5 text-[10px] text-brand-muted">
+            {formatDisplayDateTime(assessment.assessed_at)}
+            {assessment.review_date
+              ? ` · review ${formatDisplayDate(assessment.review_date)}`
+              : null}
+          </p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function CertificateList({
   assessments,
   certificates,
 }: {
   assessments: FitnessAssessment[];
   certificates: FitnessCertificate[];
 }) {
-  if (assessments.length === 0 && certificates.length === 0) {
-    return <HistoryEmptyState message="No fitness records on this visit." />;
+  if (certificates.length === 0) {
+    return <HistoryEmptyState message="No certificates on this visit." />;
   }
-  const certificatesByAssessment = new Map(
-    certificates.map((certificate) => [certificate.assessment, certificate]),
+  const outcomeByAssessment = new Map(
+    assessments.map((assessment) => [assessment.id, assessment.outcome]),
   );
   return (
     <ul className="space-y-2">
-      {assessments.map((assessment) => {
-        const certificate = certificatesByAssessment.get(assessment.id);
+      {certificates.map((certificate) => {
+        const outcome = outcomeByAssessment.get(certificate.assessment);
         return (
           <li
-            key={assessment.uuid}
+            key={certificate.uuid}
             className="border-b border-dash-border/70 py-3 last:border-b-0"
           >
             <p className="text-xs font-semibold capitalize text-brand-navy">
-              {assessment.outcome.replaceAll("_", " ")}
+              {outcome ? outcome.replaceAll("_", " ") : "Certificate"} · v
+              {certificate.version}
             </p>
             <p className="mt-0.5 text-[10px] text-brand-muted">
-              {formatDisplayDateTime(assessment.assessed_at)}
-              {assessment.review_date
-                ? ` · review ${formatDisplayDate(assessment.review_date)}`
+              {certificate.status}
+              {certificate.valid_to
+                ? ` · valid to ${formatDisplayDate(certificate.valid_to)}`
                 : null}
             </p>
-            {certificate ? (
-              <p className="mt-1 text-[11px] text-brand-slate">
-                Certificate {certificate.status}
-                {certificate.valid_to
-                  ? ` · valid to ${formatDisplayDate(certificate.valid_to)}`
-                  : null}
-              </p>
-            ) : null}
           </li>
         );
       })}
@@ -201,14 +219,20 @@ function SectionBody({
     case "findings":
       return <FindingsList findings={history.findings} />;
     case "fitness":
+      return <FitnessList assessments={history.fitness_assessments} />;
+    case "certificate":
       return (
-        <FitnessList
+        <CertificateList
           assessments={history.fitness_assessments}
           certificates={history.fitness_certificates}
         />
       );
     case "iod":
       return <IodList iodCases={history.iod_cases} />;
+    case "employment":
+      return (
+        <HistoryEmptyState message="Employment is recorded on the client, not on each previous visit." />
+      );
     default:
       return null;
   }
@@ -270,7 +294,7 @@ export function OhClinicalHistoryPanel({
   return (
     <aside
       className={cn(
-        "flex min-h-0 flex-col bg-dash-canvas",
+        "flex min-h-0 flex-col bg-white",
         embedded
           ? "h-full border-t border-dash-border/70 xl:border-l xl:border-t-0"
           : "border-t border-dash-border/70 xl:sticky xl:top-0 xl:max-h-[calc(100vh-4rem)] xl:border-l xl:border-t-0",
@@ -325,7 +349,7 @@ export function OhClinicalHistoryPanel({
             </button>
           </div>
         }
-        className="bg-dash-canvas"
+        className="bg-white"
       />
 
       <div
@@ -348,7 +372,7 @@ export function OhClinicalHistoryPanel({
                 "rounded-md px-2 py-1 text-[11px] font-medium transition-colors",
                 isActive
                   ? "bg-white text-brand-navy shadow-2xs ring-1 ring-dash-border/80"
-                  : "text-brand-muted hover:bg-white/70 hover:text-brand-navy",
+                  : "text-brand-muted hover:bg-slate-50 hover:text-brand-navy",
               )}
             >
               {item.label}

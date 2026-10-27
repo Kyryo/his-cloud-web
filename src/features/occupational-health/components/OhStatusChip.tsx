@@ -17,6 +17,7 @@ const VALUE_TONES: Record<string, OhChipTone> = {
   deferred: "neutral",
   permanently_unfit: "danger",
   unfit: "danger",
+  active: "positive",
   issued: "positive",
   amended: "caution",
   withdrawn: "neutral",

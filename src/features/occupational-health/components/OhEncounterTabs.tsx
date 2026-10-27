@@ -7,8 +7,10 @@ import { cn } from "@/lib/utils";
 export const OH_ENCOUNTER_TABS = [
   { id: "exam", label: "Exam" },
   { id: "fitness", label: "Fitness" },
+  { id: "certificate", label: "Certificate" },
   { id: "iod", label: "IOD" },
   { id: "findings", label: "Findings" },
+  { id: "employment", label: "Employment" },
 ] as const;
 
 export type OhEncounterTabId = (typeof OH_ENCOUNTER_TABS)[number]["id"];

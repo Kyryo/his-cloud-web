@@ -18,7 +18,7 @@ type OhEncounterColumnsProps = {
   sectionKey: string;
 };
 
-/** Record on the left, this encounter in the middle, worker context on the right. */
+/** Record on the left, this encounter in the middle, previous visits on the right. */
 export function OhEncounterColumns({
   form,
   records,
@@ -43,22 +43,18 @@ export function OhEncounterColumns({
       </section>
       <section
         key={`records-${sectionKey}`}
-        className={cn("min-h-64 min-w-0 bg-dash-canvas", COLUMN_SCROLL_CLASS)}
+        className={cn("min-h-64 min-w-0 bg-white", COLUMN_SCROLL_CLASS)}
         aria-label="This encounter"
         data-testid="oh-encounter-records-column"
       >
         {records}
       </section>
-      <aside
-        className={cn(
-          "min-w-0 border-t border-dash-border/70 bg-white xl:border-l xl:border-t-0",
-          COLUMN_SCROLL_CLASS,
-        )}
-        aria-label="Worker"
-        data-testid="oh-encounter-worker-column"
+      <div
+        className="flex min-h-0 min-w-0 flex-col xl:min-h-0"
+        data-testid="oh-encounter-history-column"
       >
         {aside}
-      </aside>
+      </div>
     </div>
   );
 }

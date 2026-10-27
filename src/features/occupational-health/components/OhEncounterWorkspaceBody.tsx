@@ -11,6 +11,7 @@ import {
   OhEncounterColumns,
   OhPanelSection,
 } from "@/features/occupational-health/components/OhEncounterColumns";
+import { OhClinicalHistoryPanel } from "@/features/occupational-health/components/OhClinicalHistoryPanel";
 import type { OhEncounterTabId } from "@/features/occupational-health/components/OhEncounterTabs";
 import {
   OhExamForm,
@@ -20,11 +21,14 @@ import {
   OhFindingForm,
   OhFindingRecords,
 } from "@/features/occupational-health/components/OhFindingsTabPanel";
+import { OhCertificateRecords } from "@/features/occupational-health/components/OhCertificateRecords";
+import { OhCertificateForm } from "@/features/occupational-health/components/OhCertificateTabPanel";
+import { OhEmploymentRecords } from "@/features/occupational-health/components/OhEmploymentRecords";
+import { OhEmploymentForm } from "@/features/occupational-health/components/OhEmploymentTabPanel";
 import { OhFitnessRecords } from "@/features/occupational-health/components/OhFitnessRecords";
 import { OhFitnessForms } from "@/features/occupational-health/components/OhFitnessTabPanel";
 import { OhIodRecords } from "@/features/occupational-health/components/OhIodRecords";
 import { OhIodForm } from "@/features/occupational-health/components/OhIodTabPanel";
-import { OhWorkerContextPanel } from "@/features/occupational-health/components/OhWorkerContextPanel";
 import type { useOhEncounterWorkspaceData } from "@/features/occupational-health/hooks/use-occupational-health";
 import type { OhVisitEncounter } from "@/features/occupational-health/types";
 
@@ -33,13 +37,15 @@ type OhWorkspaceData = ReturnType<typeof useOhEncounterWorkspaceData>;
 const TAB_TITLES: Record<OhEncounterTabId, { form: string; records: string }> = {
   exam: { form: "New examination", records: "Examinations" },
   fitness: { form: "Fitness", records: "Fitness" },
+  certificate: { form: "Certificate", records: "Certificates" },
   iod: { form: "New IOD case", records: "IOD cases" },
   findings: { form: "New finding", records: "Findings" },
+  employment: { form: "Employment", records: "Employment" },
 };
 
 type OhEncounterWorkspaceBodyProps = {
   activeTab: OhEncounterTabId;
-  onTabChange: (tab: OhEncounterTabId) => void;
+  visitUuid: string;
   counts: Record<OhEncounterTabId, number>;
   encounter: OhVisitEncounter;
   customer: Customer | null;
@@ -49,7 +55,7 @@ type OhEncounterWorkspaceBodyProps = {
 
 export function OhEncounterWorkspaceBody({
   activeTab,
-  onTabChange,
+  visitUuid,
   counts,
   encounter,
   customer,
@@ -83,7 +89,7 @@ export function OhEncounterWorkspaceBody({
           eyebrow="This encounter"
           title={titles.records}
           count={counts[activeTab]}
-          className="bg-dash-canvas"
+          className="bg-white"
         >
           {workspace.isLoading ? (
             <ColumnSkeleton />
@@ -101,6 +107,7 @@ export function OhEncounterWorkspaceBody({
           ) : (
             <OhTabRecords
               activeTab={activeTab}
+              customer={customer}
               workspace={workspace}
               onChanged={onChanged}
             />
@@ -108,15 +115,11 @@ export function OhEncounterWorkspaceBody({
         </OhColumnPanel>
       }
       aside={
-        <OhWorkerContextPanel
-          customer={customer}
-          examinationCount={workspace.examinations.length}
-          findings={workspace.findings}
-          assessments={workspace.fitness}
-          certificates={workspace.fitnessCertificates}
-          iodCases={workspace.iodCases}
-          activeTab={activeTab}
-          onSelectTab={onTabChange}
+        <OhClinicalHistoryPanel
+          visitUuid={visitUuid}
+          encounterUuid={encounter.uuid}
+          section={activeTab}
+          embedded
         />
       }
     />
@@ -145,11 +148,11 @@ function OhTabForm({
       return <OhExamForm encounterId={encounter.id} onCreated={onChanged} />;
     case "fitness":
       return (
-        <OhFitnessForms
-          examinations={workspace.examinations}
-          assessments={workspace.fitness}
-          onCreated={onChanged}
-        />
+        <OhFitnessForms examinations={workspace.examinations} onCreated={onChanged} />
+      );
+    case "certificate":
+      return (
+        <OhCertificateForm assessments={workspace.fitness} onCreated={onChanged} />
       );
     case "iod":
       return customer && tenantId ? (
@@ -170,16 +173,24 @@ function OhTabForm({
       return (
         <OhFindingForm examinations={workspace.examinations} onCreated={onChanged} />
       );
+    case "employment":
+      return <OhEmploymentForm customer={customer} />;
   }
 }
 
 type OhTabRecordsProps = {
   activeTab: OhEncounterTabId;
+  customer: Customer | null;
   workspace: OhWorkspaceData;
   onChanged: () => void;
 };
 
-function OhTabRecords({ activeTab, workspace, onChanged }: OhTabRecordsProps): ReactNode {
+function OhTabRecords({
+  activeTab,
+  customer,
+  workspace,
+  onChanged,
+}: OhTabRecordsProps): ReactNode {
   switch (activeTab) {
     case "exam":
       return (
@@ -194,6 +205,12 @@ function OhTabRecords({ activeTab, workspace, onChanged }: OhTabRecordsProps): R
         <OhFitnessRecords
           examinations={workspace.examinations}
           assessments={workspace.fitness}
+        />
+      );
+    case "certificate":
+      return (
+        <OhCertificateRecords
+          assessments={workspace.fitness}
           certificates={workspace.fitnessCertificates}
           onChanged={onChanged}
         />
@@ -207,6 +224,8 @@ function OhTabRecords({ activeTab, workspace, onChanged }: OhTabRecordsProps): R
           findings={workspace.findings}
         />
       );
+    case "employment":
+      return <OhEmploymentRecords customer={customer} />;
   }
 }
 
