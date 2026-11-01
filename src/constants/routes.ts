@@ -203,6 +203,8 @@ export const ROUTES = {
   settingsModuleRegistration: "/settings/modules/registration",
   settingsModuleOccupationalHealth: "/settings/modules/occupational-health",
   settingsModule: (slug: string) => `/settings/modules/${slug}`,
+  ohTemplateBuilder: (kind: "exam" | "certificate", uuid: string) =>
+    `/templates/${kind}/${uuid}`,
   settingsIntegrations: "/settings/integrations",
   settingsIntegrationsEmail: "/settings/integrations/email",
   settingsIntegrationsMasemEclaims: "/settings/integrations/masm-eclaims",
@@ -322,6 +324,7 @@ export const APP_ROUTE_PREFIXES = [
   "/reports",
   "/visits",
   ROUTES.settings,
+  "/templates",
   "/api",
 ] as const;
 
@@ -377,4 +380,5 @@ export const PROTECTED_ROUTES = [
   "/reports",
   "/visits",
   ROUTES.settings,
+  "/templates",
 ] as const;

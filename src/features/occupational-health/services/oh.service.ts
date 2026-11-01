@@ -1037,6 +1037,10 @@ export async function fetchOhCofTemplates() {
   return response.results;
 }
 
+export async function fetchOhCofTemplate(uuid: string) {
+  return bffRequest<OhCofTemplate>(BFF_OCCUPATIONAL_HEALTH_ROUTES.cofTemplate(uuid));
+}
+
 export async function createOhCofTemplate(payload: {
   name: string;
   code: string;
@@ -1213,6 +1217,12 @@ export async function fetchOhExamTemplates() {
   return response.results;
 }
 
+export async function fetchOhExamTemplate(uuid: string) {
+  return bffRequest<OhExamTemplate>(
+    BFF_OCCUPATIONAL_HEALTH_ROUTES.examTemplate(uuid),
+  );
+}
+
 export async function createOhExamTemplate(payload: {
   name: string;
   code: string;
@@ -1256,6 +1266,16 @@ export async function attachOhExamTemplateSection(payload: {
   return bffRequest<OhExamTemplateSection>(
     BFF_OCCUPATIONAL_HEALTH_ROUTES.examTemplateSections,
     { method: "POST", body: payload },
+  );
+}
+
+export async function updateOhExamTemplateSection(
+  uuid: string,
+  payload: { sort_order?: number; active?: boolean },
+) {
+  return bffRequest<OhExamTemplateSection>(
+    BFF_OCCUPATIONAL_HEALTH_ROUTES.examTemplateSection(uuid),
+    { method: "PATCH", body: payload },
   );
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
-import { Building2, Loader2, Pencil } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Loader2, Pencil } from "lucide-react";
+import { useState } from "react";
 
 import {
   PrimaryButton,
@@ -64,8 +64,21 @@ export function OhEmployerWorkspaceSheet({
   onEmployerArchived,
 }: OhEmployerWorkspaceSheetProps) {
   const { toast } = useToast();
-  const [activeTab, setActiveTab] =
-    useState<OhEmployerWorkspaceTabId>("risk-profiles");
+  const [tabState, setTabState] = useState<{
+    employerId: string;
+    tab: OhEmployerWorkspaceTabId;
+  }>({ employerId: "", tab: "risk-profiles" });
+  const activeTab =
+    employer && tabState.employerId === employer.uuid
+      ? tabState.tab
+      : "risk-profiles";
+
+  function setActiveTab(tab: OhEmployerWorkspaceTabId) {
+    if (!employer) {
+      return;
+    }
+    setTabState({ employerId: employer.uuid, tab });
+  }
   const [editOpen, setEditOpen] = useState(false);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
@@ -73,21 +86,15 @@ export function OhEmployerWorkspaceSheet({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
 
-  useEffect(() => {
-    if (!open) {
-      return;
-    }
-    setActiveTab("risk-profiles");
-  }, [open, employer?.uuid]);
-
-  useEffect(() => {
-    if (!employer || !editOpen) {
+  function openEdit() {
+    if (!employer) {
       return;
     }
     setName(employer.name);
     setCode(employer.code ?? "");
     setRegistrationNumber(employer.registration_number ?? "");
-  }, [editOpen, employer]);
+    setEditOpen(true);
+  }
 
   async function handleSaveEmployer(event: React.FormEvent) {
     event.preventDefault();
@@ -163,19 +170,16 @@ export function OhEmployerWorkspaceSheet({
           data-testid="oh-employer-workspace-sheet"
         >
           <SheetHeader className="space-y-0 border-b border-dash-border/70 px-6 py-5 pr-14 text-left">
-            <div className="flex items-center gap-3.5">
-              <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-tint text-brand-primary">
-                <Building2 className="size-5" aria-hidden />
-              </div>
+            <div className="flex items-start gap-4">
               <div className="min-w-0 flex-1">
-                <SheetTitle className="text-sm font-medium text-dash-muted">
+                <SheetTitle className="text-[11px] font-medium uppercase tracking-[0.08em] text-dash-muted">
                   Employer
                 </SheetTitle>
-                <p className="truncate text-base font-semibold tracking-tight text-brand-navy">
+                <p className="mt-1 truncate text-lg font-semibold tracking-tight text-brand-navy">
                   {employer?.name ?? "—"}
                 </p>
                 {meta ? (
-                  <p className="mt-0.5 truncate text-sm text-dash-muted">
+                  <p className="mt-1 truncate text-sm text-dash-muted">
                     {meta}
                   </p>
                 ) : null}
@@ -185,7 +189,7 @@ export function OhEmployerWorkspaceSheet({
                 variant="ghost"
                 size="sm"
                 className="shrink-0 gap-1.5 text-brand-muted hover:text-brand-navy"
-                onClick={() => setEditOpen(true)}
+                onClick={openEdit}
                 disabled={!employer}
               >
                 <Pencil className="size-3.5" aria-hidden />
