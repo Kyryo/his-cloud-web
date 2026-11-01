@@ -20,6 +20,7 @@ describe("PricelistsTable", () => {
             currency_code: "MWK",
             created_at: "2026-10-01T09:30:00Z",
             created_by_name: "Grace Admin",
+            created_by_avatar_url: "https://cdn.example.com/grace.jpg",
           },
           {
             uuid: "pl-2",
@@ -40,8 +41,8 @@ describe("PricelistsTable", () => {
       "Pricelist",
       "Currency",
       "Status",
-      "Created at",
       "Created by",
+      "Created at",
     ]);
 
     const [cashRow, legacyRow] = screen.getAllByRole("row").slice(1);
@@ -49,6 +50,9 @@ describe("PricelistsTable", () => {
     expect(within(cashRow!).getByText("Grace Admin")).toBeInTheDocument();
     const creatorCell = within(cashRow!).getByText("Grace Admin").parentElement;
     expect(creatorCell?.firstElementChild?.className).toContain("size-5");
+    expect(creatorCell?.firstElementChild?.className).toContain("rounded-md");
+    // Avatar image is preferred when created_by_avatar_url is set (jsdom keeps the
+    // Radix fallback until load; production shows the uploaded photo).
     expect(legacyRow).toHaveTextContent("Unknown");
     expect(legacyRow).toHaveTextContent("—");
   });

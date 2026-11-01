@@ -20,6 +20,16 @@ vi.mock("@/features/inventory/components/detail/PricelistDetailAdvisorPackTab", 
     isActive ? <div data-testid="pricelist-advisor-pack-tab">Advisor pack</div> : null,
 }));
 
+vi.mock("@/features/inventory/components/detail/PricelistDetailSettingsTab", () => ({
+  PricelistDetailSettingsTab: ({ isActive }: { isActive: boolean }) =>
+    isActive ? <div data-testid="pricelist-settings-tab">Settings</div> : null,
+}));
+
+vi.mock("@/features/inventory/components/detail/PricelistDetailActivityTab", () => ({
+  PricelistDetailActivityTab: ({ isActive }: { isActive: boolean }) =>
+    isActive ? <div data-testid="pricelist-activity-timeline">Activity</div> : null,
+}));
+
 const PRICELIST = {
   uuid: "pl-1",
   name: "MASM VIP",
@@ -32,7 +42,7 @@ afterEach(() => {
 });
 
 describe("PricelistDetailTabs", () => {
-  it("places Claims advisor pack between Price approvals and Summary", () => {
+  it("places Settings and Activity after Claims advisor pack", () => {
     render(<PricelistDetailTabs pricelist={PRICELIST} />);
 
     const nav = screen.getByRole("navigation", { name: "Pricelist sections" });
@@ -45,10 +55,14 @@ describe("PricelistDetailTabs", () => {
       "Rules",
       "Price approvals",
       "Claims advisor pack",
-      "Summary",
+      "Settings",
+      "Activity",
     ]);
 
-    fireEvent.click(within(nav).getByRole("button", { name: "Claims advisor pack" }));
-    expect(screen.getByTestId("pricelist-advisor-pack-tab")).toBeInTheDocument();
+    fireEvent.click(within(nav).getByRole("button", { name: "Settings" }));
+    expect(screen.getByTestId("pricelist-settings-tab")).toBeInTheDocument();
+
+    fireEvent.click(within(nav).getByRole("button", { name: "Activity" }));
+    expect(screen.getByTestId("pricelist-activity-timeline")).toBeInTheDocument();
   });
 });

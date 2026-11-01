@@ -26,6 +26,7 @@ import { CreateAppointmentDialog } from "@/features/appointments/components/Crea
 import { OpdEncounterStatusBadge } from "@/features/clinical-opd/components/OpdEncounterStatusBadge";
 import type { Customer } from "@/features/customers/types/customer.types";
 import { OhAccessDenied } from "@/features/occupational-health/components/OhAccessDenied";
+import { canAccessOccupationalHealth } from "@/features/occupational-health/utils/oh-access";
 import {
   useOhCampaignQueue,
   useOhFitnessValidityAlerts,
@@ -85,7 +86,7 @@ export function OhSurveillancePage() {
   });
   const campaignQuery = useOhCampaignQueue();
   const fitnessAlertsQuery = useOhFitnessValidityAlerts();
-  const hasAccess = (userData?.groups ?? []).includes("OccupationalHealth");
+  const hasAccess = canAccessOccupationalHealth(userData);
 
   const filteredCampaign = useMemo(() => {
     const rows = campaignQuery.data ?? [];

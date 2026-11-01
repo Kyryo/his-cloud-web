@@ -3,6 +3,7 @@ import { createLaboratoryCatalogListHandlers } from "@/lib/server/laboratory-cat
 
 const handlers = createLaboratoryCatalogListHandlers(
   OCCUPATIONAL_HEALTH_API_PATHS.hazardProfiles,
+  ["employer"],
 );
 
 export const GET = handlers.GET;

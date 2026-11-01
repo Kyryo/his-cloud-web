@@ -2,51 +2,74 @@
 
 import { useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button";
+import {
+  PrimaryButton,
+  SecondaryButton,
+} from "@/components/ui/app-buttons";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { OhCatalogListPanel } from "@/features/settings/components/modules/occupational-health/OhCatalogListPanel";
 import {
-  createOhHazard,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  OhCatalogListPanel,
+  OhCatalogRow,
+} from "@/features/settings/components/modules/occupational-health/OhCatalogListPanel";
+import {
+  archiveOhHazardProfile,
   createOhHazardProfile,
+  fetchOhCofTemplates,
+  fetchOhExamTemplates,
   fetchOhHazardProfiles,
-  fetchOhHazards,
+  updateOhHazardProfile,
 } from "@/features/occupational-health/services/oh.service";
 import type {
-  OhHazard,
+  OhCofTemplate,
+  OhEmployer,
+  OhExamTemplate,
   OhHazardProfile,
 } from "@/features/occupational-health/types";
 import { BffError } from "@/lib/bff-client";
-import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
+
+const NONE_TEMPLATE = "__none__";
 
 type OhHazardProfilesSettingsTabProps = {
   isActive: boolean;
+  employer: OhEmployer;
+  embedded?: boolean;
 };
 
 export function OhHazardProfilesSettingsTab({
   isActive,
+  employer,
+  embedded = false,
 }: OhHazardProfilesSettingsTabProps) {
   const { toast } = useToast();
   const [profiles, setProfiles] = useState<OhHazardProfile[]>([]);
-  const [hazards, setHazards] = useState<OhHazard[]>([]);
+  const [cofTemplates, setCofTemplates] = useState<OhCofTemplate[]>([]);
+  const [examTemplates, setExamTemplates] = useState<OhExamTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [hazardDialogOpen, setHazardDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<OhHazardProfile | null>(null);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
-  const [selectedHazardIds, setSelectedHazardIds] = useState<number[]>([]);
-  const [hazardCode, setHazardCode] = useState("");
-  const [hazardName, setHazardName] = useState("");
+  const [cofTemplateUuid, setCofTemplateUuid] = useState(NONE_TEMPLATE);
+  const [examTemplateUuid, setExamTemplateUuid] = useState(NONE_TEMPLATE);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [archivingUuid, setArchivingUuid] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isActive) {
@@ -57,20 +80,23 @@ export function OhHazardProfilesSettingsTab({
       setIsLoading(true);
       setError(null);
       try {
-        const [profileRows, hazardRows] = await Promise.all([
-          fetchOhHazardProfiles(),
-          fetchOhHazards(),
-        ]);
+        const [profileRows, nextCofTemplates, nextExamTemplates] =
+          await Promise.all([
+            fetchOhHazardProfiles(employer.id),
+            fetchOhCofTemplates(),
+            fetchOhExamTemplates(),
+          ]);
         if (active) {
           setProfiles(profileRows);
-          setHazards(hazardRows);
+          setCofTemplates(nextCofTemplates);
+          setExamTemplates(nextExamTemplates);
         }
       } catch (loadError) {
         if (active) {
           setError(
             loadError instanceof Error
               ? loadError.message
-              : "Unable to load hazard profiles.",
+              : "Unable to load risk profiles.",
           );
         }
       } finally {
@@ -83,53 +109,28 @@ export function OhHazardProfilesSettingsTab({
     return () => {
       active = false;
     };
-  }, [isActive]);
+  }, [employer.id, isActive]);
 
   if (!isActive) {
     return null;
   }
 
-  function toggleHazard(id: number) {
-    setSelectedHazardIds((current) =>
-      current.includes(id)
-        ? current.filter((value) => value !== id)
-        : [...current, id],
-    );
+  function openCreate() {
+    setEditing(null);
+    setName("");
+    setCode("");
+    setCofTemplateUuid(NONE_TEMPLATE);
+    setExamTemplateUuid(NONE_TEMPLATE);
+    setDialogOpen(true);
   }
 
-  async function handleCreateHazard(event: React.FormEvent) {
-    event.preventDefault();
-    if (!hazardCode.trim() || !hazardName.trim()) {
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      const created = await createOhHazard({
-        code: hazardCode.trim(),
-        name: hazardName.trim(),
-      });
-      setHazards((current) =>
-        [...current, created].sort((a, b) => a.code.localeCompare(b.code)),
-      );
-      setSelectedHazardIds((current) => [...current, created.id]);
-      setHazardDialogOpen(false);
-      setHazardCode("");
-      setHazardName("");
-      toast({ variant: "success", title: "Hazard added" });
-    } catch (submitError) {
-      toast({
-        variant: "error",
-        title: "Could not add hazard",
-        description:
-          submitError instanceof BffError
-            ? submitError.message
-            : submitError instanceof Error
-              ? submitError.message
-              : undefined,
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
+  function openEdit(row: OhHazardProfile) {
+    setEditing(row);
+    setName(row.name);
+    setCode(row.code ?? "");
+    setCofTemplateUuid(row.cof_template || NONE_TEMPLATE);
+    setExamTemplateUuid(row.exam_template || NONE_TEMPLATE);
+    setDialogOpen(true);
   }
 
   async function handleSubmit(event: React.FormEvent) {
@@ -137,25 +138,51 @@ export function OhHazardProfilesSettingsTab({
     if (!name.trim()) {
       return;
     }
+    const cof_template =
+      cofTemplateUuid === NONE_TEMPLATE ? null : cofTemplateUuid;
+    const exam_template =
+      examTemplateUuid === NONE_TEMPLATE ? null : examTemplateUuid;
     setIsSubmitting(true);
     try {
-      const created = await createOhHazardProfile({
-        name: name.trim(),
-        code: code.trim(),
-        hazards: selectedHazardIds,
-      });
-      setProfiles((current) =>
-        [...current, created].sort((a, b) => a.name.localeCompare(b.name)),
-      );
+      if (editing) {
+        const updated = await updateOhHazardProfile(editing.uuid, {
+          name: name.trim(),
+          code: code.trim(),
+          employer: employer.id,
+          cof_template,
+          exam_template,
+        });
+        setProfiles((current) =>
+          current
+            .map((row) => (row.uuid === updated.uuid ? updated : row))
+            .sort((a, b) => a.name.localeCompare(b.name)),
+        );
+        toast({ variant: "success", title: "Risk profile updated" });
+      } else {
+        const created = await createOhHazardProfile({
+          name: name.trim(),
+          code: code.trim(),
+          employer: employer.id,
+          cof_template,
+          exam_template,
+        });
+        setProfiles((current) =>
+          [...current, created].sort((a, b) => a.name.localeCompare(b.name)),
+        );
+        toast({ variant: "success", title: "Risk profile added" });
+      }
       setDialogOpen(false);
+      setEditing(null);
       setName("");
       setCode("");
-      setSelectedHazardIds([]);
-      toast({ variant: "success", title: "Hazard profile added" });
+      setCofTemplateUuid(NONE_TEMPLATE);
+      setExamTemplateUuid(NONE_TEMPLATE);
     } catch (submitError) {
       toast({
         variant: "error",
-        title: "Could not add hazard profile",
+        title: editing
+          ? "Could not update risk profile"
+          : "Could not add risk profile",
         description:
           submitError instanceof BffError
             ? submitError.message
@@ -168,161 +195,168 @@ export function OhHazardProfilesSettingsTab({
     }
   }
 
+  async function handleArchive(row: OhHazardProfile) {
+    setArchivingUuid(row.uuid);
+    try {
+      await archiveOhHazardProfile(row.uuid);
+      setProfiles((current) => current.filter((item) => item.uuid !== row.uuid));
+      toast({
+        variant: "success",
+        title: "Risk profile archived",
+        description: `${row.name} was removed.`,
+      });
+    } catch (archiveError) {
+      toast({
+        variant: "error",
+        title: "Could not archive risk profile",
+        description:
+          archiveError instanceof Error
+            ? archiveError.message
+            : "Something went wrong.",
+      });
+    } finally {
+      setArchivingUuid(null);
+    }
+  }
+
   return (
     <>
       <OhCatalogListPanel
-        title="Hazard profiles"
-        description="Bundles of workplace hazards assigned to employment episodes."
-        addLabel="Add profile"
-        onAdd={() => setDialogOpen(true)}
+        title="Risk profiles"
+        description={`Workplace risk bundles for ${employer.name}, linked to COF and exam templates.`}
+        addLabel="Add risk profile"
+        onAdd={openCreate}
         isLoading={isLoading}
         error={error}
-        emptyTitle="No hazard profiles yet"
-        emptyDescription="Create a profile and attach hazards for surveillance planning."
+        emptyTitle="No risk profiles yet"
+        emptyDescription="Create a profile and link COF and exam templates."
         isEmpty={profiles.length === 0}
+        embedded={embedded}
       >
-        <ul className="divide-y rounded-xl border border-dash-border bg-white">
+        <ul className="divide-y divide-brand-border">
           {profiles.map((row) => (
-            <li key={row.uuid} className="px-4 py-3">
-              <p className="text-sm font-medium text-brand-navy">{row.name}</p>
-              <p className="text-xs text-brand-muted">
-                {row.code || "No code"}
-                {row.hazards?.length
-                  ? ` · ${row.hazards.length} hazard${row.hazards.length === 1 ? "" : "s"}`
-                  : ""}
-              </p>
-            </li>
+            <OhCatalogRow
+              key={row.uuid}
+              title={row.name}
+              meta={
+                [
+                  row.code || "No code",
+                  row.cof_template_name || row.cof_template_code || null,
+                  row.exam_template_name || row.exam_template_code || null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ")
+              }
+              isActive={row.is_active !== false}
+              archiving={archivingUuid === row.uuid}
+              onEdit={() => openEdit(row)}
+              onArchive={() => void handleArchive(row)}
+            />
           ))}
         </ul>
       </OhCatalogListPanel>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Add hazard profile</DialogTitle>
-          </DialogHeader>
-          <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
-            <div className="space-y-2">
-              <Label htmlFor="oh-profile-name">Name</Label>
-              <Input
-                id="oh-profile-name"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="oh-profile-code">Code</Label>
-              <Input
-                id="oh-profile-code"
-                value={code}
-                onChange={(event) => setCode(event.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <Label>Hazards</Label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setHazardDialogOpen(true)}
-                >
-                  Add hazard
-                </Button>
-              </div>
-              {hazards.length === 0 ? (
-                <p className="text-sm text-brand-muted">
-                  No hazards yet. Add one to attach to this profile.
-                </p>
-              ) : (
-                <div className="max-h-48 space-y-1 overflow-y-auto rounded-lg border border-dash-border p-2">
-                  {hazards.map((hazard) => {
-                    const checked = selectedHazardIds.includes(hazard.id);
-                    return (
-                      <button
-                        key={hazard.uuid}
-                        type="button"
-                        onClick={() => toggleHazard(hazard.id)}
-                        className={cn(
-                          "flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-sm",
-                          checked
-                            ? "bg-brand-primary/10 text-brand-navy"
-                            : "hover:bg-slate-50 text-brand-slate",
-                        )}
-                      >
-                        <span>
-                          {hazard.code} — {hazard.name}
-                        </span>
-                        <span className="text-xs text-brand-muted">
-                          {checked ? "Selected" : "Select"}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isSubmitting || !name.trim()}>
-                {isSubmitting ? "Saving…" : "Save profile"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={hazardDialogOpen} onOpenChange={setHazardDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add hazard</DialogTitle>
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setEditing(null);
+          }
+        }}
+      >
+        <DialogContent className="flex max-h-[90vh] w-full max-w-lg flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
+          <DialogHeader className="shrink-0 space-y-1 border-b border-dash-border/70 px-6 py-5 pr-14 text-left">
+            <DialogTitle>
+              {editing ? "Edit risk profile" : "Add risk profile"}
+            </DialogTitle>
+            <DialogDescription>
+              Optional COF and exam templates for {employer.name}.
+            </DialogDescription>
           </DialogHeader>
           <form
-            className="space-y-4"
-            onSubmit={(event) => void handleCreateHazard(event)}
+            className="flex min-h-0 flex-1 flex-col"
+            onSubmit={(event) => void handleSubmit(event)}
           >
-            <div className="space-y-2">
-              <Label htmlFor="oh-hazard-code">Code</Label>
-              <Input
-                id="oh-hazard-code"
-                value={hazardCode}
-                onChange={(event) => setHazardCode(event.target.value)}
-                required
-              />
+            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
+              <div className="space-y-2">
+                <Label htmlFor="oh-profile-name">Name</Label>
+                <Input
+                  id="oh-profile-name"
+                  value={name}
+                  onChange={(event) => setName(event.target.value)}
+                  autoFocus
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="oh-profile-code">Code</Label>
+                <Input
+                  id="oh-profile-code"
+                  value={code}
+                  onChange={(event) => setCode(event.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="oh-profile-cof">COF template</Label>
+                <Select
+                  value={cofTemplateUuid}
+                  onValueChange={setCofTemplateUuid}
+                >
+                  <SelectTrigger id="oh-profile-cof">
+                    <SelectValue placeholder="Select a template…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NONE_TEMPLATE}>No template</SelectItem>
+                    {cofTemplates.map((template) => (
+                      <SelectItem key={template.uuid} value={template.uuid}>
+                        {template.name}
+                        {template.code ? ` (${template.code})` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="oh-profile-exam">Exam template</Label>
+                <Select
+                  value={examTemplateUuid}
+                  onValueChange={setExamTemplateUuid}
+                >
+                  <SelectTrigger id="oh-profile-exam">
+                    <SelectValue placeholder="Select a template…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NONE_TEMPLATE}>No template</SelectItem>
+                    {examTemplates.map((template) => (
+                      <SelectItem key={template.uuid} value={template.uuid}>
+                        {template.name}
+                        {template.code ? ` (${template.code})` : ""}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="oh-hazard-name">Name</Label>
-              <Input
-                id="oh-hazard-name"
-                value={hazardName}
-                onChange={(event) => setHazardName(event.target.value)}
-                required
-              />
-            </div>
-            <DialogFooter>
-              <Button
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-dash-border/60 bg-white px-6 py-4">
+              <SecondaryButton
                 type="button"
-                variant="outline"
-                onClick={() => setHazardDialogOpen(false)}
+                onClick={() => setDialogOpen(false)}
+                disabled={isSubmitting}
               >
                 Cancel
-              </Button>
-              <Button
+              </SecondaryButton>
+              <PrimaryButton
                 type="submit"
-                disabled={
-                  isSubmitting || !hazardCode.trim() || !hazardName.trim()
-                }
+                disabled={isSubmitting || !name.trim()}
               >
-                {isSubmitting ? "Saving…" : "Save hazard"}
-              </Button>
-            </DialogFooter>
+                {isSubmitting
+                  ? "Saving…"
+                  : editing
+                    ? "Save changes"
+                    : "Save profile"}
+              </PrimaryButton>
+            </div>
           </form>
         </DialogContent>
       </Dialog>

@@ -5,33 +5,24 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { SettingsUnderlineTabs } from "@/features/settings/components/SettingsPageLayout";
+import { OhCatalogSettingsTab } from "@/features/settings/components/modules/occupational-health/OhCatalogSettingsTab";
 import { OhEmployersSettingsTab } from "@/features/settings/components/modules/occupational-health/OhEmployersSettingsTab";
-import { OhHazardProfilesSettingsTab } from "@/features/settings/components/modules/occupational-health/OhHazardProfilesSettingsTab";
-import { OhJobTitlesSettingsTab } from "@/features/settings/components/modules/occupational-health/OhJobTitlesSettingsTab";
-import { OhSitesSettingsTab } from "@/features/settings/components/modules/occupational-health/OhSitesSettingsTab";
+import { OhExamTemplatesSettingsTab } from "@/features/settings/components/modules/occupational-health/OhExamTemplatesSettingsTab";
 
-export type OhModuleTabId =
-  | "employers"
-  | "job-titles"
-  | "hazard-profiles"
-  | "sites";
+export type OhModuleTabId = "employers" | "catalog" | "exam-templates";
 
 const TABS: Array<{ id: OhModuleTabId; label: string }> = [
   { id: "employers", label: "Employers" },
-  { id: "job-titles", label: "Job titles" },
-  { id: "hazard-profiles", label: "Hazard profiles" },
-  { id: "sites", label: "Sites" },
+  { id: "catalog", label: "COF templates" },
+  { id: "exam-templates", label: "Exam templates" },
 ];
 
 function parseTab(value: string | null): OhModuleTabId {
-  if (value === "job-titles") {
-    return "job-titles";
+  if (value === "catalog") {
+    return "catalog";
   }
-  if (value === "hazard-profiles") {
-    return "hazard-profiles";
-  }
-  if (value === "sites") {
-    return "sites";
+  if (value === "exam-templates") {
+    return "exam-templates";
   }
   return "employers";
 }
@@ -64,14 +55,12 @@ function OhModuleSettingsTabsInner() {
         onChange={setActiveTab}
         ariaLabel="Occupational health module settings"
       />
-
       <div className="pt-2">
         <OhEmployersSettingsTab isActive={activeTab === "employers"} />
-        <OhJobTitlesSettingsTab isActive={activeTab === "job-titles"} />
-        <OhHazardProfilesSettingsTab
-          isActive={activeTab === "hazard-profiles"}
+        <OhCatalogSettingsTab isActive={activeTab === "catalog"} />
+        <OhExamTemplatesSettingsTab
+          isActive={activeTab === "exam-templates"}
         />
-        <OhSitesSettingsTab isActive={activeTab === "sites"} />
       </div>
     </div>
   );

@@ -18,6 +18,7 @@ import {
   createSickLeaveCertificate,
 } from "@/features/occupational-health/services/oh.service";
 import type { Customer } from "@/features/customers/types/customer.types";
+import { canAccessOccupationalHealth } from "@/features/occupational-health/utils/oh-access";
 import { useUser } from "@/providers/user-provider";
 import { useToast } from "@/providers/toast-provider";
 
@@ -39,7 +40,7 @@ export function OhRecallsPanel({ customer, encounterId }: OhRecallsPanelProps) {
   const { userData } = useUser();
   const { toast } = useToast();
   const recalls = useOhRecallsData(customer.id);
-  const hasAccess = (userData?.groups ?? []).includes("OccupationalHealth");
+  const hasAccess = canAccessOccupationalHealth(userData);
   const [activeTab, setActiveTab] = useState<RecallTabId>("immunisations");
 
   const [vaccineCode, setVaccineCode] = useState("");

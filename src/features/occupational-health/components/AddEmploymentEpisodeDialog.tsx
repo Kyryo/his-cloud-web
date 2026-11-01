@@ -24,12 +24,14 @@ import {
   fetchOhEmployerSites,
   fetchOhEmployers,
   fetchOhHazardProfiles,
+  fetchOhJobProfiles,
   fetchOhJobTitles,
 } from "@/features/occupational-health/services/oh.service";
 import type {
   OhEmployer,
   OhEmployerSite,
   OhHazardProfile,
+  OhJobProfile,
   OhJobTitle,
 } from "@/features/occupational-health/types";
 import type { Customer } from "@/features/customers/types/customer.types";
@@ -53,10 +55,12 @@ export function AddEmploymentEpisodeDialog({
   const [jobTitles, setJobTitles] = useState<OhJobTitle[]>([]);
   const [sites, setSites] = useState<OhEmployerSite[]>([]);
   const [hazardProfiles, setHazardProfiles] = useState<OhHazardProfile[]>([]);
+  const [jobProfiles, setJobProfiles] = useState<OhJobProfile[]>([]);
   const [employerId, setEmployerId] = useState("");
   const [jobTitleId, setJobTitleId] = useState("");
   const [siteId, setSiteId] = useState("");
   const [hazardProfileId, setHazardProfileId] = useState("");
+  const [jobProfileId, setJobProfileId] = useState("");
   const [startDate, setStartDate] = useState(
     new Date().toISOString().slice(0, 10),
   );
@@ -67,15 +71,12 @@ export function AddEmploymentEpisodeDialog({
     if (!open) {
       return;
     }
-    void Promise.all([fetchOhEmployers(), fetchOhHazardProfiles()]).then(
-      ([employerRows, hazardRows]) => {
-        setEmployers(employerRows);
-        setHazardProfiles(hazardRows);
-        if (employerRows[0]) {
-          setEmployerId(String(employerRows[0].id));
-        }
-      },
-    );
+    void fetchOhEmployers().then((employerRows) => {
+      setEmployers(employerRows);
+      if (employerRows[0]) {
+        setEmployerId(String(employerRows[0].id));
+      }
+    });
   }, [open]);
 
   useEffect(() => {
@@ -86,11 +87,17 @@ export function AddEmploymentEpisodeDialog({
     void Promise.all([
       fetchOhJobTitles(employerPk),
       fetchOhEmployerSites(employerPk),
-    ]).then(([jobRows, siteRows]) => {
+      fetchOhHazardProfiles(employerPk),
+      fetchOhJobProfiles(employerPk),
+    ]).then(([jobRows, siteRows, hazardRows, jobProfileRows]) => {
       setJobTitles(jobRows);
       setSites(siteRows);
+      setHazardProfiles(hazardRows);
+      setJobProfiles(jobProfileRows);
       setJobTitleId(jobRows[0] ? String(jobRows[0].id) : "");
       setSiteId(siteRows[0] ? String(siteRows[0].id) : "");
+      setHazardProfileId("");
+      setJobProfileId("");
     });
   }, [employerId, open]);
 
@@ -107,6 +114,7 @@ export function AddEmploymentEpisodeDialog({
         employer: Number(employerId),
         job_title: Number(jobTitleId),
         hazard_profile: hazardProfileId ? Number(hazardProfileId) : null,
+        job_profile: jobProfileId ? Number(jobProfileId) : null,
         start_date: startDate,
         site: selectedSite?.name ?? "",
         employee_number: employeeNumber,
@@ -198,6 +206,29 @@ export function AddEmploymentEpisodeDialog({
                 {hazardProfiles.map((profile) => (
                   <SelectItem key={profile.uuid} value={String(profile.id)}>
                     {profile.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="oh-job-profile">Job profile (optional)</Label>
+            <Select
+              value={jobProfileId || "none"}
+              onValueChange={(value) =>
+                setJobProfileId(value === "none" ? "" : value)
+              }
+            >
+              <SelectTrigger id="oh-job-profile">
+                <SelectValue placeholder="None — use general programme requirements" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">
+                  None — general programme requirements
+                </SelectItem>
+                {jobProfiles.map((profile) => (
+                  <SelectItem key={profile.uuid} value={String(profile.id)}>
+                    {profile.code} — {profile.name}
                   </SelectItem>
                 ))}
               </SelectContent>

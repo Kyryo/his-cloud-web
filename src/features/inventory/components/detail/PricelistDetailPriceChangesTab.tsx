@@ -1,6 +1,5 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
@@ -134,9 +133,13 @@ export function PricelistDetailPriceChangesTab({
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center gap-2 rounded-xl border border-brand-border bg-white px-6 py-16 text-sm text-brand-muted">
-        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-        Loading pending changes...
+      <div
+        className="space-y-3 rounded-xl border border-dash-border/80 bg-white px-4 py-4"
+        data-testid="pricelist-price-changes-skeleton"
+      >
+        {Array.from({ length: 5 }).map((_, index) => (
+          <div key={index} className="h-10 animate-pulse rounded-lg bg-slate-100" />
+        ))}
       </div>
     );
   }

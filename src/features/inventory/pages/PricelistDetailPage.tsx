@@ -3,10 +3,9 @@
 import { useCallback, useEffect, useState } from "react";
 
 import {
-  PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS,
-  PageLoader,
-} from "@/components/page-loader";
-import { DetailPageLayout } from "@/features/app-shell/components/page-layout";
+  DetailPageLayout,
+  DetailPageSkeleton,
+} from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
 import { fetchCatalogPricelist } from "@/features/catalog/services/catalog.service";
 import type { CatalogPricelist } from "@/features/catalog/types/catalog.types";
@@ -44,9 +43,11 @@ export function PricelistDetailPage({ pricelistUuid }: PricelistDetailPageProps)
 
   if (isLoading) {
     return (
-      <PageLoader
-        message="Loading pricelist..."
-        className={PAGE_CONTENT_LOADER_BELOW_PAGE_CHROME_CLASS}
+      <DetailPageSkeleton
+        tabCount={5}
+        showAside={false}
+        tableRows={8}
+        data-testid="inventory-pricelist-detail-skeleton"
       />
     );
   }

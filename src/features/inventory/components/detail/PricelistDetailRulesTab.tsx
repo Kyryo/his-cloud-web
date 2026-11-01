@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import {
@@ -110,9 +110,10 @@ export function PricelistDetailRulesTab({
         </div>
 
         {isLoading ? (
-          <div className="flex items-center justify-center px-4 py-12 text-sm text-brand-muted">
-            <Loader2 className="mr-2 size-4 animate-spin" aria-hidden="true" />
-            Loading rules...
+          <div className="space-y-3 px-4 py-4" data-testid="pricelist-rules-skeleton">
+            {Array.from({ length: 5 }).map((_, index) => (
+              <div key={index} className="h-10 animate-pulse rounded-lg bg-slate-100" />
+            ))}
           </div>
         ) : rules.length === 0 ? (
           <p className="px-4 py-10 text-center text-sm text-brand-muted">

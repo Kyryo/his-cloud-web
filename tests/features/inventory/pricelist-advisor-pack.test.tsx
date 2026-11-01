@@ -2,7 +2,6 @@ import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/re
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { PricelistDetailAdvisorPackTab } from "@/features/inventory/components/detail/PricelistDetailAdvisorPackTab";
-import { PricelistDetailSummaryTab } from "@/features/inventory/components/detail/PricelistDetailSummaryTab";
 
 const fetchPricelistValidationConfigMock = vi.hoisted(() => vi.fn());
 const updatePricelistValidationConfigMock = vi.hoisted(() => vi.fn());
@@ -57,14 +56,6 @@ describe("PricelistDetailAdvisorPackTab", () => {
       selected_pack_codes: [VIP_PACK.code],
       selected_packs: [VIP_PACK],
     });
-  });
-
-  it("keeps the advisor pack off the summary tab", () => {
-    render(<PricelistDetailSummaryTab pricelist={PRICELIST} isActive />);
-
-    expect(screen.getByTestId("pricelist-summary-tab")).toHaveTextContent("MASM VIP");
-    expect(screen.queryByTestId("pricelist-advisor-pack")).not.toBeInTheDocument();
-    expect(fetchPricelistValidationConfigMock).not.toHaveBeenCalled();
   });
 
   it("assigns and clears an advisor pack from its own tab", async () => {

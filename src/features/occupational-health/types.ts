@@ -28,6 +28,7 @@ export type OhEmployer = {
   name: string;
   code: string;
   registration_number?: string;
+  is_active?: boolean;
 };
 
 export type OhJobTitle = {
@@ -37,6 +38,11 @@ export type OhJobTitle = {
   code: string;
   employer: number | null;
   employer_name?: string | null;
+  /** Linked risk (hazard) profile id. */
+  hazard_profile?: number | null;
+  hazard_profile_name?: string | null;
+  hazard_profile_code?: string | null;
+  is_active?: boolean;
 };
 
 export type OhEmployerSite = {
@@ -47,6 +53,17 @@ export type OhEmployerSite = {
   address: string;
   employer: number;
   employer_name?: string;
+  is_active?: boolean;
+};
+
+export type OhEmployerDepartment = {
+  id: number;
+  uuid: string;
+  name: string;
+  code: string;
+  employer: number;
+  employer_name?: string;
+  is_active?: boolean;
 };
 
 export type OhHazard = {
@@ -55,6 +72,7 @@ export type OhHazard = {
   code: string;
   name: string;
   description: string;
+  is_active?: boolean;
 };
 
 export type OhHazardProfile = {
@@ -62,7 +80,30 @@ export type OhHazardProfile = {
   uuid: string;
   name: string;
   code: string;
+  employer: number | null;
+  employer_name?: string | null;
   hazards?: number[];
+  /** Attached COF template UUID (tenant-scoped). */
+  cof_template?: string | null;
+  cof_template_name?: string | null;
+  cof_template_code?: string | null;
+  /** Attached exam template UUID (tenant-scoped). */
+  exam_template?: string | null;
+  exam_template_name?: string | null;
+  exam_template_code?: string | null;
+  is_active?: boolean;
+};
+
+export type OhJobProfile = {
+  id: number;
+  uuid: string;
+  name: string;
+  code: string;
+  employer: number | null;
+  employer_name?: string | null;
+  hazards?: number[];
+  critical_activities?: number[];
+  is_active?: boolean;
 };
 
 export type EmploymentEpisode = {
@@ -79,9 +120,206 @@ export type EmploymentEpisode = {
   end_date: string | null;
   requires_fitness: boolean;
   hazard_profile: number | null;
+  job_profile: number | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
+};
+
+export type OhRequirementsProcedure = {
+  code: string;
+  requirement: "mandatory" | "conditional" | "optional" | string;
+  repeat_months?: number;
+};
+
+export type OhRequirementsMatrixRow = {
+  exam_type: string;
+  job_profile_code: string | null;
+  procedures: OhRequirementsProcedure[];
+};
+
+export type OhRequirementsConfig = {
+  schema_version?: number;
+  matrix: OhRequirementsMatrixRow[];
+  critical_activities?: Array<{
+    code: string;
+    requirement?: "mandatory" | "conditional" | "optional" | string;
+  }>;
+};
+
+export type OhCatalogItemType =
+  | "exam_type"
+  | "critical_activity"
+  | "procedure"
+  | "hazard"
+  | "analyte"
+  | "instrument"
+  | "option_list"
+  | string;
+
+export type OhCatalogPossibleResponse = {
+  code: string;
+  label: string;
+};
+
+export type OhCatalogSelectionMode = "exclusive" | "inclusive";
+
+export type OhCatalogScheduleUnit = "day" | "week" | "month" | "year";
+
+export type OhCatalogScheduleRow = {
+  /** How many units between occurrences. */
+  interval: number;
+  unit: OhCatalogScheduleUnit;
+  notes?: string;
+  /**
+   * @deprecated Prefer `interval` + `unit`. Kept for reading older rows that
+   * only stored months.
+   */
+  interval_months?: number;
+  /** @deprecated Free-text label replaced by `unit`. */
+  label?: string;
+};
+
+export type OhCatalogItemAttributes = {
+  possible_responses?: OhCatalogPossibleResponse[];
+  selection_mode?: OhCatalogSelectionMode;
+  is_mandatory?: boolean;
+  schedule?: OhCatalogScheduleRow[];
+  [key: string]: unknown;
+};
+
+export type OhCatalogItem = {
+  id: number;
+  uuid: string;
+  section: string;
+  item_type: OhCatalogItemType;
+  code: string;
+  names_i18n: Record<string, string>;
+  attributes_json?: OhCatalogItemAttributes;
+  active: boolean;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type OhCatalogSystemRole =
+  | "exam_type"
+  | "hazard"
+  | "procedure"
+  | "critical_activity"
+  | "";
+
+export type OhCatalogSectionKey =
+  | "exam_type"
+  | "hazard"
+  | "procedure"
+  | "critical_activity"
+  | string;
+
+export type OhCatalogSection = {
+  id: number;
+  uuid: string;
+  code: string;
+  name: string;
+  system_role: OhCatalogSystemRole | string;
+  is_mandatory: boolean;
+  selection_mode: OhCatalogSelectionMode;
+  sort_order: number;
+  active: boolean;
+  is_system?: boolean;
+};
+
+/** @deprecated Use OhCatalogSection */
+export type OhCatalogSectionRule = OhCatalogSection;
+
+export type OhCofTemplate = {
+  id: number;
+  uuid: string;
+  name: string;
+  code: string;
+  active: boolean;
+  section_count?: number;
+  created_at?: string;
+  updated_at?: string;
+};
+
+/** Attachment of a reusable catalog section onto a COF template. */
+export type OhCofTemplateSection = {
+  id: number;
+  uuid: string;
+  template: string;
+  catalog_section: string;
+  catalog_section_detail?: OhCatalogSection;
+  sort_order: number;
+  active: boolean;
+  item_count?: number;
+};
+
+/** Tenant exam library section (separate from COF catalog). */
+export type OhExamSection = {
+  id: number;
+  uuid: string;
+  code: string;
+  name: string;
+  selection_mode: OhCatalogSelectionMode;
+  is_mandatory: boolean;
+  sort_order: number;
+  active: boolean;
+};
+
+export type OhExamSectionItem = {
+  id: number;
+  uuid: string;
+  section: string;
+  code: string;
+  names_i18n: Record<string, string>;
+  attributes_json?: OhCatalogItemAttributes;
+  sort_order: number;
+  active: boolean;
+};
+
+export type OhExamTemplate = {
+  id: number;
+  uuid: string;
+  name: string;
+  code: string;
+  active: boolean;
+  section_count?: number;
+  created_at?: string;
+  updated_at?: string;
+};
+
+/** Attachment of a reusable exam library section onto an exam template. */
+export type OhExamTemplateSection = {
+  id: number;
+  uuid: string;
+  template: string;
+  exam_section: string;
+  exam_section_detail?: OhExamSection;
+  sort_order: number;
+  active: boolean;
+  item_count?: number;
+};
+
+export type OhPaginatedList<T> = {
+  results: T[];
+  pagination: {
+    count: number;
+    next: string | null;
+    previous: string | null;
+  } | null;
+};
+
+export type OhProcedureRecord = {
+  id: number;
+  uuid: string;
+  examination: number;
+  procedure_code: string;
+  requirement: "mandatory" | "conditional" | "optional" | string;
+  status: "outstanding" | "performed" | "waived" | string;
+  performed_at: string | null;
+  notes: string;
+  abnormal: boolean;
+  repeat_months: number | null;
 };
 
 export type OhExamType =
@@ -92,16 +330,58 @@ export type OhExamType =
   | "post_incident"
   | "exit";
 
+export type OhFormFieldOption = {
+  value: string;
+  label: { en?: string; [locale: string]: string | undefined };
+};
+
+export type OhFormField = {
+  key: string;
+  type: "choice" | "boolean" | "string" | "text" | "datetime" | "number" | "date" | string;
+  label?: { en?: string; [locale: string]: string | undefined };
+  required?: boolean;
+  options?: OhFormFieldOption[];
+  visible_when?: Record<string, unknown>;
+  required_when?: Record<string, unknown>;
+};
+
+export type OhFormSection = {
+  key: string;
+  title?: { en?: string; [locale: string]: string | undefined };
+  fields: OhFormField[];
+};
+
+export type OhFormSchema = {
+  schema_version?: number;
+  sections?: OhFormSection[];
+  computed?: Array<Record<string, unknown> & { key: string; op: string }>;
+};
+
+export type OhPublishedFormConfig = {
+  programme_code: string | null;
+  programme_version_uuid: string | null;
+  programme_version_number: number | null;
+  content_hash: string | null;
+  form: OhFormSchema;
+  form_engine_enabled: boolean;
+};
+
 export type OhExamination = {
   id: number;
   uuid: string;
   encounter: number;
   employment_episode: number | null;
+  programme_version?: number | null;
   exam_type: OhExamType | string;
   occupational_attendance: boolean;
   template_code: string;
   notes: string;
   examined_at: string | null;
+  responses_json?: Record<string, unknown>;
+  schema_hash?: string;
+  row_version?: number;
+  form_schema?: OhFormSchema | null;
+  checklist_complete?: boolean;
   encounter_department_type?: string;
   created_at: string;
   updated_at: string;
@@ -330,4 +610,36 @@ export type OhVisitHistory = {
   fitness_assessments: FitnessAssessment[];
   fitness_certificates: FitnessCertificate[];
   iod_cases: IodCase[];
+};
+
+export type OhProgramme = {
+  id: number;
+  uuid: string;
+  name: string;
+  code: string;
+  employer: number | null;
+  published_version: number | null;
+  published_version_uuid?: string | null;
+  published_version_number?: number | null;
+  is_active: boolean;
+};
+
+export type OhProgrammeVersion = {
+  id: number;
+  uuid: string;
+  programme: number;
+  programme_uuid?: string;
+  number: number;
+  status: "draft" | "in_review" | "published" | "retired" | string;
+  effective_from: string | null;
+  published_at: string | null;
+  content_hash: string;
+  config_json: Record<string, unknown>;
+};
+
+export type OhFeatureFlag = {
+  id: number;
+  uuid: string;
+  key: string;
+  enabled: boolean;
 };

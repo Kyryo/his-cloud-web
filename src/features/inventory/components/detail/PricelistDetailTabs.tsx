@@ -9,24 +9,32 @@ import {
   DetailPageTabsSection,
 } from "@/features/app-shell/components/page-layout";
 import type { CatalogPricelist } from "@/features/catalog/types/catalog.types";
+import { PricelistDetailActivityTab } from "@/features/inventory/components/detail/PricelistDetailActivityTab";
 import { PricelistDetailAdvisorPackTab } from "@/features/inventory/components/detail/PricelistDetailAdvisorPackTab";
 import { PricelistDetailPriceChangesTab } from "@/features/inventory/components/detail/PricelistDetailPriceChangesTab";
 import { PricelistDetailProductsTab } from "@/features/inventory/components/detail/PricelistDetailProductsTab";
 import { PricelistDetailRulesTab } from "@/features/inventory/components/detail/PricelistDetailRulesTab";
-import { PricelistDetailSummaryTab } from "@/features/inventory/components/detail/PricelistDetailSummaryTab";
+import { PricelistDetailSettingsTab } from "@/features/inventory/components/detail/PricelistDetailSettingsTab";
 
 type PricelistDetailTabsProps = {
   pricelist: CatalogPricelist;
 };
 
-type DetailTabId = "summary" | "products" | "rules" | "approvals" | "advisor";
+type DetailTabId =
+  | "products"
+  | "rules"
+  | "approvals"
+  | "advisor"
+  | "settings"
+  | "activity";
 
 const tabs: Array<{ id: DetailTabId; label: string }> = [
   { id: "products", label: "Products" },
   { id: "rules", label: "Rules" },
   { id: "approvals", label: "Price approvals" },
   { id: "advisor", label: "Claims advisor pack" },
-  { id: "summary", label: "Summary" },
+  { id: "settings", label: "Settings" },
+  { id: "activity", label: "Activity" },
 ];
 
 export function PricelistDetailTabs({ pricelist }: PricelistDetailTabsProps) {
@@ -47,7 +55,6 @@ export function PricelistDetailTabs({ pricelist }: PricelistDetailTabsProps) {
       </DetailPageTabsNavSection>
 
       <DetailPageMainSection>
-        <PricelistDetailSummaryTab pricelist={pricelist} isActive={activeTab === "summary"} />
         <PricelistDetailProductsTab pricelist={pricelist} isActive={activeTab === "products"} />
         <PricelistDetailRulesTab pricelist={pricelist} isActive={activeTab === "rules"} />
         <PricelistDetailPriceChangesTab
@@ -57,6 +64,14 @@ export function PricelistDetailTabs({ pricelist }: PricelistDetailTabsProps) {
         <PricelistDetailAdvisorPackTab
           pricelist={pricelist}
           isActive={activeTab === "advisor"}
+        />
+        <PricelistDetailSettingsTab
+          pricelist={pricelist}
+          isActive={activeTab === "settings"}
+        />
+        <PricelistDetailActivityTab
+          pricelist={pricelist}
+          isActive={activeTab === "activity"}
         />
       </DetailPageMainSection>
     </DetailPageTabsSection>

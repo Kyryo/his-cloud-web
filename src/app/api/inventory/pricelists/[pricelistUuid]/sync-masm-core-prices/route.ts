@@ -1,5 +1,5 @@
 import { PRICELISTS_API_PATHS } from "@/constants/pricelists-api";
-import type { CatalogMasmCorePriceSyncResult } from "@/features/catalog/types/catalog.types";
+import type { CatalogPricelistMasmCoreSyncJob } from "@/features/catalog/types/catalog.types";
 import { bffError, bffSuccess } from "@/lib/server/bff-response";
 import { hmisApiRequest } from "@/lib/server/hmis-api";
 import { requireTenantAdmin } from "@/lib/server/require-tenant-admin";
@@ -22,16 +22,16 @@ export async function POST(request: Request, context: RouteContext) {
     } catch {
       body = {};
     }
-    const data = await hmisApiRequest<CatalogMasmCorePriceSyncResult>(
+    const data = await hmisApiRequest<CatalogPricelistMasmCoreSyncJob>(
       PRICELISTS_API_PATHS.syncMasmCorePrices(pricelistUuid),
       {
         method: "POST",
         token: auth.accessToken,
         body,
-        timeoutMs: 210_000,
+        timeoutMs: 60_000,
       },
     );
-    return bffSuccess(data);
+    return bffSuccess(data, 202);
   } catch (error) {
     return bffError(error);
   }

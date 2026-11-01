@@ -4,12 +4,27 @@ export const OCCUPATIONAL_HEALTH_API_PATHS = {
   employmentEpisodes: "/employment-episodes/",
   employmentEpisode: (uuid: string) => `/employment-episodes/${uuid}/`,
   employers: "/employers/",
+  employer: (uuid: string) => `/employers/${uuid}/`,
   employerSites: "/employer-sites/",
+  employerSite: (uuid: string) => `/employer-sites/${uuid}/`,
+  employerDepartments: "/employer-departments/",
+  employerDepartment: (uuid: string) => `/employer-departments/${uuid}/`,
   jobTitles: "/job-titles/",
+  jobTitle: (uuid: string) => `/job-titles/${uuid}/`,
   hazards: "/hazards/",
   hazardProfiles: "/hazard-profiles/",
+  hazardProfile: (uuid: string) => `/hazard-profiles/${uuid}/`,
+  ohJobProfiles: "/oh-job-profiles/",
+  ohJobProfile: (uuid: string) => `/oh-job-profiles/${uuid}/`,
   ohExaminations: "/oh-examinations/",
   ohExamination: (uuid: string) => `/oh-examinations/${uuid}/`,
+  ohExaminationResponses: (uuid: string) =>
+    `/oh-examinations/${uuid}/responses/`,
+  ohExaminationProcedures: (uuid: string) =>
+    `/oh-examinations/${uuid}/procedures/`,
+  ohExaminationProcedure: (examUuid: string, recordUuid: string) =>
+    `/oh-examinations/${examUuid}/procedures/${recordUuid}/`,
+  ohPublishedFormConfig: "/oh/published-form-config/",
   ohExamFindings: "/oh-exam-findings/",
   ohExamFinding: (uuid: string) => `/oh-exam-findings/${uuid}/`,
   fitnessAssessments: "/fitness-assessments/",
@@ -31,4 +46,31 @@ export const OCCUPATIONAL_HEALTH_API_PATHS = {
   fitnessValidityAlerts: "/oh/fitness-validity-alerts/",
   encounterHistory: (visitUuid: string, encounterUuid: string) =>
     `/oh/visits/${visitUuid}/encounters/${encounterUuid}/history/`,
+  ohProgrammes: "/oh-programmes/",
+  ohProgramme: (uuid: string) => `/oh-programmes/${uuid}/`,
+  ohProgrammeVersions: (programmeUuid: string) =>
+    `/oh-programmes/${programmeUuid}/versions/`,
+  ohProgrammeVersion: (uuid: string) => `/oh-programme-versions/${uuid}/`,
+  ohProgrammeVersionPublish: (uuid: string) =>
+    `/oh-programme-versions/${uuid}/publish/`,
+  ohCatalogItems: "/oh-catalog-items/",
+  ohCatalogItem: (uuid: string) => `/oh-catalog-items/${uuid}/`,
+  ohCatalogSectionRules: "/oh-catalog-section-rules/",
+  ohCatalogSectionRule: (uuid: string) =>
+    `/oh-catalog-section-rules/${uuid}/`,
+  ohCofTemplates: "/oh-cof-templates/",
+  ohCofTemplate: (uuid: string) => `/oh-cof-templates/${uuid}/`,
+  ohCofTemplateSections: "/oh-cof-template-sections/",
+  ohCofTemplateSection: (uuid: string) =>
+    `/oh-cof-template-sections/${uuid}/`,
+  ohExamSections: "/oh-exam-sections/",
+  ohExamSection: (uuid: string) => `/oh-exam-sections/${uuid}/`,
+  ohExamSectionItems: "/oh-exam-section-items/",
+  ohExamSectionItem: (uuid: string) => `/oh-exam-section-items/${uuid}/`,
+  ohExamTemplates: "/oh-exam-templates/",
+  ohExamTemplate: (uuid: string) => `/oh-exam-templates/${uuid}/`,
+  ohExamTemplateSections: "/oh-exam-template-sections/",
+  ohExamTemplateSection: (uuid: string) =>
+    `/oh-exam-template-sections/${uuid}/`,
+  ohFeatureFlags: "/oh-feature-flags/",
 } as const;

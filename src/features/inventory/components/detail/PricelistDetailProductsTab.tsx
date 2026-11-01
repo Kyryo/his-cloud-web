@@ -1,14 +1,15 @@
 "use client";
 
-import { Loader2, Pencil, Trash2 } from "lucide-react";
-import Link from "next/link";
+import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import {
   DestructiveButton,
+  PageActionButton,
   PrimaryButton,
   SecondaryButton,
 } from "@/components/ui/app-buttons";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -19,30 +20,29 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ROUTES } from "@/constants/routes";
 import {
   fetchCatalogPricelistProducts,
   removeCatalogPricelistProduct,
-  syncCatalogMasmCorePrices,
   updateCatalogPricelistProduct,
 } from "@/features/catalog/services/catalog.service";
 import type {
   CatalogPricelist,
   CatalogPricelistMembership,
 } from "@/features/catalog/types/catalog.types";
+import { ListPagePagination } from "@/features/app-shell/components/page-layout";
 import { AddPricelistProductDialog } from "@/features/inventory/components/detail/AddPricelistProductDialog";
 import { CopyPricelistProductsDialog } from "@/features/inventory/components/detail/CopyPricelistProductsDialog";
 import { PricelistCopyJobPanel } from "@/features/inventory/components/detail/PricelistCopyJobPanel";
-import {
-  formatDisplayDate,
-  formatInventoryAmount,
-} from "@/features/inventory/utils/format-inventory";
+import { PricelistProductsTable } from "@/features/inventory/components/detail/PricelistProductsTable";
+import { PricelistProductsTableSkeleton } from "@/features/inventory/components/detail/PricelistProductsTableSkeleton";
 import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 import { useUser } from "@/providers/user-provider";
+
+const PRODUCTS_PAGE_SIZE = 25;
 
 type PricelistDetailProductsTabProps = {
   pricelist: CatalogPricelist;
@@ -62,6 +62,10 @@ export function PricelistDetailProductsTab({
   const { userData } = useUser();
   const isTenantAdmin = Boolean(userData?.is_admin);
   const [items, setItems] = useState<CatalogPricelistMembership[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
+  const [hasPrevious, setHasPrevious] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -76,36 +80,47 @@ export function PricelistDetailProductsTab({
     null,
   );
   const [isSaving, setIsSaving] = useState(false);
-  const [masmSyncOpen, setMasmSyncOpen] = useState(false);
-  const [isMasmSyncing, setIsMasmSyncing] = useState(false);
 
-  const loadItems = useCallback(async (options?: { silent?: boolean }) => {
-    if (!options?.silent) {
-      setIsLoading(true);
-    }
-    try {
-      setError(null);
-      const response = await fetchCatalogPricelistProducts(pricelist.uuid, {
-        pageSize: 200,
-      });
-      setItems(response.results);
-    } catch (err) {
-      setItems([]);
-      setError(err instanceof Error ? err.message : "Failed to load products.");
-    } finally {
+  const loadItems = useCallback(
+    async (options?: { silent?: boolean; page?: number }) => {
+      const nextPage = options?.page ?? page;
       if (!options?.silent) {
-        setIsLoading(false);
+        setIsLoading(true);
       }
-      setHasLoaded(true);
-    }
-  }, [pricelist.uuid]);
+      try {
+        setError(null);
+        const response = await fetchCatalogPricelistProducts(pricelist.uuid, {
+          page: nextPage,
+          pageSize: PRODUCTS_PAGE_SIZE,
+        });
+        setItems(response.results);
+        const count = response.pagination?.count ?? response.results.length;
+        setTotalCount(count);
+        setHasNext(Boolean(response.pagination?.next));
+        setHasPrevious(Boolean(response.pagination?.previous) || nextPage > 1);
+        setPage(nextPage);
+      } catch (err) {
+        setItems([]);
+        setTotalCount(0);
+        setHasNext(false);
+        setHasPrevious(false);
+        setError(err instanceof Error ? err.message : "Failed to load products.");
+      } finally {
+        if (!options?.silent) {
+          setIsLoading(false);
+        }
+        setHasLoaded(true);
+      }
+    },
+    [page, pricelist.uuid],
+  );
 
   useEffect(() => {
     if (!isActive) {
       return;
     }
-    void loadItems();
-  }, [isActive, loadItems]);
+    void loadItems({ page: 1 });
+  }, [isActive, pricelist.uuid]); // eslint-disable-line react-hooks/exhaustive-deps -- reset to page 1 when tab/pricelist changes
 
   async function handleUpdatePrice() {
     if (!priceEdit?.item.product_uuid) {
@@ -139,7 +154,7 @@ export function PricelistDetailProductsTab({
           : "The fixed price was saved.",
       });
       setPriceEdit(null);
-      await loadItems();
+      await loadItems({ silent: true, page });
     } catch (err) {
       toast({
         variant: "error",
@@ -178,7 +193,9 @@ export function PricelistDetailProductsTab({
           : "This product was removed from the pricelist.",
       });
       setPendingRemove(null);
-      await loadItems();
+      const nextPage =
+        items.length <= 1 && page > 1 ? page - 1 : page;
+      await loadItems({ silent: true, page: nextPage });
     } catch (err) {
       toast({
         variant: "error",
@@ -195,39 +212,6 @@ export function PricelistDetailProductsTab({
     }
   }
 
-  async function handleMasmCoreSync() {
-    setIsMasmSyncing(true);
-    try {
-      const result = await syncCatalogMasmCorePrices(pricelist.uuid, {
-        provider_id: 154,
-      });
-      const pending = result.approval_required || 0;
-      toast({
-        variant: "success",
-        title: "MASM Core prices synced",
-        description:
-          pending > 0
-            ? `Updated ${result.updated}, unchanged ${result.unchanged}, pending approval ${pending}.`
-            : `Updated ${result.updated} of ${result.matched} matched tariffs (${result.unchanged} unchanged).`,
-      });
-      setMasmSyncOpen(false);
-      await loadItems({ silent: true });
-    } catch (err) {
-      toast({
-        variant: "error",
-        title: "Could not sync MASM Core prices",
-        description:
-          err instanceof BffError
-            ? formatBffErrorMessage(err.message, err.errors)
-            : err instanceof Error
-              ? err.message
-              : "Something went wrong.",
-      });
-    } finally {
-      setIsMasmSyncing(false);
-    }
-  }
-
   if (!isActive) {
     return null;
   }
@@ -236,9 +220,15 @@ export function PricelistDetailProductsTab({
 
   if (showInitialLoader) {
     return (
-      <div className="flex items-center justify-center gap-2 rounded-xl border border-brand-border bg-white px-6 py-16 text-sm text-brand-muted">
-        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-        Loading products...
+      <div className="space-y-4" data-testid="pricelist-products-tab-skeleton">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="space-y-1.5">
+            <div className="h-4 w-24 animate-pulse rounded bg-slate-100" />
+            <div className="h-3 w-56 animate-pulse rounded bg-slate-100" />
+          </div>
+          <div className="h-9 w-28 animate-pulse rounded-full bg-slate-100" />
+        </div>
+        <PricelistProductsTableSkeleton showActions={isTenantAdmin} />
       </div>
     );
   }
@@ -262,7 +252,7 @@ export function PricelistDetailProductsTab({
           jobUuid={activeCopyJobUuid}
           copyToastId={activeCopyToastId ?? undefined}
           onTerminal={(job) => {
-            void loadItems({ silent: true });
+            void loadItems({ silent: true, page: 1 });
             if (job.status === "completed") {
               setActiveCopyJobUuid(null);
               setActiveCopyToastId(null);
@@ -283,141 +273,74 @@ export function PricelistDetailProductsTab({
           </p>
         </div>
         {isTenantAdmin ? (
-          <div className="flex flex-wrap gap-2">
-            <PrimaryButton
-              type="button"
-              className="rounded-full"
-              disabled={Boolean(activeCopyJobUuid) || isMasmSyncing}
-              onClick={() => setAddOpen(true)}
-            >
-              Add product
-            </PrimaryButton>
-            {items.length > 0 ? (
-              <SecondaryButton
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            {totalCount === 0 && !activeCopyJobUuid ? (
+              <Button
                 type="button"
-                className="rounded-full"
-                disabled={isMasmSyncing || Boolean(activeCopyJobUuid)}
-                onClick={() => setMasmSyncOpen(true)}
-              >
-                Update from MASM Core
-              </SecondaryButton>
-            ) : null}
-            {items.length === 0 && !activeCopyJobUuid ? (
-              <SecondaryButton
-                type="button"
-                className="rounded-full"
+                variant="outline"
+                className="h-8 rounded-lg px-3 text-[13px] font-medium"
                 onClick={() => setCopyOpen(true)}
               >
                 Copy from pricelist
-              </SecondaryButton>
+              </Button>
             ) : null}
+            <PageActionButton
+              type="button"
+              disabled={Boolean(activeCopyJobUuid)}
+              onClick={() => setAddOpen(true)}
+            >
+              Add product
+            </PageActionButton>
           </div>
         ) : null}
       </div>
 
-      {items.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-brand-border bg-white px-6 py-14 text-center">
+      {totalCount === 0 ? (
+        <div className="rounded-xl border border-dashed border-dash-border/80 bg-white px-6 py-14 text-center">
           <h3 className="text-lg font-semibold text-brand-navy">No products yet</h3>
           <p className="mt-2 text-sm text-brand-muted">
             Add products manually or copy them from another pricelist.
           </p>
           {isTenantAdmin && !activeCopyJobUuid ? (
             <div className="mt-6 flex flex-wrap justify-center gap-2">
-              <SecondaryButton
+              <Button
                 type="button"
-                className="rounded-full"
+                variant="outline"
+                className="h-8 rounded-lg px-3 text-[13px] font-medium"
                 onClick={() => setCopyOpen(true)}
               >
                 Copy from pricelist
-              </SecondaryButton>
-              <PrimaryButton
-                type="button"
-                className="rounded-full"
-                onClick={() => setAddOpen(true)}
-              >
+              </Button>
+              <PageActionButton type="button" onClick={() => setAddOpen(true)}>
                 Add product
-              </PrimaryButton>
+              </PageActionButton>
             </div>
           ) : null}
         </div>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-brand-border bg-white">
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-slate-50/80 text-left text-xs uppercase tracking-wide text-brand-muted">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Product</th>
-                  <th className="px-4 py-3 text-right font-medium">Min qty</th>
-                  <th className="px-4 py-3 text-right font-medium">Fixed price</th>
-                  <th className="px-4 py-3 font-medium">Valid from</th>
-                  <th className="px-4 py-3 font-medium">Valid to</th>
-                  {isTenantAdmin ? (
-                    <th className="px-4 py-3 text-right font-medium">Actions</th>
-                  ) : null}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-brand-border">
-                {items.map((item) => (
-                  <tr key={item.product_uuid} className="text-brand-navy">
-                    <td className="px-4 py-3 font-medium">
-                      <Link
-                        href={ROUTES.inventoryProductDetail(item.product_uuid)}
-                        className="text-brand-primary hover:underline"
-                      >
-                        {item.product_name ?? item.product_uuid}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-right">{item.min_quantity ?? "—"}</td>
-                    <td className="px-4 py-3 text-right">
-                      {formatInventoryAmount(item.fixed_price)}
-                    </td>
-                    <td className={cn("px-4 py-3 text-brand-slate")}>
-                      {formatDisplayDate(
-                        typeof item.date_start === "string" ? item.date_start : null,
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-brand-slate">
-                      {formatDisplayDate(
-                        typeof item.date_end === "string" ? item.date_end : null,
-                      )}
-                    </td>
-                    {isTenantAdmin ? (
-                      <td className="px-4 py-3">
-                        <div className="flex justify-end gap-2">
-                          <SecondaryButton
-                            type="button"
-                            size="sm"
-                            className="rounded-full"
-                            onClick={() =>
-                              setPriceEdit({
-                                item,
-                                value:
-                                  item.fixed_price != null
-                                    ? String(item.fixed_price)
-                                    : "",
-                              })
-                            }
-                          >
-                            <Pencil className="size-3.5" aria-hidden="true" />
-                            Edit
-                          </SecondaryButton>
-                          <SecondaryButton
-                            type="button"
-                            size="sm"
-                            className="rounded-full text-red-600 hover:text-red-700"
-                            onClick={() => setPendingRemove(item)}
-                          >
-                            <Trash2 className="size-3.5" aria-hidden="true" />
-                            Remove
-                          </SecondaryButton>
-                        </div>
-                      </td>
-                    ) : null}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="space-y-3">
+          <PricelistProductsTable
+            items={items}
+            isTenantAdmin={isTenantAdmin}
+            onEditPrice={(item) =>
+              setPriceEdit({
+                item,
+                value: item.fixed_price != null ? String(item.fixed_price) : "",
+              })
+            }
+            onRemove={setPendingRemove}
+          />
+          <ListPagePagination
+            page={page}
+            pageSize={PRODUCTS_PAGE_SIZE}
+            totalCount={totalCount}
+            hasPrevious={hasPrevious}
+            hasNext={hasNext}
+            isLoading={isLoading}
+            onPageChange={(nextPage) => {
+              void loadItems({ page: nextPage });
+            }}
+          />
         </div>
       )}
 
@@ -426,7 +349,7 @@ export function PricelistDetailProductsTab({
         existingProductUuids={items.map((item) => item.product_uuid)}
         open={addOpen}
         onOpenChange={setAddOpen}
-        onAdded={() => void loadItems()}
+        onAdded={() => void loadItems({ page: 1 })}
       />
 
       <CopyPricelistProductsDialog
@@ -438,49 +361,6 @@ export function PricelistDetailProductsTab({
           setActiveCopyToastId(toastId);
         }}
       />
-
-      <Dialog
-        open={masmSyncOpen}
-        onOpenChange={(open) => {
-          if (!open && !isMasmSyncing) {
-            setMasmSyncOpen(false);
-          }
-        }}
-      >
-        <DialogContent className={cn("sm:max-w-md", appFont.className)}>
-          <DialogHeader>
-            <DialogTitle>Update prices from MASM Core?</DialogTitle>
-            <DialogDescription>
-              Match products on this pricelist by scheme tariff code and update fixed
-              prices from MASM Core. Products without a tariff code, or codes missing
-              upstream, are left unchanged.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <SecondaryButton
-              type="button"
-              disabled={isMasmSyncing}
-              onClick={() => setMasmSyncOpen(false)}
-            >
-              Cancel
-            </SecondaryButton>
-            <PrimaryButton
-              type="button"
-              disabled={isMasmSyncing}
-              onClick={() => void handleMasmCoreSync()}
-            >
-              {isMasmSyncing ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                  Syncing...
-                </>
-              ) : (
-                "Update prices"
-              )}
-            </PrimaryButton>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       <Dialog
         open={Boolean(priceEdit)}

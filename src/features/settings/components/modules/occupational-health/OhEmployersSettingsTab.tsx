@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 
+import { ListPagePagination } from "@/features/app-shell/components/page-layout";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -12,14 +13,20 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { OhCatalogListPanel } from "@/features/settings/components/modules/occupational-health/OhCatalogListPanel";
+import {
+  OhCatalogListPanel,
+  OhCatalogRow,
+} from "@/features/settings/components/modules/occupational-health/OhCatalogListPanel";
+import { OhEmployerWorkspaceSheet } from "@/features/settings/components/modules/occupational-health/OhEmployerWorkspaceSheet";
 import {
   createOhEmployer,
-  fetchOhEmployers,
+  fetchOhEmployersPage,
 } from "@/features/occupational-health/services/oh.service";
 import type { OhEmployer } from "@/features/occupational-health/types";
 import { BffError } from "@/lib/bff-client";
 import { useToast } from "@/providers/toast-provider";
+
+const PAGE_SIZE = 10;
 
 type OhEmployersSettingsTabProps = {
   isActive: boolean;
@@ -28,13 +35,22 @@ type OhEmployersSettingsTabProps = {
 export function OhEmployersSettingsTab({ isActive }: OhEmployersSettingsTabProps) {
   const { toast } = useToast();
   const [rows, setRows] = useState<OhEmployer[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [hasNext, setHasNext] = useState(false);
+  const [hasPrevious, setHasPrevious] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reloadToken, setReloadToken] = useState(0);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [registrationNumber, setRegistrationNumber] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedEmployer, setSelectedEmployer] = useState<OhEmployer | null>(
+    null,
+  );
+  const [workspaceOpen, setWorkspaceOpen] = useState(false);
 
   useEffect(() => {
     if (!isActive) {
@@ -45,12 +61,19 @@ export function OhEmployersSettingsTab({ isActive }: OhEmployersSettingsTabProps
       setIsLoading(true);
       setError(null);
       try {
-        const results = await fetchOhEmployers();
+        const response = await fetchOhEmployersPage({
+          page,
+          pageSize: PAGE_SIZE,
+        });
         if (active) {
-          setRows(results);
+          setRows(response.results);
+          setTotalCount(response.pagination?.count ?? response.results.length);
+          setHasNext(Boolean(response.pagination?.next));
+          setHasPrevious(Boolean(response.pagination?.previous));
         }
       } catch (loadError) {
         if (active) {
+          setRows([]);
           setError(
             loadError instanceof Error
               ? loadError.message
@@ -67,10 +90,22 @@ export function OhEmployersSettingsTab({ isActive }: OhEmployersSettingsTabProps
     return () => {
       active = false;
     };
-  }, [isActive]);
+  }, [isActive, page, reloadToken]);
 
   if (!isActive) {
     return null;
+  }
+
+  function openCreate() {
+    setName("");
+    setCode("");
+    setRegistrationNumber("");
+    setDialogOpen(true);
+  }
+
+  function openWorkspace(employer: OhEmployer) {
+    setSelectedEmployer(employer);
+    setWorkspaceOpen(true);
   }
 
   async function handleSubmit(event: React.FormEvent) {
@@ -85,14 +120,14 @@ export function OhEmployersSettingsTab({ isActive }: OhEmployersSettingsTabProps
         code: code.trim(),
         registration_number: registrationNumber.trim(),
       });
-      setRows((current) =>
-        [...current, created].sort((a, b) => a.name.localeCompare(b.name)),
-      );
+      toast({ variant: "success", title: "Employer added" });
       setDialogOpen(false);
       setName("");
       setCode("");
       setRegistrationNumber("");
-      toast({ variant: "success", title: "Employer added" });
+      setPage(1);
+      setReloadToken((current) => current + 1);
+      openWorkspace(created);
     } catch (submitError) {
       toast({
         variant: "error",
@@ -113,29 +148,66 @@ export function OhEmployersSettingsTab({ isActive }: OhEmployersSettingsTabProps
     <>
       <OhCatalogListPanel
         title="Employers"
-        description="Organizations that send workers for occupational health services."
+        description="Open an employer to manage risk profiles, departments, and job titles."
         addLabel="Add employer"
-        onAdd={() => setDialogOpen(true)}
+        onAdd={openCreate}
         isLoading={isLoading}
         error={error}
         emptyTitle="No employers yet"
-        emptyDescription="Add an employer to start configuring job titles and sites."
+        emptyDescription="Add an employer to configure their occupational health catalogs."
         isEmpty={rows.length === 0}
       >
-        <ul className="divide-y rounded-xl border border-dash-border bg-white">
-          {rows.map((row) => (
-            <li key={row.uuid} className="flex items-start justify-between gap-3 px-4 py-3">
-              <div>
-                <p className="text-sm font-medium text-brand-navy">{row.name}</p>
-                <p className="text-xs text-brand-muted">
-                  {[row.code, row.registration_number].filter(Boolean).join(" · ") ||
-                    "No code"}
-                </p>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <div className="space-y-1">
+          <ul className="-mx-1 space-y-0.5">
+            {rows.map((row) => (
+              <OhCatalogRow
+                key={row.uuid}
+                title={row.name}
+                meta={
+                  [row.code, row.registration_number]
+                    .filter(Boolean)
+                    .join(" · ") || "No code"
+                }
+                isActive={row.is_active !== false}
+                onSelect={() => openWorkspace(row)}
+              />
+            ))}
+          </ul>
+          {totalCount > PAGE_SIZE ? (
+            <ListPagePagination
+              page={page}
+              pageSize={PAGE_SIZE}
+              totalCount={totalCount}
+              hasNext={hasNext}
+              hasPrevious={hasPrevious}
+              isLoading={isLoading}
+              onPageChange={setPage}
+            />
+          ) : null}
+        </div>
       </OhCatalogListPanel>
+
+      <OhEmployerWorkspaceSheet
+        employer={selectedEmployer}
+        open={workspaceOpen}
+        onOpenChange={(open) => {
+          setWorkspaceOpen(open);
+          if (!open) {
+            setSelectedEmployer(null);
+          }
+        }}
+        onEmployerUpdated={(updated) => {
+          setSelectedEmployer(updated);
+          setRows((current) =>
+            current.map((row) => (row.uuid === updated.uuid ? updated : row)),
+          );
+        }}
+        onEmployerArchived={(uuid) => {
+          setSelectedEmployer(null);
+          setReloadToken((current) => current + 1);
+          setRows((current) => current.filter((row) => row.uuid !== uuid));
+        }}
+      />
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>

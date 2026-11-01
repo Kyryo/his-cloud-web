@@ -96,13 +96,17 @@ export function getModuleSettingsItems(
         hasSettings: false,
       };
 
+      const label =
+        moduleId === "OccupationalHealth"
+          ? "Occupational Health Services"
+          : getModuleLabel(moduleId);
+
       return {
         id: moduleId,
         slug: meta.slug,
-        label: getModuleLabel(moduleId),
+        label,
         description:
-          MODULE_DESCRIPTIONS[moduleId] ??
-          `${getModuleLabel(moduleId)} settings.`,
+          MODULE_DESCRIPTIONS[moduleId] ?? `${label} settings.`,
         icon: getModuleIcon(moduleId),
         href: hrefForSlug(meta.slug),
         hasSettings: meta.hasSettings,

@@ -8,12 +8,14 @@ import type {
   CatalogPriceChange,
   CatalogPriceChangeMutationResult,
   CatalogPricelist,
-  CatalogMasmCorePriceSyncResult,
+  CatalogAuditEvent,
   CatalogPricelistCopyJob,
   CatalogPricelistCopyJobItem,
+  CatalogPricelistMasmCoreSyncJob,
   CatalogPricelistMembership,
   CatalogPricelistRule,
   CatalogPricelistRuleWritePayload,
+  CatalogPricelistSettings,
   CatalogProduct,
   CreateCatalogPricelistPayload,
   CreateCatalogProductPayload,
@@ -231,17 +233,47 @@ export async function startCatalogPricelistCopy(
   );
 }
 
-export async function syncCatalogMasmCorePrices(
+export async function startCatalogMasmCorePriceSync(
   pricelistUuid: string,
   payload: SyncCatalogMasmCorePricesPayload = {},
-): Promise<CatalogMasmCorePriceSyncResult> {
-  return bffRequest<CatalogMasmCorePriceSyncResult>(
+): Promise<CatalogPricelistMasmCoreSyncJob> {
+  return bffRequest<CatalogPricelistMasmCoreSyncJob>(
     BFF_INVENTORY_ROUTES.pricelists.syncMasmCorePrices(pricelistUuid),
     {
       method: "POST",
       body: payload,
-      timeoutMs: 210_000,
+      timeoutMs: 60_000,
     },
+  );
+}
+
+export async function fetchCatalogMasmCorePriceSyncJob(
+  pricelistUuid: string,
+  jobUuid: string,
+): Promise<CatalogPricelistMasmCoreSyncJob> {
+  return bffRequest<CatalogPricelistMasmCoreSyncJob>(
+    BFF_INVENTORY_ROUTES.pricelists.syncMasmCorePricesJob(pricelistUuid, jobUuid),
+  );
+}
+
+export async function fetchCatalogPricelistSettings(
+  pricelistUuid: string,
+): Promise<CatalogPricelistSettings> {
+  return bffRequest<CatalogPricelistSettings>(
+    BFF_INVENTORY_ROUTES.pricelists.settings(pricelistUuid),
+  );
+}
+
+export async function fetchCatalogPricelistAuditEvents(
+  pricelistUuid: string,
+  filters: { page?: number; pageSize?: number } = {},
+): Promise<PaginatedListResponse<CatalogAuditEvent>> {
+  const params = new URLSearchParams();
+  if (filters.page) params.set("page", String(filters.page));
+  if (filters.pageSize) params.set("page_size", String(filters.pageSize));
+  const query = params.toString();
+  return bffRequest<PaginatedListResponse<CatalogAuditEvent>>(
+    `${BFF_INVENTORY_ROUTES.pricelists.auditEvents(pricelistUuid)}${query ? `?${query}` : ""}`,
   );
 }
 

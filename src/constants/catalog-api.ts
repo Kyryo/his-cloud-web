@@ -36,6 +36,7 @@ export const CATALOG_API_PATHS = {
     rejectPriceChange: (changeUuid: string) =>
       `/pricelists/price-changes/${changeUuid}/reject/`,
     auditEvents: (pricelistUuid: string) => `/pricelists/${pricelistUuid}/audit-events/`,
+    settings: (pricelistUuid: string) => `/pricelists/${pricelistUuid}/settings/`,
     rules: (pricelistUuid: string) => `/pricelists/${pricelistUuid}/rules/`,
     ruleDetail: (pricelistUuid: string, ruleUuid: string) =>
       `/pricelists/${pricelistUuid}/rules/${ruleUuid}/`,
@@ -47,6 +48,8 @@ export const CATALOG_API_PATHS = {
       `/pricelists/${pricelistUuid}/copy-products/${jobUuid}/items/`,
     syncMasmCorePrices: (pricelistUuid: string) =>
       `/pricelists/${pricelistUuid}/sync-masm-core-prices/`,
+    syncMasmCorePricesJob: (pricelistUuid: string, jobUuid: string) =>
+      `/pricelists/${pricelistUuid}/sync-masm-core-prices/${jobUuid}/`,
     tenantDefault: (tenantUuid: string) => `/tenants/${tenantUuid}/pricelists/default/`,
   },
   auditEvents: "/catalog/audit-events/",

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import { SecondaryButton } from "@/components/ui/app-buttons";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,14 +13,15 @@ import {
 } from "@/features/occupational-health/components/OhEncounterColumns";
 import { OhClinicalHistoryPanel } from "@/features/occupational-health/components/OhClinicalHistoryPanel";
 import type { OhEncounterTabId } from "@/features/occupational-health/components/OhEncounterTabs";
-import {
-  OhExamForm,
-  OhExamRecords,
-} from "@/features/occupational-health/components/OhExamTabPanel";
+import { OhExamFormSetupEmptyState } from "@/features/occupational-health/components/OhExamFormSetupEmptyState";
+import { OhExamRecords } from "@/features/occupational-health/components/OhExamTabPanel";
+import { OhProcedureChecklistPanel } from "@/features/occupational-health/components/OhProcedureChecklistPanel";
+import { OhSchemaExamForm } from "@/features/occupational-health/components/OhSchemaExamForm";
 import {
   OhFindingForm,
   OhFindingRecords,
 } from "@/features/occupational-health/components/OhFindingsTabPanel";
+import { newestFirst } from "@/features/occupational-health/utils/oh-format";
 import { OhCertificateRecords } from "@/features/occupational-health/components/OhCertificateRecords";
 import { OhCertificateForm } from "@/features/occupational-health/components/OhCertificateTabPanel";
 import { OhEmploymentRecords } from "@/features/occupational-health/components/OhEmploymentRecords";
@@ -30,18 +31,28 @@ import { OhFitnessForms } from "@/features/occupational-health/components/OhFitn
 import { OhIodRecords } from "@/features/occupational-health/components/OhIodRecords";
 import { OhIodForm } from "@/features/occupational-health/components/OhIodTabPanel";
 import type { useOhEncounterWorkspaceData } from "@/features/occupational-health/hooks/use-occupational-health";
-import type { OhVisitEncounter } from "@/features/occupational-health/types";
+import { fetchOhPublishedFormConfig } from "@/features/occupational-health/services/oh.service";
+import type {
+  OhPublishedFormConfig,
+  OhVisitEncounter,
+} from "@/features/occupational-health/types";
 
 type OhWorkspaceData = ReturnType<typeof useOhEncounterWorkspaceData>;
 
 const TAB_TITLES: Record<OhEncounterTabId, { form: string; records: string }> = {
-  exam: { form: "New examination", records: "Examinations" },
+  exam: { form: "Examination", records: "Examinations" },
   fitness: { form: "Fitness", records: "Fitness" },
   certificate: { form: "Certificate", records: "Certificates" },
   iod: { form: "New IOD case", records: "IOD cases" },
   findings: { form: "New finding", records: "Findings" },
   employment: { form: "Employment", records: "Employment" },
 };
+
+function hasPublishedExamForm(config: OhPublishedFormConfig | null) {
+  return Boolean(
+    config?.programme_code && (config.form?.sections?.length ?? 0) > 0,
+  );
+}
 
 type OhEncounterWorkspaceBodyProps = {
   activeTab: OhEncounterTabId;
@@ -64,6 +75,53 @@ export function OhEncounterWorkspaceBody({
 }: OhEncounterWorkspaceBodyProps) {
   const titles = TAB_TITLES[activeTab];
   const onChanged = workspace.refetchAll;
+  const [formConfig, setFormConfig] = useState<OhPublishedFormConfig | null>(
+    null,
+  );
+  const [formConfigLoading, setFormConfigLoading] = useState(
+    activeTab === "exam",
+  );
+
+  useEffect(() => {
+    if (activeTab !== "exam") {
+      return;
+    }
+    let active = true;
+    async function load() {
+      setFormConfigLoading(true);
+      try {
+        const config = await fetchOhPublishedFormConfig();
+        if (active) {
+          setFormConfig(config);
+        }
+      } catch {
+        if (active) {
+          setFormConfig(null);
+        }
+      } finally {
+        if (active) {
+          setFormConfigLoading(false);
+        }
+      }
+    }
+    void load();
+    return () => {
+      active = false;
+    };
+  }, [activeTab]);
+
+  if (activeTab === "exam") {
+    if (workspace.isLoading || formConfigLoading) {
+      return (
+        <div className="flex flex-1 items-start bg-white px-4 py-4 sm:px-5">
+          <ColumnSkeleton />
+        </div>
+      );
+    }
+    if (!hasPublishedExamForm(formConfig)) {
+      return <OhExamFormSetupEmptyState />;
+    }
+  }
 
   return (
     <OhEncounterColumns
@@ -144,8 +202,27 @@ function OhTabForm({
   onChanged,
 }: OhTabFormProps): ReactNode {
   switch (activeTab) {
-    case "exam":
-      return <OhExamForm encounterId={encounter.id} onCreated={onChanged} />;
+    case "exam": {
+      const latestExam =
+        newestFirst(
+          workspace.examinations,
+          (exam) => exam.examined_at ?? exam.created_at,
+        )[0] ?? null;
+      return (
+        <div className="space-y-6">
+          <OhSchemaExamForm
+            encounterId={encounter.id}
+            examination={latestExam}
+            onSaved={() => onChanged()}
+            onCreated={() => onChanged()}
+          />
+          <OhProcedureChecklistPanel
+            examination={latestExam}
+            onChanged={onChanged}
+          />
+        </div>
+      );
+    }
     case "fitness":
       return (
         <OhFitnessForms examinations={workspace.examinations} onCreated={onChanged} />

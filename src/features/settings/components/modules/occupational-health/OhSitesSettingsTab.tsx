@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,17 +13,14 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { OhCatalogListPanel } from "@/features/settings/components/modules/occupational-health/OhCatalogListPanel";
+  OhCatalogListPanel,
+  OhCatalogRow,
+} from "@/features/settings/components/modules/occupational-health/OhCatalogListPanel";
 import {
+  archiveOhEmployerSite,
   createOhEmployerSite,
   fetchOhEmployerSites,
-  fetchOhEmployers,
+  updateOhEmployerSite,
 } from "@/features/occupational-health/services/oh.service";
 import type {
   OhEmployer,
@@ -34,59 +31,29 @@ import { useToast } from "@/providers/toast-provider";
 
 type OhSitesSettingsTabProps = {
   isActive: boolean;
+  employer: OhEmployer;
+  embedded?: boolean;
 };
 
-export function OhSitesSettingsTab({ isActive }: OhSitesSettingsTabProps) {
+export function OhSitesSettingsTab({
+  isActive,
+  employer,
+  embedded = false,
+}: OhSitesSettingsTabProps) {
   const { toast } = useToast();
-  const [employers, setEmployers] = useState<OhEmployer[]>([]);
-  const [employerId, setEmployerId] = useState("");
   const [rows, setRows] = useState<OhEmployerSite[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<OhEmployerSite | null>(null);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
   const [address, setAddress] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const selectedEmployerId = useMemo(
-    () => (employerId ? Number(employerId) : undefined),
-    [employerId],
-  );
+  const [archivingUuid, setArchivingUuid] = useState<string | null>(null);
 
   useEffect(() => {
     if (!isActive) {
-      return;
-    }
-    let active = true;
-    async function loadEmployers() {
-      try {
-        const results = await fetchOhEmployers();
-        if (!active) {
-          return;
-        }
-        setEmployers(results);
-        if (!employerId && results[0]) {
-          setEmployerId(String(results[0].id));
-        }
-      } catch (loadError) {
-        if (active) {
-          setError(
-            loadError instanceof Error
-              ? loadError.message
-              : "Unable to load employers.",
-          );
-        }
-      }
-    }
-    void loadEmployers();
-    return () => {
-      active = false;
-    };
-  }, [employerId, isActive]);
-
-  useEffect(() => {
-    if (!isActive || !selectedEmployerId) {
       return;
     }
     let active = true;
@@ -94,7 +61,7 @@ export function OhSitesSettingsTab({ isActive }: OhSitesSettingsTabProps) {
       setIsLoading(true);
       setError(null);
       try {
-        const results = await fetchOhEmployerSites(selectedEmployerId);
+        const results = await fetchOhEmployerSites(employer.id);
         if (active) {
           setRows(results);
         }
@@ -116,37 +83,69 @@ export function OhSitesSettingsTab({ isActive }: OhSitesSettingsTabProps) {
     return () => {
       active = false;
     };
-  }, [isActive, selectedEmployerId]);
+  }, [employer.id, isActive]);
 
   if (!isActive) {
     return null;
   }
 
+  function openCreate() {
+    setEditing(null);
+    setName("");
+    setCode("");
+    setAddress("");
+    setDialogOpen(true);
+  }
+
+  function openEdit(row: OhEmployerSite) {
+    setEditing(row);
+    setName(row.name);
+    setCode(row.code ?? "");
+    setAddress(row.address ?? "");
+    setDialogOpen(true);
+  }
+
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (!name.trim() || !selectedEmployerId) {
+    if (!name.trim()) {
       return;
     }
     setIsSubmitting(true);
     try {
-      const created = await createOhEmployerSite({
-        name: name.trim(),
-        code: code.trim(),
-        address: address.trim(),
-        employer: selectedEmployerId,
-      });
-      setRows((current) =>
-        [...current, created].sort((a, b) => a.name.localeCompare(b.name)),
-      );
+      if (editing) {
+        const updated = await updateOhEmployerSite(editing.uuid, {
+          name: name.trim(),
+          code: code.trim(),
+          address: address.trim(),
+          employer: employer.id,
+        });
+        setRows((current) =>
+          current
+            .map((row) => (row.uuid === updated.uuid ? updated : row))
+            .sort((a, b) => a.name.localeCompare(b.name)),
+        );
+        toast({ variant: "success", title: "Site updated" });
+      } else {
+        const created = await createOhEmployerSite({
+          name: name.trim(),
+          code: code.trim(),
+          address: address.trim(),
+          employer: employer.id,
+        });
+        setRows((current) =>
+          [...current, created].sort((a, b) => a.name.localeCompare(b.name)),
+        );
+        toast({ variant: "success", title: "Site added" });
+      }
       setDialogOpen(false);
+      setEditing(null);
       setName("");
       setCode("");
       setAddress("");
-      toast({ variant: "success", title: "Site added" });
     } catch (submitError) {
       toast({
         variant: "error",
-        title: "Could not add site",
+        title: editing ? "Could not update site" : "Could not add site",
         description:
           submitError instanceof BffError
             ? submitError.message
@@ -159,52 +158,73 @@ export function OhSitesSettingsTab({ isActive }: OhSitesSettingsTabProps) {
     }
   }
 
+  async function handleArchive(row: OhEmployerSite) {
+    setArchivingUuid(row.uuid);
+    try {
+      await archiveOhEmployerSite(row.uuid);
+      setRows((current) => current.filter((item) => item.uuid !== row.uuid));
+      toast({
+        variant: "success",
+        title: "Site archived",
+        description: `${row.name} was removed from the catalog.`,
+      });
+    } catch (archiveError) {
+      toast({
+        variant: "error",
+        title: "Could not archive site",
+        description:
+          archiveError instanceof Error
+            ? archiveError.message
+            : "Something went wrong.",
+      });
+    } finally {
+      setArchivingUuid(null);
+    }
+  }
+
   return (
     <>
       <OhCatalogListPanel
         title="Sites"
-        description="Worksites for an employer used on employment episodes."
+        description={`Worksites for ${employer.name} used on employment episodes.`}
         addLabel="Add site"
-        onAdd={() => setDialogOpen(true)}
+        onAdd={openCreate}
         isLoading={isLoading}
         error={error}
-        emptyTitle="No sites for this employer"
-        emptyDescription="Add sites after selecting an employer."
+        emptyTitle="No sites yet"
+        emptyDescription="Add the locations where this employer’s workers operate."
         isEmpty={rows.length === 0}
-        toolbar={
-          <div className="max-w-sm space-y-2">
-            <Label>Employer</Label>
-            <Select value={employerId} onValueChange={setEmployerId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select employer" />
-              </SelectTrigger>
-              <SelectContent>
-                {employers.map((employer) => (
-                  <SelectItem key={employer.uuid} value={String(employer.id)}>
-                    {employer.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        }
+        embedded={embedded}
       >
-        <ul className="divide-y rounded-xl border border-dash-border bg-white">
+        <ul className="divide-y divide-brand-border">
           {rows.map((row) => (
-            <li key={row.uuid} className="px-4 py-3">
-              <p className="text-sm font-medium text-brand-navy">{row.name}</p>
-              <p className="text-xs text-brand-muted">
-                {[row.code, row.address].filter(Boolean).join(" · ") || "No details"}
-              </p>
-            </li>
+            <OhCatalogRow
+              key={row.uuid}
+              title={row.name}
+              meta={
+                [row.code, row.address].filter(Boolean).join(" · ") || "No details"
+              }
+              isActive={row.is_active !== false}
+              archiving={archivingUuid === row.uuid}
+              onEdit={() => openEdit(row)}
+              onArchive={() => void handleArchive(row)}
+            />
           ))}
         </ul>
       </OhCatalogListPanel>
 
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) {
+            setEditing(null);
+          }
+        }}
+      >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add site</DialogTitle>
+            <DialogTitle>{editing ? "Edit site" : "Add site"}</DialogTitle>
           </DialogHeader>
           <form className="space-y-4" onSubmit={(event) => void handleSubmit(event)}>
             <div className="space-y-2">
@@ -240,11 +260,8 @@ export function OhSitesSettingsTab({ isActive }: OhSitesSettingsTabProps) {
               >
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting || !name.trim() || !selectedEmployerId}
-              >
-                {isSubmitting ? "Saving…" : "Save site"}
+              <Button type="submit" disabled={isSubmitting || !name.trim()}>
+                {isSubmitting ? "Saving…" : editing ? "Save changes" : "Save site"}
               </Button>
             </DialogFooter>
           </form>

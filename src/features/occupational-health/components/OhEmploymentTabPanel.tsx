@@ -59,15 +59,15 @@ export function OhEmploymentForm({ customer }: OhEmploymentFormProps) {
     staleTime: 5 * 60_000,
     enabled: Boolean(customer),
   });
-  const hazardsQuery = useQuery({
-    queryKey: ["oh-hazard-profiles"],
-    queryFn: fetchOhHazardProfiles,
-    staleTime: 5 * 60_000,
-    enabled: Boolean(customer),
-  });
-
   const employers = employersQuery.data ?? [];
   const employerId = pickedEmployerId || (employers[0] ? String(employers[0].id) : "");
+
+  const hazardsQuery = useQuery({
+    queryKey: ["oh-hazard-profiles", employerId],
+    queryFn: () => fetchOhHazardProfiles(Number(employerId)),
+    staleTime: 5 * 60_000,
+    enabled: Boolean(customer) && Boolean(employerId),
+  });
 
   const jobsQuery = useQuery({
     queryKey: ["oh-job-titles", employerId],
@@ -97,6 +97,7 @@ export function OhEmploymentForm({ customer }: OhEmploymentFormProps) {
     setPickedEmployerId(value);
     setPickedJobTitleId("");
     setPickedSiteId("");
+    setHazardProfileId("");
   }
 
   async function handleSubmit(event: React.FormEvent) {

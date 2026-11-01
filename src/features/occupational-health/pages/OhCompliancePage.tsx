@@ -15,6 +15,7 @@ import {
 import { OhAccessDenied } from "@/features/occupational-health/components/OhAccessDenied";
 import { useOhComplianceDashboard } from "@/features/occupational-health/hooks/use-occupational-health";
 import { downloadOhComplianceExtract } from "@/features/occupational-health/services/oh.service";
+import { canAccessOccupationalHealth } from "@/features/occupational-health/utils/oh-access";
 import { useUser } from "@/providers/user-provider";
 import { useToast } from "@/providers/toast-provider";
 
@@ -35,7 +36,7 @@ export function OhCompliancePage() {
     useOhComplianceDashboard();
   const [isExtracting, setIsExtracting] = useState(false);
 
-  const hasAccess = (userData?.groups ?? []).includes("OccupationalHealth");
+  const hasAccess = canAccessOccupationalHealth(userData);
 
   async function handleExtract() {
     setIsExtracting(true);

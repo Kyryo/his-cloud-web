@@ -6,6 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ListPageLayout } from "@/features/app-shell/components/page-layout";
 import { OhAccessDenied } from "@/features/occupational-health/components/OhAccessDenied";
 import { OhRecallsPanel } from "@/features/occupational-health/components/OhRecallsPanel";
+import { canAccessOccupationalHealth } from "@/features/occupational-health/utils/oh-access";
 import { fetchCustomer } from "@/features/customers/services/customers.service";
 import { useUser } from "@/providers/user-provider";
 
@@ -13,7 +14,7 @@ export function OhRecallsPage() {
   const searchParams = useSearchParams();
   const customerUuid = searchParams.get("customer");
   const { userData, isLoading: isUserLoading } = useUser();
-  const hasAccess = (userData?.groups ?? []).includes("OccupationalHealth");
+  const hasAccess = canAccessOccupationalHealth(userData);
 
   const customerQuery = useQuery({
     queryKey: ["customer", customerUuid],

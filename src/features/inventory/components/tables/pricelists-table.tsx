@@ -62,11 +62,15 @@ export function PricelistsTable({
                 {pricelist.is_active ? "Active" : "Archived"}
               </span>
             </ListPageDataTableCell>
+            <ListPageDataTableCell>
+              <InventoryCreatedByCell
+                name={pricelist.created_by_name}
+                imageUrl={pricelist.created_by_avatar_url}
+                size="sm"
+              />
+            </ListPageDataTableCell>
             <ListPageDataTableCell className="tabular-nums text-dash-muted">
               {formatDisplayDateTime(pricelist.created_at)}
-            </ListPageDataTableCell>
-            <ListPageDataTableCell>
-              <InventoryCreatedByCell name={pricelist.created_by_name} size="sm" />
             </ListPageDataTableCell>
           </ListPageDataTableRow>
         ))}

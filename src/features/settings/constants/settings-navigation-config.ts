@@ -23,7 +23,7 @@ const SETTINGS_BREADCRUMB_OVERRIDES: Record<string, string> = {
   [ROUTES.settingsModuleClinical]: "EMR",
   [ROUTES.settingsModuleDental]: "Dental",
   [ROUTES.settingsModuleRegistration]: "Front Desk",
-  [ROUTES.settingsModuleOccupationalHealth]: "Occupational health",
+  [ROUTES.settingsModuleOccupationalHealth]: "Occupational Health Services",
   [ROUTES.settingsIntegrationsEmail]: "Email",
   [ROUTES.settingsIntegrationsMasemEclaims]: "MASM eClaims",
 };

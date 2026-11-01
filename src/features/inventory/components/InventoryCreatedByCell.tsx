@@ -5,11 +5,13 @@ import { cn } from "@/lib/utils";
 
 type InventoryCreatedByCellProps = {
   name?: string | null;
+  imageUrl?: string | null;
   size?: "default" | "sm";
 };
 
 export function InventoryCreatedByCell({
   name,
+  imageUrl,
   size = "default",
 }: InventoryCreatedByCellProps) {
   const label = name?.trim();
@@ -23,11 +25,15 @@ export function InventoryCreatedByCell({
       <UserIdenticon
         seed={label}
         name={label}
+        imageUrl={imageUrl}
         className={cn(
-          "shrink-0 rounded-full",
+          "shrink-0 rounded-md",
           size === "sm" ? "size-5" : "size-7",
         )}
-        fallbackClassName={size === "sm" ? "text-[9px]" : undefined}
+        fallbackClassName={cn(
+          "rounded-md",
+          size === "sm" ? "text-[9px]" : undefined,
+        )}
       />
       <span className="truncate text-sm text-brand-navy">{label}</span>
     </div>

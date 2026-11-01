@@ -37,6 +37,7 @@ export type CatalogPricelist = {
   currency_code: string;
   created_at?: string | null;
   created_by_name?: string | null;
+  created_by_avatar_url?: string | null;
 };
 
 export type CatalogPricelistMembership = {
@@ -45,6 +46,7 @@ export type CatalogPricelistMembership = {
   pricelist_name?: string;
   product_uuid: string;
   product_name?: string;
+  tariff_code?: string | null;
   fixed_price?: number | string | null;
   min_quantity?: number | string | null;
   date_start?: string | null;
@@ -132,10 +134,78 @@ export type CatalogMasmCorePriceSyncResult = {
   changes: CatalogMasmCorePriceSyncChange[];
 };
 
+export type CatalogPricelistMasmCoreSyncJobStatus =
+  | "queued"
+  | "running"
+  | "completed"
+  | "failed";
+
+export type CatalogPricelistMasmCoreSyncOptions = {
+  update_fixed_price?: boolean;
+  update_name?: boolean;
+  import_missing_tariffs?: boolean;
+  update_validity?: boolean;
+  date_start?: string | null;
+  date_end?: string | null;
+};
+
+export type CatalogPricelistMasmCoreSyncJob = {
+  uuid: string;
+  status: CatalogPricelistMasmCoreSyncJobStatus;
+  pricelist_uuid: string;
+  provider_id: number;
+  dry_run: boolean;
+  matched: number;
+  updated: number;
+  unchanged: number;
+  missing_in_core: number;
+  missing_tariff_code: number;
+  approval_required: number;
+  core_tariffs: number;
+  names_updated?: number;
+  imported?: number;
+  options?: CatalogPricelistMasmCoreSyncOptions;
+  failure_code?: string | null;
+  failure_message?: string | null;
+  started_at?: string | null;
+  finished_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
 export type SyncCatalogMasmCorePricesPayload = {
   provider_id?: number;
   dry_run?: boolean;
   page_size?: number;
+} & CatalogPricelistMasmCoreSyncOptions;
+
+export type CatalogPricelistSettingsScheme = {
+  uuid: string;
+  name: string;
+  code: string;
+  company_name: string;
+  is_active: boolean;
+};
+
+export type CatalogPricelistSettings = {
+  pricelist_uuid: string;
+  schemes: CatalogPricelistSettingsScheme[];
+  core_provider_id: number | null;
+};
+
+export type CatalogAuditEvent = {
+  uuid: string;
+  action: string;
+  category?: string;
+  message?: string;
+  status?: string;
+  actor_uuid?: string | null;
+  actor_name?: string | null;
+  actor_email?: string | null;
+  target_object_uuid?: string | null;
+  metadata?: Record<string, unknown>;
+  changes?: Record<string, unknown>;
+  created_at?: string;
 };
 
 export type StartCatalogPricelistCopyPayload = {

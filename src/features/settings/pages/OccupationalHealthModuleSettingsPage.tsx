@@ -44,7 +44,7 @@ export function OccupationalHealthModuleSettingsPage() {
   return (
     <SettingsPageLayout
       title="Occupational health"
-      description="Manage employers, job titles, hazard profiles, and sites."
+      description="Manage employers and the shared exam catalog used by programmes."
       className="max-w-3xl"
     >
       <OhModuleSettingsTabs />

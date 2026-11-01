@@ -322,13 +322,32 @@ export const BFF_OCCUPATIONAL_HEALTH_ROUTES = {
   employmentEpisode: (uuid: string) =>
     `/api/occupational-health/employment-episodes/${uuid}`,
   employers: "/api/occupational-health/employers",
+  employer: (uuid: string) => `/api/occupational-health/employers/${uuid}`,
   employerSites: "/api/occupational-health/employer-sites",
+  employerSite: (uuid: string) =>
+    `/api/occupational-health/employer-sites/${uuid}`,
+  employerDepartments: "/api/occupational-health/employer-departments",
+  employerDepartment: (uuid: string) =>
+    `/api/occupational-health/employer-departments/${uuid}`,
   jobTitles: "/api/occupational-health/job-titles",
+  jobTitle: (uuid: string) => `/api/occupational-health/job-titles/${uuid}`,
   hazards: "/api/occupational-health/hazards",
   hazardProfiles: "/api/occupational-health/hazard-profiles",
+  hazardProfile: (uuid: string) =>
+    `/api/occupational-health/hazard-profiles/${uuid}`,
+  jobProfiles: "/api/occupational-health/job-profiles",
+  jobProfile: (uuid: string) =>
+    `/api/occupational-health/job-profiles/${uuid}`,
   examinations: "/api/occupational-health/examinations",
   examination: (uuid: string) =>
     `/api/occupational-health/examinations/${uuid}`,
+  examinationResponses: (uuid: string) =>
+    `/api/occupational-health/examinations/${uuid}/responses`,
+  examinationProcedures: (uuid: string) =>
+    `/api/occupational-health/examinations/${uuid}/procedures`,
+  examinationProcedure: (examUuid: string, recordUuid: string) =>
+    `/api/occupational-health/examinations/${examUuid}/procedures/${recordUuid}`,
+  publishedFormConfig: "/api/occupational-health/published-form-config",
   examFindings: "/api/occupational-health/exam-findings",
   examFinding: (uuid: string) =>
     `/api/occupational-health/exam-findings/${uuid}`,
@@ -358,6 +377,39 @@ export const BFF_OCCUPATIONAL_HEALTH_ROUTES = {
   complianceExtract: "/api/occupational-health/compliance/extract",
   encounterHistory: (visitUuid: string, encounterUuid: string) =>
     `/api/occupational-health/visits/${visitUuid}/encounters/${encounterUuid}/history`,
+  programmes: "/api/occupational-health/programmes",
+  programme: (uuid: string) => `/api/occupational-health/programmes/${uuid}`,
+  programmeVersions: (programmeUuid: string) =>
+    `/api/occupational-health/programmes/${programmeUuid}/versions`,
+  programmeVersion: (uuid: string) =>
+    `/api/occupational-health/programme-versions/${uuid}`,
+  programmeVersionPublish: (uuid: string) =>
+    `/api/occupational-health/programme-versions/${uuid}/publish`,
+  catalogItems: "/api/occupational-health/catalog-items",
+  catalogItem: (uuid: string) =>
+    `/api/occupational-health/catalog-items/${uuid}`,
+  catalogSectionRules: "/api/occupational-health/catalog-section-rules",
+  catalogSectionRule: (uuid: string) =>
+    `/api/occupational-health/catalog-section-rules/${uuid}`,
+  cofTemplates: "/api/occupational-health/cof-templates",
+  cofTemplate: (uuid: string) =>
+    `/api/occupational-health/cof-templates/${uuid}`,
+  cofTemplateSections: "/api/occupational-health/cof-template-sections",
+  cofTemplateSection: (uuid: string) =>
+    `/api/occupational-health/cof-template-sections/${uuid}`,
+  examSections: "/api/occupational-health/exam-sections",
+  examSection: (uuid: string) =>
+    `/api/occupational-health/exam-sections/${uuid}`,
+  examSectionItems: "/api/occupational-health/exam-section-items",
+  examSectionItem: (uuid: string) =>
+    `/api/occupational-health/exam-section-items/${uuid}`,
+  examTemplates: "/api/occupational-health/exam-templates",
+  examTemplate: (uuid: string) =>
+    `/api/occupational-health/exam-templates/${uuid}`,
+  examTemplateSections: "/api/occupational-health/exam-template-sections",
+  examTemplateSection: (uuid: string) =>
+    `/api/occupational-health/exam-template-sections/${uuid}`,
+  featureFlags: "/api/occupational-health/feature-flags",
 } as const;
 
 /** Browser-facing BFF insurance catalog routes (same origin). */
@@ -612,8 +664,14 @@ export const BFF_INVENTORY_ROUTES = {
       `/api/inventory/pricelists/${pricelistUuid}/copy-products/${jobUuid}`,
     copyProductsJobItems: (pricelistUuid: string, jobUuid: string) =>
       `/api/inventory/pricelists/${pricelistUuid}/copy-products/${jobUuid}/items`,
+    settings: (pricelistUuid: string) =>
+      `/api/inventory/pricelists/${pricelistUuid}/settings`,
+    auditEvents: (pricelistUuid: string) =>
+      `/api/inventory/pricelists/${pricelistUuid}/audit-events`,
     syncMasmCorePrices: (pricelistUuid: string) =>
       `/api/inventory/pricelists/${pricelistUuid}/sync-masm-core-prices`,
+    syncMasmCorePricesJob: (pricelistUuid: string, jobUuid: string) =>
+      `/api/inventory/pricelists/${pricelistUuid}/sync-masm-core-prices/${jobUuid}`,
     default: "/api/pricelists/default",
   },
   batches: {

@@ -43,13 +43,13 @@ export function PricelistsTableSkeleton({
               <Skeleton className="h-5 w-16 rounded-md" />
             </ListPageDataTableCell>
             <ListPageDataTableCell>
-              <Skeleton className="h-3.5 w-28" />
-            </ListPageDataTableCell>
-            <ListPageDataTableCell>
               <div className="flex items-center gap-2">
                 <Skeleton className="size-5 rounded-full" />
                 <Skeleton className="h-3.5 w-24" />
               </div>
+            </ListPageDataTableCell>
+            <ListPageDataTableCell>
+              <Skeleton className="h-3.5 w-28" />
             </ListPageDataTableCell>
           </ListPageDataTableRow>
         ))}
