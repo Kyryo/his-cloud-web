@@ -35,6 +35,7 @@ import {
   type NewSectionFormValues,
 } from "@/features/oh-template-builder/template-builder.schema";
 import type { BuilderSection } from "@/features/oh-template-builder/template-builder.types";
+import { defaultResponseConfig } from "@/features/settings/components/modules/occupational-health/template-library/responseConfig";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 
@@ -199,6 +200,8 @@ function NewSectionForm({ onDone }: { onDone: () => void }) {
       code: "",
       isMandatory: false,
       selectionMode: "inclusive",
+      contentMode: "items",
+      defaultResponseConfig: defaultResponseConfig(),
     },
   });
   const isSaving = isPending("section:create");

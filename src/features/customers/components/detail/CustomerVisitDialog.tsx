@@ -52,6 +52,11 @@ import {
   formatAdaptiveAge,
   formatCustomerName,
 } from "@/features/customers/utils/format-customer";
+import { fetchEmploymentEpisodes } from "@/features/occupational-health/services/oh.service";
+import {
+  customerHasActiveRiskProfile,
+  OH_RISK_PROFILE_REQUIRED_MESSAGE,
+} from "@/features/occupational-health/utils/customer-has-risk-profile";
 import {
   StartVisitFormFields,
   type StartVisitStep,
@@ -70,6 +75,8 @@ import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-error
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
+
+const OH_DEPARTMENT_TYPE = "occupational_health";
 
 type CustomerVisitDialogProps = {
   customer: Customer;
@@ -101,6 +108,7 @@ export function CustomerVisitDialog({
   const [consultationServiceSearch, setConsultationServiceSearch] = useState("");
   const [startStep, setStartStep] = useState<StartVisitStep>("visit");
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+  const [hasActiveRiskProfile, setHasActiveRiskProfile] = useState(false);
 
   const form = useForm<StartVisitFormValues>({
     resolver: zodResolver(startVisitSchema),
@@ -148,6 +156,16 @@ export function CustomerVisitDialog({
 
   const hasDefaultClinic = Boolean(defaultClinic && defaultClinicUuid);
 
+  const selectedDepartment = useMemo(
+    () =>
+      departments.find((department) => department.uuid === selectedDepartmentUuid) ??
+      null,
+    [departments, selectedDepartmentUuid],
+  );
+  const ohRiskProfileBlocked =
+    selectedDepartment?.department_type === OH_DEPARTMENT_TYPE &&
+    !hasActiveRiskProfile;
+
   const canClose = useMemo(
     () => canCloseCustomerVisit(userData, activeVisit, clinicIdByUuid),
     [activeVisit, clinicIdByUuid, userData],
@@ -163,10 +181,11 @@ export function CustomerVisitDialog({
     setCloseError(null);
 
     try {
-      const [visits, insurance, clinicList] = await Promise.all([
+      const [visits, insurance, clinicList, episodes] = await Promise.all([
         fetchCustomerVisits(customer.uuid, { limit: 100 }),
         fetchCustomerInsurance(customer.uuid).catch(() => [] as CustomerInsurance[]),
         fetchClinicalClinics(),
+        fetchEmploymentEpisodes(customer.uuid).catch(() => []),
       ]);
 
       setConsultationServiceSearch("");
@@ -174,6 +193,7 @@ export function CustomerVisitDialog({
       setAttachmentFile(null);
       setLoadedConsultationServices(null);
       setInsuranceSchemes(insurance);
+      setHasActiveRiskProfile(customerHasActiveRiskProfile(episodes));
       const active = findActiveCustomerVisit(visits);
       setActiveVisit(active);
       if (active) {
@@ -287,6 +307,24 @@ export function CustomerVisitDialog({
   }, [form, requiresPreAuth]);
 
   const handleStartVisit = form.handleSubmit(async (values) => {
+    const department =
+      departments.find((row) => row.uuid === values.department) ?? null;
+    if (
+      department?.department_type === OH_DEPARTMENT_TYPE &&
+      !hasActiveRiskProfile
+    ) {
+      form.setError("department", {
+        message: OH_RISK_PROFILE_REQUIRED_MESSAGE,
+      });
+      toast({
+        variant: "error",
+        title: "Risk profile required",
+        description: OH_RISK_PROFILE_REQUIRED_MESSAGE,
+      });
+      setStartStep("visit");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -395,9 +433,21 @@ export function CustomerVisitDialog({
 
   async function handleContinueToPayment() {
     const valid = await form.trigger(["clinic", "department", "visit_date"]);
-    if (valid) {
-      setStartStep("payment");
+    if (!valid) {
+      return;
     }
+    if (ohRiskProfileBlocked) {
+      form.setError("department", {
+        message: OH_RISK_PROFILE_REQUIRED_MESSAGE,
+      });
+      toast({
+        variant: "error",
+        title: "Risk profile required",
+        description: OH_RISK_PROFILE_REQUIRED_MESSAGE,
+      });
+      return;
+    }
+    setStartStep("payment");
   }
 
   async function handleContinueToAttachments() {
@@ -455,7 +505,7 @@ export function CustomerVisitDialog({
             </div>
           ) : (
             <Form {...form}>
-              <form>
+              <form className="space-y-4">
                 <StartVisitFormFields
                   form={form}
                   step={startStep}
@@ -473,6 +523,14 @@ export function CustomerVisitDialog({
                   attachmentFile={attachmentFile}
                   onAttachmentFileChange={setAttachmentFile}
                 />
+                {startStep === "visit" && ohRiskProfileBlocked ? (
+                  <p
+                    className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+                    data-testid="oh-risk-profile-required"
+                  >
+                    {OH_RISK_PROFILE_REQUIRED_MESSAGE}
+                  </p>
+                ) : null}
               </form>
             </Form>
           )}

@@ -25,6 +25,7 @@ const columns = [
   { key: "patient", label: "Client" },
   { key: "clinic", label: "Clinic", className: "hidden md:table-cell" },
   { key: "status", label: "Status" },
+  { key: "orderer", label: "Orderer" },
   { key: "ordered", label: "Ordered" },
 ] as const;
 
@@ -40,7 +41,10 @@ export function PharmacyQueueTable({
       <ListPageDataTableHeader>
         <ListPageDataTableHeaderRow>
           {columns.map((column) => (
-            <ListPageDataTableHeaderCell key={column.key} className={"className" in column ? column.className : undefined}>
+            <ListPageDataTableHeaderCell
+              key={column.key}
+              className={"className" in column ? column.className : undefined}
+            >
               {column.label}
             </ListPageDataTableHeaderCell>
           ))}
@@ -49,6 +53,7 @@ export function PharmacyQueueTable({
       <ListPageDataTableBody>
         {items.map((item) => {
           const patientName = item.customer_name?.trim() || "—";
+          const ordererName = item.orderer_name?.trim() || "—";
 
           return (
             <ListPageDataTableRow
@@ -80,6 +85,18 @@ export function PharmacyQueueTable({
                   dispensableLineCount={item.dispensable_line_count}
                   remainingLineCount={item.remaining_line_count}
                 />
+              </ListPageDataTableCell>
+              <ListPageDataTableCell>
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <UserIdenticon
+                    seed={ordererName}
+                    name={ordererName}
+                    className="size-8 shrink-0 rounded-md"
+                  />
+                  <span className="truncate font-medium text-brand-navy">
+                    {ordererName}
+                  </span>
+                </div>
               </ListPageDataTableCell>
               <ListPageDataTableCell className="tabular-nums text-dash-muted">
                 {formatDisplayDateTime(item.date_order)}

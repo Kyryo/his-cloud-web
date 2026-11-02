@@ -25,6 +25,9 @@ import {
 } from "@/features/oh-template-builder/components/InspectorShell";
 import { SelectionModeToggle } from "@/features/oh-template-builder/components/SelectionModeToggle";
 import { useTemplateBuilder } from "@/features/oh-template-builder/hooks/useTemplateBuilder";
+import { ContentModeToggle } from "@/features/settings/components/modules/occupational-health/template-library/ContentModeToggle";
+import { ResponseConfigFields } from "@/features/settings/components/modules/occupational-health/template-library/ResponseConfigFields";
+import { normalizeResponseConfig } from "@/features/settings/components/modules/occupational-health/template-library/responseConfig";
 import {
   sectionFormSchema,
   type SectionFormValues,
@@ -48,6 +51,8 @@ export function SectionInspector({ attachment, section }: SectionInspectorProps)
       name: section.name,
       isMandatory: section.isMandatory,
       selectionMode: section.selectionMode,
+      contentMode: section.contentMode,
+      defaultResponseConfig: normalizeResponseConfig(section.defaultResponseConfig),
     },
   });
   const isSaving = isPending(`section:update:${section.uuid}`);
@@ -164,6 +169,31 @@ export function SectionInspector({ attachment, section }: SectionInspectorProps)
                     />
                   }
                 />
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="contentMode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Content mode</FormLabel>
+                  <ContentModeToggle value={field.value} onChange={field.onChange} />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="defaultResponseConfig"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Default response</FormLabel>
+                  <ResponseConfigFields
+                    value={field.value}
+                    onChange={field.onChange}
+                  />
+                </FormItem>
               )}
             />
 

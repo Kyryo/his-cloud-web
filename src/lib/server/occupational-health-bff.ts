@@ -125,6 +125,23 @@ export async function ohStatutoryPackHandler(
   }
 }
 
+export async function ohProxyGetHandler(apiPath: string) {
+  try {
+    const auth = await requireAccessToken();
+    if ("error" in auth) {
+      return auth.error;
+    }
+
+    const { hmisApiRequest } = await import("@/lib/server/hmis-api");
+    const data = await hmisApiRequest<unknown>(apiPath, {
+      token: auth.accessToken,
+    });
+    return bffSuccess(data);
+  } catch (error) {
+    return bffError(error);
+  }
+}
+
 export async function ohProxyPostHandler(
   apiPath: string,
   request: Request,

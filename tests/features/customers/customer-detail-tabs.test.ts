@@ -56,12 +56,18 @@ describe("customer detail tab routes", () => {
     ).toBe(true);
   });
 
-  it("places invoices, payments, visits, address, and employment under More", () => {
+  it("places invoices, payments, visits, address, and legal guardians under More", () => {
     expect(
       CUSTOMER_DETAIL_TABS.filter((tab) => tab.surface === "menu").map(
         (tab) => tab.id,
       ),
-    ).toEqual(["invoices", "payments", "visits", "addresses", "employment"]);
+    ).toEqual([
+      "invoices",
+      "payments",
+      "visits",
+      "addresses",
+      "legal-guardians",
+    ]);
   });
 
   it("accepts known tab segments and the empty summary segment", () => {

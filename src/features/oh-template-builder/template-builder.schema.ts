@@ -5,6 +5,23 @@ import {
   toUpperCode,
 } from "@/features/oh-template-builder/lib/templateCodes";
 
+const responseConfigSchema = z.object({
+  response_type: z.string().min(1),
+  options: z.array(
+    z.object({
+      code: z.string(),
+      label: z.string(),
+    }),
+  ),
+  validation: z.object({
+    min: z.number().optional(),
+    max: z.number().optional(),
+    min_length: z.number().optional(),
+    max_length: z.number().optional(),
+  }),
+  prompt_after_select: z.boolean(),
+});
+
 const name = z
   .string()
   .trim()
@@ -27,6 +44,8 @@ export const sectionFormSchema = z.object({
   name,
   isMandatory: z.boolean(),
   selectionMode: z.enum(["exclusive", "inclusive"]),
+  contentMode: z.enum(["items", "direct"]),
+  defaultResponseConfig: responseConfigSchema,
 });
 
 export const newSectionFormSchema = sectionFormSchema.extend({
@@ -42,6 +61,8 @@ export const itemFormSchema = z.object({
   name: z.string().trim().max(160, "Keep the name under 160 characters"),
   code: upperCode,
   isMandatory: z.boolean(),
+  inheritsResponseConfig: z.boolean(),
+  overrideResponseConfig: responseConfigSchema,
   schedule: z.array(
     z.object({
       interval: z

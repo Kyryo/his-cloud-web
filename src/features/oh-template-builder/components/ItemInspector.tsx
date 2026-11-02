@@ -22,10 +22,9 @@ import {
   InspectorShell,
   InspectorToggleRow,
 } from "@/features/oh-template-builder/components/InspectorShell";
-import {
-  ItemResponsesEditor,
-  ItemScheduleEditor,
-} from "@/features/oh-template-builder/components/ItemListEditors";
+import { ItemScheduleEditor } from "@/features/oh-template-builder/components/ItemListEditors";
+import { ResponseConfigFields } from "@/features/settings/components/modules/occupational-health/template-library/ResponseConfigFields";
+import { normalizeResponseConfig } from "@/features/settings/components/modules/occupational-health/template-library/responseConfig";
 import { useTemplateBuilder } from "@/features/oh-template-builder/hooks/useTemplateBuilder";
 import { toUpperCode } from "@/features/oh-template-builder/lib/templateCodes";
 import {
@@ -57,8 +56,13 @@ export function ItemInspector({ attachment, item }: ItemInspectorProps) {
         notes: row.notes ?? "",
       })),
       responses: item.responses.map((row) => ({ label: row.label, code: row.code })),
+      inheritsResponseConfig: item.inheritsResponseConfig,
+      overrideResponseConfig: normalizeResponseConfig(
+        item.overrideResponseConfig ?? item.effectiveResponseConfig,
+      ),
     },
   });
+  const inheritsConfig = form.watch("inheritsResponseConfig");
   const isSaving = isPending(`item:update:${item.uuid}`);
   const isArchiving = isPending(`item:archive:${item.uuid}`);
   const sectionName = attachment.section?.name ?? "Section";
@@ -172,7 +176,45 @@ export function ItemInspector({ attachment, item }: ItemInspectorProps) {
                 />
               )}
             />
-            <ItemResponsesEditor />
+            <FormField
+              control={form.control}
+              name="inheritsResponseConfig"
+              render={({ field }) => (
+                <InspectorToggleRow
+                  title="Inherit section response"
+                  description="Use the section default unless you override it for this item."
+                  control={
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      aria-label="Inherit section response configuration"
+                    />
+                  }
+                />
+              )}
+            />
+            {inheritsConfig ? (
+              <p className="rounded-xl bg-slate-50 px-4 py-3 text-xs leading-5 text-brand-slate">
+                Effective type:{" "}
+                <span className="font-medium">
+                  {item.effectiveResponseConfig.response_type.replaceAll("_", " ")}
+                </span>
+              </p>
+            ) : (
+              <FormField
+                control={form.control}
+                name="overrideResponseConfig"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Item response override</FormLabel>
+                    <ResponseConfigFields
+                      value={field.value ?? item.effectiveResponseConfig}
+                      onChange={field.onChange}
+                    />
+                  </FormItem>
+                )}
+              />
+            )}
             <ItemScheduleEditor />
           </div>
         </InspectorShell>

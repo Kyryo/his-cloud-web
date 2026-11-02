@@ -3,6 +3,9 @@ import type {
   OhCatalogPossibleResponse,
   OhCatalogScheduleRow,
   OhCatalogSelectionMode,
+  OhLibraryContentMode,
+  OhResponseConfig,
+  OhTemplateVersionStatus,
 } from "@/features/occupational-health/types";
 
 export type TemplateKind = "exam" | "certificate";
@@ -15,6 +18,8 @@ export type BuilderTemplate = {
   code: string;
   active: boolean;
   sectionCount: number | null;
+  publishedVersionNumber: number | null;
+  publishedVersionStatus: OhTemplateVersionStatus | null;
   updatedAt: string | null;
 };
 
@@ -27,6 +32,8 @@ export type BuilderSection = {
   /** System sections back programme requirements; their code and library entry are protected. */
   isSystem: boolean;
   active: boolean;
+  contentMode: OhLibraryContentMode;
+  defaultResponseConfig: OhResponseConfig;
 };
 
 /** A library section placed on a template, with its position. */
@@ -47,12 +54,17 @@ export type BuilderItem = {
   responses: OhCatalogPossibleResponse[];
   active: boolean;
   attributes: OhCatalogItemAttributes;
+  overrideResponseConfig: OhResponseConfig | null;
+  effectiveResponseConfig: OhResponseConfig;
+  inheritsResponseConfig: boolean;
 };
 
 export type SectionInput = {
   name: string;
   isMandatory: boolean;
   selectionMode: OhCatalogSelectionMode;
+  contentMode: OhLibraryContentMode;
+  defaultResponseConfig: OhResponseConfig;
 };
 
 export type NewSectionInput = SectionInput & { code: string };
@@ -63,6 +75,8 @@ export type ItemInput = {
   isMandatory: boolean;
   schedule: OhCatalogScheduleRow[];
   responses: OhCatalogPossibleResponse[];
+  overrideResponseConfig: OhResponseConfig;
+  inheritsResponseConfig: boolean;
 };
 
 export type BuilderSelection =

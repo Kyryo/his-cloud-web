@@ -81,11 +81,18 @@ export const CUSTOMER_DETAIL_TABS: CustomerDetailTab[] = [
     surface: "menu",
   },
   {
+    id: "employment",
+    label: "Employment",
+    segment: "employment",
+    icon: "building",
+    surface: "tab",
+  },
+  {
     id: "legal-guardians",
     label: "Legal guardians",
     segment: "legal-guardians",
     icon: "users",
-    surface: "tab",
+    surface: "menu",
   },
   {
     id: "relationships",
@@ -93,13 +100,6 @@ export const CUSTOMER_DETAIL_TABS: CustomerDetailTab[] = [
     segment: "relationships",
     icon: "users",
     surface: "tab",
-  },
-  {
-    id: "employment",
-    label: "Employment",
-    segment: "employment",
-    icon: "building",
-    surface: "menu",
   },
   {
     id: "appointments",

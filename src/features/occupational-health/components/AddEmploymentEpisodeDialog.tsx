@@ -21,17 +21,17 @@ import {
 } from "@/components/ui/select";
 import {
   createEmploymentEpisode,
+  fetchOhEmployerDepartments,
   fetchOhEmployerSites,
   fetchOhEmployers,
   fetchOhHazardProfiles,
-  fetchOhJobProfiles,
   fetchOhJobTitles,
 } from "@/features/occupational-health/services/oh.service";
 import type {
   OhEmployer,
+  OhEmployerDepartment,
   OhEmployerSite,
   OhHazardProfile,
-  OhJobProfile,
   OhJobTitle,
 } from "@/features/occupational-health/types";
 import type { Customer } from "@/features/customers/types/customer.types";
@@ -54,13 +54,13 @@ export function AddEmploymentEpisodeDialog({
   const [employers, setEmployers] = useState<OhEmployer[]>([]);
   const [jobTitles, setJobTitles] = useState<OhJobTitle[]>([]);
   const [sites, setSites] = useState<OhEmployerSite[]>([]);
+  const [departments, setDepartments] = useState<OhEmployerDepartment[]>([]);
   const [hazardProfiles, setHazardProfiles] = useState<OhHazardProfile[]>([]);
-  const [jobProfiles, setJobProfiles] = useState<OhJobProfile[]>([]);
   const [employerId, setEmployerId] = useState("");
   const [jobTitleId, setJobTitleId] = useState("");
   const [siteId, setSiteId] = useState("");
+  const [departmentId, setDepartmentId] = useState("");
   const [hazardProfileId, setHazardProfileId] = useState("");
-  const [jobProfileId, setJobProfileId] = useState("");
   const [startDate, setStartDate] = useState(
     new Date().toISOString().slice(0, 10),
   );
@@ -87,17 +87,17 @@ export function AddEmploymentEpisodeDialog({
     void Promise.all([
       fetchOhJobTitles(employerPk),
       fetchOhEmployerSites(employerPk),
+      fetchOhEmployerDepartments(employerPk),
       fetchOhHazardProfiles(employerPk),
-      fetchOhJobProfiles(employerPk),
-    ]).then(([jobRows, siteRows, hazardRows, jobProfileRows]) => {
+    ]).then(([jobRows, siteRows, departmentRows, hazardRows]) => {
       setJobTitles(jobRows);
       setSites(siteRows);
+      setDepartments(departmentRows);
       setHazardProfiles(hazardRows);
-      setJobProfiles(jobProfileRows);
       setJobTitleId(jobRows[0] ? String(jobRows[0].id) : "");
-      setSiteId(siteRows[0] ? String(siteRows[0].id) : "");
+      setSiteId("");
+      setDepartmentId("");
       setHazardProfileId("");
-      setJobProfileId("");
     });
   }, [employerId, open]);
 
@@ -109,14 +109,17 @@ export function AddEmploymentEpisodeDialog({
     setIsSubmitting(true);
     try {
       const selectedSite = sites.find((row) => String(row.id) === siteId);
+      const selectedDepartment = departments.find(
+        (row) => String(row.id) === departmentId,
+      );
       await createEmploymentEpisode({
         customer: customer.id,
         employer: Number(employerId),
         job_title: Number(jobTitleId),
         hazard_profile: hazardProfileId ? Number(hazardProfileId) : null,
-        job_profile: jobProfileId ? Number(jobProfileId) : null,
         start_date: startDate,
         site: selectedSite?.name ?? "",
+        department_name: selectedDepartment?.name ?? "",
         employee_number: employeeNumber,
         employment_type: "employee",
       });
@@ -172,7 +175,28 @@ export function AddEmploymentEpisodeDialog({
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="oh-site">Site</Label>
+            <Label htmlFor="oh-department">Department (optional)</Label>
+            <Select
+              value={departmentId || "none"}
+              onValueChange={(value) =>
+                setDepartmentId(value === "none" ? "" : value)
+              }
+            >
+              <SelectTrigger id="oh-department">
+                <SelectValue placeholder="Select department" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">No department</SelectItem>
+                {departments.map((row) => (
+                  <SelectItem key={row.uuid} value={String(row.id)}>
+                    {row.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="oh-site">Site (optional)</Label>
             <Select
               value={siteId || "none"}
               onValueChange={(value) => setSiteId(value === "none" ? "" : value)}
@@ -191,14 +215,14 @@ export function AddEmploymentEpisodeDialog({
             </Select>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="oh-hazard-profile">Hazard profile (optional)</Label>
+            <Label htmlFor="oh-risk-profile">Risk profile (optional)</Label>
             <Select
               value={hazardProfileId || "none"}
               onValueChange={(value) =>
                 setHazardProfileId(value === "none" ? "" : value)
               }
             >
-              <SelectTrigger id="oh-hazard-profile">
+              <SelectTrigger id="oh-risk-profile">
                 <SelectValue placeholder="None" />
               </SelectTrigger>
               <SelectContent>
@@ -206,29 +230,6 @@ export function AddEmploymentEpisodeDialog({
                 {hazardProfiles.map((profile) => (
                   <SelectItem key={profile.uuid} value={String(profile.id)}>
                     {profile.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="oh-job-profile">Job profile (optional)</Label>
-            <Select
-              value={jobProfileId || "none"}
-              onValueChange={(value) =>
-                setJobProfileId(value === "none" ? "" : value)
-              }
-            >
-              <SelectTrigger id="oh-job-profile">
-                <SelectValue placeholder="None — use general programme requirements" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">
-                  None — general programme requirements
-                </SelectItem>
-                {jobProfiles.map((profile) => (
-                  <SelectItem key={profile.uuid} value={String(profile.id)}>
-                    {profile.code} — {profile.name}
                   </SelectItem>
                 ))}
               </SelectContent>

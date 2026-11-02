@@ -29,6 +29,8 @@ export function QuickAddItem({ sectionUuid, attachmentUuid }: QuickAddItemProps)
       isMandatory: false,
       schedule: [],
       responses: [],
+      inheritsResponseConfig: true,
+      overrideResponseConfig: { response_type: "boolean", options: [], validation: {} },
     });
     if (created) {
       setName("");

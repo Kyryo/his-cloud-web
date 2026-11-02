@@ -13,6 +13,10 @@ import { useBuilderAction } from "@/features/oh-template-builder/hooks/useBuilde
 import { getTemplateAdapter } from "@/features/oh-template-builder/lib/templateAdapters";
 import { templateQueryKeys } from "@/features/oh-template-builder/lib/templateKinds";
 import {
+  publishOhCofTemplate,
+  publishOhExamTemplate,
+} from "@/features/occupational-health/services/oh.service";
+import {
   moveAttachment,
   type MoveDirection,
 } from "@/features/oh-template-builder/lib/templateOrder";
@@ -55,6 +59,8 @@ type TemplateBuilderValue = {
     input: ItemInput,
   ) => Promise<boolean>;
   archiveItem: (sectionUuid: string, item: BuilderItem) => Promise<boolean>;
+  reorderItems: (sectionUuid: string, orderedUuids: string[]) => Promise<boolean>;
+  publishTemplate: () => Promise<boolean>;
 };
 
 const TemplateBuilderContext = createContext<TemplateBuilderValue | null>(null);
@@ -326,6 +332,57 @@ export function TemplateBuilderProvider({
         void refreshAttachments();
       }
       return Boolean(done);
+    },
+
+    reorderItems: async (sectionUuid, orderedUuids) => {
+      const itemsKey = templateQueryKeys.items(kind, sectionUuid);
+      const previous = queryClient.getQueryData<ItemsData>(itemsKey);
+      if (previous) {
+        const byUuid = new Map(previous.items.map((row) => [row.uuid, row]));
+        const nextItems = orderedUuids
+          .map((uuid) => byUuid.get(uuid))
+          .filter((row): row is BuilderItem => Boolean(row));
+        queryClient.setQueryData<ItemsData>(itemsKey, {
+          ...previous,
+          items: nextItems,
+        });
+      }
+      const done = await perform(
+        `item:reorder:${sectionUuid}`,
+        async () => {
+          await adapter.reorderItems(sectionUuid, orderedUuids);
+          return true;
+        },
+        { error: "Could not reorder items" },
+      );
+      if (!done) {
+        queryClient.setQueryData(itemsKey, previous);
+        void queryClient.invalidateQueries({ queryKey: itemsKey });
+      }
+      return Boolean(done);
+    },
+
+    publishTemplate: async () => {
+      const published = await perform(
+        "template:publish",
+        async () => {
+          const version =
+            kind === "certificate"
+              ? await publishOhCofTemplate(templateUuid)
+              : await publishOhExamTemplate(templateUuid);
+          return version;
+        },
+        {
+          success: "Template published",
+          error: "Could not publish template",
+        },
+      );
+      if (!published) {
+        return false;
+      }
+      await queryClient.invalidateQueries({ queryKey: detailKey });
+      void queryClient.invalidateQueries({ queryKey: templateQueryKeys.list(kind) });
+      return true;
     },
   };
 

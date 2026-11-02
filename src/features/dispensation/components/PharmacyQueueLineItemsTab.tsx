@@ -5,7 +5,6 @@ import { Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PharmacyQueueDispenseStatusBadge } from "@/features/dispensation/components/PharmacyQueueDispenseStatusBadge";
 import { PharmacyQueueLineProgress } from "@/features/dispensation/components/PharmacyQueueLineProgress";
-import { InventoryMark } from "@/features/inventory/components/InventoryMark";
 import type {
   DispensationQueueDetail,
   DispensationQueueLine,
@@ -51,7 +50,7 @@ export function PharmacyQueueLineItemsTab({
   if (detail.lines.length === 0) {
     return (
       <p
-        className="px-4 py-8 text-sm text-brand-muted sm:px-6"
+        className="px-4 py-6 text-sm text-brand-muted sm:px-6"
         data-testid="pharmacy-queue-lines-empty"
       >
         No dispensable line items.
@@ -64,7 +63,7 @@ export function PharmacyQueueLineItemsTab({
       <table className="min-w-full text-left text-sm">
         <thead>
           <tr className="border-b border-dash-border/80 bg-white">
-            <th className="w-12 px-4 py-3 text-left sm:px-6">
+            <th className="w-10 px-3 py-2 text-left sm:px-4">
               <input
                 type="checkbox"
                 aria-label="Select all line items"
@@ -79,19 +78,22 @@ export function PharmacyQueueLineItemsTab({
                 }
               />
             </th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.06em] text-dash-muted sm:px-6">
+            <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-[0.06em] text-dash-muted sm:px-4">
               Product
             </th>
-            <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.06em] text-dash-muted">
+            <th className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-[0.06em] text-dash-muted">
+              Status
+            </th>
+            <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-[0.06em] text-dash-muted">
               Ordered
             </th>
-            <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.06em] text-dash-muted">
+            <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-[0.06em] text-dash-muted">
               Dispensed
             </th>
-            <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.06em] text-dash-muted">
+            <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-[0.06em] text-dash-muted">
               Remaining
             </th>
-            <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.06em] text-dash-muted sm:px-6">
+            <th className="px-3 py-2 text-right text-xs font-semibold uppercase tracking-[0.06em] text-dash-muted sm:px-4">
               Action
             </th>
           </tr>
@@ -112,7 +114,7 @@ export function PharmacyQueueLineItemsTab({
                 key={line.uuid}
                 className={cn("group", done && "bg-slate-50/40")}
               >
-                <td className="px-4 py-3 sm:px-6">
+                <td className="px-3 py-2 sm:px-4">
                   <input
                     type="checkbox"
                     aria-label={`Select ${line.product_name}`}
@@ -133,42 +135,37 @@ export function PharmacyQueueLineItemsTab({
                     }}
                   />
                 </td>
-                <td className="px-4 py-3 sm:px-6">
-                  <div className="flex min-w-0 items-center gap-3">
-                    <InventoryMark kind="product" seed={line.product_name} />
-                    <div className="min-w-0 space-y-1.5">
-                      <p className="truncate text-sm font-semibold text-brand-navy">
-                        {line.product_name}
-                      </p>
-                      <PharmacyQueueLineProgress
-                        ordered={ordered}
-                        dispensed={dispensed}
-                        className="w-28"
-                      />
-                    </div>
+                <td className="px-3 py-2 sm:px-4">
+                  <div className="min-w-0 space-y-1">
+                    <p className="truncate text-sm font-medium text-brand-navy">
+                      {line.product_name}
+                    </p>
+                    <PharmacyQueueLineProgress
+                      ordered={ordered}
+                      dispensed={dispensed}
+                      className="w-24"
+                    />
                   </div>
                 </td>
-                <td className="px-4 py-3 text-right tabular-nums text-brand-navy">
+                <td className="px-3 py-2">
+                  <PharmacyQueueDispenseStatusBadge status={status} />
+                </td>
+                <td className="px-3 py-2 text-right tabular-nums text-brand-navy">
                   {formatDispensationQuantity(line.quantity)}
                 </td>
-                <td className="px-4 py-3 text-right tabular-nums text-brand-navy">
+                <td className="px-3 py-2 text-right tabular-nums text-brand-navy">
                   {formatDispensationQuantity(line.dispensed_quantity)}
                 </td>
-                <td className="px-4 py-3 text-right">
-                  <div className="flex flex-col items-end gap-1.5">
-                    <span className="text-base font-semibold tabular-nums text-brand-navy">
-                      {formatDispensationQuantity(remaining)}
-                    </span>
-                    <PharmacyQueueDispenseStatusBadge status={status} />
-                  </div>
+                <td className="px-3 py-2 text-right font-medium tabular-nums text-brand-navy">
+                  {formatDispensationQuantity(remaining)}
                 </td>
-                <td className="px-4 py-3 text-right sm:px-6">
+                <td className="px-3 py-2 text-right sm:px-4">
                   <div className="flex justify-end gap-1">
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="size-8 text-brand-muted opacity-0 transition-opacity hover:text-brand-navy group-hover:opacity-100 focus-visible:opacity-100"
+                      className="size-7 text-brand-muted opacity-0 transition-opacity hover:text-brand-navy group-hover:opacity-100 focus-visible:opacity-100"
                       disabled={!canManageLines}
                       title={
                         canManageLines
@@ -178,13 +175,13 @@ export function PharmacyQueueLineItemsTab({
                       aria-label={`Edit ${line.product_name}`}
                       onClick={() => onEdit(line)}
                     >
-                      <Pencil className="size-4" aria-hidden="true" />
+                      <Pencil className="size-3.5" aria-hidden="true" />
                     </Button>
                     <Button
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className="size-8 text-brand-muted opacity-0 transition-opacity hover:text-red-600 group-hover:opacity-100 focus-visible:opacity-100"
+                      className="size-7 text-brand-muted opacity-0 transition-opacity hover:text-red-600 group-hover:opacity-100 focus-visible:opacity-100"
                       disabled={!canManageLines}
                       title={
                         canManageLines
@@ -194,7 +191,7 @@ export function PharmacyQueueLineItemsTab({
                       aria-label={`Delete ${line.product_name}`}
                       onClick={() => onDelete(line)}
                     >
-                      <Trash2 className="size-4" aria-hidden="true" />
+                      <Trash2 className="size-3.5" aria-hidden="true" />
                     </Button>
                   </div>
                 </td>

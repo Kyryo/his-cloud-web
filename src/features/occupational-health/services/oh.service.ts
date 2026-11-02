@@ -11,15 +11,18 @@ import type {
   OhCatalogItemType,
   OhCatalogScheduleRow,
   OhCatalogSection,
-  OhCatalogSectionRule,
   OhCatalogSelectionMode,
   OhCofTemplate,
   OhCofTemplateSection,
+  OhCofTemplateVersion,
   OhComplianceDashboard,
-  OhExamSection,
-  OhExamSectionItem,
   OhExamTemplate,
   OhExamTemplateSection,
+  OhExamTemplateVersion,
+  OhLibrarySection,
+  OhLibrarySectionItem,
+  OhLibrarySectionKind,
+  OhResponseConfig,
   OhEmployer,
   OhEmployerDepartment,
   OhEmployerSite,
@@ -45,6 +48,7 @@ import type {
   SickLeaveCertificate,
   SurveillanceRequirement,
 } from "@/features/occupational-health/types";
+import { defaultResponseConfig } from "@/features/settings/components/modules/occupational-health/template-library/responseConfig";
 import { bffRequest } from "@/lib/bff-client";
 
 type ListResponse<T> = OhPaginatedList<T>;
@@ -296,6 +300,9 @@ export async function updateOhHazardProfile(
   payload: {
     name?: string;
     code?: string;
+    color?: string;
+    assessment_interval?: number | null;
+    assessment_interval_unit?: string;
     employer?: number | null;
     hazards?: number[];
     cof_template?: string | null;
@@ -361,6 +368,9 @@ export async function archiveOhJobProfile(uuid: string) {
 export async function createOhHazardProfile(payload: {
   name: string;
   code?: string;
+  color?: string;
+  assessment_interval?: number | null;
+  assessment_interval_unit?: string;
   employer?: number | null;
   hazards?: number[];
   cof_template?: string | null;
@@ -939,35 +949,32 @@ export function getCatalogSchedule(
   if (!Array.isArray(raw)) {
     return [];
   }
-  return raw
-    .map((entry) => {
-      if (!entry || typeof entry !== "object") {
-        return null;
-      }
-      const record = entry as {
-        interval?: unknown;
-        interval_months?: unknown;
-        unit?: unknown;
-        notes?: unknown;
-      };
-      const interval = Number(
-        record.interval ?? record.interval_months ?? NaN,
-      );
-      if (!Number.isFinite(interval) || interval < 1) {
-        return null;
-      }
-      const rawUnit = typeof record.unit === "string" ? record.unit : "month";
-      const unit = SCHEDULE_UNITS.has(rawUnit)
-        ? (rawUnit as OhCatalogScheduleRow["unit"])
-        : "month";
-      const notes = record.notes;
-      return {
-        interval: Math.floor(interval),
-        unit,
-        notes: typeof notes === "string" ? notes : "",
-      };
-    })
-    .filter((entry): entry is OhCatalogScheduleRow => entry != null);
+  const rows: OhCatalogScheduleRow[] = [];
+  for (const entry of raw) {
+    if (!entry || typeof entry !== "object") {
+      continue;
+    }
+    const record = entry as {
+      interval?: unknown;
+      interval_months?: unknown;
+      unit?: unknown;
+      notes?: unknown;
+    };
+    const interval = Number(record.interval ?? record.interval_months ?? NaN);
+    if (!Number.isFinite(interval) || interval < 1) {
+      continue;
+    }
+    const rawUnit = typeof record.unit === "string" ? record.unit : "month";
+    const unit = SCHEDULE_UNITS.has(rawUnit)
+      ? (rawUnit as OhCatalogScheduleRow["unit"])
+      : "month";
+    rows.push({
+      interval: Math.floor(interval),
+      unit,
+      notes: typeof record.notes === "string" ? record.notes : "",
+    });
+  }
+  return rows;
 }
 
 export async function fetchOhCatalogSections() {
@@ -1078,7 +1085,7 @@ export async function fetchOhCofTemplateSections(templateUuid: string) {
 
 export async function attachOhCofTemplateSection(payload: {
   template: string;
-  catalog_section: string;
+  library_section: string;
   sort_order?: number;
 }) {
   return bffRequest<OhCofTemplateSection>(
@@ -1104,102 +1111,125 @@ export async function detachOhCofTemplateSection(uuid: string) {
   );
 }
 
-export async function fetchOhExamSections() {
-  const response = await bffRequest<ListResponse<OhExamSection>>(
-    BFF_OCCUPATIONAL_HEALTH_ROUTES.examSections,
+export async function fetchOhLibrarySections(options: {
+  kind: OhLibrarySectionKind;
+  includeInactive?: boolean;
+}) {
+  const response = await bffRequest<ListResponse<OhLibrarySection>>(
+    `${BFF_OCCUPATIONAL_HEALTH_ROUTES.librarySections}${listQuery({
+      kind: options.kind,
+      include_inactive: options.includeInactive ? "true" : undefined,
+    })}`,
   );
   return response.results;
 }
 
-export async function createOhExamSection(payload: {
+export async function createOhLibrarySection(payload: {
+  kind: OhLibrarySectionKind;
   code: string;
   name: string;
+  content_mode?: "items" | "direct";
+  default_response_config: OhResponseConfig;
   is_mandatory?: boolean;
   selection_mode?: OhCatalogSelectionMode;
   sort_order?: number;
 }) {
-  return bffRequest<OhExamSection>(BFF_OCCUPATIONAL_HEALTH_ROUTES.examSections, {
-    method: "POST",
-    body: payload,
-  });
+  return bffRequest<OhLibrarySection>(
+    BFF_OCCUPATIONAL_HEALTH_ROUTES.librarySections,
+    { method: "POST", body: payload },
+  );
 }
 
-export async function updateOhExamSection(
+export async function updateOhLibrarySection(
   uuid: string,
   payload: {
     name?: string;
+    content_mode?: "items" | "direct";
+    default_response_config?: OhResponseConfig;
     is_mandatory?: boolean;
     selection_mode?: OhCatalogSelectionMode;
     sort_order?: number;
     active?: boolean;
   },
 ) {
-  return bffRequest<OhExamSection>(
-    BFF_OCCUPATIONAL_HEALTH_ROUTES.examSection(uuid),
+  return bffRequest<OhLibrarySection>(
+    BFF_OCCUPATIONAL_HEALTH_ROUTES.librarySection(uuid),
     { method: "PATCH", body: payload },
   );
 }
 
-export async function archiveOhExamSection(uuid: string) {
-  return bffRequest<null>(BFF_OCCUPATIONAL_HEALTH_ROUTES.examSection(uuid), {
+export async function archiveOhLibrarySection(uuid: string) {
+  return bffRequest<null>(BFF_OCCUPATIONAL_HEALTH_ROUTES.librarySection(uuid), {
     method: "DELETE",
   });
 }
 
-export async function fetchOhExamSectionItemsPage(options: {
+export async function fetchOhLibrarySectionItemsPage(options: {
   sectionUuid: string;
   page?: number;
   pageSize?: number;
   search?: string;
+  includeInactive?: boolean;
 }) {
-  return bffRequest<ListResponse<OhExamSectionItem>>(
-    `${BFF_OCCUPATIONAL_HEALTH_ROUTES.examSectionItems}${listQuery({
+  return bffRequest<ListResponse<OhLibrarySectionItem>>(
+    `${BFF_OCCUPATIONAL_HEALTH_ROUTES.librarySectionItems}${listQuery({
       section: options.sectionUuid,
       page: String(options.page ?? 1),
       page_size: String(options.pageSize ?? 10),
       search: options.search?.trim() || undefined,
+      include_inactive: options.includeInactive ? "true" : undefined,
     })}`,
   );
 }
 
-export async function createOhExamSectionItem(payload: {
+export async function createOhLibrarySectionItem(payload: {
   section: string;
   code: string;
   names_i18n?: Record<string, string>;
-  attributes_json?: Record<string, unknown>;
+  override_response_config?: OhResponseConfig | null;
   sort_order?: number;
   active?: boolean;
 }) {
-  return bffRequest<OhExamSectionItem>(
-    BFF_OCCUPATIONAL_HEALTH_ROUTES.examSectionItems,
+  return bffRequest<OhLibrarySectionItem>(
+    BFF_OCCUPATIONAL_HEALTH_ROUTES.librarySectionItems,
     { method: "POST", body: payload },
   );
 }
 
-export async function updateOhExamSectionItem(
+export async function updateOhLibrarySectionItem(
   uuid: string,
   payload: {
     code?: string;
     names_i18n?: Record<string, string>;
-    attributes_json?: Record<string, unknown>;
+    override_response_config?: OhResponseConfig | null;
     sort_order?: number;
     active?: boolean;
   },
 ) {
-  return bffRequest<OhExamSectionItem>(
-    BFF_OCCUPATIONAL_HEALTH_ROUTES.examSectionItem(uuid),
+  return bffRequest<OhLibrarySectionItem>(
+    BFF_OCCUPATIONAL_HEALTH_ROUTES.librarySectionItem(uuid),
     { method: "PATCH", body: payload },
   );
 }
 
-export async function archiveOhExamSectionItem(uuid: string) {
+export async function archiveOhLibrarySectionItem(uuid: string) {
   return bffRequest<null>(
-    BFF_OCCUPATIONAL_HEALTH_ROUTES.examSectionItem(uuid),
+    BFF_OCCUPATIONAL_HEALTH_ROUTES.librarySectionItem(uuid),
     { method: "DELETE" },
   );
 }
 
-export function ohExamSectionItemLabel(item: OhExamSectionItem): string {
+export async function reorderOhLibrarySectionItems(payload: {
+  section: string;
+  ordered_uuids: string[];
+}) {
+  return bffRequest<OhLibrarySectionItem[]>(
+    BFF_OCCUPATIONAL_HEALTH_ROUTES.librarySectionItemsReorder,
+    { method: "POST", body: payload },
+  );
+}
+
+export function ohLibrarySectionItemLabel(item: OhLibrarySectionItem): string {
   const en = item.names_i18n?.en?.trim();
   if (en) {
     return en;
@@ -1208,6 +1238,74 @@ export function ohExamSectionItemLabel(item: OhExamSectionItem): string {
     (value) => typeof value === "string" && value.trim(),
   );
   return first?.trim() || item.code;
+}
+
+/** @deprecated Use fetchOhLibrarySections with kind=exam */
+export async function fetchOhExamSections() {
+  return fetchOhLibrarySections({ kind: "exam" });
+}
+
+/** @deprecated Use createOhLibrarySection */
+export async function createOhExamSection(payload: {
+  code: string;
+  name: string;
+  content_mode?: "items" | "direct";
+  default_response_config?: OhResponseConfig;
+  is_mandatory?: boolean;
+  selection_mode?: OhCatalogSelectionMode;
+  sort_order?: number;
+}) {
+  return createOhLibrarySection({
+    kind: "exam",
+    default_response_config:
+      payload.default_response_config ?? defaultResponseConfig(),
+    ...payload,
+  });
+}
+
+/** @deprecated Use updateOhLibrarySection */
+export async function updateOhExamSection(
+  uuid: string,
+  payload: Parameters<typeof updateOhLibrarySection>[1],
+) {
+  return updateOhLibrarySection(uuid, payload);
+}
+
+/** @deprecated Use archiveOhLibrarySection */
+export async function archiveOhExamSection(uuid: string) {
+  return archiveOhLibrarySection(uuid);
+}
+
+/** @deprecated Use fetchOhLibrarySectionItemsPage */
+export async function fetchOhExamSectionItemsPage(
+  options: Parameters<typeof fetchOhLibrarySectionItemsPage>[0],
+) {
+  return fetchOhLibrarySectionItemsPage(options);
+}
+
+/** @deprecated Use createOhLibrarySectionItem */
+export async function createOhExamSectionItem(
+  payload: Parameters<typeof createOhLibrarySectionItem>[0],
+) {
+  return createOhLibrarySectionItem(payload);
+}
+
+/** @deprecated Use updateOhLibrarySectionItem */
+export async function updateOhExamSectionItem(
+  uuid: string,
+  payload: Parameters<typeof updateOhLibrarySectionItem>[1],
+) {
+  return updateOhLibrarySectionItem(uuid, payload);
+}
+
+/** @deprecated Use archiveOhLibrarySectionItem */
+export async function archiveOhExamSectionItem(uuid: string) {
+  return archiveOhLibrarySectionItem(uuid);
+}
+
+/** @deprecated Use ohLibrarySectionItemLabel */
+export function ohExamSectionItemLabel(item: OhLibrarySectionItem): string {
+  return ohLibrarySectionItemLabel(item);
 }
 
 export async function fetchOhExamTemplates() {
@@ -1258,9 +1356,35 @@ export async function fetchOhExamTemplateSections(templateUuid: string) {
   return response.results;
 }
 
+export async function publishOhCofTemplate(templateUuid: string) {
+  return bffRequest<OhCofTemplateVersion>(
+    BFF_OCCUPATIONAL_HEALTH_ROUTES.cofTemplatePublish(templateUuid),
+    { method: "POST", body: {} },
+  );
+}
+
+export async function fetchOhCofTemplateVersions(templateUuid: string) {
+  return bffRequest<OhCofTemplateVersion[]>(
+    BFF_OCCUPATIONAL_HEALTH_ROUTES.cofTemplateVersions(templateUuid),
+  );
+}
+
+export async function publishOhExamTemplate(templateUuid: string) {
+  return bffRequest<OhExamTemplateVersion>(
+    BFF_OCCUPATIONAL_HEALTH_ROUTES.examTemplatePublish(templateUuid),
+    { method: "POST", body: {} },
+  );
+}
+
+export async function fetchOhExamTemplateVersions(templateUuid: string) {
+  return bffRequest<OhExamTemplateVersion[]>(
+    BFF_OCCUPATIONAL_HEALTH_ROUTES.examTemplateVersions(templateUuid),
+  );
+}
+
 export async function attachOhExamTemplateSection(payload: {
   template: string;
-  exam_section: string;
+  library_section: string;
   sort_order?: number;
 }) {
   return bffRequest<OhExamTemplateSection>(

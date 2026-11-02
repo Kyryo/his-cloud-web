@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowDown, ArrowUp, ChevronRight, Lock, SlidersHorizontal } from "lucide-react";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 
 import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
 import { formatCatalogScheduleSummary } from "@/features/occupational-health/services/oh.service";
@@ -11,6 +11,7 @@ import {
   useSectionItems,
   useTemplateBuilder,
 } from "@/features/oh-template-builder/hooks/useTemplateBuilder";
+import { SortableItemList } from "@/features/settings/components/modules/occupational-health/template-library/SortableItemList";
 import type {
   BuilderAttachment,
   BuilderItem,
@@ -30,7 +31,7 @@ type CanvasSectionProps = {
 };
 
 export function CanvasSection({ attachment, isFirst, isLast }: CanvasSectionProps) {
-  const { selection, select, moveSection, isBusy } = useTemplateBuilder();
+  const { selection, select, moveSection, reorderItems, isBusy } = useTemplateBuilder();
   const [isOpen, setIsOpen] = useState(true);
   const itemsQuery = useSectionItems(attachment.sectionUuid);
   const section = attachment.section;
@@ -160,32 +161,44 @@ export function CanvasSection({ attachment, isFirst, isLast }: CanvasSectionProp
               No items yet.
             </p>
           ) : (
-            <ul className={CANVAS_ITEM_INDENT}>
-              {items.map((item) => (
-                <CanvasItemRow
-                  key={item.uuid}
-                  item={item}
-                  mode={mode}
-                  isSelected={item.uuid === selectedItemUuid}
-                  onSelect={() =>
-                    select({
-                      type: "item",
-                      attachmentUuid: attachment.uuid,
-                      itemUuid: item.uuid,
-                    })
-                  }
-                />
-              ))}
-            </ul>
+            <div className={CANVAS_ITEM_INDENT}>
+              <SortableItemList
+                items={items}
+                disabled={isBusy || section?.contentMode === "direct"}
+                onReorder={(orderedUuids) => {
+                  void reorderItems(attachment.sectionUuid, orderedUuids);
+                }}
+                renderItem={(item, handle) => (
+                  <CanvasItemRow
+                    item={item}
+                    mode={mode}
+                    dragHandle={handle}
+                    isSelected={item.uuid === selectedItemUuid}
+                    onSelect={() =>
+                      select({
+                        type: "item",
+                        attachmentUuid: attachment.uuid,
+                        itemUuid: item.uuid,
+                      })
+                    }
+                  />
+                )}
+              />
+            </div>
           )}
           {hiddenCount > 0 ? (
             <p className={cn(CANVAS_ITEM_INDENT, "py-1 text-xs text-dash-muted")}>
               {hiddenCount} more item{hiddenCount === 1 ? "" : "s"} not shown.
             </p>
           ) : null}
-          <div className="pl-[22px]">
-            <QuickAddItem sectionUuid={attachment.sectionUuid} attachmentUuid={attachment.uuid} />
-          </div>
+          {section?.contentMode === "direct" ? null : (
+            <div className="pl-[22px]">
+              <QuickAddItem
+                sectionUuid={attachment.sectionUuid}
+                attachmentUuid={attachment.uuid}
+              />
+            </div>
+          )}
         </div>
       ) : null}
     </li>
@@ -229,21 +242,32 @@ type CanvasItemRowProps = {
   mode: "exclusive" | "inclusive";
   isSelected: boolean;
   onSelect: () => void;
+  dragHandle?: ReactNode;
 };
 
-function CanvasItemRow({ item, mode, isSelected, onSelect }: CanvasItemRowProps) {
+function CanvasItemRow({
+  item,
+  mode,
+  isSelected,
+  onSelect,
+  dragHandle,
+}: CanvasItemRowProps) {
   const schedule = formatCatalogScheduleSummary(item.schedule[0]);
   const responses = item.responses.map((response) => response.label).join(", ");
+  const responseHint =
+    item.effectiveResponseConfig?.response_type ||
+    (responses ? responses : "Tick only");
 
   return (
-    <li>
+    <div className="flex items-center gap-1">
+      {dragHandle}
       <button
         type="button"
         onClick={onSelect}
         aria-pressed={isSelected}
         className={cn(
           CANVAS_ITEM_GRID,
-          "group/item h-8 w-full rounded-md px-2 text-left transition-colors",
+          "group/item h-8 min-w-0 flex-1 rounded-md px-2 text-left transition-colors",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-brand-primary/30",
           isSelected ? "bg-brand-tint" : "hover:bg-slate-50",
         )}
@@ -266,7 +290,7 @@ function CanvasItemRow({ item, mode, isSelected, onSelect }: CanvasItemRowProps)
           ) : null}
         </span>
         <span className="hidden truncate text-[12.5px] text-dash-muted sm:block">
-          {responses || <span className="text-slate-300">Tick only</span>}
+          {responseHint}
         </span>
         <span className="hidden truncate text-[12.5px] text-dash-muted sm:block">
           {schedule ?? <span className="text-slate-300">Once</span>}
@@ -281,7 +305,7 @@ function CanvasItemRow({ item, mode, isSelected, onSelect }: CanvasItemRowProps)
           aria-hidden
         />
       </button>
-    </li>
+    </div>
   );
 }
 

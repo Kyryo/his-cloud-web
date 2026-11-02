@@ -15,9 +15,11 @@ import {
 
 const columns = [
   { key: "client", label: "Client" },
+  { key: "employer", label: "Employer", className: "hidden md:table-cell" },
+  { key: "riskProfile", label: "Risk profile", className: "hidden lg:table-cell" },
   { key: "wait", label: "Wait" },
-  { key: "department", label: "Department" },
-  { key: "clinician", label: "Clinician" },
+  { key: "department", label: "Department", className: "hidden xl:table-cell" },
+  { key: "clinician", label: "Clinician", className: "hidden xl:table-cell" },
   { key: "status", label: "Status" },
   { key: "actions", label: "Actions" },
 ] as const;
@@ -34,7 +36,13 @@ export function OhQueueTableSkeleton({ rows = 8 }: OhQueueTableSkeletonProps) {
           {columns.map((column) => (
             <ListPageDataTableHeaderCell
               key={column.key}
-              className={column.key === "actions" ? "text-right pr-4" : undefined}
+              className={
+                column.key === "actions"
+                  ? "text-right pr-4"
+                  : "className" in column
+                    ? column.className
+                    : undefined
+              }
             >
               {column.label}
             </ListPageDataTableHeaderCell>
@@ -50,13 +58,19 @@ export function OhQueueTableSkeleton({ rows = 8 }: OhQueueTableSkeletonProps) {
                 <Skeleton className="h-3.5 w-32" />
               </div>
             </ListPageDataTableCell>
-            <ListPageDataTableCell>
-              <Skeleton className="h-3.5 w-14" />
+            <ListPageDataTableCell className="hidden md:table-cell">
+              <Skeleton className="h-3.5 w-28" />
             </ListPageDataTableCell>
-            <ListPageDataTableCell>
+            <ListPageDataTableCell className="hidden lg:table-cell">
               <Skeleton className="h-3.5 w-28" />
             </ListPageDataTableCell>
             <ListPageDataTableCell>
+              <Skeleton className="h-3.5 w-14" />
+            </ListPageDataTableCell>
+            <ListPageDataTableCell className="hidden xl:table-cell">
+              <Skeleton className="h-3.5 w-28" />
+            </ListPageDataTableCell>
+            <ListPageDataTableCell className="hidden xl:table-cell">
               <Skeleton className="h-3.5 w-24" />
             </ListPageDataTableCell>
             <ListPageDataTableCell>

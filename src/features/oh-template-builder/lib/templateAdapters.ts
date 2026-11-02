@@ -1,60 +1,51 @@
 import {
-  archiveOhCatalogItem,
-  archiveOhCatalogSection,
   archiveOhCofTemplate,
-  archiveOhExamSection,
-  archiveOhExamSectionItem,
   archiveOhExamTemplate,
+  archiveOhLibrarySection,
+  archiveOhLibrarySectionItem,
   attachOhCofTemplateSection,
   attachOhExamTemplateSection,
-  createOhCatalogItem,
-  createOhCatalogSection,
   createOhCofTemplate,
-  createOhExamSection,
-  createOhExamSectionItem,
   createOhExamTemplate,
+  createOhLibrarySection,
+  createOhLibrarySectionItem,
   detachOhCofTemplateSection,
   detachOhExamTemplateSection,
-  fetchOhCatalogItemsPage,
-  fetchOhCatalogSections,
   fetchOhCofTemplate,
   fetchOhCofTemplateSections,
   fetchOhCofTemplates,
-  fetchOhExamSectionItemsPage,
-  fetchOhExamSections,
   fetchOhExamTemplate,
   fetchOhExamTemplateSections,
   fetchOhExamTemplates,
-  getCatalogItemMandatory,
-  getCatalogPossibleResponses,
-  getCatalogSchedule,
+  fetchOhLibrarySectionItemsPage,
+  fetchOhLibrarySections,
   getSectionSelectionMode,
-  ohCatalogItemLabel,
-  ohCatalogSectionIsSystem,
-  ohExamSectionItemLabel,
-  updateOhCatalogItem,
-  updateOhCatalogSection,
+  ohLibrarySectionItemLabel,
+  reorderOhLibrarySectionItems,
   updateOhCofTemplate,
   updateOhCofTemplateSection,
-  updateOhExamSection,
-  updateOhExamSectionItem,
   updateOhExamTemplate,
   updateOhExamTemplateSection,
+  updateOhLibrarySection,
+  updateOhLibrarySectionItem,
 } from "@/features/occupational-health/services/oh.service";
 import type {
-  OhCatalogItem,
-  OhCatalogSection,
   OhCofTemplate,
   OhCofTemplateSection,
-  OhExamSection,
-  OhExamSectionItem,
   OhExamTemplate,
   OhExamTemplateSection,
+  OhLibrarySection,
+  OhLibrarySectionItem,
+  OhLibrarySectionKind,
+  OhResponseConfig,
 } from "@/features/occupational-health/types";
 import {
-  buildItemAttributes,
-  buildItemNames,
-} from "@/features/oh-template-builder/lib/templateItems";
+  defaultResponseConfig,
+  normalizeResponseConfig,
+  optionsFromResponseConfig,
+  resolveEffectiveResponseConfig,
+} from "@/features/settings/components/modules/occupational-health/template-library/responseConfig";
+import { buildItemNames } from "@/features/oh-template-builder/lib/templateItems";
 import { toUpperCode } from "@/features/oh-template-builder/lib/templateCodes";
 import type {
   BuilderAttachment,
@@ -92,6 +83,12 @@ export type TemplateAdapter = {
   createItem: (sectionUuid: string, input: ItemInput) => Promise<BuilderItem>;
   updateItem: (item: BuilderItem, input: ItemInput) => Promise<BuilderItem>;
   archiveItem: (uuid: string) => Promise<void>;
+  reorderItems: (sectionUuid: string, orderedUuids: string[]) => Promise<void>;
+};
+
+const LIBRARY_KIND: Record<TemplateKind, OhLibrarySectionKind> = {
+  certificate: "cof",
+  exam: "exam",
 };
 
 function toTemplate(row: OhCofTemplate | OhExamTemplate): BuilderTemplate {
@@ -101,23 +98,13 @@ function toTemplate(row: OhCofTemplate | OhExamTemplate): BuilderTemplate {
     code: row.code,
     active: row.active !== false,
     sectionCount: typeof row.section_count === "number" ? row.section_count : null,
+    publishedVersionNumber: row.published_version_number ?? null,
+    publishedVersionStatus: row.published_version_status ?? null,
     updatedAt: row.updated_at ?? null,
   };
 }
 
-function fromCatalogSection(row: OhCatalogSection): BuilderSection {
-  return {
-    uuid: row.uuid,
-    code: row.code,
-    name: row.name,
-    isMandatory: Boolean(row.is_mandatory),
-    selectionMode: getSectionSelectionMode(row),
-    isSystem: ohCatalogSectionIsSystem(row),
-    active: row.active !== false,
-  };
-}
-
-function fromExamSection(row: OhExamSection): BuilderSection {
+function fromLibrarySection(row: OhLibrarySection): BuilderSection {
   return {
     uuid: row.uuid,
     code: row.code,
@@ -126,46 +113,47 @@ function fromExamSection(row: OhExamSection): BuilderSection {
     selectionMode: getSectionSelectionMode(row),
     isSystem: false,
     active: row.active !== false,
+    contentMode: row.content_mode ?? "items",
+    defaultResponseConfig: normalizeResponseConfig(row.default_response_config),
   };
 }
 
-function fromCofAttachment(row: OhCofTemplateSection): BuilderAttachment {
+function fromTemplateAttachment(
+  row: OhCofTemplateSection | OhExamTemplateSection,
+): BuilderAttachment {
   return {
     uuid: row.uuid,
-    sectionUuid: row.catalog_section,
+    sectionUuid: row.library_section,
     sortOrder: row.sort_order,
     itemCount: typeof row.item_count === "number" ? row.item_count : null,
-    section: row.catalog_section_detail
-      ? fromCatalogSection(row.catalog_section_detail)
+    section: row.library_section_detail
+      ? fromLibrarySection(row.library_section_detail)
       : null,
   };
 }
 
-function fromExamAttachment(row: OhExamTemplateSection): BuilderAttachment {
-  return {
-    uuid: row.uuid,
-    sectionUuid: row.exam_section,
-    sortOrder: row.sort_order,
-    itemCount: typeof row.item_count === "number" ? row.item_count : null,
-    section: row.exam_section_detail
-      ? fromExamSection(row.exam_section_detail)
-      : null,
-  };
-}
-
-function fromItem(
-  row: OhCatalogItem | OhExamSectionItem,
+function fromLibraryItem(
+  row: OhLibrarySectionItem,
+  sectionDefault: OhResponseConfig | undefined,
   name: string,
 ): BuilderItem {
+  const { config, inherits } = resolveEffectiveResponseConfig(
+    sectionDefault,
+    row.override_response_config,
+  );
   return {
     uuid: row.uuid,
     code: row.code,
     name,
-    isMandatory: getCatalogItemMandatory(row),
-    schedule: getCatalogSchedule(row),
-    responses: getCatalogPossibleResponses(row),
+    isMandatory: false,
+    schedule: [],
+    responses: optionsFromResponseConfig(config),
     active: row.active !== false,
-    attributes: row.attributes_json ?? {},
+    attributes: {},
+    overrideResponseConfig: row.override_response_config,
+    effectiveResponseConfig: row.effective_response_config ?? config,
+    inheritsResponseConfig:
+      row.inherits_response_config ?? inherits,
   };
 }
 
@@ -178,157 +166,166 @@ function sectionPayload(input: SectionInput) {
     name: input.name.trim(),
     is_mandatory: input.isMandatory,
     selection_mode: input.selectionMode,
+    content_mode: input.contentMode,
+    default_response_config: input.defaultResponseConfig,
   };
 }
 
-function itemPayload(existing: BuilderItem | null, input: ItemInput) {
+function itemPayload(_item: BuilderItem | null, input: ItemInput) {
+  const override = input.inheritsResponseConfig
+    ? null
+    : normalizeResponseConfig(input.overrideResponseConfig);
   return {
     code: toUpperCode(input.code),
     names_i18n: buildItemNames(input.name),
-    attributes_json: buildItemAttributes(existing?.attributes, input),
+    override_response_config: override,
   };
 }
 
-const certificateAdapter: TemplateAdapter = {
-  listTemplates: async () => (await fetchOhCofTemplates()).map(toTemplate),
-  getTemplate: async (uuid) => toTemplate(await fetchOhCofTemplate(uuid)),
-  createTemplate: async (input) => toTemplate(await createOhCofTemplate(input)),
-  renameTemplate: async (uuid, name) =>
-    toTemplate(await updateOhCofTemplate(uuid, { name })),
-  archiveTemplate: async (uuid) => {
-    await archiveOhCofTemplate(uuid);
-  },
-  listAttachments: async (templateUuid) =>
-    (await fetchOhCofTemplateSections(templateUuid))
-      .filter((row) => row.active !== false)
-      .map(fromCofAttachment)
-      .toSorted(byPosition),
-  attachSection: async (templateUuid, sectionUuid, sortOrder) =>
-    fromCofAttachment(
-      await attachOhCofTemplateSection({
-        template: templateUuid,
-        catalog_section: sectionUuid,
-        sort_order: sortOrder,
-      }),
-    ),
-  detachSection: async (uuid) => {
-    await detachOhCofTemplateSection(uuid);
-  },
-  moveAttachment: async (uuid, sortOrder) => {
-    await updateOhCofTemplateSection(uuid, { sort_order: sortOrder });
-  },
-  listLibrary: async () =>
-    (await fetchOhCatalogSections())
-      .filter((row) => row.active !== false)
-      .map(fromCatalogSection),
-  createSection: async (input) =>
-    fromCatalogSection(
-      await createOhCatalogSection({ code: input.code, ...sectionPayload(input) }),
-    ),
-  updateSection: async (uuid, input) =>
-    fromCatalogSection(await updateOhCatalogSection(uuid, sectionPayload(input))),
-  archiveSection: async (uuid) => {
-    await archiveOhCatalogSection(uuid);
-  },
-  listItems: async (sectionUuid) => {
-    const response = await fetchOhCatalogItemsPage({
-      sectionUuid,
-      pageSize: SECTION_ITEMS_PAGE_SIZE,
-    });
-    const items = response.results
-      .filter((row) => row.active !== false)
-      .map((row) => fromItem(row, ohCatalogItemLabel(row)));
-    return { items, total: response.pagination?.count ?? items.length };
-  },
-  createItem: async (sectionUuid, input) => {
-    const row = await createOhCatalogItem({
-      section: sectionUuid,
-      active: true,
-      ...itemPayload(null, input),
-    });
-    return fromItem(row, ohCatalogItemLabel(row));
-  },
-  updateItem: async (item, input) => {
-    const row = await updateOhCatalogItem(item.uuid, itemPayload(item, input));
-    return fromItem(row, ohCatalogItemLabel(row));
-  },
-  archiveItem: async (uuid) => {
-    await archiveOhCatalogItem(uuid);
-  },
-};
+function createLibraryAdapter(
+  templateKind: TemplateKind,
+  libraryKind: OhLibrarySectionKind,
+): TemplateAdapter {
+  const isCertificate = templateKind === "certificate";
 
-const examAdapter: TemplateAdapter = {
-  listTemplates: async () => (await fetchOhExamTemplates()).map(toTemplate),
-  getTemplate: async (uuid) => toTemplate(await fetchOhExamTemplate(uuid)),
-  createTemplate: async (input) => toTemplate(await createOhExamTemplate(input)),
-  renameTemplate: async (uuid, name) =>
-    toTemplate(await updateOhExamTemplate(uuid, { name })),
-  archiveTemplate: async (uuid) => {
-    await archiveOhExamTemplate(uuid);
-  },
-  listAttachments: async (templateUuid) =>
-    (await fetchOhExamTemplateSections(templateUuid))
-      .filter((row) => row.active !== false)
-      .map(fromExamAttachment)
-      .toSorted(byPosition),
-  attachSection: async (templateUuid, sectionUuid, sortOrder) =>
-    fromExamAttachment(
-      await attachOhExamTemplateSection({
-        template: templateUuid,
-        exam_section: sectionUuid,
-        sort_order: sortOrder,
-      }),
-    ),
-  detachSection: async (uuid) => {
-    await detachOhExamTemplateSection(uuid);
-  },
-  moveAttachment: async (uuid, sortOrder) => {
-    await updateOhExamTemplateSection(uuid, { sort_order: sortOrder });
-  },
-  listLibrary: async () =>
-    (await fetchOhExamSections())
-      .filter((row) => row.active !== false)
-      .map(fromExamSection),
-  createSection: async (input) =>
-    fromExamSection(
-      await createOhExamSection({ code: input.code, ...sectionPayload(input) }),
-    ),
-  updateSection: async (uuid, input) =>
-    fromExamSection(await updateOhExamSection(uuid, sectionPayload(input))),
-  archiveSection: async (uuid) => {
-    await archiveOhExamSection(uuid);
-  },
-  listItems: async (sectionUuid) => {
-    const response = await fetchOhExamSectionItemsPage({
-      sectionUuid,
-      pageSize: SECTION_ITEMS_PAGE_SIZE,
-    });
-    const items = response.results
-      .filter((row) => row.active !== false)
-      .toSorted((a, b) => a.sort_order - b.sort_order)
-      .map((row) => fromItem(row, ohExamSectionItemLabel(row)));
-    return { items, total: response.pagination?.count ?? items.length };
-  },
-  createItem: async (sectionUuid, input) => {
-    const row = await createOhExamSectionItem({
-      section: sectionUuid,
-      active: true,
-      ...itemPayload(null, input),
-    });
-    return fromItem(row, ohExamSectionItemLabel(row));
-  },
-  updateItem: async (item, input) => {
-    const row = await updateOhExamSectionItem(item.uuid, itemPayload(item, input));
-    return fromItem(row, ohExamSectionItemLabel(row));
-  },
-  archiveItem: async (uuid) => {
-    await archiveOhExamSectionItem(uuid);
-  },
-};
+  return {
+    listTemplates: async () =>
+      (isCertificate ? await fetchOhCofTemplates() : await fetchOhExamTemplates()).map(
+        toTemplate,
+      ),
+    getTemplate: async (uuid) =>
+      toTemplate(
+        isCertificate ? await fetchOhCofTemplate(uuid) : await fetchOhExamTemplate(uuid),
+      ),
+    createTemplate: async (input) =>
+      toTemplate(
+        isCertificate
+          ? await createOhCofTemplate(input)
+          : await createOhExamTemplate(input),
+      ),
+    renameTemplate: async (uuid, name) =>
+      toTemplate(
+        isCertificate
+          ? await updateOhCofTemplate(uuid, { name })
+          : await updateOhExamTemplate(uuid, { name }),
+      ),
+    archiveTemplate: async (uuid) => {
+      if (isCertificate) {
+        await archiveOhCofTemplate(uuid);
+      } else {
+        await archiveOhExamTemplate(uuid);
+      }
+    },
+    listAttachments: async (templateUuid) =>
+      (isCertificate
+        ? await fetchOhCofTemplateSections(templateUuid)
+        : await fetchOhExamTemplateSections(templateUuid)
+      )
+        .filter((row) => row.active !== false)
+        .map(fromTemplateAttachment)
+        .toSorted(byPosition),
+    attachSection: async (templateUuid, sectionUuid, sortOrder) =>
+      fromTemplateAttachment(
+        isCertificate
+          ? await attachOhCofTemplateSection({
+              template: templateUuid,
+              library_section: sectionUuid,
+              sort_order: sortOrder,
+            })
+          : await attachOhExamTemplateSection({
+              template: templateUuid,
+              library_section: sectionUuid,
+              sort_order: sortOrder,
+            }),
+      ),
+    detachSection: async (uuid) => {
+      if (isCertificate) {
+        await detachOhCofTemplateSection(uuid);
+      } else {
+        await detachOhExamTemplateSection(uuid);
+      }
+    },
+    moveAttachment: async (uuid, sortOrder) => {
+      if (isCertificate) {
+        await updateOhCofTemplateSection(uuid, { sort_order: sortOrder });
+      } else {
+        await updateOhExamTemplateSection(uuid, { sort_order: sortOrder });
+      }
+    },
+    listLibrary: async () =>
+      (await fetchOhLibrarySections({ kind: libraryKind }))
+        .filter((row) => row.active !== false)
+        .map(fromLibrarySection),
+    createSection: async (input) =>
+      fromLibrarySection(
+        await createOhLibrarySection({
+          kind: libraryKind,
+          code: input.code,
+          ...sectionPayload({
+            ...input,
+            defaultResponseConfig:
+              input.defaultResponseConfig ?? defaultResponseConfig(),
+          }),
+        }),
+      ),
+    updateSection: async (uuid, input) =>
+      fromLibrarySection(await updateOhLibrarySection(uuid, sectionPayload(input))),
+    archiveSection: async (uuid) => {
+      await archiveOhLibrarySection(uuid);
+    },
+    listItems: async (sectionUuid) => {
+      const sections = await fetchOhLibrarySections({ kind: libraryKind });
+      const section = sections.find((row) => row.uuid === sectionUuid);
+      const sectionDefault = section?.default_response_config;
+      const response = await fetchOhLibrarySectionItemsPage({
+        sectionUuid,
+        pageSize: SECTION_ITEMS_PAGE_SIZE,
+      });
+      const items = response.results
+        .filter((row) => row.active !== false)
+        .toSorted((a, b) => a.sort_order - b.sort_order)
+        .map((row) =>
+          fromLibraryItem(row, sectionDefault, ohLibrarySectionItemLabel(row)),
+        );
+      return { items, total: response.pagination?.count ?? items.length };
+    },
+    createItem: async (sectionUuid, input) => {
+      const row = await createOhLibrarySectionItem({
+        section: sectionUuid,
+        active: true,
+        ...itemPayload(null, input),
+      });
+      const sections = await fetchOhLibrarySections({ kind: libraryKind });
+      const section = sections.find((entry) => entry.uuid === sectionUuid);
+      return fromLibraryItem(
+        row,
+        section?.default_response_config,
+        ohLibrarySectionItemLabel(row),
+      );
+    },
+    updateItem: async (item, input) => {
+      const row = await updateOhLibrarySectionItem(item.uuid, itemPayload(item, input));
+      return fromLibraryItem(
+        row,
+        row.effective_response_config ?? item.effectiveResponseConfig,
+        ohLibrarySectionItemLabel(row),
+      );
+    },
+    archiveItem: async (uuid) => {
+      await archiveOhLibrarySectionItem(uuid);
+    },
+    reorderItems: async (sectionUuid, orderedUuids) => {
+      await reorderOhLibrarySectionItems({
+        section: sectionUuid,
+        ordered_uuids: orderedUuids,
+      });
+    },
+  };
+}
 
 const ADAPTERS: Record<TemplateKind, TemplateAdapter> = {
-  certificate: certificateAdapter,
-  exam: examAdapter,
+  certificate: createLibraryAdapter("certificate", LIBRARY_KIND.certificate),
+  exam: createLibraryAdapter("exam", LIBRARY_KIND.exam),
 };
 
 export function getTemplateAdapter(kind: TemplateKind) {

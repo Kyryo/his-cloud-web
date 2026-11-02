@@ -9,6 +9,7 @@ export type DispensationQueueItem = {
   date_order: string;
   customer_id: number | null;
   customer_name: string;
+  orderer_name?: string | null;
   dispensable_line_count: number;
   remaining_line_count: number;
   remaining_quantity: string;
@@ -36,6 +37,7 @@ export type DispensationQueueDetail = {
   date_order: string;
   customer_id: number;
   customer_name: string;
+  orderer_name?: string | null;
   lines: DispensationQueueLine[];
 };
 
@@ -52,6 +54,7 @@ export type Dispensation = {
   uuid: string;
   sales_order: number;
   sales_order_name: string;
+  customer_name?: string | null;
   sales_order_line: number;
   product: number;
   product_name: string | null;

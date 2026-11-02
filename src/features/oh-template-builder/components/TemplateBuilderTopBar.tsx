@@ -6,6 +6,8 @@ import { ArrowLeft, Check, Eye, Loader2, PencilRuler } from "lucide-react";
 import { useState } from "react";
 
 import { useTemplateBuilder } from "@/features/oh-template-builder/hooks/useTemplateBuilder";
+import { PublishTemplateButton } from "@/features/settings/components/modules/occupational-health/template-library/PublishTemplateButton";
+import { VersionStatusChip } from "@/features/settings/components/modules/occupational-health/template-library/VersionStatusChip";
 import {
   TEMPLATE_KIND_META,
   templateGalleryHref,
@@ -56,6 +58,13 @@ export function TemplateBuilderTopBar({ mode, onModeChange }: TemplateBuilderTop
       </div>
 
       <div className="ml-auto flex min-w-0 max-w-[calc(50%-7.25rem)] flex-1 items-center justify-end gap-1">
+        {template ? (
+          <VersionStatusChip
+            versionNumber={template.publishedVersionNumber}
+            status={template.publishedVersionStatus}
+          />
+        ) : null}
+        <PublishTemplateButton disabled={!template || isBusy} />
         <SaveStatus isBusy={isBusy} />
         <Link
           href={galleryHref}

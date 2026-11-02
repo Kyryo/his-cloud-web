@@ -12,6 +12,8 @@ export type OhVisitEncounter = {
   customer_uuid?: string;
   customer_name?: string;
   customer_identifier?: string;
+  employer_name?: string | null;
+  hazard_profile_name?: string | null;
   status: string;
   billing_mode: string | null;
   started_at: string | null;
@@ -75,11 +77,16 @@ export type OhHazard = {
   is_active?: boolean;
 };
 
+export type OhAssessmentIntervalUnit = "day" | "week" | "month" | "year";
+
 export type OhHazardProfile = {
   id: number;
   uuid: string;
   name: string;
   code: string;
+  color?: string;
+  assessment_interval?: number | null;
+  assessment_interval_unit?: OhAssessmentIntervalUnit | string;
   employer: number | null;
   employer_name?: string | null;
   hazards?: number[];
@@ -231,6 +238,92 @@ export type OhCatalogSection = {
 /** @deprecated Use OhCatalogSection */
 export type OhCatalogSectionRule = OhCatalogSection;
 
+export type OhLibrarySectionKind = "cof" | "exam";
+
+export type OhLibraryContentMode = "items" | "direct";
+
+export type OhResponseConfigOption = {
+  code: string;
+  label: string;
+};
+
+export type OhResponseConfigValidation = {
+  min?: number;
+  max?: number;
+  min_length?: number;
+  max_length?: number;
+};
+
+export type OhResponseConfig = {
+  response_type: string;
+  options: OhResponseConfigOption[];
+  validation: OhResponseConfigValidation;
+  /** When false, selecting an item records the choice only (no nested Yes/No). */
+  prompt_after_select: boolean;
+};
+
+/** Reusable template library section (COF or exam). */
+export type OhLibrarySection = {
+  id: number;
+  uuid: string;
+  kind: OhLibrarySectionKind;
+  code: string;
+  name: string;
+  content_mode: OhLibraryContentMode;
+  default_response_config: OhResponseConfig;
+  selection_mode: OhCatalogSelectionMode;
+  is_mandatory: boolean;
+  sort_order: number;
+  active: boolean;
+  item_count?: number;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type OhLibrarySectionItem = {
+  id: number;
+  uuid: string;
+  section: string;
+  code: string;
+  names_i18n: Record<string, string>;
+  override_response_config: OhResponseConfig | null;
+  inherits_response_config?: boolean;
+  effective_response_config?: OhResponseConfig;
+  sort_order: number;
+  active: boolean;
+  created_at?: string;
+  updated_at?: string;
+};
+
+/** @deprecated Use OhLibrarySection */
+export type OhExamSection = OhLibrarySection;
+
+/** @deprecated Use OhLibrarySectionItem */
+export type OhExamSectionItem = OhLibrarySectionItem;
+
+export type OhTemplateVersionStatus =
+  | "draft"
+  | "in_review"
+  | "published"
+  | "retired"
+  | string;
+
+export type OhCofTemplateVersion = {
+  id: number;
+  uuid: string;
+  template: string;
+  number: number;
+  status: OhTemplateVersionStatus;
+  snapshot_json: Record<string, unknown>;
+  content_hash: string;
+  published_at: string | null;
+  published_by: number | null;
+  created_at?: string;
+  updated_at?: string;
+};
+
+export type OhExamTemplateVersion = OhCofTemplateVersion;
+
 export type OhCofTemplate = {
   id: number;
   uuid: string;
@@ -238,43 +331,22 @@ export type OhCofTemplate = {
   code: string;
   active: boolean;
   section_count?: number;
+  published_version_number?: number | null;
+  published_version_status?: OhTemplateVersionStatus | null;
   created_at?: string;
   updated_at?: string;
 };
 
-/** Attachment of a reusable catalog section onto a COF template. */
+/** Attachment of a reusable library section onto a COF template. */
 export type OhCofTemplateSection = {
   id: number;
   uuid: string;
   template: string;
-  catalog_section: string;
-  catalog_section_detail?: OhCatalogSection;
+  library_section: string;
+  library_section_detail?: OhLibrarySection;
   sort_order: number;
   active: boolean;
   item_count?: number;
-};
-
-/** Tenant exam library section (separate from COF catalog). */
-export type OhExamSection = {
-  id: number;
-  uuid: string;
-  code: string;
-  name: string;
-  selection_mode: OhCatalogSelectionMode;
-  is_mandatory: boolean;
-  sort_order: number;
-  active: boolean;
-};
-
-export type OhExamSectionItem = {
-  id: number;
-  uuid: string;
-  section: string;
-  code: string;
-  names_i18n: Record<string, string>;
-  attributes_json?: OhCatalogItemAttributes;
-  sort_order: number;
-  active: boolean;
 };
 
 export type OhExamTemplate = {
@@ -284,17 +356,19 @@ export type OhExamTemplate = {
   code: string;
   active: boolean;
   section_count?: number;
+  published_version_number?: number | null;
+  published_version_status?: OhTemplateVersionStatus | null;
   created_at?: string;
   updated_at?: string;
 };
 
-/** Attachment of a reusable exam library section onto an exam template. */
+/** Attachment of a reusable library section onto an exam template. */
 export type OhExamTemplateSection = {
   id: number;
   uuid: string;
   template: string;
-  exam_section: string;
-  exam_section_detail?: OhExamSection;
+  library_section: string;
+  library_section_detail?: OhLibrarySection;
   sort_order: number;
   active: boolean;
   item_count?: number;

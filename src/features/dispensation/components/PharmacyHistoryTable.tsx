@@ -1,5 +1,6 @@
 "use client";
 
+import { UserIdenticon } from "@/components/UserIdenticon";
 import {
   ListPageDataTable,
   ListPageDataTableBody,
@@ -20,6 +21,7 @@ type PharmacyHistoryTableProps = {
 
 const columns = [
   { key: "when", label: "When" },
+  { key: "client", label: "Client" },
   { key: "order", label: "Order" },
   { key: "product", label: "Product" },
   { key: "location", label: "Location", className: "hidden md:table-cell" },
@@ -54,31 +56,47 @@ export function PharmacyHistoryTable({
         </ListPageDataTableHeaderRow>
       </ListPageDataTableHeader>
       <ListPageDataTableBody>
-        {items.map((item) => (
-          <ListPageDataTableRow
-            key={item.uuid}
-            data-testid={`pharmacy-history-row-${item.uuid}`}
-          >
-            <ListPageDataTableCell className="tabular-nums text-dash-muted">
-              {formatDisplayDateTime(item.dispensed_at)}
-            </ListPageDataTableCell>
-            <ListPageDataTableCell className="font-mono font-medium text-brand-navy">
-              {item.sales_order_name}
-            </ListPageDataTableCell>
-            <ListPageDataTableCell className="font-medium text-brand-navy">
-              {item.product_name ?? "—"}
-            </ListPageDataTableCell>
-            <ListPageDataTableCell className="hidden text-brand-slate md:table-cell">
-              {item.location_name}
-            </ListPageDataTableCell>
-            <ListPageDataTableCell className="pr-4 text-right font-medium tabular-nums text-brand-navy">
-              {formatDispensationQuantity(item.quantity)}
-            </ListPageDataTableCell>
-            <ListPageDataTableCell className="hidden text-brand-slate lg:table-cell">
-              {item.dispensed_by_name ?? "—"}
-            </ListPageDataTableCell>
-          </ListPageDataTableRow>
-        ))}
+        {items.map((item) => {
+          const clientName = item.customer_name?.trim() || "—";
+
+          return (
+            <ListPageDataTableRow
+              key={item.uuid}
+              data-testid={`pharmacy-history-row-${item.uuid}`}
+            >
+              <ListPageDataTableCell className="tabular-nums text-dash-muted">
+                {formatDisplayDateTime(item.dispensed_at)}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell>
+                <div className="flex min-w-0 items-center gap-2.5">
+                  <UserIdenticon
+                    seed={clientName}
+                    name={clientName}
+                    className="size-8 shrink-0 rounded-md"
+                  />
+                  <span className="truncate font-medium text-brand-navy">
+                    {clientName}
+                  </span>
+                </div>
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="font-mono font-medium text-brand-navy">
+                {item.sales_order_name}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="font-medium text-brand-navy">
+                {item.product_name ?? "—"}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="hidden text-brand-slate md:table-cell">
+                {item.location_name}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="pr-4 text-right font-medium tabular-nums text-brand-navy">
+                {formatDispensationQuantity(item.quantity)}
+              </ListPageDataTableCell>
+              <ListPageDataTableCell className="hidden text-brand-slate lg:table-cell">
+                {item.dispensed_by_name ?? "—"}
+              </ListPageDataTableCell>
+            </ListPageDataTableRow>
+          );
+        })}
       </ListPageDataTableBody>
     </ListPageDataTable>
   );

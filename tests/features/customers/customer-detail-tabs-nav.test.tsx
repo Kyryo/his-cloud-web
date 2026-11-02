@@ -3,7 +3,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { CustomerDetailTabs } from "@/features/customers/components/detail/CustomerDetailTabs";
 import type { Customer } from "@/features/customers/types/customer.types";
-import { getCustomerDetailMenuTabs } from "@/features/customers/utils/customer-detail-tabs";
+import {
+  getCustomerDetailMenuTabs,
+  getCustomerDetailPrimaryTabs,
+} from "@/features/customers/utils/customer-detail-tabs";
 
 const CUSTOMER_ID = "57136727-9e05-4ae3-9146-149106022595";
 
@@ -51,7 +54,7 @@ describe("CustomerDetailTabs", () => {
     expect(screen.getByTestId("customer-detail-tabs-more")).toBeInTheDocument();
   });
 
-  it("keeps invoices, payments, visits, and address under More", () => {
+  it("keeps invoices, payments, visits, address, and legal guardians under More", () => {
     render(<CustomerDetailTabs customer={customer} showBenefitsTab={false} />);
 
     expect(screen.getByTestId("customer-detail-tabs-more")).toBeInTheDocument();
@@ -59,15 +62,20 @@ describe("CustomerDetailTabs", () => {
     expect(screen.queryByRole("link", { name: "Payments" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Visits" })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Address" })).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: "Employment" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Legal guardians" }),
+    ).not.toBeInTheDocument();
   });
 
-  it("includes Employment under More when the clinic has an OH department", () => {
+  it("shows Employment in the primary tabs when the clinic has an OH department", () => {
     expect(
-      getCustomerDetailMenuTabs({ showEmploymentTab: true }).map((tab) => tab.id),
+      getCustomerDetailPrimaryTabs({ showEmploymentTab: true }).map((tab) => tab.id),
     ).toContain("employment");
     expect(
-      getCustomerDetailMenuTabs({ showEmploymentTab: false }).map((tab) => tab.id),
+      getCustomerDetailPrimaryTabs({ showEmploymentTab: false }).map((tab) => tab.id),
+    ).not.toContain("employment");
+    expect(
+      getCustomerDetailMenuTabs({ showEmploymentTab: true }).map((tab) => tab.id),
     ).not.toContain("employment");
   });
 

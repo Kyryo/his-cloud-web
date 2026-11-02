@@ -394,18 +394,28 @@ export const BFF_OCCUPATIONAL_HEALTH_ROUTES = {
   cofTemplates: "/api/occupational-health/cof-templates",
   cofTemplate: (uuid: string) =>
     `/api/occupational-health/cof-templates/${uuid}`,
+  cofTemplatePublish: (uuid: string) =>
+    `/api/occupational-health/cof-templates/${uuid}/publish`,
+  cofTemplateVersions: (uuid: string) =>
+    `/api/occupational-health/cof-templates/${uuid}/versions`,
   cofTemplateSections: "/api/occupational-health/cof-template-sections",
   cofTemplateSection: (uuid: string) =>
     `/api/occupational-health/cof-template-sections/${uuid}`,
-  examSections: "/api/occupational-health/exam-sections",
-  examSection: (uuid: string) =>
-    `/api/occupational-health/exam-sections/${uuid}`,
-  examSectionItems: "/api/occupational-health/exam-section-items",
-  examSectionItem: (uuid: string) =>
-    `/api/occupational-health/exam-section-items/${uuid}`,
+  librarySections: "/api/occupational-health/library-sections",
+  librarySection: (uuid: string) =>
+    `/api/occupational-health/library-sections/${uuid}`,
+  librarySectionItems: "/api/occupational-health/library-section-items",
+  librarySectionItem: (uuid: string) =>
+    `/api/occupational-health/library-section-items/${uuid}`,
+  librarySectionItemsReorder:
+    "/api/occupational-health/library-section-items/reorder",
   examTemplates: "/api/occupational-health/exam-templates",
   examTemplate: (uuid: string) =>
     `/api/occupational-health/exam-templates/${uuid}`,
+  examTemplatePublish: (uuid: string) =>
+    `/api/occupational-health/exam-templates/${uuid}/publish`,
+  examTemplateVersions: (uuid: string) =>
+    `/api/occupational-health/exam-templates/${uuid}/versions`,
   examTemplateSections: "/api/occupational-health/exam-template-sections",
   examTemplateSection: (uuid: string) =>
     `/api/occupational-health/exam-template-sections/${uuid}`,

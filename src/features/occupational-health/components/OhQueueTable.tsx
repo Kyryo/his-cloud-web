@@ -38,9 +38,11 @@ function waitingMinutesFor(encounter: OhVisitEncounter): number | null {
 
 const columns = [
   { key: "client", label: "Client" },
+  { key: "employer", label: "Employer", className: "hidden md:table-cell" },
+  { key: "riskProfile", label: "Risk profile", className: "hidden lg:table-cell" },
   { key: "wait", label: "Wait" },
-  { key: "department", label: "Department" },
-  { key: "clinician", label: "Clinician" },
+  { key: "department", label: "Department", className: "hidden xl:table-cell" },
+  { key: "clinician", label: "Clinician", className: "hidden xl:table-cell" },
   { key: "status", label: "Status" },
   { key: "actions", label: "Actions", className: "text-right pr-4" },
 ] as const;
@@ -107,15 +109,23 @@ export function OhQueueTable({
                 </div>
               </ListPageDataTableCell>
 
+              <ListPageDataTableCell className="hidden text-brand-slate md:table-cell">
+                {encounter.employer_name?.trim() || "—"}
+              </ListPageDataTableCell>
+
+              <ListPageDataTableCell className="hidden text-brand-slate lg:table-cell">
+                {encounter.hazard_profile_name?.trim() || "—"}
+              </ListPageDataTableCell>
+
               <ListPageDataTableCell className="font-medium tabular-nums text-brand-navy">
                 {formatWaitingMinutes(waiting)}
               </ListPageDataTableCell>
 
-              <ListPageDataTableCell className="text-brand-slate">
+              <ListPageDataTableCell className="hidden text-brand-slate xl:table-cell">
                 {encounter.department_name || "—"}
               </ListPageDataTableCell>
 
-              <ListPageDataTableCell className="text-brand-slate">
+              <ListPageDataTableCell className="hidden text-brand-slate xl:table-cell">
                 {encounter.clinician_name ?? "—"}
               </ListPageDataTableCell>
 

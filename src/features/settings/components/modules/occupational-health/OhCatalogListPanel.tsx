@@ -101,6 +101,7 @@ export function OhCatalogListPanel({
 type OhCatalogRowProps = {
   title: string;
   meta?: string;
+  color?: string | null;
   isActive?: boolean;
   archiving?: boolean;
   onEdit?: () => void;
@@ -109,10 +110,25 @@ type OhCatalogRowProps = {
   onSelect?: () => void;
 };
 
+function CatalogColorSwatch({ color }: { color?: string | null }) {
+  const value = color?.trim();
+  if (!value) {
+    return null;
+  }
+  return (
+    <span
+      className="mt-0.5 size-3.5 shrink-0 rounded-full border border-black/10"
+      style={{ backgroundColor: value }}
+      aria-hidden
+    />
+  );
+}
+
 /** Row chrome matching user / client-tag settings lists. */
 export function OhCatalogRow({
   title,
   meta,
+  color,
   isActive = true,
   archiving = false,
   onEdit,
@@ -127,6 +143,7 @@ export function OhCatalogRow({
           onClick={onSelect}
           className="group flex w-full items-center gap-3 rounded-xl px-3 py-3.5 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30"
         >
+          <CatalogColorSwatch color={color} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-medium text-brand-navy">
               {title}
@@ -149,11 +166,14 @@ export function OhCatalogRow({
 
   return (
     <li className="flex flex-col gap-3 py-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
-      <div className="min-w-0">
-        <p className="truncate text-sm font-medium text-brand-navy">{title}</p>
-        {meta ? (
-          <p className="mt-0.5 truncate text-sm text-slate-400">{meta}</p>
-        ) : null}
+      <div className="flex min-w-0 items-start gap-2.5">
+        <CatalogColorSwatch color={color} />
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-brand-navy">{title}</p>
+          {meta ? (
+            <p className="mt-0.5 truncate text-sm text-slate-400">{meta}</p>
+          ) : null}
+        </div>
       </div>
       <div className="flex shrink-0 items-center gap-3">
         <span className="text-xs text-slate-400">

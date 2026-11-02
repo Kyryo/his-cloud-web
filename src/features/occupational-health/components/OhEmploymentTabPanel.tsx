@@ -23,6 +23,7 @@ import {
 } from "@/features/occupational-health/components/OhEncounterColumns";
 import {
   createEmploymentEpisode,
+  fetchOhEmployerDepartments,
   fetchOhEmployerSites,
   fetchOhEmployers,
   fetchOhHazardProfiles,
@@ -47,6 +48,7 @@ export function OhEmploymentForm({ customer }: OhEmploymentFormProps) {
   const [pickedEmployerId, setPickedEmployerId] = useState("");
   const [pickedJobTitleId, setPickedJobTitleId] = useState("");
   const [pickedSiteId, setPickedSiteId] = useState("");
+  const [pickedDepartmentId, setPickedDepartmentId] = useState("");
   const [hazardProfileId, setHazardProfileId] = useState("");
   const [employmentType, setEmploymentType] = useState("employee");
   const [startDate, setStartDate] = useState(todayIsoDate);
@@ -79,11 +81,18 @@ export function OhEmploymentForm({ customer }: OhEmploymentFormProps) {
     queryFn: () => fetchOhEmployerSites(Number(employerId)),
     enabled: Boolean(customer) && Boolean(employerId),
   });
+  const departmentsQuery = useQuery({
+    queryKey: ["oh-employer-departments", employerId],
+    queryFn: () => fetchOhEmployerDepartments(Number(employerId)),
+    enabled: Boolean(customer) && Boolean(employerId),
+  });
 
   const jobTitles = jobsQuery.data ?? [];
   const sites = sitesQuery.data ?? [];
+  const departments = departmentsQuery.data ?? [];
   const jobTitleId = pickedJobTitleId || (jobTitles[0] ? String(jobTitles[0].id) : "");
-  const siteId = pickedSiteId || (sites[0] ? String(sites[0].id) : "none");
+  const siteId = pickedSiteId || "none";
+  const departmentId = pickedDepartmentId || "none";
 
   if (!customer) {
     return (
@@ -97,6 +106,7 @@ export function OhEmploymentForm({ customer }: OhEmploymentFormProps) {
     setPickedEmployerId(value);
     setPickedJobTitleId("");
     setPickedSiteId("");
+    setPickedDepartmentId("");
     setHazardProfileId("");
   }
 
@@ -107,6 +117,9 @@ export function OhEmploymentForm({ customer }: OhEmploymentFormProps) {
       return;
     }
     const selectedSite = sites.find((row) => String(row.id) === siteId);
+    const selectedDepartment = departments.find(
+      (row) => String(row.id) === departmentId,
+    );
     setIsSubmitting(true);
     try {
       await createEmploymentEpisode({
@@ -116,6 +129,7 @@ export function OhEmploymentForm({ customer }: OhEmploymentFormProps) {
         hazard_profile: hazardProfileId ? Number(hazardProfileId) : null,
         start_date: startDate,
         site: selectedSite?.name ?? "",
+        department_name: selectedDepartment?.name ?? "",
         employee_number: employeeNumber,
         employment_type: employmentType,
       });
@@ -181,7 +195,23 @@ export function OhEmploymentForm({ customer }: OhEmploymentFormProps) {
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="oh-encounter-site">Site</Label>
+          <Label htmlFor="oh-encounter-department">Department (optional)</Label>
+          <Select value={departmentId} onValueChange={setPickedDepartmentId}>
+            <SelectTrigger id="oh-encounter-department" className="w-full">
+              <SelectValue placeholder="Select department" />
+            </SelectTrigger>
+            <SelectContent className={appFont.className}>
+              <SelectItem value="none">No department</SelectItem>
+              {departments.map((row) => (
+                <SelectItem key={row.uuid} value={String(row.id)}>
+                  {row.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="oh-encounter-site">Site (optional)</Label>
           <Select value={siteId} onValueChange={setPickedSiteId}>
             <SelectTrigger id="oh-encounter-site" className="w-full">
               <SelectValue placeholder="Select site" />
@@ -212,12 +242,12 @@ export function OhEmploymentForm({ customer }: OhEmploymentFormProps) {
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="oh-encounter-hazard-profile">Hazard profile</Label>
+          <Label htmlFor="oh-encounter-risk-profile">Risk profile</Label>
           <Select
             value={hazardProfileId || "none"}
             onValueChange={(value) => setHazardProfileId(value === "none" ? "" : value)}
           >
-            <SelectTrigger id="oh-encounter-hazard-profile" className="w-full">
+            <SelectTrigger id="oh-encounter-risk-profile" className="w-full">
               <SelectValue placeholder="None" />
             </SelectTrigger>
             <SelectContent className={appFont.className}>

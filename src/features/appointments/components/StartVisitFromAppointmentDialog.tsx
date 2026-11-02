@@ -27,6 +27,11 @@ import { TabbedDialog } from "@/components/ui/tabbed-dialog";
 import type { Appointment } from "@/features/appointments/types/appointment.types";
 import { fetchCustomerInsurance } from "@/features/customers/services/customer-insurance.service";
 import type { CustomerInsurance } from "@/features/customers/types/customer-insurance.types";
+import { fetchEmploymentEpisodes } from "@/features/occupational-health/services/oh.service";
+import {
+  customerHasActiveRiskProfile,
+  OH_RISK_PROFILE_REQUIRED_MESSAGE,
+} from "@/features/occupational-health/utils/customer-has-risk-profile";
 import { VisitAttachmentDropzone } from "@/features/visits/components/VisitAttachmentDropzone";
 import { fetchConsultationServiceCatalog } from "@/features/visits/services/consultation-services.service";
 import { uploadEncounterAttachment } from "@/features/visits/services/visit-attachments.service";
@@ -39,6 +44,8 @@ import { BffError } from "@/lib/bff-client";
 import { formatBffErrorMessage, mapBffErrorsToForm } from "@/lib/bff-field-errors";
 import { appFont } from "@/lib/fonts";
 import { useToast } from "@/providers/toast-provider";
+
+const OH_DEPARTMENT_TYPE = "occupational_health";
 
 const startFromAppointmentSchema = z
   .object({
@@ -97,6 +104,7 @@ export function StartVisitFromAppointmentDialog({
     "visit",
   );
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
+  const [hasActiveRiskProfile, setHasActiveRiskProfile] = useState(false);
 
   const form = useForm<StartFromAppointmentFormValues>({
     resolver: zodResolver(startFromAppointmentSchema),
@@ -112,6 +120,8 @@ export function StartVisitFromAppointmentDialog({
 
   const modeOfPayment = form.watch("mode_of_payment");
   const requiresPreAuth = form.watch("requires_pre_authorization");
+  const ohRiskProfileBlocked =
+    appointment.department_type === OH_DEPARTMENT_TYPE && !hasActiveRiskProfile;
 
   const filteredServices = useMemo(
     () =>
@@ -143,6 +153,11 @@ export function StartVisitFromAppointmentDialog({
       fetchCustomerInsurance(patientUuid)
         .then(setInsuranceSchemes)
         .catch(() => setInsuranceSchemes([])),
+      fetchEmploymentEpisodes(patientUuid)
+        .then((episodes) =>
+          setHasActiveRiskProfile(customerHasActiveRiskProfile(episodes)),
+        )
+        .catch(() => setHasActiveRiskProfile(false)),
     ]);
   }, [appointment.uuid, form, open, patientUuid]);
 
@@ -156,6 +171,16 @@ export function StartVisitFromAppointmentDialog({
   }, [form, modeOfPayment]);
 
   const handleSubmit = form.handleSubmit(async (values) => {
+    if (ohRiskProfileBlocked) {
+      toast({
+        variant: "error",
+        title: "Risk profile required",
+        description: OH_RISK_PROFILE_REQUIRED_MESSAGE,
+      });
+      setActiveTab("visit");
+      return;
+    }
+
     try {
       const visit = await startVisitFromAppointment(appointment.uuid, {
         consultation_service: values.consultation_service || null,
@@ -246,7 +271,20 @@ export function StartVisitFromAppointmentDialog({
             Cancel
           </SecondaryButton>
           {activeTab === "visit" ? (
-            <PrimaryButton type="button" onClick={() => setActiveTab("payment")}>
+            <PrimaryButton
+              type="button"
+              onClick={() => {
+                if (ohRiskProfileBlocked) {
+                  toast({
+                    variant: "error",
+                    title: "Risk profile required",
+                    description: OH_RISK_PROFILE_REQUIRED_MESSAGE,
+                  });
+                  return;
+                }
+                setActiveTab("payment");
+              }}
+            >
               Continue
             </PrimaryButton>
           ) : activeTab === "payment" ? (
@@ -305,6 +343,14 @@ export function StartVisitFromAppointmentDialog({
         <form className="space-y-4">
           {activeTab === "visit" ? (
             <>
+              {ohRiskProfileBlocked ? (
+                <p
+                  className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900"
+                  data-testid="oh-risk-profile-required"
+                >
+                  {OH_RISK_PROFILE_REQUIRED_MESSAGE}
+                </p>
+              ) : null}
               <div className="rounded-xl border border-brand-border bg-slate-50/60 p-4 text-sm">
                 <dl className="space-y-2">
                   <div className="flex justify-between gap-4">

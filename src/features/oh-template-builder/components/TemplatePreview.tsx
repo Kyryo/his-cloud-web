@@ -320,7 +320,10 @@ function PreviewOption({
   onOutcome,
 }: PreviewOptionProps) {
   const reduceMotion = useReducedMotion();
-  const showOutcomes = checked && item.responses.length > 0;
+  const showOutcomes =
+    checked &&
+    item.effectiveResponseConfig.prompt_after_select !== false &&
+    item.responses.length > 0;
 
   return (
     <li
