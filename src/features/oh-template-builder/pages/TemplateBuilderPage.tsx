@@ -12,7 +12,12 @@ import {
   SheetDescription,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { AddSectionDialog } from "@/features/oh-template-builder/components/AddSectionDialog";
+import {
+  AddSectionSheet,
+  type AddSectionTab,
+} from "@/features/oh-template-builder/components/AddSectionSheet";
+import { EmptyTemplate } from "@/features/oh-template-builder/components/EmptyTemplate";
+import type { SectionInteractionMode } from "@/features/oh-template-builder/components/SelectionModeToggle";
 import { TemplateCanvas } from "@/features/oh-template-builder/components/TemplateCanvas";
 import { TemplateInspector } from "@/features/oh-template-builder/components/TemplateInspector";
 import { TemplateOutline } from "@/features/oh-template-builder/components/TemplateOutline";
@@ -39,9 +44,10 @@ import { useUser } from "@/providers/user-provider";
 type TemplateBuilderPageProps = {
   kind: TemplateKind;
   templateUuid: string;
+  view: BuilderMode;
 };
 
-export function TemplateBuilderPage({ kind, templateUuid }: TemplateBuilderPageProps) {
+export function TemplateBuilderPage({ kind, templateUuid, view }: TemplateBuilderPageProps) {
   const { userData } = useUser();
 
   if (!userData?.is_admin) {
@@ -59,17 +65,22 @@ export function TemplateBuilderPage({ kind, templateUuid }: TemplateBuilderPageP
 
   return (
     <TemplateBuilderProvider kind={kind} templateUuid={templateUuid}>
-      <BuilderWorkspace />
+      <BuilderWorkspace view={view} />
     </TemplateBuilderProvider>
   );
 }
 
-function BuilderWorkspace() {
-  const { kind, loadError, selection, select } = useTemplateBuilder();
+type AddSectionRequest = {
+  tab: AddSectionTab;
+  interaction?: SectionInteractionMode;
+};
+
+function BuilderWorkspace({ view }: { view: BuilderMode }) {
+  const { kind, loadError, selection, select, attachments, isLoading } = useTemplateBuilder();
   const isMobile = useIsMobile();
-  const [mode, setMode] = useState<BuilderMode>("edit");
-  const [isAddingSection, setIsAddingSection] = useState(false);
-  const isEditing = mode === "edit";
+  const [addSection, setAddSection] = useState<AddSectionRequest | null>(null);
+  const isEditing = view === "edit";
+  const showColumns = isLoading || attachments.length > 0;
 
   if (loadError) {
     return (
@@ -100,20 +111,22 @@ function BuilderWorkspace() {
         }
       }}
     >
-      <TemplateBuilderTopBar mode={mode} onModeChange={setMode} />
+      <TemplateBuilderTopBar view={view} />
 
-      {isEditing ? (
+      {isEditing && showColumns ? (
         <div className="grid min-h-0 flex-1 md:grid-cols-[minmax(0,1fr)_340px] lg:grid-cols-[256px_minmax(0,1fr)_360px]">
           <aside className="hidden min-h-0 lg:block">
-            <TemplateOutline onAddSection={() => setIsAddingSection(true)} />
+            <TemplateOutline onAddSection={() => setAddSection({ tab: "library" })} />
           </aside>
           <main className="min-h-0">
-            <TemplateCanvas onAddSection={() => setIsAddingSection(true)} />
+            <TemplateCanvas onAddSection={(tab) => setAddSection({ tab })} />
           </main>
           <aside className="hidden min-h-0 border-l border-dash-border bg-white md:block">
             <TemplateInspector />
           </aside>
         </div>
+      ) : isEditing ? (
+        <EmptyTemplate onAddSection={setAddSection} />
       ) : (
         <main className="min-h-0 flex-1">
           <TemplatePreview />
@@ -142,8 +155,17 @@ function BuilderWorkspace() {
         </Sheet>
       ) : null}
 
-      {isAddingSection ? (
-        <AddSectionDialog open onOpenChange={setIsAddingSection} />
+      {addSection ? (
+        <AddSectionSheet
+          open
+          initialTab={addSection.tab}
+          initialInteraction={addSection.interaction}
+          onOpenChange={(open) => {
+            if (!open) {
+              setAddSection(null);
+            }
+          }}
+        />
       ) : null}
     </div>
   );

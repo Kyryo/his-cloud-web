@@ -29,7 +29,7 @@ const OPTIONS: Array<{
   {
     id: "direct",
     label: "Enter values",
-    hint: "No items — staff fill one or more fields you define on the section",
+    hint: "Staff fill in fields you define on the section",
     icon: FormInput,
   },
 ];

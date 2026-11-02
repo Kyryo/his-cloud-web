@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Archive, Layers, Unlink } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import { PrimaryButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
@@ -28,8 +28,8 @@ import {
   interactionFromSection,
   sectionModesFromInteraction,
 } from "@/features/oh-template-builder/components/SelectionModeToggle";
+import { ResponseFieldsList } from "@/features/oh-template-builder/components/ResponseFieldsList";
 import { useTemplateBuilder } from "@/features/oh-template-builder/hooks/useTemplateBuilder";
-import { ResponseFieldsEditor } from "@/features/settings/components/modules/occupational-health/template-library/ResponseFieldsEditor";
 import {
   defaultResponseFields,
   normalizeResponseFields,
@@ -61,7 +61,10 @@ export function SectionInspector({ attachment, section }: SectionInspectorProps)
       defaultResponseFields: normalizeResponseFields(section.defaultResponseFields),
     },
   });
-  const contentMode = form.watch("contentMode");
+  const [contentMode, selectionMode] = useWatch({
+    control: form.control,
+    name: ["contentMode", "selectionMode"],
+  });
   const isSaving = isPending(`section:update:${section.uuid}`);
   const isRemoving =
     isPending(`section:detach:${attachment.uuid}`) ||
@@ -85,6 +88,121 @@ export function SectionInspector({ attachment, section }: SectionInspectorProps)
             </span>
           }
           title={section.name}
+          tabs={[
+            {
+              id: "content",
+              label: "Content",
+              content: (
+                <div className="space-y-5">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Name <RequiredFieldMarker />
+                        </FormLabel>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="defaultResponseFields"
+                    render={({ field }) => (
+                      <FormItem>
+                        <ResponseFieldsList
+                          title={contentMode === "direct" ? "Section fields" : "Default fields"}
+                          value={field.value}
+                          onChange={field.onChange}
+                          emptyHint={
+                            contentMode === "direct"
+                              ? "Each field is a value staff type in, such as blood pressure or a note."
+                              : "A follow-up after an item is picked. Leave this empty for a plain choice."
+                          }
+                        />
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              ),
+            },
+            {
+              id: "settings",
+              label: "Settings",
+              content: (
+                <div className="space-y-5">
+                  <FormField
+                    control={form.control}
+                    name="contentMode"
+                    render={() => (
+                      <FormItem>
+                        <FormLabel>How staff answer</FormLabel>
+                        <SelectionModeToggle
+                          value={interactionFromSection({ contentMode, selectionMode })}
+                          onChange={(mode) => {
+                            const next = sectionModesFromInteraction(mode);
+                            form.setValue("contentMode", next.contentMode, { shouldDirty: true });
+                            form.setValue("selectionMode", next.selectionMode, {
+                              shouldDirty: true,
+                            });
+                            if (
+                              mode === "direct" &&
+                              form.getValues("defaultResponseFields").length < 1
+                            ) {
+                              form.setValue(
+                                "defaultResponseFields",
+                                defaultResponseFields("text"),
+                                { shouldDirty: true },
+                              );
+                            }
+                          }}
+                        />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="isMandatory"
+                    render={({ field }) => (
+                      <InspectorToggleRow
+                        title="Required section"
+                        description="Must be completed before the form can be submitted."
+                        control={
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            aria-label="Required section"
+                          />
+                        }
+                      />
+                    )}
+                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="oh-section-code">Code</Label>
+                    <Input
+                      id="oh-section-code"
+                      value={section.code}
+                      disabled
+                      className="font-mono text-[13px]"
+                    />
+                    <p className="text-xs text-dash-muted">
+                      Fixed once created. Programmes refer to sections by code.
+                    </p>
+                  </div>
+                  <p className="text-xs leading-5 text-dash-muted">
+                    {section.isSystem
+                      ? "System section. It backs programme requirements, so it can be renamed but not archived."
+                      : "Shared library section. Changes here apply to every template that uses it."}
+                  </p>
+                </div>
+              ),
+            },
+          ]}
           footer={
             <>
               <div className="flex items-center gap-1">
@@ -119,121 +237,7 @@ export function SectionInspector({ attachment, section }: SectionInspectorProps)
               </PrimaryButton>
             </>
           }
-        >
-          <div className="space-y-5">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Name <RequiredFieldMarker />
-                  </FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <div className="space-y-2">
-              <Label htmlFor="oh-section-code">Code</Label>
-              <Input
-                id="oh-section-code"
-                value={section.code}
-                disabled
-                className="font-mono text-[13px]"
-              />
-              <p className="text-xs text-dash-muted">
-                Fixed once created. Programmes refer to sections by code.
-              </p>
-            </div>
-
-            <FormField
-              control={form.control}
-              name="contentMode"
-              render={() => (
-                <FormItem>
-                  <FormLabel>How staff choose</FormLabel>
-                  <SelectionModeToggle
-                    value={interactionFromSection({
-                      contentMode: form.getValues("contentMode"),
-                      selectionMode: form.getValues("selectionMode"),
-                    })}
-                    onChange={(mode) => {
-                      const next = sectionModesFromInteraction(mode);
-                      form.setValue("contentMode", next.contentMode, {
-                        shouldDirty: true,
-                      });
-                      form.setValue("selectionMode", next.selectionMode, {
-                        shouldDirty: true,
-                      });
-                      if (
-                        mode === "direct" &&
-                        form.getValues("defaultResponseFields").length < 1
-                      ) {
-                        form.setValue(
-                          "defaultResponseFields",
-                          defaultResponseFields("text"),
-                          { shouldDirty: true },
-                        );
-                      }
-                    }}
-                  />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="isMandatory"
-              render={({ field }) => (
-                <InspectorToggleRow
-                  title="Required section"
-                  description="Must be completed before the form can be submitted."
-                  control={
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      aria-label="Required section"
-                    />
-                  }
-                />
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="defaultResponseFields"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    {contentMode === "direct"
-                      ? "Section fields"
-                      : "Default fields for items"}
-                  </FormLabel>
-                  <ResponseFieldsEditor
-                    value={field.value}
-                    onChange={field.onChange}
-                    emptyHint={
-                      contentMode === "direct"
-                        ? "Add at least one field staff will fill on this section."
-                        : "Leave empty for selection-only items (radio/checkbox with no follow-up)."
-                    }
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <p className="rounded-xl bg-slate-50 px-4 py-3 text-xs leading-5 text-brand-slate">
-              {section.isSystem
-                ? "System section. It backs programme requirements, so it can be renamed but not archived."
-                : "Shared library section. Changes here apply to every template that uses it."}
-            </p>
-          </div>
-        </InspectorShell>
+        />
       </form>
     </Form>
   );

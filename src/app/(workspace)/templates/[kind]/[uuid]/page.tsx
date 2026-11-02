@@ -5,12 +5,19 @@ import { TemplateBuilderPage } from "@/features/oh-template-builder/pages/Templa
 
 type PageProps = {
   params: Promise<{ kind: string; uuid: string }>;
+  searchParams: Promise<{ view?: string | string[] }>;
 };
 
-export default async function Page({ params }: PageProps) {
-  const { kind, uuid } = await params;
+export default async function Page({ params, searchParams }: PageProps) {
+  const [{ kind, uuid }, { view }] = await Promise.all([params, searchParams]);
   if (!isTemplateKind(kind)) {
     notFound();
   }
-  return <TemplateBuilderPage kind={kind} templateUuid={uuid} />;
+  return (
+    <TemplateBuilderPage
+      kind={kind}
+      templateUuid={uuid}
+      view={view === "preview" ? "preview" : "edit"}
+    />
+  );
 }

@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Archive, ChevronLeft, Diamond } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import { PrimaryButton } from "@/components/ui/app-buttons";
 import {
@@ -23,7 +23,7 @@ import {
   InspectorToggleRow,
 } from "@/features/oh-template-builder/components/InspectorShell";
 import { ItemScheduleEditor } from "@/features/oh-template-builder/components/ItemListEditors";
-import { ResponseFieldsEditor } from "@/features/settings/components/modules/occupational-health/template-library/ResponseFieldsEditor";
+import { ResponseFieldsList } from "@/features/oh-template-builder/components/ResponseFieldsList";
 import { normalizeResponseFields } from "@/features/settings/components/modules/occupational-health/template-library/responseConfig";
 import { useTemplateBuilder } from "@/features/oh-template-builder/hooks/useTemplateBuilder";
 import { toUpperCode } from "@/features/oh-template-builder/lib/templateCodes";
@@ -62,7 +62,7 @@ export function ItemInspector({ attachment, item }: ItemInspectorProps) {
       ),
     },
   });
-  const inheritsFields = form.watch("inheritsResponseFields");
+  const inheritsFields = useWatch({ control: form.control, name: "inheritsResponseFields" });
   const isSaving = isPending(`item:update:${item.uuid}`);
   const isArchiving = isPending(`item:archive:${item.uuid}`);
   const sectionName = attachment.section?.name ?? "Section";
@@ -99,6 +99,122 @@ export function ItemInspector({ attachment, item }: ItemInspectorProps) {
             </button>
           }
           title={item.name}
+          tabs={[
+            {
+              id: "content",
+              label: "Content",
+              content: (
+                <div className="space-y-5">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Display name</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="Shown to clinicians" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  {inheritsFields ? (
+                    <p className="text-[13px] leading-5 text-dash-muted">
+                      {item.effectiveResponseFields.length === 0
+                        ? "Selection only. No follow-up fields after picking this item."
+                        : `${item.effectiveResponseFields.length} field${
+                            item.effectiveResponseFields.length === 1 ? "" : "s"
+                          } from the section default. Turn off inheritance in Settings to replace them.`}
+                    </p>
+                  ) : (
+                    <FormField
+                      control={form.control}
+                      name="overrideResponseFields"
+                      render={({ field }) => (
+                        <FormItem>
+                          <ResponseFieldsList
+                            title="Item fields"
+                            value={field.value}
+                            onChange={field.onChange}
+                            emptyHint="Shown after this item is picked. Leave this empty to record the choice only."
+                          />
+                        </FormItem>
+                      )}
+                    />
+                  )}
+                </div>
+              ),
+            },
+            {
+              id: "settings",
+              label: "Settings",
+              content: (
+                <div className="space-y-5">
+                  <FormField
+                    control={form.control}
+                    name="code"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Code <RequiredFieldMarker />
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            onBlur={(event) => {
+                              field.onChange(toUpperCode(event.target.value));
+                              field.onBlur();
+                            }}
+                            className="font-mono text-[13px]"
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Programmes require items by code. Changing it can break published
+                          requirements.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="isMandatory"
+                    render={({ field }) => (
+                      <InspectorToggleRow
+                        title="Required item"
+                        description="Must be recorded whenever this section is completed."
+                        control={
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            aria-label="Required item"
+                          />
+                        }
+                      />
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="inheritsResponseFields"
+                    render={({ field }) => (
+                      <InspectorToggleRow
+                        title="Inherit section fields"
+                        description="Use the section default field list unless you override it for this item."
+                        control={
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            aria-label="Inherit section response fields"
+                          />
+                        }
+                      />
+                    )}
+                  />
+                  <ItemScheduleEditor />
+                </div>
+              ),
+            },
+          ]}
           footer={
             <>
               <ConfirmActionButton
@@ -118,108 +234,7 @@ export function ItemInspector({ attachment, item }: ItemInspectorProps) {
               </PrimaryButton>
             </>
           }
-        >
-          <div className="space-y-5">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Display name</FormLabel>
-                  <FormControl>
-                    <Input {...field} placeholder="Shown to clinicians" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Code <RequiredFieldMarker />
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      onBlur={(event) => {
-                        field.onChange(toUpperCode(event.target.value));
-                        field.onBlur();
-                      }}
-                      className="font-mono text-[13px]"
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Programmes require items by code. Changing it can break
-                    published requirements.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="isMandatory"
-              render={({ field }) => (
-                <InspectorToggleRow
-                  title="Required item"
-                  description="Must be recorded whenever this section is completed."
-                  control={
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      aria-label="Required item"
-                    />
-                  }
-                />
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="inheritsResponseFields"
-              render={({ field }) => (
-                <InspectorToggleRow
-                  title="Inherit section fields"
-                  description="Use the section default field list unless you override it for this item."
-                  control={
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                      aria-label="Inherit section response fields"
-                    />
-                  }
-                />
-              )}
-            />
-            {inheritsFields ? (
-              <p className="rounded-xl bg-slate-50 px-4 py-3 text-xs leading-5 text-brand-slate">
-                {item.effectiveResponseFields.length === 0
-                  ? "Selection only — no follow-up fields after picking this item."
-                  : `${item.effectiveResponseFields.length} field${
-                      item.effectiveResponseFields.length === 1 ? "" : "s"
-                    } from the section default.`}
-              </p>
-            ) : (
-              <FormField
-                control={form.control}
-                name="overrideResponseFields"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Item fields</FormLabel>
-                    <ResponseFieldsEditor
-                      value={field.value}
-                      onChange={field.onChange}
-                      emptyHint="No fields — selecting this item records the choice only."
-                    />
-                  </FormItem>
-                )}
-              />
-            )}
-            <ItemScheduleEditor />
-          </div>
-        </InspectorShell>
+        />
       </form>
     </Form>
   );

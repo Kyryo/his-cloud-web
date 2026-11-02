@@ -19,6 +19,7 @@ import {
   OH_RESPONSE_TYPES,
   type OhResponseType,
 } from "@/features/settings/components/modules/occupational-health/template-library/responseConfig";
+import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 
 type ResponseConfigFieldsProps = {
@@ -68,7 +69,7 @@ export function ResponseConfigFields({
           <SelectTrigger>
             <SelectValue placeholder="Choose type" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className={appFont.className}>
             {OH_RESPONSE_TYPES.map((type) => (
               <SelectItem key={type} value={type}>
                 {type.replaceAll("_", " ")}

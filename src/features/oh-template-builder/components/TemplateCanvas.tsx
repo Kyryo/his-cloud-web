@@ -7,11 +7,12 @@ import {
   CANVAS_ITEM_INDENT,
   CanvasSection,
 } from "@/features/oh-template-builder/components/CanvasSection";
+import type { AddSectionTab } from "@/features/oh-template-builder/components/AddSectionSheet";
 import { useTemplateBuilder } from "@/features/oh-template-builder/hooks/useTemplateBuilder";
 import { cn } from "@/lib/utils";
 
 type TemplateCanvasProps = {
-  onAddSection: () => void;
+  onAddSection: (tab: AddSectionTab) => void;
 };
 
 export function TemplateCanvas({ onAddSection }: TemplateCanvasProps) {
@@ -48,54 +49,32 @@ export function TemplateCanvas({ onAddSection }: TemplateCanvasProps) {
       <div className="mx-auto w-full max-w-[52rem] px-5 pb-16 pt-2 sm:px-8">
         {isLoading ? (
           <CanvasSkeleton />
-        ) : attachments.length === 0 ? (
-          <EmptyCanvas onAddSection={onAddSection} />
         ) : (
           <>
-            <ol className="divide-y divide-dash-border">
-              {attachments.map((attachment, index) => (
-                <CanvasSection
-                  key={attachment.uuid}
-                  attachment={attachment}
-                  isFirst={index === 0}
-                  isLast={index === attachments.length - 1}
-                />
-              ))}
-            </ol>
-            <button
-              type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                onAddSection();
-              }}
-              className="-mx-1.5 mt-1 flex h-9 w-[calc(100%+0.75rem)] items-center gap-2 rounded-md border border-dashed border-dash-border px-2.5 text-[13px] font-medium text-dash-muted transition-colors hover:border-brand-primary/40 hover:bg-brand-tint/40 hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30"
-            >
-              <Plus className="size-3.5" aria-hidden />
-              Add section
-            </button>
-          </>
+              <ol className="divide-y divide-dash-border">
+                {attachments.map((attachment, index) => (
+                  <CanvasSection
+                    key={attachment.uuid}
+                    attachment={attachment}
+                    isFirst={index === 0}
+                    isLast={index === attachments.length - 1}
+                  />
+                ))}
+              </ol>
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onAddSection("library");
+                }}
+                className="-mx-1.5 mt-1 flex h-9 w-[calc(100%+0.75rem)] items-center gap-2 rounded-md border border-dashed border-dash-border px-2.5 text-[13px] font-medium text-dash-muted transition-colors hover:border-brand-primary/40 hover:bg-brand-tint/40 hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30"
+              >
+                <Plus className="size-3.5" aria-hidden />
+                Add section
+              </button>
+            </>
         )}
       </div>
-    </div>
-  );
-}
-
-function EmptyCanvas({ onAddSection }: { onAddSection: () => void }) {
-  return (
-    <div className="pt-14" onClick={(event) => event.stopPropagation()}>
-      <p className="text-[15px] font-semibold text-brand-navy">This form is empty</p>
-      <p className="mt-1 max-w-[48ch] text-[13px] leading-5 text-dash-muted">
-        Add a section for each part of the examination, for example vision, hearing or the
-        fitness outcome.
-      </p>
-      <button
-        type="button"
-        onClick={onAddSection}
-        className="mt-4 flex h-8 items-center gap-1.5 rounded-md border border-dash-border px-3 text-[13px] font-medium text-brand-navy transition-colors hover:border-brand-primary/40 hover:text-brand-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30 active:translate-y-px"
-      >
-        <Plus className="size-3.5" aria-hidden />
-        Add section
-      </button>
     </div>
   );
 }

@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import { formatEditedAgo } from "@/features/oh-template-builder/lib/formatEdited";
 import {
+  isPreviewSectionAnswered,
   previewProgress,
+  setPreviewValue,
   togglePreviewPick,
 } from "@/features/oh-template-builder/lib/previewAnswers";
 import type { BuilderAttachment } from "@/features/oh-template-builder/template-builder.types";
@@ -94,5 +96,25 @@ describe("preview answers", () => {
       answered: 1,
       total: 2,
     });
+  });
+});
+
+describe("direct sections in preview", () => {
+  const direct = {
+    ...attachment("vitals", true),
+    section: { ...attachment("vitals", true).section!, contentMode: "direct" as const },
+  } as BuilderAttachment;
+
+  it("counts a direct section as answered once any field has a value", () => {
+    expect(isPreviewSectionAnswered(direct, {}, {})).toBe(false);
+    expect(isPreviewSectionAnswered(direct, {}, { vitals: { bp: "  " } })).toBe(false);
+    const values = setPreviewValue({}, "vitals", "bp", "120/80");
+    expect(isPreviewSectionAnswered(direct, {}, values)).toBe(true);
+    expect(previewProgress([direct], {}, values)).toEqual({ answered: 1, total: 1 });
+  });
+
+  it("keeps other fields when setting a value", () => {
+    const values = setPreviewValue({ vitals: { bp: "120/80" } }, "vitals", "pulse", "72");
+    expect(values).toEqual({ vitals: { bp: "120/80", pulse: "72" } });
   });
 });
