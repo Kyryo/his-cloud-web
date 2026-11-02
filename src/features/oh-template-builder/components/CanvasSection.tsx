@@ -35,8 +35,15 @@ export function CanvasSection({ attachment, isFirst, isLast }: CanvasSectionProp
   const [isOpen, setIsOpen] = useState(true);
   const itemsQuery = useSectionItems(attachment.sectionUuid);
   const section = attachment.section;
+  const isDirect = section?.contentMode === "direct";
   const mode = section?.selectionMode ?? "inclusive";
   const name = section?.name ?? "Untitled section";
+  const chooseLabel = isDirect
+    ? "Enter values"
+    : mode === "exclusive"
+      ? "One answer"
+      : "Any answers";
+  const fieldCount = section?.defaultResponseFields?.length ?? 0;
   const isSectionSelected =
     selection.type === "section" && selection.attachmentUuid === attachment.uuid;
   const selectedItemUuid =
@@ -101,7 +108,7 @@ export function CanvasSection({ attachment, isFirst, isLast }: CanvasSectionProp
               </span>
             ) : null}
             <span className="rounded border border-dash-border px-1.5 py-px text-[11px] text-brand-slate">
-              {mode === "exclusive" ? "One answer" : "Any answers"}
+              {chooseLabel}
             </span>
             {section?.isSystem ? (
               <Lock className="size-3 text-dash-muted" aria-label="System section" />
@@ -150,7 +157,13 @@ export function CanvasSection({ attachment, isFirst, isLast }: CanvasSectionProp
               isSectionSelected || selectedItemUuid ? "bg-brand-primary/40" : "bg-dash-border",
             )}
           />
-          {itemsQuery.isPending ? (
+          {isDirect ? (
+            <p className={cn(CANVAS_ITEM_INDENT, "py-1.5 text-[13px] text-dash-muted")}>
+              {fieldCount > 0
+                ? `${fieldCount} field${fieldCount === 1 ? "" : "s"}`
+                : "No fields yet."}
+            </p>
+          ) : itemsQuery.isPending ? (
             <ItemsSkeleton />
           ) : itemsQuery.isError ? (
             <p className={cn(CANVAS_ITEM_INDENT, "py-1.5 text-[13px] text-red-600")}>
@@ -164,7 +177,7 @@ export function CanvasSection({ attachment, isFirst, isLast }: CanvasSectionProp
             <div className={CANVAS_ITEM_INDENT}>
               <SortableItemList
                 items={items}
-                disabled={isBusy || section?.contentMode === "direct"}
+                disabled={isBusy}
                 onReorder={(orderedUuids) => {
                   void reorderItems(attachment.sectionUuid, orderedUuids);
                 }}
@@ -186,12 +199,12 @@ export function CanvasSection({ attachment, isFirst, isLast }: CanvasSectionProp
               />
             </div>
           )}
-          {hiddenCount > 0 ? (
+          {!isDirect && hiddenCount > 0 ? (
             <p className={cn(CANVAS_ITEM_INDENT, "py-1 text-xs text-dash-muted")}>
               {hiddenCount} more item{hiddenCount === 1 ? "" : "s"} not shown.
             </p>
           ) : null}
-          {section?.contentMode === "direct" ? null : (
+          {isDirect ? null : (
             <div className="pl-[22px]">
               <QuickAddItem
                 sectionUuid={attachment.sectionUuid}
@@ -253,10 +266,11 @@ function CanvasItemRow({
   dragHandle,
 }: CanvasItemRowProps) {
   const schedule = formatCatalogScheduleSummary(item.schedule[0]);
-  const responses = item.responses.map((response) => response.label).join(", ");
+  const fieldCount = item.effectiveResponseFields?.length ?? 0;
   const responseHint =
-    item.effectiveResponseConfig?.response_type ||
-    (responses ? responses : "Tick only");
+    fieldCount > 0
+      ? `${fieldCount} field${fieldCount === 1 ? "" : "s"}`
+      : "Selection only";
 
   return (
     <div className="flex items-center gap-1">

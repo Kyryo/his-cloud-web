@@ -22,6 +22,11 @@ const responseConfigSchema = z.object({
   prompt_after_select: z.boolean(),
 });
 
+const responseFieldSchema = responseConfigSchema.extend({
+  code: z.string().min(1),
+  label: z.string().min(1),
+});
+
 const name = z
   .string()
   .trim()
@@ -40,29 +45,46 @@ export const templateFormSchema = z.object({
   code: upperCode,
 });
 
-export const sectionFormSchema = z.object({
+const sectionFormObject = z.object({
   name,
   isMandatory: z.boolean(),
   selectionMode: z.enum(["exclusive", "inclusive"]),
   contentMode: z.enum(["items", "direct"]),
-  defaultResponseConfig: responseConfigSchema,
+  defaultResponseFields: z.array(responseFieldSchema),
 });
 
-export const newSectionFormSchema = sectionFormSchema.extend({
-  code: z
-    .string()
-    .trim()
-    .max(64, "Keep the code under 64 characters")
-    .refine((value) => toSectionCode(value).length > 0, "Code is required")
-    .transform(toSectionCode),
-});
+function refineDirectFields(
+  values: { contentMode: string; defaultResponseFields: unknown[] },
+  ctx: z.RefinementCtx,
+) {
+  if (values.contentMode === "direct" && values.defaultResponseFields.length < 1) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["defaultResponseFields"],
+      message: "Add at least one field for Enter values sections.",
+    });
+  }
+}
+
+export const sectionFormSchema = sectionFormObject.superRefine(refineDirectFields);
+
+export const newSectionFormSchema = sectionFormObject
+  .extend({
+    code: z
+      .string()
+      .trim()
+      .max(64, "Keep the code under 64 characters")
+      .refine((value) => toSectionCode(value).length > 0, "Code is required")
+      .transform(toSectionCode),
+  })
+  .superRefine(refineDirectFields);
 
 export const itemFormSchema = z.object({
   name: z.string().trim().max(160, "Keep the name under 160 characters"),
   code: upperCode,
   isMandatory: z.boolean(),
-  inheritsResponseConfig: z.boolean(),
-  overrideResponseConfig: responseConfigSchema,
+  inheritsResponseFields: z.boolean(),
+  overrideResponseFields: z.array(responseFieldSchema),
   schedule: z.array(
     z.object({
       interval: z

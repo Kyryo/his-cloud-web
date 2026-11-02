@@ -23,8 +23,8 @@ import {
   InspectorToggleRow,
 } from "@/features/oh-template-builder/components/InspectorShell";
 import { ItemScheduleEditor } from "@/features/oh-template-builder/components/ItemListEditors";
-import { ResponseConfigFields } from "@/features/settings/components/modules/occupational-health/template-library/ResponseConfigFields";
-import { normalizeResponseConfig } from "@/features/settings/components/modules/occupational-health/template-library/responseConfig";
+import { ResponseFieldsEditor } from "@/features/settings/components/modules/occupational-health/template-library/ResponseFieldsEditor";
+import { normalizeResponseFields } from "@/features/settings/components/modules/occupational-health/template-library/responseConfig";
 import { useTemplateBuilder } from "@/features/oh-template-builder/hooks/useTemplateBuilder";
 import { toUpperCode } from "@/features/oh-template-builder/lib/templateCodes";
 import {
@@ -56,13 +56,13 @@ export function ItemInspector({ attachment, item }: ItemInspectorProps) {
         notes: row.notes ?? "",
       })),
       responses: item.responses.map((row) => ({ label: row.label, code: row.code })),
-      inheritsResponseConfig: item.inheritsResponseConfig,
-      overrideResponseConfig: normalizeResponseConfig(
-        item.overrideResponseConfig ?? item.effectiveResponseConfig,
+      inheritsResponseFields: item.inheritsResponseFields,
+      overrideResponseFields: normalizeResponseFields(
+        item.overrideResponseFields ?? item.effectiveResponseFields,
       ),
     },
   });
-  const inheritsConfig = form.watch("inheritsResponseConfig");
+  const inheritsFields = form.watch("inheritsResponseFields");
   const isSaving = isPending(`item:update:${item.uuid}`);
   const isArchiving = isPending(`item:archive:${item.uuid}`);
   const sectionName = attachment.section?.name ?? "Section";
@@ -178,38 +178,40 @@ export function ItemInspector({ attachment, item }: ItemInspectorProps) {
             />
             <FormField
               control={form.control}
-              name="inheritsResponseConfig"
+              name="inheritsResponseFields"
               render={({ field }) => (
                 <InspectorToggleRow
-                  title="Inherit section response"
-                  description="Use the section default unless you override it for this item."
+                  title="Inherit section fields"
+                  description="Use the section default field list unless you override it for this item."
                   control={
                     <Switch
                       checked={field.value}
                       onCheckedChange={field.onChange}
-                      aria-label="Inherit section response configuration"
+                      aria-label="Inherit section response fields"
                     />
                   }
                 />
               )}
             />
-            {inheritsConfig ? (
+            {inheritsFields ? (
               <p className="rounded-xl bg-slate-50 px-4 py-3 text-xs leading-5 text-brand-slate">
-                Effective type:{" "}
-                <span className="font-medium">
-                  {item.effectiveResponseConfig.response_type.replaceAll("_", " ")}
-                </span>
+                {item.effectiveResponseFields.length === 0
+                  ? "Selection only — no follow-up fields after picking this item."
+                  : `${item.effectiveResponseFields.length} field${
+                      item.effectiveResponseFields.length === 1 ? "" : "s"
+                    } from the section default.`}
               </p>
             ) : (
               <FormField
                 control={form.control}
-                name="overrideResponseConfig"
+                name="overrideResponseFields"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Item response override</FormLabel>
-                    <ResponseConfigFields
-                      value={field.value ?? item.effectiveResponseConfig}
+                    <FormLabel>Item fields</FormLabel>
+                    <ResponseFieldsEditor
+                      value={field.value}
                       onChange={field.onChange}
+                      emptyHint="No fields — selecting this item records the choice only."
                     />
                   </FormItem>
                 )}

@@ -37,13 +37,13 @@ import type {
   OhLibrarySection,
   OhLibrarySectionItem,
   OhLibrarySectionKind,
-  OhResponseConfig,
+  OhResponseField,
 } from "@/features/occupational-health/types";
 import {
-  defaultResponseConfig,
-  normalizeResponseConfig,
-  optionsFromResponseConfig,
-  resolveEffectiveResponseConfig,
+  defaultResponseFields,
+  normalizeResponseFields,
+  optionsFromResponseFields,
+  resolveEffectiveResponseFields,
 } from "@/features/settings/components/modules/occupational-health/template-library/responseConfig";
 import { buildItemNames } from "@/features/oh-template-builder/lib/templateItems";
 import { toUpperCode } from "@/features/oh-template-builder/lib/templateCodes";
@@ -114,7 +114,7 @@ function fromLibrarySection(row: OhLibrarySection): BuilderSection {
     isSystem: false,
     active: row.active !== false,
     contentMode: row.content_mode ?? "items",
-    defaultResponseConfig: normalizeResponseConfig(row.default_response_config),
+    defaultResponseFields: normalizeResponseFields(row.default_response_fields),
   };
 }
 
@@ -134,26 +134,26 @@ function fromTemplateAttachment(
 
 function fromLibraryItem(
   row: OhLibrarySectionItem,
-  sectionDefault: OhResponseConfig | undefined,
+  sectionDefault: OhResponseField[] | undefined,
   name: string,
 ): BuilderItem {
-  const { config, inherits } = resolveEffectiveResponseConfig(
+  const { fields, inherits } = resolveEffectiveResponseFields(
     sectionDefault,
-    row.override_response_config,
+    row.override_response_fields,
   );
+  const effective = row.effective_response_fields ?? fields;
   return {
     uuid: row.uuid,
     code: row.code,
     name,
     isMandatory: false,
     schedule: [],
-    responses: optionsFromResponseConfig(config),
+    responses: optionsFromResponseFields(effective),
     active: row.active !== false,
     attributes: {},
-    overrideResponseConfig: row.override_response_config,
-    effectiveResponseConfig: row.effective_response_config ?? config,
-    inheritsResponseConfig:
-      row.inherits_response_config ?? inherits,
+    overrideResponseFields: row.override_response_fields,
+    effectiveResponseFields: effective,
+    inheritsResponseFields: row.inherits_response_fields ?? inherits,
   };
 }
 
@@ -167,18 +167,18 @@ function sectionPayload(input: SectionInput) {
     is_mandatory: input.isMandatory,
     selection_mode: input.selectionMode,
     content_mode: input.contentMode,
-    default_response_config: input.defaultResponseConfig,
+    default_response_fields: normalizeResponseFields(input.defaultResponseFields),
   };
 }
 
 function itemPayload(_item: BuilderItem | null, input: ItemInput) {
-  const override = input.inheritsResponseConfig
+  const override = input.inheritsResponseFields
     ? null
-    : normalizeResponseConfig(input.overrideResponseConfig);
+    : normalizeResponseFields(input.overrideResponseFields);
   return {
     code: toUpperCode(input.code),
     names_i18n: buildItemNames(input.name),
-    override_response_config: override,
+    override_response_fields: override,
   };
 }
 
@@ -263,8 +263,9 @@ function createLibraryAdapter(
           code: input.code,
           ...sectionPayload({
             ...input,
-            defaultResponseConfig:
-              input.defaultResponseConfig ?? defaultResponseConfig(),
+            defaultResponseFields:
+              input.defaultResponseFields ??
+              (input.contentMode === "direct" ? defaultResponseFields("text") : []),
           }),
         }),
       ),
@@ -276,7 +277,7 @@ function createLibraryAdapter(
     listItems: async (sectionUuid) => {
       const sections = await fetchOhLibrarySections({ kind: libraryKind });
       const section = sections.find((row) => row.uuid === sectionUuid);
-      const sectionDefault = section?.default_response_config;
+      const sectionDefault = section?.default_response_fields;
       const response = await fetchOhLibrarySectionItemsPage({
         sectionUuid,
         pageSize: SECTION_ITEMS_PAGE_SIZE,
@@ -299,7 +300,7 @@ function createLibraryAdapter(
       const section = sections.find((entry) => entry.uuid === sectionUuid);
       return fromLibraryItem(
         row,
-        section?.default_response_config,
+        section?.default_response_fields,
         ohLibrarySectionItemLabel(row),
       );
     },
@@ -307,7 +308,7 @@ function createLibraryAdapter(
       const row = await updateOhLibrarySectionItem(item.uuid, itemPayload(item, input));
       return fromLibraryItem(
         row,
-        row.effective_response_config ?? item.effectiveResponseConfig,
+        row.effective_response_fields ?? item.effectiveResponseFields,
         ohLibrarySectionItemLabel(row),
       );
     },

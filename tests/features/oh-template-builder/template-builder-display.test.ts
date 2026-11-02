@@ -6,7 +6,6 @@ import {
   togglePreviewPick,
 } from "@/features/oh-template-builder/lib/previewAnswers";
 import type { BuilderAttachment } from "@/features/oh-template-builder/template-builder.types";
-import { defaultResponseConfig } from "@/features/settings/components/modules/occupational-health/template-library/responseConfig";
 import {
   employerInitials,
   monogramToneIndex,
@@ -27,7 +26,7 @@ function attachment(uuid: string, isMandatory: boolean): BuilderAttachment {
       isSystem: false,
       active: true,
       contentMode: "items",
-      defaultResponseConfig: defaultResponseConfig(),
+      defaultResponseFields: [],
     },
   } as BuilderAttachment;
 }

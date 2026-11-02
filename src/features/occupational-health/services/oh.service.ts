@@ -22,7 +22,7 @@ import type {
   OhLibrarySection,
   OhLibrarySectionItem,
   OhLibrarySectionKind,
-  OhResponseConfig,
+  OhResponseField,
   OhEmployer,
   OhEmployerDepartment,
   OhEmployerSite,
@@ -48,7 +48,7 @@ import type {
   SickLeaveCertificate,
   SurveillanceRequirement,
 } from "@/features/occupational-health/types";
-import { defaultResponseConfig } from "@/features/settings/components/modules/occupational-health/template-library/responseConfig";
+import { defaultResponseFields } from "@/features/settings/components/modules/occupational-health/template-library/responseConfig";
 import { bffRequest } from "@/lib/bff-client";
 
 type ListResponse<T> = OhPaginatedList<T>;
@@ -1129,7 +1129,7 @@ export async function createOhLibrarySection(payload: {
   code: string;
   name: string;
   content_mode?: "items" | "direct";
-  default_response_config: OhResponseConfig;
+  default_response_fields: OhResponseField[];
   is_mandatory?: boolean;
   selection_mode?: OhCatalogSelectionMode;
   sort_order?: number;
@@ -1145,7 +1145,7 @@ export async function updateOhLibrarySection(
   payload: {
     name?: string;
     content_mode?: "items" | "direct";
-    default_response_config?: OhResponseConfig;
+    default_response_fields?: OhResponseField[];
     is_mandatory?: boolean;
     selection_mode?: OhCatalogSelectionMode;
     sort_order?: number;
@@ -1186,7 +1186,7 @@ export async function createOhLibrarySectionItem(payload: {
   section: string;
   code: string;
   names_i18n?: Record<string, string>;
-  override_response_config?: OhResponseConfig | null;
+  override_response_fields?: OhResponseField[] | null;
   sort_order?: number;
   active?: boolean;
 }) {
@@ -1201,7 +1201,7 @@ export async function updateOhLibrarySectionItem(
   payload: {
     code?: string;
     names_i18n?: Record<string, string>;
-    override_response_config?: OhResponseConfig | null;
+    override_response_fields?: OhResponseField[] | null;
     sort_order?: number;
     active?: boolean;
   },
@@ -1250,15 +1250,15 @@ export async function createOhExamSection(payload: {
   code: string;
   name: string;
   content_mode?: "items" | "direct";
-  default_response_config?: OhResponseConfig;
+  default_response_fields?: OhResponseField[];
   is_mandatory?: boolean;
   selection_mode?: OhCatalogSelectionMode;
   sort_order?: number;
 }) {
   return createOhLibrarySection({
     kind: "exam",
-    default_response_config:
-      payload.default_response_config ?? defaultResponseConfig(),
+    default_response_fields:
+      payload.default_response_fields ?? defaultResponseFields(),
     ...payload,
   });
 }

@@ -262,6 +262,12 @@ export type OhResponseConfig = {
   prompt_after_select: boolean;
 };
 
+/** Named response field on a section or item. */
+export type OhResponseField = OhResponseConfig & {
+  code: string;
+  label: string;
+};
+
 /** Reusable template library section (COF or exam). */
 export type OhLibrarySection = {
   id: number;
@@ -270,7 +276,7 @@ export type OhLibrarySection = {
   code: string;
   name: string;
   content_mode: OhLibraryContentMode;
-  default_response_config: OhResponseConfig;
+  default_response_fields: OhResponseField[];
   selection_mode: OhCatalogSelectionMode;
   is_mandatory: boolean;
   sort_order: number;
@@ -286,9 +292,9 @@ export type OhLibrarySectionItem = {
   section: string;
   code: string;
   names_i18n: Record<string, string>;
-  override_response_config: OhResponseConfig | null;
-  inherits_response_config?: boolean;
-  effective_response_config?: OhResponseConfig;
+  override_response_fields: OhResponseField[] | null;
+  inherits_response_fields?: boolean;
+  effective_response_fields?: OhResponseField[];
   sort_order: number;
   active: boolean;
   created_at?: string;

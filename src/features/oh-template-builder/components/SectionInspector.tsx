@@ -23,11 +23,17 @@ import {
   InspectorShell,
   InspectorToggleRow,
 } from "@/features/oh-template-builder/components/InspectorShell";
-import { SelectionModeToggle } from "@/features/oh-template-builder/components/SelectionModeToggle";
+import {
+  SelectionModeToggle,
+  interactionFromSection,
+  sectionModesFromInteraction,
+} from "@/features/oh-template-builder/components/SelectionModeToggle";
 import { useTemplateBuilder } from "@/features/oh-template-builder/hooks/useTemplateBuilder";
-import { ContentModeToggle } from "@/features/settings/components/modules/occupational-health/template-library/ContentModeToggle";
-import { ResponseConfigFields } from "@/features/settings/components/modules/occupational-health/template-library/ResponseConfigFields";
-import { normalizeResponseConfig } from "@/features/settings/components/modules/occupational-health/template-library/responseConfig";
+import { ResponseFieldsEditor } from "@/features/settings/components/modules/occupational-health/template-library/ResponseFieldsEditor";
+import {
+  defaultResponseFields,
+  normalizeResponseFields,
+} from "@/features/settings/components/modules/occupational-health/template-library/responseConfig";
 import {
   sectionFormSchema,
   type SectionFormValues,
@@ -52,9 +58,10 @@ export function SectionInspector({ attachment, section }: SectionInspectorProps)
       isMandatory: section.isMandatory,
       selectionMode: section.selectionMode,
       contentMode: section.contentMode,
-      defaultResponseConfig: normalizeResponseConfig(section.defaultResponseConfig),
+      defaultResponseFields: normalizeResponseFields(section.defaultResponseFields),
     },
   });
+  const contentMode = form.watch("contentMode");
   const isSaving = isPending(`section:update:${section.uuid}`);
   const isRemoving =
     isPending(`section:detach:${attachment.uuid}`) ||
@@ -145,11 +152,35 @@ export function SectionInspector({ attachment, section }: SectionInspectorProps)
 
             <FormField
               control={form.control}
-              name="selectionMode"
-              render={({ field }) => (
+              name="contentMode"
+              render={() => (
                 <FormItem>
                   <FormLabel>How staff choose</FormLabel>
-                  <SelectionModeToggle value={field.value} onChange={field.onChange} />
+                  <SelectionModeToggle
+                    value={interactionFromSection({
+                      contentMode: form.getValues("contentMode"),
+                      selectionMode: form.getValues("selectionMode"),
+                    })}
+                    onChange={(mode) => {
+                      const next = sectionModesFromInteraction(mode);
+                      form.setValue("contentMode", next.contentMode, {
+                        shouldDirty: true,
+                      });
+                      form.setValue("selectionMode", next.selectionMode, {
+                        shouldDirty: true,
+                      });
+                      if (
+                        mode === "direct" &&
+                        form.getValues("defaultResponseFields").length < 1
+                      ) {
+                        form.setValue(
+                          "defaultResponseFields",
+                          defaultResponseFields("text"),
+                          { shouldDirty: true },
+                        );
+                      }
+                    }}
+                  />
                 </FormItem>
               )}
             />
@@ -174,25 +205,24 @@ export function SectionInspector({ attachment, section }: SectionInspectorProps)
 
             <FormField
               control={form.control}
-              name="contentMode"
+              name="defaultResponseFields"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Content mode</FormLabel>
-                  <ContentModeToggle value={field.value} onChange={field.onChange} />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="defaultResponseConfig"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Default response</FormLabel>
-                  <ResponseConfigFields
+                  <FormLabel>
+                    {contentMode === "direct"
+                      ? "Section fields"
+                      : "Default fields for items"}
+                  </FormLabel>
+                  <ResponseFieldsEditor
                     value={field.value}
                     onChange={field.onChange}
+                    emptyHint={
+                      contentMode === "direct"
+                        ? "Add at least one field staff will fill on this section."
+                        : "Leave empty for selection-only items (radio/checkbox with no follow-up)."
+                    }
                   />
+                  <FormMessage />
                 </FormItem>
               )}
             />

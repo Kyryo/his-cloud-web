@@ -26,7 +26,11 @@ import { Input } from "@/components/ui/input";
 import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
 import { Switch } from "@/components/ui/switch";
 import { InspectorToggleRow } from "@/features/oh-template-builder/components/InspectorShell";
-import { SelectionModeToggle } from "@/features/oh-template-builder/components/SelectionModeToggle";
+import {
+  SelectionModeToggle,
+  interactionFromSection,
+  sectionModesFromInteraction,
+} from "@/features/oh-template-builder/components/SelectionModeToggle";
 import { useTemplateBuilder } from "@/features/oh-template-builder/hooks/useTemplateBuilder";
 import { toSectionCode } from "@/features/oh-template-builder/lib/templateCodes";
 import {
@@ -35,7 +39,8 @@ import {
   type NewSectionFormValues,
 } from "@/features/oh-template-builder/template-builder.schema";
 import type { BuilderSection } from "@/features/oh-template-builder/template-builder.types";
-import { defaultResponseConfig } from "@/features/settings/components/modules/occupational-health/template-library/responseConfig";
+import { defaultResponseFields } from "@/features/settings/components/modules/occupational-health/template-library/responseConfig";
+import { ResponseFieldsEditor } from "@/features/settings/components/modules/occupational-health/template-library/ResponseFieldsEditor";
 import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 
@@ -175,7 +180,11 @@ function LibraryPicker({
                     <span className="mt-0.5 block truncate text-xs text-dash-muted">
                       <span className="font-mono">{section.code}</span>
                       {section.isMandatory ? ", required" : ""}
-                      {section.selectionMode === "exclusive" ? ", pick one" : ", pick any"}
+                      {section.contentMode === "direct"
+                        ? ", enter values"
+                        : section.selectionMode === "exclusive"
+                          ? ", pick one"
+                          : ", pick any"}
                     </span>
                   </span>
                   <span className="flex size-7 shrink-0 items-center justify-center rounded-full text-brand-primary opacity-0 transition-opacity group-hover:bg-white group-hover:opacity-100 group-focus-visible:opacity-100">
@@ -201,9 +210,10 @@ function NewSectionForm({ onDone }: { onDone: () => void }) {
       isMandatory: false,
       selectionMode: "inclusive",
       contentMode: "items",
-      defaultResponseConfig: defaultResponseConfig(),
+      defaultResponseFields: [],
     },
   });
+  const contentMode = form.watch("contentMode");
   const isSaving = isPending("section:create");
 
   async function onSubmit(values: NewSectionFormValues) {
@@ -270,11 +280,28 @@ function NewSectionForm({ onDone }: { onDone: () => void }) {
           />
           <FormField
             control={form.control}
-            name="selectionMode"
-            render={({ field }) => (
+            name="contentMode"
+            render={() => (
               <FormItem>
                 <FormLabel>How staff choose</FormLabel>
-                <SelectionModeToggle value={field.value} onChange={field.onChange} />
+                <SelectionModeToggle
+                  value={interactionFromSection({
+                    contentMode: form.getValues("contentMode"),
+                    selectionMode: form.getValues("selectionMode"),
+                  })}
+                  onChange={(mode) => {
+                    const next = sectionModesFromInteraction(mode);
+                    form.setValue("contentMode", next.contentMode, { shouldDirty: true });
+                    form.setValue("selectionMode", next.selectionMode, {
+                      shouldDirty: true,
+                    });
+                    if (mode === "direct" && form.getValues("defaultResponseFields").length < 1) {
+                      form.setValue("defaultResponseFields", defaultResponseFields("text"), {
+                        shouldDirty: true,
+                      });
+                    }
+                  }}
+                />
               </FormItem>
             )}
           />
@@ -295,6 +322,19 @@ function NewSectionForm({ onDone }: { onDone: () => void }) {
               />
             )}
           />
+          {contentMode === "direct" ? (
+            <FormField
+              control={form.control}
+              name="defaultResponseFields"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Section fields</FormLabel>
+                  <ResponseFieldsEditor value={field.value} onChange={field.onChange} />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          ) : null}
         </div>
         <div className="flex justify-end gap-2 border-t border-dash-border px-6 py-4">
           <SecondaryButton type="button" onClick={onDone} disabled={isSaving}>

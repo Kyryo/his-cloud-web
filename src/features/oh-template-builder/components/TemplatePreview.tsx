@@ -23,6 +23,7 @@ import type {
   BuilderItem,
   TemplateKind,
 } from "@/features/oh-template-builder/template-builder.types";
+import type { OhResponseField } from "@/features/occupational-health/types";
 import { cn } from "@/lib/utils";
 
 const RECORD_FIELDS = ["Employee", "Employer", "Job title", "Examination date"] as const;
@@ -215,10 +216,18 @@ function PreviewSection({
   const reduceMotion = useReducedMotion();
   const itemsQuery = useSectionItems(attachment.sectionUuid);
   const section = attachment.section;
+  const isDirect = section?.contentMode === "direct";
   const mode = section?.selectionMode ?? "inclusive";
   const items = itemsQuery.data?.items ?? [];
-  const isAnswered = picked.length > 0;
+  const isAnswered = isDirect
+    ? (section?.defaultResponseFields.length ?? 0) > 0
+    : picked.length > 0;
   const headingId = `preview-${attachment.uuid}`;
+  const modeLabel = isDirect
+    ? "Enter values"
+    : mode === "exclusive"
+      ? "Choose one"
+      : "Choose all that apply";
 
   return (
     <li className="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-x-3 border-t border-dash-border py-7 sm:grid-cols-[2.75rem_minmax(0,1fr)]">
@@ -266,12 +275,15 @@ function PreviewSection({
               </span>
             ) : null}
           </h2>
-          <span className="text-xs text-dash-muted">
-            {mode === "exclusive" ? "Choose one" : "Choose all that apply"}
-          </span>
+          <span className="text-xs text-dash-muted">{modeLabel}</span>
         </div>
 
-        {itemsQuery.isPending ? (
+        {isDirect ? (
+          <PreviewFieldsList
+            fields={section?.defaultResponseFields ?? []}
+            emptyMessage="No fields configured on this section yet."
+          />
+        ) : itemsQuery.isPending ? (
           <div className="mt-4 space-y-2" aria-hidden>
             <div className="h-10 animate-pulse rounded-lg bg-slate-50" />
             <div className="h-10 animate-pulse rounded-lg bg-slate-50" />
@@ -320,10 +332,11 @@ function PreviewOption({
   onOutcome,
 }: PreviewOptionProps) {
   const reduceMotion = useReducedMotion();
-  const showOutcomes =
-    checked &&
-    item.effectiveResponseConfig.prompt_after_select !== false &&
-    item.responses.length > 0;
+  const promptFields = item.effectiveResponseFields.filter(
+    (field) => field.prompt_after_select !== false,
+  );
+  const showFields = checked && promptFields.length > 0;
+  const optionFields = promptFields.filter((field) => field.options.length > 0);
 
   return (
     <li
@@ -351,45 +364,115 @@ function PreviewOption({
       </button>
 
       <AnimatePresence initial={false}>
-        {showOutcomes ? (
+        {showFields ? (
           <motion.div
-            key="outcomes"
+            key="fields"
             initial={reduceMotion ? false : { height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={reduceMotion ? undefined : { height: 0, opacity: 0 }}
             transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
             className="overflow-hidden"
           >
-            <div
-              role="radiogroup"
-              aria-label={`${item.name} result`}
-              className="flex flex-wrap gap-1.5 pb-3 pl-11 pr-3"
-            >
-              {item.responses.map((option) => {
-                const selected = outcome === option.code;
-                return (
-                  <button
-                    key={option.code}
-                    type="button"
-                    role="radio"
-                    aria-checked={selected}
-                    onClick={() => onOutcome(option.code)}
-                    className={cn(
-                      "rounded-full border px-3 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30 active:translate-y-px",
-                      selected
-                        ? "border-brand-primary bg-brand-primary font-medium text-white"
-                        : "border-brand-primary/20 bg-white text-brand-slate hover:border-brand-primary/50 hover:text-brand-navy",
-                    )}
-                  >
-                    {option.label}
-                  </button>
-                );
-              })}
+            <div className="space-y-3 pb-3 pl-11 pr-3">
+              {promptFields.map((field) =>
+                field.options.length > 0 ? (
+                  <div key={field.code} className="space-y-1.5">
+                    {promptFields.length > 1 || optionFields.length > 1 ? (
+                      <p className="text-xs font-medium text-brand-slate">{field.label}</p>
+                    ) : null}
+                    <div
+                      role="radiogroup"
+                      aria-label={`${item.name} ${field.label}`}
+                      className="flex flex-wrap gap-1.5"
+                    >
+                      {field.options.map((option) => {
+                        const selected = outcome === option.code;
+                        return (
+                          <button
+                            key={option.code}
+                            type="button"
+                            role="radio"
+                            aria-checked={selected}
+                            onClick={() => onOutcome(option.code)}
+                            className={cn(
+                              "rounded-full border px-3 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30 active:translate-y-px",
+                              selected
+                                ? "border-brand-primary bg-brand-primary font-medium text-white"
+                                : "border-brand-primary/20 bg-white text-brand-slate hover:border-brand-primary/50 hover:text-brand-navy",
+                            )}
+                          >
+                            {option.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <PreviewFieldInput key={field.code} field={field} />
+                ),
+              )}
             </div>
           </motion.div>
         ) : null}
       </AnimatePresence>
     </li>
+  );
+}
+
+function PreviewFieldsList({
+  fields,
+  emptyMessage,
+}: {
+  fields: OhResponseField[];
+  emptyMessage: string;
+}) {
+  if (fields.length === 0) {
+    return <p className="mt-3 text-sm text-dash-muted">{emptyMessage}</p>;
+  }
+  return (
+    <div className="mt-4 space-y-3">
+      {fields.map((field) => (
+        <PreviewFieldInput key={field.code} field={field} />
+      ))}
+    </div>
+  );
+}
+
+function PreviewFieldInput({ field }: { field: OhResponseField }) {
+  const inputType =
+    field.response_type === "number" || field.response_type === "decimal"
+      ? "number"
+      : field.response_type === "date"
+        ? "date"
+        : field.response_type === "datetime"
+          ? "datetime-local"
+          : field.response_type === "time"
+            ? "time"
+            : "text";
+
+  return (
+    <label className="block space-y-1.5">
+      <span className="text-xs font-medium text-brand-slate">{field.label}</span>
+      {field.options.length > 0 ? (
+        <div className="flex flex-wrap gap-1.5">
+          {field.options.map((option) => (
+            <span
+              key={option.code}
+              className="rounded-full border border-dash-border px-3 py-1 text-xs text-brand-slate"
+            >
+              {option.label}
+            </span>
+          ))}
+        </div>
+      ) : (
+        <input
+          type={inputType}
+          disabled
+          placeholder={field.response_type.replaceAll("_", " ")}
+          className="h-9 w-full rounded-lg border border-dash-border bg-slate-50 px-3 text-sm text-dash-muted"
+        />
+      )}
+    </label>
   );
 }
 

@@ -1,6 +1,7 @@
 import type {
   OhCatalogPossibleResponse,
   OhResponseConfig,
+  OhResponseField,
 } from "@/features/occupational-health/types";
 
 export const OH_RESPONSE_TYPES = [
@@ -42,6 +43,23 @@ export function defaultResponseConfig(
   return config;
 }
 
+export function defaultResponseField(
+  responseType: OhResponseType = "boolean",
+  overrides?: Partial<Pick<OhResponseField, "code" | "label">>,
+): OhResponseField {
+  return {
+    code: overrides?.code ?? "value",
+    label: overrides?.label ?? "Value",
+    ...defaultResponseConfig(responseType),
+  };
+}
+
+export function defaultResponseFields(
+  responseType: OhResponseType = "boolean",
+): OhResponseField[] {
+  return [defaultResponseField(responseType)];
+}
+
 export function normalizeResponseConfig(
   value: Partial<OhResponseConfig> | null | undefined,
 ): OhResponseConfig {
@@ -57,14 +75,60 @@ export function normalizeResponseConfig(
           label: String(row.label ?? "").trim(),
         }))
       : defaultResponseConfig(responseType).options,
-    validation: value.validation && typeof value.validation === "object"
-      ? { ...value.validation }
-      : {},
+    validation:
+      value.validation && typeof value.validation === "object"
+        ? { ...value.validation }
+        : {},
     prompt_after_select: value.prompt_after_select !== false,
   };
 }
 
-/** Effective item config: null/empty override inherits the section default. */
+export function normalizeResponseField(
+  value: Partial<OhResponseField> | null | undefined,
+  index = 0,
+): OhResponseField {
+  const base = normalizeResponseConfig(value);
+  const code =
+    String(value?.code ?? "").trim().toLowerCase().replaceAll(" ", "_") ||
+    `field_${index + 1}`;
+  const label = String(value?.label ?? "").trim() || `Field ${index + 1}`;
+  return { ...base, code, label };
+}
+
+/** Accept legacy single-object configs or field arrays. */
+export function normalizeResponseFields(
+  value: unknown,
+): OhResponseField[] {
+  if (value == null || value === "") {
+    return [];
+  }
+  if (Array.isArray(value)) {
+    return value.map((row, index) =>
+      normalizeResponseField(
+        row && typeof row === "object" ? (row as Partial<OhResponseField>) : null,
+        index,
+      ),
+    );
+  }
+  if (typeof value === "object") {
+    return [normalizeResponseField(value as Partial<OhResponseField>, 0)];
+  }
+  return [];
+}
+
+/** Effective item fields: null override inherits the section default list. */
+export function resolveEffectiveResponseFields(
+  sectionDefault: OhResponseField[] | null | undefined,
+  override: OhResponseField[] | null | undefined,
+): { fields: OhResponseField[]; inherits: boolean } {
+  const base = normalizeResponseFields(sectionDefault);
+  if (override == null) {
+    return { fields: base, inherits: true };
+  }
+  return { fields: normalizeResponseFields(override), inherits: false };
+}
+
+/** @deprecated Prefer resolveEffectiveResponseFields */
 export function resolveEffectiveResponseConfig(
   sectionDefault: OhResponseConfig | null | undefined,
   override: OhResponseConfig | null | undefined,
@@ -91,6 +155,19 @@ export function optionsFromResponseConfig(
   );
 }
 
+export function optionsFromResponseFields(
+  fields: OhResponseField[] | null | undefined,
+): OhCatalogPossibleResponse[] {
+  const list = normalizeResponseFields(fields);
+  if (list.length === 0) {
+    return [];
+  }
+  // Preview "outcomes" under a pick: use first field that prompts after select.
+  const promptField =
+    list.find((field) => field.prompt_after_select) ?? list[0];
+  return optionsFromResponseConfig(promptField);
+}
+
 export function responseConfigFromOptions(
   responses: OhCatalogPossibleResponse[],
   responseType: OhResponseType = "single_select",
@@ -103,7 +180,8 @@ export function responseConfigFromOptions(
     .filter((row) => row.code && row.label);
   return {
     response_type: responseType,
-    options: options.length > 0 ? options : defaultResponseConfig(responseType).options,
+    options:
+      options.length > 0 ? options : defaultResponseConfig(responseType).options,
     validation: {},
     prompt_after_select: true,
   };
