@@ -1,13 +1,18 @@
 import { humanizeOhCode } from "@/features/occupational-health/utils/oh-format";
 
 export const EXAM_TYPES = [
-  { value: "pre_employment", label: "Pre-employment" },
-  { value: "periodic", label: "Periodic" },
-  { value: "transfer", label: "Transfer" },
-  { value: "rtw", label: "Return to work" },
-  { value: "post_incident", label: "Post-incident" },
-  { value: "exit", label: "Exit" },
+  { value: "pre_employment", label: "Admission exam" },
+  { value: "periodic", label: "Periodic exam" },
+  { value: "transfer", label: "Change of function exam" },
+  { value: "rtw", label: "Return to work exam" },
+  { value: "post_incident", label: "Post-incident exam" },
+  { value: "exit", label: "Demissional exam" },
 ] as const;
+
+/** Exam types offered when starting Medical Examinations (excludes post_incident). */
+export const MEDICAL_EXAM_START_TYPES = EXAM_TYPES.filter(
+  (option) => option.value !== "post_incident",
+);
 
 export const FITNESS_OUTCOMES = [
   { value: "fit", label: "Fit" },

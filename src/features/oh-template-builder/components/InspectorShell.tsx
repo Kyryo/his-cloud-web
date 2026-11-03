@@ -80,14 +80,16 @@ export function InspectorToggleRow({
   control,
 }: {
   title: string;
-  description: string;
+  description?: string;
   control: ReactNode;
 }) {
   return (
     <div className="flex items-center justify-between gap-4 rounded-xl border border-dash-border px-4 py-3">
       <div>
         <p className="text-sm font-medium text-brand-navy">{title}</p>
-        <p className="mt-0.5 text-xs leading-5 text-dash-muted">{description}</p>
+        {description ? (
+          <p className="mt-0.5 text-xs leading-5 text-dash-muted">{description}</p>
+        ) : null}
       </div>
       {control}
     </div>

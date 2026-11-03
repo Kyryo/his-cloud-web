@@ -4,6 +4,7 @@ import type { EmploymentEpisode } from "@/features/occupational-health/types";
 import {
   customerHasActiveRiskProfile,
   isActiveEmploymentEpisode,
+  resolveActiveRiskProfileEpisode,
 } from "@/features/occupational-health/utils/customer-has-risk-profile";
 
 function episode(
@@ -54,5 +55,15 @@ describe("customerHasActiveRiskProfile", () => {
         "2026-11-02",
       ),
     ).toBe(true);
+  });
+
+  it("resolves the newest open episode with a risk profile", () => {
+    expect(
+      resolveActiveRiskProfileEpisode([
+        episode({ id: 1, start_date: "2025-01-01", hazard_profile: 1 }),
+        episode({ id: 2, start_date: "2026-06-01", hazard_profile: 2 }),
+        episode({ id: 3, start_date: "2026-08-01", hazard_profile: null }),
+      ])?.id,
+    ).toBe(2);
   });
 });

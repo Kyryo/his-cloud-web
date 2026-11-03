@@ -2,9 +2,9 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useTransition } from "react";
 
 import { useTemplateBuilder } from "@/features/oh-template-builder/hooks/useTemplateBuilder";
 import { PublishTemplateButton } from "@/features/settings/components/modules/occupational-health/template-library/PublishTemplateButton";
@@ -105,7 +105,22 @@ const VIEW_TABS = [
 
 function ViewTabs({ view }: TemplateBuilderTopBarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const reduceMotion = useReducedMotion();
+  const { flushPendingSaves, isBusy } = useTemplateBuilder();
+  const [isFlushing, startFlush] = useTransition();
+
+  function goTo(tabId: BuilderMode, href: string) {
+    if (tabId === view) {
+      return;
+    }
+    startFlush(() => {
+      void (async () => {
+        await flushPendingSaves();
+        router.replace(href, { scroll: false });
+      })();
+    });
+  }
 
   return (
     <nav
@@ -114,16 +129,18 @@ function ViewTabs({ view }: TemplateBuilderTopBarProps) {
     >
       {VIEW_TABS.map((tab) => {
         const active = view === tab.id;
+        const href = `${pathname}${tab.query}`;
         return (
-          <Link
+          <button
             key={tab.id}
-            href={`${pathname}${tab.query}`}
-            scroll={false}
-            replace
+            type="button"
+            disabled={isFlushing || isBusy}
             aria-current={active ? "page" : undefined}
+            onClick={() => goTo(tab.id, href)}
             className={cn(
               "relative flex h-7 items-center rounded-full px-3.5 text-[13px] transition-colors",
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30",
+              "disabled:pointer-events-none disabled:opacity-60",
               active ? "font-medium text-brand-navy" : "text-dash-muted hover:text-brand-navy",
             )}
           >
@@ -137,7 +154,7 @@ function ViewTabs({ view }: TemplateBuilderTopBarProps) {
               />
             ) : null}
             <span className="relative">{tab.label}</span>
-          </Link>
+          </button>
         );
       })}
     </nav>

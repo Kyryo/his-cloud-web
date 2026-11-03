@@ -13,21 +13,27 @@ const COLUMN_SCROLL_CLASS = "flex flex-col xl:min-h-0 xl:overflow-y-auto";
 type OhEncounterColumnsProps = {
   form: ReactNode;
   records: ReactNode;
-  aside: ReactNode;
+  aside?: ReactNode;
   /** Remounts the form and records columns so each tab opens scrolled to the top. */
   sectionKey: string;
 };
 
-/** Record on the left, this encounter in the middle, previous visits on the right. */
+/** Record on the left, this encounter in the middle, optional history on the right. */
 export function OhEncounterColumns({
   form,
   records,
   aside,
   sectionKey,
 }: OhEncounterColumnsProps) {
+  const hasAside = aside != null;
   return (
     <div
-      className="grid flex-1 grid-cols-1 xl:min-h-0 xl:grid-cols-[22rem_minmax(0,1fr)_20rem] xl:grid-rows-[minmax(0,1fr)] 2xl:grid-cols-[25rem_minmax(0,1fr)_22rem]"
+      className={cn(
+        "grid flex-1 grid-cols-1 xl:min-h-0 xl:grid-rows-[minmax(0,1fr)]",
+        hasAside
+          ? "xl:grid-cols-[22rem_minmax(0,1fr)_20rem] 2xl:grid-cols-[25rem_minmax(0,1fr)_22rem]"
+          : "xl:grid-cols-[22rem_minmax(0,1fr)] 2xl:grid-cols-[25rem_minmax(0,1fr)]",
+      )}
       data-testid="oh-encounter-columns"
     >
       <section
@@ -49,12 +55,14 @@ export function OhEncounterColumns({
       >
         {records}
       </section>
-      <div
-        className="flex min-h-0 min-w-0 flex-col xl:min-h-0"
-        data-testid="oh-encounter-history-column"
-      >
-        {aside}
-      </div>
+      {hasAside ? (
+        <div
+          className="flex min-h-0 min-w-0 flex-col xl:min-h-0"
+          data-testid="oh-encounter-history-column"
+        >
+          {aside}
+        </div>
+      ) : null}
     </div>
   );
 }

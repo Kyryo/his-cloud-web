@@ -14,6 +14,8 @@ const ohService = vi.hoisted(() => ({
   fetchEmploymentEpisodes: vi.fn(),
   fetchOhEmployers: vi.fn(),
   fetchOhJobTitles: vi.fn(),
+  fetchOhHazardProfiles: vi.fn(),
+  fetchOhExamTemplateVersions: vi.fn(),
   createOhExamination: vi.fn(),
   createFitnessAssessment: vi.fn(),
   createFitnessCertificate: vi.fn(),
@@ -22,6 +24,7 @@ const ohService = vi.hoisted(() => ({
   createIodCase: vi.fn(),
   downloadIodStatutoryPack: vi.fn(),
   fetchOhVisitHistory: vi.fn(),
+  patchOhExaminationResponses: vi.fn(),
 }));
 
 const fetchVisitMock = vi.hoisted(() => vi.fn());
@@ -70,24 +73,35 @@ const ENCOUNTER = {
   updated_at: "2026-10-26T08:00:00Z",
 };
 
-const EXAM = {
-  id: 11,
-  uuid: "exam-1",
-  encounter: 7,
-  employment_episode: null,
-  exam_type: "periodic",
-  occupational_attendance: true,
-  template_code: "",
-  notes: "Annual medical",
-  examined_at: "2026-10-26T08:10:00Z",
-  created_at: "2026-10-26T08:10:00Z",
-  updated_at: "2026-10-26T08:10:00Z",
+const EPISODE = {
+  id: 9,
+  uuid: "ep-1",
+  customer: 21,
+  employer: 5,
+  job_title: 1,
+  site: "",
+  department_name: "",
+  employment_type: "employee",
+  employee_number: "",
+  start_date: "2026-01-01",
+  end_date: null,
+  requires_fitness: false,
+  hazard_profile: 44,
+  job_profile: null,
+  is_active: true,
+  created_at: "2026-01-01T00:00:00Z",
+  updated_at: "2026-01-01T00:00:00Z",
 };
 
-async function findTab(name: RegExp) {
-  const tabs = await screen.findByTestId("oh-encounter-tabs");
-  return within(tabs).getByRole("button", { name });
-}
+const ASSESSMENT = {
+  id: 31,
+  uuid: "fa-1",
+  examination: 11,
+  outcome: "fit_with_restrictions",
+  assessed_at: "2026-10-26T09:00:00Z",
+  review_date: null,
+  clinician: 3,
+};
 
 function renderPage() {
   const queryClient = new QueryClient({
@@ -125,14 +139,46 @@ beforeEach(() => {
     gender: "female",
     dob: "1990-01-01",
   });
-  ohService.fetchOhExaminations.mockResolvedValue([EXAM]);
+  ohService.fetchOhExaminations.mockResolvedValue([]);
   ohService.fetchOhExamFindings.mockResolvedValue([]);
   ohService.fetchFitnessAssessments.mockResolvedValue([]);
   ohService.fetchFitnessCertificates.mockResolvedValue([]);
   ohService.fetchIodCases.mockResolvedValue([]);
-  ohService.fetchEmploymentEpisodes.mockResolvedValue([]);
+  ohService.fetchEmploymentEpisodes.mockResolvedValue([EPISODE]);
   ohService.fetchOhEmployers.mockResolvedValue([]);
   ohService.fetchOhJobTitles.mockResolvedValue([]);
+  ohService.fetchOhHazardProfiles.mockResolvedValue([
+    {
+      id: 44,
+      uuid: "hp-1",
+      name: "Welding",
+      code: "WELD",
+      exam_template: "tmpl-1",
+      exam_template_code: "EXAM",
+      exam_template_name: "Annual exam",
+      employer: 5,
+    },
+  ]);
+  ohService.fetchOhExamTemplateVersions.mockResolvedValue([
+    {
+      id: 1,
+      uuid: "ver-1",
+      number: 1,
+      status: "published",
+      snapshot_json: {
+        schema_version: 2,
+        sections: [
+          {
+            code: "vitals",
+            name: "Vitals",
+            content_mode: "direct",
+            response_fields: [{ code: "bp", label: "BP", response_type: "text" }],
+            items: [],
+          },
+        ],
+      },
+    },
+  ]);
   ohService.fetchOhVisitHistory.mockResolvedValue({
     visits: [],
     selected_visit_uuid: null,
@@ -143,7 +189,6 @@ beforeEach(() => {
     fitness_certificates: [],
     iod_cases: [],
   });
-  ohService.createOhExamination.mockResolvedValue(EXAM);
   ohService.createFitnessCertificate.mockResolvedValue({});
 });
 
@@ -153,29 +198,16 @@ afterEach(() => {
   window.history.replaceState(null, "", "/");
 });
 
-const ASSESSMENT = {
-  id: 31,
-  uuid: "fa-1",
-  examination: 11,
-  outcome: "fit_with_restrictions",
-  assessed_at: "2026-10-26T09:00:00Z",
-  review_date: null,
-  clinician: 3,
-};
-
 describe("OhEncounterWorkspacePage", () => {
-  it("renders the record, encounter, and previous-visit columns without loading the encounter list", async () => {
+  it("renders the module nav and medical examinations dialog", async () => {
     renderPage();
 
-    expect(await screen.findByTestId("oh-encounter-columns")).toBeInTheDocument();
-    expect(screen.getByTestId("oh-encounter-form-column")).toBeInTheDocument();
-    expect(screen.getByTestId("oh-encounter-records-column")).toBeInTheDocument();
-    expect(screen.getByTestId("oh-encounter-history-column")).toBeInTheDocument();
-    expect(screen.getByTestId("oh-history-panel")).toBeInTheDocument();
-
-    const records = await screen.findByTestId("oh-exam-records");
-    expect(within(records).getByText("Periodic")).toBeInTheDocument();
-    expect(within(records).getByText("Annual medical")).toBeInTheDocument();
+    expect(await screen.findByTestId("oh-encounter-module-layout")).toBeInTheDocument();
+    const nav = screen.getByTestId("oh-encounter-module-nav");
+    expect(within(nav).getByText("Medical Examinations")).toBeInTheDocument();
+    expect(within(nav).getByText("Occupational Health Certificate")).toBeInTheDocument();
+    expect(within(nav).getByText("Injury on Duty Management")).toBeInTheDocument();
+    expect(await screen.findByTestId("oh-exam-type-dialog")).toBeInTheDocument();
     expect(ohService.fetchOhEncounters).not.toHaveBeenCalled();
   });
 
@@ -185,7 +217,7 @@ describe("OhEncounterWorkspacePage", () => {
 
     renderPage();
 
-    expect(await screen.findByTestId("oh-encounter-columns")).toBeInTheDocument();
+    expect(await screen.findByTestId("oh-encounter-module-layout")).toBeInTheDocument();
     expect(ohService.fetchOhEncounters).toHaveBeenCalled();
   });
 
@@ -198,110 +230,47 @@ describe("OhEncounterWorkspacePage", () => {
     expect(await screen.findByTestId("oh-encounter-not-found")).toBeInTheDocument();
   });
 
-  it("records an examination against this encounter", async () => {
-    renderPage();
-
-    fireEvent.change(await screen.findByLabelText("Notes"), {
-      target: { value: "  Hearing review  " },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Add examination" }));
-
-    await waitFor(() =>
-      expect(ohService.createOhExamination).toHaveBeenCalledWith({
+  it("opens the certificate module with form and records", async () => {
+    ohService.fetchFitnessAssessments.mockResolvedValue([ASSESSMENT]);
+    ohService.fetchOhExaminations.mockResolvedValue([
+      {
+        id: 11,
+        uuid: "exam-1",
         encounter: 7,
         exam_type: "periodic",
         occupational_attendance: true,
-        notes: "Hearing review",
-      }),
-    );
-  });
-
-  it("locks fitness and findings until an examination exists", async () => {
-    ohService.fetchOhExaminations.mockResolvedValue([]);
-    renderPage();
-
-    fireEvent.click(await findTab(/Fitness/));
-    expect(await screen.findByTestId("oh-fitness-locked")).toBeInTheDocument();
-
-    fireEvent.click(await findTab(/Findings/));
-    expect(await screen.findByTestId("oh-findings-locked")).toBeInTheDocument();
-  });
-
-  it("certifies the outcome of the selected assessment", async () => {
-    ohService.fetchFitnessAssessments.mockResolvedValue([ASSESSMENT]);
-    renderPage();
-
-    fireEvent.click(await findTab(/Certificate/));
-    fireEvent.click(await screen.findByRole("button", { name: "Issue certificate" }));
-
-    await waitFor(() =>
-      expect(ohService.createFitnessCertificate).toHaveBeenCalledWith(
-        expect.objectContaining({
-          assessment: 31,
-          payload: { outcome: "fit_with_restrictions" },
-        }),
-      ),
-    );
-  });
-
-  it("links each examination to its findings and fitness outcome", async () => {
-    ohService.fetchFitnessAssessments.mockResolvedValue([ASSESSMENT]);
-    ohService.fetchOhExamFindings.mockResolvedValue([
-      {
-        id: 41,
-        uuid: "f-1",
-        examination: 11,
-        code: "FEV1",
-        numeric_value: "3.2",
-        coded_value: "",
-        unit: "L",
-        recorded_at: "2026-10-26T08:30:00Z",
-        threshold_flag: "none",
+        template_code: "",
+        notes: "",
+        examined_at: "2026-10-26T08:10:00Z",
+        created_at: "2026-10-26T08:10:00Z",
+        updated_at: "2026-10-26T08:10:00Z",
       },
     ]);
+    window.history.replaceState(null, "", "/?panel=certificate");
     renderPage();
 
-    const records = await screen.findByTestId("oh-exam-records");
-    expect(within(records).getByText(/1 finding/)).toBeInTheDocument();
-    expect(within(records).getByText("Fit with restrictions")).toBeInTheDocument();
-  });
-
-  it("follows the active tab in previous records", async () => {
-    renderPage();
-
-    const history = await screen.findByTestId("oh-history-panel");
-    expect(within(history).getByRole("tab", { name: "Exam", selected: true })).toBeInTheDocument();
-
-    fireEvent.click(await findTab(/^Fitness/));
-
-    expect(await screen.findByTestId("oh-fitness-assessment-form")).toBeInTheDocument();
-    expect(within(history).getByRole("tab", { name: "Fitness", selected: true })).toBeInTheDocument();
-    expect(window.location.search).toBe("?tab=fitness");
-  });
-
-  it("opens the tab named in the URL", async () => {
-    window.history.replaceState(null, "", "/?tab=iod");
-    renderPage();
-
-    expect(await screen.findByTestId("oh-iod-form")).toBeInTheDocument();
-  });
-
-  it("saves with Ctrl+Enter from the notes field", async () => {
-    renderPage();
-
-    const notes = await screen.findByLabelText("Notes");
-    fireEvent.change(notes, { target: { value: "Shortcut save" } });
-    fireEvent.keyDown(notes, { key: "Enter", ctrlKey: true });
-
-    await waitFor(() =>
-      expect(ohService.createOhExamination).toHaveBeenCalledWith(
-        expect.objectContaining({ notes: "Shortcut save" }),
-      ),
-    );
+    expect(await screen.findByTestId("oh-fitness-certificate-form")).toBeInTheDocument();
+    expect(screen.getByTestId("oh-certificate-records-empty")).toBeInTheDocument();
+    const nav = screen.getByTestId("oh-encounter-module-nav");
+    expect(within(nav).getByText("Occupational Health Certificate")).toBeInTheDocument();
   });
 
   it("asks for confirmation before withdrawing a certificate", async () => {
     ohService.fetchFitnessAssessments.mockResolvedValue([ASSESSMENT]);
+    ohService.fetchOhExaminations.mockResolvedValue([
+      {
+        id: 11,
+        uuid: "exam-1",
+        encounter: 7,
+        exam_type: "periodic",
+        occupational_attendance: true,
+        template_code: "",
+        notes: "",
+        examined_at: "2026-10-26T08:10:00Z",
+        created_at: "2026-10-26T08:10:00Z",
+        updated_at: "2026-10-26T08:10:00Z",
+      },
+    ]);
     ohService.fetchFitnessCertificates.mockResolvedValue([
       {
         id: 51,
@@ -320,7 +289,7 @@ describe("OhEncounterWorkspacePage", () => {
       },
     ]);
     ohService.withdrawFitnessCertificate.mockResolvedValue({});
-    window.history.replaceState(null, "", "/?tab=certificate");
+    window.history.replaceState(null, "", "/?panel=certificate");
     renderPage();
 
     fireEvent.click(await screen.findByRole("button", { name: "Withdraw" }));

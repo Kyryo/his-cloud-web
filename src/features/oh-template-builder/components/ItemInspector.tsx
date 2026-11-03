@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Archive, ChevronLeft, Diamond } from "lucide-react";
+import { useCallback } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 import { PrimaryButton } from "@/components/ui/app-buttons";
@@ -25,6 +26,7 @@ import {
 import { ItemScheduleEditor } from "@/features/oh-template-builder/components/ItemListEditors";
 import { ResponseFieldsList } from "@/features/oh-template-builder/components/ResponseFieldsList";
 import { normalizeResponseFields } from "@/features/settings/components/modules/occupational-health/template-library/responseConfig";
+import { useInspectorAutosave } from "@/features/oh-template-builder/hooks/useInspectorAutosave";
 import { useTemplateBuilder } from "@/features/oh-template-builder/hooks/useTemplateBuilder";
 import { toUpperCode } from "@/features/oh-template-builder/lib/templateCodes";
 import {
@@ -67,9 +69,12 @@ export function ItemInspector({ attachment, item }: ItemInspectorProps) {
   const isArchiving = isPending(`item:archive:${item.uuid}`);
   const sectionName = attachment.section?.name ?? "Section";
 
-  async function onSubmit(values: ItemFormValues) {
-    await updateItem(attachment.sectionUuid, item, values);
-  }
+  const onSubmit = useCallback(
+    async (values: ItemFormValues) =>
+      updateItem(attachment.sectionUuid, item, values),
+    [attachment.sectionUuid, item, updateItem],
+  );
+  useInspectorAutosave(form, onSubmit);
 
   async function onArchive() {
     const archived = await archiveItem(attachment.sectionUuid, item);
@@ -118,15 +123,23 @@ export function ItemInspector({ attachment, item }: ItemInspectorProps) {
                       </FormItem>
                     )}
                   />
-                  {inheritsFields ? (
-                    <p className="text-[13px] leading-5 text-dash-muted">
-                      {item.effectiveResponseFields.length === 0
-                        ? "Selection only. No follow-up fields after picking this item."
-                        : `${item.effectiveResponseFields.length} field${
-                            item.effectiveResponseFields.length === 1 ? "" : "s"
-                          } from the section default. Turn off inheritance in Settings to replace them.`}
-                    </p>
-                  ) : (
+                  <FormField
+                    control={form.control}
+                    name="inheritsResponseFields"
+                    render={({ field }) => (
+                      <InspectorToggleRow
+                        title="Add additional fields"
+                        control={
+                          <Switch
+                            checked={!field.value}
+                            onCheckedChange={(checked) => field.onChange(!checked)}
+                            aria-label="Add additional fields"
+                          />
+                        }
+                      />
+                    )}
+                  />
+                  {inheritsFields ? null : (
                     <FormField
                       control={form.control}
                       name="overrideResponseFields"
@@ -188,23 +201,6 @@ export function ItemInspector({ attachment, item }: ItemInspectorProps) {
                             checked={field.value}
                             onCheckedChange={field.onChange}
                             aria-label="Required item"
-                          />
-                        }
-                      />
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="inheritsResponseFields"
-                    render={({ field }) => (
-                      <InspectorToggleRow
-                        title="Inherit section fields"
-                        description="Use the section default field list unless you override it for this item."
-                        control={
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            aria-label="Inherit section response fields"
                           />
                         }
                       />

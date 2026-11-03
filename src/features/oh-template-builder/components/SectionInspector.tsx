@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Archive, Layers, Unlink } from "lucide-react";
+import { useCallback } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 import { PrimaryButton } from "@/components/ui/app-buttons";
@@ -29,6 +30,7 @@ import {
   sectionModesFromInteraction,
 } from "@/features/oh-template-builder/components/SelectionModeToggle";
 import { ResponseFieldsList } from "@/features/oh-template-builder/components/ResponseFieldsList";
+import { useInspectorAutosave } from "@/features/oh-template-builder/hooks/useInspectorAutosave";
 import { useTemplateBuilder } from "@/features/oh-template-builder/hooks/useTemplateBuilder";
 import {
   defaultResponseFields,
@@ -70,9 +72,11 @@ export function SectionInspector({ attachment, section }: SectionInspectorProps)
     isPending(`section:detach:${attachment.uuid}`) ||
     isPending(`section:archive:${section.uuid}`);
 
-  async function onSubmit(values: SectionFormValues) {
-    await updateSection(section.uuid, values);
-  }
+  const onSubmit = useCallback(
+    async (values: SectionFormValues) => updateSection(section.uuid, values),
+    [section.uuid, updateSection],
+  );
+  useInspectorAutosave(form, onSubmit);
 
   return (
     <Form {...form}>

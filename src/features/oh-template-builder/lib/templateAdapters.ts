@@ -306,11 +306,7 @@ function createLibraryAdapter(
     },
     updateItem: async (item, input) => {
       const row = await updateOhLibrarySectionItem(item.uuid, itemPayload(item, input));
-      return fromLibraryItem(
-        row,
-        row.effective_response_fields ?? item.effectiveResponseFields,
-        ohLibrarySectionItemLabel(row),
-      );
+      return fromLibraryItem(row, undefined, ohLibrarySectionItemLabel(row));
     },
     archiveItem: async (uuid) => {
       await archiveOhLibrarySectionItem(uuid);

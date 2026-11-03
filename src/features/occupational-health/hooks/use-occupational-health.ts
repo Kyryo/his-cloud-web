@@ -21,17 +21,22 @@ import {
   fetchSickLeaveCertificates,
   fetchSurveillanceRequirements,
 } from "@/features/occupational-health/services/oh.service";
+import { newestFirst } from "@/features/occupational-health/utils/oh-format";
 
 export function useOhEncounters(search?: string) {
   return useQuery({
     queryKey: ["oh-encounters", search ?? ""],
     queryFn: async () => {
       const results = await fetchOhEncounters({ pageSize: 100 });
+      const ordered = newestFirst(
+        results,
+        (row) => row.started_at || row.created_at,
+      );
       if (!search?.trim()) {
-        return results;
+        return ordered;
       }
       const normalized = search.trim().toLowerCase();
-      return results.filter(
+      return ordered.filter(
         (row) =>
           row.department_name.toLowerCase().includes(normalized) ||
           row.status.toLowerCase().includes(normalized) ||

@@ -10,16 +10,13 @@ import { EmptyState } from "@/components/ui/empty-state";
 import {
   DetailPageLayout,
   DetailPageSkeleton,
-  DetailPageTabsSection,
 } from "@/features/app-shell/components/page-layout";
 import { useAppBreadcrumb } from "@/features/app-shell/hooks/use-app-breadcrumb";
+import { OhEncounterContextPanel } from "@/features/occupational-health/components/OhEncounterContextPanel";
 import { OhEncounterHeader } from "@/features/occupational-health/components/OhEncounterHeader";
-import {
-  OH_ENCOUNTER_TABS,
-  OhEncounterTabs,
-} from "@/features/occupational-health/components/OhEncounterTabs";
-import { OhEncounterWorkspaceBody } from "@/features/occupational-health/components/OhEncounterWorkspaceBody";
-import { useOhEncounterTabParam } from "@/features/occupational-health/hooks/use-oh-encounter-tab-param";
+import { OhEncounterModuleNav } from "@/features/occupational-health/components/OhEncounterModuleNav";
+import { OhRiskProfileRequiredEmptyState } from "@/features/occupational-health/components/OhRiskProfileRequiredEmptyState";
+import { useOhEncounterModuleParam } from "@/features/occupational-health/hooks/use-oh-encounter-module-param";
 import {
   useEmploymentEpisodes,
   useOhEncounterWorkspaceData,
@@ -27,6 +24,7 @@ import {
 import { fetchOhEncounters } from "@/features/occupational-health/services/oh.service";
 import type { OhVisitEncounter } from "@/features/occupational-health/types";
 import { canAccessOccupationalHealth } from "@/features/occupational-health/utils/oh-access";
+import { customerHasActiveRiskProfile } from "@/features/occupational-health/utils/customer-has-risk-profile";
 import { fetchCustomer } from "@/features/customers/services/customers.service";
 import { formatCustomerName } from "@/features/customers/utils/format-customer";
 import { fetchVisit } from "@/features/visits/services/visits.service";
@@ -73,7 +71,7 @@ export function OhEncounterWorkspacePage({
 }: OhEncounterWorkspacePageProps) {
   const { userData, isLoading: isUserLoading } = useUser();
   const hasAccess = canAccessOccupationalHealth(userData);
-  const [activeTab, setActiveTab] = useOhEncounterTabParam();
+  const [activePanel, setActivePanel] = useOhEncounterModuleParam();
 
   const visitQuery = useQuery({
     queryKey: ["visit", visitUuid],
@@ -103,26 +101,27 @@ export function OhEncounterWorkspacePage({
   const workspace = useOhEncounterWorkspaceData(encounter?.id ?? null);
   const customer = customerQuery.data ?? null;
   const episodesQuery = useEmploymentEpisodes(customer?.uuid);
+  const episodes = episodesQuery.data ?? [];
 
   useAppBreadcrumb(customer ? formatCustomerName(customer) : "OH encounter");
 
-  const tabCounts = {
-    exam: workspace.examinations.length,
-    fitness: workspace.fitness.length,
-    certificate: workspace.fitnessCertificates.length,
-    iod: workspace.iodCases.length,
-    findings: workspace.findings.length,
-    employment: episodesQuery.data?.length ?? 0,
-  };
+  const episodesLoading = Boolean(customer?.uuid) && episodesQuery.isLoading;
+  const hasRiskProfile = customerHasActiveRiskProfile(episodes);
+  const showRiskProfileEmpty =
+    Boolean(customer?.uuid) &&
+    !episodesLoading &&
+    !hasRiskProfile &&
+    activePanel !== "employment";
 
   if (
     isUserLoading ||
     visitQuery.isLoading ||
-    (!encounterFromVisit && fallbackEncounterQuery.isLoading)
+    (!encounterFromVisit && fallbackEncounterQuery.isLoading) ||
+    episodesLoading
   ) {
     return (
       <DetailPageSkeleton
-        tabCount={OH_ENCOUNTER_TABS.length}
+        tabCount={4}
         data-testid="oh-encounter-workspace-skeleton"
       />
     );
@@ -168,23 +167,34 @@ export function OhEncounterWorkspacePage({
           }
         />
 
-        <DetailPageTabsSection className="xl:min-h-0">
-          <OhEncounterTabs
-            activeTab={activeTab}
-            counts={tabCounts}
-            onTabChange={setActiveTab}
-            className="shrink-0"
+        <div
+          className="grid min-h-0 flex-1 grid-cols-1 xl:grid-cols-[17.5rem_minmax(0,1fr)] xl:grid-rows-[minmax(0,1fr)] 2xl:grid-cols-[19rem_minmax(0,1fr)]"
+          data-testid="oh-encounter-module-layout"
+        >
+          <OhEncounterModuleNav
+            activePanel={activePanel}
+            onPanelChange={setActivePanel}
           />
-          <OhEncounterWorkspaceBody
-            activeTab={activeTab}
-            visitUuid={visitUuid}
-            counts={tabCounts}
-            encounter={encounter}
-            customer={customer}
-            tenantId={userData?.tenant?.id}
-            workspace={workspace}
-          />
-        </DetailPageTabsSection>
+          <section
+            className="flex min-h-0 min-w-0 flex-col bg-white"
+            aria-label="Occupational health content"
+            data-testid="oh-encounter-context-panel"
+          >
+            {showRiskProfileEmpty ? (
+              <OhRiskProfileRequiredEmptyState
+                onManageEmployment={() => setActivePanel("employment")}
+              />
+            ) : (
+              <OhEncounterContextPanel
+                activePanel={activePanel}
+                encounter={encounter}
+                customer={customer}
+                episodes={episodes}
+                workspace={workspace}
+              />
+            )}
+          </section>
+        </div>
       </div>
     </DetailPageLayout>
   );

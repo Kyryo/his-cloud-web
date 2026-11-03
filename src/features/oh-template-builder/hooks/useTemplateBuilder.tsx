@@ -3,8 +3,10 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createContext,
+  useCallback,
   useContext,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -61,6 +63,10 @@ type TemplateBuilderValue = {
   archiveItem: (sectionUuid: string, item: BuilderItem) => Promise<boolean>;
   reorderItems: (sectionUuid: string, orderedUuids: string[]) => Promise<boolean>;
   publishTemplate: () => Promise<boolean>;
+  /** Register a flush callback (e.g. dirty inspector save). Returns unsubscribe. */
+  registerPendingSave: (flush: () => Promise<boolean>) => () => void;
+  /** Await all registered dirty saves before leaving Build (e.g. Preview). */
+  flushPendingSaves: () => Promise<boolean>;
 };
 
 const TemplateBuilderContext = createContext<TemplateBuilderValue | null>(null);
@@ -80,6 +86,21 @@ export function TemplateBuilderProvider({
   const queryClient = useQueryClient();
   const { perform, isPending, isBusy } = useBuilderAction();
   const [selection, select] = useState<BuilderSelection>({ type: "template" });
+  const pendingSavesRef = useRef(new Set<() => Promise<boolean>>());
+
+  const registerPendingSave = useCallback((flush: () => Promise<boolean>) => {
+    pendingSavesRef.current.add(flush);
+    return () => {
+      pendingSavesRef.current.delete(flush);
+    };
+  }, []);
+
+  const flushPendingSaves = useCallback(async () => {
+    const results = await Promise.all(
+      [...pendingSavesRef.current].map(async (flush) => flush()),
+    );
+    return results.every(Boolean);
+  }, []);
 
   const detailKey = templateQueryKeys.detail(kind, templateUuid);
   const attachmentsKey = templateQueryKeys.attachments(kind, templateUuid);
@@ -235,11 +256,14 @@ export function TemplateBuilderProvider({
       }
     },
 
+    registerPendingSave,
+    flushPendingSaves,
+
     updateSection: async (sectionUuid, input) => {
       const updated = await perform(
         `section:update:${sectionUuid}`,
         () => adapter.updateSection(sectionUuid, input),
-        { success: "Section saved", error: "Could not save section" },
+        { error: "Could not save section" },
       );
       if (!updated) {
         return false;
@@ -293,7 +317,7 @@ export function TemplateBuilderProvider({
       const updated = await perform(
         `item:update:${item.uuid}`,
         () => adapter.updateItem(item, input),
-        { success: "Item saved", error: "Could not save item" },
+        { error: "Could not save item" },
       );
       if (!updated) {
         return false;
