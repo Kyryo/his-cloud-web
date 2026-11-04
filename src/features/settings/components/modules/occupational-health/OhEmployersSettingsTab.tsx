@@ -1,7 +1,7 @@
 "use client";
 
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, Building2, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
@@ -10,23 +10,13 @@ import { fetchOhEmployersPage } from "@/features/occupational-health/services/oh
 import type { OhEmployer } from "@/features/occupational-health/types";
 import { OhCreateEmployerDialog } from "@/features/settings/components/modules/occupational-health/OhCreateEmployerDialog";
 import { OhEmployerWorkspaceSheet } from "@/features/settings/components/modules/occupational-health/OhEmployerWorkspaceSheet";
-import {
-  employerInitials,
-  monogramToneIndex,
-} from "@/features/settings/components/modules/occupational-health/employerMonogram";
 import { getErrorMessage } from "@/lib/fetch-error";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 10;
 const EMPLOYERS_QUERY_KEY = ["oh-employers", "settings-directory"] as const;
 const ROW_GRID =
-  "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 sm:grid-cols-[minmax(0,1fr)_11rem_6.5rem_1.25rem]";
-
-const MONOGRAM_TONES = [
-  "bg-brand-tint text-brand-primary",
-  "bg-brand-green-tint text-brand-green",
-  "bg-brand-warm text-brand-amber",
-] as const;
+  "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 sm:grid-cols-[minmax(0,1.4fr)_11rem_7rem]";
 
 type OhEmployersSettingsTabProps = {
   isActive: boolean;
@@ -57,36 +47,33 @@ export function OhEmployersSettingsTab({ isActive }: OhEmployersSettingsTabProps
   }
 
   return (
-    <section className="pt-6" aria-labelledby="oh-employers-title">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="max-w-[56ch]">
-          <div className="flex items-baseline gap-3">
-            <h2
-              id="oh-employers-title"
-              className="text-xl font-semibold tracking-tight text-brand-navy"
-            >
-              Employers
-            </h2>
+    <section className="pt-5" aria-labelledby="oh-employers-title">
+      <header className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h2 id="oh-employers-title" className="text-[15px] font-semibold text-brand-navy">
+            Employers
             {employersQuery.isSuccess ? (
-              <span className="text-sm tabular-nums text-dash-muted">{totalCount}</span>
+              <span className="ml-2 text-[13px] font-normal tabular-nums text-dash-muted">
+                {totalCount}
+              </span>
             ) : null}
-          </div>
-          <p className="mt-1.5 text-sm leading-6 text-dash-muted">
-            Companies whose staff you examine. Open one to set up its risk profiles,
-            departments and job titles.
+          </h2>
+          <p className="mt-0.5 text-[13px] text-dash-muted">
+            Open a company to set its risk profiles, departments and job titles.
           </p>
         </div>
         <PrimaryButton
           type="button"
+          size="sm"
           onClick={() => setIsCreating(true)}
-          className="shrink-0 gap-1.5 active:translate-y-px"
+          className="h-8 shrink-0 gap-1.5 px-3 text-[13px]"
         >
-          <Plus className="size-4" aria-hidden />
+          <Plus className="size-3.5" aria-hidden />
           Add employer
         </PrimaryButton>
       </header>
 
-      <div className="mt-8">
+      <div className="mt-4">
         {employersQuery.isPending ? (
           <DirectorySkeleton />
         ) : employersQuery.isError ? (
@@ -110,13 +97,12 @@ export function OhEmployersSettingsTab({ isActive }: OhEmployersSettingsTabProps
               aria-hidden
               className={cn(
                 ROW_GRID,
-                "hidden border-b border-dash-border pb-2.5 pl-3 pr-2 text-xs font-medium text-dash-muted sm:grid",
+                "hidden border-b border-dash-border px-2 pb-2 text-[12px] font-medium text-dash-muted sm:grid",
               )}
             >
               <span>Employer</span>
               <span>Registration no.</span>
               <span>Status</span>
-              <span />
             </div>
             <ul
               className={cn(
@@ -183,7 +169,6 @@ export function OhEmployersSettingsTab({ isActive }: OhEmployersSettingsTabProps
 
 function EmployerRow({ employer, onOpen }: { employer: OhEmployer; onOpen: () => void }) {
   const isActive = employer.is_active !== false;
-  const tone = MONOGRAM_TONES[monogramToneIndex(employer.uuid, MONOGRAM_TONES.length)];
 
   return (
     <button
@@ -191,90 +176,59 @@ function EmployerRow({ employer, onOpen }: { employer: OhEmployer; onOpen: () =>
       onClick={onOpen}
       className={cn(
         ROW_GRID,
-        "group relative w-full py-3.5 pl-3 pr-2 text-left transition-colors duration-200",
-        "hover:bg-brand-tint/35 focus-visible:bg-brand-tint/35 focus-visible:outline-none",
-        "before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:origin-center before:scale-y-0 before:rounded-full before:bg-brand-primary before:transition-transform before:duration-200",
-        "hover:before:scale-y-100 focus-visible:before:scale-y-100 motion-reduce:before:transition-none",
+        "w-full px-2 py-3 text-left hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none",
       )}
     >
-      <span className="flex min-w-0 items-center gap-3.5">
+      <span className="min-w-0">
         <span
-          aria-hidden
           className={cn(
-            "flex size-10 shrink-0 items-center justify-center rounded-full text-[13px] font-semibold tracking-wide",
-            isActive ? tone : "bg-slate-100 text-slate-400",
+            "block truncate text-[13.5px] font-medium",
+            isActive ? "text-brand-navy" : "text-dash-muted",
           )}
         >
-          {employerInitials(employer.name)}
+          {employer.name}
         </span>
-        <span className="min-w-0">
-          <span
-            className={cn(
-              "block truncate text-[15px] font-medium",
-              isActive ? "text-brand-navy" : "text-dash-muted",
-            )}
-          >
-            {employer.name}
-          </span>
-          <span className="mt-0.5 block truncate font-mono text-xs text-dash-muted">
-            {employer.code || "No code"}
-            <span className="font-sans sm:hidden">
-              {employer.registration_number ? `, ${employer.registration_number}` : ""}
-            </span>
+        <span className="mt-0.5 block truncate text-[12px] text-dash-muted">
+          {employer.code || "No code"}
+          <span className="sm:hidden">
+            {employer.registration_number ? ` · ${employer.registration_number}` : ""}
           </span>
         </span>
       </span>
 
-      <span className="hidden truncate text-sm tabular-nums text-brand-slate sm:block">
-        {employer.registration_number || <span className="text-slate-300">Not set</span>}
+      <span className="hidden truncate text-[13px] text-brand-slate sm:block">
+        {employer.registration_number || <span className="text-dash-muted">Not set</span>}
       </span>
 
       <span
         className={cn(
-          "hidden items-center gap-2 text-sm sm:inline-flex",
+          "hidden text-[13px] sm:block",
           isActive ? "text-brand-navy" : "text-dash-muted",
         )}
       >
-        <span
-          aria-hidden
-          className={cn(
-            "size-1.5 rounded-full",
-            isActive ? "bg-emerald-500" : "bg-slate-300",
-          )}
-        />
         {isActive ? "Active" : "Inactive"}
       </span>
-
-      <ArrowRight
-        className="size-4 text-slate-300 transition-[color,transform] duration-200 group-hover:translate-x-0.5 group-hover:text-brand-primary motion-reduce:transition-none"
-        aria-hidden
-      />
     </button>
   );
 }
 
 function EmptyDirectory({ onAdd }: { onAdd: () => void }) {
   return (
-    <div className="grid items-center gap-8 border-y border-dash-border py-12 sm:grid-cols-[auto_minmax(0,1fr)] sm:gap-10 sm:px-4">
-      <div aria-hidden className="relative mx-auto size-24 sm:mx-0">
-        <span className="absolute inset-0 rounded-full border border-dashed border-brand-primary/30" />
-        <span className="absolute inset-3 rounded-full bg-brand-tint" />
-        <Building2
-          className="absolute left-1/2 top-1/2 size-8 -translate-x-1/2 -translate-y-1/2 text-brand-primary"
-          strokeWidth={1.5}
-        />
-      </div>
-      <div className="text-center sm:text-left">
-        <p className="text-base font-semibold text-brand-navy">No employers yet</p>
-        <p className="mt-1 max-w-[46ch] text-sm leading-6 text-dash-muted">
-          Add the first company you examine for. Its risk profiles, departments and job
-          titles decide which exams and certificates its staff need.
-        </p>
-        <PrimaryButton type="button" onClick={onAdd} className="mt-4 gap-1.5">
-          <Plus className="size-4" aria-hidden />
-          Add employer
-        </PrimaryButton>
-      </div>
+    <div className="border-b border-dash-border py-14 text-center">
+      <p className="text-[15px] font-semibold text-brand-navy">No employers yet</p>
+      <p className="mx-auto mt-1 max-w-sm text-[13px] leading-relaxed text-dash-muted">
+        Add the first company you examine for. Its risk profiles, departments and job
+        titles decide which exams and certificates its staff need.
+      </p>
+      <PrimaryButton
+        type="button"
+        size="sm"
+        onClick={onAdd}
+        className="mt-4 h-8 gap-1.5 px-3 text-[13px]"
+      >
+        <Plus className="size-3.5" aria-hidden />
+        Add employer
+      </PrimaryButton>
     </div>
   );
 }
@@ -283,17 +237,13 @@ function DirectorySkeleton() {
   return (
     <div className="divide-y divide-dash-border border-t border-dash-border" aria-hidden>
       {[0, 1, 2, 3, 4].map((row) => (
-        <div key={row} className={cn(ROW_GRID, "py-3.5 pl-3 pr-2")}>
-          <span className="flex items-center gap-3.5">
-            <span className="size-10 animate-pulse rounded-full bg-slate-100" />
-            <span className="space-y-1.5">
-              <span className="block h-3.5 w-44 animate-pulse rounded bg-slate-100" />
-              <span className="block h-3 w-16 animate-pulse rounded bg-slate-100" />
-            </span>
+        <div key={row} className={cn(ROW_GRID, "px-2 py-3")}>
+          <span className="space-y-1.5">
+            <span className="block h-3.5 w-44 animate-pulse rounded bg-slate-100" />
+            <span className="block h-3 w-16 animate-pulse rounded bg-slate-100" />
           </span>
           <span className="hidden h-3.5 w-24 animate-pulse rounded bg-slate-100 sm:block" />
           <span className="hidden h-3.5 w-14 animate-pulse rounded bg-slate-100 sm:block" />
-          <span />
         </div>
       ))}
     </div>

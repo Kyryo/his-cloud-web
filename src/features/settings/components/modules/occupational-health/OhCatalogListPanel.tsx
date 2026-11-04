@@ -1,8 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { ChevronRight } from "lucide-react";
 
+import { PrimaryButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
 import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { SettingsPanelSection } from "@/features/settings/components/SettingsPageLayout";
@@ -49,11 +49,15 @@ export function OhCatalogListPanel({
         <div
           className={cn(
             "rounded-xl border border-dashed border-dash-border/80 bg-slate-50/60 px-4 py-8 text-center",
-            embedded && "bg-transparent",
+            embedded && "rounded-none border-0 border-b border-solid bg-transparent px-0 py-12",
           )}
         >
-          <p className="text-sm font-medium text-brand-navy">{emptyTitle}</p>
-          <p className="mt-1 text-sm text-slate-400">{emptyDescription}</p>
+          <p className={cn("text-sm font-medium text-brand-navy", embedded && "text-[15px]")}>
+            {emptyTitle}
+          </p>
+          <p className={cn("mt-1 text-sm text-slate-400", embedded && "text-[13px] text-dash-muted")}>
+            {emptyDescription}
+          </p>
         </div>
       ) : (
         children
@@ -63,20 +67,17 @@ export function OhCatalogListPanel({
 
   if (embedded) {
     return (
-      <div className="space-y-4">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0 space-y-0.5">
-            <h3 className="text-sm font-semibold text-brand-navy">{title}</h3>
-            <p className="text-[13px] leading-5 text-slate-400">{description}</p>
-          </div>
-          <Button
+      <div>
+        <div className="mb-1 flex items-center justify-between gap-3">
+          <p className="min-w-0 text-[13px] text-dash-muted">{description}</p>
+          <PrimaryButton
             type="button"
             size="sm"
-            className="shrink-0"
+            className="h-8 shrink-0 px-3 text-[13px]"
             onClick={onAdd}
           >
             {addLabel}
-          </Button>
+          </PrimaryButton>
         </div>
         {body}
       </div>
@@ -141,66 +142,56 @@ export function OhCatalogRow({
         <button
           type="button"
           onClick={onSelect}
-          className="group flex w-full items-center gap-3 rounded-xl px-3 py-3.5 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30"
+          className="flex w-full items-center gap-3 py-3 text-left hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30"
         >
           <CatalogColorSwatch color={color} />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-brand-navy">
-              {title}
-            </p>
+            <p className="truncate text-[13.5px] font-medium text-brand-navy">{title}</p>
             {meta ? (
-              <p className="mt-0.5 truncate text-sm text-slate-400">{meta}</p>
+              <p className="mt-0.5 truncate text-[12px] text-dash-muted">{meta}</p>
             ) : null}
           </div>
-          <span className="shrink-0 text-xs text-slate-400">
+          <span className="shrink-0 text-[12px] text-dash-muted">
             {isActive ? "Active" : "Archived"}
           </span>
-          <ChevronRight
-            className="size-4 shrink-0 text-slate-300 transition-colors group-hover:text-brand-navy"
-            aria-hidden
-          />
         </button>
       </li>
     );
   }
 
   return (
-    <li className="flex flex-col gap-3 py-3.5 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+    <li className="flex items-center justify-between gap-3 py-3">
       <div className="flex min-w-0 items-start gap-2.5">
         <CatalogColorSwatch color={color} />
         <div className="min-w-0">
-          <p className="truncate text-sm font-medium text-brand-navy">{title}</p>
+          <p className="truncate text-[13.5px] font-medium text-brand-navy">{title}</p>
           {meta ? (
-            <p className="mt-0.5 truncate text-sm text-slate-400">{meta}</p>
+            <p className="mt-0.5 truncate text-[12px] text-dash-muted">{meta}</p>
           ) : null}
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-3">
-        <span className="text-xs text-slate-400">
+        <span className="text-[12px] text-dash-muted">
           {isActive ? "Active" : "Archived"}
         </span>
         {onEdit ? (
-          <Button
+          <button
             type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 text-brand-muted hover:text-brand-navy"
+            className="text-[13px] font-medium text-brand-primary hover:underline"
             onClick={onEdit}
           >
             Edit
-          </Button>
+          </button>
         ) : null}
         {onArchive ? (
-          <Button
+          <button
             type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 text-brand-muted hover:text-brand-navy"
+            className="text-[13px] text-dash-muted hover:text-brand-navy disabled:opacity-50"
             disabled={archiving || !isActive}
             onClick={onArchive}
           >
-            Archive
-          </Button>
+            {archiving ? "Archiving" : "Archive"}
+          </button>
         ) : null}
       </div>
     </li>

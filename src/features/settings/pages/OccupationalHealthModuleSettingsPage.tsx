@@ -45,7 +45,7 @@ export function OccupationalHealthModuleSettingsPage() {
     <SettingsPageLayout
       title="Occupational health"
       description="Manage employers and the shared exam catalog used by programmes."
-      className="max-w-3xl"
+      className="max-w-5xl"
     >
       <OhModuleSettingsTabs />
     </SettingsPageLayout>

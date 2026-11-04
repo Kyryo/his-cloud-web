@@ -4,10 +4,10 @@ import { Suspense, useMemo } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
-import { SettingsUnderlineTabs } from "@/features/settings/components/SettingsPageLayout";
 import { OhCatalogSettingsTab } from "@/features/settings/components/modules/occupational-health/OhCatalogSettingsTab";
 import { OhEmployersSettingsTab } from "@/features/settings/components/modules/occupational-health/OhEmployersSettingsTab";
 import { OhExamTemplatesSettingsTab } from "@/features/settings/components/modules/occupational-health/OhExamTemplatesSettingsTab";
+import { cn } from "@/lib/utils";
 
 export type OhModuleTabId = "employers" | "catalog" | "exam-templates";
 
@@ -49,13 +49,31 @@ function OhModuleSettingsTabsInner() {
 
   return (
     <div>
-      <SettingsUnderlineTabs
-        tabs={TABS}
-        activeTab={activeTab}
-        onChange={setActiveTab}
-        ariaLabel="Occupational health module settings"
-      />
-      <div className="pt-2">
+      <nav
+        aria-label="Occupational health module settings"
+        className="flex gap-6 border-b border-dash-border"
+      >
+        {TABS.map((tab) => {
+          const selected = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              aria-current={selected ? "page" : undefined}
+              className={cn(
+                "-mb-px border-b-2 pb-2.5 text-[13px]",
+                selected
+                  ? "border-brand-navy font-medium text-brand-navy"
+                  : "border-transparent text-dash-muted hover:text-brand-navy",
+              )}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </nav>
+      <div>
         <OhEmployersSettingsTab isActive={activeTab === "employers"} />
         <OhCatalogSettingsTab isActive={activeTab === "catalog"} />
         <OhExamTemplatesSettingsTab

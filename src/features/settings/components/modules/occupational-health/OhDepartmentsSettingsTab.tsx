@@ -181,7 +181,7 @@ export function OhDepartmentsSettingsTab({
     <>
       <OhCatalogListPanel
         title="Departments"
-        description={`Organizational units at ${employer.name}.`}
+        description="Units used when placing workers."
         addLabel="Add department"
         onAdd={openCreate}
         isLoading={isLoading}

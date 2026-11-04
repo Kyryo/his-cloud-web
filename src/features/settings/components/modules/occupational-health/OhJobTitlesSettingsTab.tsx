@@ -218,7 +218,7 @@ export function OhJobTitlesSettingsTab({
     <>
       <OhCatalogListPanel
         title="Job titles"
-        description={`Roles for ${employer.name} used on employment episodes.`}
+        description="Roles recorded on employment episodes."
         addLabel="Add job title"
         onAdd={openCreate}
         isLoading={isLoading}

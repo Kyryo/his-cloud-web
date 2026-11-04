@@ -2,19 +2,17 @@
 
 import { useEffect, useMemo, useState } from "react";
 
-import {
-  PrimaryButton,
-  SecondaryButton,
-} from "@/components/ui/app-buttons";
+import { PrimaryButton } from "@/components/ui/app-buttons";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
 import { SearchableSelect, SelectItem } from "@/components/ui/searchable-select";
 import {
   Select,
@@ -27,7 +25,6 @@ import {
   OhCatalogListPanel,
   OhCatalogRow,
 } from "@/features/settings/components/modules/occupational-health/OhCatalogListPanel";
-import { TagColorField } from "@/features/settings/components/ClientTagFormFields";
 import {
   archiveOhHazardProfile,
   createOhHazardProfile,
@@ -44,6 +41,7 @@ import type {
   OhHazardProfile,
 } from "@/features/occupational-health/types";
 import { BffError } from "@/lib/bff-client";
+import { appFont } from "@/lib/fonts";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
@@ -58,13 +56,6 @@ const SCHEDULE_UNITS: Array<{
   { value: "week", label: "weeks" },
   { value: "month", label: "months" },
   { value: "year", label: "years" },
-];
-
-type DialogTabId = "general" | "schedule";
-
-const DIALOG_TABS: Array<{ id: DialogTabId; label: string }> = [
-  { id: "general", label: "General" },
-  { id: "schedule", label: "Schedule" },
 ];
 
 type TemplateOption = {
@@ -125,7 +116,7 @@ function OhTemplateSearchableSelect({
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       <Label htmlFor={id}>{label}</Label>
       <SearchableSelect
         id={id}
@@ -137,7 +128,7 @@ function OhTemplateSearchableSelect({
         }}
         open={open}
         onOpenChange={handleOpenChange}
-        placeholder="Select a template…"
+        placeholder="Select a template"
         displayValue={
           value === NONE_TEMPLATE
             ? noneLabel
@@ -193,7 +184,6 @@ export function OhHazardProfilesSettingsTab({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [dialogTab, setDialogTab] = useState<DialogTabId>("general");
   const [editing, setEditing] = useState<OhHazardProfile | null>(null);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
@@ -252,7 +242,6 @@ export function OhHazardProfilesSettingsTab({
 
   function resetForm() {
     setEditing(null);
-    setDialogTab("general");
     setName("");
     setCode("");
     setColor(DEFAULT_COLOR);
@@ -269,7 +258,6 @@ export function OhHazardProfilesSettingsTab({
 
   function openEdit(row: OhHazardProfile) {
     setEditing(row);
-    setDialogTab("general");
     setName(row.name);
     setCode(row.code ?? "");
     setColor(row.color?.trim() || DEFAULT_COLOR);
@@ -373,7 +361,7 @@ export function OhHazardProfilesSettingsTab({
     <>
       <OhCatalogListPanel
         title="Risk profiles"
-        description={`Workplace risk bundles for ${employer.name}, linked to COF and exam templates.`}
+        description="Linked to a certificate and an exam template."
         addLabel="Add risk profile"
         onAdd={openCreate}
         isLoading={isLoading}
@@ -421,167 +409,123 @@ export function OhHazardProfilesSettingsTab({
           }
         }}
       >
-        <DialogContent className="flex max-h-[90vh] w-full max-w-lg flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
-          <DialogHeader className="shrink-0 space-y-1 border-b border-dash-border/70 px-6 py-5 pr-14 text-left">
+        <DialogContent
+          className={cn(
+            appFont.className,
+            "flex max-h-[90vh] w-full max-w-md flex-col gap-0 overflow-hidden p-0",
+          )}
+        >
+          <DialogHeader className="shrink-0 px-5 pb-4 pt-5 text-left">
             <DialogTitle>
               {editing ? "Edit risk profile" : "Add risk profile"}
             </DialogTitle>
-            <DialogDescription>
-              Templates, color, and assessment cadence for {employer.name}.
-            </DialogDescription>
           </DialogHeader>
-          <nav
-            aria-label="Risk profile sections"
-            className="flex gap-5 border-b border-dash-border/70 px-6"
-          >
-            {DIALOG_TABS.map((tab) => {
-              const isActiveTab = dialogTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => setDialogTab(tab.id)}
-                  className={cn(
-                    "relative -mb-px shrink-0 pb-2.5 pt-3 text-sm transition-colors",
-                    isActiveTab
-                      ? "font-medium text-brand-navy"
-                      : "text-dash-muted hover:text-brand-navy",
-                  )}
-                >
-                  {tab.label}
-                  {isActiveTab ? (
-                    <span className="absolute inset-x-0 bottom-0 h-px bg-brand-navy" />
-                  ) : null}
-                </button>
-              );
-            })}
-          </nav>
           <form
-            className="flex min-h-0 flex-1 flex-col"
+            className="flex min-h-0 flex-1 flex-col border-t border-dash-border"
             onSubmit={(event) => void handleSubmit(event)}
           >
-            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
-              {dialogTab === "general" ? (
-                <>
-                  <div className="space-y-2">
-                    <Label htmlFor="oh-profile-name">Name</Label>
-                    <Input
-                      id="oh-profile-name"
-                      value={name}
-                      onChange={(event) => setName(event.target.value)}
-                      autoFocus
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="oh-profile-code">Code</Label>
-                    <Input
-                      id="oh-profile-code"
-                      value={code}
-                      onChange={(event) => setCode(event.target.value)}
-                    />
-                  </div>
-                  <TagColorField value={color} onChange={setColor} />
-                  <OhTemplateSearchableSelect
-                    id="oh-profile-cof"
-                    label="COF template"
-                    value={cofTemplateUuid}
-                    onChange={setCofTemplateUuid}
-                    options={cofTemplates}
-                    searchPlaceholder="Search COF templates…"
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="oh-profile-name">
+                    Name <RequiredFieldMarker />
+                  </Label>
+                  <Input
+                    id="oh-profile-name"
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                    autoFocus
+                    required
                   />
-                  <OhTemplateSearchableSelect
-                    id="oh-profile-exam"
-                    label="Exam template"
-                    value={examTemplateUuid}
-                    onChange={setExamTemplateUuid}
-                    options={examTemplates}
-                    searchPlaceholder="Search exam templates…"
-                  />
-                </>
-              ) : (
-                <div className="space-y-4">
-                  <div>
-                    <h3 className="text-sm font-semibold text-brand-navy">
-                      Assessment schedule
-                    </h3>
-                    <p className="mt-0.5 text-[13px] text-slate-400">
-                      How often people on this risk profile should undergo an
-                      assessment. Leave blank if there is no fixed cadence.
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap items-end gap-3">
-                    <div className="space-y-2">
-                      <Label htmlFor="oh-profile-interval">Every</Label>
-                      <Input
-                        id="oh-profile-interval"
-                        type="number"
-                        min={1}
-                        inputMode="numeric"
-                        value={assessmentInterval}
-                        onChange={(event) =>
-                          setAssessmentInterval(event.target.value)
-                        }
-                        placeholder="e.g. 12"
-                        className="w-28"
-                      />
-                    </div>
-                    <div className="min-w-[8rem] flex-1 space-y-2">
-                      <Label htmlFor="oh-profile-interval-unit">Unit</Label>
-                      <Select
-                        value={assessmentIntervalUnit}
-                        onValueChange={(value) =>
-                          setAssessmentIntervalUnit(
-                            value as OhAssessmentIntervalUnit,
-                          )
-                        }
-                      >
-                        <SelectTrigger id="oh-profile-interval-unit">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {SCHEDULE_UNITS.map((unit) => (
-                            <PlainSelectItem key={unit.value} value={unit.value}>
-                              {unit.label}
-                            </PlainSelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  {formatScheduleSummary(
-                    Number.parseInt(assessmentInterval, 10) || null,
-                    assessmentIntervalUnit,
-                  ) ? (
-                    <p className="text-sm text-brand-slate">
-                      {formatScheduleSummary(
-                        Number.parseInt(assessmentInterval, 10) || null,
-                        assessmentIntervalUnit,
-                      )}
-                    </p>
-                  ) : (
-                    <p className="text-sm text-slate-400">Not scheduled.</p>
-                  )}
                 </div>
-              )}
+                <div className="space-y-1.5">
+                  <Label htmlFor="oh-profile-code">Code</Label>
+                  <Input
+                    id="oh-profile-code"
+                    value={code}
+                    onChange={(event) => setCode(event.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="oh-profile-color">Color</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="oh-profile-color"
+                    type="color"
+                    value={/^#(?:[0-9a-fA-F]{3}){1,2}$/.test(color.trim()) ? color.trim() : DEFAULT_COLOR}
+                    onChange={(event) => setColor(event.target.value)}
+                    className="size-9 shrink-0 cursor-pointer rounded-md border border-dash-border bg-white p-1"
+                    aria-label="Color"
+                  />
+                  <Input
+                    value={color}
+                    onChange={(event) => setColor(event.target.value)}
+                    className="font-mono text-[13px]"
+                    aria-label="Color value"
+                  />
+                </div>
+              </div>
+              <OhTemplateSearchableSelect
+                id="oh-profile-cof"
+                label="COF template"
+                value={cofTemplateUuid}
+                onChange={setCofTemplateUuid}
+                options={cofTemplates}
+                searchPlaceholder="Search COF templates"
+              />
+              <OhTemplateSearchableSelect
+                id="oh-profile-exam"
+                label="Exam template"
+                value={examTemplateUuid}
+                onChange={setExamTemplateUuid}
+                options={examTemplates}
+                searchPlaceholder="Search exam templates"
+              />
+              <div className="space-y-1.5">
+                <Label htmlFor="oh-profile-interval">Assessment every</Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="oh-profile-interval"
+                    type="number"
+                    min={1}
+                    inputMode="numeric"
+                    value={assessmentInterval}
+                    onChange={(event) => setAssessmentInterval(event.target.value)}
+                    placeholder="12"
+                    className="w-24"
+                  />
+                  <Select
+                    value={assessmentIntervalUnit}
+                    onValueChange={(value) =>
+                      setAssessmentIntervalUnit(value as OhAssessmentIntervalUnit)
+                    }
+                  >
+                    <SelectTrigger id="oh-profile-interval-unit" className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className={appFont.className}>
+                      {SCHEDULE_UNITS.map((unit) => (
+                        <PlainSelectItem key={unit.value} value={unit.value}>
+                          {unit.label}
+                        </PlainSelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
-            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-dash-border/60 bg-white px-6 py-4">
-              <SecondaryButton
+            <div className="flex shrink-0 items-center justify-end gap-2 border-t border-dash-border px-5 py-3">
+              <Button
                 type="button"
+                variant="outline"
                 onClick={() => setDialogOpen(false)}
                 disabled={isSubmitting}
               >
                 Cancel
-              </SecondaryButton>
-              <PrimaryButton
-                type="submit"
-                disabled={isSubmitting || !name.trim()}
-              >
-                {isSubmitting
-                  ? "Saving…"
-                  : editing
-                    ? "Save changes"
-                    : "Save profile"}
+              </Button>
+              <PrimaryButton type="submit" disabled={isSubmitting || !name.trim()}>
+                {isSubmitting ? "Saving" : editing ? "Save changes" : "Add profile"}
               </PrimaryButton>
             </div>
           </form>

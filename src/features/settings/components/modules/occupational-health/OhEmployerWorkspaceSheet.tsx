@@ -1,22 +1,19 @@
 "use client";
 
-import { Loader2, Pencil } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
-import {
-  PrimaryButton,
-  SecondaryButton,
-} from "@/components/ui/app-buttons";
+import { PrimaryButton } from "@/components/ui/app-buttons";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
 import {
   Sheet,
   SheetContent,
@@ -169,41 +166,30 @@ export function OhEmployerWorkspaceSheet({
           )}
           data-testid="oh-employer-workspace-sheet"
         >
-          <SheetHeader className="space-y-0 border-b border-dash-border/70 px-6 py-5 pr-14 text-left">
-            <div className="flex items-start gap-4">
-              <div className="min-w-0 flex-1">
-                <SheetTitle className="text-[11px] font-medium uppercase tracking-[0.08em] text-dash-muted">
-                  Employer
+          <SheetHeader className="space-y-0 border-b border-dash-border px-5 py-4 pr-12 text-left">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <SheetTitle className="truncate text-[16px] font-semibold tracking-tight text-brand-navy">
+                  {employer?.name ?? "Employer"}
                 </SheetTitle>
-                <p className="mt-1 truncate text-lg font-semibold tracking-tight text-brand-navy">
-                  {employer?.name ?? "—"}
-                </p>
-                {meta ? (
-                  <p className="mt-1 truncate text-sm text-dash-muted">
-                    {meta}
-                  </p>
-                ) : null}
+                <SheetDescription className="mt-0.5 truncate text-[13px] text-dash-muted">
+                  {meta || "Risk profiles, departments and job titles."}
+                </SheetDescription>
               </div>
-              <Button
+              <button
                 type="button"
-                variant="ghost"
-                size="sm"
-                className="shrink-0 gap-1.5 text-brand-muted hover:text-brand-navy"
                 onClick={openEdit}
                 disabled={!employer}
+                className="shrink-0 text-[13px] font-medium text-brand-primary hover:underline disabled:opacity-50"
               >
-                <Pencil className="size-3.5" aria-hidden />
                 Edit
-              </Button>
+              </button>
             </div>
-            <SheetDescription className="sr-only">
-              Configure catalogs for {employer?.name ?? "this employer"}
-            </SheetDescription>
           </SheetHeader>
 
           <nav
             aria-label="Employer catalogs"
-            className="flex gap-5 overflow-x-auto border-b border-dash-border/70 px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="flex gap-6 overflow-x-auto border-b border-dash-border px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {TABS.map((tab) => {
               const isActive = activeTab === tab.id;
@@ -212,23 +198,21 @@ export function OhEmployerWorkspaceSheet({
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
+                  aria-current={isActive ? "page" : undefined}
                   className={cn(
-                    "relative -mb-px shrink-0 pb-2.5 pt-3 text-sm transition-colors",
+                    "-mb-px shrink-0 border-b-2 py-2.5 text-[13px]",
                     isActive
-                      ? "font-medium text-brand-navy"
-                      : "text-dash-muted hover:text-brand-navy",
+                      ? "border-brand-navy font-medium text-brand-navy"
+                      : "border-transparent text-dash-muted hover:text-brand-navy",
                   )}
                 >
                   {tab.label}
-                  {isActive ? (
-                    <span className="absolute inset-x-0 bottom-0 h-px bg-brand-navy" />
-                  ) : null}
                 </button>
               );
             })}
           </nav>
 
-          <div className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4">
             {employer ? (
               <>
                 <OhHazardProfilesSettingsTab
@@ -250,45 +234,38 @@ export function OhEmployerWorkspaceSheet({
             ) : null}
           </div>
 
-          <div className="flex flex-wrap items-center justify-end gap-2 border-t border-dash-border/60 bg-white px-6 py-4">
-            <SecondaryButton
+          <div className="flex items-center justify-between border-t border-dash-border px-5 py-3">
+            <button
               type="button"
-              onClick={() => onOpenChange(false)}
-              disabled={isArchiving}
-            >
-              Done
-            </SecondaryButton>
-            <Button
-              type="button"
-              variant="ghost"
-              className="text-red-600 hover:bg-red-50 hover:text-red-700"
+              className="inline-flex items-center gap-1.5 text-[13px] text-red-700 hover:underline disabled:opacity-50"
               disabled={!employer || isArchiving}
               onClick={() => void handleArchive()}
             >
               {isArchiving ? (
-                <>
-                  <Loader2 className="size-4 animate-spin" aria-hidden />
-                  Archiving…
-                </>
-              ) : (
-                "Archive employer"
-              )}
-            </Button>
+                <Loader2 className="size-3.5 animate-spin" aria-hidden />
+              ) : null}
+              {isArchiving ? "Archiving" : "Archive employer"}
+            </button>
+            <span className="text-[12px] text-dash-muted">
+              {employer?.is_active === false ? "Inactive" : "Active"}
+            </span>
           </div>
         </SheetContent>
       </Sheet>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className={cn(appFont.className, "gap-0 p-0 sm:max-w-md")}>
+          <DialogHeader className="px-5 pb-4 pt-5">
             <DialogTitle>Edit employer</DialogTitle>
           </DialogHeader>
           <form
-            className="space-y-4"
+            className="space-y-4 border-t border-dash-border px-5 py-4"
             onSubmit={(event) => void handleSaveEmployer(event)}
           >
-            <div className="space-y-2">
-              <Label htmlFor="oh-employer-edit-name">Name</Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="oh-employer-edit-name">
+                Name <RequiredFieldMarker />
+              </Label>
               <Input
                 id="oh-employer-edit-name"
                 value={name}
@@ -296,7 +273,7 @@ export function OhEmployerWorkspaceSheet({
                 required
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="oh-employer-edit-code">Code</Label>
               <Input
                 id="oh-employer-edit-code"
@@ -304,7 +281,7 @@ export function OhEmployerWorkspaceSheet({
                 onChange={(event) => setCode(event.target.value)}
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5">
               <Label htmlFor="oh-employer-edit-reg">Registration number</Label>
               <Input
                 id="oh-employer-edit-reg"
@@ -312,7 +289,7 @@ export function OhEmployerWorkspaceSheet({
                 onChange={(event) => setRegistrationNumber(event.target.value)}
               />
             </div>
-            <DialogFooter>
+            <div className="flex justify-end gap-2 border-t border-dash-border pt-3">
               <Button
                 type="button"
                 variant="outline"
@@ -324,9 +301,9 @@ export function OhEmployerWorkspaceSheet({
                 type="submit"
                 disabled={isSubmitting || !name.trim()}
               >
-                {isSubmitting ? "Saving…" : "Save changes"}
+                {isSubmitting ? "Saving" : "Save changes"}
               </PrimaryButton>
-            </DialogFooter>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
