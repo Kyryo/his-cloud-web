@@ -1,10 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import type { KeyboardEvent, ReactNode } from "react";
 
-import {
-  OpdConsultColumnHeader,
-  OpdConsultCountBadge,
-} from "@/features/clinical-opd/components/detail/OpdConsultColumnHeader";
 import { cn } from "@/lib/utils";
 
 /** On desktop the columns fill the remaining viewport and each scrolls on its own. */
@@ -85,14 +81,19 @@ export function OhColumnPanel({
   children,
 }: OhColumnPanelProps) {
   return (
-    <div className="flex flex-1 flex-col">
-      <OpdConsultColumnHeader
-        eyebrow={eyebrow}
-        title={title}
-        meta={count === undefined ? null : <OpdConsultCountBadge count={count} />}
-        action={action}
-        className={className}
-      />
+    <div className={cn("flex flex-1 flex-col bg-white", className)}>
+      <header className="sticky top-0 z-10 flex items-center justify-between gap-3 border-b border-dash-border bg-white px-4 py-2.5 sm:px-5">
+        <div className="flex min-w-0 items-baseline gap-2">
+          <p className="shrink-0 text-[12px] text-dash-muted">{eyebrow}</p>
+          <h2 className="truncate text-[13.5px] font-semibold tracking-tight text-brand-navy">
+            {title}
+          </h2>
+          {count !== undefined && count > 0 ? (
+            <span className="text-[12px] tabular-nums text-dash-muted">{count}</span>
+          ) : null}
+        </div>
+        {action ? <div className="shrink-0">{action}</div> : null}
+      </header>
       {children}
     </div>
   );

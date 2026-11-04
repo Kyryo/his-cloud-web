@@ -18,7 +18,6 @@ import { cn } from "@/lib/utils";
 type OhExamTemplateCaptureFormProps = {
   snapshot: ExamTemplateSnapshot;
   templateName?: string | null;
-  riskProfileName?: string | null;
   value?: ExamTemplateAnswers;
   onChange: (next: ExamTemplateAnswers) => void;
   disabled?: boolean;
@@ -27,7 +26,6 @@ type OhExamTemplateCaptureFormProps = {
 export function OhExamTemplateCaptureForm({
   snapshot,
   templateName,
-  riskProfileName,
   value,
   onChange,
   disabled,
@@ -55,19 +53,11 @@ export function OhExamTemplateCaptureForm({
   }
 
   return (
-    <div className="space-y-6" data-testid="oh-exam-template-capture">
-      <header className="space-y-1 border-b border-dash-border pb-4">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-dash-muted">
-          Medical examination
-        </p>
+    <div data-testid="oh-exam-template-capture">
+      <header className="pb-4">
         <h2 className="text-lg font-semibold tracking-tight text-brand-navy">
           {templateName?.trim() || "Examination template"}
         </h2>
-        {riskProfileName ? (
-          <p className="text-sm text-dash-muted">
-            Risk profile: <span className="text-brand-slate">{riskProfileName}</span>
-          </p>
-        ) : null}
       </header>
 
       <ol className="space-y-0">
@@ -124,11 +114,11 @@ function CaptureSection({
   }
 
   return (
-    <li className="grid grid-cols-[2.25rem_minmax(0,1fr)] gap-x-3 border-t border-dash-border py-6 sm:grid-cols-[2.75rem_minmax(0,1fr)]">
+    <li className="grid grid-cols-[1.75rem_minmax(0,1fr)] gap-x-3 border-t border-dash-border py-4">
       <span
         aria-hidden
         className={cn(
-          "flex size-8 items-center justify-center rounded-full border text-xs font-semibold tabular-nums",
+          "mt-0.5 flex size-6 items-center justify-center rounded-full border text-[11px] font-semibold tabular-nums",
           picked.length > 0 || isDirect
             ? "border-brand-primary bg-brand-primary text-white"
             : "border-dash-border text-dash-muted",
@@ -138,7 +128,7 @@ function CaptureSection({
       </span>
       <div className="min-w-0">
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-          <h3 id={headingId} className="text-base font-semibold text-brand-navy">
+          <h3 id={headingId} className="text-[14.5px] font-semibold tracking-tight text-brand-navy">
             {section.name}
             {section.is_mandatory ? (
               <span className="ml-1 text-brand-primary" aria-label="Required">
@@ -178,7 +168,7 @@ function CaptureSection({
           <ul
             role={exclusive ? "radiogroup" : "group"}
             aria-labelledby={headingId}
-            className="-mx-2 mt-3 space-y-0.5"
+            className="-mx-1 mt-2 grid gap-px sm:grid-cols-2"
           >
             {section.items.map((item) => (
               <CaptureItem
@@ -227,7 +217,8 @@ function CaptureItem({
   return (
     <li
       className={cn(
-        "rounded-xl transition-colors",
+        "rounded-md transition-colors",
+        promptFields.length > 0 && checked && "sm:col-span-2",
         checked ? "bg-brand-tint/55" : "hover:bg-slate-50",
       )}
     >
@@ -237,7 +228,7 @@ function CaptureItem({
         aria-checked={checked}
         disabled={disabled}
         onClick={onToggle}
-        className="flex w-full items-center gap-3 rounded-xl px-2 py-2.5 text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30 disabled:opacity-60"
+        className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-[13.5px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30 disabled:opacity-60"
       >
         <SelectionGlyph exclusive={exclusive} checked={checked} />
         <span className={cn("min-w-0 flex-1", checked ? "font-medium text-brand-navy" : "text-brand-navy")}>
