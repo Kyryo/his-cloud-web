@@ -83,7 +83,7 @@ export function mapPricelistActivityItems(
     id: event.uuid,
     title: titleForAction(event.action),
     summary: event.message || "",
-    occurredAt: event.created_at,
+    occurredAt: event.created_at ?? "",
     icon: ACTION_ICONS[event.action] ?? History,
     tone: ACTION_TONES[event.action] ?? "neutral",
     groupKey: event.action,

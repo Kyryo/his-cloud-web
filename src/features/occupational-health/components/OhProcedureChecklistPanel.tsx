@@ -26,17 +26,20 @@ export function OhProcedureChecklistPanel({
   const [isLoading, setIsLoading] = useState(false);
   const [busyUuid, setBusyUuid] = useState<string | null>(null);
 
+  const examinationUuid = examination?.uuid ?? null;
+
   useEffect(() => {
-    if (!examination?.uuid) {
+    if (!examinationUuid) {
       setRows([]);
       setComplete(true);
       return;
     }
+    const uuid = examinationUuid;
     let active = true;
     async function load() {
       setIsLoading(true);
       try {
-        const payload = await fetchOhExaminationProcedures(examination.uuid);
+        const payload = await fetchOhExaminationProcedures(uuid);
         if (active) {
           setRows(payload.results);
           setComplete(payload.checklist_complete);
@@ -59,11 +62,13 @@ export function OhProcedureChecklistPanel({
     return () => {
       active = false;
     };
-  }, [examination?.uuid, toast]);
+  }, [examinationUuid, toast]);
 
-  if (!examination) {
+  if (!examinationUuid) {
     return null;
   }
+
+  const uuid = examinationUuid;
 
   if (isLoading) {
     return (
@@ -80,11 +85,9 @@ export function OhProcedureChecklistPanel({
   async function markStatus(record: OhProcedureRecord, status: string) {
     setBusyUuid(record.uuid);
     try {
-      const payload = await patchOhExaminationProcedure(
-        examination.uuid,
-        record.uuid,
-        { status },
-      );
+      const payload = await patchOhExaminationProcedure(uuid, record.uuid, {
+        status,
+      });
       setRows((current) =>
         current.map((row) =>
           row.uuid === payload.record.uuid ? payload.record : row,
