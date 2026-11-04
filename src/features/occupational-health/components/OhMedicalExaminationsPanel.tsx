@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ClipboardList, FileWarning } from "lucide-react";
 
-import { SecondaryButton } from "@/components/ui/app-buttons";
+import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -135,7 +135,6 @@ export function OhMedicalExaminationsPanel({
     null,
   );
   const [typeDialogOpen, setTypeDialogOpen] = useState(false);
-  const [typeDialogRequired, setTypeDialogRequired] = useState(true);
   const [examination, setExamination] = useState<OhExamination | null>(null);
   const [answers, setAnswers] = useState<ExamTemplateAnswers>(emptyExamTemplateAnswers());
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
@@ -144,39 +143,42 @@ export function OhMedicalExaminationsPanel({
   const skipAutosave = useRef(true);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    if (!templateReady) {
-      return;
-    }
-    if (!selectedExamType) {
-      setTypeDialogOpen(true);
-      setTypeDialogRequired(true);
-    }
-  }, [templateReady, selectedExamType]);
+  const needsExamType = templateReady && !selectedExamType;
 
   useEffect(() => {
-    if (!selectedExamType) {
-      setExamination(null);
-      setAnswers(emptyExamTemplateAnswers());
-      return;
+    let cancelled = false;
+    async function syncExam() {
+      await Promise.resolve();
+      if (cancelled) {
+        return;
+      }
+      if (!selectedExamType) {
+        setExamination(null);
+        setAnswers(emptyExamTemplateAnswers());
+        return;
+      }
+      const matched = findExamForType(
+        workspace.examinations,
+        selectedExamType,
+        examTemplateUuid,
+      );
+      setExamination(matched);
+      const envelope = readEnvelope(matched);
+      if (
+        envelope?.template_uuid &&
+        examTemplateUuid &&
+        envelope.template_uuid === examTemplateUuid
+      ) {
+        setAnswers(envelope.answers ?? emptyExamTemplateAnswers());
+      } else {
+        setAnswers(emptyExamTemplateAnswers());
+      }
+      skipAutosave.current = true;
     }
-    const matched = findExamForType(
-      workspace.examinations,
-      selectedExamType,
-      examTemplateUuid,
-    );
-    setExamination(matched);
-    const envelope = readEnvelope(matched);
-    if (
-      envelope?.template_uuid &&
-      examTemplateUuid &&
-      envelope.template_uuid === examTemplateUuid
-    ) {
-      setAnswers(envelope.answers ?? emptyExamTemplateAnswers());
-    } else {
-      setAnswers(emptyExamTemplateAnswers());
-    }
-    skipAutosave.current = true;
+    void syncExam();
+    return () => {
+      cancelled = true;
+    };
   }, [selectedExamType, examTemplateUuid, workspace.examinations]);
 
   async function resolveExamination(
@@ -226,12 +228,10 @@ export function OhMedicalExaminationsPanel({
   async function handleExamTypeConfirm(examType: MedicalExamStartType) {
     setSelectedExamType(examType);
     setTypeDialogOpen(false);
-    setTypeDialogRequired(false);
     await resolveExamination(examType);
   }
 
   function openChangeTypeDialog() {
-    setTypeDialogRequired(false);
     setTypeDialogOpen(true);
   }
 
@@ -353,49 +353,47 @@ export function OhMedicalExaminationsPanel({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <OhExamTypeDialog
-        open={typeDialogOpen}
+        open={typeDialogOpen || needsExamType}
         onOpenChange={setTypeDialogOpen}
         onConfirm={(examType) => {
           void handleExamTypeConfirm(examType);
         }}
-        required={typeDialogRequired}
+        required={needsExamType}
         initialExamType={selectedExamType ?? ""}
       />
       {showCapture ? (
         <>
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-dash-border px-4 py-2.5 sm:px-5">
-            <div className="min-w-0 space-y-0.5">
-              <p className="text-sm font-medium text-dash-ink">
+          <div className="flex h-11 items-center justify-between gap-3 border-b border-dash-border px-4 sm:px-5">
+            <div className="flex min-w-0 items-center gap-2">
+              <p className="truncate text-[13px] font-medium text-brand-navy">
                 {formatExamTypeLabel(selectedExamType!)}
               </p>
-              <p className="text-xs text-dash-muted">
-                Answers save to this encounter and stay linked to the client’s risk
-                profile.
-              </p>
+              {riskProfile.name ? (
+                <Badge variant="secondary" className="max-w-[12rem] truncate">
+                  {riskProfile.name}
+                </Badge>
+              ) : null}
             </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <span
-                className="text-xs tabular-nums text-dash-muted"
-                aria-live="polite"
-              >
+            <div className="flex shrink-0 items-center gap-3">
+              <span className="text-[12px] text-dash-muted" aria-live="polite">
                 {isResolvingExam
-                  ? "Starting…"
+                  ? "Starting"
                   : saveState === "saving"
-                    ? "Saving…"
+                    ? "Saving"
                     : saveState === "saved"
                       ? "Saved"
                       : saveState === "error"
                         ? "Save failed"
                         : null}
               </span>
-              <SecondaryButton
+              <button
                 type="button"
-                size="sm"
                 onClick={openChangeTypeDialog}
                 data-testid="oh-exam-change-type"
+                className="text-[13px] font-medium text-brand-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30"
               >
-                Change type / New exam
-              </SecondaryButton>
+                Change type
+              </button>
             </div>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto px-4 py-5 sm:px-6">
@@ -403,7 +401,6 @@ export function OhMedicalExaminationsPanel({
               <OhExamTemplateCaptureForm
                 snapshot={snapshot}
                 templateName={riskProfile.exam_template_name}
-                riskProfileName={riskProfile.name}
                 value={answers}
                 onChange={handleAnswersChange}
               />

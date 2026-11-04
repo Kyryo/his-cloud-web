@@ -161,9 +161,12 @@ export function OhEncounterWorkspacePage({
           customer={customer}
           encounter={encounter}
           actions={
-            <SecondaryButton asChild>
-              <Link href={ROUTES.occupationalHealth}>OHS Queue</Link>
-            </SecondaryButton>
+            <Link
+              href={ROUTES.occupationalHealth}
+              className="text-[13px] font-medium text-brand-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30"
+            >
+              OHS Queue
+            </Link>
           }
         />
 
