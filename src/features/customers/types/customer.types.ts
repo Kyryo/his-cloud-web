@@ -25,6 +25,10 @@ export type Customer = {
   is_active: boolean;
   visit_status: CustomerVisitStatus;
   tags?: Tag[];
+  /** OH employment episode employer (when has_employment_episode list). */
+  oh_employer_name?: string | null;
+  /** OH employment episode risk profile (when has_employment_episode list). */
+  oh_hazard_profile_name?: string | null;
   created_at: string;
   updated_at: string;
   created_by: number | null;

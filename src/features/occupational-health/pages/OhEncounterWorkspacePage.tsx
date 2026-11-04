@@ -105,6 +105,8 @@ export function OhEncounterWorkspacePage({
 
   useAppBreadcrumb(customer ? formatCustomerName(customer) : "OH encounter");
 
+  const customerLoading =
+    Boolean(visitQuery.data?.customer) && customerQuery.isLoading;
   const episodesLoading = Boolean(customer?.uuid) && episodesQuery.isLoading;
   const hasRiskProfile = customerHasActiveRiskProfile(episodes);
   const showRiskProfileEmpty =
@@ -117,6 +119,7 @@ export function OhEncounterWorkspacePage({
     isUserLoading ||
     visitQuery.isLoading ||
     (!encounterFromVisit && fallbackEncounterQuery.isLoading) ||
+    customerLoading ||
     episodesLoading
   ) {
     return (

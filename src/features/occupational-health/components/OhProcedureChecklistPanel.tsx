@@ -20,7 +20,7 @@ export function OhProcedureChecklistPanel({
   examination,
   onChanged,
 }: OhProcedureChecklistPanelProps) {
-  const { toast } = useToast();
+  const { toast, dismiss } = useToast();
   const [rows, setRows] = useState<OhProcedureRecord[]>([]);
   const [complete, setComplete] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,6 +36,11 @@ export function OhProcedureChecklistPanel({
     }
     const uuid = examinationUuid;
     let active = true;
+    const toastId = toast({
+      id: `oh-checklist-${uuid}`,
+      variant: "loading",
+      title: "Loading checklist",
+    });
     async function load() {
       setIsLoading(true);
       try {
@@ -53,6 +58,7 @@ export function OhProcedureChecklistPanel({
           });
         }
       } finally {
+        dismiss(toastId);
         if (active) {
           setIsLoading(false);
         }
@@ -61,8 +67,9 @@ export function OhProcedureChecklistPanel({
     void load();
     return () => {
       active = false;
+      dismiss(toastId);
     };
-  }, [examinationUuid, toast]);
+  }, [dismiss, examinationUuid, toast]);
 
   if (!examinationUuid) {
     return null;
@@ -70,12 +77,8 @@ export function OhProcedureChecklistPanel({
 
   const uuid = examinationUuid;
 
-  if (isLoading) {
-    return (
-      <OhPanelSection description="Procedure checklist">
-        <p className="text-sm text-brand-muted">Loading checklist…</p>
-      </OhPanelSection>
-    );
+  if (isLoading && rows.length === 0) {
+    return null;
   }
 
   if (rows.length === 0) {

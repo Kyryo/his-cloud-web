@@ -35,7 +35,10 @@ import type {
 } from "@/features/occupational-health/types";
 import { resolveActiveRiskProfileEpisode } from "@/features/occupational-health/utils/customer-has-risk-profile";
 import { newestFirst } from "@/features/occupational-health/utils/oh-format";
-import { formatExamTypeLabel } from "@/features/occupational-health/utils/oh-labels";
+import {
+  formatExamTypeLabel,
+  MEDICAL_EXAM_START_TYPES,
+} from "@/features/occupational-health/utils/oh-labels";
 import { useToast } from "@/providers/toast-provider";
 
 type OhMedicalExaminationsPanelProps = {
@@ -52,6 +55,10 @@ function readEnvelope(
     return null;
   }
   return raw as ExamTemplateResponseEnvelope;
+}
+
+function isMedicalExamStartType(value: string): value is MedicalExamStartType {
+  return MEDICAL_EXAM_START_TYPES.some((option) => option.value === value);
 }
 
 function findExamForType(
@@ -75,6 +82,34 @@ function findExamForType(
   return (
     newestFirst(matches, (exam) => exam.examined_at ?? exam.created_at)[0] ?? null
   );
+}
+
+/** Prefer the newest exam that matches the current template, else newest start type. */
+function inferExamTypeFromExaminations(
+  examinations: OhExamination[],
+  examTemplateUuid: string | null,
+): MedicalExamStartType | null {
+  const ordered = newestFirst(
+    examinations,
+    (exam) => exam.examined_at ?? exam.created_at,
+  );
+  if (examTemplateUuid) {
+    const matchingTemplate = ordered.find((exam) => {
+      if (!isMedicalExamStartType(exam.exam_type)) {
+        return false;
+      }
+      const envelope = readEnvelope(exam);
+      return !envelope?.template_uuid || envelope.template_uuid === examTemplateUuid;
+    });
+    if (matchingTemplate && isMedicalExamStartType(matchingTemplate.exam_type)) {
+      return matchingTemplate.exam_type;
+    }
+  }
+  const newest = ordered.find((exam) => isMedicalExamStartType(exam.exam_type));
+  if (!newest || !isMedicalExamStartType(newest.exam_type)) {
+    return null;
+  }
+  return newest.exam_type;
 }
 
 export function OhMedicalExaminationsPanel({
@@ -131,54 +166,70 @@ export function OhMedicalExaminationsPanel({
       snapshot.sections.length > 0,
   );
 
-  const [selectedExamType, setSelectedExamType] = useState<MedicalExamStartType | null>(
+  const inferredExamType = useMemo(
+    () =>
+      inferExamTypeFromExaminations(workspace.examinations, examTemplateUuid),
+    [examTemplateUuid, workspace.examinations],
+  );
+  const [examTypeOverride, setExamTypeOverride] = useState<MedicalExamStartType | null>(
     null,
   );
+  const selectedExamType = examTypeOverride ?? inferredExamType;
   const [typeDialogOpen, setTypeDialogOpen] = useState(false);
   const [examination, setExamination] = useState<OhExamination | null>(null);
   const [answers, setAnswers] = useState<ExamTemplateAnswers>(emptyExamTemplateAnswers());
   const [saveState, setSaveState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [isResolvingExam, setIsResolvingExam] = useState(false);
   const createStarted = useRef(false);
-  const skipAutosave = useRef(true);
+  const examinationRef = useRef<OhExamination | null>(null);
+  const answersHydratedKeyRef = useRef<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const needsExamType = templateReady && !selectedExamType;
+  examinationRef.current = examination;
+
+  const needsExamType =
+    templateReady && !workspace.isLoading && !selectedExamType;
 
   useEffect(() => {
-    let cancelled = false;
-    async function syncExam() {
-      await Promise.resolve();
-      if (cancelled) {
-        return;
-      }
-      if (!selectedExamType) {
-        setExamination(null);
-        setAnswers(emptyExamTemplateAnswers());
-        return;
-      }
-      const matched = findExamForType(
-        workspace.examinations,
-        selectedExamType,
-        examTemplateUuid,
-      );
-      setExamination(matched);
-      const envelope = readEnvelope(matched);
-      if (
-        envelope?.template_uuid &&
-        examTemplateUuid &&
-        envelope.template_uuid === examTemplateUuid
-      ) {
-        setAnswers(envelope.answers ?? emptyExamTemplateAnswers());
-      } else {
-        setAnswers(emptyExamTemplateAnswers());
-      }
-      skipAutosave.current = true;
+    if (!selectedExamType) {
+      setExamination(null);
+      examinationRef.current = null;
+      setAnswers(emptyExamTemplateAnswers());
+      answersHydratedKeyRef.current = null;
+      return;
     }
-    void syncExam();
-    return () => {
-      cancelled = true;
-    };
+    const matched = findExamForType(
+      workspace.examinations,
+      selectedExamType,
+      examTemplateUuid,
+    );
+    setExamination((current) => {
+      if (
+        current &&
+        matched &&
+        current.uuid === matched.uuid &&
+        (current.row_version ?? 0) >= (matched.row_version ?? 0)
+      ) {
+        return current;
+      }
+      return matched;
+    });
+
+    const hydrateKey = `${matched?.uuid ?? `pending:${selectedExamType}`}:${examTemplateUuid ?? ""}`;
+    if (answersHydratedKeyRef.current === hydrateKey) {
+      return;
+    }
+    answersHydratedKeyRef.current = hydrateKey;
+    const envelope = readEnvelope(matched);
+    if (
+      envelope?.template_uuid &&
+      examTemplateUuid &&
+      envelope.template_uuid === examTemplateUuid
+    ) {
+      setAnswers(envelope.answers ?? emptyExamTemplateAnswers());
+    } else {
+      setAnswers(emptyExamTemplateAnswers());
+    }
   }, [selectedExamType, examTemplateUuid, workspace.examinations]);
 
   async function resolveExamination(
@@ -191,6 +242,7 @@ export function OhMedicalExaminationsPanel({
     );
     if (existing) {
       setExamination(existing);
+      examinationRef.current = existing;
       return existing;
     }
     if (createStarted.current) {
@@ -207,9 +259,10 @@ export function OhMedicalExaminationsPanel({
         template_code: riskProfile?.exam_template_code || riskProfile?.code || "exam",
         examined_at: new Date().toISOString(),
         notes: "",
-        responses_json: {},
       });
       setExamination(created);
+      examinationRef.current = created;
+      answersHydratedKeyRef.current = `${created.uuid}:${examTemplateUuid ?? ""}`;
       workspace.refetchAll();
       return created;
     } catch (error) {
@@ -226,7 +279,7 @@ export function OhMedicalExaminationsPanel({
   }
 
   async function handleExamTypeConfirm(examType: MedicalExamStartType) {
-    setSelectedExamType(examType);
+    setExamTypeOverride(examType);
     setTypeDialogOpen(false);
     await resolveExamination(examType);
   }
@@ -239,7 +292,7 @@ export function OhMedicalExaminationsPanel({
     if (!examTemplateUuid || !snapshot || !selectedExamType) {
       return;
     }
-    let exam = examination;
+    let exam = examinationRef.current;
     if (!exam) {
       exam = await resolveExamination(selectedExamType);
     }
@@ -264,6 +317,7 @@ export function OhMedicalExaminationsPanel({
         row_version: exam.row_version ?? 1,
       });
       setExamination(updated);
+      examinationRef.current = updated;
       setSaveState("saved");
     } catch (error) {
       setSaveState("error");
@@ -277,10 +331,6 @@ export function OhMedicalExaminationsPanel({
 
   function handleAnswersChange(next: ExamTemplateAnswers) {
     setAnswers(next);
-    if (skipAutosave.current) {
-      skipAutosave.current = false;
-      return;
-    }
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
     }

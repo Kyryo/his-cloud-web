@@ -42,7 +42,7 @@ vi.mock("@/providers/user-provider", () => ({
   useUser: () => useUserMock(),
 }));
 vi.mock("@/providers/toast-provider", () => ({
-  useToast: () => ({ toast: vi.fn() }),
+  useToast: () => ({ toast: vi.fn(() => "toast-id"), dismiss: vi.fn() }),
 }));
 vi.mock("@/features/app-shell/hooks/use-app-breadcrumb", () => ({
   useAppBreadcrumb: vi.fn(),

@@ -14,7 +14,7 @@ const ohService = vi.hoisted(() => ({
 
 vi.mock("@/features/occupational-health/services/oh.service", () => ohService);
 vi.mock("@/providers/toast-provider", () => ({
-  useToast: () => ({ toast: vi.fn() }),
+  useToast: () => ({ toast: vi.fn(() => "toast-id"), dismiss: vi.fn() }),
 }));
 
 vi.mock("@/features/occupational-health/components/OhExamTypeDialog", () => ({
@@ -48,13 +48,30 @@ vi.mock("@/features/occupational-health/components/OhExamTypeDialog", () => ({
 vi.mock("@/features/occupational-health/components/OhExamTemplateCaptureForm", () => ({
   OhExamTemplateCaptureForm: ({
     value,
+    onChange,
   }: {
-    value: { fields: Record<string, Record<string, string>> };
+    value: { picks: Record<string, string[]>; fields: Record<string, Record<string, string>> };
+    onChange: (next: {
+      picks: Record<string, string[]>;
+      fields: Record<string, Record<string, string>>;
+    }) => void;
   }) => (
     <div data-testid="oh-exam-template-capture">
       <span data-testid="oh-exam-answer-bp">
         {value.fields?.vitals?.bp ?? ""}
       </span>
+      <button
+        type="button"
+        data-testid="oh-exam-toggle-item"
+        onClick={() =>
+          onChange({
+            ...value,
+            picks: { ...value.picks, symptoms: ["cough"] },
+          })
+        }
+      >
+        Toggle item
+      </button>
     </div>
   ),
 }));
@@ -196,14 +213,18 @@ describe("OhMedicalExaminationsPanel", () => {
           encounter: 7,
           exam_type: "pre_employment",
           employment_episode: 9,
+          occupational_attendance: true,
         }),
       ),
+    );
+    expect(ohService.createOhExamination.mock.calls[0][0]).not.toHaveProperty(
+      "responses_json",
     );
     expect(await screen.findByText("Admission exam")).toBeInTheDocument();
     expect(screen.getByTestId("oh-exam-change-type")).toBeInTheDocument();
   });
 
-  it("loads an existing exam for the selected type instead of creating", async () => {
+  it("loads an existing exam without prompting for type again", async () => {
     renderPanel({
       examinations: [
         {
@@ -225,11 +246,56 @@ describe("OhMedicalExaminationsPanel", () => {
       ],
     });
 
-    fireEvent.click(await screen.findByTestId("oh-exam-type-confirm-periodic"));
-
+    expect(await screen.findByText("Periodic exam")).toBeInTheDocument();
+    expect(screen.queryByTestId("oh-exam-type-dialog")).not.toBeInTheDocument();
     await waitFor(() =>
       expect(screen.getByTestId("oh-exam-answer-bp")).toHaveTextContent("120/80"),
     );
     expect(ohService.createOhExamination).not.toHaveBeenCalled();
+  });
+
+  it("autosaves the first answer change on an existing examination", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    renderPanel({
+      examinations: [
+        {
+          id: 11,
+          uuid: "exam-1",
+          encounter: 7,
+          exam_type: "periodic",
+          employment_episode: 9,
+          responses_json: {
+            __exam_template__: {
+              template_uuid: "tmpl-1",
+              answers: { picks: {}, fields: { vitals: { bp: "120/80" } } },
+            },
+          },
+          row_version: 3,
+          examined_at: "2026-11-03T08:00:00Z",
+          created_at: "2026-11-03T08:00:00Z",
+        },
+      ],
+    });
+
+    expect(await screen.findByText("Periodic exam")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("oh-exam-toggle-item"));
+    await vi.advanceTimersByTimeAsync(650);
+
+    await waitFor(() =>
+      expect(ohService.patchOhExaminationResponses).toHaveBeenCalledWith(
+        "exam-1",
+        expect.objectContaining({
+          row_version: 3,
+          responses_json: expect.objectContaining({
+            __exam_template__: expect.objectContaining({
+              answers: expect.objectContaining({
+                picks: { symptoms: ["cough"] },
+              }),
+            }),
+          }),
+        }),
+      ),
+    );
+    vi.useRealTimers();
   });
 });

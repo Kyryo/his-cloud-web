@@ -6,12 +6,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { FabButton } from "@/components/ui/fab-button";
 import { Button } from "@/components/ui/button";
-import { CreateAppointmentDialog } from "@/features/appointments/components/CreateAppointmentDialog";
 import { CustomerSummaryStatsCards } from "@/features/customers/components/CustomerSummaryStats";
-import { CustomersTable } from "@/features/customers/components/CustomersTable";
-import { CustomersTableSkeleton } from "@/features/customers/components/CustomersTableSkeleton";
-import { CustomerVisitDialog } from "@/features/customers/components/detail/CustomerVisitDialog";
-import { UpdateCustomerDialog } from "@/features/customers/components/UpdateCustomerDialog";
 import { fetchCustomers } from "@/features/customers/services/customers.service";
 import type { Customer } from "@/features/customers/types/customer.types";
 import {
@@ -25,6 +20,8 @@ import {
 } from "@/features/customers/utils/customer-stats";
 import { OhEmployeesEmptyState } from "@/features/occupational-health/components/OhEmployeesEmptyState";
 import { OhEmployeesPageHeader } from "@/features/occupational-health/components/OhEmployeesPageHeader";
+import { OhEmployeesTable } from "@/features/occupational-health/components/OhEmployeesTable";
+import { OhEmployeesTableSkeleton } from "@/features/occupational-health/components/OhEmployeesTableSkeleton";
 import { canAccessOccupationalHealth } from "@/features/occupational-health/utils/oh-access";
 import {
   OH_EMPLOYEE_GENDER_PARAM,
@@ -78,11 +75,6 @@ export function OhEmployeesListPage() {
   const [isStatsLoading, setIsStatsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isUnauthorized, setIsUnauthorized] = useState(false);
-  const [visitCustomer, setVisitCustomer] = useState<Customer | null>(null);
-  const [appointmentCustomer, setAppointmentCustomer] = useState<Customer | null>(
-    null,
-  );
-  const [editCustomer, setEditCustomer] = useState<Customer | null>(null);
   const [showStats, setShowStats] = useState(false);
 
   const filters = useMemo(
@@ -276,7 +268,7 @@ export function OhEmployeesListPage() {
     return (
       <ListPageLayout data-testid="oh-employees-page">
         <ListPageTableSection>
-          <CustomersTableSkeleton rows={10} />
+          <OhEmployeesTableSkeleton rows={10} />
         </ListPageTableSection>
       </ListPageLayout>
     );
@@ -319,48 +311,6 @@ export function OhEmployeesListPage() {
           onFiltersApply={handleFiltersApply}
         />
       )}
-      {visitCustomer ? (
-        <CustomerVisitDialog
-          open={Boolean(visitCustomer)}
-          customer={visitCustomer}
-          onOpenChange={(open) => {
-            if (!open) {
-              setVisitCustomer(null);
-            }
-          }}
-          onVisitChanged={() => {
-            void reloadCustomers();
-          }}
-        />
-      ) : null}
-      {appointmentCustomer ? (
-        <CreateAppointmentDialog
-          customer={appointmentCustomer}
-          open={Boolean(appointmentCustomer)}
-          onOpenChange={(open) => {
-            if (!open) {
-              setAppointmentCustomer(null);
-            }
-          }}
-          onCreated={() => {
-            setAppointmentCustomer(null);
-          }}
-        />
-      ) : null}
-      {editCustomer ? (
-        <UpdateCustomerDialog
-          open={Boolean(editCustomer)}
-          customer={editCustomer}
-          onOpenChange={(open) => {
-            if (!open) {
-              setEditCustomer(null);
-            }
-          }}
-          onUpdated={() => {
-            void reloadCustomers();
-          }}
-        />
-      ) : null}
       {!hasNoEmployeeRecords ? (
         <FabButton
           label={showStats ? "Hide stats" : "Show stats"}
@@ -380,7 +330,7 @@ export function OhEmployeesListPage() {
 
           <ListPageTableSection>
             {isLoading ? (
-              <CustomersTableSkeleton rows={10} />
+              <OhEmployeesTableSkeleton rows={10} />
             ) : error ? (
               <ListPageBlankState
                 compact
@@ -418,12 +368,9 @@ export function OhEmployeesListPage() {
               />
             ) : (
               <>
-                <CustomersTable
+                <OhEmployeesTable
                   customers={customers}
                   onRowClick={handleRowClick}
-                  onStartVisit={(customer) => setVisitCustomer(customer)}
-                  onBookAppointment={(customer) => setAppointmentCustomer(customer)}
-                  onEditCustomer={(customer) => setEditCustomer(customer)}
                 />
                 <ListPagePagination
                   page={page}
