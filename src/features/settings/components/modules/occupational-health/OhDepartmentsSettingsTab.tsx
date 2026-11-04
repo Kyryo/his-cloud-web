@@ -2,19 +2,17 @@
 
 import { useEffect, useState } from "react";
 
-import {
-  PrimaryButton,
-  SecondaryButton,
-} from "@/components/ui/app-buttons";
+import { PrimaryButton } from "@/components/ui/app-buttons";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
 import {
   OhCatalogListPanel,
   OhCatalogRow,
@@ -30,6 +28,8 @@ import type {
   OhEmployerDepartment,
 } from "@/features/occupational-health/types";
 import { BffError } from "@/lib/bff-client";
+import { appFont } from "@/lib/fonts";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
 type OhDepartmentsSettingsTabProps = {
@@ -215,22 +215,21 @@ export function OhDepartmentsSettingsTab({
           }
         }}
       >
-        <DialogContent className="flex max-h-[90vh] w-full max-w-lg flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
-          <DialogHeader className="shrink-0 space-y-1 border-b border-dash-border/70 px-6 py-5 pr-14 text-left">
-            <DialogTitle>
-              {editing ? "Edit department" : "Add department"}
-            </DialogTitle>
-            <DialogDescription>
-              Department for {employer.name}.
-            </DialogDescription>
+        <DialogContent
+          className={cn(appFont.className, "flex w-full max-w-md flex-col gap-0 overflow-hidden p-0")}
+        >
+          <DialogHeader className="shrink-0 px-5 pb-4 pt-5 text-left">
+            <DialogTitle>{editing ? "Edit department" : "Add department"}</DialogTitle>
           </DialogHeader>
           <form
-            className="flex min-h-0 flex-1 flex-col"
+            className="flex flex-col border-t border-dash-border"
             onSubmit={(event) => void handleSubmit(event)}
           >
-            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
-              <div className="space-y-2">
-                <Label htmlFor="oh-dept-name">Name</Label>
+            <div className="grid gap-4 px-5 py-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="oh-dept-name">
+                  Name <RequiredFieldMarker />
+                </Label>
                 <Input
                   id="oh-dept-name"
                   value={name}
@@ -239,33 +238,26 @@ export function OhDepartmentsSettingsTab({
                   required
                 />
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="oh-dept-code">Code</Label>
                 <Input
                   id="oh-dept-code"
                   value={code}
                   onChange={(event) => setCode(event.target.value)}
-                  placeholder="Optional short code"
                 />
               </div>
             </div>
-            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-dash-border/60 bg-white px-6 py-4">
-              <SecondaryButton
+            <div className="flex items-center justify-end gap-2 border-t border-dash-border px-5 py-3">
+              <Button
                 type="button"
+                variant="outline"
                 onClick={() => setDialogOpen(false)}
                 disabled={isSubmitting}
               >
                 Cancel
-              </SecondaryButton>
-              <PrimaryButton
-                type="submit"
-                disabled={isSubmitting || !name.trim()}
-              >
-                {isSubmitting
-                  ? "Saving…"
-                  : editing
-                    ? "Save changes"
-                    : "Save department"}
+              </Button>
+              <PrimaryButton type="submit" disabled={isSubmitting || !name.trim()}>
+                {isSubmitting ? "Saving" : editing ? "Save changes" : "Add department"}
               </PrimaryButton>
             </div>
           </form>

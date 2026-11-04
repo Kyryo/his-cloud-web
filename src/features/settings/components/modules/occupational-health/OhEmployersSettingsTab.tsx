@@ -2,19 +2,35 @@
 
 import { keepPreviousData, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
-import { useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { PrimaryButton, SecondaryButton } from "@/components/ui/app-buttons";
 import { ListPagePagination } from "@/features/app-shell/components/page-layout";
-import { fetchOhEmployersPage } from "@/features/occupational-health/services/oh.service";
+import {
+  fetchOhEmployer,
+  fetchOhEmployersPage,
+} from "@/features/occupational-health/services/oh.service";
 import type { OhEmployer } from "@/features/occupational-health/types";
 import { OhCreateEmployerDialog } from "@/features/settings/components/modules/occupational-health/OhCreateEmployerDialog";
-import { OhEmployerWorkspaceSheet } from "@/features/settings/components/modules/occupational-health/OhEmployerWorkspaceSheet";
+import {
+  OhEmployerWorkspaceSheet,
+  type OhEmployerWorkspaceTabId,
+} from "@/features/settings/components/modules/occupational-health/OhEmployerWorkspaceSheet";
 import { getErrorMessage } from "@/lib/fetch-error";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 10;
 const EMPLOYERS_QUERY_KEY = ["oh-employers", "settings-directory"] as const;
+const EMPLOYER_PARAM = "employer";
+const SECTION_PARAM = "section";
+
+function parseSection(value: string | null): OhEmployerWorkspaceTabId {
+  if (value === "departments" || value === "job-titles") {
+    return value;
+  }
+  return "risk-profiles";
+}
 const ROW_GRID =
   "grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-6 sm:grid-cols-[minmax(0,1.4fr)_11rem_7rem]";
 
@@ -24,21 +40,65 @@ type OhEmployersSettingsTabProps = {
 
 export function OhEmployersSettingsTab({ isActive }: OhEmployersSettingsTabProps) {
   const queryClient = useQueryClient();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const employerUuid = searchParams.get(EMPLOYER_PARAM);
+  const section = parseSection(searchParams.get(SECTION_PARAM));
   const [page, setPage] = useState(1);
   const [isCreating, setIsCreating] = useState(false);
-  const [selectedEmployer, setSelectedEmployer] = useState<OhEmployer | null>(null);
   const employersQuery = useQuery({
     queryKey: [...EMPLOYERS_QUERY_KEY, page],
     queryFn: () => fetchOhEmployersPage({ page, pageSize: PAGE_SIZE }),
     enabled: isActive,
     placeholderData: keepPreviousData,
   });
+  const rows = employersQuery.data?.results ?? [];
+  const listedEmployer = rows.find((row) => row.uuid === employerUuid) ?? null;
+  const employerQuery = useQuery({
+    queryKey: ["oh-employers", "detail", employerUuid],
+    queryFn: () => fetchOhEmployer(employerUuid ?? ""),
+    enabled: isActive && Boolean(employerUuid),
+    placeholderData: listedEmployer ?? undefined,
+  });
+
+  function replaceParams(mutate: (params: URLSearchParams) => void) {
+    const params = new URLSearchParams(searchParams.toString());
+    mutate(params);
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }
+
+  function openEmployer(uuid: string) {
+    replaceParams((params) => {
+      params.set(EMPLOYER_PARAM, uuid);
+      params.delete(SECTION_PARAM);
+    });
+  }
+
+  function closeEmployer() {
+    replaceParams((params) => {
+      params.delete(EMPLOYER_PARAM);
+      params.delete(SECTION_PARAM);
+    });
+  }
+
+  useEffect(() => {
+    if (!isActive || !employerUuid || !employerQuery.isError) {
+      return;
+    }
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete(EMPLOYER_PARAM);
+    params.delete(SECTION_PARAM);
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [employerQuery.isError, employerUuid, isActive, pathname, router, searchParams]);
 
   if (!isActive) {
     return null;
   }
 
-  const rows = employersQuery.data?.results ?? [];
+  const employer = employerQuery.data ?? listedEmployer;
   const pagination = employersQuery.data?.pagination;
   const totalCount = pagination?.count ?? rows.length;
 
@@ -112,7 +172,7 @@ export function OhEmployersSettingsTab({ isActive }: OhEmployersSettingsTabProps
             >
               {rows.map((row) => (
                 <li key={row.uuid}>
-                  <EmployerRow employer={row} onOpen={() => setSelectedEmployer(row)} />
+                  <EmployerRow employer={row} onOpen={() => openEmployer(row.uuid)} />
                 </li>
               ))}
             </ul>
@@ -140,26 +200,37 @@ export function OhEmployersSettingsTab({ isActive }: OhEmployersSettingsTabProps
           onCreated={(created) => {
             setIsCreating(false);
             setPage(1);
+            queryClient.setQueryData(["oh-employers", "detail", created.uuid], created);
             refreshEmployers();
-            setSelectedEmployer(created);
+            openEmployer(created.uuid);
           }}
         />
       ) : null}
 
       <OhEmployerWorkspaceSheet
-        employer={selectedEmployer}
-        open={selectedEmployer !== null}
+        employer={employer}
+        open={Boolean(employerUuid)}
+        section={section}
+        onSectionChange={(next) => {
+          replaceParams((params) => {
+            if (next === "risk-profiles") {
+              params.delete(SECTION_PARAM);
+              return;
+            }
+            params.set(SECTION_PARAM, next);
+          });
+        }}
         onOpenChange={(open) => {
           if (!open) {
-            setSelectedEmployer(null);
+            closeEmployer();
           }
         }}
         onEmployerUpdated={(updated) => {
-          setSelectedEmployer(updated);
+          queryClient.setQueryData(["oh-employers", "detail", updated.uuid], updated);
           refreshEmployers();
         }}
         onEmployerArchived={() => {
-          setSelectedEmployer(null);
+          closeEmployer();
           refreshEmployers();
         }}
       />

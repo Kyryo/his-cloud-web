@@ -2,19 +2,17 @@
 
 import { useEffect, useState } from "react";
 
-import {
-  PrimaryButton,
-  SecondaryButton,
-} from "@/components/ui/app-buttons";
+import { PrimaryButton } from "@/components/ui/app-buttons";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RequiredFieldMarker } from "@/components/ui/required-field-marker";
 import {
   Select,
   SelectContent,
@@ -39,6 +37,8 @@ import type {
   OhJobTitle,
 } from "@/features/occupational-health/types";
 import { BffError } from "@/lib/bff-client";
+import { appFont } from "@/lib/fonts";
+import { cn } from "@/lib/utils";
 import { useToast } from "@/providers/toast-provider";
 
 const NONE_PROFILE = "__none__";
@@ -254,85 +254,67 @@ export function OhJobTitlesSettingsTab({
           }
         }}
       >
-        <DialogContent className="flex max-h-[90vh] w-full max-w-lg flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
-          <DialogHeader className="shrink-0 space-y-1 border-b border-dash-border/70 px-6 py-5 pr-14 text-left">
-            <DialogTitle>
-              {editing ? "Edit job title" : "Add job title"}
-            </DialogTitle>
-            <DialogDescription>
-              Define the role for {employer.name} and optionally attach a risk
-              profile.
-            </DialogDescription>
+        <DialogContent
+          className={cn(appFont.className, "flex w-full max-w-md flex-col gap-0 overflow-hidden p-0")}
+        >
+          <DialogHeader className="shrink-0 px-5 pb-4 pt-5 text-left">
+            <DialogTitle>{editing ? "Edit job title" : "Add job title"}</DialogTitle>
           </DialogHeader>
-
           <form
-            className="flex min-h-0 flex-1 flex-col"
+            className="flex flex-col border-t border-dash-border"
             onSubmit={(event) => void handleSubmit(event)}
           >
-            <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-6 py-5">
-              <div className="space-y-2">
-                <Label htmlFor="oh-job-title">Title</Label>
-                <Input
-                  id="oh-job-title"
-                  value={title}
-                  onChange={(event) => setTitle(event.target.value)}
-                  autoFocus
-                  required
-                />
+            <div className="space-y-4 px-5 py-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <Label htmlFor="oh-job-title">
+                    Title <RequiredFieldMarker />
+                  </Label>
+                  <Input
+                    id="oh-job-title"
+                    value={title}
+                    onChange={(event) => setTitle(event.target.value)}
+                    autoFocus
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="oh-job-code">Code</Label>
+                  <Input
+                    id="oh-job-code"
+                    value={code}
+                    onChange={(event) => setCode(event.target.value)}
+                  />
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="oh-job-code">Code</Label>
-                <Input
-                  id="oh-job-code"
-                  value={code}
-                  onChange={(event) => setCode(event.target.value)}
-                  placeholder="Optional short code"
-                />
-              </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 <Label htmlFor="oh-job-risk-profile">Risk profile</Label>
-                <Select
-                  value={hazardProfileId}
-                  onValueChange={setHazardProfileId}
-                >
+                <Select value={hazardProfileId} onValueChange={setHazardProfileId}>
                   <SelectTrigger id="oh-job-risk-profile">
-                    <SelectValue placeholder="Select a risk profile…" />
+                    <SelectValue placeholder="No risk profile" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className={appFont.className}>
                     <SelectItem value={NONE_PROFILE}>No risk profile</SelectItem>
                     {profiles.map((profile) => (
                       <SelectItem key={profile.uuid} value={String(profile.id)}>
-                        {profile.name}
-                        {profile.code ? ` (${profile.code})` : ""}
+                        {profile.code ? `${profile.name} (${profile.code})` : profile.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-slate-400">
-                  {profiles.length === 0
-                    ? "Create a risk profile under Risk profiles first."
-                    : "Links this role to hazards and the profile’s COF template."}
-                </p>
               </div>
             </div>
-
-            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-dash-border/60 bg-white px-6 py-4">
-              <SecondaryButton
+            <div className="flex items-center justify-end gap-2 border-t border-dash-border px-5 py-3">
+              <Button
                 type="button"
+                variant="outline"
                 onClick={() => setDialogOpen(false)}
                 disabled={isSubmitting}
               >
                 Cancel
-              </SecondaryButton>
-              <PrimaryButton
-                type="submit"
-                disabled={isSubmitting || !title.trim()}
-              >
-                {isSubmitting
-                  ? "Saving…"
-                  : editing
-                    ? "Save changes"
-                    : "Save job title"}
+              </Button>
+              <PrimaryButton type="submit" disabled={isSubmitting || !title.trim()}>
+                {isSubmitting ? "Saving" : editing ? "Save changes" : "Add job title"}
               </PrimaryButton>
             </div>
           </form>

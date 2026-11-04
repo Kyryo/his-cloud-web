@@ -1,8 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Archive01Icon, PencilEdit01Icon } from "@hugeicons/core-free-icons";
 
 import { PrimaryButton } from "@/components/ui/app-buttons";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { SettingsContentSkeleton } from "@/features/settings/components/SettingsContentSkeleton";
 import { SettingsPanelSection } from "@/features/settings/components/SettingsPageLayout";
@@ -111,6 +114,14 @@ type OhCatalogRowProps = {
   onSelect?: () => void;
 };
 
+function StatusBadge({ isActive }: { isActive: boolean }) {
+  return (
+    <Badge variant={isActive ? "success" : "outline"} className="shrink-0">
+      {isActive ? "Active" : "Archived"}
+    </Badge>
+  );
+}
+
 function CatalogColorSwatch({ color }: { color?: string | null }) {
   const value = color?.trim();
   if (!value) {
@@ -146,14 +157,14 @@ export function OhCatalogRow({
         >
           <CatalogColorSwatch color={color} />
           <div className="min-w-0 flex-1">
-            <p className="truncate text-[13.5px] font-medium text-brand-navy">{title}</p>
+            <p className="flex min-w-0 items-center gap-2">
+              <span className="truncate text-[13.5px] font-medium text-brand-navy">{title}</span>
+              <StatusBadge isActive={isActive} />
+            </p>
             {meta ? (
               <p className="mt-0.5 truncate text-[12px] text-dash-muted">{meta}</p>
             ) : null}
           </div>
-          <span className="shrink-0 text-[12px] text-dash-muted">
-            {isActive ? "Active" : "Archived"}
-          </span>
         </button>
       </li>
     );
@@ -164,32 +175,34 @@ export function OhCatalogRow({
       <div className="flex min-w-0 items-start gap-2.5">
         <CatalogColorSwatch color={color} />
         <div className="min-w-0">
-          <p className="truncate text-[13.5px] font-medium text-brand-navy">{title}</p>
+          <p className="flex min-w-0 items-center gap-2">
+            <span className="truncate text-[13.5px] font-medium text-brand-navy">{title}</span>
+            <StatusBadge isActive={isActive} />
+          </p>
           {meta ? (
             <p className="mt-0.5 truncate text-[12px] text-dash-muted">{meta}</p>
           ) : null}
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-3">
-        <span className="text-[12px] text-dash-muted">
-          {isActive ? "Active" : "Archived"}
-        </span>
         {onEdit ? (
           <button
             type="button"
-            className="text-[13px] font-medium text-brand-primary hover:underline"
+            className="inline-flex items-center gap-1 text-[13px] font-medium text-brand-primary hover:underline"
             onClick={onEdit}
           >
+            <HugeiconsIcon icon={PencilEdit01Icon} size={14} strokeWidth={1.8} />
             Edit
           </button>
         ) : null}
         {onArchive ? (
           <button
             type="button"
-            className="text-[13px] text-dash-muted hover:text-brand-navy disabled:opacity-50"
+            className="inline-flex items-center gap-1 text-[13px] text-dash-muted hover:text-brand-navy disabled:opacity-50"
             disabled={archiving || !isActive}
             onClick={onArchive}
           >
+            <HugeiconsIcon icon={Archive01Icon} size={14} strokeWidth={1.8} />
             {archiving ? "Archiving" : "Archive"}
           </button>
         ) : null}

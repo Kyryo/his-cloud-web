@@ -112,6 +112,10 @@ export async function fetchOhEmployers() {
   return response.results;
 }
 
+export async function fetchOhEmployer(uuid: string) {
+  return bffRequest<OhEmployer>(BFF_OCCUPATIONAL_HEALTH_ROUTES.employer(uuid));
+}
+
 export async function createOhEmployer(payload: {
   name: string;
   code?: string;

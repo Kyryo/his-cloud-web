@@ -42,6 +42,8 @@ function OhModuleSettingsTabsInner() {
       params.delete("tab");
     } else {
       params.set("tab", tab);
+      params.delete("employer");
+      params.delete("section");
     }
     const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });

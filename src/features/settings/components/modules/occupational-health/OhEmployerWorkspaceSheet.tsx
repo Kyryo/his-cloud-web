@@ -1,9 +1,12 @@
 "use client";
 
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Archive01Icon, PencilEdit01Icon } from "@hugeicons/core-free-icons";
 import { Loader2 } from "lucide-react";
 import { useState } from "react";
 
 import { PrimaryButton } from "@/components/ui/app-buttons";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -48,6 +51,8 @@ const TABS: Array<{ id: OhEmployerWorkspaceTabId; label: string }> = [
 type OhEmployerWorkspaceSheetProps = {
   employer: OhEmployer | null;
   open: boolean;
+  section: OhEmployerWorkspaceTabId;
+  onSectionChange: (section: OhEmployerWorkspaceTabId) => void;
   onOpenChange: (open: boolean) => void;
   onEmployerUpdated: (employer: OhEmployer) => void;
   onEmployerArchived: (uuid: string) => void;
@@ -56,26 +61,13 @@ type OhEmployerWorkspaceSheetProps = {
 export function OhEmployerWorkspaceSheet({
   employer,
   open,
+  section,
+  onSectionChange,
   onOpenChange,
   onEmployerUpdated,
   onEmployerArchived,
 }: OhEmployerWorkspaceSheetProps) {
   const { toast } = useToast();
-  const [tabState, setTabState] = useState<{
-    employerId: string;
-    tab: OhEmployerWorkspaceTabId;
-  }>({ employerId: "", tab: "risk-profiles" });
-  const activeTab =
-    employer && tabState.employerId === employer.uuid
-      ? tabState.tab
-      : "risk-profiles";
-
-  function setActiveTab(tab: OhEmployerWorkspaceTabId) {
-    if (!employer) {
-      return;
-    }
-    setTabState({ employerId: employer.uuid, tab });
-  }
   const [editOpen, setEditOpen] = useState(false);
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
@@ -169,9 +161,17 @@ export function OhEmployerWorkspaceSheet({
           <SheetHeader className="space-y-0 border-b border-dash-border px-5 py-4 pr-12 text-left">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <SheetTitle className="truncate text-[16px] font-semibold tracking-tight text-brand-navy">
-                  {employer?.name ?? "Employer"}
-                </SheetTitle>
+                <div className="flex min-w-0 items-center gap-2">
+                  <SheetTitle className="truncate text-[16px] font-semibold tracking-tight text-brand-navy">
+                    {employer?.name ?? "Employer"}
+                  </SheetTitle>
+                  <Badge
+                    variant={employer?.is_active === false ? "outline" : "success"}
+                    className="shrink-0"
+                  >
+                    {employer?.is_active === false ? "Inactive" : "Active"}
+                  </Badge>
+                </div>
                 <SheetDescription className="mt-0.5 truncate text-[13px] text-dash-muted">
                   {meta || "Risk profiles, departments and job titles."}
                 </SheetDescription>
@@ -180,8 +180,9 @@ export function OhEmployerWorkspaceSheet({
                 type="button"
                 onClick={openEdit}
                 disabled={!employer}
-                className="shrink-0 text-[13px] font-medium text-brand-primary hover:underline disabled:opacity-50"
+                className="inline-flex shrink-0 items-center gap-1.5 text-[13px] font-medium text-brand-primary hover:underline disabled:opacity-50"
               >
+                <HugeiconsIcon icon={PencilEdit01Icon} size={15} strokeWidth={1.8} />
                 Edit
               </button>
             </div>
@@ -192,12 +193,12 @@ export function OhEmployerWorkspaceSheet({
             className="flex gap-6 overflow-x-auto border-b border-dash-border px-5 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
           >
             {TABS.map((tab) => {
-              const isActive = activeTab === tab.id;
+              const isActive = section === tab.id;
               return (
                 <button
                   key={tab.id}
                   type="button"
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => onSectionChange(tab.id)}
                   aria-current={isActive ? "page" : undefined}
                   className={cn(
                     "-mb-px shrink-0 border-b-2 py-2.5 text-[13px]",
@@ -216,17 +217,17 @@ export function OhEmployerWorkspaceSheet({
             {employer ? (
               <>
                 <OhHazardProfilesSettingsTab
-                  isActive={activeTab === "risk-profiles"}
+                  isActive={section === "risk-profiles"}
                   employer={employer}
                   embedded
                 />
                 <OhDepartmentsSettingsTab
-                  isActive={activeTab === "departments"}
+                  isActive={section === "departments"}
                   employer={employer}
                   embedded
                 />
                 <OhJobTitlesSettingsTab
-                  isActive={activeTab === "job-titles"}
+                  isActive={section === "job-titles"}
                   employer={employer}
                   embedded
                 />
@@ -234,7 +235,7 @@ export function OhEmployerWorkspaceSheet({
             ) : null}
           </div>
 
-          <div className="flex items-center justify-between border-t border-dash-border px-5 py-3">
+          <div className="flex items-center border-t border-dash-border px-5 py-3">
             <button
               type="button"
               className="inline-flex items-center gap-1.5 text-[13px] text-red-700 hover:underline disabled:opacity-50"
@@ -243,12 +244,11 @@ export function OhEmployerWorkspaceSheet({
             >
               {isArchiving ? (
                 <Loader2 className="size-3.5 animate-spin" aria-hidden />
-              ) : null}
+              ) : (
+                <HugeiconsIcon icon={Archive01Icon} size={15} strokeWidth={1.8} />
+              )}
               {isArchiving ? "Archiving" : "Archive employer"}
             </button>
-            <span className="text-[12px] text-dash-muted">
-              {employer?.is_active === false ? "Inactive" : "Active"}
-            </span>
           </div>
         </SheetContent>
       </Sheet>
