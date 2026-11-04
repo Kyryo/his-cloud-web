@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Check } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -213,29 +214,50 @@ function CaptureItem({
     (field) => field.prompt_after_select !== false,
   );
   const owner = fieldOwnerKey(sectionCode, item.code);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const showDetails = checked && detailsOpen && promptFields.length > 0;
+
+  function handleRowClick() {
+    if (disabled) {
+      return;
+    }
+    if (!checked) {
+      onToggle();
+      if (promptFields.length > 0) {
+        setDetailsOpen(true);
+      }
+      return;
+    }
+    if (showDetails) {
+      setDetailsOpen(false);
+      return;
+    }
+    onToggle();
+    setDetailsOpen(false);
+  }
+
+  function handleOption(fieldCode: string, next: string) {
+    onSetField(owner, fieldCode, next);
+    setDetailsOpen(false);
+  }
 
   return (
-    <li
-      className={cn(
-        "rounded-md transition-colors",
-        promptFields.length > 0 && checked && "sm:col-span-2",
-        checked ? "bg-brand-tint/55" : "hover:bg-slate-50",
-      )}
-    >
+    <li className={cn("rounded-md", showDetails && "bg-brand-tint/40 sm:col-span-2")}>
       <button
         type="button"
         role={exclusive ? "radio" : "checkbox"}
         aria-checked={checked}
+        aria-expanded={promptFields.length > 0 ? showDetails : undefined}
         disabled={disabled}
-        onClick={onToggle}
-        className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-[13.5px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30 disabled:opacity-60"
+        onClick={handleRowClick}
+        className="flex w-full items-center gap-2.5 rounded-md px-2 py-1.5 text-left text-[13.5px] hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-primary/30 disabled:opacity-60"
       >
         <SelectionGlyph exclusive={exclusive} checked={checked} />
         <span className={cn("min-w-0 flex-1", checked ? "font-medium text-brand-navy" : "text-brand-navy")}>
           {item.name}
         </span>
       </button>
-      {checked && promptFields.length > 0 ? (
+      {showDetails ? (
         <div className="space-y-3 pb-3 pl-10 pr-2">
           {promptFields.map((field) =>
             field.options?.length ? (
@@ -244,7 +266,7 @@ function CaptureItem({
                 field={field}
                 value={answers.fields[owner]?.[field.code] ?? ""}
                 disabled={disabled}
-                onChange={(next) => onSetField(owner, field.code, next)}
+                onChange={(next) => handleOption(field.code, next)}
               />
             ) : (
               <FieldInput
