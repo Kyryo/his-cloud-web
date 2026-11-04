@@ -14,7 +14,7 @@ export function OhQueueEmptyState({ onRefresh }: OhQueueEmptyStateProps) {
         <ClipboardList className="size-7" strokeWidth={1.75} aria-hidden="true" />
       </div>
       <h2 className="mt-5 text-lg font-semibold text-brand-navy">
-        No OH encounters in queue
+        No OHS encounters in queue
       </h2>
       <p className="mt-2 max-w-sm text-sm text-brand-muted">
         Active occupational health visits will appear here once clients are

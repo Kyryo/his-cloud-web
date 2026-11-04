@@ -5,7 +5,7 @@ export async function GET(request: Request) {
   return handleClinicalObjectGet(
     request,
     CUSTOMERS_API_PATHS.summaryStats,
-    [],
+    ["has_employment_episode"],
     "user",
   );
 }

@@ -127,6 +127,7 @@ export const ROUTES = {
   clinicalDentalEncounter: (visitUuid: string, encounterUuid: string) =>
     `/clinical/dental/${visitUuid}/${encounterUuid}`,
   occupationalHealth: "/occupational-health",
+  occupationalHealthEmployees: "/occupational-health/employees",
   occupationalHealthCompliance: "/occupational-health/compliance",
   occupationalHealthSurveillance: "/occupational-health/surveillance",
   occupationalHealthRecalls: (customerUuid?: string) =>

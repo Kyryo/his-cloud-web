@@ -43,6 +43,10 @@ function buildCustomersQuery(filters: CustomerListFilters = {}): string {
     params.set("membership_number", filters.membershipNumber.trim());
   }
 
+  if (filters.hasEmploymentEpisode) {
+    params.set("has_employment_episode", "1");
+  }
+
   const query = params.toString();
   return query ? `?${query}` : "";
 }

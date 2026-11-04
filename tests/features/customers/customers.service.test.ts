@@ -38,6 +38,23 @@ describe("customers.service", () => {
     );
   });
 
+  it("fetches employees via has_employment_episode", async () => {
+    vi.mocked(bffRequest).mockResolvedValue({
+      results: [],
+      pagination: { count: 0, next: null, previous: null },
+    });
+
+    await fetchCustomers({
+      page: 1,
+      pageSize: 20,
+      hasEmploymentEpisode: true,
+    });
+
+    expect(bffRequest).toHaveBeenCalledWith(
+      `${BFF_CUSTOMERS_ROUTES.list}?page=1&page_size=20&has_employment_episode=1`,
+    );
+  });
+
   it("creates a customer via the BFF", async () => {
     const payload = {
       first_name: "Jane",

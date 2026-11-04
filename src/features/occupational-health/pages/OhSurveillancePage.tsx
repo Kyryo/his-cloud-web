@@ -131,7 +131,7 @@ export function OhSurveillancePage() {
       <ListPageHeaderSection className="border-b border-brand-border bg-white px-4 py-5 md:px-6">
         <ListPageHeaderTopRow>
           <ListPageHeaderTitleBlock
-            title="OH surveillance"
+            title="OHS Surveillance"
             description="Due and overdue surveillance requirements plus campaign queue."
           />
           <ListPageHeaderActions>

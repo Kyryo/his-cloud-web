@@ -55,7 +55,11 @@ export function countActiveCustomerFilters(
 }
 
 export function buildCustomerListFilters(
-  state: CustomerListFilterState & { page: number; pageSize: number },
+  state: CustomerListFilterState & {
+    page: number;
+    pageSize: number;
+    hasEmploymentEpisode?: boolean;
+  },
 ) {
   return {
     search: state.search.trim() || undefined,
@@ -68,5 +72,6 @@ export function buildCustomerListFilters(
         : state.activeStatus === "active",
     ordering: state.ordering,
     tags: state.tags.length > 0 ? state.tags : undefined,
+    hasEmploymentEpisode: state.hasEmploymentEpisode || undefined,
   };
 }

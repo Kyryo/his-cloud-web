@@ -79,7 +79,7 @@ export function OhQueuePage() {
         ) : error ? (
           <div className="rounded-xl border border-red-200 bg-red-50 p-6">
             <h2 className="text-sm font-semibold text-red-800">
-              Could not load OH queue
+              Could not load OHS Queue
             </h2>
             <p className="mt-2 text-sm text-red-700">
               Failed to load occupational health encounters.

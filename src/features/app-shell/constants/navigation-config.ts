@@ -23,7 +23,7 @@ export const moduleDisplayNames: Record<string, string> = {
   Inventory: "Inventory",
   Clinical: "EMR",
   Therapy: "Therapy",
-  OccupationalHealth: "OH",
+  OccupationalHealth: "OHS",
 };
 
 export const moduleIcons: Record<string, AppIconName> = {
@@ -272,7 +272,7 @@ export const navigation: NavigationItem[] = [
     }),
   ),
   {
-    name: "OH Queue",
+    name: "OHS Queue",
     href: ROUTES.occupationalHealth,
     icon: "clipboard",
     requiredGroup: "OccupationalHealth",
@@ -280,7 +280,15 @@ export const navigation: NavigationItem[] = [
     enabledInWebNew: true,
   },
   {
-    name: "OH Compliance",
+    name: "Employees",
+    href: ROUTES.occupationalHealthEmployees,
+    icon: "users",
+    requiredGroup: "OccupationalHealth",
+    moduleName: "OccupationalHealth",
+    enabledInWebNew: true,
+  },
+  {
+    name: "OHS Compliance",
     href: ROUTES.occupationalHealthCompliance,
     icon: "clipboard",
     requiredGroup: "OccupationalHealth",
@@ -288,7 +296,7 @@ export const navigation: NavigationItem[] = [
     enabledInWebNew: true,
   },
   {
-    name: "OH Surveillance",
+    name: "OHS Surveillance",
     href: ROUTES.occupationalHealthSurveillance,
     icon: "clipboard",
     requiredGroup: "OccupationalHealth",

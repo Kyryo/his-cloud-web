@@ -22,9 +22,16 @@ type CustomerSummaryStatsResponse = {
   average_age: number;
 };
 
-export async function fetchCustomerSummaryStats(): Promise<CustomerSummaryStats> {
+export async function fetchCustomerSummaryStats(options?: {
+  hasEmploymentEpisode?: boolean;
+}): Promise<CustomerSummaryStats> {
+  const params = new URLSearchParams();
+  if (options?.hasEmploymentEpisode) {
+    params.set("has_employment_episode", "1");
+  }
+  const query = params.toString();
   const data = await bffRequest<CustomerSummaryStatsResponse>(
-    BFF_CUSTOMERS_ROUTES.summaryStats,
+    `${BFF_CUSTOMERS_ROUTES.summaryStats}${query ? `?${query}` : ""}`,
   );
 
   return {

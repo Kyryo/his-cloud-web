@@ -83,7 +83,7 @@ export function OhCompliancePage() {
       <ListPageHeaderSection className="border-b border-brand-border bg-white px-4 py-5 md:px-6">
         <ListPageHeaderTopRow>
           <ListPageHeaderTitleBlock
-            title="OH compliance"
+            title="OHS Compliance"
             description="Surveillance requirement counts for your organization."
           />
           <ListPageHeaderActions>

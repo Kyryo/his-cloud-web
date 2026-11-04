@@ -146,7 +146,7 @@ export function OhEncounterWorkspacePage({
         description="This occupational health encounter could not be loaded. It may have been removed, or you may not have access."
         action={
           <SecondaryButton asChild>
-            <Link href={ROUTES.occupationalHealth}>Back to OH queue</Link>
+            <Link href={ROUTES.occupationalHealth}>Back to OHS Queue</Link>
           </SecondaryButton>
         }
         data-testid="oh-encounter-not-found"
@@ -162,7 +162,7 @@ export function OhEncounterWorkspacePage({
           encounter={encounter}
           actions={
             <SecondaryButton asChild>
-              <Link href={ROUTES.occupationalHealth}>OH queue</Link>
+              <Link href={ROUTES.occupationalHealth}>OHS Queue</Link>
             </SecondaryButton>
           }
         />
