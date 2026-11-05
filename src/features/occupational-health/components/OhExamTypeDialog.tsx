@@ -99,10 +99,13 @@ function ExamTypeChoices({
   const [examType, setExamType] = useState<MedicalExamStartType | "">(initialExamType);
 
   function handleConfirm() {
-    if (!MEDICAL_EXAM_START_TYPES.some((option) => option.value === examType)) {
+    const selected = MEDICAL_EXAM_START_TYPES.find(
+      (option) => option.value === examType,
+    );
+    if (!selected) {
       return;
     }
-    onConfirm(examType);
+    onConfirm(selected.value);
   }
 
   return (
