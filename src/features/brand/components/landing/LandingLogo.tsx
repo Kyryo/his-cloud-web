@@ -12,19 +12,33 @@ type LandingLogoProps = {
   linked?: boolean;
   /** Icon + SigmaHealth wordmark lockup (header). */
   showWordmark?: boolean;
+  /** `inverse` for dark panels (white wordmark). */
+  tone?: "default" | "inverse";
 };
 
-function SigmaHealthWordmark({ className }: { className?: string }) {
+type SigmaHealthWordmarkProps = {
+  className?: string;
+  tone?: "default" | "inverse";
+};
+
+/** Matches the Sigma Health logo lockup: larger Sigma + smaller Health. */
+export function SigmaHealthWordmark({
+  className,
+  tone = "default",
+}: SigmaHealthWordmarkProps) {
   return (
     <span
       className={cn(
-        "font-[family-name:var(--font-display)] text-[1.0625rem] font-semibold leading-none tracking-[-0.018em] text-[color:var(--landing-ink)] sm:text-[1.2rem]",
+        "inline-flex items-baseline font-[family-name:var(--font-display)] text-[1.0625rem] font-semibold leading-none tracking-[-0.018em] sm:text-[1.2rem]",
+        tone === "inverse"
+          ? "text-white"
+          : "text-[color:var(--landing-ink)]",
         className,
       )}
       aria-hidden="true"
     >
-      <span className="font-semibold">Sigma</span>
-      Health
+      <span>Sigma</span>
+      <span className="ml-[0.16em] text-[0.55em]">Health.</span>
     </span>
   );
 }
@@ -35,6 +49,7 @@ export function LandingLogo({
   priority = false,
   linked = true,
   showWordmark = false,
+  tone = "default",
 }: LandingLogoProps) {
   const image = (
     <Image
@@ -51,7 +66,7 @@ export function LandingLogo({
   const lockup = showWordmark ? (
     <>
       {image}
-      <SigmaHealthWordmark />
+      <SigmaHealthWordmark tone={tone} />
     </>
   ) : (
     <Image
@@ -81,7 +96,7 @@ export function LandingLogo({
         wrapperClass,
         "landing-focus rounded-lg transition-opacity hover:opacity-90",
       )}
-      aria-label="SigmaHealth home"
+      aria-label="Sigma Health home"
     >
       {lockup}
     </Link>

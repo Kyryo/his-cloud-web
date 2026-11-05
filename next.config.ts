@@ -24,6 +24,12 @@ const nextConfig: NextConfig = {
   assetPrefix,
   images: {
     qualities: [75, 90, 92],
+    remotePatterns: [
+      { protocol: "https", hostname: "**" },
+      { protocol: "http", hostname: "**" },
+      { protocol: "http", hostname: "localhost", port: "8000", pathname: "/media/**" },
+      { protocol: "http", hostname: "127.0.0.1", port: "8000", pathname: "/media/**" },
+    ],
   },
   turbopack: {
     root: appRoot,

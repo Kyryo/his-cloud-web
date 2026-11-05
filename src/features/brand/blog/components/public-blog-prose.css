@@ -1,0 +1,119 @@
+.public-blog-prose {
+  color: var(--landing-ledger-ink);
+  font-size: 1.0625rem;
+  line-height: 1.75;
+  overflow-wrap: anywhere;
+}
+
+.public-blog-prose > * + * {
+  margin-top: 1em;
+}
+
+.public-blog-prose :is(h2, h3, h4) {
+  color: var(--landing-ink);
+  font-family: var(--font-bricolage), ui-serif, Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+}
+
+.public-blog-prose :is(h2, h3, h4):not(:first-child) {
+  margin-top: 2em;
+}
+
+.public-blog-prose h2 {
+  font-size: 1.625rem;
+}
+
+.public-blog-prose h3 {
+  font-size: 1.35rem;
+}
+
+.public-blog-prose h4 {
+  font-size: 1.15rem;
+}
+
+.public-blog-prose a {
+  color: var(--landing-teal);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.public-blog-prose a:hover {
+  color: var(--landing-ink);
+}
+
+.public-blog-prose :is(ul, ol) {
+  padding-left: 1.35rem;
+}
+
+.public-blog-prose ul {
+  list-style: disc;
+}
+
+.public-blog-prose ol {
+  list-style: decimal;
+}
+
+.public-blog-prose li + li {
+  margin-top: 0.35em;
+}
+
+.public-blog-prose blockquote {
+  border-left: 3px solid var(--landing-teal);
+  color: var(--landing-ink);
+  margin-left: 0;
+  padding-left: 1rem;
+}
+
+.public-blog-prose img {
+  border-radius: 0.75rem;
+  height: auto;
+  max-width: 100%;
+}
+
+.public-blog-prose pre {
+  background: #111;
+  border-radius: 0.75rem;
+  color: #f5f5f5;
+  overflow-x: auto;
+  padding: 1rem 1.15rem;
+}
+
+.public-blog-prose code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.9em;
+}
+
+.public-blog-prose :not(pre) > code {
+  background: var(--landing-warm);
+  border-radius: 0.35rem;
+  padding: 0.1em 0.35em;
+}
+
+.public-blog-prose table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.public-blog-prose th,
+.public-blog-prose td {
+  border: 1px solid var(--landing-border);
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+}
+
+.public-blog-prose th {
+  background: var(--landing-warm);
+  color: var(--landing-ink);
+  font-weight: 600;
+}
+
+.public-blog-prose iframe {
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 0.75rem;
+  height: auto;
+  max-width: 100%;
+  width: 100%;
+}

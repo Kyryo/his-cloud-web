@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
-import { bffRequest } from "@/lib/bff-client";
+import { ROUTES } from "@/constants/routes";
 import { OverviewSectionSkeleton } from "@/features/overview/components/OverviewWorkspaceSkeleton";
+import { marketingHref } from "@/lib/app-url";
+import { bffRequest } from "@/lib/bff-client";
 
 export type OverviewBlogPost = {
   title: string;
@@ -72,9 +74,7 @@ export function OverviewBlogSection() {
           return (
             <li key={post.slug}>
               <a
-                href={`https://blog.sigmahmis.com/${post.slug}`}
-                target="_blank"
-                rel="noreferrer"
+                href={marketingHref(ROUTES.blogPost(post.slug))}
                 className="group flex items-start gap-3"
               >
                 {post.image_url ? (

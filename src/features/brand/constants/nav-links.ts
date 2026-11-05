@@ -71,11 +71,6 @@ export const BRAND_NAV_ITEMS = [
     ],
   },
   {
-    kind: "link",
-    name: "Pricing",
-    href: ROUTES.pricing,
-  },
-  {
     kind: "menu",
     name: "About",
     href: ROUTES.about,
@@ -122,7 +117,7 @@ export const BRAND_NAV_ITEMS = [
         items: [
           {
             name: "Blog",
-            href: "https://blog.sigmahmis.com",
+            href: ROUTES.blog,
             description: "Product notes, guides, and clinic stories",
           },
           {
@@ -136,9 +131,15 @@ export const BRAND_NAV_ITEMS = [
   },
   {
     kind: "link",
+    name: "Blog",
+    href: ROUTES.blog,
+  },
+  {
+    kind: "link",
     name: "Contact",
     href: ROUTES.contacts,
   },
+  
 ] as const satisfies readonly BrandNavItem[];
 
 export function getMenuChildLinks(

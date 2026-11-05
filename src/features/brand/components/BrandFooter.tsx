@@ -23,7 +23,7 @@ const FOOTER_COLUMNS = [
       { label: "Pricing", href: ROUTES.pricing },
       {
         label: "Blog",
-        href: "https://blog.sigmahmis.com",
+        href: ROUTES.blog,
       },
       {
         label: "Documentation",

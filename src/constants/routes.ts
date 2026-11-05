@@ -221,6 +221,9 @@ export const ROUTES = {
   privacy: "/privacy",
   terms: "/terms",
   company: "/company",
+  blog: "/blog",
+  blogPost: (slug: string) => `/blog/${slug}`,
+  blogFeed: "/blog/feed.xml",
   reportsExports: "/reports",
   reportsAppointmentsToday: "/reports/appointments/today",
   reportsExportHistory: "/reports/history",
@@ -293,6 +296,7 @@ export const PUBLIC_ROUTES = [
   ROUTES.privacy,
   ROUTES.terms,
   ROUTES.company,
+  ROUTES.blog,
 ] as const;
 
 export const AUTH_ROUTES = [ROUTES.auth, ROUTES.signup] as const;
@@ -342,6 +346,7 @@ export const MARKETING_ROUTE_PREFIXES = [
   ROUTES.privacy,
   ROUTES.terms,
   ROUTES.company,
+  ROUTES.blog,
   "/unsubscribe",
   "/design-review",
 ] as const;

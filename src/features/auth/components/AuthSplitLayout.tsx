@@ -1,9 +1,7 @@
 import Image from "next/image";
-import Link from "next/link";
 import type { ReactNode } from "react";
 
-import { ROUTES } from "@/constants/routes";
-import { LANDING_LOGO_SRC } from "@/features/brand/constants/landing-tokens";
+import { LandingLogo } from "@/features/brand/components/landing/LandingLogo";
 import { cn } from "@/lib/utils";
 
 type AuthSplitLayoutProps = {
@@ -48,23 +46,13 @@ export function AuthSplitLayout({
           className="absolute inset-0 bg-gradient-to-t from-[#1f2a24] via-[#1f2a24]/55 to-[#1f2a24]/25"
         />
 
-        <Link
-          href={ROUTES.home}
-          className="relative z-10 inline-flex items-center gap-2"
-          aria-label="SigmaHealth home"
-        >
-          <Image
-            src={LANDING_LOGO_SRC}
-            alt=""
-            width={128}
-            height={128}
-            className="h-7 w-auto object-contain sm:h-8"
-            aria-hidden="true"
-          />
-          <span className="font-[family-name:var(--font-bricolage)] text-[0.95rem] font-semibold tracking-[-0.018em] text-white">
-            SigmaHealth
-          </span>
-        </Link>
+        <LandingLogo
+          className="relative z-10"
+          priority
+          showWordmark
+          tone="inverse"
+          imageClassName="h-7 w-auto sm:h-8"
+        />
 
         <div className="relative z-10 mt-8 max-w-md lg:mt-0">
           <h1 className="whitespace-pre-line font-[family-name:var(--font-bricolage)] text-[clamp(1.5rem,3vw,2.35rem)] font-semibold leading-[1.12] tracking-[-0.02em] text-white text-balance">
